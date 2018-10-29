@@ -44,7 +44,13 @@ namespace Kratos
             // Tolerance
             static constexpr double tolerance = 1.0e-9;
 
-            // Sort Principal Stresses, Strains, and Directions to magnitude order
+
+            /**
+             * @brief Sort Principal Stresses, Strains, and Directions to magnitude order.
+             * @param[in/out] rPrincipalStress The principal stresses to be sorted in descending magnitude order.
+             * @param[in/out] rMainStrain The principal strain corresponding to the stresses.
+             * @param[in/out] rMainDirections The eigen directions corresponding to the stresses.
+             */
             static inline void SortPrincipalStress(Vector& rPrincipalStress, Vector& rMainStrain, Matrix& rMainDirections)
             {
                   // Create Copy
@@ -96,7 +102,13 @@ namespace Kratos
                   }
             }
 
-            // Calculate invariants I1 and J2 of a tensor
+
+            /**
+             * @brief Calculate invariants I1 and J2 of a tensor.
+             * @param[in] rVector Input principal tensor.
+             * @param[out] rI1 First stress tensor invariant.
+             * @param[out] rJ2 Second stress deviator tensor invariant.
+             */
             static inline void CalculateTensorInvariants( const Vector& rVector, double& rI1, double& rJ2 )
             {
                   // Purely calculate invariant I1 = trace(rVector)
@@ -118,7 +130,14 @@ namespace Kratos
 
             }
 
-            // Calculate invariants I1, J2, and J3 of a tensor
+
+            /**
+             * @brief Calculate invariants I1, J2, and J3 of a tensor.
+             * @param[in] rVector Input principal tensor.
+             * @param[out] rI1 First stress tensor invariant.
+             * @param[out] rJ2 Second stress deviator tensor invariant.
+             * @param[out] rJ3 Third stress deviator tensor invariant.
+             */
             static inline void CalculateTensorInvariants( const Vector& rVector, double& rI1, double& rJ2, double& rJ3 )
             {
                   CalculateTensorInvariants( rVector, rI1, rJ2 );
@@ -132,7 +151,14 @@ namespace Kratos
                   rJ3 = MathUtils<double>::Det(tensor); // J_3 = det(tensor)
             }
 
-            // Calculate derivatives of invariants dI1/dtensor, dJ2/dtensor, and dJ3/dtensor
+
+            /**
+             * @brief Calculate derivatives of invariants dI1/dtensor, dJ2/dtensor, and dJ3/dtensor.
+             * @param[in] rVector Input principal tensor.
+             * @param[out] rDI1 First derivative of first stress tensor invariant.
+             * @param[out] rDJ2 First derivative of second stress deviator tensor invariant.
+             * @param[out] rDJ3 First derivative of third stress deviator tensor invariant.
+             */
             static inline void CalculateTensorInvariantsDerivatives( const Vector& rVector, Vector& rDI1, Vector& rDJ2, Vector& rDJ3 )
             {
                   double i_1, j_2, j_3;
@@ -159,7 +185,14 @@ namespace Kratos
 
             }
 
-            // Calculate second derivatives of invariants d2I1/d2tensor, d2J2/d2tensor, and d2J3/d2tensor
+
+            /**
+             * @brief Calculate second derivatives of invariants d2I1/d2tensor, d2J2/d2tensor, and d2J3/d2tensor.
+             * @param[in] rVector Input principal tensor.
+             * @param[out] rD2I1 Second derivative of first stress tensor invariant.
+             * @param[out] rD2J2 Second derivative of second stress deviator tensor invariant.
+             * @param[out] rD2J3 Second derivative of third stress deviator tensor invariant.
+             */
             static inline void CalculateTensorInvariantsSecondDerivatives( const Vector& rVector, Matrix& rD2I1, Matrix& rD2J2, Matrix& rD2J3 )
             {
                   // This function should return a forth-order tensor and thus the current usage is limited only to rVector.size() = 3
@@ -200,7 +233,13 @@ namespace Kratos
 
             }
 
-            // Calculate stress invariants p (volumetric equivalent) and q (deviatoric equivalent)
+
+            /**
+             * @brief Calculate stress invariants p (volumetric equivalent) and q (deviatoric equivalent).
+             * @param[in] rStress Input principal stress tensor.
+             * @param[out] rMeanStressP Hydrostatic mean stress.
+             * @param[out] rDeviatoricQ Deviatoric stress component.
+             */
             static inline void CalculateStressInvariants( const Vector& rStress, double& rMeanStressP, double& rDeviatoricQ)
             {
                   CalculateTensorInvariants(rStress, rMeanStressP, rDeviatoricQ);
@@ -212,7 +251,12 @@ namespace Kratos
                   rDeviatoricQ = std::sqrt(3 * rDeviatoricQ);
             }
 
-            // Calculate the third stress invariants lode angle (we are using positive sine definition)
+
+            /**
+             * @brief Calculate the third stress invariants lode angle (we are using positive sine definition).
+             * @param[in] rStress Input principal tensor.
+             * @param[out] rLodeAngle Third stress invariant direction used for non-circular octahedral profile yield surface.
+             */
             static inline void CalculateThirdStressInvariant(const Vector& rStress, double& rLodeAngle)
             {
                   double i_1, j_2, j_3;
@@ -230,7 +274,14 @@ namespace Kratos
 
             }
 
-            // Calculate stress invariants p, q, and lode angle
+
+            /**
+             * @brief Calculate stress invariants p, q, and lode angle.
+             * @param[in] rStress Input principal stress tensor.
+             * @param[out] rMeanStressP Hydrostatic mean stress.
+             * @param[out] rDeviatoricQ Deviatoric stress component.
+             * @param[out] rLodeAngle Third stress invariant direction used for non-circular octahedral profile yield surface.
+             */
             static inline void CalculateStressInvariants( const Vector& rStress, double& rMeanStressP, double& rDeviatoricQ, double& rLodeAngle)
             {
                   // Calculate first two stress invariant
@@ -240,7 +291,13 @@ namespace Kratos
                   CalculateThirdStressInvariant(rStress, rLodeAngle);
             }
 
-            // Calculate stress invariant derivatives dp/dsigma (volumetric) and dq/dsigma (deviatoric)
+
+            /**
+             * @brief Calculate stress invariant derivatives dp/dsigma (volumetric) and dq/dsigma (deviatoric).
+             * @param[in] rStress Input principal stress tensor.
+             * @param[out] rC1 Hydrostatic mean stress derivative with respect to principal stresses.
+             * @param[out] rC2 Deviatoric stress derivative with respect to principal stresses.
+             */
             static inline void CalculateDerivativeVectors( const Vector rStress, Vector& rC1, Vector& rC2)
             {
                   // Calculate stress invariants
@@ -264,7 +321,14 @@ namespace Kratos
 
             }
 
-            // Calculate stress invariant derivatives dp/dsigma (volumetric), dq/dsigma (deviatoric), and dlodeangle/dsigma
+
+            /**
+             * @brief Calculate stress invariant derivatives dp/dsigma (volumetric), dq/dsigma (deviatoric), and dlodeangle/dsigma.
+             * @param[in] rStress Input principal stress tensor.
+             * @param[out] rC1 Hydrostatic mean stress derivative with respect to principal stresses.
+             * @param[out] rC2 Deviatoric stress derivative with respect to principal stresses.
+             * @param[out] rC3 Derivative of lode angle with respect to principal stresses.
+             */
             static inline void CalculateDerivativeVectors( const Vector rStress, Vector& rC1, Vector& rC2, Vector& rC3)
             {
                   double i_1, j_2, j_3;
@@ -289,7 +353,13 @@ namespace Kratos
                   }
             }
 
-            // Calculate second stress invariant derivatives d2p/d2sigma (volumetric) and d2q/d2sigma (deviatoric)
+
+            /**
+             * @brief Calculate second stress invariant derivatives d2p/d2sigma (volumetric) and d2q/d2sigma (deviatoric).
+             * @param[in] rStress Input principal stress tensor.
+             * @param[out] r2C1 Hydrostatic mean stress second derivative with respect to principal stresses.
+             * @param[out] r2C2 Deviatoric stress second derivative with respect to principal stresses.
+             */
             static inline void CalculateSecondDerivativeMatrices( const Vector rStress, Matrix& r2C1, Matrix& r2C2)
             {
                   // This function should return a forth-order tensor and thus the current usage is limited only to rStress.size() = 3
@@ -328,7 +398,14 @@ namespace Kratos
 
             }
 
-            // Calculate second stress invariant derivatives d2p/d2sigma (volumetric), d2q/d2sigma (deviatoric), and d2lodeangle/d2sigma
+
+            /**
+             * @brief Calculate second stress invariant derivatives d2p/d2sigma (volumetric), d2q/d2sigma (deviatoric), and d2lodeangle/d2sigma.
+             * @param[in] rStress Input principal stress tensor.
+             * @param[out] r2C1 Hydrostatic mean stress second derivative with respect to principal stresses.
+             * @param[out] r2C2 Deviatoric stress second derivative with respect to principal stresses.
+             * @param[out] r2C3 Second Derivative of lode angle with respect to principal stresses.
+             */
             static inline void CalculateSecondDerivativeMatrices( const Vector rStress, Matrix& r2C1, Matrix& r2C2, Matrix& r2C3)
             {
                   // This function should return a forth-order tensor and thus the current usage is limited only to rStress.size() = 3
@@ -387,32 +464,46 @@ namespace Kratos
                   }
             }
 
-            static Matrix PrincipalVectorToMatrix(const Vector& rVector, const unsigned int& size)
+
+            /**
+             * @brief Transform Stress or Principal stress tensor to Matrix form (fully assuming 3D space).
+             * @param[in] rVector Vector tensor to be transformed.
+             * @param[in] rSize Matrix size, 3 for only principal stresses, 6 for normal stresses.
+             * @return transformed matrix.
+             */
+            static Matrix PrincipalVectorToMatrix(const Vector& rVector, const unsigned int& rSize)
             {
                   Matrix matrix = ZeroMatrix(3);
-                  if (size == 3)
+                  if (rSize == 3)
                   {
                         for(unsigned int i=0; i<3; ++i)
                               matrix(i,i) = rVector[i];
                   }
-                  else if (size == 6)
+                  else if (rSize == 6)
                   {
                         matrix = MathUtils<double>::StressVectorToTensor( rVector );
                   }
                   return matrix;
             }
 
-            static Vector PrincipalMatrixtoVector(const Matrix& rMatrix, const unsigned int& size)
+
+            /**
+             * @brief Transform Stress or Principal stress tensor to Vector form (fully assuming 3D space).
+             * @param[in] rMatrix Matrix tensor to be transformed.
+             * @param[in] rSize Matrix size, 3 for only principal stresses, 6 for normal stresses.
+             * @return transformed vector.
+             */
+            static Vector PrincipalMatrixtoVector(const Matrix& rMatrix, const unsigned int& rSize)
             {
                   Vector vector = ZeroVector(3);
-                  if (size == 3)
+                  if (rSize == 3)
                   {
                         for(unsigned int i=0; i<3; ++i)
                               vector[i] = rMatrix(i,i);
                   }
-                  else if (size == 6)
+                  else if (rSize == 6)
                   {
-                        vector = MathUtils<double>::StressTensorToVector( rMatrix, size );
+                        vector = MathUtils<double>::StressTensorToVector( rMatrix, rSize );
                   }
                   return vector;
             }

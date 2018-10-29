@@ -62,14 +62,11 @@ public:
 
 
     /**
-     * @}
-     */
-    /**
-     * calculates the QR Factorization of given square matrix A=QR.
-     * The Factorization is performed using the householder algorithm
-     * @param A the given square matrix the factorization is to be calculated.
-     * @param Q the result matrix Q
-     * @param R the result matrix R
+     * @brief Calculates the QR Factorization of given square matrix A=QR.
+     *        The Factorization is performed using the householder algorithm.
+     * @param[in]  A The given square matrix the factorization is to be calculated.
+     * @param[out] Q The result matrix Q.
+     * @param[out] R The result matrix R.
      */
     static inline void QRFactorization(const MatrixType& A, MatrixType& Q, MatrixType& R)
     {
@@ -77,7 +74,7 @@ public:
         if(A.size1()!= A.size2())
             KRATOS_ERROR<<" GIVEN MATRIX IS NOT A SQUARE MATRIX: QRFactorization calculation"<<std::endl;
 
-        //QR Factorization with Householder-Algo
+        // QR Factorization with Householder-Algorithm
         unsigned int dim= A.size1();
 
         Vector y(dim);
@@ -115,12 +112,12 @@ public:
 
         for(unsigned int iteration=0; iteration< dim-1; iteration++)
         {
-            //Vector y
+            // Vector y
             for(unsigned int i=iteration; i<dim; i++)
                 y(i)= Help(i,iteration);
 
 
-            //Helpvalue l
+            // Helpvalue l
             double normy=0.0;
 
             for(unsigned int i=iteration; i<dim; i++)
@@ -161,7 +158,7 @@ public:
 
         }
 
-        //Assembling R
+        // Assembling R
         for(unsigned int k=0; k<dim-1; k++)
         {
             for(unsigned int i=k; i<dim; i++)
@@ -169,7 +166,6 @@ public:
                     R(i,j) =HelpR[k](i,j);
 
         }
-
 
         for(unsigned int k=1; k<dim-1; k++)
         {
@@ -186,19 +182,15 @@ public:
 
 
     /**
-     * @}
-      */
-    /**
-     * calculates Eigenvalues of given square matrix A.
-     * The QR Algorithm with shifts is used
-     * @param A the given square matrix the eigenvalues are to be calculated.
-     * @param tolerance convergence criteria
-     * @param zero number treated as zero
-     * @return Vector of eigenvalues
-     * WARNING only valid for 2*2 and 3*3 Matrices yet
+     * @brief Calculates Eigenvalues of given square matrix A.
+     *        The QR Algorithm with shifts is used.
+     * @param[in] A the given square matrix the eigenvalues are to be calculated.
+     * @param[in] rTolerance convergence criteria.
+     * @param[in] rZeroTolerance number treated as zero.
+     * @return Vector of eigenvalues.
+     * @warning Only valid for 2*2 and 3*3 Matrices yet.
      */
-
-    static inline Vector EigenValues(const Matrix& A, double tolerance = 1e-9, double zero = 1e-9)
+    static inline Vector EigenValues(const Matrix& A, const double rTolerance = 1e-9, const double rZeroTolerance = 1e-9)
     {
         unsigned int dim= A.size1();
 
@@ -268,10 +260,10 @@ public:
 
             abs=std::sqrt(abs);
 
-            if(abs < zero)
+            if(abs < rZeroTolerance)
                 abs=1.0;
 
-            if(delta < zero || (delta/abs) < tolerance)
+            if(delta < rZeroTolerance || (delta/abs) < rTolerance)
                 is_converged=true;
 
             iter++;
@@ -282,7 +274,7 @@ public:
         {
             Result(i)= HelpA(i,i);
 
-            if(std::abs(Result(i)) <zero)
+            if(std::abs(Result(i)) <rZeroTolerance)
                 Result(i)=0.0;
         }
 
@@ -291,12 +283,10 @@ public:
 
 
     /**
-     * @}
-     */
-    /**
-     * calculates the Eigenvalues using a direct method.
+     * @brief Calculates the Eigenvalues using a direct method.
      * @param A the given square matrix the eigenvalues are to be calculated.
-     * WARNING only valid symmetric 3*3 Matrices
+     * @return Vector of eigenvalues.
+     * @warning only valid symmetric 3*3 Matrices.
      */
     static inline Vector EigenValuesDirectMethod(const Matrix& A)
     {
@@ -352,23 +342,20 @@ public:
 
 
     /**
-     * @}
-     */
-    /**
-     * calculates the Eigenvectors and Eigenvalues of given symmetric matrix A.
-     * The eigenvectors and eigenvalues are calculated using the iterative
-     * Gauss-Seidel-method
-     * @param A the given symmetric matrix where the eigenvectors have to be calculated.
-     * @param vectors where the eigenvectors will be stored
-     * @param lambda where the eigenvalues will be stored
-     * @param zero_tolerance the largest value considered to be zero
-     * @param max_iterations allowed
+     * @brief Calculates the Eigenvectors and Eigenvalues of given symmetric matrix A.
+     *        The eigenvectors and eigenvalues are calculated using the iterative
+     *        Gauss-Seidel-method.
+     * @param[in] A the given symmetric matrix where the eigenvectors have to be calculated.
+     * @param[out] rEigenVectors Where the eigenvectors will be stored.
+     * @param[out] rEigenValues Where the eigenvalues will be stored.
+     * @param[in] rZeroTolerance The largest value considered to be zero.
+     * @param[in] rMaxIteration Maximum number of iteration allowed.
      */
     static inline void EigenVectors(const MatrixType& A,
-				    MatrixType& vectors,
-				    VectorType& lambda,
-				    double zero_tolerance =1e-9,
-				    unsigned int max_iterations = 10)
+				    MatrixType& rEigenVectors,
+				    VectorType& rEigenValues,
+				    const double rZeroTolerance = 1e-9,
+				    const unsigned int rMaxIteration = 10)
     {
         if(A.size1()!=3 || A.size2()!=3)
             KRATOS_ERROR<<" GIVEN MATRIX IS NOT 3x3: Eigenvectors calculation"<<std::endl;
@@ -380,9 +367,9 @@ public:
                 Help(i,j)= Help(i,j);
 
 
-        vectors.resize(Help.size1(),Help.size2(),false);
+        rEigenVectors.resize(Help.size1(),Help.size2(),false);
 
-        lambda.resize(Help.size1(),false);
+        rEigenValues.resize(Help.size1(),false);
 
         Matrix HelpDummy(Help.size1(),Help.size2());
 
@@ -401,7 +388,7 @@ public:
         Matrix Rotation(Help.size1(),Help.size2());
 
 
-        for(unsigned int iterations=0; iterations<max_iterations; iterations++)
+        for(unsigned int iterations=0; iterations<rMaxIteration; iterations++)
         {
 
             is_converged= true;
@@ -416,7 +403,7 @@ public:
             {
                 for(unsigned int j=(i+1); j< Help.size2(); j++)
                 {
-                    if((std::abs(Help(i,j)) > a ) && (std::abs(Help(i,j)) > zero_tolerance))
+                    if((std::abs(Help(i,j)) > a ) && (std::abs(Help(i,j)) > rZeroTolerance))
                     {
                         a= std::abs(Help(i,j));
 
@@ -437,13 +424,13 @@ public:
 
             double u=1.0;
 
-            if(std::abs(gamma) > zero_tolerance && std::abs(gamma)< (1/zero_tolerance))
+            if(std::abs(gamma) > rZeroTolerance && std::abs(gamma)< (1/rZeroTolerance))
             {
                 u= gamma/std::abs(gamma)*1.0/(std::abs(gamma)+std::sqrt(1.0+gamma*gamma));
             }
             else
             {
-                if  (std::abs(gamma)>= (1.0/zero_tolerance))
+                if  (std::abs(gamma)>= (1.0/rZeroTolerance))
                     u= 0.5/gamma;
             }
 
@@ -502,7 +489,7 @@ public:
         if(!(is_converged))
         {
             KRATOS_INFO("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
-            KRATOS_INFO("ParticleMechanicsMathUtilities")<<"Max_Iterations exceed in Jacobi-Seidel-Iteration (eigenvectors)"<<std::endl;
+            KRATOS_INFO("ParticleMechanicsMathUtilities")<<"rMaxIteration exceed in Jacobi-Seidel-Iteration (eigenvectors)"<<std::endl;
             KRATOS_INFO("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
         }
 
@@ -510,23 +497,21 @@ public:
         {
             for(unsigned int j=0; j< Help.size1(); j++)
             {
-                vectors(i,j)= V(j,i);
+                rEigenVectors(i,j)= V(j,i);
             }
         }
 
         for(unsigned int i=0; i<Help.size1(); i++)
-            lambda(i)= Help(i,i);
+            rEigenValues(i)= Help(i,i);
 
     }
 
 
     /**
-     * @}
-      */
-    /**
-     * calculates hypothenusa of a triangle
-     * @param x first length
-     * @param y second length
+     * @brief Calculates hypothenusa of a triangle.
+     * @param[in] x First length.
+     * @param[in] y Second length.
+     * @return computed hypothenusa.
      */
     static double hypot2(const double x, const double y) {
       return std::sqrt(x*x+y*y);
@@ -534,27 +519,28 @@ public:
 
 
     /**
-     * creates identity matrix.
-     * Given matrix will be overwritten
-     * @param given matrix to be overwritten by identity matrix
+     * @brief Creates identity matrix.
+     *        Given matrix will be overwritten.
+     * @param[in] rSize of the identity.
+     * @return Identity matrix.
      */
-    static inline MatrixType IdentityMatrix( SizeType size )
+    static inline MatrixType IdentityMatrix( SizeType rSize )
     {
-        MatrixType A(size,size);
-        noalias(A) = ZeroMatrix( size, size );
-        for( unsigned int i=0; i<size ; i++ )
+        MatrixType A(rSize,rSize);
+        noalias(A) = ZeroMatrix( rSize, rSize );
+        for( unsigned int i=0; i<rSize ; i++ )
         {
             A(i,i) = 1.0;
         }
         return A;
-    }//IdentityMatrix
+    }
 
 
     /**
-     * Adds two matrices. first argument is overwritten by sum of both
-     * Matrices are assumed to be of same dimension (no check on boundaries is made!)
-     * @param A first matrix argument (overwritten by solution)
-     * @param B second matrix argument
+     * @brief Adds two matrices. First argument is overwritten by sum of both.
+     * @param[in/out] A first matrix argument (overwritten by solution)
+     * @param[in] B second matrix argument
+     * @warning Matrices have to be of the same dimension.
      */
     static inline void Add( MatrixType& A, const MatrixType& B )
     {
@@ -572,9 +558,9 @@ public:
 
 
     /**
-     * multiplies two matrices. Performs operation \f$ C = A B \f$
-     * @param A matrix A
-     * @param B matrix B
+     * @brief Multiplies two matrices. Performs operation \f$ C = A B \f$
+     * @param[in] A matrix A
+     * @param[in] B matrix B
      * @return matrix \f$ C = A B \f$
      */
     static inline MatrixType Mult( const MatrixType& A,
@@ -595,11 +581,13 @@ public:
             }
         }
         return C;
-    }//Mult
+    }
 
 
     /**
-     * multiplies a matrix by a scalar
+     * @brief Multiplies a matrix by a scalar
+     * @param[in/out] M matrix M
+     * @param[in] a scalar a
      */
     static inline void Mult( MatrixType& M, const TDataType a )
     {
@@ -614,7 +602,9 @@ public:
 
 
     /**
-     * multiplies a vector by a scalar
+     * @brief Multiplies a vecotr by a scalar
+     * @param[in/out] v matrix v
+     * @param[in] a scalar a
      */
     static inline void Mult( VectorType& v, const TDataType a )
     {
@@ -622,12 +612,12 @@ public:
         {
             v(i) = v(i)*a;
         }
-    }//Mult
+    }
 
 
     /**
-     * transposes matrix A. Matrix A is not overwritten!
-     * @param A the given Matrix
+     * @brief Transposes matrix A. Matrix A is not overwritten!
+     * @param[in] A the given Matrix
      * @return the transposed matrix \f$ A^T \f$
      */
     static inline MatrixType Transpose( MatrixType& A )
@@ -642,11 +632,12 @@ public:
             }
         }
         return AT;
-    }//Transpose
+    }
 
 
     /**
-     * normalises a vector. Vector is scaled by \f$ V_{norm} = \frac{V}{|V|} \f$
+     * @brief Normalises a vector. Vector is scaled by \f$ V_{norm} = \frac{V}{|V|} \f$
+     * @param[in/out] v Vector to be normalized
      */
     static inline void Normalize( VectorType& v )
     {
@@ -655,117 +646,119 @@ public:
 
 
     /**
-    * Builds the Inverse of Matrix input
-    * @param input the given Matrix
-    * @param inverse inverse of the given Matrix
+    * @brief Builds the Inverse of Matrix input
+    * @param[in] rInput the given Matrix
+    * @param[out] rInverse inverse of the given Matrix
     */
-    static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
+    static int InvertMatrix( const MatrixType& rInput, MatrixType& rInverse )
     {
     #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        Matrix A(input);
+        Matrix A(rInput);
         AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
         int singular = lu_factorization.determinant();
-        inverse = lu_factorization.inverse();
+        rInverse = lu_factorization.rInverse();
         return singular;
     #else
         typedef permutation_matrix<std::size_t> pmatrix;
-        Matrix A(input);
+        Matrix A(rInput);
         pmatrix pm(A.size1());
         int singular = lu_factorize(A,pm);
-        inverse.assign( IdentityMatrix(A.size1()));
-        lu_substitute(A, pm, inverse);
+        rInverse.assign( IdentityMatrix(A.size1()));
+        lu_substitute(A, pm, rInverse);
         return singular;
-    #endif // ifdef KRATOS_USE_AMATRIX
+    #endif
     }
 
 
     /**
-    * Builds the norm of a gibven second order tensor
-    * @param Tensor the given second order tensor
-    * @return the norm of the given tensor
+    * @brief Builds the norm of a given second order tensor
+    * @param[in] rTensor the given second order tensor
+    * @return The norm of the given tensor
     */
-    static double NormTensor(Matrix& Tensor)
+    static double NormTensor(Matrix& rTensor)
     {
         double result=0.0;
-        for(unsigned int i=0; i< Tensor.size1(); i++)
-            for(unsigned int j=0; j< Tensor.size2(); j++)
-                result+= Tensor(i,j)*Tensor(i,j);
+        for(unsigned int i=0; i< rTensor.size1(); i++)
+            for(unsigned int j=0; j< rTensor.size2(); j++)
+                result += rTensor(i,j)*rTensor(i,j);
 
-        result= std::sqrt(result);
+        result = std::sqrt(result);
 
         return result;
     }
 
 
     /**
-     * converts a strain vector into a matrix. Strains are assumed to be stored
-     * in the following way:
-     * \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
-     * \f$ [ e11, e22, 2*e12 ] \f$ fir 2D case.
-     * Hence the deviatoric components of the strain vector are divided by 2
-     * while they are stored into the matrix
-     * @param Strains the given strain vector
+     * @brief Converts a strain vector into a matrix. Strains are assumed to be stored
+     *        in the following way:
+     *        \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
+     *        \f$ [ e11, e22, 2*e12 ] \f$ fir 2D case.
+     *        Hence the deviatoric components of the strain vector are divided by 2
+     *        while they are stored into the matrix.
+     * @param[in] rStrain the given strain vector
      * @return the corresponding strain tensor in matrix form
      */
-    static inline MatrixType StrainVectorToTensor( const VectorType& Strains )
+    static inline MatrixType StrainVectorToTensor( const VectorType& rStrain )
     {
         KRATOS_TRY
 
         Matrix StrainTensor;
-        //KRATOS_WATCH( Strains )
-        if (Strains.size()==3)
+        if (rStrain.size()==3)
         {
             StrainTensor.resize(2,2, false);
-            //KRATOS_WATCH( StrainTensor )
-            StrainTensor(0,0) = Strains[0];
-            StrainTensor(0,1) = 0.5*Strains[2];
-            StrainTensor(1,0) = 0.5*Strains[2];
-            StrainTensor(1,1) = Strains[1];
+            StrainTensor(0,0) = rStrain[0];
+            StrainTensor(0,1) = 0.5*rStrain[2];
+            StrainTensor(1,0) = 0.5*rStrain[2];
+            StrainTensor(1,1) = rStrain[1];
         }
-        else if (Strains.size()==6)
+        else if (rStrain.size()==6)
         {
             StrainTensor.resize(3,3, false);
-            StrainTensor(0,0) = Strains[0];
-            StrainTensor(0,1) = 0.5*Strains[3];
-            StrainTensor(0,2) = 0.5*Strains[5];
-            StrainTensor(1,0) = 0.5*Strains[3];
-            StrainTensor(1,1) = Strains[1];
-            StrainTensor(1,2) = 0.5*Strains[4];
-            StrainTensor(2,0) = 0.5*Strains[5];
-            StrainTensor(2,1) = 0.5*Strains[4];
-            StrainTensor(2,2) = Strains[2];
+            StrainTensor(0,0) = rStrain[0];
+            StrainTensor(0,1) = 0.5*rStrain[3];
+            StrainTensor(0,2) = 0.5*rStrain[5];
+            StrainTensor(1,0) = 0.5*rStrain[3];
+            StrainTensor(1,1) = rStrain[1];
+            StrainTensor(1,2) = 0.5*rStrain[4];
+            StrainTensor(2,0) = 0.5*rStrain[5];
+            StrainTensor(2,1) = 0.5*rStrain[4];
+            StrainTensor(2,2) = rStrain[2];
         }
 
-        //KRATOS_WATCH( StrainTensor )
         return StrainTensor;
         KRATOS_CATCH( "" )
     }
 
 
-    static inline Vector TensorToStrainVector( const Matrix& Tensor )
+    /**
+     * @brief Converts a strain matrix into a tensor. This function is the reverse of StrainVectorToTensor()
+     *        function implemented above
+     * @param[in] rTensor the given strain matrix
+     * @return the corresponding strain tensor in vector form
+     */
+    static inline Vector TensorToStrainVector( const Matrix& rTensor )
     {
         KRATOS_TRY
         Vector StrainVector;
 
-
-        if (Tensor.size1()==2)
+        if (rTensor.size1()==2)
         {
             StrainVector.resize(3);
             noalias(StrainVector) = ZeroVector(3);
-            StrainVector(0) = Tensor(0,0);
-            StrainVector(1) = Tensor(1,1);
-            StrainVector(2) = 2.00*Tensor(0,1);
+            StrainVector(0) = rTensor(0,0);
+            StrainVector(1) = rTensor(1,1);
+            StrainVector(2) = 2.00*rTensor(0,1);
         }
-        else if (Tensor.size1()==3)
+        else if (rTensor.size1()==3)
         {
             StrainVector.resize(6);
             noalias(StrainVector) = ZeroVector(6);
-            StrainVector(0) = Tensor(0,0);
-            StrainVector(1) = Tensor(1,1);
-            StrainVector(2) = Tensor(2,2);
-            StrainVector(3) = 2.00*Tensor(0,1);
-            StrainVector(4) = 2.00*Tensor(1,2);
-            StrainVector(5) = 2.00*Tensor(0,2);
+            StrainVector(0) = rTensor(0,0);
+            StrainVector(1) = rTensor(1,1);
+            StrainVector(2) = rTensor(2,2);
+            StrainVector(3) = 2.00*rTensor(0,1);
+            StrainVector(4) = 2.00*rTensor(1,2);
+            StrainVector(5) = 2.00*rTensor(0,2);
         }
 
 
@@ -775,128 +768,134 @@ public:
 
 
     /**
-    * Transforms a given 6*1 Vector to a corresponing symmetric Tensor of second order (3*3)
-    * @param Vector the given vector
-    * @param Tensor the symmetric second order tensor
+    * @brief Transforms a given Vector to a corresponing symmetric Tensor of second order (3*3)
+    * @param[in] Vector the given vector
+    * @param[out] rTensor the symmetric second order tensor
     */
-    static inline void VectorToTensor(const Vector& Stress,Matrix& Tensor)
+    static inline void VectorToTensor(const Vector& rStress, Matrix& rTensor)
     {
-        if(Stress.size()==6)
+        if(rStress.size()==6)
         {
-           Tensor.resize(3,3,false);
-            Tensor(0,0)= Stress(0);
-            Tensor(0,1)= Stress(3);
-            Tensor(0,2)= Stress(5);
-            Tensor(1,0)= Stress(3);
-            Tensor(1,1)= Stress(1);
-            Tensor(1,2)= Stress(4);
-            Tensor(2,0)= Stress(5);
-            Tensor(2,1)= Stress(4);
-            Tensor(2,2)= Stress(2);
+            rTensor.resize(3,3,false);
+            rTensor(0,0) = rStress(0);
+            rTensor(0,1) = rStress(3);
+            rTensor(0,2) = rStress(5);
+            rTensor(1,0) = rStress(3);
+            rTensor(1,1) = rStress(1);
+            rTensor(1,2) = rStress(4);
+            rTensor(2,0) = rStress(5);
+            rTensor(2,1) = rStress(4);
+            rTensor(2,2) = rStress(2);
         }
-        if(Stress.size()==3)
+        if(rStress.size()==3)
         {
-            Tensor.resize(2,2,false);
-            Tensor(0,0)= Stress(0);
-            Tensor(0,1)= Stress(2);
-            Tensor(1,0)= Stress(2);
-            Tensor(1,1)= Stress(1);
+            rTensor.resize(2,2,false);
+            rTensor(0,0) = rStress(0);
+            rTensor(0,1) = rStress(2);
+            rTensor(1,0) = rStress(2);
+            rTensor(1,1) = rStress(1);
         }
 
     }
 
 
     /**
-    * Transforms a given symmetric Tensor of second order (3*3) to a corresponing 6*1 Vector
-    * @param Tensor the given symmetric second order tensor
-    * @param Vector the vector
+    * @brief Transforms a given symmetric Tensor of second order (3*3) to a corresponing Vector
+    * @param[in] rTensor the given symmetric second order tensor
+    * @param[out] rVector the vector
     */
-    static void TensorToVector( const Matrix& Tensor, Vector& Vector)
+    static void TensorToVector( const Matrix& rTensor, Vector& rVector)
     {
-        //if(Vector.size()!= 6)
-        unsigned int dim = Tensor.size1();
+        unsigned int dim = rTensor.size1();
         if (dim==3)
         {
-            Vector.resize(6,false);
-            Vector(0)= Tensor(0,0);
-            Vector(1)= Tensor(1,1);
-            Vector(2)= Tensor(2,2);
-            Vector(3)= Tensor(0,1);
-            Vector(4)= Tensor(1,2);
-            Vector(5)= Tensor(2,0);
+            rVector.resize(6,false);
+            rVector(0)= rTensor(0,0);
+            rVector(1)= rTensor(1,1);
+            rVector(2)= rTensor(2,2);
+            rVector(3)= rTensor(0,1);
+            rVector(4)= rTensor(1,2);
+            rVector(5)= rTensor(2,0);
         }
         else if(dim==2)
         {
-            Vector.resize(3,false);
-            Vector(0)= Tensor(0,0);
-            Vector(1)= Tensor(1,1);
-            Vector(2)= Tensor(0,1);
+            rVector.resize(3,false);
+            rVector(0)= rTensor(0,0);
+            rVector(1)= rTensor(1,1);
+            rVector(2)= rTensor(0,1);
         }
 
     }
 
 
-    static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
+    /**
+    * @brief Transforms a given fourth order tensor to a corresponing Matrix
+    * @param[in] rTensor the given symmetric second order tensor
+    * @param[out] rVector the vector
+    */
+    static inline void TensorToMatrix(const Fourth_Order_Tensor& rTensor, Matrix& rMatrix)
     {
-        if (Tensor[0].size()== 3)
+        if (rTensor[0].size()== 3)
         {
-            if(Matrix.size1()!=6 || Matrix.size2()!=6)
-                Matrix.resize(6,6,false);
-            Matrix(0,0) = Tensor[0][0](0,0);
-            Matrix(0,1) = Tensor[0][0](1,1);
-            Matrix(0,2) = Tensor[0][0](2,2);
-            Matrix(0,3) = Tensor[0][0](0,1);
-            Matrix(0,4) = Tensor[0][0](0,2);
-            Matrix(0,5) = Tensor[0][0](1,2);
+            if(rMatrix.size1()!=6 || rMatrix.size2()!=6)
+                rMatrix.resize(6,6,false);
 
-            Matrix(1,0) = Tensor[1][1](0,0);
-            Matrix(1,1) = Tensor[1][1](1,1);
-            Matrix(1,2) = Tensor[1][1](2,2);
-            Matrix(1,3) = Tensor[1][1](0,1);
-            Matrix(1,4) = Tensor[1][1](0,2);
-            Matrix(1,5) = Tensor[1][1](1,2);
+            rMatrix(0,0) = rTensor[0][0](0,0);
+            rMatrix(0,1) = rTensor[0][0](1,1);
+            rMatrix(0,2) = rTensor[0][0](2,2);
+            rMatrix(0,3) = rTensor[0][0](0,1);
+            rMatrix(0,4) = rTensor[0][0](0,2);
+            rMatrix(0,5) = rTensor[0][0](1,2);
 
-            Matrix(2,0) = Tensor[2][2](0,0);
-            Matrix(2,1) = Tensor[2][2](1,1);
-            Matrix(2,2) = Tensor[2][2](2,2);
-            Matrix(2,3) = Tensor[2][2](0,1);
-            Matrix(2,4) = Tensor[2][2](0,2);
-            Matrix(2,5) = Tensor[2][2](1,2);
+            rMatrix(1,0) = rTensor[1][1](0,0);
+            rMatrix(1,1) = rTensor[1][1](1,1);
+            rMatrix(1,2) = rTensor[1][1](2,2);
+            rMatrix(1,3) = rTensor[1][1](0,1);
+            rMatrix(1,4) = rTensor[1][1](0,2);
+            rMatrix(1,5) = rTensor[1][1](1,2);
 
-            Matrix(3,0) = Tensor[0][1](0,0);
-            Matrix(3,1) = Tensor[0][1](1,1);
-            Matrix(3,2) = Tensor[0][1](2,2);
-            Matrix(3,3) = Tensor[0][1](0,1);
-            Matrix(3,4) = Tensor[0][1](0,2);
-            Matrix(3,5) = Tensor[0][1](1,2);
+            rMatrix(2,0) = rTensor[2][2](0,0);
+            rMatrix(2,1) = rTensor[2][2](1,1);
+            rMatrix(2,2) = rTensor[2][2](2,2);
+            rMatrix(2,3) = rTensor[2][2](0,1);
+            rMatrix(2,4) = rTensor[2][2](0,2);
+            rMatrix(2,5) = rTensor[2][2](1,2);
 
-            Matrix(4,0) = Tensor[0][2](0,0);
-            Matrix(4,1) = Tensor[0][2](1,1);
-            Matrix(4,2) = Tensor[0][2](2,2);
-            Matrix(4,3) = Tensor[0][2](0,1);
-            Matrix(4,4) = Tensor[0][2](0,2);
-            Matrix(4,5) = Tensor[0][2](1,2);
+            rMatrix(3,0) = rTensor[0][1](0,0);
+            rMatrix(3,1) = rTensor[0][1](1,1);
+            rMatrix(3,2) = rTensor[0][1](2,2);
+            rMatrix(3,3) = rTensor[0][1](0,1);
+            rMatrix(3,4) = rTensor[0][1](0,2);
+            rMatrix(3,5) = rTensor[0][1](1,2);
 
-            Matrix(5,0) = Tensor[1][2](0,0);
-            Matrix(5,1) = Tensor[1][2](1,1);
-            Matrix(5,2) = Tensor[1][2](2,2);
-            Matrix(5,3) = Tensor[1][2](0,1);
-            Matrix(5,4) = Tensor[1][2](0,2);
-            Matrix(5,5) = Tensor[1][2](1,2);
+            rMatrix(4,0) = rTensor[0][2](0,0);
+            rMatrix(4,1) = rTensor[0][2](1,1);
+            rMatrix(4,2) = rTensor[0][2](2,2);
+            rMatrix(4,3) = rTensor[0][2](0,1);
+            rMatrix(4,4) = rTensor[0][2](0,2);
+            rMatrix(4,5) = rTensor[0][2](1,2);
+
+            rMatrix(5,0) = rTensor[1][2](0,0);
+            rMatrix(5,1) = rTensor[1][2](1,1);
+            rMatrix(5,2) = rTensor[1][2](2,2);
+            rMatrix(5,3) = rTensor[1][2](0,1);
+            rMatrix(5,4) = rTensor[1][2](0,2);
+            rMatrix(5,5) = rTensor[1][2](1,2);
         }
         else
         {
-            if(Matrix.size1()!=3 || Matrix.size2()!=3)
-                Matrix.resize(3,3,false);
-            Matrix(0,0) = Tensor[0][0](0,0);
-            Matrix(0,1) = Tensor[0][0](1,1);
-            Matrix(0,2) = Tensor[0][0](0,1);
-            Matrix(1,0) = Tensor[1][1](0,0);
-            Matrix(1,1) = Tensor[1][1](1,1);
-            Matrix(1,2) = Tensor[1][1](0,1);
-            Matrix(2,0) = Tensor[0][1](0,0);
-            Matrix(2,1) = Tensor[0][1](1,1);
-            Matrix(2,2) = Tensor[0][1](0,1);
+            if(rMatrix.size1()!=3 || rMatrix.size2()!=3)
+                rMatrix.resize(3,3,false);
+
+            rMatrix(0,0) = rTensor[0][0](0,0);
+            rMatrix(0,1) = rTensor[0][0](1,1);
+            rMatrix(0,2) = rTensor[0][0](0,1);
+            rMatrix(1,0) = rTensor[1][1](0,0);
+            rMatrix(1,1) = rTensor[1][1](1,1);
+            rMatrix(1,2) = rTensor[1][1](0,1);
+            rMatrix(2,0) = rTensor[0][1](0,0);
+            rMatrix(2,1) = rTensor[0][1](1,1);
+            rMatrix(2,2) = rTensor[0][1](0,1);
 
         }
 
@@ -904,25 +903,25 @@ public:
 
 
     /**
-    * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
-    * @param Tensor the given Matrix
-    * @param Vector the Tensor
+    * @brief Transforms a given 6*6 Matrix to a corresponing 4th order tensor
+    * @param[in] rTensor the given Matrix
+    * @param[out] rTensor the rTensor
     */
-    static void MatrixToTensor(MatrixType& A,std::vector<std::vector<Matrix> >& Tensor)
+    static void MatrixToTensor(const MatrixType& A, std::vector<std::vector<Matrix> >& rTensor)
     {
         int help1 = 0;
         int help2 = 0;
         double coeff = 1.0;
 
-        Tensor.resize(3);
+        rTensor.resize(3);
 
         for(unsigned int i=0; i<3; i++)
         {
-            Tensor[i].resize(3);
+            rTensor[i].resize(3);
             for(unsigned int j=0; j<3; j++)
             {
-                Tensor[i][j].resize(3,3,false);
-                noalias(Tensor[i][j])= ZeroMatrix(3,3);
+                rTensor[i][j].resize(3,3,false);
+                noalias(rTensor[i][j])= ZeroMatrix(3,3);
                 for(unsigned int k=0; k<3; k++)
                     for(unsigned int l=0; l<3; l++)
                     {
@@ -946,7 +945,7 @@ public:
                             if((k==2 && l==0) || (k==0 && l==2)) help2= 5;
                         }
 
-                        Tensor[i][j](k,l)= A(help1,help2)*coeff;
+                        rTensor[i][j](k,l)= A(help1,help2)*coeff;
                     }
             }
         }
@@ -956,16 +955,16 @@ public:
 
 
     /**
-    * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
-    * @param Tensor the given Matrix
-    * @param Vector the Tensor
+    * @brief Transforms a given 6*6 Matrix to a corresponing 4th order tensor
+    * @param[in] rTensor the given Matrix
+    * @param[out] rTensor the rTensor
     */
-    static void MatrixToTensor(MatrixType& A,array_1d<double, 81>& Tensor)
+    static void MatrixToTensor(const MatrixType& A,array_1d<double, 81>& rTensor)
     {
         int help1 = 0;
         int help2 = 0;
         double coeff = 1.0;
-        std::fill(Tensor.begin(), Tensor.end(), 0.0);
+        std::fill(rTensor.begin(), rTensor.end(), 0.0);
         for(unsigned int i=0; i<3; i++)
         {
             for(unsigned int j=0; j<3; j++)
@@ -993,21 +992,19 @@ public:
                             if((k==2 && l==0) || (k==0 && l==2)) help2= 5;
                         }
 
-                        Tensor[i*27+j*9+k*3+l]= A(help1,help2)*coeff;
+                        rTensor[i*27+j*9+k*3+l]= A(help1,help2)*coeff;
                     }
             }
         }
-
-
     }
 
 
     /**
-    * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
-    * @param Tensor the given Tensor
-    * @param Vector the Matrix
+    * @brief Transforms a given 4th order tensor to a corresponing 6*6 Matrix
+    * @param[in] rTensor the given Tensor
+    * @param[out] rMatrix the Matrix
     */
-    static void TensorToMatrix(std::vector<std::vector<Matrix> >& Tensor,Matrix& Matrix)
+    static void TensorToMatrix(const std::vector<std::vector<Matrix> >& rTensor, Matrix& rMatrix)
     {
         int help1 = 0;
         int help2 = 0;
@@ -1015,8 +1012,8 @@ public:
         int help4 = 0;
         double coeff = 1.0;
 
-        if(Matrix.size1()!=6 || Matrix.size2()!=6)
-            Matrix.resize(6,6,false);
+        if(rMatrix.size1()!=6 || rMatrix.size2()!=6)
+            rMatrix.resize(6,6,false);
 
         for(unsigned int i=0; i<6; i++)
             for(unsigned int j=0; j<6; j++)
@@ -1071,63 +1068,63 @@ public:
                     coeff= 2.0;
                 }
 
-                Matrix(i,j)= Tensor[help1][help2](help3,help4)*coeff;
+                rMatrix(i,j)= rTensor[help1][help2](help3,help4)*coeff;
             }
 
     }
 
 
     /**
-     * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
-     * @param Tensor the given Tensor
-     * @param Vector the Matrix
+     * @brief Transforms a given 4th order Tensor to a corresponing 6*6 Matrix
+     * @param[in] rTensor the given Tensor
+     * @param[out] Matrix the Matrix
      */
-    static void TensorToMatrix( const array_1d<double, 81>& Tensor, Matrix& Matrix )
+    static void TensorToMatrix( const array_1d<double, 81>& rTensor, Matrix& rMatrix )
     {
-        if(Matrix.size1()!=6 || Matrix.size2()!=6)
-            Matrix.resize(6,6,false);
+        if(rMatrix.size1()!=6 || rMatrix.size2()!=6)
+            rMatrix.resize(6,6,false);
 
-        Matrix(0,0) = Tensor[0];
-        Matrix(0,1) = Tensor[4];
-        Matrix(0,2) = Tensor[8];
-        Matrix(0,3) = 2.0*Tensor[1];
-        Matrix(0,4) = 2.0*Tensor[5];
-        Matrix(0,5) = 2.0*Tensor[6];
+        rMatrix(0,0) = rTensor[0];
+        rMatrix(0,1) = rTensor[4];
+        rMatrix(0,2) = rTensor[8];
+        rMatrix(0,3) = 2.0*rTensor[1];
+        rMatrix(0,4) = 2.0*rTensor[5];
+        rMatrix(0,5) = 2.0*rTensor[6];
 
-        Matrix(1,0) = Tensor[36];
-        Matrix(1,1) = Tensor[40];
-        Matrix(1,2) = Tensor[44];
-        Matrix(1,3) = 2.0*Tensor[37];
-        Matrix(1,4) = 0.0*Tensor[41];
-        Matrix(1,5) = 0.0*Tensor[42];
+        rMatrix(1,0) = rTensor[36];
+        rMatrix(1,1) = rTensor[40];
+        rMatrix(1,2) = rTensor[44];
+        rMatrix(1,3) = 2.0*rTensor[37];
+        rMatrix(1,4) = 0.0*rTensor[41];
+        rMatrix(1,5) = 0.0*rTensor[42];
 
-        Matrix(2,0) = Tensor[72];
-        Matrix(2,1) = Tensor[76];
-        Matrix(2,2) = Tensor[80];
-        Matrix(2,3) = 2.0*Tensor[73];
-        Matrix(2,4) = 2.0*Tensor[77];
-        Matrix(2,5) = 2.0*Tensor[78];
+        rMatrix(2,0) = rTensor[72];
+        rMatrix(2,1) = rTensor[76];
+        rMatrix(2,2) = rTensor[80];
+        rMatrix(2,3) = 2.0*rTensor[73];
+        rMatrix(2,4) = 2.0*rTensor[77];
+        rMatrix(2,5) = 2.0*rTensor[78];
 
-        Matrix(3,0) = Tensor[9];
-        Matrix(3,1) = Tensor[13];
-        Matrix(3,2) = Tensor[18];
-        Matrix(3,3) = 2.0*Tensor[10];
-        Matrix(3,4) = 2.0*Tensor[14];
-        Matrix(3,5) = 2.0*Tensor[15];
+        rMatrix(3,0) = rTensor[9];
+        rMatrix(3,1) = rTensor[13];
+        rMatrix(3,2) = rTensor[18];
+        rMatrix(3,3) = 2.0*rTensor[10];
+        rMatrix(3,4) = 2.0*rTensor[14];
+        rMatrix(3,5) = 2.0*rTensor[15];
 
-        Matrix(4,0) = Tensor[45];
-        Matrix(4,1) = Tensor[49];
-        Matrix(4,2) = Tensor[53];
-        Matrix(4,3) = 2.0*Tensor[46];
-        Matrix(4,4) = 0.0*Tensor[50];
-        Matrix(4,5) = 0.0*Tensor[51];
+        rMatrix(4,0) = rTensor[45];
+        rMatrix(4,1) = rTensor[49];
+        rMatrix(4,2) = rTensor[53];
+        rMatrix(4,3) = 2.0*rTensor[46];
+        rMatrix(4,4) = 0.0*rTensor[50];
+        rMatrix(4,5) = 0.0*rTensor[51];
 
-        Matrix(5,0) = Tensor[54];
-        Matrix(5,1) = Tensor[58];
-        Matrix(5,2) = Tensor[62];
-        Matrix(5,3) = 2.0*Tensor[55];
-        Matrix(5,4) = 2.0*Tensor[59];
-        Matrix(5,5) = 2.0*Tensor[60];
+        rMatrix(5,0) = rTensor[54];
+        rMatrix(5,1) = rTensor[58];
+        rMatrix(5,2) = rTensor[62];
+        rMatrix(5,3) = 2.0*rTensor[55];
+        rMatrix(5,4) = 2.0*rTensor[59];
+        rMatrix(5,5) = 2.0*rTensor[60];
 
     }
 
