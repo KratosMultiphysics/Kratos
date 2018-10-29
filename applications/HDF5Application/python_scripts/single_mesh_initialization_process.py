@@ -29,7 +29,7 @@ def Factory(settings, Model):
     initialization_settings.AddEmptyValue("file_name")
     initialization_settings["file_name"].SetString(settings["file_name"].GetString())
 
-    initialization_process = hdf5_io.InitializationFromInputProcess(model_part,hdf5_file_factory,initialization_settings)
+    initialization_process = hdf5_io.InitialInputProcess(model_part,hdf5_file_factory,initialization_settings)
     initialization_process.AddInput(nodal_history_results_input)
     initialization_process.AddInput(element_data_results_input)
     initialization_process.AddInput(nodal_data_results_input)
