@@ -25,24 +25,32 @@
 
 namespace Kratos
 {
+    
+namespace Python
+{
 
-        //this object is needed because data may contain binary data so the treatment of strings 
-    //in python makes impossible to use them (reasons related to locale)
+    //This is a Helper object to provide a simpler interface for serialization to a string instead of to a file
     class StreamSerializer : public Serializer 
     {
         public:
             KRATOS_CLASS_POINTER_DEFINITION(StreamSerializer); 
 
+            ///this constructor simply wraps the standard Serializer and defines output to basic_iostream
+            ///@param rTrace type of serialization to be employed
             StreamSerializer(TraceType const& rTrace=SERIALIZER_NO_TRACE)
                 : Serializer(rTrace)
             {}
 
+            //this constructor generates a standard Serializer AND fills the buffer with the data contained in "data"
+            ///@param data a string contained the data to be used in filling the buffer
+            ///@param rTrace type of serialization to be employed
             StreamSerializer(const std::string& data,TraceType const& rTrace=SERIALIZER_NO_TRACE)
                 : Serializer(rTrace)
             {
                 *(this->pGetBuffer()) << data << std::endl;  
             }
 
+            //get a string representation of the serialized data
             std::string GetStringRepresentation() {
                 return ((std::stringstream*)(this->pGetBuffer()))->str();
             }
@@ -58,8 +66,6 @@ namespace Kratos
             StreamSerializer(StreamSerializer const& rOther) = delete;
     };
     
-namespace Python
-{
 namespace py = pybind11;
 
 template< class TObjectType >
@@ -107,6 +113,7 @@ void  AddSerializerToPython(pybind11::module& m)
     .def(py::init<std::string const&, Serializer::TraceType>())
     .def("__getstate__", [](StreamSerializer &self) { //METHOD NEEDED FOR PICKLE
         /* Return a tuple that fully encodes the state of the object */
+        //note that we return a "bytes" object to avoid any "locale" conversion
         return py::make_tuple(py::bytes(self.GetStringRepresentation()),self.GetTraceType());
     })
     .def("__setstate__", [](StreamSerializer &self, py::tuple t) { //METHOD NEEDED FOR PICKLE
