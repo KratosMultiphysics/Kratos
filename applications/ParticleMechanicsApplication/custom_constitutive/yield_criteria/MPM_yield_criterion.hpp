@@ -94,7 +94,6 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 	{
         };
 
-
         /// Initialization constructor.
         MPMYieldCriterion(HardeningLawPointer pHardeningLaw)
 	:mpHardeningLaw(pHardeningLaw)
@@ -114,7 +113,6 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
         mpHardeningLaw = rOther.mpHardeningLaw;
         return *this;
 	}
-
 
         /// Destructor.
         virtual ~MPMYieldCriterion() {};
@@ -164,52 +162,6 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 	  return mpHardeningLaw;
         }
 
-        virtual double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables)
-	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
-		return rStateFunction;
-	};
-
-        virtual double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rVariables)
-	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
-		return rDeltaStateFunction;
-	};
-
-
-        virtual double& CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rVariables)
-	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
-		return rPlasticDissipation;
-	};
-
-
-        virtual double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rVariables)
-	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
-		return rDeltaPlasticDissipation;
-	};
-
-
-        virtual double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rVariables)
-	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
-		return rPlasticDissipation;
-	};
-
-
-        virtual double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rVariables)
-	{
-		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
-		return rDeltaPlasticDissipation;
-	};
-
         // Calculate Yield Condition
         virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
 	{
@@ -230,6 +182,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
         };
 
+        // Calculate Yield Condition First Derivative
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative)
 	{
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
@@ -246,6 +199,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
         };
 
+        // Calculate Yield Condition Second Derivative
         virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative)
 	{
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
