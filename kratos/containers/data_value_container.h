@@ -69,6 +69,7 @@ class DataValueContainer
 public:
     ///@name Type Definitions
     ///@{
+    KRATOS_DEFINE_LOCAL_FLAG(OVERWRITE_OLD_VALUES);
 
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(DataValueContainer);
@@ -291,16 +292,7 @@ public:
         mData.clear();
     }
 
-    void Merge(const DataValueContainer& rOther)
-    {
-        for (const_iterator i = rOther.mData.begin(); i != rOther.mData.end(); ++i) {
-            bool variable_already_exist = false;
-            for (const_iterator j = mData.begin(); j != mData.end(); ++j) {
-                if (i->first->Key() == j->first->Key()) variable_already_exist = true;
-            }
-            if (!variable_already_exist) mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
-        }
-    }
+    void Merge(const DataValueContainer& rOther, Flags Options);
 
     ///@}
     ///@name Access
@@ -435,12 +427,11 @@ private:
 
     friend class Serializer;
 
-
     virtual void save(Serializer& rSerializer) const
     {
         std::size_t size = mData.size();
         rSerializer.save("Size", size);
-        for(std::size_t i = 0 ; i < size ; i++)
+        for (std::size_t i = 0; i < size; i++)
         {
             rSerializer.save("Variable Name", mData[i].first->Name());
             mData[i].first->Save(rSerializer, mData[i].second);
@@ -453,7 +444,7 @@ private:
         rSerializer.load("Size", size);
         mData.resize(size);
         std::string name;
-        for(std::size_t i = 0 ; i < size ; i++)
+        for (std::size_t i = 0; i < size; i++)
         {
             rSerializer.load("Variable Name", name);
             mData[i].first = KratosComponents<VariableData>::pGet(name);
@@ -481,6 +472,7 @@ private:
     ///@}
 
 }; // Class DataValueContainer
+
 
 ///@}
 

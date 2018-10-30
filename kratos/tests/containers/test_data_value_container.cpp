@@ -38,5 +38,31 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainer, KratosCoreFastSuite) {
   for (std::size_t i = 0; i < distances.size(); i++)
     KRATOS_CHECK_EQUAL(distances[i], original_distances[i]);
 }
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerMerge, KratosCoreFastSuite) {
+    DataValueContainer container_origin;
+    DataValueContainer container_target;
+
+    const double density = 1000.0;
+    const double viscosity_1 = 1e-3;
+    const double viscosity_2 = 2e-3;
+
+    container_origin.SetValue(DENSITY, density);
+    container_origin.SetValue(VISCOSITY, viscosity_1);
+    container_target.SetValue(VISCOSITY, viscosity_2);
+    Flags options;
+    //First case: do not overwrite old values
+    options.Set(DataValueContainer::OVERWRITE_OLD_VALUES, false);
+    container_target.Merge(container_origin, options);
+
+    KRATOS_CHECK_EQUAL(container_target.GetValue(DENSITY), density);
+    KRATOS_CHECK_EQUAL(container_target.GetValue(VISCOSITY), viscosity_2);
+
+    //Second case: do overwrite old values
+    options.Set(DataValueContainer::OVERWRITE_OLD_VALUES, true);
+    container_target.Merge(container_origin, options);
+    KRATOS_CHECK_EQUAL(container_target.GetValue(DENSITY), density);
+    KRATOS_CHECK_EQUAL(container_target.GetValue(VISCOSITY), viscosity_1);
+    
+}
 }
 } // namespace Kratos.
