@@ -17,30 +17,64 @@
 	}	
     },
     "solver_settings"          : {
-        "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : "../tests/Level1/Level1"
-        },
-	"model_part_name" : "MLMCLaplacianModelPart",
-	"buffer_size"     : 2,
-	"domain_size"     : 2,
-        "echo_level"                         : 1,
-        "maximum_iterations"                 : 20,
-        "relative_tolerance"                 : 1e-6,
-        "absolute_tolerance"                 : 1e-9,
-	"compute_reactions"          	     : false,
-	"reform_dofs_at_each_step"    	     : false,
-	"calculate_norm_dx"           	     : true,
-	"move_mesh_flag"             	     : false,
-        "problem_domain_sub_model_part_list" : ["Parts_Domain"],
-        "processes_sub_model_part_list"      : ["Subpart_Boundary"],
-	"linear_solver_settings"       : {
-			"solver_type"     : "SkylineLUFactorizationSolver"
-	},
-    "time_stepping" : {
-    "automatic_time_step" : false,
-    "time_step" : 1.1
-    }
+            "model_part_name" : "MLMCLaplacianModelPart",
+            "domain_size" : 2,
+            "echo_level": 0,
+            "analysis_type": "linear",
+            "solver_type": "convection_diffusion_base_solver",
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "../tests/Level1/Level1"
+            },
+            "computing_model_part_name" : "thermal_computing_domain",
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
+            "convection_diffusion_variables" : {
+                "density_variable"              : "",
+                "diffusion_variable"            : "",
+                "unknown_variable"              : "TEMPERATURE",
+                "volume_source_variable"        : "HEAT_FLUX",
+                "surface_source_variable"       : "",
+                "projection_variable"           : "",
+                "convection_variable"           : "",
+                "mesh_velocity_variable"        : "",
+                "transfer_coefficient_variable" : "",
+                "velocity_variable"             : "",
+                "specific_heat_variable"        : "",
+                "reaction_variable"             : ""
+            },
+            "time_stepping" : {
+                "time_step": 1.1
+            },
+            "reform_dofs_at_each_step": false,
+            "line_search": false,
+            "compute_reactions": false,
+            "block_builder": true,
+            "clear_storage": false,
+            "move_mesh_flag": false,
+            "convergence_criterion": "residual_criterion",
+            "solution_relative_tolerance": 1.0e-4,
+            "solution_absolute_tolerance": 1.0e-9,
+            "residual_relative_tolerance": 1.0e-4,
+            "residual_absolute_tolerance": 1.0e-9,
+            "max_iteration": 10,
+            "linear_solver_settings":{
+                "solver_type": "AMGCL",
+                "smoother_type":"ilu0",
+                "krylov_type":"gmres",
+                "coarsening_type":"aggregation",
+                "max_iteration": 5000,
+                "tolerance": 1e-9,
+                "scaling": false
+            },
+            "element_replace_settings" : {
+                "element_name" : "LaplacianElement",
+                "condition_name" : ""
+            },
+            "problem_domain_sub_model_part_list": ["Parts_Domain"],
+            "processes_sub_model_part_list": ["Subpart_Boundary"],
+            "auxiliary_variables_list" : []
     },
     "processes" : {
 	"constraints_process_list" : [{
