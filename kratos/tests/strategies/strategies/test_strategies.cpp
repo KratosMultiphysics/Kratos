@@ -40,7 +40,7 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 
 // The most builder and solver (the block builder and solver)
-#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 // The strategies to test
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
