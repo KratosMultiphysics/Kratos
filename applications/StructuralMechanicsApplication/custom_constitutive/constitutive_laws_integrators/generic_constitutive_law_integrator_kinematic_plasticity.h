@@ -31,8 +31,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    // The size type definition
-    typedef std::size_t SizeType;
+// The size type definition
+typedef std::size_t SizeType;
     
 ///@}
 ///@name  Enum's
@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericConstitutiveLawIntegratorPlasticity
+ * @class GenericConstitutiveLawIntegratorKinematicPlasticity
  * @ingroup StructuralMechanicsApplication
  * @brief This object integrates the predictive stress using the plasticity theory by means of
  * linear/exponential softening or hardening + softening evolution laws
@@ -63,7 +63,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template<class TYieldSurfaceType>
-class GenericConstitutiveLawIntegratorPlasticity
+class GenericConstitutiveLawIntegratorKinematicPlasticity
 {
   public:
     ///@name Type Definitions
@@ -87,8 +87,8 @@ class GenericConstitutiveLawIntegratorPlasticity
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
-    /// Counted pointer of GenericConstitutiveLawIntegratorPlasticity
-    KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorPlasticity);
+    /// Counted pointer of GenericConstitutiveLawIntegratorKinematicPlasticity
+    KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorKinematicPlasticity);
 
     ///@}
     ///@name  Enum's
@@ -108,23 +108,23 @@ class GenericConstitutiveLawIntegratorPlasticity
     ///@{
 
     /// Initialization constructor
-    GenericConstitutiveLawIntegratorPlasticity()
+    GenericConstitutiveLawIntegratorKinematicPlasticity()
     {
     }
 
     /// Copy constructor
-    GenericConstitutiveLawIntegratorPlasticity(GenericConstitutiveLawIntegratorPlasticity const &rOther)
+    GenericConstitutiveLawIntegratorKinematicPlasticity(GenericConstitutiveLawIntegratorKinematicPlasticity const &rOther)
     {
     }
 
     /// Assignment operator
-    GenericConstitutiveLawIntegratorPlasticity &operator=(GenericConstitutiveLawIntegratorPlasticity const &rOther)
+    GenericConstitutiveLawIntegratorKinematicPlasticity &operator=(GenericConstitutiveLawIntegratorKinematicPlasticity const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~GenericConstitutiveLawIntegratorPlasticity()
+    virtual ~GenericConstitutiveLawIntegratorKinematicPlasticity()
     {
     }
 
@@ -787,7 +787,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         else {
             rPlasticDenominator = 1.0e-3 * std::numeric_limits<double>::max(); // TODO: Discuss this!!!
 //             rPlasticDenominator = 1.0;
-//             KRATOS_WARNING("GenericConstitutiveLawIntegratorPlasticity") << "Problem computing plastic denominator. Zero division avoided" << std::endl;
+//             KRATOS_WARNING("GenericConstitutiveLawIntegratorKinematicPlasticity") << "Problem computing plastic denominator. Zero division avoided" << std::endl;
         }
     }
 
