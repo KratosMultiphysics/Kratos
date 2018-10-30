@@ -22,7 +22,7 @@ import mapper_factory
 import data_logger_factory
 from custom_timer import Timer
 from custom_variable_utilities import WriteDictionaryDataOnNodalVariable
-import math, copy
+import math
 
 # ==============================================================================
 class AlgorithmBeadOptimization(OptimizationAlgorithm):
@@ -50,6 +50,9 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
+        self.optimization_settings = optimization_settings
+        self.mapper_settings = optimization_settings["design_variables"]["filter"]
+
         self.analyzer = analyzer
         self.communicator = communicator
         self.model_part_controller = model_part_controller
@@ -58,10 +61,14 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.constraints = optimization_settings["constraints"]
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
-        self.design_surface = model_part_controller.GetDesignSurface()
-
-        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, optimization_settings["design_variables"]["filter"])
-        self.data_logger = data_logger_factory.CreateDataLogger(model_part_controller, communicator, optimization_settings)
+        self.optimization_model_part.AddNodalSolutionStepVariable(ALPHA)
+        self.optimization_model_part.AddNodalSolutionStepVariable(ALPHA_MAPPED)
+        self.optimization_model_part.AddNodalSolutionStepVariable(DF1DALPHA)
+        self.optimization_model_part.AddNodalSolutionStepVariable(DF1DALPHA_MAPPED)
+        self.optimization_model_part.AddNodalSolutionStepVariable(DPDALPHA)
+        self.optimization_model_part.AddNodalSolutionStepVariable(DPDALPHA_MAPPED)
+        self.optimization_model_part.AddNodalSolutionStepVariable(DLDALPHA)
+        self.optimization_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -72,6 +79,19 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
+        self.model_part_controller.ImportOptimizationModelPart()
+        self.model_part_controller.InitializeMeshController()
+
+        self.analyzer.InitializeBeforeOptimizationLoop()
+
+        self.design_surface = self.model_part_controller.GetDesignSurface()
+
+        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
+        self.mapper.Initialize()
+
+        self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
+        self.data_logger.InitializeDataLogging()
+
         self.only_obj = self.objectives[0]
 
         self.bead_height = self.algorithm_settings["bead_height"].GetDouble()
@@ -110,11 +130,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         self.lambda0 = 0.0
         self.penalty_scaling_0 = 1.0
-
-        self.model_part_controller.InitializeMeshController()
-        self.mapper.Initialize()
-        self.analyzer.InitializeBeforeOptimizationLoop()
-        self.data_logger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -205,7 +220,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                         penalty_gradient_i = penalty_scaling*(-2*alpha_i)
                         node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
-                # Compute Lagrange value
+                # Compute value of Lagrange function
                 L = objective_value + current_lambda*penalty_value + self.penalty_factor*(penalty_value)**2
                 if inner_iteration == 1:
                     dL_relative = 0.0

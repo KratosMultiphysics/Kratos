@@ -266,20 +266,50 @@ protected:
 			elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
 			for (auto& node_i : elem_i.GetGeometry())
 			{
+				// array_3d gradient_contribution(3, 0.0);
+				// Vector derived_RHS = Vector(0);
+
+				// // x-direction
+				// ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				// gradient_contribution[0] = inner_prod(lambda, derived_RHS);
+
+				// // y-direction
+				// ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				// gradient_contribution[1] = inner_prod(lambda, derived_RHS);
+
+				// // z-direction
+				// ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				// gradient_contribution[2] = inner_prod(lambda, derived_RHS);
+
+				// // Assemble sensitivity to node
+				// noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+
 				array_3d gradient_contribution(3, 0.0);
-				Vector derived_RHS = Vector(0);
+				Vector perturbed_RHS = Vector(0);
 
-				// x-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
+				// Pertubation, gradient analysis and recovery of x
+				node_i.X0() += mDelta;
+				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
+				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				node_i.X0() -= mDelta;
 
-                // y-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
+				// Reset pertubed vector
+				perturbed_RHS = Vector(0);
 
-                // z-direction
-				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, SHAPE_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
+				// Pertubation, gradient analysis and recovery of y
+				node_i.Y0() += mDelta;
+				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
+				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				node_i.Y0() -= mDelta;
+
+				// Reset pertubed vector
+				perturbed_RHS = Vector(0);
+
+				// Pertubation, gradient analysis and recovery of z
+				node_i.Z0() += mDelta;
+				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
+				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+				node_i.Z0() -= mDelta;
 
 				// Assemble sensitivity to node
 				noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;

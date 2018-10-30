@@ -26,7 +26,7 @@ from custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 # ==============================================================================
 class AlgorithmPenalizedProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
-    def __init__(self, OptimizationSettings, Analyzer, Communicator, ModelPartController):
+    def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = Parameters("""
         {
             "name"                    : "penalized_projection",
@@ -40,23 +40,21 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
                 "step_size"                  : 1.0
             }
         }""")
-        self.algorithm_settings =  OptimizationSettings["optimization_algorithm"]
+        self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
-        self.Analyzer = Analyzer
-        self.Communicator = Communicator
-        self.ModelPartController = ModelPartController
+        self.optimization_settings = optimization_settings
+        self.mapper_settings = optimization_settings["design_variables"]["filter"]
 
-        self.objectives = OptimizationSettings["objectives"]
-        self.constraints = OptimizationSettings["constraints"]
+        self.analyzer = analyzer
+        self.communicator = communicator
+        self.model_part_controller = model_part_controller
 
-        self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
-        self.DesignSurface = ModelPartController.GetDesignSurface()
+        self.objectives = optimization_settings["objectives"]
+        self.constraints = optimization_settings["constraints"]
 
-        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
-        self.DataLogger = data_logger_factory.CreateDataLogger(ModelPartController, Communicator, OptimizationSettings)
-
-        self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
+        self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
+        self.optimization_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -66,25 +64,36 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
             raise RuntimeError("Penalized projection algorithm requires definition of a constraint!")
         if self.constraints.size() > 1:
             raise RuntimeError("Penalized projection algorithm only supports one constraint!")
+
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
+        self.model_part_controller.ImportOptimizationModelPart()
+        self.model_part_controller.InitializeMeshController()
+
+        self.analyzer.InitializeBeforeOptimizationLoop()
+
+        self.design_surface = self.model_part_controller.GetDesignSurface()
+
+        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
+        self.mapper.Initialize()
+
+        self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
+        self.data_logger.InitializeDataLogging()
+
+        self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
+
         self.only_obj = self.objectives[0]
         self.only_con = self.constraints[0]
 
-        self.maxIterations = self.algorithm_settings["max_iterations"].GetInt() + 1
-        self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
-
-        self.ModelPartController.InitializeMeshController()
-        self.Mapper.Initialize()
-        self.Analyzer.InitializeBeforeOptimizationLoop()
-        self.DataLogger.InitializeDataLogging()
+        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
+        self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
         timer = Timer()
         timer.StartTimer()
 
-        for self.optimization_iteration in range(1,self.maxIterations):
+        for self.optimization_iteration in range(1,self.max_iterations):
             print("\n>===================================================================")
             print("> ",timer.GetTimeStamp(),": Starting optimization iteration ", self.optimization_iteration)
             print(">===================================================================\n")
@@ -109,59 +118,58 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
-        self.DataLogger.FinalizeDataLogging()
-        self.Analyzer.FinalizeAfterOptimizationLoop()
+        self.data_logger.FinalizeDataLogging()
+        self.analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
-        self.ModelPartController.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
-        self.ModelPartController.SetReferenceMeshToMesh()
+        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
-        self.Communicator.initializeCommunication()
-        self.Communicator.requestValueOf(self.only_obj["identifier"].GetString())
-        self.Communicator.requestGradientOf(self.only_obj["identifier"].GetString())
-        self.Communicator.requestValueOf(self.only_con["identifier"].GetString())
-        self.Communicator.requestGradientOf(self.only_con["identifier"].GetString())
+        self.communicator.initializeCommunication()
+        self.communicator.requestValueOf(self.only_obj["identifier"].GetString())
+        self.communicator.requestGradientOf(self.only_obj["identifier"].GetString())
+        self.communicator.requestValueOf(self.only_con["identifier"].GetString())
+        self.communicator.requestGradientOf(self.only_con["identifier"].GetString())
 
-        self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimization_iteration, self.Communicator)
+        self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.optimization_iteration, self.communicator)
 
-        objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
-        conGradientDict = self.Communicator.getStandardizedGradient(self.only_con["identifier"].GetString())
+        objGradientDict = self.communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
+        conGradientDict = self.communicator.getStandardizedGradient(self.only_con["identifier"].GetString())
 
-        WriteDictionaryDataOnNodalVariable(objGradientDict, self.OptimizationModelPart, DF1DX)
-        WriteDictionaryDataOnNodalVariable(conGradientDict, self.OptimizationModelPart, DC1DX)
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
+        WriteDictionaryDataOnNodalVariable(conGradientDict, self.optimization_model_part, DC1DX)
 
         if self.only_obj["project_gradient_on_surface_normals"].GetBool() or self.only_con["project_gradient_on_surface_normals"].GetBool():
-            self.ModelPartController.ComputeUnitSurfaceNormals()
+            self.model_part_controller.ComputeUnitSurfaceNormals()
 
         if self.only_obj["project_gradient_on_surface_normals"].GetBool():
-            self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
         if self.only_con["project_gradient_on_surface_normals"].GetBool():
-            self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
 
-        self.ModelPartController.DampNodalVariableIfSpecified(DF1DX)
-        self.ModelPartController.DampNodalVariableIfSpecified(DC1DX)
+        self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
+        self.model_part_controller.DampNodalVariableIfSpecified(DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
-        self.Mapper.Update()
-        self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
-        self.Mapper.InverseMap(DC1DX, DC1DX_MAPPED)
+        self.mapper.Update()
+        self.mapper.InverseMap(DF1DX, DF1DX_MAPPED)
+        self.mapper.InverseMap(DC1DX, DC1DX_MAPPED)
 
-        constraint_value = self.Communicator.getStandardizedValue(self.only_con["identifier"].GetString())
+        constraint_value = self.communicator.getStandardizedValue(self.only_con["identifier"].GetString())
         if self.__isConstraintActive(constraint_value):
-            self.OptimizationUtilities.ComputeProjectedSearchDirection()
-            self.OptimizationUtilities.CorrectProjectedSearchDirection(constraint_value)
+            self.optimization_utilities.ComputeProjectedSearchDirection()
+            self.optimization_utilities.CorrectProjectedSearchDirection(constraint_value)
         else:
-            self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
-        self.OptimizationUtilities.ComputeControlPointUpdate()
+            self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
+        self.optimization_utilities.ComputeControlPointUpdate()
 
-        self.Mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
-
-        self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
+        self.mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
+        self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraintValue):
@@ -177,8 +185,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         additional_values_to_log["correction_scaling"] = self.algorithm_settings["correction_scaling"].GetDouble()
-        self.DataLogger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
-        self.DataLogger.LogCurrentDesign(self.optimization_iteration)
+        self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
+        self.data_logger.LogCurrentDesign(self.optimization_iteration)
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
@@ -186,19 +194,19 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         if self.optimization_iteration > 1 :
 
             # Check if maximum iterations were reached
-            if self.optimization_iteration == self.maxIterations:
+            if self.optimization_iteration == self.max_iterations:
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
 
             # Check for relative tolerance
-            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("rel_change_obj", self.optimization_iteration)
-            if abs(relativeChangeOfObjectiveValue) < self.relativeTolerance:
-                print("\n> Optimization problem converged within a relative objective tolerance of ",self.relativeTolerance,"%.")
+            relativeChangeOfObjectiveValue = self.data_logger.GetValue("rel_change_obj", self.optimization_iteration)
+            if abs(relativeChangeOfObjectiveValue) < self.relative_tolerance:
+                print("\n> Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
                 return True
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
-        self.OptimizationUtilities.AddFirstVariableToSecondVariable(CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE)
-        self.OptimizationUtilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
 
 # ==============================================================================
