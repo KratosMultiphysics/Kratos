@@ -145,6 +145,8 @@ class FSIAnalysis(AnalysisStage):
 
         self._GetSolver().Initialize()
 
+        self.ModifyAfterSolverInitialize()
+
         ## If the echo level is high enough, print the complete list of settings used to run the simulation
         if self.is_printing_rank and self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
