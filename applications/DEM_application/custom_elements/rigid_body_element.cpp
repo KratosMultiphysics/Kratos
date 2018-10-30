@@ -120,18 +120,26 @@ namespace Kratos {
 
         central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = ZeroVector(3);
 
-        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE)) {
-            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][0];
-            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][1];
-            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][2];
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE_X)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE_X];
+        }
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE_Y)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE_Y];
+        }
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE_Z)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE_Z];
         }
 
         central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = ZeroVector(3);
 
-        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT)) {
-            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
-            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
-            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT_X)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT_X];
+        }
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT_Y)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT_Y];
+        }
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT_Z)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT_Z];
         }
 
         array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
