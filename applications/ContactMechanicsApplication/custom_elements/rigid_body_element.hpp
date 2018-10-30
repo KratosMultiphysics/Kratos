@@ -503,7 +503,11 @@ protected:
      */
     virtual SizeType GetDofsSize();
 
-
+    /**
+     * Map Local To Global system
+     */
+    virtual void MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem);
+    
     ///@}
     ///@name Protected  Access
     ///@{

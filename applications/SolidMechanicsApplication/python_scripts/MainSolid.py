@@ -130,11 +130,9 @@ class Solution(object):
         self.solver.ExecuteBeforeSolutionLoop()
 
         # Print model_part and properties
-        if self.echo_level > 0:
+        if self.echo_level > 1:
             print("")
             print(self.main_model_part)
-            for properties in self.main_model_part.Properties:
-                print(properties)
 
         print(" ")
         print(self._class_prefix()+" Analysis -START- ")

@@ -41,10 +41,10 @@ RigidBodyPointLinkCondition::RigidBodyPointLinkCondition(IndexType NewId, Geomet
 RigidBodyPointLinkCondition::RigidBodyPointLinkCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
-  for ( SizeType i = 0; i < GetGeometry().size(); i++ )
-  {
-    GetGeometry()[i].Set(SLAVE); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)
-  }
+  // for ( SizeType i = 0; i < GetGeometry().size(); i++ )
+  // {
+  //   GetGeometry()[i].Set(SLAVE); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)
+  // }
 }
 
 //************************************************************************************
@@ -510,7 +510,6 @@ void RigidBodyPointLinkCondition::CalculateAndAddLHS(LocalSystemComponents& rLoc
   if(rLinkedLeftHandSideMatrix.size1()!=0)
     this->CalculateAndAddTangent(rLeftHandSideMatrix, rLinkedLeftHandSideMatrix, rVariables);
 
-
   //KRATOS_WATCH( rLeftHandSideMatrix )
 
   KRATOS_CATCH("")
@@ -532,6 +531,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddRHS(LocalSystemComponents& rLoc
     this->CalculateAndAddForces(rRightHandSideVector, rLinkedRightHandSideVector, rVariables);
 
   //KRATOS_WATCH( rRightHandSideVector )
+      
   KRATOS_CATCH("")
 }
 
@@ -595,12 +595,12 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
 
     MatrixType SlaveLeftHandSideMatrix;
     VectorType SlaveRightHandSideVector;
-    //std::cout<<"[LINK]"<<std::endl;
     ie->CalculateLocalSystem(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
 
     LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
-
+    
+    //std::cout<<"[LINK]: "<<ie->Id()<<std::endl;
     //Calculate condition system
     Element::Pointer pSlaveElement = Element::Pointer(*(ie.base()));
     this->CalculateConditionSystem( LocalSystem, LinkedSystem, pSlaveElement, rCurrentProcessInfo );
@@ -760,7 +760,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
 
     MatrixType SlaveLeftHandSideMatrix;
     VectorType SlaveRightHandSideVector;
-    //std::cout<<"[LINK]"<<std::endl;
+    //std::cout<<"[DERIVATIVE_LINK]: "<<ie->Id()<<std::endl;
     ie->CalculateSecondDerivativesContributions(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
 
     LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
@@ -779,7 +779,8 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
     ++counter;
   }
 
-  //std::cout<<" LINK Dynamic RighHandSide "<<rRightHandSideVector<<std::endl;
+  // std::cout<<" LINK Dynamic RighHandSide "<<rRightHandSideVector<<std::endl;
+  // std::cout<<" LINK Dynamic LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
 
   KRATOS_CATCH("")
 }
@@ -1142,7 +1143,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddTangent(MatrixType& rLeftHandSi
       {
         rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+j) += MomentRowMatrix(start_rotation+i,start_rotation+j);
         rLeftHandSideMatrix(start_master+i,start_master+rVariables.MasterLinearBlockSize+j) -= MomentColumnMatrix(start_rotation+i,start_rotation+j);
-        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) += MomentMatrix(start_rotation+i,start_rotation+j);
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) -= MomentMatrix(start_rotation+i,start_rotation+j);
       }
     }
 
@@ -1521,9 +1522,9 @@ void RigidBodyPointLinkCondition::CalculateAndAddForces(VectorType& rRightHandSi
     rRightHandSideVector[start_master+rVariables.MasterLinearBlockSize+i] -= MomentVector[start_rotation+i];
   }
 
-  //std::cout<<" [LINK ID:"<<this->Id()<<"]  RHS Vector "<<rRightHandSideVector<<std::endl;
-  //std::cout<<" [ID:"<<this->Id()<<"] [Link Force "<<Force<<"][Link Moment "<<Moment<<"][NodeId "<<GetGeometry()[0].Id()<<"]"<<std::endl;
-  //std::cout<<" RHS Vector "<<rRightHandSideVector<<std::endl;
+  // std::cout<<" [LINK ID:"<<this->Id()<<"]  RHS Vector "<<rLinkedRightHandSideVector<<std::endl;
+  // std::cout<<" [ID:"<<this->Id()<<"] [Link Force "<<ForceVector<<"][Link Moment "<<MomentVector<<"][NodeId "<<GetGeometry()[0].Id()<<"]"<<std::endl;
+  // std::cout<<" RHS Vector "<<rRightHandSideVector<<std::endl;
 
   //std::cout<<" LINK: "<<this->Id()<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 

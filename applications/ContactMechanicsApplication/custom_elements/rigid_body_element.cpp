@@ -452,7 +452,20 @@ void RigidBodyElement::CalculateDynamicSystem(LocalSystemComponents& rLocalSyste
       }
 
 
-    // Note:
+    this->MapLocalToGlobalSystem(rLocalSystem);
+
+    KRATOS_CATCH("")
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyElement::MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem)
+{
+    KRATOS_TRY
+
+     // Note:
     // That means that the standard rotation K = Q·K'·QT and F = Q·F' is the correct transformation
 
     Matrix InitialLocalMatrix = ZeroMatrix(3,3);
@@ -484,6 +497,8 @@ void RigidBodyElement::CalculateDynamicSystem(LocalSystemComponents& rLocalSyste
 
     KRATOS_CATCH("")
 }
+
+
 
 //************************************************************************************
 //************************************************************************************
@@ -774,6 +789,8 @@ void RigidBodyElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
 {
   // add inertia RHS
   this->CalculateAndAddInertiaLHS(rLeftHandSideMatrix, rVariables);
+
+  // std::cout<<" Rigid body LHS "<<rLeftHandSideMatrix<<std::endl;
 }
 
 //************************************************************************************
@@ -787,6 +804,8 @@ void RigidBodyElement::CalculateAndAddRHS(VectorType& rRightHandSideVector,
 
   // calculate and add external forces
   this->CalculateAndAddExternalForces(rRightHandSideVector, rVariables);
+
+  // std::cout<<" Rigid body RHS "<<rRightHandSideVector<<std::endl;
 
 }
 

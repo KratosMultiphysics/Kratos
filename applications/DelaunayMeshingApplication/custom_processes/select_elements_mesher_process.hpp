@@ -394,7 +394,8 @@ class SelectElementsMesherProcess
     unsigned int  Sliver;
     unsigned int  NewEntity;
     unsigned int  OldEntity;
-
+    unsigned int  Slave;
+    
     double Radius;
 
     //constructor
@@ -413,6 +414,7 @@ class SelectElementsMesherProcess
       NewEntity = 0;
       OldEntity = 0;
       Radius = 0;
+      Slave = 0;
     }
 
     //counter method
@@ -443,7 +445,9 @@ class SelectElementsMesherProcess
         ++NewEntity;
       if(rNode.Is(OLD_ENTITY))
         ++OldEntity;
-
+      if(rNode.Is(SLAVE))
+        ++Slave;
+      
       Radius+=rNode.FastGetSolutionStepValue(NODAL_H);
     }
 
@@ -701,8 +705,6 @@ class SelectElementsMesherProcess
 
   }
 
-
-
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -723,6 +725,9 @@ class SelectElementsMesherProcess
         }
         else if( rVerticesFlags.Fluid == NumberOfVertices && rVerticesFlags.OldEntity >= 2  ){
           //std::cout<<" OLD RIGID EDGE DISCARDED (old_entity: "<<rVerticesFlags.OldEntity<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<")"<<std::endl;
+          accepted=false;
+        }
+        else if( rVerticesFlags.Fluid >= NumberOfVertices-1 && rVerticesFlags.Slave >= 1){
           accepted=false;
         }
       }

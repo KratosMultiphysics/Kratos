@@ -267,8 +267,7 @@ class SolutionScheme:
                 start = 0
                 end   = integration_method_name.find("Step")
                 integration_method_name = integration_method_name[start:end]
-
-        print(" integration method name ", integration_method_name, dof)
+                #print("::[---Scheme Factory--]:: Step Method Changed ("+integration_method_name+":"+dof+")")
 
         return integration_method_name
 

@@ -263,6 +263,10 @@ protected:
      */
     SizeType GetDofsSize() override;
 
+    /**
+     * Map Local To Global system
+     */
+    void MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem) override;
 
     ///@}
     ///@name Protected  Access

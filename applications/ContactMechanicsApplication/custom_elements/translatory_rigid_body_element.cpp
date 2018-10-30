@@ -282,6 +282,46 @@ void TranslatoryRigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHand
 //************************************************************************************
 //************************************************************************************
 
+void TranslatoryRigidBodyElement::MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem)
+{
+    KRATOS_TRY
+
+     // Note:
+    // That means that the standard rotation K = Q·K'·QT and F = Q·F' is the correct transformation
+
+    Matrix InitialLocalMatrix = ZeroMatrix(3,3);
+    mInitialLocalQuaternion.ToRotationMatrix(InitialLocalMatrix);
+
+    // Transform Local to Global LHSMatrix:
+    if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_LHS_MATRIX) ){
+
+      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+
+      // works for 2D and 3D case
+      BeamMathUtilsType::MapLocalToGlobal2D(InitialLocalMatrix, rLeftHandSideMatrix);
+
+      //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
+    }
+
+    // Transform Local to Global RHSVector:
+    if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_RHS_VECTOR) ){
+
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
+      //std::cout<<"["<<this->Id()<<"] RB Dynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+
+      // works for 2D and 3D case
+      BeamMathUtilsType::MapLocalToGlobal2D(InitialLocalMatrix, rRightHandSideVector);
+
+      //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
 //Inertia in the SPATIAL configuration
 void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
@@ -289,54 +329,31 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
     KRATOS_TRY
 
     const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size       = this->GetDofsSize();
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension );
+    if(rLeftHandSideMatrix.size1() != dofs_size)
+      rLeftHandSideMatrix.resize (dofs_size, dofs_size, false);
 
-    if(rLeftHandSideMatrix.size1() != MatSize)
-      rLeftHandSideMatrix.resize (MatSize, MatSize, false);
-
-    rLeftHandSideMatrix = ZeroMatrix( MatSize, MatSize );
+    rLeftHandSideMatrix = ZeroMatrix( dofs_size, dofs_size );
 
     //rCurrentProcessInfo must give it:
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-
     double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+    
+    double Newmark0 = 0;
+    double Newmark1 = 0;
+    double Newmark2 = 0;
 
-    double Newmark1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
+    this->GetTimeIntegrationParameters(Newmark0,Newmark1,Newmark2,rCurrentProcessInfo);
 
-    //block m(1,1) of the mass matrix
 
-    MatrixType m11 = ZeroMatrix(3,3);
-
-    double TotalMass = 0;
-    TotalMass = rVariables.RigidBody.Mass;
-
-    unsigned int RowIndex = 0;
-    unsigned int ColIndex = 0;
-
-    Matrix DiagonalMatrix = IdentityMatrix(3);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-    	m11 = ZeroMatrix(3,3);
-
-    	RowIndex = i * (dimension);
-
-    	for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    	  {
-
-    	    ColIndex = j * (dimension);
-
-    	    m11 = (1.0-AlphaM) * Newmark1 * TotalMass * DiagonalMatrix;
-
-    	    //Building the Local Tangent Inertia Matrix
-    	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-
-    	  }
-      }
-
+    //block 1 of the mass matrix
+    MatrixType m11(dimension, dimension);
+    noalias(m11) = IdentityMatrix(dimension);
+    m11 *= (1.0-AlphaM) * Newmark1 * rVariables.RigidBody.Mass;
+    
+    //Building the Local Tangent Inertia Matrix
+    BeamMathUtilsType::AddMatrix(rLeftHandSideMatrix, m11, 0, 0);
 
     //std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
 
@@ -355,15 +372,14 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
 
     const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension );
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = this->GetDofsSize();
 
-    if(rRightHandSideVector.size() != MatSize)
-      rRightHandSideVector.resize(MatSize, false);
+    if(rRightHandSideVector.size() != dofs_size)
+      rRightHandSideVector.resize(dofs_size, false);
 
-    rRightHandSideVector = ZeroVector( MatSize );
-
+    noalias(rRightHandSideVector) = ZeroVector( dofs_size );
+    
     ArrayType CurrentLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
     CurrentLinearAccelerationVector = MapToInitialLocalFrame(CurrentLinearAccelerationVector);
     ArrayType PreviousLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION,1);
@@ -377,9 +393,10 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
     //block 1 of the inertial force vector
 
     //Compute Linear Term:
-    ArrayType LinearInertialForceVector;
-    noalias(LinearInertialForceVector) = rVariables.RigidBody.Mass * LinearAccelerationVector;
+    Vector LinearInertialForceVector(dimension);
 
+    for(SizeType i=0; i<dimension; ++i)
+      LinearInertialForceVector[i] = rVariables.RigidBody.Mass * LinearAccelerationVector[i];
 
     BeamMathUtilsType::AddVector(LinearInertialForceVector, rRightHandSideVector, 0);
 
