@@ -1015,12 +1015,12 @@ protected:
     #endif
 
         #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
+        for (int index = 0; index < static_cast<int>(equation_size); index++)
         {
         #ifdef USE_GOOGLE_HASH
-            indices[iii].set_empty_key(empty_key);
+            indices[index].set_empty_key(empty_key);
         #else
-            indices[iii].reserve(40);
+            indices[index].reserve(40);
         #endif
         }
 
@@ -1033,17 +1033,17 @@ protected:
 
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
-            #ifdef _OPENMP
-                                        omp_set_lock(&mLockArray[ids[i]]);
-            #endif
-                auto& row_indices = indices[ids[i]];
-                for (auto it = ids.begin(); it != ids.end(); ++it) {
-                    if (*it < BaseType::mEquationSystemSize)
-                        row_indices.insert(*it);
-                }
-            #ifdef _OPENMP
-                omp_unset_lock(&mLockArray[ids[i]]);
-            #endif
+                #ifdef _OPENMP
+                    omp_set_lock(&mLockArray[ids[i]]);
+                #endif
+                    auto& row_indices = indices[ids[i]];
+                    for (auto it = ids.begin(); it != ids.end(); ++it) {
+                        if (*it < BaseType::mEquationSystemSize)
+                            row_indices.insert(*it);
+                    }
+                #ifdef _OPENMP
+                    omp_unset_lock(&mLockArray[ids[i]]);
+                #endif
                 }
             }
 
@@ -1055,17 +1055,17 @@ protected:
             pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
-            #ifdef _OPENMP
-                omp_set_lock(&mLockArray[ids[i]]);
-            #endif
-                auto& row_indices = indices[ids[i]];
-                for (auto it = ids.begin(); it != ids.end(); ++it) {
-                    if (*it < BaseType::mEquationSystemSize)
-                        row_indices.insert(*it);
-                }
-            #ifdef _OPENMP
-                omp_unset_lock(&mLockArray[ids[i]]);
-            #endif
+                #ifdef _OPENMP
+                    omp_set_lock(&mLockArray[ids[i]]);
+                #endif
+                    auto& row_indices = indices[ids[i]];
+                    for (auto it = ids.begin(); it != ids.end(); ++it) {
+                        if (*it < BaseType::mEquationSystemSize)
+                            row_indices.insert(*it);
+                    }
+                #ifdef _OPENMP
+                    omp_unset_lock(&mLockArray[ids[i]]);
+                #endif
                 }
             }
         }
