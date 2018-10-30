@@ -110,9 +110,9 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        array_1d<double, VoigtSize> f_flux(VoigtSize, 0.0); // DF/DS
-        array_1d<double, VoigtSize> g_flux(VoigtSize, 0.0); // DG/DS
-        array_1d<double, VoigtSize> plastic_strain_increment(VoigtSize, 0.0);
+        array_1d<double, VoigtSize> f_flux = ZeroVector(VoigtSize); // DF/DS
+        array_1d<double, VoigtSize> g_flux = ZeroVector(VoigtSize); // DG/DS
+        array_1d<double, VoigtSize> plastic_strain_increment = ZeroVector(VoigtSize);
 
         TConstLawIntegratorType::CalculateAndSubstractBackStress(
             predictive_stress_vector,

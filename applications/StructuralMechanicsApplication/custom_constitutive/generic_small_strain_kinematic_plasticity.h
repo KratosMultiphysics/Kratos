@@ -381,10 +381,11 @@ protected:
     void SetNonConvPlasticStrain(const array_1d<double, VoigtSize>& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
 
     void SetBackStressVector (const Vector& toBS) {mBackStressVector = toBS; }
-    Vector& GetBackStressVector {return mBackStressVector; }
+    Vector& GetBackStressVector() { return mBackStressVector; }
 
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
-    Vector& GetPreviousStressVector {return PreviousStressVector; }  
+    Vector& GetPreviousStressVector() { return PreviousStressVector;}
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -423,7 +424,7 @@ protected:
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;
 
-    // kinematic variables
+    // Kinematic variables
     Vector mPreviousStressVector = ZeroVector(VoigtSize);
     Vector mBackStressVector = ZeroVector(VoigtSize);
 
