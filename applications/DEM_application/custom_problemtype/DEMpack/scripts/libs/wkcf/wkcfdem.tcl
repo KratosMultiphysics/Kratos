@@ -3554,38 +3554,70 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    if {$initial_angular_velocity_Z == "Yes" } {
 		    set InitialAngularVelocityZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.AVz" dv]
 	    }
-        #External forces
-	    set external_forces [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForces" dv]
-	    if {$external_forces=="None"} {
-		    foreach {ExternalFX ExternalFY ExternalFZ} {0.0 0.0 0.0} {}
+        #External forces and moments
+	    set external_force_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
+	    set external_force_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
+	    set external_force_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
+	    if {$external_force_X=="None"} {
+		    set ExternalFX 0.0
 	    }
-	    set external_moments [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.DEM-RBE-ExternalMoments" dv]
-	    if {$external_forces=="None"} {
-		    foreach {ExternalMX ExternalMY ExternalMZ} {0.0 0.0 0.0} {}
+	    if {$external_force_Y=="None"} {
+		    set ExternalFY 0.0
 	    }
-	    if {$external_forces=="Constant"} {
+	    if {$external_force_Z=="None"} {
+		    set ExternalFZ 0.0
+	    }
+	    if {$external_force_X=="Constant"} {
 	        set ExternalFX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FX" dv]
+		}
+	    if {$external_force_Y=="Constant"} {
 	        set ExternalFY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FY" dv]
+		}
+	    if {$external_force_Z=="Constant"} {
 	        set ExternalFZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FZ" dv]
 		}
-	    if {$external_moments=="Constant"} {
-	        set ExternalMX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MX" dv]
-	        set ExternalMY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MY" dv]
-	        set ExternalMZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MZ" dv]
-	    }
-	    if {$external_forces=="FromATable"} {
+	    if {$external_force_X=="FromATable"} {
 			incr demfem_motion_table
 	        set TableNumberFX $demfem_motion_table
+		}
+	    if {$external_force_Y=="FromATable"} {
 			incr demfem_motion_table
 	        set TableNumberFY $demfem_motion_table
+		}
+	    if {$external_force_Z=="FromATable"} {
 			incr demfem_motion_table
 	        set TableNumberFZ $demfem_motion_table
 		}
-	    if {$external_moments=="FromATable"} {
+	    set external_moment_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
+	    set external_moment_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
+	    set external_moment_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
+	    if {$external_moment_X=="None"} {
+		    set ExternalMX 0.0
+	    }
+	    if {$external_moment_Y=="None"} {
+		    set ExternalMY 0.0
+	    }
+	    if {$external_moment_Z=="None"} {
+		    set ExternalMZ 0.0
+	    }
+	    if {$external_moment_X=="Constant"} {
+	        set ExternalMX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MX" dv]
+	    }
+	    if {$external_moment_Y=="Constant"} {
+	        set ExternalMY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MY" dv]
+	    }
+	    if {$external_moment_Z=="Constant"} {
+	        set ExternalMZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MZ" dv]
+	    }
+	    if {$external_moment_X=="FromATable"} {
 			incr demfem_motion_table
 	        set TableNumberMX $demfem_motion_table
+	    }
+	    if {$external_moment_Y=="FromATable"} {
 			incr demfem_motion_table
 	        set TableNumberMY $demfem_motion_table
+	    }
+	    if {$external_moment_Z=="FromATable"} {
 			incr demfem_motion_table
 	        set TableNumberMZ $demfem_motion_table
 	    }
@@ -3658,19 +3690,19 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_X_VALUE $AngularVelocityX"
 	    }
 	    if {$imposed_angular_velocity_X=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVX $TableNumberVX"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVX $TableNumberAVX"
 	    }
 	    if {$imposed_angular_velocity_Y=="Constant"} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Y_VALUE $AngularVelocityY"
 	    }
 	    if {$imposed_angular_velocity_Y=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVY $TableNumberVY"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVY $TableNumberAVY"
 	    }
 	    if {$imposed_angular_velocity_Z=="Constant"} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Z_VALUE $AngularVelocityZ"
 	    }
 	    if {$imposed_angular_velocity_Z=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVX $TableNumberVZ"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVX $TableNumberAVZ"
 	    }
 	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME $velocity_start_time"
 	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME $velocity_stop_time"
@@ -3694,20 +3726,40 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    	GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Z_VALUE $InitialAngularVelocityZ"
 	    }
         #External forces
-	    if {$external_forces=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE \[3\] ($ExternalFX,$ExternalFY,$ExternalFZ)"
+	    if {$external_force_X=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_X $ExternalFX"
 		}
-        if {$external_forces=="Constant"} {
-	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT \[3\] ($ExternalMX,$ExternalMY,$ExternalMZ)"
-		}
-	    if {$external_forces=="FromATable"} {
+	    if {$external_force_X=="FromATable"} {
 	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FX $TableNumberFX"
+		}
+        if {$external_force_Y=="Constant"} {
+	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Y $ExternalFY"
+		}
+	    if {$external_force_Y=="FromATable"} {
     	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FY $TableNumberFY"
+		}
+        if {$external_force_Z=="Constant"} {
+	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Z $ExternalFZ"
+		}
+	    if {$external_force_Z=="FromATable"} {
 	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FZ $TableNumberFZ"
 		}
-	    if {$external_moments=="FromATable"} {
+	    if {$external_moment_X=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_X $ExternalMX"
+		}
+	    if {$external_moment_X=="FromATable"} {
 	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MX $TableNumberMX"
+		}
+	    if {$external_moment_Y=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Y $ExternalMY"
+		}
+	    if {$external_moment_Y=="FromATable"} {
     	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MY $TableNumberMY"
+		}
+	    if {$external_moment_Z=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Z $ExternalMZ"
+		}
+	    if {$external_moment_Z=="FromATable"} {
 	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MZ $TableNumberMZ"
 		}
 	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
@@ -3756,25 +3808,10 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "End SubModelPart"
 	    GiD_File fprintf $demfemchannel ""
 	    incr demfem_ref_to_props_number
-	    if {$external_forces=="FromATable"} {
-			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFX" dv]
-	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFX TIME VELOCITY"
-	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
-	        set file_data [read $file_open]
-	        close $file_open
-	        GiD_File fprintf -nonewline $demfemchannel $file_data
-	        GiD_File fprintf $demfemchannel "End Table"
-	        GiD_File fprintf $demfemchannel ""
-			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFY" dv]
-	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFY TIME VELOCITY"
-	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
-	        set file_data [read $file_open]
-	        close $file_open
-	        GiD_File fprintf -nonewline $demfemchannel $file_data
-	        GiD_File fprintf $demfemchannel "End Table"
-	        GiD_File fprintf $demfemchannel ""
-			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFZ" dv]
-	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFZ TIME VELOCITY"
+        #Imposed velocity tables
+	    if {$imposed_velocity_X=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameVx" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberVX TIME VELOCITY_X"
 	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
 	        set file_data [read $file_open]
 	        close $file_open
@@ -3782,25 +3819,110 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	        GiD_File fprintf $demfemchannel "End Table"
 	        GiD_File fprintf $demfemchannel ""
 	    }
-	    if {$external_forces=="FromATable"} {
+	    if {$imposed_velocity_Y=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameVy" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberVY TIME VELOCITY_Y"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_velocity_Z=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameVz" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberVZ TIME VELOCITY_Z"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_angular_velocity_X=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameAVx" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberAVX TIME ANGULAR_VELOCITY_X"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_angular_velocity_Y=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameAVy" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberAVY TIME ANGULAR_VELOCITY_Y"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_angular_velocity_Z=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameAVz" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberAVZ TIME ANGULAR_VELOCITY_Z"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+        #Imposed external applied force tables
+	    if {$external_force_X=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFX" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFX TIME EXTERNAL_APPLIED_FORCE_X"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+		}
+	    if {$external_force_Y=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFY" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFY TIME EXTERNAL_APPLIED_FORCE_Y"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+		}
+	    if {$external_force_Z=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFZ" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFZ TIME EXTERNAL_APPLIED_FORCE_Z"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$external_moment_X=="FromATable"} {
 			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.FilenameMX" dv]
-	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMX TIME VELOCITY"
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMX TIME EXTERNAL_APPLIED_MOMENT_X"
 	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
 	        set file_data [read $file_open]
 	        close $file_open
 	        GiD_File fprintf -nonewline $demfemchannel $file_data
 	        GiD_File fprintf $demfemchannel "End Table"
 	        GiD_File fprintf $demfemchannel ""
+		}
+	    if {$external_moment_Y=="FromATable"} {
 			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.FilenameMY" dv]
-	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMY TIME VELOCITY"
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMY TIME EXTERNAL_APPLIED_MOMENT_Y"
 	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
 	        set file_data [read $file_open]
 	        close $file_open
 	        GiD_File fprintf -nonewline $demfemchannel $file_data
 	        GiD_File fprintf $demfemchannel "End Table"
 	        GiD_File fprintf $demfemchannel ""
+		}
+	    if {$external_moment_Z=="FromATable"} {
 			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.FilenameMZ" dv]
-	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMZ TIME VELOCITY"
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMZ TIME EXTERNAL_APPLIED_MOMENT_Z"
 	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
 	        set file_data [read $file_open]
 	        close $file_open
@@ -3810,11 +3932,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    }
 	}
     }
-    # GiD_File fprintf $demfemchannel "Begin Table 0 TIME VELOCITY"
-    # GiD_File fprintf $demfemchannel "0.0  0.0"
-    # GiD_File fprintf $demfemchannel "1.0  0.0"
-    # GiD_File fprintf $demfemchannel "End Table"
-    # GiD_File fprintf $demfemchannel ""
 }
 
 
