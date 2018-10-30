@@ -60,13 +60,11 @@ public:
     typedef typename TSpace::MatrixType                              MatrixType;
     typedef typename TSpace::MatrixPointerType                MatrixPointerType;
 
-
     ///@}
-
     ///@name Public member Variables
     ///@{
-    ///@}
 
+    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -74,7 +72,8 @@ public:
      * Old Jacobian pointer constructor.
      * The inverse Jacobian emulator will use information from the previous Jacobian
      */
-    JacobianEmulator( Pointer&& OldJacobianEmulatorPointer ) {
+    JacobianEmulator( Pointer&& OldJacobianEmulatorPointer )
+    {
         mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace>>(std::move(OldJacobianEmulatorPointer));
     }
 
@@ -82,7 +81,8 @@ public:
      * Old Jacobian pointer constructor with recursive previous Jacobian deleting.
      * The inverse Jacobian emulator will use information from the previous Jacobian
      */
-    JacobianEmulator( Pointer&& OldJacobianEmulatorPointer, const unsigned int EmulatorBufferSize ) {
+    JacobianEmulator( Pointer&& OldJacobianEmulatorPointer, const unsigned int EmulatorBufferSize )
+    {
         mpOldJacobianEmulator = std::unique_ptr<JacobianEmulator<TSpace> >(std::move(OldJacobianEmulatorPointer));
 
         // Get the last pointer out of buffer
@@ -110,7 +110,8 @@ public:
     /**
      * Copy Constructor.
      */
-    JacobianEmulator( const JacobianEmulator& rOther ) {
+    JacobianEmulator( const JacobianEmulator& rOther )
+    {
         mpOldJacobianEmulator = rOther.mpOldJacobianEmulator;
     }
 
@@ -120,11 +121,10 @@ public:
     virtual ~JacobianEmulator() {}
 
     ///@}
-
     ///@name Operators
     ///@{
-    ///@}
 
+    ///@}
     ///@name Operations
     ///@{
 
@@ -135,8 +135,8 @@ public:
      */
     void ApplyJacobian(
         const VectorPointerType pWorkVector,
-        VectorPointerType pProjectedVector){
-
+        VectorPointerType pProjectedVector)
+    {
         const auto data_cols = this->GetNumberOfDataCols();
 
         // Security check for the empty observation matrices case (when no correction has been done in the previous step)
@@ -213,16 +213,14 @@ public:
     * column is close to be linear deppendent and is dropped.
     * @param rNewColV new column to be appended to V observation matrix
     * @param rNewColW new column to be appended to W observation matrix
-    * @param RelCutOff value for the relative cut-off criteria
     * @param AbsCutOffEps epsilon value for the absolut cut-off criteria
     * @return Returns true if the columns have been added
     */
     bool AppendDataColumns(
         const VectorType& rNewColV,
         const VectorType& rNewColW,
-        const double RelCutOff = 1e-2,
-        const double AbsCutOff = 1e-8){
-        
+        const double AbsCutOff = 1e-8)
+    {   
         // Add the provided iformation to the observation matrices
         mJacobianObsMatrixV.push_back(rNewColV);
         mJacobianObsMatrixW.push_back(rNewColW);
@@ -252,15 +250,12 @@ public:
         // Get the eigenvalues vector. Remember that eigenvalues 
         // of trans(A)*A are equal to the eigenvalues of A^2
         double eig_sum = 0.0;
-        double eig_norm = 0.0;
         std::vector<double> eig_vector(data_cols);
         for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
             const double i_col_eig = std::sqrt(w_svd(i_col,i_col));
             eig_sum += i_col_eig;
             eig_vector[i_col] = i_col_eig;
-            eig_norm += std::pow(i_col_eig,2);
         }
-        std::sqrt(eig_norm);
 
         // Reorder the eigenvalues vector from max to min and compute the eigenvalues norm
         std::vector<double> eig_vector_ordered(data_cols);
@@ -282,9 +277,6 @@ public:
         // the correspondent data columns are dropped from both V and W.
         const double max_eig_V = eig_vector_ordered[0];
         const double min_eig_V = eig_vector_ordered[data_cols - 1];
-        // const double abs_cut_off_tol = AbsCutOff * eig_norm;
-        // for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
-            // if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
         if (min_eig_V < AbsCutOff * max_eig_V){
             KRATOS_WARNING("MVQNRecursiveJacobianConvergenceAccelerator") 
                 << "Dropping info for eigenvalue " << eig_vector_ordered[data_cols - 1] << " (tolerance " << AbsCutOff * max_eig_V << " )" << std::endl;
@@ -310,11 +302,10 @@ public:
     bool DropAndAppendDataColumns(
         const VectorType& rNewColV,
         const VectorType& rNewColW,
-        const double RelCutOff = 1e-2,
-        const double AbsCutOffEps = 1e-8){
-        
+        const double AbsCutOffEps = 1e-8)
+    {  
         // std::cout << "DropAndAppendDataColumns()" << std::endl;
-        const bool info_added = this->AppendDataColumns(rNewColV, rNewColW, RelCutOff, AbsCutOffEps);
+        const bool info_added = this->AppendDataColumns(rNewColV, rNewColW, AbsCutOffEps);
 
         // If a new column has been added, drop the oldest data
         if (info_added){
@@ -332,23 +323,27 @@ public:
     }
 
     /**
-    * This function returns the number of data columns stored.
-    * Since the data columns is assumed (and must be) the same in 
-    * both observation matrices, it is computed using V matrix.
-    * @return The number of data columns
-    */
-    inline std::size_t GetNumberOfDataCols() const {
+     * @brief Get the Number Of Data Cols object
+     * This function returns the number of data columns stored.
+     * Since the data columns is assumed (and must be) the same in 
+     * both observation matrices, it is computed using V matrix.
+     * @return std::size_t number of data columns
+     */
+    inline std::size_t GetNumberOfDataCols() const
+    {
         return mJacobianObsMatrixV.size();
     }
 
     /**
-    * This function returns the interface residual size.
-    * Since the residual size is assumed (and must be) the same in 
-    * every column for both observation matrices, it is computed 
-    * using the first column of V matrix.
-    *  @return The number of interface degrees of freedom
-    */
-    inline std::size_t GetResidualSize() const {
+     * @brief Get the Residual Size object
+     * This function returns the interface residual size.
+     * Since the residual size is assumed (and must be) the same in 
+     * every column for both observation matrices, it is computed 
+     * using the first column of V matrix.
+     * @return std::size_t residual size
+     */
+    inline std::size_t GetResidualSize() const
+    {
         return TSpace::Size(mJacobianObsMatrixV[0]);
     }
 
@@ -439,7 +434,8 @@ public:
      * Constructor.
      * MVQN convergence accelerator
      */
-    MVQNRecursiveJacobianConvergenceAccelerator( Parameters &rConvAcceleratorParameters ) {
+    MVQNRecursiveJacobianConvergenceAccelerator( Parameters &rConvAcceleratorParameters )
+    {
         Parameters mvqn_recursive_default_parameters(R"(
         {
             "solver_type"     : "MVQN_recursive",
@@ -453,7 +449,6 @@ public:
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
 
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
-        mRelCutOff = rConvAcceleratorParameters["rel_cut_off_tol"].GetDouble();
         mAbsCutOff = rConvAcceleratorParameters["abs_cut_off_tol"].GetDouble();
         mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt();
         mConvergenceAcceleratorStep = 0;
@@ -464,11 +459,9 @@ public:
     MVQNRecursiveJacobianConvergenceAccelerator(
         double OmegaInitial = 0.825,
         unsigned int JacobianBufferSize = 10,
-        double RelCutOff = 1e-2,
-        double AbsCutOff = 1e-8) {
-
+        double AbsCutOff = 1e-8)
+    {
         mOmega_0 = OmegaInitial;
-        mRelCutOff = RelCutOff;
         mAbsCutOff = AbsCutOff;
         mJacobianBufferSize = JacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
@@ -487,18 +480,19 @@ public:
     virtual ~MVQNRecursiveJacobianConvergenceAccelerator() {}
 
     ///@}
-
     ///@name Operators
     ///@{
-    ///@}
 
+    ///@}
     ///@name Operations
     ///@{
 
-    //~ /**
-     //~ * Construct the initial inverse Jacobian emulator
-     //~ */
-    void Initialize() override {
+    /**
+     * @brief Initialize the Jacobian emulator
+     * This method constructs the very first Jacobian emulator of the simulation
+     */
+    void Initialize() override
+    {
         KRATOS_TRY;
 
         mpCurrentJacobianEmulatorPointer = std::unique_ptr< JacobianEmulator <TSpace> > (new JacobianEmulator<TSpace>());
@@ -506,11 +500,13 @@ public:
         KRATOS_CATCH( "" );
     }
 
-
     /**
-     * Initialize the internal iteration counter
+     * @brief 
+     * This method initializes the internal counters and constructs the previous step Jacobian emulator.
+     * The Jacobian emulator is recursively build at each time step according to the buffer size.
      */
-    void InitializeSolutionStep() override {
+    void InitializeSolutionStep() override
+    {
         KRATOS_TRY;
 
         mConvergenceAcceleratorStep += 1;
@@ -528,13 +524,15 @@ public:
     }
 
     /**
-     * Performs the solution update
+     * @brief Performs the solution update
      * The correction is computed using an inverse Jacobian approximation obtained with a recursive matrix-free version of the MVQN (MultiVector Quasi-Newton method).
      * @param rResidualVector: Residual vector from the residual evaluation
      * @param rIterationGuess: Current iteration guess to be corrected. Should be initialized outside the convergence accelerator.
      */
-    void UpdateSolution(const VectorType& rResidualVector,
-                        VectorType& rIterationGuess) override {
+    void UpdateSolution(
+        const VectorType& rResidualVector,
+        VectorType& rIterationGuess) override
+    {
         KRATOS_TRY;
 
         const auto problem_size = TSpace::Size(rResidualVector);
@@ -570,10 +568,11 @@ public:
             bool info_added = false;
             const std::size_t n_data_cols = mpCurrentJacobianEmulatorPointer->GetNumberOfDataCols();
             if (n_data_cols < problem_size) {
-                info_added = (mpCurrentJacobianEmulatorPointer)->AppendDataColumns(*pNewColV,*pNewColW,mRelCutOff,mAbsCutOff);
+                info_added = (mpCurrentJacobianEmulatorPointer)->AppendDataColumns(*pNewColV, *pNewColW, mAbsCutOff);
             } else {
-                info_added = (mpCurrentJacobianEmulatorPointer)->DropAndAppendDataColumns(*pNewColV,*pNewColW,mRelCutOff,mAbsCutOff);
+                info_added = (mpCurrentJacobianEmulatorPointer)->DropAndAppendDataColumns(*pNewColV, *pNewColW, mAbsCutOff);
             }
+            KRATOS_WARNING_IF("MVQNRecursiveJacobianConvergenceAccelerator", !info_added)  << "Information not added to the observation matrices." << std::endl;
 
             // Apply the current step inverse Jacobian emulator to the residual vector
             VectorPointerType pIterationCorrection(new VectorType(rResidualVector));
@@ -586,9 +585,11 @@ public:
     }
 
     /**
-     * Updates the MVQN iteration values for the next non-linear iteration
+     * @brief Do the MVQN variables update
+     * Updates the MVQN iteration variables for the next non-linear iteration
      */
-    void FinalizeNonLinearIteration() override {
+    void FinalizeNonLinearIteration() override
+    {
         KRATOS_TRY;
 
         // Variables update
@@ -627,10 +628,8 @@ private:
     ///@{
 
     double mOmega_0;                                                    // Relaxation factor for the initial fixed point iteration
-    double mRelCutOff;                                                  // Tolerance for the relative cut-off criterion
     double mAbsCutOff;                                                  // Tolerance for the absolute cut-off criterion
     unsigned int mJacobianBufferSize;                                   // User-defined Jacobian buffer-size
-    unsigned int mCurrentJacobianBufferSize;                            // Current Jacobian buffer-size (expected to be less or equal to the user-defined one)
     unsigned int mConvergenceAcceleratorStep;                           // Convergence accelerator steps counter
     unsigned int mConvergenceAcceleratorIteration;                      // Convergence accelerator iteration counter
     bool mConvergenceAcceleratorFirstCorrectionPerformed;               // Indicates that the initial fixed point iteration has been already performed

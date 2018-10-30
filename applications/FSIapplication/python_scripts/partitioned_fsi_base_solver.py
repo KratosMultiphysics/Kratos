@@ -309,7 +309,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             err_msg += 'Structure time step is: ' + str(structure_time_step) + '\n'
             err_msg += 'No substepping has been implemented yet. Fluid and structure time step must coincide.'
             raise Exception(err_msg)
-        
+
         return fluid_time_step
 
     def _GetNodalUpdateUtilities(self):

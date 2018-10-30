@@ -61,8 +61,8 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 
     // MVQN convergence accelerator
     class_<MVQNFullJacobianConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
-        .def(init<double>())
         .def(init<Parameters &>())
+        .def(init<double, double>())
         .def("InitializeSolutionStep", &MVQNFullJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
         .def("UpdateSolution", &MVQNFullJacobianConvergenceAccelerator<TSpace>::UpdateSolution)
         .def("FinalizeNonLinearIteration", &MVQNFullJacobianConvergenceAccelerator<TSpace>::FinalizeNonLinearIteration)
@@ -71,7 +71,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     // MVQN recursive convergence accelerator
     class_<MVQNRecursiveJacobianConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "MVQNRecursiveJacobianConvergenceAccelerator")
         .def(init<Parameters &>())
-        .def(init<double, unsigned int, double, double>())
+        .def(init<double, unsigned int, double>())
         .def("Initialize", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::Initialize)
         .def("InitializeSolutionStep", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
         .def("UpdateSolution", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::UpdateSolution)

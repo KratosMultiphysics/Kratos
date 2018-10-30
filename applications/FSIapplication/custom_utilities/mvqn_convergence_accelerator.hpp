@@ -1,11 +1,13 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:          BSD License
-//  Original author:  Ruben Zorrilla
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main author:     Ruben Zorrilla
 //
 
 #if !defined(KRATOS_MVQN_CONVERGENCE_ACCELERATOR)
@@ -26,20 +28,20 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
-///@}
 
+///@}
 ///@name Type Definitions
 ///@{
-///@}
 
+///@}
 ///@name  Enum's
 ///@{
-///@}
 
+///@}
 ///@name  Functions
 ///@{
-///@}
 
+///@}
 ///@name Kratos Classes
 ///@{
 
@@ -49,6 +51,7 @@ template<class TSpace>
 class MVQNFullJacobianConvergenceAccelerator: public ConvergenceAccelerator<TSpace>
 {
 public:
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( MVQNFullJacobianConvergenceAccelerator );
@@ -62,24 +65,22 @@ public:
     typedef typename BaseType::MatrixType                                MatrixType;
     typedef typename BaseType::MatrixPointerType                  MatrixPointerType;
 
-    //~ typedef typename BaseType::SizeType                                    SizeType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /**
-     * Constructor.
-     * Aitken convergence accelerator
+     * @brief Construct a new MVQNFullJacobianConvergenceAccelerator object
+     * MVQN convergence accelerator Json settings constructor
+     * @param rConvAcceleratorParameters Json string encapsulating the settings
      */
     MVQNFullJacobianConvergenceAccelerator(
-        Parameters &rConvAcceleratorParameters){
-            
+        Parameters &rConvAcceleratorParameters)
+    {        
         Parameters mvqn_default_parameters(R"(
         {
             "solver_type"     : "MVQN",
             "w_0"             : 0.825,
-            "rel_cut_off_tol" : 1e-2,
             "abs_cut_off_tol" : 1e-8
         }
         )");
@@ -87,19 +88,22 @@ public:
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
 
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
-        mRelCutOff = rConvAcceleratorParameters["rel_cut_off_tol"].GetDouble();
         mAbsCutOff = rConvAcceleratorParameters["abs_cut_off_tol"].GetDouble();
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
     }
 
+    /**
+     * @brief Construct a new MVQNFullJacobianConvergenceAccelerator object
+     * MVQN convergence accelerator constructor
+     * @param OmegaInitial initial relaxation parameters
+     * @param AbsCutOff cutt-off criteria tolerance
+     */
     MVQNFullJacobianConvergenceAccelerator(
         const double OmegaInitial = 0.825,
-        const double RelCutOff = 1e-2,
-        const double AbsCutOff = 1e-8){
-
+        const double AbsCutOff = 1e-8)
+    {
         mOmega_0 = OmegaInitial;
-        mRelCutOff = RelCutOff;
         mAbsCutOff = AbsCutOff;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
@@ -116,16 +120,16 @@ public:
     virtual ~MVQNFullJacobianConvergenceAccelerator(){}
 
     ///@}
-
     ///@name Operators
     ///@{
-    ///@}
 
+    ///@}
     ///@name Operations
     ///@{
 
     /**
-     * Initialize the internal iteration counter
+     * @brief Initialize the internal iteration counter
+     * This method initializes the convergence acceleratior iteration counter at the begining of the step.
      */
     void InitializeSolutionStep() override
     {
@@ -137,13 +141,15 @@ public:
     }
 
     /**
-     * Performs the solution update
-     * The correction is computed using a Jacobian approximation obtained with the MVQN (MultiVector Quasi-Newton method).
+     * @brief Performs the solution update
+     * This method computes the solution update using a Jacobian approximation. 
+     * Such Jacobian approximation is computed with the MVQN (MultiVector Quasi-Newton method) algorithm.
      * @param rResidualVector Residual vector from the residual evaluation
      * @param rIterationGuess Current iteration guess to be corrected. Should be initialized to zero outside the convergence accelerator.
      */
-    void UpdateSolution(const VectorType& rResidualVector,
-                        VectorType& rIterationGuess) override
+    void UpdateSolution(
+        const VectorType& rResidualVector,
+        VectorType& rIterationGuess) override
     {
         KRATOS_TRY;
 
@@ -154,10 +160,8 @@ public:
         std::swap(mpResidualVector_1, pAuxResidualVector);
         std::swap(mpIterationValue_1, pAuxIterationGuess);
 
-        if (mConvergenceAcceleratorIteration == 0)
-        {
-            if (mConvergenceAcceleratorFirstCorrectionPerformed == false)
-            {
+        if (mConvergenceAcceleratorIteration == 0) {
+            if (mConvergenceAcceleratorFirstCorrectionPerformed == false) {
                 // The very first correction of the problem is done with a fixed point iteration
                 TSpace::UnaliasedAdd(rIterationGuess, mOmega_0, *mpResidualVector_1);
 
@@ -168,19 +172,14 @@ public:
                 (*mpJac_n) = -1.0 * IdentityMatrix(mProblemSize,mProblemSize);
 
                 mConvergenceAcceleratorFirstCorrectionPerformed = true;
-            }
-            else
-            {
+            } else {
                 // Fist step correction is done with the previous step Jacobian
                 VectorType AuxVec(mProblemSize);
                 TSpace::Mult(*mpJac_n, *mpResidualVector_1, AuxVec);
                 TSpace::UnaliasedAdd(rIterationGuess, -1.0, AuxVec);
             }
-        }
-        else
-        {
-            if (mConvergenceAcceleratorIteration == 1)
-            {
+        } else {
+            if (mConvergenceAcceleratorIteration == 1) {
                 // Resize the observation matrices in accordance to the problem size
                 MatrixPointerType pNewObsMatrixV = MatrixPointerType(new MatrixType(mProblemSize, 1));
                 MatrixPointerType pNewObsMatrixW = MatrixPointerType(new MatrixType(mProblemSize, 1));
@@ -194,9 +193,7 @@ public:
                     (*mpObsMatrixV)(i,0) = (*mpResidualVector_1)(i) - (*mpResidualVector_0)(i);
                     (*mpObsMatrixW)(i,0) = (*mpIterationValue_1)(i) - (*mpIterationValue_0)(i);
                 }
-            }
-            else
-            {
+            } else {
                 // Reshape the existent observation matrices
                 const std::size_t n_old_cols = mpObsMatrixV->size2();
                 if (n_old_cols < mProblemSize){
@@ -225,15 +222,12 @@ public:
             // Get the eigenvalues vector. Remember that eigenvalues 
             // of trans(A)*A are equal to the eigenvalues of A^2
             double eig_sum = 0.0;
-            double eig_norm = 0.0;
             std::vector<double> eig_vector(data_cols);
             for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
                 const double i_col_eig = std::sqrt(w_svd(i_col,i_col));
                 eig_sum += i_col_eig;
                 eig_vector[i_col] = i_col_eig;
-                eig_norm += std::pow(i_col_eig,2);
             }
-            std::sqrt(eig_norm);
 
             // Reorder the eigenvalues vector from max to min and compute the eigenvalues norm
             std::vector<double> eig_vector_ordered(data_cols);
@@ -291,7 +285,8 @@ public:
     }
 
     /**
-     * Updates the MVQN iteration values for the next non-linear iteration
+     * @brief Do the MVQN variables update
+     * Updates the MVQN iteration variables for the next non-linear iteration
      */
     void FinalizeNonLinearIteration() override
     {
@@ -306,7 +301,8 @@ public:
     }
 
     /**
-     * Reset the convergence accelerator iterations counter
+     * @brief Save the current step Jacobian
+     * This method saves the current step Jacobian as previous step Jacobian for the next time step iteration
      */
     void FinalizeSolutionStep() override
     {
@@ -319,19 +315,18 @@ public:
     }
 
     ///@}
-
     ///@name Access
     ///@{
-    ///@}
 
+    ///@}
     ///@name Inquiry
     ///@{
-    ///@}
 
+    ///@}
     ///@name Input and output
     ///@{
-    ///@}
 
+    ///@}
     ///@name Friends
     ///@{
 
@@ -341,7 +336,6 @@ private:
     ///@{
 
     double mOmega_0;                                            // Relaxation factor for the initial fixed point iteration
-    double mRelCutOff;                                          // Tolerance for the relative cut-off criterion
     double mAbsCutOff;                                          // Tolerance for the absolute cut-off criterion
     unsigned int mProblemSize;                                  // Residual to minimize size
     unsigned int mConvergenceAcceleratorIteration;              // Convergence accelerator iteration counter
@@ -366,9 +360,11 @@ private:
     ///@{
 
     /**
-     * @brief This function appends the new data to both observation matrices
+     * @brief Append the new data to the observation matrices
+     * This function appends the new data to both observation matrices
      */
-    void AppendDataColumns(){
+    void AppendDataColumns()
+    {
         // Create two auxilar observation matrices to reshape the existent ones
         const std::size_t n_old_cols = mpObsMatrixV->size2();
         MatrixPointerType p_new_V = Kratos::make_shared<MatrixType>(mProblemSize, n_old_cols + 1);
@@ -392,7 +388,12 @@ private:
         std::swap(mpObsMatrixW,p_new_W);
     }
 
-    void DropAndAppendDataColumns(){
+    /**
+     * @brief Drop the oldest data columns to append the new data
+     * This function drops the oldest information to append the new data to both observation matrices
+     */
+    void DropAndAppendDataColumns()
+    {
         // Observation matrices size is equal to the interface DOFs number. Oldest columns are to be dropped.
         MatrixPointerType p_new_V = Kratos::make_shared<MatrixType>(mProblemSize, mProblemSize);
         MatrixPointerType p_new_W = Kratos::make_shared<MatrixType>(mProblemSize, mProblemSize);
@@ -416,9 +417,11 @@ private:
     }
 
     /**
-     * @brief This function drops the last column of both observation matrices
+     * @brief Drop the last column of both observation matrices
+     * This function drops the last column of both observation matrices
      */
-    void DropLastDataColumn(){
+    void DropLastDataColumn()
+    {
         // Set two auxiliar observation matrices
         const auto n_cols = mpObsMatrixV->size2() - 1;
         MatrixPointerType p_aux_V = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);
@@ -462,13 +465,13 @@ private:
 }; /* Class MVQNFullJacobianConvergenceAccelerator */
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-///@}
 
+///@}
 ///@name Input and output
 ///@{
+
 ///@}
 
 }  /* namespace Kratos.*/
