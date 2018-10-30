@@ -5,8 +5,11 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 
 class TestMPICommunicatorSetUp(UnitTest.TestCase):
 
+    def setUp(self):
+        self.model = Kratos.Model()
+
     def testMPICommunicatorSetUp(self):
-        model_part = Kratos.ModelPart("Test_model_part")
+        model_part = self.model.CreateModelPart("Test_model_part",1)
 
         # I'd do more complex tests, but this one should work in serial too (JC)
         self.assertNotEqual(model_part.GetCommunicator().__str__(), "MPICommunicator")
