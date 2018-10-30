@@ -103,6 +103,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         CurveFittingHardening = 4
     };
 
+    enum class KinematicHardeningType
+    {
+        LinearKinematicHardening = 0,
+        AmstrongFrederickKinematicHardening = 1,
+        AraujoVoyiadjisKinematicHardening = 2
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -274,6 +281,42 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         )
     {
         YieldSurfaceType::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, rFFluxVector, rValues);
+    }
+
+    /**
+     * @brief This method computes the back stress for the kinematic plasticity
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rKinematicParameters The oarameters required for the models
+     * @param rPreviousStressVector The previous stress vector
+     * @param rPlasticStrainIncrement The plastric strain increment of this step
+     * @param rBackStressVector The back stress for the kinematic plasticity
+     */
+    static void CalculateAndSubstractBackStress(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        ConstitutiveLaw::Parameters& rValues,
+        const Vector& rPreviousStressVector,
+        const Vector& rPlasticStrainIncrement,
+        Vector& rBackStressVector
+        )
+    {
+        const Vector& kinematic_parameters = rValues.GetMaterialProperties()[KINEMATIC_PLASTICITY_PARAMETERS];
+        const int kinematic_hardening_type = rValues.GetMaterialProperties()[KINEMATIC_HARDENING_TYPE];
+
+        switch (static_cast<KinematicHardeningType>(kinematic_hardening_type))
+        {
+            case KinematicHardeningType::LinearKinematicHardening:
+                KRATOS_ERROR_IF(kinematic_parameters.size() == 0) << "Kinematic Parameters not defined..." << std::endl;
+                rBackStressVector += 2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement;
+                break;
+
+            case KinematicHardeningType::AmstrongFrederickKinematicHardening:
+                KRATOS_ERROR_IF(kinematic_parameters.size() < 2) << "Kinematic Parameters not defined..." << std::endl;
+                break;
+
+            case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
+                KRATOS_ERROR_IF(kinematic_parameters.size() != 3) << "Kinematic Parameters not defined..." << std::endl;
+                break;
+        }
     }
 
     /**

@@ -94,16 +94,18 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
         // We get some variables
-        double& r_threshold = this->GetThreshold();
-        double& r_plastic_dissipation = this->GetPlasticDissipation();
-        Vector& r_plastic_strain = this->GetPlasticStrain();
+        double threshold = this->GetThreshold();
+        double plastic_dissipation = this->GetPlasticDissipation();
+        Vector plastic_strain = this->GetPlasticStrain();
+        Vector back_stress_vector = this->GetBackStressVector();
+        const Vector previous_stress_vector = this->GetPreviousStressVector();
 
         array_1d<double, VoigtSize> predictive_stress_vector;
         if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
             predictive_stress_vector = rValues.GetStressVector();
         } else {
             // S0 = r_constitutive_matrix:(E-Ep)
-            predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+            predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
         }
 
         // Initialize Plastic Parameters
@@ -112,44 +114,51 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         array_1d<double, VoigtSize> g_flux(VoigtSize, 0.0); // DG/DS
         array_1d<double, VoigtSize> plastic_strain_increment(VoigtSize, 0.0);
 
+        TConstLawIntegratorType::CalculateAndSubstractBackStress(
+            predictive_stress_vector,
+            rValues,
+            this->GetPreviousStressVector(),
+            plastic_strain_increment,
+            back_stress_vector);
+
         TConstLawIntegratorType::CalculatePlasticParameters(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
-            r_threshold, plastic_denominator, f_flux, g_flux,
-            r_plastic_dissipation, plastic_strain_increment,
+            threshold, plastic_denominator, f_flux, g_flux,
+            plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, rValues, characteristic_length,
-            r_plastic_strain);
+            plastic_strain);
 
-        const double F = uniaxial_stress - r_threshold;
+        const double F = uniaxial_stress - threshold;
 
-        if (F <= std::abs(1.0e-4 * r_threshold)) { // Elastic case
+        if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
-            this->SetNonConvPlasticDissipation(r_plastic_dissipation);
-            this->SetNonConvPlasticStrain(r_plastic_strain);
-            this->SetNonConvThreshold(r_threshold);
+            this->SetNonConvPlasticDissipation(plastic_dissipation);
+            this->SetNonConvPlasticStrain(plastic_strain);
+            this->SetNonConvThreshold(threshold);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 noalias(tangent_tensor) = r_constitutive_matrix;
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         } else { // Plastic case
             // while loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
-                r_threshold, plastic_denominator, f_flux, g_flux,
-                r_plastic_dissipation, plastic_strain_increment,
-                r_constitutive_matrix, r_plastic_strain, rValues,
+                threshold, plastic_denominator, f_flux, g_flux,
+                plastic_dissipation, plastic_strain_increment,
+                r_constitutive_matrix, plastic_strain, rValues,
                 characteristic_length);
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
-            this->SetNonConvPlasticDissipation(r_plastic_dissipation);
-            this->SetNonConvPlasticStrain(r_plastic_strain);
-            this->SetNonConvThreshold(r_threshold);
+            this->SetNonConvPlasticDissipation(plastic_dissipation);
+            this->SetNonConvPlasticStrain(plastic_strain);
+            this->SetNonConvThreshold(threshold);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
                 noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         }
     }
@@ -196,6 +205,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeSol
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    // we update the data base
     this->SetPlasticDissipation(this->GetNonConvPlasticDissipation());
     this->SetThreshold(this->GetNonConvThreshold());
     this->SetPlasticStrain(this->GetNonConvPlasticStrain());
@@ -464,21 +474,21 @@ int GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericSmallStrainKinematicPlasticity<GenericConstitutiveLawIntegratorKinematicPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
 
 } // namespace Kratos

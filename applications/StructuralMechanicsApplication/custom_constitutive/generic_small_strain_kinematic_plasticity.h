@@ -10,8 +10,8 @@
 //  Collaborator:    
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_3D_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_3D_H_INCLUDED
+#if !defined(KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_H_INCLUDED)
+#define KRATOS_GENERIC_SMALL_STRAIN_KINEMATIC_PLASTICITY_H_INCLUDED
 
 // System includes
 
@@ -381,10 +381,10 @@ protected:
     void SetNonConvPlasticStrain(const array_1d<double, VoigtSize>& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
 
     void SetBackStressVector (const Vector& toBS) {mBackStressVector = toBS; }
-    Vector GetBackStressVector {return mBackStressVector; }
+    Vector& GetBackStressVector {return mBackStressVector; }
 
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
-    Vector GetPreviousStressVector {return PreviousStressVector; }  
+    Vector& GetPreviousStressVector {return PreviousStressVector; }  
     ///@}
     ///@name Protected Operations
     ///@{
@@ -455,29 +455,29 @@ protected:
 
     // Serialization
 
-    friend class Serializer;
+    // friend class Serializer;
 
-    void save(Serializer &rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("PlasticDissipation", mPlasticDissipation);
-        rSerializer.save("Threshold", mThreshold);
-        rSerializer.save("PlasticStrain", mPlasticStrain);
-        rSerializer.save("NonConvPlasticDissipation", mNonConvPlasticDissipation);
-        rSerializer.save("NonConvThreshold", mNonConvThreshold);
-        rSerializer.save("NonConvPlasticStrain", mNonConvPlasticStrain);
-    }
+    // void save(Serializer &rSerializer) const override
+    // {
+    //     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+    //     rSerializer.save("PlasticDissipation", mPlasticDissipation);
+    //     rSerializer.save("Threshold", mThreshold);
+    //     rSerializer.save("PlasticStrain", mPlasticStrain);
+    //     rSerializer.save("NonConvPlasticDissipation", mNonConvPlasticDissipation);
+    //     rSerializer.save("NonConvThreshold", mNonConvThreshold);
+    //     rSerializer.save("NonConvPlasticStrain", mNonConvPlasticStrain);
+    // }
 
-    void load(Serializer &rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("PlasticDissipation", mPlasticDissipation);
-        rSerializer.load("Threshold", mThreshold);
-        rSerializer.load("PlasticStrain", mPlasticStrain);
-        rSerializer.load("NonConvPlasticDissipation", mNonConvPlasticDissipation);
-        rSerializer.load("NonConvThreshold", mNonConvThreshold);
-        rSerializer.load("NonConvPlasticStrain", mNonConvPlasticStrain);
-    }
+    // void load(Serializer &rSerializer) override
+    // {
+    //     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+    //     rSerializer.load("PlasticDissipation", mPlasticDissipation);
+    //     rSerializer.load("Threshold", mThreshold);
+    //     rSerializer.load("PlasticStrain", mPlasticStrain);
+    //     rSerializer.load("NonConvPlasticDissipation", mNonConvPlasticDissipation);
+    //     rSerializer.load("NonConvThreshold", mNonConvThreshold);
+    //     rSerializer.load("NonConvPlasticStrain", mNonConvPlasticStrain);
+    // }
 
     ///@}
 
