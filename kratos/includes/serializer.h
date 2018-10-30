@@ -187,6 +187,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    ///This function returns the "trace type" used in initializing the serializer. 
+    ///Trace type is one of SERIALIZER_NO_TRACE,SERIALIZER_TRACE_ERROR,SERIALIZER_TRACE_ALL
     TraceType GetTraceType(){return mTrace;}
     
     template<class TDataType>
