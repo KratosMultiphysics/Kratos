@@ -380,15 +380,23 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief It applies certain operations at the system of equations at the begining of the solution step
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     */
     void InitializeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
-        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
         // Getting process info
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -405,15 +413,22 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to initialize solution step.")
     }
 
-
+    /**
+     * @brief It applies certain operations at the system of equations at the end of the solution step
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     */
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
-        BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
+        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
 
         // Getting process info
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -480,17 +495,32 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method construcs the relationship between the DoF
+     * @param pScheme The integration scheme
+     * @param rA The LHS of the system
+     * @param rModelPart The model part which defines the problem
+     */
     void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
-        TSystemMatrixType& A,
-        ModelPart& rModelPart) override
+        TSystemMatrixType& rA,
+        ModelPart& rModelPart
+        ) override
     {
         if(mGlobalMasterSlaveConstraints.size() > 0)
-            ConstructMatrixStructureWithConstraints(pScheme, A, rModelPart);
+            ConstructMatrixStructureWithConstraints(pScheme, rA, rModelPart);
         else
-            BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
+            BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
     }
 
+    /**
+     * @brief The same methods as the base class but with constraints
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     */
     void BuildAndSolveWithConstraints(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
@@ -551,6 +581,16 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        auto el_begin = rModelPart.ElementsBegin();
+        auto cond_begin = rModelPart.ConditionsBegin();
+
         const SizeType equation_size = BaseType::mEquationSystemSize;
 
     #ifdef USE_GOOGLE_HASH
@@ -575,38 +615,47 @@ protected:
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
 
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
         #pragma omp parallel for firstprivate(nelements, ids)
-        for (int i_elem = 0; i_elem < nelements; ++i_elem) {
-            auto it_elem = rModelPart.Elements().begin() + i_elem;
-            pScheme->EquationId(*(it_elem.base()), ids, r_process_info);
-            for (IndexType i = 0; i < ids.size(); i++) {
-            #ifdef _OPENMP
-                omp_set_lock(&BaseType::mLockArray[ids[i]]);
-            #endif
-                auto &row_indices = indices[ids[i]];
-                row_indices.insert(ids.begin(), ids.end());
+        for (int i_elem = 0; i_elem<nelements; i_elem++) {
+            auto it_elem = el_begin + i_elem;
+            pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
 
-            #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-            #endif
+            for (IndexType i = 0; i < ids.size(); ++i) {
+                if (ids[i] < BaseType::mEquationSystemSize) {
+                #ifdef _OPENMP
+                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                    auto& row_indices = indices[ids[i]];
+                    for (auto it = ids.begin(); it != ids.end(); ++it) {
+                        if (*it < BaseType::mEquationSystemSize)
+                            row_indices.insert(*it);
+                    }
+                #ifdef _OPENMP
+                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                }
             }
+
         }
 
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         #pragma omp parallel for firstprivate(nconditions, ids)
-        for (int i_cond = 0; i_cond < nconditions; i_cond++) {
-            auto it_cond = rModelPart.Conditions().begin() + i_cond;
-            pScheme->Condition_EquationId(*(it_cond.base()), ids, r_process_info);
-            for (IndexType i = 0; i < ids.size(); i++) {
-            #ifdef _OPENMP
-                omp_set_lock(&BaseType::mLockArray[ids[i]]);
-            #endif
-                auto &row_indices = indices[ids[i]];
-                row_indices.insert(ids.begin(), ids.end());
-            #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-            #endif
+        for (int i_cond = 0; i_cond<nconditions; ++i_cond) {
+            auto it_cond = cond_begin + i_cond;
+            pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+            for (IndexType i = 0; i < ids.size(); ++i) {
+                if (ids[i] < BaseType::mEquationSystemSize) {
+                #ifdef _OPENMP
+                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                    auto& row_indices = indices[ids[i]];
+                    for (auto it = ids.begin(); it != ids.end(); ++it) {
+                        if (*it < BaseType::mEquationSystemSize)
+                            row_indices.insert(*it);
+                    }
+                #ifdef _OPENMP
+                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                }
             }
         }
 
@@ -627,7 +676,7 @@ protected:
                 omp_unset_lock(&BaseType::mLockArray[ids[i]]);
             #endif
             }
-            for (std::size_t i = 0; i < aux_ids.size(); ++i) {
+            for (IndexType i = 0; i < aux_ids.size(); ++i) {
             #ifdef _OPENMP
                 omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
             #endif
@@ -676,11 +725,14 @@ protected:
         Timer::Stop("MatrixStructure");
     }
 
-    /*
-    * This function is exactly same as the ConstructMatrixStructure() function in base class except that the function
-    * has the call to ApplyConstraints function call once the element and conditions compute their equation slave_ids
+    /**
+     * @brief This function is exactly same as the ConstructMatrixStructure() function in base class except that the function has the call to ApplyConstraints function call once the element and conditions compute their equation slave_ids
+     * @param pScheme The pointer to the integration scheme
+     * @param rT The global relation matrix
+     * @param rModelPart The model part to compute
     */
     virtual void ConstructRelationMatrixStructure(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& rT,
         ModelPart& rModelPart
         )
@@ -926,12 +978,12 @@ protected:
             // Resizing the system vectors and matrix
             if (rTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) { // If the matrix is not initialized
                 rTMatrix.resize(BaseType::mEquationSystemSize, mSlaveDofsSystemSize, false);
-                ConstructRelationMatrixStructure(rTMatrix, rModelPart);
+                ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
             } else {
                 if (rTMatrix.size1() != BaseType::mEquationSystemSize || rTMatrix.size2() != mSlaveDofsSystemSize) {
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                     rTMatrix.resize(BaseType::mEquationSystemSize, mSlaveDofsSystemSize, true);
-                    ConstructRelationMatrixStructure(rTMatrix, rModelPart);
+                    ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
                 }
             }
         }
