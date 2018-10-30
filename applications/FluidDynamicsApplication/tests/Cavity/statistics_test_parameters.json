@@ -1,0 +1,133 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "cavity5",
+        "model_part_name" : "Cavity",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                 : "Monolithic",
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "square5"
+        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : false,
+        "maximum_iterations"          : 1000,
+        "stabilization"               : {
+            "formulation": "qsvms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau"                 : 0.0
+        },
+        "relative_velocity_tolerance" : 1e-6,
+        "absolute_velocity_tolerance" : 1e-6,
+        "relative_pressure_tolerance" : 1e-6,
+        "absolute_pressure_tolerance" : 1e-6,
+        "linear_solver_settings"      : {
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 200,
+            "tolerance"           : 1e-9,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "gmres",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false
+        },
+        "volume_model_part_name"      : "Parts_Fluid",
+        "skin_parts"                  : ["NoSlip2D_left_wall","NoSlip2D_right_wall","NoSlip2D_bottom_wall","NoSlip2D_top_wall"],
+        "no_skin_parts"               : ["Pressure_lower_left_corner"],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        }
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Parts_Fluid",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [false,false,false],
+            "value"           : ["5*t","-2*t", "t"],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Parts_Fluid",
+            "variable_name"   : "PRESSURE",
+            "value"           : "t*t+2",
+            "constrained"     : false
+        }
+    }],
+    "gravity"                          : [],
+    "auxiliar_process_list"            : [{
+        "kratos_module"   : "KratosMultiphysics.FluidDynamicsApplication",
+        "python_module"   : "integration_point_statistics_process",
+        "help"            : "",
+        "process_name"    : "IntegrationPointStatisticsProcess",
+        "Parameters" : {
+            "model_part_name" : "Parts_Fluid",
+            "dimension"       : 2,
+            "statistics" : [
+                {
+                    "type" : "average",
+                    "variable": "VELOCITY",
+                    "tags": ["u","v"]
+                },
+                {
+                    "type" : "average",
+                    "variable": "PRESSURE",
+                    "tags": ["p"]
+                },
+                {
+                    "type" : "variance",
+                    "variables": ["PRESSURE","VELOCITY"]
+                },
+                {
+                    "type" : "variance",
+                    "variables": ["VELOCITY"]
+                },
+                {
+                    "type" : "variance",
+                    "variables": ["VELOCITY_X","VELOCITY_Y"]
+                },
+                {
+                    "type" : "variance",
+                    "variables": ["VELOCITY_Y","PRESSURE"]
+                },
+                {
+                    "type" : "third_order_moment",
+                    "variables": ["PRESSURE","VELOCITY_X","VELOCITY_Y"]
+                }
+            ],
+            "output_file_name": "statistics_test"
+        }
+     },{
+        "python_module"   : "compare_two_files_check_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoFilesCheckProcess",
+        "Parameters" :{
+            "output_file_name"    : "statistics_test.csv",
+            "reference_file_name" : "statistics_reference.csv",
+            "comparison_type"     : "deterministic",
+            "remove_output_file"    : true,
+            "decimal_places"      : 5
+        }
+    }]
+}

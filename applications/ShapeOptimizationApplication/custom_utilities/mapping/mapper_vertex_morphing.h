@@ -114,15 +114,12 @@ public:
     void Initialize() override
     {
         BuiltinTimer timer;
-        std::cout << "> Starting initialization of mapping..." << std::endl;
+        std::cout << "> Starting initialization of mapper..." << std::endl;
 
-        if (mIsMappingInitialized == false)
-        {
-            CreateListOfNodesInOriginModelPart();
-            CreateFilterFunction();
-            InitializeMappingVariables();
-            AssignMappingIds();
-        }
+        CreateListOfNodesInOriginModelPart();
+        CreateFilterFunction();
+        InitializeMappingVariables();
+        AssignMappingIds();
 
         InitializeComputationOfMappingMatrix();
         CreateSearchTreeWithAllNodesInOriginModelPart();
@@ -130,7 +127,7 @@ public:
 
         mIsMappingInitialized = true;
 
-        std::cout << "> Finished initialization of mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
+        std::cout << "> Finished initialization of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -139,7 +136,7 @@ public:
         if (mIsMappingInitialized == false)
             Initialize();
 
-        BuiltinTimer mapping_time;
+        BuiltinTimer timer;
         std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
@@ -175,7 +172,7 @@ public:
             r_node_vector(2) = mValuesDestination[2][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        std::cout << "> Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -184,7 +181,7 @@ public:
         if (mIsMappingInitialized == false)
             Initialize();
 
-        BuiltinTimer mapping_time;
+        BuiltinTimer timer;
         std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
@@ -207,7 +204,7 @@ public:
             node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        std::cout << "> Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -216,7 +213,7 @@ public:
         if (mIsMappingInitialized == false)
             Initialize();
 
-        BuiltinTimer mapping_time;
+        BuiltinTimer timer;
         std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
@@ -263,7 +260,7 @@ public:
             r_node_vector(2) = mValuesOrigin[2][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        std::cout << "> Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -272,7 +269,7 @@ public:
         if (mIsMappingInitialized == false)
             Initialize();
 
-        BuiltinTimer mapping_time;
+        BuiltinTimer timer;
         std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
@@ -301,7 +298,23 @@ public:
             node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
         }
 
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+        std::cout << "> Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void Update() override
+    {
+        if (mIsMappingInitialized == false)
+            KRATOS_ERROR << "> Mapping has to be initialized before calling the Update-function!";
+
+        BuiltinTimer timer;
+        std::cout << "> Starting to update mapper..." << std::endl;
+
+        InitializeComputationOfMappingMatrix();
+        CreateSearchTreeWithAllNodesInOriginModelPart();
+        ComputeMappingMatrix();
+
+        std::cout << "> Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------

@@ -23,7 +23,8 @@
 
 // Project includes
 #include "custom_processes/mmg_process.h"
-#include "utilities/sub_model_parts_list_utility.h"
+#include "containers/model.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/variable_utils.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
@@ -294,8 +295,8 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     // First we compute the colors
     mColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
-    SubModelPartsListUtility sub_model_parts_list(mrThisModelPart);
-    sub_model_parts_list.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, mColors);
+    AssignUniqueModelPartCollectionTagUtility model_part_collections(mrThisModelPart);
+    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, mColors);
 
     /////////* MESH FILE */////////
     // Build mesh in MMG5 format //
@@ -546,8 +547,8 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     }
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
-
-    ModelPart r_old_model_part;
+    Model& owner_model = mrThisModelPart.GetModel();
+    ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
     // First we empty the model part
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
@@ -698,7 +699,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
             for (auto sub_model_part_name : color_list.second) {
-                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
+                ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
                 if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
@@ -711,10 +712,10 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
     // TODO: Add OMP
     // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
-    const std::vector<std::string> sub_model_part_names = SubModelPartsListUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
 
     for (auto sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
+        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
         std::unordered_set<IndexType> node_ids;
 
@@ -812,6 +813,9 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
         InternalVariablesInterpolation.Execute();
     }
+
+    // We remove the auxiliar old model part
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
 }
 
 /***********************************************************************************/
@@ -2799,7 +2803,9 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
-    ModelPart auxiliar_model_part("auxiliar_thing");
+    Model& owner_model = mrThisModelPart.GetModel();
+    ModelPart& auxiliar_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
+    ModelPart& copy_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old_Copy", mrThisModelPart.GetBufferSize());
 
     Properties::Pointer p_prop_1 = auxiliar_model_part.pGetProperties(1);
     Properties::Pointer p_prop_2 = auxiliar_model_part.pGetProperties(2);
@@ -2818,7 +2824,6 @@ void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModel
         it_elem->SetProperties(p_prop_1);
     }
     // Old model part
-    ModelPart copy_old_model_part("old_model_part_copy");
     FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
     transfer_process_current.Set(MODIFIED); // We replicate, not transfer
     transfer_process_old.Execute();
@@ -2854,6 +2859,10 @@ void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModel
     gid_io.WriteMesh(auxiliar_model_part.GetMesh());
     gid_io.FinalizeMesh();
     gid_io.InitializeResults(label, auxiliar_model_part.GetMesh());
+
+    // Remove auxiliar model parts
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Auxiliar");
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old_Copy");
 }
 
 /***********************************************************************************/

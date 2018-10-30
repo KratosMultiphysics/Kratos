@@ -72,6 +72,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.ModelPartController.InitializeMeshController()
+        self.Mapper.Initialize()
         self.Analyzer.InitializeBeforeOptimizationLoop()
         self.DataLogger.InitializeDataLogging()
 
@@ -132,21 +133,15 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
-        self.__mapSensitivitiesToDesignSpace()
-        self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
-        self.OptimizationUtilities.ComputeControlPointUpdate()
-        self.__mapDesignUpdateToGeometrySpace()
-
-        self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
-
-    # --------------------------------------------------------------------------
-    def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.Initialize()
+        self.Mapper.Update()
         self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
 
-    # --------------------------------------------------------------------------
-    def __mapDesignUpdateToGeometrySpace(self):
+        self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
+        self.OptimizationUtilities.ComputeControlPointUpdate()
+
         self.Mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
+
+        self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):

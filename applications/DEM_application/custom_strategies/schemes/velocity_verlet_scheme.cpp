@@ -95,11 +95,14 @@ namespace Kratos {
 
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
-        double ang = DEM_INNER_PRODUCT_3(delta_rotation, delta_rotation);
+        if (StepFlag == 1) //PREDICT
+        {
+            double ang = DEM_INNER_PRODUCT_3(delta_rotation, delta_rotation);
 
-        if (ang) {
-            GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
-        } //if ang
+            if (ang) {
+                GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+            } //if ang
+        }
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
     }
 

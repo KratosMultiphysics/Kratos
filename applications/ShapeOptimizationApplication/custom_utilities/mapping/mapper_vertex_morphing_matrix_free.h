@@ -113,20 +113,18 @@ public:
     void Initialize() override
     {
         BuiltinTimer timer;
-        std::cout << "> Starting initialization of matrix-free mapping..." << std::endl;
+        std::cout << "> Starting initialization of matrix-free mapper..." << std::endl;
 
-        if (mIsMappingInitialized == false)
-        {
-            CreateListOfNodesInOriginModelPart();
-            CreateFilterFunction();
-            InitializeMappingVariables();
-            AssignMappingIds();
-        }
+        CreateListOfNodesInOriginModelPart();
+        CreateFilterFunction();
+        InitializeMappingVariables();
+        AssignMappingIds();
+
         CreateSearchTreeWithAllNodesInOriginModelPart();
 
         mIsMappingInitialized = true;
 
-        std::cout << "> Finished initialization of matrix-free mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
+        std::cout << "> Finished initialization of matrix-free mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -345,6 +343,20 @@ public:
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void Update() override
+    {
+        if (mIsMappingInitialized == false)
+            KRATOS_ERROR << "> Mapping has to be initialized before calling the Update-function!";
+
+        BuiltinTimer timer;
+        std::cout << "> Starting to update mapper..." << std::endl;
+
+        CreateSearchTreeWithAllNodesInOriginModelPart();
+
+        std::cout << "> Finished updating of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------

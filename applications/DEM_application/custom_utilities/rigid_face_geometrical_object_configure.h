@@ -217,8 +217,8 @@ public:
       bool ContactExists = false;
 
       unsigned int FE_size = FE_Geom.size();
-      std::vector< array_1d<double,3> > Coord;
-      Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
+      std::vector< array_1d<double,3> > Coord(FE_size);
+      //Coord.resize(FE_size); //, array_1d<double,3>(3,0.0) );
 
       for (unsigned int i = 0; i<FE_size; i++) {
         for (unsigned int j = 0; j<3; j++) {
