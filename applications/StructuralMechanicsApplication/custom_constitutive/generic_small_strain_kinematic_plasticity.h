@@ -382,6 +382,9 @@ protected:
 
     void SetBackStressVector (const Vector& toBS) {mBackStressVector = toBS; }
     Vector& GetBackStressVector() { return mBackStressVector; }
+    Vector& GetNonConvergedBackStressVector() { return mNonConvergedBackStressVector; }
+    void SetNonConvergedBackStressVector(const Vector& toBack) {mNonConvergedBackStressVector = toBack; }
+
 
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
     Vector& GetPreviousStressVector() { return mPreviousStressVector;}
@@ -427,6 +430,7 @@ protected:
     // Kinematic variables
     Vector mPreviousStressVector = ZeroVector(VoigtSize);
     Vector mBackStressVector = ZeroVector(VoigtSize);
+    Vector mNonConvergedBackStressVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators

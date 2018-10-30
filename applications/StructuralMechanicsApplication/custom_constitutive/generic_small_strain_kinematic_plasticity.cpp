@@ -120,6 +120,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
             this->GetPreviousStressVector(),
             plastic_strain_increment,
             back_stress_vector);
+        this->SetNonConvergedBackStressVector(back_stress_vector);
 
         TConstLawIntegratorType::CalculatePlasticParameters(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
@@ -209,6 +210,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeSol
     this->SetPlasticDissipation(this->GetNonConvPlasticDissipation());
     this->SetThreshold(this->GetNonConvThreshold());
     this->SetPlasticStrain(this->GetNonConvPlasticStrain());
+    this->SetBackStressVector(this->GetNonConvergedBackStressVector());
 }
 
 /***********************************************************************************/

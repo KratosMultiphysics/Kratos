@@ -292,7 +292,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rBackStressVector The back stress for the kinematic plasticity
      */
     static void CalculateAndSubstractBackStress(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        array_1d<double, VoigtSize>& rPredictiveStressVector,
         ConstitutiveLaw::Parameters& rValues,
         const Vector& rPreviousStressVector,
         const Vector& rPlasticStrainIncrement,
@@ -304,6 +304,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
         switch (static_cast<KinematicHardeningType>(kinematic_hardening_type))
         {
+            double pDot, denominator, dot_product_dp;
             case KinematicHardeningType::LinearKinematicHardening:
                 KRATOS_ERROR_IF(kinematic_parameters.size() == 0) << "Kinematic Parameters not defined..." << std::endl;
                 rBackStressVector += 2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement;
@@ -311,23 +312,22 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
             case KinematicHardeningType::AmstrongFrederickKinematicHardening:
                 KRATOS_ERROR_IF(kinematic_parameters.size() < 2) << "Kinematic Parameters not defined..." << std::endl;
-                double dot_product_dp = 0.0;
+                dot_product_dp = 0.0;
                 for (int i = 0; i < rPlasticStrainIncrement.size(); ++i) {
                     dot_product_dp += rPlasticStrainIncrement[i]*rPlasticStrainIncrement[i];
                 }
-                const double pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
-                const double denominator = 1.0 + (kinematic_parameters[1] * pDot);
+                pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
+                denominator = 1.0 + (kinematic_parameters[1] * pDot);
                 rBackStressVector += (2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
                 break;
-
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
                 KRATOS_ERROR_IF(kinematic_parameters.size() != 3) << "Kinematic Parameters not defined..." << std::endl;
-                double dot_product_dp = 0.0;
+                dot_product_dp = 0.0;
                 for (int i = 0; i < rPlasticStrainIncrement.size(); ++i) {
                     dot_product_dp += rPlasticStrainIncrement[i]*rPlasticStrainIncrement[i];
                 }
-                const double pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
-                const double denominator = 1.0 + (kinematic_parameters[1] * pDot);
+                pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
+                denominator = 1.0 + (kinematic_parameters[1] * pDot);
                 if (pDot != 0.0) {
                     rBackStressVector += (2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
                 } else {
@@ -337,6 +337,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 }
                 break;
         }
+        rPredictiveStressVector -= rBackStressVector;
     }
 
     /**
