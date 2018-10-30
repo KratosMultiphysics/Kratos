@@ -136,15 +136,15 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
-                r_threshold, plastic_denominator, f_flux, g_flux,
-                r_plastic_dissipation, plastic_strain_increment,
-                r_constitutive_matrix, r_plastic_strain, rValues,
+                threshold, plastic_denominator, f_flux, g_flux,
+                plastic_dissipation, plastic_strain_increment,
+                r_constitutive_matrix, plastic_strain, rValues,
                 characteristic_length);
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
-            this->SetNonConvPlasticDissipation(r_plastic_dissipation);
-            this->SetNonConvPlasticStrain(r_plastic_strain);
-            this->SetNonConvThreshold(r_threshold);
+            this->SetNonConvPlasticDissipation(plastic_dissipation);
+            this->SetNonConvPlasticStrain(plastic_strain);
+            this->SetNonConvThreshold(threshold);
             this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
