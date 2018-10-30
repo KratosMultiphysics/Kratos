@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "uniform_refine_utility.h"
-#include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 
 
 namespace Kratos
@@ -69,8 +69,8 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     mDofs = mrModelPart.NodesBegin()->GetDofs();
 
     // Compute the sub model part maps
-    SubModelPartsListUtility colors_utility(mrModelPart);
-    colors_utility.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
+    AssignUniqueModelPartCollectionTagUtility colors_utility(mrModelPart);
+    colors_utility.ComputeTags(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
 }
 
 
@@ -489,7 +489,7 @@ void UniformRefineUtility<TDim>::CreateElement(
         {
             for (std::string sub_name : mColors[key])
             {
-                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+                ModelPart& sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
                 sub_model_part.AddElement(sub_element);
             }
         }
@@ -524,7 +524,7 @@ void UniformRefineUtility<TDim>::CreateCondition(
         {
             for (std::string sub_name : mColors[key])
             {
-                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+                ModelPart& sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
                 sub_model_part.AddCondition(sub_condition);
             }
         }
@@ -673,7 +673,7 @@ void UniformRefineUtility<TDim>::AddNodeToSubModelParts(
     {
         for (auto sub_name : mColors[Tag])
         {
-            ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+            ModelPart& sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
             sub_model_part.AddNode(pNode);
         }
     }
@@ -693,7 +693,7 @@ void UniformRefineUtility<TDim>::AddNodesToSubModelParts(
     {
         for (auto sub_name : mColors[Tag])
         {
-            ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+            ModelPart& sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
             for (auto node : rThisNodes)
                 sub_model_part.AddNode(node);
         }

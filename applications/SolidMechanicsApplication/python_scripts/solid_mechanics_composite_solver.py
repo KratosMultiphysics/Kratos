@@ -10,8 +10,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_segregated_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return CompositeSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return CompositeSolver(Model, custom_settings)
 
 #Base class to develop other solvers
 class CompositeSolver(BaseSolver.SegregatedSolver):
@@ -21,68 +21,58 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
 
     See solid_mechanics_segregated_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
-        super(CompositeSolver, self).__init__(custom_settings)
-
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solvers":[],
-            "computing_parts": [],
-            "processes":[]
-        }
-        """)
-
-        # Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        # Create solvers list
-        self.solvers = []
-        solvers_list = self.settings["solvers"]
-        for i in range(solvers_list.size()):
-            solver_module = __import__(solvers_list[i]["solver_type"].GetString())
-            self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"]))
-
-        # Computing parts (must be defined for each solver)
-        if(solvers_list.size() != computing_parts.size() ):
-            raise Exception( "Computing parts and solvers list must have the same size in a Composite Solver" )
+        super(CompositeSolver, self).__init__(Model, custom_settings)
 
         # Composite solver counter
         self.solver_counter = 0
 
-        # Echo level
-        self.echo_level = 0
+    def Clear(self):
+        for solver in self.solvers:
+            solver.Clear()
 
-        # Solver processes
-        self.processes = []
-
-
-    def SetComputingModelPart(self, computing_model_part):
-        self.model_part = computing_model_part
-
-        for create_part in self.create_parts:
-            solver.SetComputingModelPart(self.model_part.GetSubModelPart(create_part["Parameters"]["model_part_name"].GetString()))
-
-    def ExecuteInitialize(self):
-        self._create_computing_sub_parts()
-        super(CompositeSolver, self).ExecuteInitialize()
+    def Check(self):
+        for solver in self.solvers:
+            solver.Check()
 
     #### Solve loop methods ####
 
     def Solve(self):
-        self._create_computing_sub_parts()
+
+        # initialize solution step for all solvers
         for solver in self.solvers:
-            solver.Solve()
+            solver.InitializeSolutionStep()
+
+        # solver solution step for all solvers
+        is_converged = True
+        for solver in self.solvers:
+            if not solver.SolveSolutionStep():
+                is_converged = False
+                break
+
+        if is_converged is True:
+            # finalize solution step for all solvers
+            # allows to apply implex and other coupled updates
+            for solver in self.solvers:
+                solver.FinalizeSolutionStep()
+
+        return is_converged
 
     # step by step:
 
     def InitializeSolutionStep(self):
-        self._create_computing_sub_parts()
         self.solvers[self.solver_counter].InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        self.solvers[self.solver_counter].SolveSolutionStep()
+        is_converged  = self.solvers[self.solver_counter].SolveSolutionStep()
+
+        if(self.solver_counter == len(self.solvers)):
+            self.solver_counter = 0
+        else:
+            self.solver_counter += 1
+
+        return is_converged
 
     def FinalizeSolutionStep(self):
         self.solvers[self.solver_counter].FinalizeSolutionStep()
@@ -96,12 +86,14 @@ class CompositeSolver(BaseSolver.SegregatedSolver):
     #### Solver internal methods ####
 
     #
-    def _create_computing_parts_process(self):
-        for i in range(0,computing_parts.size()):
-            create_computing_part = KratosSolid.TransferComputingModelPartProcess(self.model_part,computing_parts["Parameters"])
-            self.create_parts.append(create_computing_part)
+    def _set_model_info(self):
 
-    #
-    def _create_computing_sub_parts(self):
-        for create_part in self.create_parts:
-            create_part.Execute()
+        # Get solving model part from one of the solvers
+        first_solver = self.settings["solvers"][0]["Parameters"]
+        self.model_part = self.model[first_solver["solving_model_part"].GetString()]
+
+        # Main model part from computing model part
+        self.main_model_part = self.model_part.GetRootModelPart()
+
+        # Process information
+        self.process_info = self.main_model_part.ProcessInfo

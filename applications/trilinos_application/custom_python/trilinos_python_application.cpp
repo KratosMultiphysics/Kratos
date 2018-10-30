@@ -29,28 +29,23 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_zoltan_processes_to_python.h"
 
-////utilities
-
 // Project includes
 #include "trilinos_application.h"
 
-
 namespace Kratos
 {
-
 namespace Python
 {
-
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosTrilinosApplication,m)
 {
 
-    class_<KratosTrilinosApplication,
-           KratosTrilinosApplication::Pointer,
-           KratosApplication > (m,"KratosTrilinosApplication")
-           .def(init<>())
-           ;
+    py::class_<KratosTrilinosApplication,
+        KratosTrilinosApplication::Pointer,
+        KratosApplication > (m,"KratosTrilinosApplication")
+        .def(py::init<>())
+        ;
 
     AddBasicOperations(m);
     AddConvergenceCriterias(m);

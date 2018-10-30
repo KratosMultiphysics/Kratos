@@ -32,16 +32,16 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
 
 
 PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
 {
+    namespace py = pybind11;
 
-    class_<KratosFluidDynamicsApplication,
+    py::class_<KratosFluidDynamicsApplication,
            KratosFluidDynamicsApplication::Pointer,
            KratosApplication >(m,"KratosFluidDynamicsApplication")
-           .def(init<>())
+           .def(py::init<>())
            ;
 
     AddCustomConstitutiveLawsToPython(m);
@@ -72,6 +72,8 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
 
     // Embedded fluid variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,EMBEDDED_IS_ACTIVE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SLIP_LENGTH);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PENALTY_COEFFICIENT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,EMBEDDED_WET_PRESSURE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,EMBEDDED_WET_VELOCITY);
 

@@ -111,7 +111,16 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "save_external_files"              : false,
             "max_number_of_searchs"            : 1000,
+            "interpolate_non_historical"       : true,
+            "extrapolate_contour_values"       : true,
+            "search_parameters"                : {
+                "allocation_size"                  : 1000,
+                "bucket_size"                      : 4,
+                "search_factor"                    : 2.0
+            },
             "debug_mode"                       : false,
+            "debug_result_mesh"                : false,
+            "initialize_entities"              : true,
             "echo_level"                       : 3
         }
         """)
@@ -210,11 +219,16 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])
+        mmg_parameters.AddValue("interpolate_non_historical",self.settings["interpolate_non_historical"])
+        mmg_parameters.AddValue("extrapolate_contour_values",self.settings["extrapolate_contour_values"])
+        mmg_parameters.AddValue("search_parameters",self.settings["search_parameters"])
         mmg_parameters["force_sizes"].AddValue("force_min",self.settings["force_min"])
         mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["maximal_size"])
         mmg_parameters["force_sizes"].AddValue("force_max",self.settings["force_max"])
         mmg_parameters["force_sizes"].AddValue("maximal_size",self.settings["maximal_size"])
         mmg_parameters.AddValue("advanced_parameters",self.settings["advanced_parameters"])
+        mmg_parameters.AddValue("debug_result_mesh",self.settings["debug_result_mesh"])
+        mmg_parameters.AddValue("initialize_entities",self.settings["initialize_entities"])
         mmg_parameters.AddValue("echo_level",self.settings["echo_level"])
         if (self.dim == 2):
             self.mmg_process = MeshingApplication.MmgProcess2D(self.model_part, mmg_parameters)

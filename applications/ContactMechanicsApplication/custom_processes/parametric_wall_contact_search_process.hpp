@@ -25,19 +25,19 @@
 #include "geometries/point_3d.h"
 
 // Contact Point Conditions
-#include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
-#include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/rigid_contact/point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/rigid_contact/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
-#include "custom_conditions/EP_point_rigid_contact_penalty_3D_condition.hpp"
-#include "custom_conditions/EP_point_rigid_contact_penalty_2D_condition.hpp"
-#include "custom_conditions/EP_point_rigid_contact_penalty_wP_3D_condition.hpp"
-#include "custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/rigid_contact/EP_point_rigid_contact_penalty_wP_3D_condition.hpp"
+#include "custom_conditions/rigid_contact/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
 
-// #include "custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
-// #include "custom_conditions/beam_point_rigid_contact_penalty_3D_condition.hpp"
-// #include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
-// #include "custom_conditions/rigid_body_point_rigid_contact_condition.hpp"
+// #include "custom_conditions/rigid_contact/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
+// #include "custom_conditions/beam_contact/beam_point_rigid_contact_penalty_3D_condition.hpp"
+// #include "custom_conditions/beam_contact/beam_point_rigid_contact_LM_3D_condition.hpp"
+// #include "custom_conditions/rigid_contact/rigid_body_point_rigid_contact_condition.hpp"
 
 //#include "custom_friction/friction_law.hpp"
 
@@ -89,7 +89,7 @@ namespace Kratos
     typedef ConditionType::GeometryType       GeometryType;
     typedef Point2D<ModelPart::NodeType>       Point2DType;
     typedef Point3D<ModelPart::NodeType>       Point3DType;
-    //typedef FrictionLaw::pointer           FrictionLawType;
+    typedef FrictionLaw::Pointer           FrictionLawType;
 
     ///@}
     ///@name Life Cycle
@@ -516,9 +516,10 @@ namespace Kratos
 
       mpProperties = Kratos::make_shared<PropertiesType>(NumberOfProperties);
 
+      // Friction Law is not a Kratos Component
       // std::string FrictionLawName = CustomParameters["friction_law_type"].GetString();
-      // FrictionLawType const& rCloneFrictionLaw = KratosComponents<FrictionLawType>::Get(FrictionLawName);
-      // mpProperties->SetValue(FRICTION_LAW, rCloneFrictionLaw.Clone() );
+      // const FrictionLawType pCloneFrictionLaw = KratosComponents<FrictionLawType>::Get(FrictionLawName);
+      // mpProperties->SetValue(FRICTION_LAW, pCloneFrictionLaw->Clone() );
 
       Parameters CustomProperties = CustomParameters["variables_of_properties"];
 
