@@ -486,21 +486,22 @@ public:
      * @brief Corresponds to the previews, but the System's matrix is considered already built and only the RHS is built again
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY
 
-        BuildRHS(pScheme, rModelPart, b);
-        SystemSolve(A, Dx, b);
+        BuildRHS(pScheme, rModelPart, rb);
+        SystemSolve(rA, rDx, rb);
 
         KRATOS_CATCH("")
     }
