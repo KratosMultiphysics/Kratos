@@ -59,6 +59,7 @@
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
+#include "custom_conditions/behr_wall_condition.h"
 
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
@@ -296,6 +297,10 @@ private:
     const WallCondition<2,2> mWallCondition2D;
     /// Exact 3D slip condition using rotated coordinates (fractional step version)
     const WallCondition<3,3> mWallCondition3D;
+
+	/// Slip condition following BEHR2004
+    const BehrWallCondition<2> mBehrWallCondition2D;
+    const BehrWallCondition<3> mBehrWallCondition3D;
 
     /// Wall model using Werner-Wengle power law (fractional step version)
     const FSWernerWengleWallCondition<2,2> mFSWernerWengleWallCondition2D;
