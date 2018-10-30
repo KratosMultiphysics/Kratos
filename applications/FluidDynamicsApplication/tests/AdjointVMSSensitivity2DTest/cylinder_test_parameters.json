@@ -1,7 +1,4 @@
 {
-    "test_settings" : {
-        "execute_solve" : true
-    },
     "problem_data"                     : {
         "problem_name"    : "cylinder_test",
         "model_part_name" : "MainModelPart",
@@ -131,7 +128,7 @@
             "model_part_output_settings" : {
                 "prefix" : "/ModelData"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
             },
             "output_time_settings" : {

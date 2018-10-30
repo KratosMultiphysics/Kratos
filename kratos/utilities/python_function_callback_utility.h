@@ -13,12 +13,13 @@
 #if !defined(KRATOS_PYTHON_FUNCTION_CALLBACK_UTILITY_H_INCLUDED)
 #define  KRATOS_PYTHON_FUNCTION_CALLBACK_UTILITY_H_INCLUDED
 
+#include <pybind11/pybind11.h>
+#include <pybind11/eval.h>
+
 #include <cmath>
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-
-#include <pybind11/pybind11.h>
-#include <pybind11/eval.h>
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -47,7 +48,7 @@ class PythonGenericFunctionUtility
 public:
     KRATOS_CLASS_POINTER_DEFINITION(PythonGenericFunctionUtility);
 
-    PythonGenericFunctionUtility(  const std::string& function_body,  Parameters local_system = Parameters({}) )
+    PythonGenericFunctionUtility(  const std::string& function_body,  Parameters local_system = Parameters{} )
     {
         //compile the function starting from the string function body
         try

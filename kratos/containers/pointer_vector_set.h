@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 
@@ -25,7 +25,6 @@
 #include <cstddef>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 #include <boost/iterator/indirect_iterator.hpp>
 
 // Project includes
@@ -123,7 +122,7 @@ public:
     PointerVectorSet(const PointerVectorSet& rOther)
         :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
 
-    PointerVectorSet(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(1)
+    explicit PointerVectorSet(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(1)
     {
         Sort();
         std::unique(mData.begin(), mData.end(), EqualKeyTo());
@@ -353,9 +352,9 @@ public:
 //     iterator insert(iterator Position, const TOtherDataType& rData)
 //     {
 //         ptr_iterator sorted_part_end;
-// 
+//
 //         key_type key = KeyOf(rData);
-// 
+//
 //         if(mData.size() - mSortedPartSize >= mMaxBufferSize)
 //         {
 //             Sort();
@@ -363,14 +362,14 @@ public:
 //         }
 //         else
 //             sorted_part_end	= mData.begin() + mSortedPartSize;
-// 
+//
 //         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, key, CompareKey()));
 //         if (i == sorted_part_end)
 //         {
 //             mSortedPartSize++;
 //             return mData.insert(sorted_part_end, TPointerType(new TOtherDataType(rData)));
 //         }
-// 
+//
 //         if (!EqualKeyTo(key)(*i))
 //             if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end())
 //             {
@@ -806,4 +805,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINTER_VECTOR_SET_H_INCLUDED  defined 
+#endif // KRATOS_POINTER_VECTOR_SET_H_INCLUDED  defined

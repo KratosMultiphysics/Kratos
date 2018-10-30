@@ -1,22 +1,24 @@
 {
     "problem_data"             : {
         "problem_name"    : "Beam_structure",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 1
+        "echo_level"      : 0
     },
     "solver_settings"                  : {
         "solver_type"                  : "adjoint_static",
         "analysis_type"                : "linear",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
         "scheme_settings" : {
             "scheme_type"              : "adjoint_structural"
             },
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "response_function_settings" : {
                 "response_type"     : "adjoint_linear_strain_energy",
                 "use_kratos"        : true,
@@ -37,12 +39,13 @@
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/Beam_structure"
+            "input_filename" : "Beam_structure"
         },
         "material_import_settings" :{
-            "materials_filename": "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/materials_beam.json"
+            "materials_filename": "materials_beam.json"
         }
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -88,7 +91,7 @@
     }],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_input_process",
+        "python_module" : "single_mesh_temporal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -96,7 +99,7 @@
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
@@ -108,12 +111,12 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"  : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
-            "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_strain_energy_results.json",
+            "input_file_name"  : "beam_test_strain_energy_results.json",
             "model_part_name"  : "Structure",
             "tolerance"            : 1e-5,
             "time_frequency"   : -2.0
         }
-    }],
+    }]},
     "_json_output_process" : [
     {
         "python_module" : "json_output_process",
@@ -122,19 +125,9 @@
         "process_name"  : "JsonOutputProcess",
         "Parameters"    : {
             "output_variables" : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
-            "output_file_name" : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_strain_energy_results.json",
+            "output_file_name" : "beam_test_strain_energy_results.json",
             "model_part_name"  : "Structure",
             "time_frequency"   : -2.0
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    }]
 }

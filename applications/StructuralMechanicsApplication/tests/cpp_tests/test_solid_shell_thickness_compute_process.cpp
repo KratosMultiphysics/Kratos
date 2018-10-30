@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "geometries/prism_3d_6.h"
@@ -22,9 +23,9 @@
 /* Processes */
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
 
@@ -58,7 +59,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSolidShellThicknessCompute, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             SolidShellProcessCreateModelPart(this_model_part);

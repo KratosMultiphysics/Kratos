@@ -83,7 +83,7 @@ public:
     LargeDisplacementBeamElement(LargeDisplacementBeamElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacementBeamElement();
+    ~LargeDisplacementBeamElement() override;
 
 
     ///@}
@@ -180,7 +180,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Beam Element #" << Id();
@@ -188,13 +188,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -277,7 +277,7 @@ protected:
     /**
      * Calculates the elemental dynamic contributions
       */
-    virtual void CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
+    void CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 					 ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
@@ -295,7 +295,7 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataType& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
     /**
@@ -315,19 +315,19 @@ protected:
     /**
      * Calculate Element Constitutive Matrix
      */
-    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
+    void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
 
     /**
      * Calculate Element Stress Resultants and Couples
      */
-    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
+    void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
 
-    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                      ElementDataType& rVariables,
                                      double& rIntegrationWeight) override;
 
@@ -336,7 +336,7 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                                      ElementDataType& rVariables,
                                      double& rIntegrationWeight) override;
 
@@ -364,7 +364,7 @@ protected:
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
 					       ElementDataType& rVariables,
 					       Vector& rVolumeForce,
 					       double& rIntegrationWeight) override;
@@ -374,7 +374,7 @@ protected:
     /**
       * Calculation of the Tangent Intertia Matrix
       */
-    virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
@@ -382,7 +382,7 @@ protected:
     /**
       * Calculation of the Inertial Forces Vector
       */
-    virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
 					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
@@ -390,7 +390,7 @@ protected:
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+    void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
 					       ElementDataType & rVariables,
 					       double& rIntegrationWeight) override;
 
@@ -519,9 +519,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

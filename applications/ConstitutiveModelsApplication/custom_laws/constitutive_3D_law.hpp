@@ -65,7 +65,7 @@ namespace Kratos
     Constitutive3DLaw& operator=(const Constitutive3DLaw& rOther);
 
     /// Destructor.
-    virtual ~Constitutive3DLaw();
+    ~Constitutive3DLaw() override;
 
     ///@}
     ///@name Operators
@@ -79,14 +79,14 @@ namespace Kratos
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties& rProperties,
 			    const GeometryType& rElementGeometry,
 			    const Vector& rShapeFunctionsValues ) override;
 
     /**
      * Step Initialize
      */
-    void InitializeSolutionStep(const Properties& rMaterialProperties,
+    void InitializeSolutionStep(const Properties& rProperties,
                                 const GeometryType& rElementGeometry, //this is just to give the array of nodes
 				const Vector& rShapeFunctionsValues ,
 				const ProcessInfo& rCurrentProcessInfo) override;
@@ -94,7 +94,7 @@ namespace Kratos
     /**
      * Step Finalize
      */
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
+    void FinalizeSolutionStep(const Properties& rProperties,
 			      const GeometryType& rElementGeometry, //this is just to give the array of nodes
 			      const Vector& rShapeFunctionsValues ,
 			      const ProcessInfo& rCurrentProcessInfo) override;
@@ -203,12 +203,12 @@ namespace Kratos
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rMaterialProperties
+     * @param rProperties
      * @param rElementGeometry
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

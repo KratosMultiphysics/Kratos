@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -82,7 +82,7 @@ void SmallDisplacement::CalculateAll(
     )
 {
     KRATOS_TRY;
-    
+
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
@@ -110,7 +110,7 @@ void SmallDisplacement::CalculateAll(
 
     // Reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-    
+
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
     // Set constitutive law flags:
@@ -121,14 +121,14 @@ void SmallDisplacement::CalculateAll(
 
     // If strain has to be computed inside of the constitutive law with PK2
     Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
-    
+
     for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
         // Contribution to external forces
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-        
+
         // Compute material reponse
         CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
@@ -155,7 +155,7 @@ void SmallDisplacement::CalculateAll(
 /***********************************************************************************/
 
 void SmallDisplacement::CalculateKinematicVariables(
-    KinematicVariables& rThisKinematicVariables, 
+    KinematicVariables& rThisKinematicVariables,
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
@@ -223,7 +223,7 @@ void SmallDisplacement::CalculateB(
     )
 {
     KRATOS_TRY;
-    
+
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 

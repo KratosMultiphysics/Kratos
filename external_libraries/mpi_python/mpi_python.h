@@ -1,11 +1,28 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//                   Michael Andre
+//                   Philipp Bucher
+//
+
 #ifndef KRATOS_MPI_PYTHON_H
 #define KRATOS_MPI_PYTHON_H
 
-#include <stdio.h>
-#include <iostream>
-
+// System includes
+#include <vector>
+#include <numeric>
 #include "mpi.h"
-#include <pybind11/pybind11.h>
+
+// External includes
+
+// Project includes
 
 
 namespace Kratos {
@@ -21,52 +38,52 @@ class PythonMPIComm
 {
 public:
 
-	/// Default constructor, providing an interface to MPI_COMM_WORLD.
-	PythonMPIComm() :
-			mComm(MPI_COMM_WORLD )
-	{
-	}
+    /// Default constructor, providing an interface to MPI_COMM_WORLD.
+    PythonMPIComm() :
+            mComm(MPI_COMM_WORLD )
+    {
+    }
 
-	/// Constructor taking a custom MPI Communicator.
-	/**
-	 * @param Comm MPI Communicator
-	 */
-	PythonMPIComm(MPI_Comm Comm) :
-			mComm(Comm)
-	{
-	}
+    /// Constructor taking a custom MPI Communicator.
+    /**
+     * @param Comm MPI Communicator
+     */
+    PythonMPIComm(MPI_Comm Comm) :
+            mComm(Comm)
+    {
+    }
 
-	~PythonMPIComm()
-	{
-	}
+    ~PythonMPIComm()
+    {
+    }
 
-	/// Returns the process' rank.
-	/** @return Identifier for the MPI process, larger or equal than 0 and smaller than the total number of processes.
-	 */
-	int rank()
-	{
-		int rank;
-		MPI_Comm_rank(mComm, &rank);
-		return rank;
-	}
+    /// Returns the process' rank.
+    /** @return Identifier for the MPI process, larger or equal than 0 and smaller than the total number of processes.
+     */
+    int rank()
+    {
+        int rank;
+        MPI_Comm_rank(mComm, &rank);
+        return rank;
+    }
 
-	/// Returns the MPI size.
-	/** @return Total number of MPI processes
-	 */
-	int size()
-	{
-		int size;
-		MPI_Comm_size(mComm, &size);
-		return size;
-	}
+    /// Returns the MPI size.
+    /** @return Total number of MPI processes
+     */
+    int size()
+    {
+        int size;
+        MPI_Comm_size(mComm, &size);
+        return size;
+    }
 
-	/// Stops execution until all MPI processes reach the call to this function.
-	/** Used to provide synchronization between the different MPI processes
-	 */
-	void barrier()
-	{
-		MPI_Barrier(mComm);
-	}
+    /// Stops execution until all MPI processes reach the call to this function.
+    /** Used to provide synchronization between the different MPI processes
+     */
+    void barrier()
+    {
+        MPI_Barrier(mComm);
+    }
 
 //    void abort(int ErrCode)
 //    {
@@ -75,22 +92,22 @@ public:
 
 private:
 
-	friend class PythonMPI;
+    friend class PythonMPI;
 
-	/// Return a reference to the internal MPI_Comm object wrapped by this class.
-	MPI_Comm& GetMPIComm()
-	{
-		return mComm;
-	}
+    /// Return a reference to the internal MPI_Comm object wrapped by this class.
+    MPI_Comm& GetMPIComm()
+    {
+        return mComm;
+    }
 
-	/// The MPI communicator wrapped by this class.
-	MPI_Comm mComm;
+    /// The MPI communicator wrapped by this class.
+    MPI_Comm mComm;
 
 };
 
 /// A Python wrapper to common MPI funcions.
 /** This class reimplements a very limited subset of the functionality available
- * in the Python interface for boost::mpi, which provides enough capabilities for
+ * in the Python interface, which provides enough capabilities for
  * the tasks commonly performed in Kratos scripts.
  */
 class PythonMPI
@@ -105,280 +122,461 @@ public:
 	{
 		int MpiIsInitialized = 0;
 
-		MPI_Initialized(&MpiIsInitialized);
+        MPI_Initialized(&MpiIsInitialized);
 
-		if (MpiIsInitialized == 0)
-		{
-			int argc = 0;
-			char* a = new char[1];
-			*a = '\0';
-			char** empty_argv = &a;
+        if (MpiIsInitialized == 0)
+        {
+            int argc = 0;
+            char* a = new char[1];
+            *a = '\0';
+            char** empty_argv = &a;
 
 #if MPI_VERSION < 2
-			MPI_Init(&argc, &empty_argv);
+            MPI_Init(&argc, &empty_argv);
 #else
                         int provided;
                         MPI_Init_thread(&argc, &empty_argv, MPI_THREAD_MULTIPLE, &provided);
-                        
+
                         if(provided < MPI_THREAD_MULTIPLE)
                         {
                             int rank;
                             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
                             if(rank==0)
                                 std::cout<< "MPI_Init_thread returns : " << provided << std::endl;
-                            
+
                         }
 #endif
-			delete[] a;
-		}
+            delete[] a;
+        }
 
-		mWorld = PythonMPIComm(MPI_COMM_WORLD );
-	}
+        mWorld = PythonMPIComm(MPI_COMM_WORLD );
+    }
 
-	/// Destructor, finalizes MPI if necessary.
-	~PythonMPI()
-	{
-		int MpiIsFinalized = 0;
+    /// Destructor, finalizes MPI if necessary.
+    ~PythonMPI()
+    {
+        int MpiIsFinalized = 0;
 
-		MPI_Finalized(&MpiIsFinalized);
+        MPI_Finalized(&MpiIsFinalized);
 
-		if (MpiIsFinalized == 0)
-			MPI_Finalize();
-	}
+        if (MpiIsFinalized == 0)
+            MPI_Finalize();
+    }
 
+    /**
+     * @return A PythonMPIComm object wrapping MPI_COMM_WORLD
+     */
+    PythonMPIComm& GetWorld()
+    {
+        return mWorld;
+    }
+
+    /// Return MPI rank as given by the provided communicator.
+    int rank(PythonMPIComm& rComm)
+    {
+        int rank;
+        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        return rank;
+    }
+
+    /// Return MPI rank as given by MPI_COMM_WORLD.
+    int rank()
+    {
+        return this->rank(mWorld);
+    }
+
+    /// Return MPI size as given by the provided communicator.
+    int size(PythonMPIComm& rComm)
+    {
+        int size;
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
+        return size;
+    }
+
+    /// Return MPI size as given by MPI_COMM_WORLD.
+    int size()
+    {
+        return this->size(mWorld);
+    }
+
+    /// Synchronize processes using an MPI_Barrier call using given communicator.
+    void barrier(PythonMPIComm& rComm)
+    {
+        MPI_Barrier(rComm.GetMPIComm());
+    }
+
+    void barrier()
+    {
+        this->barrier(mWorld);
+    }
+
+	/// Perform a MPI_Bcast operation.
 	/**
-	 * @return A PythonMPIComm object wrapping MPI_COMM_WORLD
+	 * Broadcasting a value to all ranks
+	 * @param rComm A communicator object.
+	 * @param LocalValue The local value to be sent in the gather.
+	 * @param RankToBroacastFrom The MPI rank of the process where the values will be broadcasted from.
+	 * @return The broadcasted value on all ranks
 	 */
-	PythonMPIComm& GetWorld()
+	template<class TValueType>
+	TValueType broadcast(PythonMPIComm& rComm,
+                         TValueType LocalValue,
+                         const int RankToBroacastFrom)
 	{
-		return mWorld;
-	}
+        // Determine data type
+		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
-	/// Return MPI rank as given by the provided communicator.
-	int rank(PythonMPIComm& rComm)
-	{
-		int rank;
-		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-		return rank;
-	}
+        MPI_Bcast(&LocalValue, 1, DataType, RankToBroacastFrom, rComm.GetMPIComm());
 
-	/// Return MPI rank as given by MPI_COMM_WORLD.
-	int rank()
-	{
-		return this->rank(mWorld);
-	}
+        return LocalValue;
+    }
 
-	/// Return MPI size as given by the provided communicator.
-	int size(PythonMPIComm& rComm)
+	/// Perform a MPI_Reduce operation.
+	/**
+	 * Perform a reduction given an MPI_Op-Type
+	 * @param rComm A communicator object.
+	 * @param LocalValue The local value to be sent in the gather.
+	 * @param RankToReduceOn The MPI rank of the process where the values will be gathered.
+	 * @param MPI_Operation The MPI_Op to be used for the reduction
+	 * @return The reduced value on the for the RankToReduceOn thread
+	 */
+	template<class TValueType>
+    TValueType reduce(PythonMPIComm& rComm,
+                      const TValueType LocalValue,
+                      const int RankToReduceOn,
+                      const MPI_Op MpiOp)
 	{
-		int size;
-		MPI_Comm_size(rComm.GetMPIComm(), &size);
-		return size;
-	}
+		// Determine data type
+		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
-	/// Return MPI size as given by MPI_COMM_WORLD.
-	int size()
-	{
-		return this->size(mWorld);
-	}
+        TValueType result_val;
+        MPI_Reduce(&LocalValue, &result_val, 1, DataType,
+                   MpiOp, RankToReduceOn, rComm.GetMPIComm());
 
-	/// Synchronize processes using an MPI_Barrier call using given communicator.
-	void barrier(PythonMPIComm& rComm)
-	{
-		MPI_Barrier(rComm.GetMPIComm());
-	}
+        return result_val;
+    }
 
-	void barrier()
+    /// Wrapper for MPI_Reduce to compute the maximum number on a rank
+	template<class TValueType>
+    TValueType max(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
 	{
-		this->barrier(mWorld);
-	}
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_MAX);
+    }
+
+    /// Wrapper for MPI_Reduce to compute the minimum number on a rank
+	template<class TValueType>
+    TValueType min(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
+	{
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_MIN);
+    }
+
+    /// Wrapper for MPI_Reduce to compute the sum of number on a rank
+	template<class TValueType>
+    TValueType sum(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
+	{
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_SUM);
+    }
+
+	/// Perform a MPI_Allreduce operation.
+	/**
+	 * Perform a allreduction given an MPI_Op-Type
+	 * @param rComm A communicator object.
+	 * @param LocalValue The local value to be sent in the gather.
+	 * @param MPI_Operation The MPI_Op to be used for the reduction
+	 * @return The reduced value on all ranks
+	 */
+	template<class TValueType>
+    TValueType allreduce(PythonMPIComm& rComm,
+                         const TValueType LocalValue,
+                         const MPI_Op MpiOp)
+	{
+		// Determine data type
+		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
+
+        TValueType result_val;
+        MPI_Allreduce(&LocalValue, &result_val, 1, DataType,
+                      MpiOp, rComm.GetMPIComm());
+
+        return result_val;
+    }
+
+	/// Wrapper for MPI_Allreduce to compute the maximum number on all ranks
+	template<class TValueType>
+    TValueType max_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_MAX);
+    }
+
+    /// Wrapper for MPI_Allreduce to compute the minimum number on all ranks
+	template<class TValueType>
+    TValueType min_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_MIN);
+    }
+
+    /// Wrapper for MPI_Allreduce to compute the sum of numbers on all ranks
+	template<class TValueType>
+    TValueType sum_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_SUM);
+    }
+
+	/// Perform a MPI_Scatter operation.
+	/**
+	 * Scattering a vector of values from the RankToScatterFrom process.
+	 * @param rComm A communicator object.
+	 * @param rLocalValues The local values to be scattered.
+	 * @param RankToScatterFrom The MPI rank of the process where the values will be scattered from.
+	 * @return The local value that was scattered
+	 */
+    template<class TValueType>
+	TValueType scatter(PythonMPIComm& rComm,
+                       const std::vector<TValueType>& rLocalValues,
+                       const int RankToScatterFrom)
+    {
+        // Determine data type
+        const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
+        int rank, size;
+        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
+        if (rank == RankToScatterFrom && rLocalValues.size() != size)
+            throw std::runtime_error("Wrong number of values to Scatter!");
+        TValueType receive_val;
+        // Communicate
+        MPI_Scatter(rLocalValues.data(), 1, DataType, &receive_val,
+                    1, DataType, RankToScatterFrom, rComm.GetMPIComm());
+        return receive_val;
+    }
+
+	/// Perform a MPI_Scatterv operation.
+	/**
+	 * Scattering a number of vector with values from the RankToScatterFrom process.
+	 * @param rComm A communicator object.
+	 * @param rLocalValues The local values to be scattered.
+	 * @param RankToScatterFrom The MPI rank of the process where the values will be scattered from.
+	 * @return The vector of values that was scattered
+	 */
+    template<class TValueType>
+	std::vector<TValueType> scatterv(PythonMPIComm& rComm,
+                                     const std::vector<std::vector<TValueType>>& rLocalValues,
+                                     const int RankToScatterFrom)
+    {
+        // Determine data type
+        const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
+        int rank, size;
+        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
+        if (rank == RankToScatterFrom && rLocalValues.size() != size)
+            throw std::runtime_error("Wrong number of values to Scatter!");
+
+        std::vector<TValueType> send_buffer;
+        std::vector<int> send_sizes(size);
+        std::vector<int> displs(size);
+
+        if (rank == RankToScatterFrom)
+        {
+            for (int i=0; i<size; ++i) {
+                send_sizes[i] = rLocalValues[i].size();
+            }
+            // no padding is applied in the buffer
+            const int sum_values = std::accumulate(send_sizes.begin(), send_sizes.end(), 0);
+            send_buffer.resize(sum_values);
+
+            int counter = 0;
+            for (int i=0; i<size; ++i) {
+                displs[i] = counter;
+                for (int j=0; j<send_sizes[i]; ++j) {
+                    send_buffer[counter] = rLocalValues[i][j];
+                    ++counter;
+                }
+            }
+        }
+
+        // Communicate how much data each rank will receive
+        int recv_count;
+        MPI_Scatter(send_sizes.data(), 1, MPI_INT, &recv_count,
+                    1, MPI_INT, RankToScatterFrom, rComm.GetMPIComm());
+
+        std::vector<TValueType> scattered_vals(recv_count);
+
+        // Communicate
+        MPI_Scatterv(send_buffer.data(), send_sizes.data(), displs.data(),
+                     DataType, scattered_vals.data(), recv_count,
+                     DataType, RankToScatterFrom, rComm.GetMPIComm());
+
+        return scattered_vals;
+    }
 
 	/// Perform a MPI_Gather operation.
 	/**
-	 * Provide a list containing all local values to the Root process.
+	 * Provide a std::vector containing all local values to the RankToGatherOn process.
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param Root The MPI rank of the process where the valued will be gathered.
-	 * @return A Python list containing the local values in all processes, sorted by rank, for the Root thread, an empty Python list for other processes
+	 * @param RankToGatherOn The MPI rank of the process where the values will be gathered.
+	 * @return A std::vector containing the local values in all processes, sorted by rank,
+     * for the RankToGatherOn thread, an empty std::vector for other processes
 	 */
 	template<class TValueType>
-	pybind11::list gather(PythonMPIComm& rComm, TValueType LocalValue,
-	        int Root)
-	{
-		// Determime data type
-		MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
+	std::vector<TValueType> gather(PythonMPIComm& rComm,
+                                   const TValueType LocalValue,
+                                   const int RankToGatherOn)
+    {
+        // Determine data type
+        const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
-		int size;
-		MPI_Comm_size(rComm.GetMPIComm(), &size);
+        int rank, size;
+        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
 
-		int rank;
-		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        // Create recieve buffer
+        std::vector<TValueType> global_values;
+        if (rank == RankToGatherOn)
+            global_values.resize(size);
 
-		// Create recieve buffer
-		TValueType* GlobalValues;
-		if (rank == Root)
-			GlobalValues = new TValueType[size];
+        // Communicate
+        MPI_Gather(&LocalValue, 1, DataType, global_values.data(),
+                   1, DataType, RankToGatherOn, rComm.GetMPIComm());
 
-		// Communicate
-		MPI_Gather(&LocalValue, 1, DataType, GlobalValues, 1, DataType, Root,
-		        rComm.GetMPIComm());
+        return global_values;
+    }
 
-		// Copy output to a Python list
-		pybind11::list Out;
+    /// Perform an MPI_Gatherv operation.
+    /**
+     * Provide a std::vector containing all local values to the RankToGatherOn process.
+     * @param rComm A communicator object.
+     * @param rLocalValues The std::vector of local values to be sent in the gather.
+     * @param RankToGatherOn The MPI rank of the process where the values will be gathered.
+     * @return A std::vector containing the local value lists in all processes, sorted by rank,
+     * for the RankToGatherOn thread, an empty std::vector for other processes
+     */
+    template<class TValueType>
+    std::vector<std::vector<TValueType>> gatherv(PythonMPIComm& rComm,
+                                   const std::vector<TValueType>& rLocalValues,
+                                   const int RankToGatherOn)
+    {
+        // Determine data type
+        const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
 
-		if (rank == Root)
-		{
-			for (int i = 0; i < size; i++)
-			{
-				auto val(GlobalValues[i]);
-				Out.append(val);
-			}
-			delete[] GlobalValues;
-		}
+        int recv_block_size = 1;
+        int size, rank, send_size;
 
-		return Out;
-	}
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
+        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        send_size = rLocalValues.size();
 
-	/// Perform an MPI_Gather operation.
-	/**
-	 * Provide a list containing all local values of type double to the Root process.
-	 * @param rComm A communicator object.
-	 * @param LocalValues The list of local values to be sent in the gather.
-	 * @param Root The MPI rank of the process where the valued will be gathered.
-	 * @return A Python list containing the local value lists in all processes, sorted by rank, for the Root thread, an empty Python list for other processes
-	 */
-	pybind11::list gather(PythonMPIComm& rComm,
-	        pybind11::list LocalValues, int Root)
-	{
-		int RecvBlockSize = 1;
-	        int Size, Rank, SendSize;
-		int * RecvSize, * Displs;
-		double * SendBuf, * RecvBuf;
+        std::vector<int> recv_sizes(size);
+        std::vector<int> displs(size);
+        MPI_Gather(&send_size, 1, MPI_INT, recv_sizes.data(),
+                   1, MPI_INT, RankToGatherOn, rComm.GetMPIComm());
 
-		MPI_Comm_size(rComm.GetMPIComm(), &Size);
-		MPI_Comm_rank(rComm.GetMPIComm(), &Rank);
-		SendSize = len(LocalValues);
+        // calculate receive buffer block size for root
+        if (rank == RankToGatherOn)
+        {
+            for (int i = 0; i < size; ++i)
+                recv_block_size = (recv_block_size < recv_sizes[i]) ? recv_sizes[i] : recv_block_size;
+            for (int i = 0; i < size; ++i)
+                displs[i] = i * recv_block_size;
+        }
 
-		RecvSize = new int[Size];
-		Displs = new int[Size];
-		MPI_Gather(&SendSize, 1, MPI_INT, RecvSize, 1, MPI_INT, Root,
-		        rComm.GetMPIComm());
+        std::vector<TValueType> recv_buffer(recv_block_size * size);
 
-		// calculate receive buffer block size for root
-		if (Rank == Root)
-		{
-			for (int i = 0; i < Size; i++)
-				RecvBlockSize = (RecvBlockSize < RecvSize[i]) ? RecvSize[i] : RecvBlockSize;
-			for (int i = 0; i < Size; i++)
-			        Displs[i] = i * RecvBlockSize;
-		}
+        // gather local arrays at root
+        MPI_Gatherv(rLocalValues.data(), send_size, DataType, recv_buffer.data(),
+                    recv_sizes.data(), displs.data(), DataType, RankToGatherOn, rComm.GetMPIComm());
 
-		SendBuf = new double[SendSize];
-		for (int i = 0; i < SendSize; i++)
-		  SendBuf[i] = pybind11::cast<double>(LocalValues[i]);
+        std::vector<std::vector<TValueType>> condensed_vector;
 
-		RecvBuf = new double[RecvBlockSize * Size];
+        // now condensing the vector such that is has only the number of actual
+        // elements that come from each rank (i.e. removing the buffering that is
+        // needed for the mpi-call)
+        if (rank == RankToGatherOn)
+        {
+            condensed_vector.resize(size);
+            const auto buffer_begin = recv_buffer.begin();
+            for (int i = 0; i < size; ++i)
+            {
+                const auto iter_start = buffer_begin + i * recv_block_size;
+                const auto iter_end = buffer_begin + i * recv_block_size + recv_sizes[i];
+                condensed_vector[i] = std::vector<TValueType>(iter_start, iter_end);
+            }
+        }
 
-		// gather local arrays at root
-		MPI_Gatherv(SendBuf, SendSize, MPI_DOUBLE, RecvBuf, RecvSize, Displs, MPI_DOUBLE, Root, rComm.GetMPIComm());
+        return condensed_vector;
+    }
 
-		pybind11::list Out;
+    /// Perform an MPI_allgather operation.
+    /**
+     * Provide a std::vector containing all local values to all processes.
+     * @param rComm A communicator object.
+     * @param LocalValue The local value to be sent in the gather.
+     * @return A std::vector containing the local values in all processes, sorted by rank.
+     */
+    template<class TValueType>
+    std::vector<TValueType> allgather(PythonMPIComm& rComm,
+                                      const TValueType LocalValue)
+    {
+        // Determine data type
+        const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
-		// make python list of gathered arrays
-		if (Rank == Root)
-		{
-			for (int i = 0; i < Size; i++)
-			{
-				int iblock = i * RecvBlockSize;
-				pybind11::list Outi;
-				for (int j = 0; j < RecvSize[i]; j++)
-					Outi.append(RecvBuf[iblock + j]);
-				Out.append(Outi);
-			}
-		}
+        int size;
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
 
-		delete[] RecvSize;
-		delete[] Displs;
-		delete[] SendBuf;
-		delete[] RecvBuf;
+        // Create recieve buffer
+        std::vector<TValueType> global_values(size);
 
-		return Out;
-	}
+        // Communicate
+        MPI_Allgather(&LocalValue, 1, DataType, global_values.data(),
+                      1, DataType, rComm.GetMPIComm());
 
-	/// Perform an MPI_allgather operation.
-	/**
-	 * Provide a list containing all local values to all processes.
-	 * @param rComm A communicator object.
-	 * @param LocalValue The local value to be sent in the gather.
-	 * @return A Python list containing the local values in all processes, sorted by rank.
-	 */
-	template<class TValueType>
-	pybind11::list allgather(PythonMPIComm& rComm, TValueType LocalValue)
-	{
-		// Determime data type
-		MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
-
-		int size;
-		MPI_Comm_size(rComm.GetMPIComm(), &size);
-
-		// Create recieve buffer
-		TValueType* GlobalValues = new TValueType[size];
-
-		// Communicate
-		MPI_Allgather(&LocalValue, 1, DataType, GlobalValues, 1, DataType,
-		        rComm.GetMPIComm());
-
-		// Copy output to a Python list
-		pybind11::list Out;
-
-		for (int i = 0; i < size; i++)
-		{
-			auto val(GlobalValues[i]);
-			Out.append(val);
-		}
-
-		delete[] GlobalValues;
-
-		return Out;
-	}
+        return global_values;
+    }
 
 private:
 
-	MPI_Comm& GetMPIComm(PythonMPIComm Comm)
-	{
-		return Comm.GetMPIComm();
-	}
+    MPI_Comm& GetMPIComm(PythonMPIComm Comm)
+    {
+        return Comm.GetMPIComm();
+    }
 
-	/// An auxiliary function to determine the MPI_Datatype corresponding to a given C type
-	template<class T>
-	inline MPI_Datatype GetMPIDatatype(const T& Value);
+    /// An auxiliary function to determine the MPI_Datatype corresponding to a given C type
+    template<class T>
+    inline MPI_Datatype GetMPIDatatype(const T& Value);
 
 	int mArgc;
 
-	char** mArgv;
+    char** mArgv;
 
-	PythonMPIComm mWorld;
+    PythonMPIComm mWorld;
 
 };
 
 template<>
 inline MPI_Datatype PythonMPI::GetMPIDatatype<int>(const int& Value)
 {
-	return MPI_INT ;
+    return MPI_INT ;
 }
 
 template<>
 inline MPI_Datatype PythonMPI::GetMPIDatatype<double>(const double& Value)
 {
-	return MPI_DOUBLE ;
+    return MPI_DOUBLE ;
 }
 
 PythonMPI& GetMPIInterface()
 {
-	static PythonMPI ThePythonMPI;
-	return ThePythonMPI;
+    static PythonMPI ThePythonMPI;
+    return ThePythonMPI;
 }
 
-}
+} // Namespace Kratos
 
 #endif // KRATOS_MPI_PYTHON_H

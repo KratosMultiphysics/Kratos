@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/prism_3d_6.h"
 #include "testing/testing.h"
 #include "includes/gid_io.h"
@@ -22,12 +23,12 @@
 /* Processes */
 #include "custom_processes/prism_neighbours_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         void PrismNeighboursProcessGiDIODebug(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_NEIGHBOUR_PRISM", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
@@ -119,14 +120,15 @@ namespace Kratos
 //             PrismNeighboursProcessGiDIODebug(ThisModelPart);
         }
 
-        /** 
+        /**
         * Checks the correct work of the prism neighbour process
         * Test 3 neighbours
         */
 
         KRATOS_TEST_CASE_IN_SUITE(PrismNeighboursProcess1, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             PrismNeighboursProcessCreateModelPart(this_model_part, 3);
@@ -146,7 +148,8 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(PrismNeighboursProcess2, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             PrismNeighboursProcessCreateModelPart(this_model_part, 2);
@@ -166,7 +169,8 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(PrismNeighboursProcess3, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             PrismNeighboursProcessCreateModelPart(this_model_part, 1);
@@ -186,11 +190,12 @@ namespace Kratos
         */
         KRATOS_TEST_CASE_IN_SUITE(PrismNeighboursProcess4, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
-            
+
             PrismNeighboursProcessCreateModelPart(this_model_part, 0);
-                         
+
             PrismNeighboursProcess prism_neighbours_process = PrismNeighboursProcess(this_model_part);
             prism_neighbours_process.Execute();
 

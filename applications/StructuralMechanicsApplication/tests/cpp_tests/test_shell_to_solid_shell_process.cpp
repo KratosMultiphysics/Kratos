@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/gid_io.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/mortar_utilities.h"
@@ -23,12 +24,12 @@
 /* Processes */
 #include "custom_processes/shell_to_solid_shell_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         void ShellToSolidShellProcessGiDIODebug(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_SHELL_TO_SOLID", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditions);
@@ -96,7 +97,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess1, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part =  current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -127,7 +129,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess2, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part =  current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -158,7 +161,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess3, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             this_model_part.AddNodalSolutionStepVariable(NORMAL);

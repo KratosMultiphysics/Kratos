@@ -16,6 +16,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 // Processes
+#include "custom_processes/transfer_solving_model_part_entities_process.hpp"
 #include "custom_processes/transfer_entities_between_model_parts_process.hpp"
 #include "custom_processes/assign_flags_to_model_part_entities_process.hpp"
 #include "custom_processes/assign_scalar_variable_to_entities_process.hpp"
@@ -27,7 +28,7 @@
 #include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.hpp"
 #include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.hpp"
 #include "custom_processes/build_string_skin_process.hpp"
-#include "custom_processes/transfer_computing_model_part_entities_process.hpp"
+
 
 // Solver Processes
 #include "custom_processes/solver_process.hpp"
@@ -62,7 +63,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute)
       ;
 
-  class_<TransferComputingModelPartEntitiesProcess, TransferComputingModelPartEntitiesProcess::Pointer, Process>(m,"TransferComputingModelPartProcess")
+  class_<TransferSolvingModelPartEntitiesProcess, TransferSolvingModelPartEntitiesProcess::Pointer, Process>(m,"TransferSolvingModelPartProcess")
       .def(init<ModelPart&, Parameters>())
       .def(init<ModelPart&, Parameters& >())
       ;
@@ -76,19 +77,19 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute)
       ;
 
-  class_<AssignScalarFieldToEntitiesProcess, AssignScalarFieldToEntitiesProcess::Pointer, Process>(m,"AssignScalarFieldToEntitiesProcess")
+  class_<AssignScalarFieldToEntitiesProcess, AssignScalarFieldToEntitiesProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignScalarFieldToEntitiesProcess")
       .def(init<ModelPart&, pybind11::object&, const std::string, const bool, Parameters>())
       .def(init< ModelPart&, pybind11::object&, const std::string, const bool, Parameters& >())
       .def("Execute", &AssignScalarFieldToEntitiesProcess::Execute)
       ;
 
-  class_<AssignVectorFieldToEntitiesProcess, AssignVectorFieldToEntitiesProcess::Pointer, Process>(m,"AssignVectorFieldToEntitiesProcess")
+  class_<AssignVectorFieldToEntitiesProcess, AssignVectorFieldToEntitiesProcess::Pointer, AssignScalarFieldToEntitiesProcess>(m,"AssignVectorFieldToEntitiesProcess")
       .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
       .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
       .def("Execute", &AssignVectorFieldToEntitiesProcess::Execute)
       ;
 
-  class_<AssignVectorVariableToConditionsProcess, AssignVectorVariableToConditionsProcess::Pointer, Process>(m,"AssignVectorToConditionsProcess")
+  class_<AssignVectorVariableToConditionsProcess, AssignVectorVariableToConditionsProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignVectorToConditionsProcess")
       .def(init<ModelPart&, Parameters>())
       .def(init< ModelPart&, Parameters& >())
       .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())

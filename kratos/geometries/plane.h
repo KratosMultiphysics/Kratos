@@ -17,7 +17,6 @@
 #include <iostream>
 
 // External includes
-#include <boost/array.hpp>
 #include "utilities/math_utils.h"
 
 

@@ -162,7 +162,7 @@ public:
 
 
     /// Destructor.
-    virtual ~FixScalarDofProcess() {}
+    ~FixScalarDofProcess() override {}
 
 
     ///@}

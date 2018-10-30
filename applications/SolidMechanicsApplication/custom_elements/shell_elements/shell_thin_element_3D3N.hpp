@@ -101,7 +101,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThinElement3D3N : public Elem
                        PropertiesType::Pointer pProperties,
                        CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-  virtual ~ShellThinElement3D3N();
+  ~ShellThinElement3D3N() override;
 
   ///@}
 

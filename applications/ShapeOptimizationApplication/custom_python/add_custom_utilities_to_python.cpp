@@ -40,6 +40,38 @@ namespace Kratos
 namespace Python
 {
 
+// Overloaded functions
+template<typename TMapper>
+inline void MapVector(TMapper& mapper,
+                const Variable< array_1d<double, 3> >& origin_variable,
+                const Variable< array_1d<double, 3> >& destination_variable)
+{
+    mapper.Map(origin_variable, destination_variable);
+}
+
+template<typename TMapper>
+inline void MapScalar(TMapper& mapper,
+                const Variable< double >& origin_variable,
+                const Variable< double >& destination_variable)
+{
+    mapper.Map(origin_variable, destination_variable);
+}
+
+template<typename TMapper>
+inline void InverseMapVector(TMapper& mapper,
+                       const Variable< array_1d<double, 3> >& origin_variable,
+                       const Variable< array_1d<double, 3> >& destination_variable)
+{
+    mapper.InverseMap(origin_variable, destination_variable);
+}
+template<typename TMapper>
+inline void InverseMapScalar(TMapper& mapper,
+                       const Variable< double >& origin_variable,
+                       const Variable< double >& destination_variable)
+{
+    mapper.InverseMap(origin_variable, destination_variable);
+}
+
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
@@ -48,19 +80,31 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
     class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
-        .def(init<ModelPart&, Parameters>())
-        .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
+        .def(init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphing::Initialize)
+        .def("Update", &MapperVertexMorphing::Update)
+        .def("Map", MapScalar<MapperVertexMorphing>)
+        .def("Map", MapVector<MapperVertexMorphing>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphing>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphing>)
         ;
     class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
-        .def(init<ModelPart&, Parameters>())
-        .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
+        .def(init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingMatrixFree::Initialize)
+        .def("Update", &MapperVertexMorphingMatrixFree::Update)
+        .def("Map", MapScalar<MapperVertexMorphingMatrixFree>)
+        .def("Map", MapVector<MapperVertexMorphingMatrixFree>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingMatrixFree>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingMatrixFree>)
         ;
     class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
-        .def(init<ModelPart&, Parameters>())
-        .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
+        .def(init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingImprovedIntegration::Initialize)
+        .def("Update", &MapperVertexMorphingImprovedIntegration::Update)
+        .def("Map", MapScalar<MapperVertexMorphingImprovedIntegration>)
+        .def("Map", MapVector<MapperVertexMorphingImprovedIntegration>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingImprovedIntegration>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingImprovedIntegration>)
         ;
 
     // ================================================================

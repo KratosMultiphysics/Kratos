@@ -46,7 +46,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) MisesHuberYieldSurface : public YieldSurface<THardeningRule>
+  class MisesHuberYieldSurface : public YieldSurface<THardeningRule>
   {
   public:
     ///@name Type Definitions
@@ -83,13 +83,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual BaseTypePointer Clone() const override
+    BaseTypePointer Clone() const override
     {
       return Kratos::make_shared<MisesHuberYieldSurface>(*this);
     }
 
     /// Destructor.
-    virtual ~MisesHuberYieldSurface() {}
+    ~MisesHuberYieldSurface() override {}
 
 
     ///@}
@@ -105,7 +105,7 @@ namespace Kratos
      * Calculate Yield Condition
      */
 
-    virtual double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
+    double& CalculateYieldCondition(const PlasticDataType& rVariables, double & rYieldCondition) override
     {
       KRATOS_TRY
 
@@ -126,7 +126,7 @@ namespace Kratos
      * Calculate State Function
      */
 
-    virtual double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
+    double& CalculateStateFunction(const PlasticDataType& rVariables, double & rStateFunction) override
     {
       KRATOS_TRY
 
@@ -151,7 +151,7 @@ namespace Kratos
      * Calculate State Function derivative
      */
 
-    virtual double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
+    double& CalculateDeltaStateFunction(const PlasticDataType& rVariables, double & rDeltaStateFunction) override
     {
       KRATOS_TRY
 
@@ -172,7 +172,7 @@ namespace Kratos
      * Calculate Plastic Dissipation
      */
 
-    virtual double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
+    double& CalculatePlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -186,7 +186,7 @@ namespace Kratos
      * Calculate Plastic Dissipation derivative
      */
 
-    virtual double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
+    double& CalculateDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -199,7 +199,7 @@ namespace Kratos
      * Calculate Implex Plastic Dissipation
      */
 
-    virtual double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
+    double& CalculateImplexPlasticDissipation(const PlasticDataType& rVariables, double & rPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -213,7 +213,7 @@ namespace Kratos
      * Calculate Implex Plastic Dissipation derivative
      */
 
-    virtual double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
+    double& CalculateImplexDeltaPlasticDissipation(const PlasticDataType& rVariables, double & rDeltaPlasticDissipation) override
     {
       KRATOS_TRY
 
@@ -238,7 +238,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "YieldSurface" ;
@@ -246,13 +246,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "MisesHuberYieldSurface";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "MisesHuberYieldSurface Data";
     }
@@ -332,12 +332,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }

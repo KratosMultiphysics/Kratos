@@ -1,15 +1,14 @@
 {
     "problem_data"             : {
         "problem_name"    : "hyper_simple_patch_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1e-3,
         "start_time"      : 0.0,
         "end_time"        : 1.0e-3,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
@@ -24,85 +23,91 @@
         {
             "mortar_type"                    : "ALMContactFrictional"
         },
+        "time_stepping"                      : {
+            "time_step" : 1.1e-3
+        },
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
+        "buffer_size"                        : 3,
         "linear_solver_settings"             : {
                 "solver_type": "SkylineLUFactorizationSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto2","Parts_Parts_Auto3"],
         "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
     },
-    "constraints_process_list" : [{
-        "python_module"   : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,true,true],
-            "value"           : [0.0,0.0,0.0]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "IMPOSE_DISP_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,false],
+                "value"           : [4.0e-2,-4.0e-2,0.0]
+            }
         }
-    },{
-        "python_module"   : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0]
+        ],
+        "loads_process_list"       : [],
+        "contact_process_list" :[
+        {
+            "python_module"   : "alm_contact_process",
+            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
+                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_type"                : "Frictional"
+            }
         }
-    },{
-        "python_module"   : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "IMPOSE_DISP_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,false],
-            "value"           : [4.0e-2,-4.0e-2,0.0]
+        ],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "input_file_name"      : "ALM_frictional_contact_test_2D/hyper_simple_patch_test_results.json",
+                "model_part_name"      : "Contact_Part",
+                "time_frequency"       : 1.0e-3
+            }
         }
-    }
-    ],
-    "loads_process_list"       : [],
-    "contact_process_list" :[
-    {
-        "python_module"   : "alm_contact_process",
-        "kratos_module"   : "ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
-            "contact_model_part"          : { "0" : ["Contact_Part"]},
-            "contact_type"                : "Frictional"
-        }
-    }
-    ],
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "ALM_frictional_contact_test_2D/hyper_simple_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.0e-3
-        }
-    }
-    ],
+        ]
+    },
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
@@ -117,7 +122,16 @@
         }
     }
     ],
-    "_output_configuration"     : {
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -136,7 +150,7 @@
             "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
     "restart_options"          : {
         "SaveRestart"      : false,

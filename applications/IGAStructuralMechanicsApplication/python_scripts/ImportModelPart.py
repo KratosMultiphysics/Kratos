@@ -37,8 +37,8 @@ class ModelPartIOIGA():
 			for cad_model_part_name_id in range (0,element_type["cad_model_part"].size()):
 				cad_model_part_name = element_type["cad_model_part"][cad_model_part_name_id]
 				#cad_model_part  = self.model_part_elements.GetSubModelPart(cad_model_part_name.GetString())
-				model = KratosMultiphysics.Model()
-				model.AddModelPart(self.model_part_elements)
+				#model = KratosMultiphysics.Model()
+				#model.AddModelPart(self.model_part_elements)
 				cad_model_part  = model[cad_model_part_name.GetString()]
 
 			var = KratosMultiphysics.KratosGlobals.GetVariable(element_type["parameters"]["control_points"].GetString())

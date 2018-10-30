@@ -24,174 +24,15 @@ namespace Kratos
 {
 
 AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(Element::Pointer pPrimalElement)
-                    : AdjointFiniteDifferencingBaseElement(pPrimalElement) {}
+                    : AdjointFiniteDifferencingBaseElement(pPrimalElement, true) {}
 
 AdjointFiniteDifferencingShellElement::~AdjointFiniteDifferencingShellElement() {}
-
-void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Vector >& rVariable,
-                           Vector& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    const SizeType num_gps = GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
-
-    if(rVariable == STRESS_ON_GP)
-    {
-        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-
-        int direction_1 = 0;
-        int direction_2 = 0;
-        std::vector<Matrix> stress_vector;
-        bool stress_is_moment = true;
-
-        switch (traced_stress_type)
-        {
-            case TracedStressType::MXX:
-            {
-                direction_1 = 0;
-                direction_2 = 0;
-                break;
-            }
-            case TracedStressType::MXY:
-            {
-                direction_1 = 0;
-                direction_2 = 1;
-                break;
-            }
-            case TracedStressType::MXZ:
-            {
-                direction_1 = 0;
-                direction_2 = 2;
-                break;
-            }
-            case TracedStressType::MYX:
-            {
-                direction_1 = 1;
-                direction_2 = 0;
-                break;
-            }
-            case TracedStressType::MYY :
-            {
-                direction_1 = 1;
-                direction_2 = 1;
-                break;
-            }
-            case TracedStressType::MYZ:
-            {
-                direction_1 = 1;
-                direction_2 = 2;
-                break;
-            }
-            case TracedStressType::MZX:
-            {
-                direction_1 = 2;
-                direction_2 = 0;
-                break;
-            }
-            case TracedStressType::MZY:
-            {
-                direction_1 = 2;
-                direction_2 = 1;
-                break;
-            }
-            case TracedStressType::MZZ :
-            {
-                direction_1 = 2;
-                direction_2 = 2;
-                break;
-            }
-            case TracedStressType::FXX :
-            {
-                direction_1 = 0;
-                direction_2 = 0;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FXY:
-            {
-                direction_1 = 0;
-                direction_2 = 1;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FXZ:
-            {
-                direction_1 = 0;
-                direction_2 = 2;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FYX:
-            {
-                direction_1 = 1;
-                direction_2 = 0;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FYY:
-            {
-                direction_1 = 1;
-                direction_2 = 1;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FYZ:
-            {
-                direction_1 = 1;
-                direction_2 = 2;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FZX:
-            {
-                direction_1 = 2;
-                direction_2 = 0;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FZY:
-            {
-                direction_1 = 2;
-                direction_2 = 1;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FZZ:
-            {
-                direction_1 = 2;
-                direction_2 = 2;
-                stress_is_moment = false;
-                break;
-            }
-            default:
-                KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
-        }
-
-        if(stress_is_moment)
-            mpPrimalElement->GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector, rCurrentProcessInfo);
-        else
-            mpPrimalElement->GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
-
-        rOutput.resize(num_gps);
-        for(IndexType i = 0; i < num_gps; i++)
-        {
-            rOutput(i) = stress_vector[i](direction_1, direction_2);
-        }
-
-    }
-    else
-    {
-        rOutput.resize(num_gps);
-        rOutput.clear();
-    }
-
-    KRATOS_CATCH("")
-}
 
 int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    int return_value = AdjointFiniteDifferencingBaseElement::Check(rCurrentProcessInfo);
 
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
@@ -203,7 +44,7 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
     KRATOS_ERROR_IF(GetGeometry().Area() < std::numeric_limits<double>::epsilon()*1000)
         << "Element #" << Id() << " has an Area of zero!" << std::endl;
 
-    return 0;
+    return return_value;
 
     KRATOS_CATCH("")
 }

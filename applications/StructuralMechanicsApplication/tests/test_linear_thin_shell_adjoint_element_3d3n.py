@@ -20,7 +20,7 @@ def add_variables(mp):
 
 def apply_material_properties(mp,dim):
     #define properties
-    mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,100e3)
+    mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,1000)
     mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
     mp.GetProperties()[0].SetValue(KratosMultiphysics.THICKNESS,1.0)
     mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,1.0)
@@ -47,7 +47,8 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
     def setUp(self):
         # create test model part
         dim=3
-        self.model_part = KratosMultiphysics.ModelPart("test")
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("test")
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim)
         add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -71,7 +72,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
     def _create_shape_perturbed_elements(self,mp,delta):
         dim=3
-        self.model_part_1 = KratosMultiphysics.ModelPart("Shape_Perturbed_Elements")
+        self.model_part_1 = mp.GetOwnerModel().CreateModelPart("Shape_Perturbed_Elements")
         add_variables(self.model_part_1)
 
         x1 = mp.Nodes[1].X
@@ -120,7 +121,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
     def _create_property_perturbed_elements(self,mp,delta):
         dim = 3
-        self.model_part_2 = KratosMultiphysics.ModelPart("Property_Perturbed_Elements")
+        self.model_part_2 = mp.GetOwnerModel().CreateModelPart("Property_Perturbed_Elements")
         add_variables(self.model_part_2)
         self.model_part_2.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z)
         self.model_part_2.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z)
@@ -240,7 +241,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,18)
         self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.THICKNESS, PseudoLoadMatrix, self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
+        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -57,7 +57,7 @@ namespace Kratos
     ConstitutiveLaw::Pointer Clone() const override;
 
     /// Destructor.
-    virtual ~StrainRate3DLaw();
+    ~StrainRate3DLaw() override;
 
     ///@}
     ///@name Operators
@@ -71,7 +71,7 @@ namespace Kratos
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties& rProperties,
 			    const GeometryType& rElementGeometry,
 			    const Vector& rShapeFunctionsValues ) override;
 
@@ -82,7 +82,7 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
 
     /**
@@ -103,12 +103,12 @@ namespace Kratos
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rMaterialProperties
+     * @param rProperties
      * @param rElementGeometry
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -151,7 +151,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "StrainRate3DLaw";
@@ -159,13 +159,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "StrainRate3DLaw";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "StrainRate3DLaw Data";
       mpModel->PrintData(rOStream);
@@ -208,19 +208,19 @@ namespace Kratos
      * @see   Parameters
      * @param rModelValues
      */
-    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
 
 
     /**
      * Initialize ModelData type:
      */
-    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
+    void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
 
 
     /**
      * Finalize ModelData type:
      */
-    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
+    void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
 
     /**
      * Calculates the stress vector
@@ -275,14 +275,14 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Constitutive3DLaw )
 
       rSerializer.save("mpModel",mpModel);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Constitutive3DLaw )
 

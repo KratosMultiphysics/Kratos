@@ -49,7 +49,7 @@ namespace Python
 
 
         class_<NurbsBrepModeler, typename NurbsBrepModeler::Pointer>(m, "NurbsBrepModeler")
-            .def(init<Kratos::shared_ptr<ModelPart>>())
+            .def(init<ModelPart&>())
             .def("LoadGeometry", &NurbsBrepModeler::LoadGeometry)
             .def("CreateIntegrationDomain", &NurbsBrepModeler::CreateIntegrationDomain)
             .def("ApplyGeometryRefinement", &NurbsBrepModeler::ApplyGeometryRefinement)

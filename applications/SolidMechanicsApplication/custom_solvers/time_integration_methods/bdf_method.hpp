@@ -101,7 +101,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~BdfMethod(){}
+    ~BdfMethod() override{}
 
     ///@}
     ///@name Operators

@@ -99,7 +99,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~BackwardEulerMethod(){}
+    ~BackwardEulerMethod() override{}
 
     ///@}
     ///@name Operators

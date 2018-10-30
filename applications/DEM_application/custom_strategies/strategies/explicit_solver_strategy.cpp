@@ -174,6 +174,22 @@ namespace Kratos {
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
 
+        if (mRemoveBallsInitiallyTouchingWallsOption) {
+            MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
+            mpParticleCreatorDestructor->DestroyParticles(r_model_part);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+
+            // Search Neighbours and related operations
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
+            SearchNeighbours();
+            ComputeNewNeighboursHistoricalData();
+
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
+            SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
+            ComputeNewRigidFaceNeighboursHistoricalData();
+        }
+
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
 
@@ -195,6 +211,23 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }// Initialize()
+
+    void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
+
+        ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)pElements.size(); k++) {
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            Element* p_element = &(*it);
+            SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
+
+            if (p_sphere->mNeighbourRigidFaces.size()) {
+                p_sphere->Set(TO_ERASE);
+                p_sphere->GetGeometry()[0].Set(TO_ERASE);
+            }
+        }
+    }
 
     void ExplicitSolverStrategy::ComputeNodalArea() {
 
@@ -258,7 +291,7 @@ namespace Kratos {
         if (t<critical_timestep && t>0.0){critical_timestep = t;}
 
         r_process_info[DELTA_TIME] = critical_timestep;
-        KRATOS_INFO("DEM") << " Applied timestep is " << critical_timestep << ". " << "\n" << std::endl;
+        KRATOS_INFO("DEM") << " (Critical) Timestep set to " << critical_timestep << ". " << "\n" << std::endl;
 
 
        //PropertiesContainerType pprop1 = *mpInlet_model_part->pProperties();
@@ -456,10 +489,10 @@ namespace Kratos {
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
         GetClustersForce();
-        GetRigidBodyElementsForce();
 
         if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
             CalculateNodalPressuresAndStressesOnWalls();
+            GetRigidBodyElementsForce();
         }
 
         // 4. Synchronize (should be just FORCE and TORQUE)
@@ -709,7 +742,6 @@ namespace Kratos {
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
         }
-
 
         KRATOS_CATCH("")
     }
@@ -1064,21 +1096,45 @@ namespace Kratos {
                     if (submp.Has(VELOCITY_STOP_TIME)) vel_stop = submp[VELOCITY_STOP_TIME];
 
                     if (time > vel_start && time < vel_stop) {
-                        if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE];
+                        if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                        }
                         else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-                        if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE];
+                        if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                        }
                         else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-                        if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE];
+                        if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                        }
                         else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                        }
                         else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                        }
                         else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                        }
                         else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
                     }
 
                     else {
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = 0.0;
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
@@ -1087,6 +1143,14 @@ namespace Kratos {
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                     }
                 }
+            }
+
+            if (submp.Has(EXTERNAL_APPLIED_FORCE)) { // JIG: Backward compatibility, it should be removed in the future
+                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = submp[EXTERNAL_APPLIED_FORCE];
+            }
+
+            if (submp.Has(EXTERNAL_APPLIED_MOMENT)) { // JIG: Backward compatibility, it should be removed in the future
+                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = submp[EXTERNAL_APPLIED_MOMENT];
             }
         }
         KRATOS_CATCH("")

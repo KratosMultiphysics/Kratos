@@ -1194,7 +1194,7 @@ namespace Kratos
 
 	void NurbsBrepModeler::LoadGeometry(BrepModelGeometryReader& rBrepModelGeometryReader)
 	{
-		BrepModelVector brep_model_vector = rBrepModelGeometryReader.ReadGeometry(*mp_model_part);
+		BrepModelVector brep_model_vector = rBrepModelGeometryReader.ReadGeometry(mp_model_part);
 		for (auto brep_model = brep_model_vector.begin(); brep_model != brep_model_vector.end(); brep_model++)
 		{
 			m_brep_model_vector.push_back(*brep_model);
@@ -1203,8 +1203,8 @@ namespace Kratos
 		m_model_tolerance = rBrepModelGeometryReader.ReadModelTolerance();
 	}
 
-	NurbsBrepModeler::NurbsBrepModeler(Kratos::shared_ptr<ModelPart> rpModelPart)
-		: mp_model_part(rpModelPart)
+	NurbsBrepModeler::NurbsBrepModeler(ModelPart& rModelPart)
+		: mp_model_part(rModelPart)
 	{
 	}
 

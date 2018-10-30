@@ -74,7 +74,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
 
 
         /// Destructor.
-        virtual ~MisesHuberYieldCriterion();
+        ~MisesHuberYieldCriterion() override;
 
 
         ///@}

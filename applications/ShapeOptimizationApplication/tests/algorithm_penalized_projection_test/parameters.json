@@ -10,6 +10,21 @@
         "echo_level"      : 0
     },
     "optimization_settings" : {
+        "model_settings" :{
+            "domain_size"              : 3,
+            "model_part_name"          : "3D_Shell",
+            "model_import_settings"    : {
+                "input_type"       : "mdpa",
+                "input_filename"   : "3D_Shell"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : false
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
         "objectives" : [{
             "identifier" : "mass",
             "type"       : "minimization",
@@ -19,48 +34,43 @@
                 "material_import_settings" :{
                     "materials_filename": "materials.json"
                 },
+                "model_part_name"       : "3D_Shell",
+                "model_import_settings"    : {
+                    "input_type"       : "use_input_model_part"
+                },
                 "gradient_mode"          : "finite_differencing",
                 "step_size"              : 1e-6,
                 "consider_discretization": false
-            }
+            },
+            "project_gradient_on_surface_normals" : true
         }],
         "constraints" : [{
             "identifier"      : "distance",
             "type"            : "=",
             "reference"       : "specified_value",
             "reference_value" : 0,
-            "use_kratos"      : false
+            "use_kratos"      : false,
+            "project_gradient_on_surface_normals" : true
         }],
         "design_variables" : {
             "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "3D_Shell",
-            "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 4.0,
-                "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : false
-            },
-            "damping" : {
-                "perform_damping" : false
-            },
-            "mesh_motion" : {
-                "apply_mesh_solver" : false
+                "max_nodes_in_filter_radius" : 1000
             }
         },
         "optimization_algorithm" : {
             "name"                    : "penalized_projection",
-            "correction_scaling"      : 1,
+            "correction_scaling"      : 1.0,
             "use_adaptive_correction" : true,
             "max_iterations"          : 10,
             "relative_tolerance"      : 1e-1,
-            "project_gradients_on_surface_normals" : true
-        },
-        "line_search" : {
-            "line_search_type"           : "manual_stepping",
-            "normalize_search_direction" : true,
-            "step_size"                  : 1.5
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 1.5
+            }
         },
         "output" : {
             "output_directory"        : "Optimization_Results",
@@ -69,15 +79,7 @@
             "design_output_mode"      : "WriteDesignSurface",
             "nodal_results"           : [ "SHAPE_CHANGE" ],
             "output_format" : {
-                "name"              : "gid",
-                "gid_configuration" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary"
-                        },
-                        "output_frequency"    : 1.0
-                    }
-                }
+                "name": "gid"
             }
         }
     }

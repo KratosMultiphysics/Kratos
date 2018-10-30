@@ -1007,7 +1007,7 @@ public:
      * @param rStrainInitial the measure of stress of the given  rStrainVector
      * @param rStrainFinal the measure of stress of the returned rStrainVector
      */
-    Vector& TransformStrains        (Vector& rStrainVector,
+    virtual Vector& TransformStrains (Vector& rStrainVector,
 				     const Matrix &rF,
 				     StrainMeasure rStrainInitial,
 				     StrainMeasure rStrainFinal);
@@ -1231,6 +1231,23 @@ public:
                                          const Vector& PK2_StressVector,
                                          const Vector& GreenLagrangeStrainVector);
 
+    /**
+     * @brief This method is used to check that tow Constitutive Laws are the same type (references)
+     * @param rLHS The first argument
+     * @param rRHS The second argument
+     */
+    inline static bool HasSameType(const ConstitutiveLaw& rLHS, const ConstitutiveLaw& rRHS) {
+        return (typeid(rLHS) == typeid(rRHS));
+    }
+
+    /**
+     * @brief This method is used to check that tow Constitutive Laws are the same type (pointers)
+     * @param rLHS The first argument
+     * @param rRHS The second argument
+     */
+    inline static bool HasSameType(const ConstitutiveLaw* rLHS, const ConstitutiveLaw* rRHS) {
+        return ConstitutiveLaw::HasSameType(*rLHS, *rRHS);
+    }
 
     ///@}
     ///@}

@@ -56,7 +56,7 @@ void CalculateElasticMatrix(
     rElasticityTensor(5, 5) = mu;
 }
 
-/** 
+/**
     * Check the correct calculation of the uniaxial stress of the yield surfaces
     */
 KRATOS_TEST_CASE_IN_SUITE(PertubationTensorTestUtility, KratosStructuralMechanicsFastSuite)

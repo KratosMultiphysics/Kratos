@@ -38,7 +38,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisymmetric Updated Lagrangian element 
+/// Axisymmetric Updated Lagrangian element
 
 /**
  * Implements a Axisymmetric Total Lagrangian definition for structural analysis.
@@ -147,11 +147,11 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     AxisymUpdatedLagrangian() : UpdatedLagrangian()
     {
     }
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -177,7 +177,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -202,7 +202,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -233,4 +233,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_UPDATED_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_UPDATED_LAGRANGIAN_H_INCLUDED  defined

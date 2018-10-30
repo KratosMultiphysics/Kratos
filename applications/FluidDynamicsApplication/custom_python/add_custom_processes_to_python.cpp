@@ -15,8 +15,12 @@
 // System includes
 
 // External includes
+#ifdef KRATOS_USE_AMATRIX
+#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
+#endif // KRATOS_USE_AMATRIX
 
 // Project includes
+#include "containers/model.h"
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -30,6 +34,7 @@
 #include "custom_processes/embedded_nodes_initialization_process.h"
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/embedded_skin_visualization_process.h"
+#include "custom_processes/integration_point_statistics_process.h"
 #include "custom_processes/move_rotor_process.h"
 #include "spaces/ublas_space.h"
 
@@ -47,7 +52,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
@@ -67,7 +72,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<BoussinesqForceProcess, BoussinesqForceProcess::Pointer, Process>
     (m,"BoussinesqForceProcess")
-    .def(init<ModelPart*, Parameters& >())
+    .def(init<ModelPart&, Parameters& >())
     ;
 
     class_<WindkesselModel, WindkesselModel::Pointer, Process>
@@ -93,15 +98,20 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<EmbeddedSkinVisualizationProcess, EmbeddedSkinVisualizationProcess::Pointer, Process>
     (m,"EmbeddedSkinVisualizationProcess")
-    .def(init < 
-        ModelPart&, 
-        ModelPart&, 
-        const std::vector<Variable <double> >, 
-        const std::vector<Variable< array_1d<double, 3> > >, 
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >, 
-        std::string, 
+    .def(init <
+        ModelPart&,
+        ModelPart&,
+        const std::vector<Variable <double> >,
+        const std::vector<Variable< array_1d<double, 3> > >,
+        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >,
+        std::string,
         const bool >())
     .def(init< ModelPart&, ModelPart&, Parameters& >())
+    ;
+
+    class_<IntegrationPointStatisticsProcess, IntegrationPointStatisticsProcess::Pointer, Process>
+    (m, "IntegrationPointStatisticsProcess")
+    .def(init<Model&, Parameters::Pointer>())
     ;
 
     class_<MoveRotorProcess, MoveRotorProcess::Pointer, Process>

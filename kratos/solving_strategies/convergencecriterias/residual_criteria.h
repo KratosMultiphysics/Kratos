@@ -2,22 +2,22 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 
 #if !defined(KRATOS_RESIDUAL_CRITERIA )
 #define  KRATOS_RESIDUAL_CRITERIA
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
-// Project includes 
+// Project includes
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -25,29 +25,29 @@
 namespace Kratos
 {
 
-///@name Kratos Globals 
+///@name Kratos Globals
 ///@{
 
 
-///@} 
-///@name Type Definitions 
+///@}
+///@name Type Definitions
 ///@{
 
-///@} 
+///@}
 
 
-///@name  Enum's 
-///@{
-
-
-///@} 
-///@name  Functions 
+///@name  Enum's
 ///@{
 
 
+///@}
+///@name  Functions
+///@{
 
-///@} 
-///@name Kratos Classes 
+
+
+///@}
+///@name Kratos Classes
 ///@{
 
 /**
@@ -64,7 +64,7 @@ class ResidualCriteria
     : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
-    ///@name Type Definitions 
+    ///@name Type Definitions
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
@@ -85,14 +85,12 @@ public:
 
     typedef std::size_t SizeType;
 
-    ///@} 
+    ///@}
     ///@name Life Cycle
-    
     ///@{
 
     //* Constructor.
-    
-    ResidualCriteria(
+    explicit ResidualCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
@@ -103,9 +101,8 @@ public:
     }
 
     //* Copy constructor.
-    
-    ResidualCriteria( ResidualCriteria const& rOther )
-      :BaseType(rOther) 
+    explicit ResidualCriteria( ResidualCriteria const& rOther )
+      :BaseType(rOther)
       ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mRatioTolerance(rOther.mRatioTolerance)
       ,mInitialResidualNorm(rOther.mInitialResidualNorm)
@@ -116,17 +113,15 @@ public:
     }
 
     //* Destructor.
-    
     ~ResidualCriteria() override {}
 
-
-    ///@} 
+    ///@}
     ///@name Operators
-    
     ///@{
 
     /**
-     * Compute relative and absolute error.
+     * @brief Criterias that need to be called after getting the solution
+     * @details Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -180,18 +175,16 @@ public:
     }
 
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart Reference to the ModelPart containing the problem. (unused)
      */
-    void Initialize(
-        ModelPart& rModelPart
-        ) override
+    void Initialize(ModelPart& rModelPart) override
     {
-        BaseType::mConvergenceCriteriaIsInitialized = true;
+        BaseType::Initialize(rModelPart);
     }
 
     /**
-     * This function initializes the solution step
+     * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -210,7 +203,7 @@ public:
     }
 
     /**
-     * This function finalizes the solution step
+     * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -228,95 +221,45 @@ public:
         BaseType::FinalizeSolutionStep(rModelPart, rDofSet, A, Dx, b);
     }
 
-    ///@} 
-    ///@name Operations 
+    ///@}
+    ///@name Operations
     ///@{
 
 
-    ///@} 
-    ///@name Access 
+    ///@}
+    ///@name Access
     ///@{
 
 
-    ///@} 
-    ///@name Inquiry 
+    ///@}
+    ///@name Inquiry
     ///@{
 
 
-    ///@} 
-    ///@name Friends 
+    ///@}
+    ///@name Friends
     ///@{
 
 
-    ///@} 
+    ///@}
 
 protected:
-    ///@name Protected static Member Variables 
+    ///@name Protected static Member Variables
     ///@{
 
 
-    ///@} 
-    ///@name Protected member Variables 
+    ///@}
+    ///@name Protected member Variables
     ///@{
 
 
-    ///@} 
+    ///@}
     ///@name Protected Operators
     ///@{
 
 
-    ///@} 
+    ///@}
     ///@name Protected Operations
-    ///@{
-
-
-    ///@} 
-    ///@name Protected  Access 
-    ///@{
-
-
-    ///@} 
-    ///@name Protected Inquiry 
-    ///@{
-
-
-    ///@} 
-    ///@name Protected LifeCycle 
-    ///@{
-
-
-
-    ///@} 
-
-private:
-    ///@name Static Member Variables 
-    ///@{
-
-
-    ///@} 
-    ///@name Member Variables 
-    ///@{
-
-
-    bool mInitialResidualIsSet;     /// This "flag" is set in order to set that the initial residual is already computed
-
-    TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
-
-    TDataType mInitialResidualNorm; /// The reference norm of the residual
-
-    TDataType mCurrentResidualNorm; /// The current norm of the residual
-
-    TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
-
-    TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
-
-
-    ///@} 
-    ///@name Private Operators
-    ///@{
-
-    ///@} 
-    ///@name Private Operations
     ///@{
 
     /**
@@ -327,7 +270,7 @@ private:
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param b RHS vector (residual + reactions)
      */
-    void CalculateResidualNorm(
+    virtual void CalculateResidualNorm(
         TDataType& rResidualSolutionNorm,
         SizeType& rDofNum,
         DofsArrayType& rDofSet,
@@ -353,39 +296,88 @@ private:
                 dof_num++;
             }
         }
-             
+
         rDofNum = dof_num;
-        rResidualSolutionNorm = residual_solution_norm;
+        rResidualSolutionNorm = std::sqrt(residual_solution_norm);
     }
 
-    ///@} 
-    ///@name Private  Access 
+    ///@}
+    ///@name Protected  Access
     ///@{
 
 
-    ///@} 
-    ///@name Private Inquiry 
+    ///@}
+    ///@name Protected Inquiry
     ///@{
 
 
-    ///@} 
-    ///@name Un accessible methods 
+    ///@}
+    ///@name Protected LifeCycle
     ///@{
 
 
-    ///@} 
 
-}; // Class ClassName 
+    ///@}
 
-///@} 
+private:
+    ///@name Static Member Variables
+    ///@{
 
-///@name Type Definitions 
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    bool mInitialResidualIsSet;     /// This "flag" is set in order to set that the initial residual is already computed
+
+    TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
+
+    TDataType mInitialResidualNorm; /// The reference norm of the residual
+
+    TDataType mCurrentResidualNorm; /// The current norm of the residual
+
+    TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
+
+    TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+}; // Class ClassName
+
+///@}
+
+///@name Type Definitions
 ///@{
 
 
-///@} 
+///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NEW_DISPLACEMENT_CRITERIA  defined 
+#endif // KRATOS_NEW_DISPLACEMENT_CRITERIA  defined
 

@@ -16,11 +16,13 @@
 // Project includes
 #include "includes/process_info.h"
 #include "testing/testing.h"
+#include "containers/model.h"
 
 // Application includes
 
 // Integrator
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
@@ -29,14 +31,16 @@
 #include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+
 // Plastic potentials
 #include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+
 // Constitutive law
-#include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -47,23 +51,25 @@ namespace Testing
 // We test the associated damage Constitutive laws...
 typedef Node<3> NodeType;
 
-/** 
+/**
     * Check the correct calculation of the integrated stress with the CL's
     */
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
 {
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>> MC;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>> VM;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential>>> DP;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential>>> T;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential>>> SJ;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential>>> R;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> DP;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> T;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> SJ;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> R;
 
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
     Vector stress_vector, strain_vector;
 
-    ModelPart test_model_part("Main");
+    Model current_model;
+
+    ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -96,6 +102,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
     material_properties.SetValue(SOFTENING_TYPE, 0);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
     cl_parameters.SetMaterialProperties(material_properties);
@@ -155,18 +167,20 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, KratosStructuralMechanicsFastSuite)
 {
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>> MC;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>> VM;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential>>> DP;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential>>> T;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential>>> SJ;
-    typedef GenericSmallStrainIsotropicDamage3D<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential>>> R;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> VM;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> DP;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> T;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> SJ;
+    typedef GenericSmallStrainIsotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> R;
 
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
     Vector stress_vector, strain_vector;
 
-    ModelPart test_model_part("Main");
+    Model current_model;
+
+    ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -199,6 +213,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(FRACTURE_ENERGY, 1.0e5);
     material_properties.SetValue(SOFTENING_TYPE, 1);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
     cl_parameters.SetMaterialProperties(material_properties);

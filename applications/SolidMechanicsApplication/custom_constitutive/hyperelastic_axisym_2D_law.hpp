@@ -75,7 +75,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticAxisym2DLaw();
+    ~HyperElasticAxisym2DLaw() override;
 
     /**
      * Operators

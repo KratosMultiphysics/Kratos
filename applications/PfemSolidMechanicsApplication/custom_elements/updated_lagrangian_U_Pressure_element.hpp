@@ -41,7 +41,7 @@ namespace Kratos
    // the constitutive equation should not be the UP version
 
 
-   class UpdatedLagrangianUPressureElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUPressureElement
       : public UpdatedLagrangianUPElement
    {
 

@@ -80,7 +80,7 @@ namespace Kratos
       }
 
       /// Destructor.
-      virtual ~SmallStrainAxisymmetric2DLaw() {}
+      ~SmallStrainAxisymmetric2DLaw() override {}
 
 
       ///@}
@@ -139,7 +139,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
 	std::stringstream buffer;
         buffer << "SmallStrainAxisymmetric2DLaw" ;
@@ -147,10 +147,10 @@ namespace Kratos
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "SmallStrainAxisymmetric2DLaw";}
+      void PrintInfo(std::ostream& rOStream) const override {rOStream << "SmallStrainAxisymmetric2DLaw";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override {}
+      void PrintData(std::ostream& rOStream) const override {}
 
 
       ///@}
@@ -183,13 +183,13 @@ namespace Kratos
        * @return the linear elastic constitutive matrix
        */
       void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-					const Properties& rMaterialProperties) override
+					const Properties& rProperties) override
       {
 	KRATOS_TRY
 
 	// Lame constants
-	const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];
-	const double& rPoissonCoefficient    = rMaterialProperties[POISSON_RATIO];
+	const double& rYoungModulus          = rProperties[YOUNG_MODULUS];
+	const double& rPoissonCoefficient    = rProperties[POISSON_RATIO];
 
 	rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2*rPoissonCoefficient)));
 	rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );
@@ -269,12 +269,12 @@ namespace Kratos
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrain3DLaw )
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrain3DLaw )
       }

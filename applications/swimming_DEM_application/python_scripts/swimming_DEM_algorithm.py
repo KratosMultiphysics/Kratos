@@ -74,9 +74,10 @@ class Algorithm(object):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, varying_parameters = Parameters("{}")):
+    def __init__(self, model, varying_parameters = Parameters("{}")):
         sys.stdout = SDEMLogger()
         self.StartTimer()
+        self.model = model
         self.main_path = os.getcwd()
 
         self.SetFluidAlgorithm()
@@ -106,12 +107,12 @@ class Algorithm(object):
 
     def SetFluidAlgorithm(self):
         import eulerian_fluid_ready_for_coupling
-        self.fluid_solution = eulerian_fluid_ready_for_coupling.Solution()
+        self.fluid_solution = eulerian_fluid_ready_for_coupling.Solution(self.model)
         self.fluid_solution.main_path = self.main_path
 
     def SetDispersePhaseAlgorithm(self):
         import dem_main_script_ready_for_coupling as DEM_algorithm
-        self.disperse_phase_solution = DEM_algorithm.Solution(self.pp)
+        self.disperse_phase_solution = DEM_algorithm.Solution(self.model, self.pp)
 
     def ReadDispersePhaseAndCouplingParameters(self):
 
@@ -155,7 +156,7 @@ class Algorithm(object):
         self.all_model_parts.Add(self.fluid_model_part)
 
         # defining a model part for the mixed part
-        self.all_model_parts.Add(ModelPart("MixedPart"))
+        self.all_model_parts.Add(self.model.CreateModelPart("MixedPart"))
 
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
@@ -347,6 +348,8 @@ class Algorithm(object):
         self.SetPointGraphPrinter()
 
         self.TransferGravityFromDisperseToFluid()
+
+        self.AssignKinematicViscosityFromDynamicViscosity()
 
         # coarse-graining: applying changes to the physical properties of the model to adjust for
         # the similarity transformation if required (fluid effects only).
@@ -1042,6 +1045,10 @@ class Algorithm(object):
                 node.SetSolutionStepValue(BODY_FORCE_X, 0, self.pp.CFD_DEM["GravityX"].GetDouble())
                 node.SetSolutionStepValue(BODY_FORCE_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
                 node.SetSolutionStepValue(BODY_FORCE_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
+
+    def AssignKinematicViscosityFromDynamicViscosity(self):
+        # Eulerian fluid already works with kinematic viscosity
+        pass
 
     def yield_DEM_time(self, current_time, current_time_plus_increment, delta_time):
         current_time += delta_time

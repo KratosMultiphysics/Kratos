@@ -1,7 +1,4 @@
 {
-    "test_settings" : {
-        "execute_solve" : true
-    },
     "problem_data"                     : {
         "problem_name"    : "cylinder_test",
         "model_part_name" : "MainModelPart",
@@ -123,7 +120,7 @@
     }],
     "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_input_process",
+        "python_module" : "single_mesh_temporal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -131,7 +128,7 @@
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
             }
         }

@@ -62,7 +62,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AssignFlagsToModelPartEntitiesProcess() {}
+    ~AssignFlagsToModelPartEntitiesProcess() override {}
 
 
     ///@}

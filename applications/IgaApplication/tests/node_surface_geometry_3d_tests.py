@@ -23,15 +23,15 @@ class NodeSurfaceGeometry3DTests(KratosUnittest.TestCase):
         node_22 = Node(3, 2.0, 2.0, 0.0)
 
         # set weights of control points
-        node_00.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_01.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_02.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_10.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_11.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_12.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_20.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_21.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_22.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+        node_00.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_01.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_02.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_10.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_11.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_12.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_20.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_21.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_22.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
         # create a nurbs surface
         surface = NodeSurfaceGeometry3D(DegreeU=2, DegreeV=2, NumberOfNodesU=3,
@@ -91,7 +91,7 @@ class NodeSurfaceGeometry3DTests(KratosUnittest.TestCase):
         surface = self.surface
 
         node_11 = surface.Node(IndexU=1, IndexV=1)
-        node_11.SetValue(NURBS_CONTROLPOINT_WEIGHT, 2.0)
+        node_11.SetValue(NURBS_CONTROL_POINT_WEIGHT, 2.0)
 
         point = surface.PointAt(U=0.5, V=0.5)
 
@@ -126,7 +126,7 @@ class NodeSurfaceGeometry3DTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_z_at_t, t - t**2)
 
     def testNodeIndexOutOfRange(self):
-        if Kernel.BuildType() == 'Release':
+        if Kernel.BuildType() not in ['Debug', 'FullDebug']:
             self.skipTest(reason='Index checked only in Debug mode')
 
         with self.assertRaises(Exception):

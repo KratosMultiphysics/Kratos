@@ -71,16 +71,16 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
 
         with open(self.params["cad_geometry_file_name"].GetString(),'r') as cad_geometry_file:
             cad_geometry = KratosMultiphysics.Parameters( cad_geometry_file.read())
-        self.modeler = KratosMultiphysics.NurbsBrepApplication.NurbsBrepModeler(self.model_part)
+        self.this_modeler = KratosMultiphysics.NurbsBrepApplication.NurbsBrepModeler(self.model_part)
         self.geometry_reader = KratosMultiphysics.NurbsBrepApplication.BrepModelGeometryReader(cad_geometry)
-        self.modeler.LoadGeometry(self.geometry_reader)
+        self.this_modeler.LoadGeometry(self.geometry_reader)
 
-        self.modeler.ApplyGeometryRefinement(self.params["parameters"]["geometry_refinement"])
+        self.this_modeler.ApplyGeometryRefinement(self.params["parameters"]["geometry_refinement"])
 
-        self.modeler.CreateIntegrationDomain(self.params["parameters"]["integration_domain_parameter"], self.model_part_integration_domain)
+        self.this_modeler.CreateIntegrationDomain(self.params["parameters"]["integration_domain_parameter"], self.model_part_integration_domain)
 
         if(self.params["compute_surface_area"].GetBool()):
-            self.modeler.ComputeArea(self.model_part_integration_domain)
+            self.this_modeler.ComputeArea(self.model_part_integration_domain)
 
     def ExecuteBeforeSolutionLoop(self):
         pass

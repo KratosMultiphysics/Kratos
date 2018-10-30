@@ -69,7 +69,7 @@ public:
     ExponentialDamageHardeningLaw& operator=(ExponentialDamageHardeningLaw const& rOther);
 
     /// Destructor.
-    ~ExponentialDamageHardeningLaw();
+    ~ExponentialDamageHardeningLaw() override;
 
     ///@}
     ///@name Operators

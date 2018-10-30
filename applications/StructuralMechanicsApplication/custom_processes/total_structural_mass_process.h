@@ -28,23 +28,23 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/** 
+
+/**
  * @class TotalStructuralMassProcess
  *
  * @ingroup StructuralMechanicsApplication
  *
  * @brief This method computes the tonal mass of a structure
  * @details It takes into account the beam, shells and solid elements
- * 
+ *
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalStructuralMassProcess
@@ -56,7 +56,7 @@ public:
 
     /// Pointer definition of TotalStructuralMassProcess
     KRATOS_CLASS_POINTER_DEFINITION(TotalStructuralMassProcess);
-    
+
     // General type definitions
     typedef Node<3>                                          NodeType;
     typedef Point                                           PointType;
@@ -76,7 +76,7 @@ public:
         ):mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY
-        
+
         KRATOS_CATCH("")
     }
 
@@ -99,7 +99,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -108,13 +108,15 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     void Execute() override;
-    
+
+    static double CalculateElementMass(Element& rElement, const std::size_t DomainSize);
+
     ///@}
     ///@name Access
     ///@{
@@ -171,7 +173,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -197,7 +199,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart;              // The main model part
 
     ///@}
@@ -247,7 +249,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   TotalStructuralMassProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const TotalStructuralMassProcess& rThis)
@@ -255,7 +257,7 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 

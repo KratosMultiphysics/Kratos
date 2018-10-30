@@ -1,24 +1,26 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 1
+        "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/rectangular_plate"
+            "input_filename"   : "rectangular_plate"
         },
         "material_import_settings"           : {
-            "materials_filename" : "./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/StructuralMaterials.json"
+            "materials_filename" : "StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -34,6 +36,7 @@
         },
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -60,7 +63,7 @@
             "model_part_output_settings" : {
                 "prefix" : "/ModelData"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
@@ -79,18 +82,5 @@
             "direction"       : [0.0,0.0,1],
             "interval"        : [0.0,"End"]
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "StructuralMaterials.json"
-    }
+    }]}
 }

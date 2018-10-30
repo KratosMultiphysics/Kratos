@@ -90,7 +90,7 @@ namespace Kratos
     ///@name Life Cycle 
     ///@{ 
     /// Constructor.
-    NurbsBrepModeler(Kratos::shared_ptr<ModelPart> rModelPart);
+    NurbsBrepModeler(ModelPart& rModelPart);
 
     /// Destructor.
     virtual ~NurbsBrepModeler();
@@ -100,7 +100,7 @@ namespace Kratos
     ///@name Member Variables
     ///@{ 
 	// should be ModelPart::Pointer ??
-    Kratos::shared_ptr<ModelPart>       mp_model_part;
+    ModelPart&       mp_model_part;
     BrepModelVector m_brep_model_vector;
 
 	double m_model_tolerance;

@@ -47,7 +47,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoJuModifiedExponentialDamageModel : public DamageModel<LinearElasticModel, SimoJuYieldSurface<ModifiedExponentialDamageHardeningRule> >
+  class SimoJuModifiedExponentialDamageModel : public DamageModel<LinearElasticModel, SimoJuYieldSurface<ModifiedExponentialDamageHardeningRule> >
   {
   public:
 
@@ -105,7 +105,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~SimoJuModifiedExponentialDamageModel() {}
+    ~SimoJuModifiedExponentialDamageModel() override {}
 
 
     ///@}
@@ -125,7 +125,7 @@ namespace Kratos
     /**
      * Has Values
      */
-    virtual bool Has(const Variable<double>& rThisVariable) override
+    bool Has(const Variable<double>& rThisVariable) override
     {
       return false;
     }
@@ -134,7 +134,7 @@ namespace Kratos
     /**
      * Get Values
      */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
     {
 
       rValue=0;
@@ -152,7 +152,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "SimoJuModifiedExponentialDamageModel" ;
@@ -160,13 +160,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "SimoJuModifiedExponentialDamageModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoJuModifiedExponentialDamageModel Data";
     }
@@ -250,12 +250,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
