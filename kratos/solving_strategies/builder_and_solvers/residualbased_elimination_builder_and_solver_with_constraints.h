@@ -740,101 +740,156 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("RelationMatrixStructure");
 
+         // Getting the elements from the model
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        auto el_begin = rModelPart.ElementsBegin();
+        auto cond_begin = rModelPart.ConditionsBegin();
+
         const SizeType equation_size = BaseType::mEquationSystemSize;
-        const SizeType slave_equation_size = mSlaveDofsSystemSize;
 
     #ifdef USE_GOOGLE_HASH
+        std::vector<google::dense_hash_set<IndexType>> total_indices(equation_size);
         std::vector<google::dense_hash_set<IndexType>> master_indices(equation_size);
-        std::vector<google::dense_hash_set<IndexType>> slave_indices(slave_equation_size);
         const SizeType empty_key = 2 * equation_size + 10;
     #else
+        std::vector<std::unordered_set<IndexType>> total_indices(equation_size);
         std::vector<std::unordered_set<IndexType>> master_indices(equation_size);
-        std::vector<std::unordered_set<IndexType>> slave_indices(slave_equation_size);
     #endif
 
         #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
-        {
+        for (int index = 0; index < static_cast<int>(equation_size); ++index) {
         #ifdef USE_GOOGLE_HASH
-            master_indices[iii].set_empty_key(empty_key);
+            total_indices[index].set_empty_key(empty_key);
+            master_indices[index].set_empty_key(empty_key);
         #else
-            master_indices[iii].reserve(40);
+            total_indices[index].reserve(40);
+            master_indices[index].reserve(40);
         #endif
         }
 
-        #pragma omp parallel for firstprivate(slave_equation_size)
-        for (int iii = 0; iii < static_cast<int>(slave_equation_size); iii++)
-        {
-        #ifdef USE_GOOGLE_HASH
-            slave_indices[iii].set_empty_key(empty_key);
-        #else
-            slave_indices[iii].reserve(40);
-        #endif
+        // The process info
+        auto r_process_info = rModelPart.GetProcessInfo();
+
+        /// Definition of the eqautio id vector type
+        EquationIdVectorType ids(3, 0);
+
+        #pragma omp parallel for firstprivate(nelements, ids)
+        for (int i_elem = 0; i_elem<nelements; i_elem++) {
+            auto it_elem = el_begin + i_elem;
+            pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+
+            for (IndexType i = 0; i < ids.size(); ++i) {
+                if (ids[i] < BaseType::mEquationSystemSize) {
+                #ifdef _OPENMP
+                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                    auto& total_row_indices = total_indices[ids[i]];
+                    auto& master_row_indices = master_indices[ids[i]];
+                    for (auto it = ids.begin(); it != ids.end(); ++it) {
+                        if (*it < BaseType::mEquationSystemSize)
+                            total_row_indices.insert(*it);
+                            master_row_indices.insert(*it);
+                    }
+                #ifdef _OPENMP
+                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                }
+            }
+
         }
 
-        EquationIdVectorType slave_ids(3, 0), master_ids(3, 0);
+        #pragma omp parallel for firstprivate(nconditions, ids)
+        for (int i_cond = 0; i_cond<nconditions; ++i_cond) {
+            auto it_cond = cond_begin + i_cond;
+            pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+            for (IndexType i = 0; i < ids.size(); ++i) {
+                if (ids[i] < BaseType::mEquationSystemSize) {
+                #ifdef _OPENMP
+                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                    auto& total_row_indices = total_indices[ids[i]];
+                    auto& master_row_indices = master_indices[ids[i]];
+                    for (auto it = ids.begin(); it != ids.end(); ++it) {
+                        if (*it < BaseType::mEquationSystemSize)
+                            total_row_indices.insert(*it);
+                            master_row_indices.insert(*it);
+                    }
+                #ifdef _OPENMP
+                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                }
+            }
+        }
+
+        EquationIdVectorType aux_ids(3, 0);
 
         const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        #pragma omp parallel for firstprivate(nconstraints, slave_ids, master_ids)
-        for (int i_constraint = 0; i_constraint < nconstraints; ++i_constraint) {
-            auto it_constraint = rModelPart.MasterSlaveConstraints().begin() + i_constraint;
-            it_constraint->EquationIdVector(slave_ids, master_ids, rModelPart.GetProcessInfo());
-            for (IndexType i = 0; i < slave_ids.size(); ++i)
-            {
+        #pragma omp parallel for firstprivate(nconstraints, ids, aux_ids)
+        for (int i_const = 0; i_const < nconstraints; i_const++) {
+            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+            it_const->EquationIdVector(ids, aux_ids, r_process_info);
+            for (IndexType i = 0; i < ids.size(); ++i) {
             #ifdef _OPENMP
-                omp_set_lock(&BaseType::mLockArray[slave_ids[i]]);
+                omp_set_lock(&BaseType::mLockArray[ids[i]]);
             #endif
-                auto& row_indices = master_indices[slave_ids[i]];
-                row_indices.insert(slave_ids.begin(), slave_ids.end());
+                auto &total_row_indices = total_indices[ids[i]];
+                total_row_indices.insert(ids.begin(), ids.end());
             #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mLockArray[slave_ids[i]]);
+                omp_unset_lock(&BaseType::mLockArray[ids[i]]);
             #endif
             }
-            for (IndexType i = 0; i < master_ids.size(); ++i) {
+            for (IndexType i = 0; i < aux_ids.size(); ++i) {
             #ifdef _OPENMP
-                omp_set_lock(&BaseType::mLockArray[master_ids[i]]);
+                omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
             #endif
-                auto& row_indices = slave_indices[master_ids[i]];
-                row_indices.insert(master_ids.begin(), master_ids.end());
+                auto &total_row_indices = total_indices[aux_ids[i]];
+                total_row_indices.insert(aux_ids.begin(), aux_ids.end());
+                auto &master_row_indices = total_indices[aux_ids[i]];
+                master_row_indices.insert(aux_ids.begin(), aux_ids.end());
             #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mLockArray[master_ids[i]]);
+                omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
             #endif
             }
         }
 
         // Count the row sizes
         SizeType nnz = 0;
-        for (IndexType i = 0; i < master_indices.size(); ++i)
-            nnz += master_indices[i].size();
+        for (IndexType i = 0; i < total_indices.size(); ++i)
+            nnz += total_indices[i].size();
 
-        rT = CompressedMatrixType(master_indices.size(), slave_indices.size(), nnz);
+        rT = CompressedMatrixType(total_indices.size(), master_indices.size(), nnz);
 
         double *Avalues = rT.value_data().begin();
-        SizeType *Arow_indices = rT.index1_data().begin();
-        SizeType *Acol_indices = rT.index2_data().begin();
+        IndexType *Arow_indices = rT.index1_data().begin();
+        IndexType *Acol_indices = rT.index2_data().begin();
 
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
-        for (IndexType i = 0; i < rT.size1(); i++)
-            Arow_indices[i + 1] = Arow_indices[i] + master_indices[i].size();
+        for (int i = 0; i < static_cast<int>(rT.size1()); i++)
+            Arow_indices[i + 1] = Arow_indices[i] + total_indices[i].size();
 
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rT.size1()); i++) {
+        for (int i = 0; i < static_cast<int>(rT.size1()); ++i) {
             const IndexType row_begin = Arow_indices[i];
             const IndexType row_end = Arow_indices[i + 1];
             IndexType k = row_begin;
             for (auto it = master_indices[i].begin(); it != master_indices[i].end(); ++it) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
-                ++k;
+                k++;
             }
 
-            master_indices[i].clear(); //deallocating the memory
+            total_indices[i].clear(); //deallocating the memory
 
-            std::sort(&Acol_indices[row_begin],& Acol_indices[row_end]);
+            std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
         }
 
-        rT.set_filled(master_indices.size() + 1, nnz);
+        rT.set_filled(total_indices.size() + 1, nnz);
 
         Timer::Stop("RelationMatrixStructure");
     }
