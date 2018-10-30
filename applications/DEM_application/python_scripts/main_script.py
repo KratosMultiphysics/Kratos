@@ -433,7 +433,7 @@ class Solution(object):
             self.AfterSolveOperations()
 
             self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
-            #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
+            self.DEMFEMProcedures.MoveAllMeshesUsingATable(self.rigid_face_model_part, self.time, self.dt)
 
             ##### adding DEM elements by the inlet ######
             if self.DEM_parameters["dem_inlet_option"].GetBool():

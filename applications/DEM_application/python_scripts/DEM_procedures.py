@@ -971,37 +971,39 @@ class DEMFEMProcedures(object):
 
     def MoveAllMeshesUsingATable(self, model_part, time, dt):
 
-        for smp in model_part.SubModelParts:
+        self.mesh_motion.MoveAllMeshesUsingATable(model_part, time, dt)
 
-            if not smp[TABLE_NUMBER]:
-                continue
+        # for smp in model_part.SubModelParts:
 
-            Logger.Print("Info:", label="")
-            Logger.Print(smp[IDENTIFIER], label="")
-            Logger.Print(smp[TABLE_NUMBER], label="")
+        #     if not smp[TABLE_NUMBER]:
+        #         continue
 
-            for node in smp.Nodes:
+        #     Logger.Print("Info:", label="")
+        #     Logger.Print(smp[IDENTIFIER], label="")
+        #     Logger.Print(smp[TABLE_NUMBER], label="")
 
-                old_coords = Vector(3)
-                old_coords[0] = node.X
-                old_coords[1] = node.Y
-                old_coords[2] = node.Z
+        #     for node in smp.Nodes:
 
-                velocity = Vector(3)
-                velocity[0] = model_part.GetTable(smp[TABLE_NUMBER]).GetValue(time)
-                velocity[1] = 0.0
-                velocity[2] = 0.0
-                node.SetSolutionStepValue(VELOCITY, velocity)
+        #         old_coords = Vector(3)
+        #         old_coords[0] = node.X
+        #         old_coords[1] = node.Y
+        #         old_coords[2] = node.Z
 
-                node.X = old_coords[0] + velocity[0] * dt
-                node.Y = old_coords[1] + velocity[1] * dt
-                node.Z = old_coords[2] + velocity[2] * dt
+        #         velocity = Vector(3)
+        #         velocity[0] = model_part.GetTable(smp[TABLE_NUMBER]).GetValue(time)
+        #         velocity[1] = 0.0
+        #         velocity[2] = 0.0
+        #         node.SetSolutionStepValue(VELOCITY, velocity)
 
-                displacement = Vector(3)
-                displacement[0] = node.X - node.X0
-                displacement[1] = node.Y - node.Y0
-                displacement[2] = node.Z - node.Z0
-                node.SetSolutionStepValue(DISPLACEMENT, displacement)
+        #         node.X = old_coords[0] + velocity[0] * dt
+        #         node.Y = old_coords[1] + velocity[1] * dt
+        #         node.Z = old_coords[2] + velocity[2] * dt
+
+        #         displacement = Vector(3)
+        #         displacement[0] = node.X - node.X0
+        #         displacement[1] = node.Y - node.Y0
+        #         displacement[2] = node.Z - node.Z0
+        #         node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
     @classmethod
     def UpdateTimeInModelParts(self, all_model_parts, time, dt, step):
