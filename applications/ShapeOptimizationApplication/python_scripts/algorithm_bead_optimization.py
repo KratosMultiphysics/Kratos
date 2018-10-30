@@ -33,6 +33,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             "name"                        : "bead_optimization",
             "bead_height"                 : 1.0,
             "bead_direction_mode"         : 2,
+            "number_of_filter_iterations" : 1,
             "filter_penalty_term"         : false,
             "penalty_factor"              : 1000.0,
             "gradient_ratio"              : 0.1,
@@ -96,6 +97,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         self.bead_height = self.algorithm_settings["bead_height"].GetDouble()
         self.direction_mode = self.algorithm_settings["bead_direction_mode"].GetInt()
+        self.number_of_filter_iterations = self.algorithm_settings["number_of_filter_iterations"].GetInt()
+        self.filter_penalty_term = self.algorithm_settings["filter_penalty_term"].GetBool()
         self.penalty_factor = self.algorithm_settings["penalty_factor"].GetDouble()
         self.gradient_ratio = self.algorithm_settings["gradient_ratio"].GetDouble()
         self.max_outer_iterations = self.algorithm_settings["max_outer_iterations"].GetInt()
@@ -193,6 +196,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Map gradient of objective
                 self.mapper.InverseMap(DF1DALPHA, DF1DALPHA_MAPPED)
+                for itr in range(self.number_of_filter_iterations-1):
+                    self.mapper.InverseMap(DF1DALPHA_MAPPED, DF1DALPHA_MAPPED)
 
                 # Compute penalization term
                 penalty_value = 0.0
@@ -228,7 +233,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     dL_relative = L/previos_L-1
 
                 # Compute gradient of Lagrange function
-                if self.algorithm_settings["filter_penalty_term"].GetBool():
+                if self.filter_penalty_term:
                     self.mapper.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
 
                     for node in self.design_surface.Nodes:
@@ -268,6 +273,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Map design variables
                 self.mapper.Map(ALPHA, ALPHA_MAPPED)
+                for itr in range(self.number_of_filter_iterations-1):
+                    self.mapper.Map(ALPHA_MAPPED, ALPHA_MAPPED)
 
                 # Log current optimization step and store values for next iteration
                 additional_values_to_log = {}
@@ -302,7 +309,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 norm_term_1 = 0.0
                 norm_term_2 = 0.0
 
-                if self.algorithm_settings["filter_penalty_term"].GetBool():
+                if self.filter_penalty_term:
                     for node in self.design_surface.Nodes:
                         temp_value = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
                         norm_term_1 = norm_term_1+temp_value**2
