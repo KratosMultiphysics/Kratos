@@ -60,12 +60,11 @@ namespace Kratos
 /**
  * @class ResidualBasedEliminationBuilderAndSolver
  * @ingroup KratosCore
- * @brief Current class provides an implementation for standard builder and solving operations.
+ * @brief Current class provides an implementation for standard  elimination builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet.
- * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
- * this information.
+ * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information.
  * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
  * @author Riccardo Rossi
  */
@@ -86,13 +85,9 @@ public:
     /// Definition of the base class
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    /// Definition of the size type
-    typedef std::size_t SizeType;
-
-    /// Definition of the index type
-    typedef std::size_t IndexType;
-
     /// Definition of the classes from the base class
+    typedef typename BaseType::SizeType SizeType;
+    typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::TSchemeType TSchemeType;
     typedef typename BaseType::TDataType TDataType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -1000,79 +995,95 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        auto el_begin = rModelPart.ElementsBegin();
+        auto cond_begin = rModelPart.ConditionsBegin();
+
         const SizeType equation_size = BaseType::mEquationSystemSize;
 
     #ifdef USE_GOOGLE_HASH
-        std::vector<google::dense_hash_set<IndexType>> indices(equation_size);
-        const SizeType empty_key = 2 * equation_size + 10;
+        std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
+        const std::size_t empty_key = 2 * equation_size + 10;
     #else
-        std::vector<std::unordered_set<IndexType>> indices(equation_size);
+        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
     #endif
 
         #pragma omp parallel for firstprivate(equation_size)
-        for (int index = 0; index < static_cast<int>(equation_size); ++index) {
+        for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
+        {
         #ifdef USE_GOOGLE_HASH
-            indices[index].set_empty_key(empty_key);
+            indices[iii].set_empty_key(empty_key);
         #else
-            indices[index].reserve(40);
+            indices[iii].reserve(40);
         #endif
         }
 
-        // The process info
-        auto r_process_info = rModelPart.GetProcessInfo();
-
-        /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
 
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
         #pragma omp parallel for firstprivate(nelements, ids)
-        for (int i_elem = 0; i_elem < nelements; ++i_elem) {
-            auto it_elem = rModelPart.Elements().begin() + i_elem;
-            pScheme->EquationId(*(it_elem.base()), ids, r_process_info);
-            for (IndexType i = 0; i < ids.size(); i++) {
-            #ifdef _OPENMP
-                omp_set_lock(&mLockArray[ids[i]]);
-            #endif
-                auto &row_indices = indices[ids[i]];
-                row_indices.insert(ids.begin(), ids.end());
+        for (int i_elem = 0; i_elem<nelements; i_elem++) {
+            auto it_elem = el_begin + i_elem;
+            pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
 
+            for (IndexType i = 0; i < ids.size(); ++i) {
+                if (ids[i] < BaseType::mEquationSystemSize) {
+            #ifdef _OPENMP
+                                        omp_set_lock(&mLockArray[ids[i]]);
+            #endif
+                auto& row_indices = indices[ids[i]];
+                for (auto it = ids.begin(); it != ids.end(); ++it) {
+                    if (*it < BaseType::mEquationSystemSize)
+                        row_indices.insert(*it);
+                }
             #ifdef _OPENMP
                 omp_unset_lock(&mLockArray[ids[i]]);
             #endif
+                }
             }
+
         }
 
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         #pragma omp parallel for firstprivate(nconditions, ids)
-        for (int i_cond = 0; i_cond < nconditions; i_cond++) {
-            auto it_cond = rModelPart.Conditions().begin() + i_cond;
-            pScheme->Condition_EquationId(*(it_cond.base()), ids, r_process_info);
-            for (IndexType i = 0; i < ids.size(); i++) {
+        for (int i_cond = 0; i_cond<nconditions; ++i_cond) {
+            auto it_cond = cond_begin + i_cond;
+            pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+            for (IndexType i = 0; i < ids.size(); ++i) {
+                if (ids[i] < BaseType::mEquationSystemSize) {
             #ifdef _OPENMP
                 omp_set_lock(&mLockArray[ids[i]]);
             #endif
-                auto &row_indices = indices[ids[i]];
-                row_indices.insert(ids.begin(), ids.end());
+                auto& row_indices = indices[ids[i]];
+                for (auto it = ids.begin(); it != ids.end(); ++it) {
+                    if (*it < BaseType::mEquationSystemSize)
+                        row_indices.insert(*it);
+                }
             #ifdef _OPENMP
                 omp_unset_lock(&mLockArray[ids[i]]);
             #endif
+                }
             }
         }
 
-        // Count the row sizes
+        //count the row sizes
         SizeType nnz = 0;
         for (IndexType i = 0; i < indices.size(); ++i)
             nnz += indices[i].size();
 
         rA = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
-        double *Avalues = rA.value_data().begin();
-        IndexType *Arow_indices = rA.index1_data().begin();
-        IndexType *Acol_indices = rA.index2_data().begin();
+        double* Avalues = rA.value_data().begin();
+        IndexType* Arow_indices = rA.index1_data().begin();
+        IndexType* Acol_indices = rA.index2_data().begin();
 
-        // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
+        for (int i = 0; i < static_cast<int>(rA.size1()); ++i)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
         #pragma omp parallel for
@@ -1085,8 +1096,6 @@ protected:
                 Avalues[k] = 0.0;
                 k++;
             }
-
-            indices[i].clear(); //deallocating the memory
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
         }
