@@ -311,10 +311,30 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
             case KinematicHardeningType::AmstrongFrederickKinematicHardening:
                 KRATOS_ERROR_IF(kinematic_parameters.size() < 2) << "Kinematic Parameters not defined..." << std::endl;
+                double dot_product_dp = 0.0;
+                for (int i = 0; i < rPlasticStrainIncrement.size(); ++i) {
+                    dot_product_dp += rPlasticStrainIncrement[i]*rPlasticStrainIncrement[i];
+                }
+                const double pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
+                const double denominator = 1.0 + (kinematic_parameters[1] * pDot);
+                rBackStressVector += (2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
                 break;
 
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
                 KRATOS_ERROR_IF(kinematic_parameters.size() != 3) << "Kinematic Parameters not defined..." << std::endl;
+                double dot_product_dp = 0.0;
+                for (int i = 0; i < rPlasticStrainIncrement.size(); ++i) {
+                    dot_product_dp += rPlasticStrainIncrement[i]*rPlasticStrainIncrement[i];
+                }
+                const double pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
+                const double denominator = 1.0 + (kinematic_parameters[1] * pDot);
+                if (pDot != 0.0) {
+                    rBackStressVector += (2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
+                } else {
+                    const Vector& delta_stress = rPredictiveStressVector - rPreviousStressVector;
+                    rBackStressVector += ((2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement) +
+                                         kinematic_parameters[2] * delta_stress) / denominator;
+                }
                 break;
         }
     }

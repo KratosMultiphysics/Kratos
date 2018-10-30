@@ -51,7 +51,7 @@ namespace Kratos
  * @brief This class is the base class which define all the constitutive laws for plasticity in small deformation
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @author Alejandro Cornejo & Lucia Barbu
+ * @author Alejandro Cornejo 
  */
 template <class TConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainKinematicPlasticity
@@ -384,7 +384,7 @@ protected:
     Vector& GetBackStressVector() { return mBackStressVector; }
 
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
-    Vector& GetPreviousStressVector() { return PreviousStressVector;}
+    Vector& GetPreviousStressVector() { return mPreviousStressVector;}
 
     ///@}
     ///@name Protected Operations
