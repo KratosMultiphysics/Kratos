@@ -21,6 +21,7 @@
 // Module includes
 #include "mpi/mpi_environment.h"
 #include "add_mpi_communicator_to_python.h"
+#include "add_mpi_data_communicator_to_python.h"
 #include "add_mpi_utilities_to_python.h"
 
 namespace Kratos {
@@ -53,6 +54,7 @@ PYBIND11_MODULE(KratosMPI, m)
     //m.def("MPIFinalize",MPIEnvironment::Finalize);
 
     AddMPICommunicatorToPython(m);
+    AddMPIDataCommunicatorToPython(m);
     AddMPIUtilitiesToPython(m);
 }
 
