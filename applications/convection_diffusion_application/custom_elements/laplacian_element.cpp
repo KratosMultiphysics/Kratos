@@ -75,7 +75,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients();
-    const Matrix& N_gausspoint = GetGeometry().ShapeFunctionsValues();
+    const Matrix& N_gausspoints = GetGeometry().ShapeFunctionsValues();
 
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_points,dim);
@@ -104,7 +104,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
         // Calculating the local RHS
         double qgauss;
-        auto N = row(N_gausspoint,PointNumber); //these are the N which correspond to the gauss point "PointNumber"
+        auto N = row(N_gausspoints,PointNumber); //these are the N which correspond to the gauss point "PointNumber"
         qgauss = inner_prod(N, heat_flux_local);
         
         noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
