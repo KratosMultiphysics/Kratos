@@ -30,13 +30,15 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
     def __init__(self,model,parameters,sample):
         self.sample = sample
         super(MultilevelMonteCarloAnalysis,self).__init__(model,parameters)
-
+        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
             
     def _CreateSolver(self):
         import pure_diffusion_solver
-        solver = pure_diffusion_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
-        self.PureDiffusionSolver = solver
-        return self.PureDiffusionSolver
+        import convection_diffusion_stationary_solver
+        solver = convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
+        # solver = pure_diffusion_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
+        self.LaplacianSolver = solver
+        return self.LaplacianSolver
 
     
     def _GetSimulationName(self):
@@ -136,6 +138,7 @@ input:
         sample               : stochastic random variable
 output:
         QoI                  : Quantity of Interest
+still to implement how to import in efficient way in a loop where I have different model part files and different ProjectParameters files, thus for now read model part name from the ProjectParameters.json file
 '''
 # @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=1)
 @task(parameter_file_name=FILE_IN, returns=1)
@@ -149,15 +152,6 @@ def execution_task(parameter_file_name, sample):
     simulation.Run()
     QoI = EvaluateQuantityOfInterest(simulation)
     return QoI
-
-#@task(returns=2)
-# def mean_task(*args):
-#     sum_val = 0
-#     amount_elems = 0
-#     for i in range(int(len(args) / 2)):
-#         sum_val = sum_val + (args[2 * i] * args[2 * i + 1])
-#         amount_elems = amount_elems + args[2 * i]
-#     return amount_elems, sum_val / amount_elems
     
 
 '''
@@ -181,6 +175,7 @@ def exact_execution_task(model_part_file_name, parameter_file_name):
     ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
     # return simulation,ExactExpectedValueQoI
     return ExactExpectedValueQoI
+
 
 '''
 function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
@@ -244,7 +239,7 @@ if __name__ == '__main__':
     evaluate the exact expected value of Q (sample = 1.0)
     need to change both local_parameters_LEVEL and parameter_file_name[LEVEL] to compute for level LEVEL
     '''
-    ExactExpectedValueQoI = exact_execution_task(local_parameters_1["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[1])
+    ExactExpectedValueQoI = exact_execution_task(local_parameters_2["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[2])
     # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     # error = 0.0
     # L2norm_analyticalsolution = 0.0
@@ -256,35 +251,24 @@ if __name__ == '__main__':
     # error = np.sqrt(error)
     # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
     # print("\n L2 relative error = ", error/L2norm_analyticalsolution,"\n")
-
+    
     '''define setting parameters of the ML simulation'''
     settings_ML_simulation = [0.1, 0.1, 1.25, 1.15, 0.25, 0.1, 1.0, 10, 2]
-    k0     = 0.1        # Certainty Parameter 0 rates
-    k1     = 0.1        # Certainty Parameter 1 rates
-    r1     = 1.25       # Cost increase first iterations C-MLMC
-    r2     = 1.15       # Cost increase final iterations C-MLMC
-    tol0   = 0.25       # Tolerance iter 0
-    tolF   = 0.1        # Tolerance final
-    cphi   = 1.0        # Confidence on tolerance
-    N0     = 25       # Number of samples for iter 0
-    L0     = 2        # Number of levels for iter 0
-
-    ## Read the number of cycles of the Monte Carlo algorithm from the .json file
-    # instances = []
-    # instances.append(local_parameters_0["problem_data"]["number_samples"].GetInt())
-    # instances.append(local_parameters_1["problem_data"]["number_samples"].GetInt())
-    # instances.append(local_parameters_2["problem_data"]["number_samples"].GetInt())
-    # '''set number of samples for the screening phase'''
-    # number_samples = [6,6,6] # set here to handle in a simple way
+    '''
+    k0   = settings_ML_simulation[0] # Certainty Parameter 0 rates
+    k1   = settings_ML_simulation[1] # Certainty Parameter 1 rates
+    r1   = settings_ML_simulation[2] # Cost increase first iterations C-MLMC
+    r2   = settings_ML_simulation[3] # Cost increase final iterations C-MLMC
+    tol0 = settings_ML_simulation[4] # Tolerance iter 0
+    tolF = settings_ML_simulation[5] # Tolerance final
+    cphi = settings_ML_simulation[6] # Confidence on tolerance
+    N0   = settings_ML_simulation[7] # Number of samples for iter 0
+    L0   = settings_ML_simulation[8] # Number of levels for iter 0
+    '''
 
     difference_QoI = [] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
     time_ML = []        # list containing the time to compute the level=l simulations
-    # L_screening = len(number_samples) - 1
-    # '''number of levels exploited in the screening phase
-    # i.e. L_screening = 3 - 1 = 2
-    # recall the levels start from zero, so I need to add "-1"'''
-
-    L_screening = settings_ML_simulation[8]
+    L_screening = settings_ML_simulation[8] # recall the levels start from zero
     number_samples = []
     for lev in range(0,L_screening+1):
         number_samples.append(settings_ML_simulation[7])
@@ -338,9 +322,6 @@ if __name__ == '__main__':
         for i in range(0,number_samples[level]):
             nsam = i+1
             mean_difference_QoI[level],second_moment_difference_QoI[level],variance_difference_QoI[level] = mlmc.update_onepass_M(difference_QoI[level][i],mean_difference_QoI[level],second_moment_difference_QoI[level],nsam)
-    # '''now from second moment compute sample variance'''
-    # for level in range(0,L_screening+1):
-    #     variance_difference_QoI[level] = compute_sample_variance_from_M2(second_moment_difference_QoI[level],number_samples[level])
     # print("list Y_l",difference_QoI)
     print("mean Y_l",mean_difference_QoI)
     print("sample variance Y_l",variance_difference_QoI)
@@ -364,9 +345,6 @@ if __name__ == '__main__':
         for i in range(0,number_samples[level]):
             nsam = i+1
             mean_time_ML[level],second_moment_time_ML[level],variance_time_ML[level] = mlmc.update_onepass_M(time_ML[level][i],mean_time_ML[level],second_moment_time_ML[level],nsam)
-    # '''now from second moment compute sample variance'''
-    # for level in range(0,L_screening+1):
-    #     variance_time_ML[level] = compute_sample_variance_from_M2(second_moment_time_ML[level],number_samples[level])
     # print("list time ML",time_ML)
     print("mean time ML",mean_time_ML)
     print("sample variance time ML",variance_time_ML)
@@ -479,12 +457,8 @@ if __name__ == '__main__':
                 nsam = previous_number_samples[level] + (i+1)
                 mean_difference_QoI[level],second_moment_difference_QoI[level],variance_difference_QoI[level] = mlmc.update_onepass_M(
                     difference_QoI[level][previous_number_samples[level]+i],mean_difference_QoI[level],second_moment_difference_QoI[level],nsam)
-        # '''now from second moment compute sample variance'''
-        # for level in range(0,L_opt+1):
-        #     variance_difference_QoI[level] = compute_sample_variance_from_M2(second_moment_difference_QoI[level],number_samples[level])
         
         print("updated mean Y_l",mean_difference_QoI)
-        print("updated second moment Y_l",second_moment_difference_QoI)
         print("updated sample variance Y_l",variance_difference_QoI)
 
         '''now compute mean, second moment, sample variance for time ML'''
@@ -506,20 +480,16 @@ if __name__ == '__main__':
                 nsam = previous_number_samples[level] + (i+1)
                 mean_time_ML[level],second_moment_time_ML[level],variance_time_ML[level] = mlmc.update_onepass_M(
                     time_ML[level][previous_number_samples[level]+i],mean_time_ML[level],second_moment_time_ML[level],nsam)
-        # '''now from second moment compute sample variance'''
-        # for level in range(0,L_opt+1):
-        #     variance_time_ML[level] = compute_sample_variance_from_M2(second_moment_time_ML[level],number_samples[level])
-
+        
         print("updated mean time ML",mean_time_ML)
-        print("updated second moment time ML",second_moment_time_ML)
         print("updated sample variance time ML",variance_time_ML)
 
         '''compute E^MLMC [QoI]'''
         mean_mlmc_QoI = mlmc.compute_mean_mlmc_QoI(mean_difference_QoI)
         print("updated mean MLMC QoI = ",mean_mlmc_QoI)
 
-        # estimation problem parameters for Bayesian updates
-        # compute parameters by least square fit to estimate Bayesian VAR
+        '''estimation problem parameters for Bayesian updates
+        compute parameters by least square fit to estimate Bayesian VAR'''
         ratesLS = mlmc.compute_ratesLS(mean_difference_QoI,variance_difference_QoI,mean_time_ML,nDoF[0:L_opt+1])
 
         '''compute Bayesian VAR V^c[Y_l]
@@ -528,21 +498,14 @@ if __name__ == '__main__':
         BayesianVariance = mlmc.EstimateBayesianVariance(mean_difference_QoI,variance_difference_QoI,settings_ML_simulation,ratesLS,nDoF,number_samples,L_opt)
         print("updated Bayesian Variance estimated = ", BayesianVariance)
 
-        '''compute errors
-        bias contribution B ~= abs(E^MC[Q_{L}-Q_{L-1}])'''
-        bias_error = np.abs(mean_difference_QoI[L_opt])
-        '''compute/approximate variance of the MLMC estimator Var^MLMC[E^MLMC[Q_M]] (34) of [PNL16]'''
-        var_bayes = np.zeros(np.size(number_samples))
-        calpha = ratesLS[0]
-        for i in range(0,L_opt+1):
-            var_bayes[i] = BayesianVariance[i]/number_samples[i]
-        TErr = bias_error + settings_ML_simulation[6]*np.sqrt(np.sum(var_bayes))
+        '''compute total error of the MLMC simulation'''
+        TErr = mlmc.compute_total_error_MLMC(mean_difference_QoI,number_samples,L_opt,BayesianVariance,settings_ML_simulation)
         print("total error TErr of current iteration",TErr)
 
         L_old = L_opt
 
-        '''in [PNL16] go out of the cycle if: i) iter >= iE_cmlmc
-                                          ii) TErr < tolerance_iter'''
+        '''in [PNL17] go out of the cycle if: i) iter >= iE_cmlmc
+                                             ii) TErr < tolerance_iter'''
         if iter_MLMC >= iE_cmlmc:
             if (TErr < tol_i):
                 convergence = True

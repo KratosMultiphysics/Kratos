@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import numpy as np
-import time
+# import time
 
 '''
-This file contains all the functions to perform the Continuation Multilevel Monte Carlo (CMLMC) algorithm described in [PNL17]   
+This file contains all the functions to perform the Continuation Multilevel Monte Carlo (CMLMC) algorithm described in [PNL17]
 
 References:
 [PNL17] M. Pisaroni; F. Nobile; P. Leyland : A Continuation Multi Level Monte Carlo (C-MLMC) method for uncertainty quantification in compressible inviscid aerodynamics; Computer Methods in Applied Mechanics and Engineering, vol 326, pp 20-50, 2017. DOI : 10.1016/j.cma.2017.07.030.
@@ -65,7 +65,7 @@ def compute_sample_variance_from_M2(M2,nsam):
 
 
 '''
-function performing a Bayesian update of the variance using samples generated on all levels in order to locally improve the estimation of Var[Y_l]
+function performing the Bayesian update of the variance using samples generated on all levels in order to locally improve the estimation of Var[Y_l]
 see [PNL17] pp. 8-9
 '''
 def EstimateBayesianVariance(mean,variance,settings_ML,ratesLS,nDoF,nsam,level_local):
@@ -290,3 +290,17 @@ def compute_mean_mlmc_QoI(mean_array):
     return mean_mlmc
 
 
+'''
+function computing the total error:
+TErr = bias contrinution + statistical error contribution
+bias contribution B ~= abs(E^MC[Q_{L}-Q_{L-1}])
+statistical error contribution SE = \sum_{i=0}^{L}(Var^MC[Y_l]/N_l)
+see [PNL17] pp. 3-7
+'''
+def compute_total_error_MLMC(mean_difference_QoI,number_samples,L_opt,BayesianVariance,settings_ML):
+    bias_error = np.abs(mean_difference_QoI[L_opt])
+    var_bayes = np.zeros(np.size(number_samples))
+    for i in range(0,L_opt+1):
+        var_bayes[i] = BayesianVariance[i]/number_samples[i]
+    TErr = bias_error + settings_ML[6]*np.sqrt(np.sum(var_bayes))
+    return TErr
