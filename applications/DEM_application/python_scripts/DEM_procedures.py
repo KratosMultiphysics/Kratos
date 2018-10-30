@@ -235,7 +235,7 @@ class PostUtils(object):
 
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
                     self.previous_vector_of_inner_nodes = vector_of_inner_nodes
-                    
+
                 absolute_path_to_file = os.path.join(graphs_path, filename)
                 f = open(absolute_path_to_file, 'a')
                 tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
@@ -1397,7 +1397,7 @@ class DEMIo(object):
         #self.b_box_maxZ = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
 
         self.continuum_element_types = ["SphericContPartDEMElement3D", "CylinderContPartDEMElement2D", "IceContPartDEMElement3D"]
-        
+
         self.OpenMultiFileLists()
 
         #Analytic
@@ -1446,8 +1446,8 @@ class DEMIo(object):
             MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 50, "inner"),
         )
         self.SetMultifileLists(self.multifiles)
-        
-        
+
+
     def KRATOSprint(self, message):
         Logger.Print(message,label="DEM")
         Logger.Flush()
@@ -1821,7 +1821,7 @@ class DEMIo(object):
 
         if self.PostBoundingBox:
             # Creation of bounding box's model part
-            bounding_box_model_part = ModelPart("BoundingBoxPart")
+            bounding_box_model_part = model.CreateModelPart("BoundingBoxPart")
 
             max_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
             max_FEM_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
@@ -1883,7 +1883,7 @@ class DEMIo(object):
 
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
 
-        bounding_box_model_part = ModelPart("BoundingBoxPart")
+        bounding_box_model_part = model.CreateModelPart("BoundingBoxPart")
 
         max_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
         max_FEM_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
