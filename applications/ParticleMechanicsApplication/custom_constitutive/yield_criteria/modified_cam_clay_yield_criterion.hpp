@@ -50,7 +50,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class ModifiedCamClayYieldCriterion
-	: public MPMYieldCriterion 
+	: public MPMYieldCriterion
 {
     public:
         ///@name Type Definitions
@@ -89,16 +89,41 @@ class ModifiedCamClayYieldCriterion
         ///@name Operations
         ///@{
 
+
+        /*
+        * @brief This function return the Modified cam clay yield criterion at the given principal stress condition
+        * @param[in/out] rStateFunction Mohr coulomb yield criterion
+        * @param[in] rStressVector Principal stresses
+        * @param[in] rAlpha Plastic volumetric strain
+        * @param[in] rOldPreconsolidationPressure The value of Preconsolidation Stress at the previous time step
+        * @return Modified cam clay yield criterion
+        */
         double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rOldPreconsolidationPressure) override;
 
+
+        /*
+        * @brief This function return the first derivative of modified cam clay yield criterion at the given principal stress condition
+        * @param[in] rStressVector Principal stresses
+        * @param[in/out] rFirstDerivative First stress derivative value of yield function
+        * @param[in] rAlpha Plastic volumetric strain
+        * @param[in] rOldPreconsolidationPressure The value of Preconsolidation Stress at the previous time step
+        * @return Modified cam clay yield criterion first derivative
+        */
         void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha, const double& rOldPreconsolidationPressure) override;
 
+
+        /*
+        * @brief This function return the second derivative of modified cam clay yield criterion at the given principal stress condition
+        * @param[in] rStressVector Principal stresses
+        * @param[in/out] rSecondDerivative Second stress derivative value of yield function
+        * @return Modified cam clay yield criterion second derivative
+        */
         void CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative) override;
 
         ///@}
         ///@name Access
         ///@{
-        
+
 
         ///@}
         ///@name Inquiry
@@ -134,8 +159,8 @@ class ModifiedCamClayYieldCriterion
         ///@}
         ///@name Protected member Variables
         ///@{
-	
-	
+
+
         ///@}
         ///@name Protected Operators
         ///@{
@@ -187,7 +212,7 @@ class ModifiedCamClayYieldCriterion
         ///@name Private  Access
         ///@{
 
-	
+
 	///@}
 	///@name Serialization
 	///@{
@@ -243,6 +268,6 @@ class ModifiedCamClayYieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODIFIED_CAM_CLAY_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_MODIFIED_CAM_CLAY_YIELD_CRITERION_H_INCLUDED  defined
 
 

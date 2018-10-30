@@ -33,7 +33,7 @@ namespace Kratos
 ExponentialStrainSofteningLaw::ExponentialStrainSofteningLaw()
 	:MPMHardeningLaw()
 {
-   
+
 }
 
 

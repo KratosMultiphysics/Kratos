@@ -68,14 +68,6 @@ CamClayHardeningLaw::~CamClayHardeningLaw()
 //*******************************CALCULATE TOTAL HARDENING****************************
 //************************************************************************************
 
-
-/*
- * @brief This function return the updated Preconsolidation Pressure P_c with the following inputs:
- * @param[in/out] rHardening Hardening Parameter
- * @param[in] rAlpha Plastic Volumetric Strain
- * @param[in] rOldPreconsolidationPressure Old value of Preconsolidation Pressure P_c at the previous time step t_n
- * @return Hardening parameter
-*/
 double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure)
 {
     const double swelling_slope = GetProperties()[SWELLING_SLOPE];
