@@ -1315,6 +1315,8 @@ class DEMIo(object):
 
     def __init__(self, model, DEM_parameters, post_path, all_model_parts):
 
+        self.model = model
+
         self.post_path = post_path
         self.mixed_model_part = model.CreateModelPart("Mixed_Part")
         self.mixed_spheres_and_clusters_model_part = model.CreateModelPart("MixedSpheresAndClustersPart")
@@ -1821,7 +1823,7 @@ class DEMIo(object):
 
         if self.PostBoundingBox:
             # Creation of bounding box's model part
-            bounding_box_model_part = model.CreateModelPart("BoundingBoxPart")
+            bounding_box_model_part = self.model.CreateModelPart("BoundingBoxPart")
 
             max_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
             max_FEM_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
@@ -1849,6 +1851,7 @@ class DEMIo(object):
 
             self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
 
+            self.model.DeleteModelPart("BoundingBoxPart")
 
     def ComputeAndPrintSeaSurface(self, spheres_model_part, rigid_face_model_part):
 
@@ -1883,7 +1886,7 @@ class DEMIo(object):
 
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
 
-        bounding_box_model_part = model.CreateModelPart("BoundingBoxPart")
+        bounding_box_model_part = self.model.CreateModelPart("BoundingBoxPart")
 
         max_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
         max_FEM_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
@@ -1932,6 +1935,8 @@ class DEMIo(object):
             BBMinZ = 0.0
 
         self.BuildGraphicalBoundingBox(bounding_box_model_part, max_node_Id, max_element_Id, BBMinX, BBMinY, BBMinZ, BBMaxX, BBMaxY, BBMaxZ)
+
+        self.model.DeleteModelPart("BoundingBoxPart")
 
         #self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
 
