@@ -167,16 +167,20 @@ void UniformRefinementUtility::RemoveRefinedEntities(Flags ThisFlag)
     {
         if (node->Is(ThisFlag))
         {
-            for (NodesInEdgeMapType::iterator pair = mNodesMap.begin(); pair != mNodesMap.end(); pair++)
+            for (NodesInEdgeMapType::iterator pair = mNodesMap.begin(); pair != mNodesMap.end(); )
             {
                 if (node->Id() == pair->second)
-                    mNodesMap.erase(pair);
+                    pair = mNodesMap.erase(pair);
+                else
+                    pair++;
             }
 
-            for (NodesInFaceMapType::iterator pair = mNodesInFaceMap.begin(); pair != mNodesInFaceMap.end(); pair++)
+            for (NodesInFaceMapType::iterator pair = mNodesInFaceMap.begin(); pair != mNodesInFaceMap.end(); )
             {
                 if (node->Id() == pair->second)
-                    mNodesInFaceMap.erase(pair);
+                    pair = mNodesInFaceMap.erase(pair);
+                else
+                    pair++;
             }
         }
     }
@@ -409,7 +413,7 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInEdge(
     NodeType::Pointer middle_node;
 
     // Get the middle node key
-    std::pair<IndexType, IndexType> node_key;
+    EdgeKeyType node_key;
     node_key = std::minmax(rEdge(0)->Id(), rEdge(1)->Id());
 
     // Check if the node exist
@@ -481,7 +485,7 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInFace(
     NodeType::Pointer middle_node;
 
     // Get the middle node key
-    std::array<IndexType, 4> node_key = {{rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()}};
+    FaceKeyType node_key = {{rFace(0)->Id(), rFace(1)->Id(), rFace(2)->Id(), rFace(3)->Id()}};
     std::sort(node_key.begin(), node_key.end());
 
     // Check if the node exist
