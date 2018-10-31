@@ -109,6 +109,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             self._ReplaceElementsAndConditions()
             ## Executes the check and prepare model process (Create computing_model_part)
             self._ExecuteCheckAndPrepare()
+            ## Set buffer size
+            self.main_model_part.SetBufferSize(self.min_buffer_size)
 
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
