@@ -48,6 +48,7 @@
         "optimization_algorithm" : {
             "name"                        : "bead_optimization",
             "bead_height"                 : 0.025,
+            "bead_direction"              : [],
             "bead_direction_mode"         : 2,
             "number_of_filter_iterations" : 1,
             "filter_penalty_term"         : false,

@@ -32,6 +32,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         {
             "name"                        : "bead_optimization",
             "bead_height"                 : 1.0,
+            "bead_direction"              : [],
             "bead_direction_mode"         : 2,
             "number_of_filter_iterations" : 1,
             "filter_penalty_term"         : false,
@@ -82,6 +83,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
     def InitializeOptimizationLoop(self):
         self.model_part_controller.ImportOptimizationModelPart()
         self.model_part_controller.InitializeMeshController()
+        self.model_part_controller.ComputeUnitSurfaceNormals()
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 
@@ -93,6 +95,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
+        # Extract variables
         self.only_obj = self.objectives[0]
 
         self.bead_height = self.algorithm_settings["bead_height"].GetDouble()
@@ -108,31 +111,43 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.outer_iteration_tolerance = self.algorithm_settings["outer_iteration_tolerance"].GetDouble()
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
 
-        self.lower_bounds = {}
-        self.upper_bounds = {}
+        # Specify bounds and initial values
+        self.lower_bound = None
+        self.upper_bound = None
         if self.direction_mode == 1:
-            for node in self.design_surface.Nodes:
-                node.SetSolutionStepValue(ALPHA,0.5)
-                node.SetSolutionStepValue(ALPHA_MAPPED,0.5)
-                self.lower_bounds[node.Id] = 0.0
-                self.upper_bounds[node.Id] = 1.0
+            VariableUtils().SetScalarVar(ALPHA, 0.5, self.design_surface.Nodes)
+            VariableUtils().SetScalarVar(ALPHA_MAPPED, 0.5, self.design_surface.Nodes)
+            self.lower_bound = 0.0
+            self.upper_bound = 1.0
         elif self.direction_mode == -1:
-            for node in self.design_surface.Nodes:
-                node.SetSolutionStepValue(ALPHA,-0.5)
-                node.SetSolutionStepValue(ALPHA_MAPPED,-0.5)
-                self.lower_bounds[node.Id] = -1.0
-                self.upper_bounds[node.Id] = 0.0
+            VariableUtils().SetScalarVar(ALPHA, -0.5, self.design_surface.Nodes)
+            VariableUtils().SetScalarVar(ALPHA_MAPPED, -0.5, self.design_surface.Nodes)
+            self.lower_bound = -1.0
+            self.upper_bound = 0.0
         elif self.direction_mode == 2:
-            for node in self.design_surface.Nodes:
-                node.SetSolutionStepValue(ALPHA,0.0)
-                node.SetSolutionStepValue(ALPHA_MAPPED,0.0)
-                self.lower_bounds[node.Id] = -1.0
-                self.upper_bounds[node.Id] = 1.0
+            VariableUtils().SetScalarVar(ALPHA, 0.0, self.design_surface.Nodes)
+            VariableUtils().SetScalarVar(ALPHA_MAPPED, 0.0, self.design_surface.Nodes)
+            self.lower_bound = -1.0
+            self.upper_bound = 1.0
         else:
             raise RuntimeError("Specified bead direction mode not supported!")
 
         self.lambda0 = 0.0
         self.penalty_scaling_0 = 1.0
+
+        # Specify bead direction
+        bead_direction = self.algorithm_settings["bead_direction"].GetVector()
+        if len(bead_direction) == 0:
+            for node in self.design_surface.Nodes:
+                normalized_normal = node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
+                node.SetValue(BEAD_DIRECTION,normalized_normal)
+
+        elif len(bead_direction) == 3:
+            norm = math.sqrt(bead_direction[0]**2 + bead_direction[1]**2 + bead_direction[2]**2)
+            normalized_bead_direction = [value/norm for value in bead_direction]
+            VariableUtils().SetNonHistoricalVectorVar(BEAD_DIRECTION, normalized_bead_direction, self.design_surface.Nodes)
+        else:
+            raise RuntimeError("Wrong definition of bead direction. Options are: 1) [] -> takes surface normal, 2) [x.x,x.x,x.x] -> takes specified vector.")
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -144,8 +159,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         overall_iteration = 0
         is_design_converged = False
         previos_L = None
-
-        self.model_part_controller.ComputeUnitSurfaceNormals()
 
         for outer_iteration in range(1,self.max_outer_iterations+1):
             for inner_iteration in range(1,self.max_inner_iterations+1):
@@ -161,7 +174,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 self.model_part_controller.InitializeNewOptimizationStep(overall_iteration)
 
                 for node in self.design_surface.Nodes:
-                    new_shape_change = node.GetSolutionStepValue(ALPHA_MAPPED) * node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL) * self.bead_height
+                    new_shape_change = node.GetSolutionStepValue(ALPHA_MAPPED) * node.GetValue(BEAD_DIRECTION) * self.bead_height
                     node.SetSolutionStepValue(SHAPE_CHANGE, new_shape_change)
 
                 self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_CHANGE)
@@ -189,9 +202,9 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 # Compute sensitivities w.r.t. scalar design variable alpha
                 for node in self.design_surface.Nodes:
                     raw_gradient = node.GetSolutionStepValue(DF1DX)
-                    normal = node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
+                    bead_dir = node.GetValue(BEAD_DIRECTION)
 
-                    dF1dalpha_i = self.bead_height*(raw_gradient[0]*normal[0] + raw_gradient[1]*normal[1] + raw_gradient[2]*normal[2])
+                    dF1dalpha_i = self.bead_height*(raw_gradient[0]*bead_dir[0] + raw_gradient[1]*bead_dir[1] + raw_gradient[2]*bead_dir[2])
                     node.SetSolutionStepValue(DF1DALPHA, dF1dalpha_i)
 
                 # Map gradient of objective
@@ -248,7 +261,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 dLdalpha_for_normalization = {}
                 for node in self.design_surface.Nodes:
                     nodal_alpha = node.GetSolutionStepValue(ALPHA)
-                    if nodal_alpha==self.lower_bounds[node.Id] or nodal_alpha==self.upper_bounds[node.Id]:
+                    if nodal_alpha==self.lower_bound or nodal_alpha==self.upper_bound:
                         dLdalpha_for_normalization[node.Id] = 0.0
                     else:
                         dLdalpha_for_normalization[node.Id] = node.GetSolutionStepValue(DLDALPHA)**2
@@ -263,12 +276,12 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     alpha_new = node.GetSolutionStepValue(ALPHA) + dalpha
 
                     # Enforce bounds
-                    alpha_new = max(alpha_new, self.lower_bounds[node.Id])
-                    alpha_new = min(alpha_new, self.upper_bounds[node.Id])
+                    alpha_new = max(alpha_new, self.lower_bound)
+                    alpha_new = min(alpha_new, self.upper_bound)
 
                     node.SetSolutionStepValue(ALPHA,alpha_new)
 
-                    alpha_new_vectorized = alpha_new * node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
+                    alpha_new_vectorized = alpha_new * node.GetValue(BEAD_DIRECTION)
                     node.SetSolutionStepValue(CONTROL_POINT_CHANGE,alpha_new_vectorized)
 
                 # Map design variables
