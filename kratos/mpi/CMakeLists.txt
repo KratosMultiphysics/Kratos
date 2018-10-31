@@ -32,4 +32,4 @@ install(TARGETS KratosMPICore DESTINATION libs )
 install(TARGETS KratosMPI DESTINATION libs)
 
 # Install python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/mpi.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/mpi_module_init.py" DESTINATION "KratosMultiphysics/mpi" RENAME "__init__.py" )
