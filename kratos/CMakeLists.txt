@@ -149,14 +149,14 @@ target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 
 if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
-    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j4")
+    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
     cotire(KratosCore)
     if(${KRATOS_BUILD_TESTING} MATCHES ON)
         cotire(KratosTests)
     endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
-    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j4")
+    SET(COTIRE_MAXIMUM_NUMBER_OF_UNITY_INCLUDES "-j2")
 
     ## This soruces in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
