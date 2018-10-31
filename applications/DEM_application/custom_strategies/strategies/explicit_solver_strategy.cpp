@@ -489,10 +489,10 @@ namespace Kratos {
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
         GetClustersForce();
+        GetRigidBodyElementsForce();
 
         if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
             CalculateNodalPressuresAndStressesOnWalls();
-            GetRigidBodyElementsForce();
         }
 
         // 4. Synchronize (should be just FORCE and TORQUE)
@@ -1096,66 +1096,73 @@ namespace Kratos {
                     if (submp.Has(VELOCITY_STOP_TIME)) vel_stop = submp[VELOCITY_STOP_TIME];
 
                     if (time > vel_start && time < vel_stop) {
+
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+
                         if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
                         }
-                        else if (submp.Has(TABLE_NUMBER_VX)) {
+                        if (submp.Has(TABLE_NUMBER_VX)) {
                             const int table_number = submp[TABLE_NUMBER_VX];
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = fem_model_part.GetTable(table_number).GetValue(time);
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+
                         if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
                         }
-                        else if (submp.Has(TABLE_NUMBER_VY)) {
+                        if (submp.Has(TABLE_NUMBER_VY)) {
                             const int table_number = submp[TABLE_NUMBER_VY];
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = fem_model_part.GetTable(table_number).GetValue(time);
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+
                         if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
                         }
-                        else if (submp.Has(TABLE_NUMBER_VZ)) {
+                        if (submp.Has(TABLE_NUMBER_VZ)) {
                             const int table_number = submp[TABLE_NUMBER_VZ];
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = fem_model_part.GetTable(table_number).GetValue(time);
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+
                         if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
                         }
-                        else if (submp.Has(TABLE_NUMBER_AVX)) {
+                        if (submp.Has(TABLE_NUMBER_AVX)) {
                             const int table_number = submp[TABLE_NUMBER_AVX];
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = fem_model_part.GetTable(table_number).GetValue(time);
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+
                         if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
                         }
-                        else if (submp.Has(TABLE_NUMBER_AVY)) {
+                        if (submp.Has(TABLE_NUMBER_AVY)) {
                             const int table_number = submp[TABLE_NUMBER_AVY];
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = fem_model_part.GetTable(table_number).GetValue(time);
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+
                         if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                         }
-                        else if (submp.Has(TABLE_NUMBER_AVZ)) {
+                        if (submp.Has(TABLE_NUMBER_AVZ)) {
                             const int table_number = submp[TABLE_NUMBER_AVZ];
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = fem_model_part.GetTable(table_number).GetValue(time);
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
                     }
 
                     else {
