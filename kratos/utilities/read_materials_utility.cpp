@@ -222,7 +222,7 @@ void ReadMaterialsUtility::CreateSubProperties(
         // We do a check of ids
         for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
             const int sub_property_id = Data["sub_properties"][i_sub_prop]["properties_id"].GetInt();
-            KRATOS_ERROR_IF(sub_property_id == pNewProperty->Id()) << "You cannot assign to a property a subproperty with the same Id" << std::endl;
+            KRATOS_ERROR_IF(sub_property_id == static_cast<int>(pNewProperty->Id())) << "You cannot assign to a property a subproperty with the same Id" << std::endl;
         }
 
         // We assign the subproperties now
