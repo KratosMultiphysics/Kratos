@@ -249,37 +249,29 @@ public:
 
         // Get the eigenvalues vector. Remember that eigenvalues 
         // of trans(A)*A are equal to the eigenvalues of A^2
-        double eig_sum = 0.0;
         std::vector<double> eig_vector(data_cols);
         for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
             const double i_col_eig = std::sqrt(w_svd(i_col,i_col));
-            eig_sum += i_col_eig;
             eig_vector[i_col] = i_col_eig;
         }
 
-        // Reorder the eigenvalues vector from max to min and compute the eigenvalues norm
-        std::vector<double> eig_vector_ordered(data_cols);
+        // Get the maximum and minimum eigenvalues
+        double max_eig_V = 0.0;
+        double min_eig_V = std::numeric_limits<double>::max();
         for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
-            double max_eig = 0.0;
-            std::size_t max_index;
-            for (std::size_t j_col = 0; j_col < eig_vector.size(); ++j_col){
-                if (max_eig < eig_vector[j_col]){
-                    max_index = j_col;
-                    max_eig = eig_vector[j_col];
-                }
+            if (max_eig_V < eig_vector[i_col]) {
+                max_eig_V = eig_vector[i_col];
+            } else if (min_eig_V > eig_vector[i_col]) {
+                min_eig_V = eig_vector[i_col];
             }
-            eig_vector_ordered[i_col] = max_eig;
-            eig_vector.erase(eig_vector.begin() + max_index);
         }
 
         // Check the representativity of each eigenvalue and its value.
         // If its value is close to zero or out of the representativity
         // the correspondent data columns are dropped from both V and W.
-        const double max_eig_V = eig_vector_ordered[0];
-        const double min_eig_V = eig_vector_ordered[data_cols - 1];
         if (min_eig_V < AbsCutOff * max_eig_V){
             KRATOS_WARNING("MVQNRecursiveJacobianConvergenceAccelerator") 
-                << "Dropping info for eigenvalue " << eig_vector_ordered[data_cols - 1] << " (tolerance " << AbsCutOff * max_eig_V << " )" << std::endl;
+                << "Dropping info for eigenvalue " << min_eig_V << " (tolerance " << AbsCutOff * max_eig_V << " )" << std::endl;
             mJacobianObsMatrixV.pop_back();
             mJacobianObsMatrixW.pop_back();
             return false;
@@ -441,7 +433,6 @@ public:
             "solver_type"     : "MVQN_recursive",
             "w_0"             : 0.825,
             "buffer_size"     : 10,
-            "rel_cut_off_tol" : 1e-2,
             "abs_cut_off_tol" : 1e-8 
         }
         )");
