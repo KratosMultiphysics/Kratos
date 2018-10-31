@@ -111,7 +111,7 @@ namespace Kratos {
             KRATOS_CHECK(model.HasModelPart("Renamed.Inlet1.SubSub"));
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(ModelGetOwnerModel, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(ModelGetModel, KratosCoreFastSuite)
 		{
             Model model;
 
@@ -119,7 +119,7 @@ namespace Kratos {
 			model_part.CreateSubModelPart("Inlet1");
             model_part.GetSubModelPart("Inlet1").CreateSubModelPart("SubSub");
 
-            KRATOS_CHECK(&model == &model_part.GetOwnerModel());
+            KRATOS_CHECK(&model == &model_part.GetModel());
             
 		}
 	}   // namespace Testing

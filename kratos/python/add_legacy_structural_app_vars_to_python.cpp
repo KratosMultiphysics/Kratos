@@ -27,7 +27,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddLegacyStructuralAppVarsToPython(pybind11::module& m)
 {

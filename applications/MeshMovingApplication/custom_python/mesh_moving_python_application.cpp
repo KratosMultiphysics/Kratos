@@ -24,24 +24,21 @@
 #include "includes/define.h"
 
 namespace Kratos {
-
 namespace Python {
 
-using namespace pybind11;
-
 PYBIND11_MODULE(KratosMeshMovingApplication,m) {
+    namespace py = pybind11;
 
-  class_<KratosMeshMovingApplication, KratosMeshMovingApplication::Pointer,
-         KratosApplication>(m,"KratosMeshMovingApplication")
-         .def(init<>());
+    py::class_<KratosMeshMovingApplication, KratosMeshMovingApplication::Pointer,
+        KratosApplication>(m,"KratosMeshMovingApplication")
+        .def(py::init<>());
 
-  AddCustomStrategiesToPython(m);
-  AddCustomUtilitiesToPython(m);
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
 }
 
 } // namespace Python.
-
 } // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

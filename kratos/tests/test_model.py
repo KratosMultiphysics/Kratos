@@ -44,6 +44,38 @@ class TestModel(KratosUnittest.TestCase):
         self.assertTrue(current_model.HasModelPart("Main.Outlet"))
         self.assertFalse(current_model.HasModelPart("Outlet"))
 
+    def _create_and_save_model(self,file_name, serializer_flag):
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        model_part.CreateSubModelPart("Inlets")
+        model_part.CreateSubModelPart("Temp")
+        model_part.CreateNewNode(1,0.0,0.0,0.0)
+        other = current_model.CreateModelPart("Other")
+        other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        other.CreateNewNode(1,0.0,0.0,0.0)
+        
+        KratosMultiphysics.Serializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
+
+
+    def test_model_serialization(self):
+
+        file_name = "model_serialization"
+        serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE
+
+        self._create_and_save_model(file_name, serializer_flag)
+
+        loaded_model = KratosMultiphysics.Model()
+        KratosMultiphysics.Serializer(file_name, serializer_flag).Load("ModelSerialization",loaded_model)
+
+        self.assertTrue(loaded_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertTrue(loaded_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
+
+        self.assertTrue(loaded_model.HasModelPart("Main.Inlets"))
+        self.assertTrue(loaded_model.HasModelPart("Main.Temp"))
+        self.assertTrue(1 in loaded_model["Main"].Nodes)
+        self.assertTrue(1 in loaded_model["Other"].Nodes)
 
 if __name__ == '__main__':
     KratosUnittest.main()

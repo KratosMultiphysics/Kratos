@@ -26,7 +26,7 @@ listDISclRK   = [31,33]
 
 class Solution(main_script.Solution):
 
-    def LoadParametersFile(self):
+    def GetInputParameters(self):
         file_name = None
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
@@ -50,8 +50,12 @@ class Solution(main_script.Solution):
             Logger.PrintInfo("DEM",'Benchmark number does not exist')
             sys.exit()
 
+
         with open(file_name, 'r') as parameters_file:
-            self.DEM_parameters = Parameters(parameters_file.read())
+            parameters = Parameters(parameters_file.read())
+
+        return parameters
+
 
     def __init__(self, model):
         super(Solution, self).__init__(model)
