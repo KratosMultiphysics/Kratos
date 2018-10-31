@@ -29,8 +29,6 @@
 // Hardening law
 #include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
 
-#include "custom_utilities/mpm_stress_principal_invariants_utility.h"
-
 namespace Kratos
 {
 namespace Testing
