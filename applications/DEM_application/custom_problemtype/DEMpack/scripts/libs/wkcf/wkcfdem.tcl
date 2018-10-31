@@ -3485,6 +3485,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		set imposed_angular_velocity_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Bx" dv]
 		set imposed_angular_velocity_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.By" dv]
 		set imposed_angular_velocity_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Bz" dv]
+		foreach {TableNumberVX TableNumberVY TableNumberVZ TableNumberAVX TableNumberAVY TableNumberAVZ} {0 0 0 0 0 0} {}
 	    if {$imposed_velocity_X=="Constant"} {
 			set VelocityX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vx" dv]
 	    }
@@ -3558,6 +3559,10 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    set external_force_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
 	    set external_force_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
 	    set external_force_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
+	    set external_moment_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
+	    set external_moment_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
+	    set external_moment_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
+		foreach {TableNumberFX TableNumberFY TableNumberFZ TableNumberMX TableNumberMY TableNumberMZ} {0 0 0 0 0 0} {}
 	    if {$external_force_X=="None"} {
 		    set ExternalFX 0.0
 	    }
@@ -3588,9 +3593,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 			incr demfem_motion_table
 	        set TableNumberFZ $demfem_motion_table
 		}
-	    set external_moment_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
-	    set external_moment_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
-	    set external_moment_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
 	    if {$external_moment_X=="None"} {
 		    set ExternalMX 0.0
 	    }
@@ -3645,169 +3647,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		    set dragconstantz [::xmlutils::setXml $cxpath dv]
 	    }
 	}
-	    # Write mesh properties for this group
-	    GiD_File fprintf $demfemchannel "%s" "Begin SubModelPart $demfem_ref_to_props_number \/\/ DEM-FEM-Wall. Group name: $cgroupid"
-	    GiD_File fprintf $demfemchannel "  Begin SubModelPartData // DEM-FEM-Wall. Group name: $cgroupid"
-	    GiD_File fprintf $demfemchannel "  PROPERTIES_ID $demfem_ref_to_props_number"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
-	    GiD_File fprintf $demfemchannel "  FREE_BODY_MOTION $FreeBodyMotion"
-	    if {$type_of_motion=="LinearPeriodic"} {
-	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
-	    GiD_File fprintf $demfemchannel "  LINEAR_VELOCITY \[3\] ($LinearVelocityX,$LinearVelocityY,$LinearVelocityZ)"
-	    GiD_File fprintf $demfemchannel "  VELOCITY_PERIOD $Period"
-	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY \[3\] ($AngularVelocityX,$AngularVelocityY,$AngularVelocityZ)"
-	    GiD_File fprintf $demfemchannel "  ROTATION_CENTER \[3\] ($CenterOfRotationX,$CenterOfRotationY,$CenterOfRotationZ)"
-	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_PERIOD $AngularPeriod"
-	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME $LinearVelocityStartTime"
-	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME $LinearVelocityEndTime"
-	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_START_TIME $AngularVelocityStartTime"
-	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_STOP_TIME $AngularVelocityEndTime"
-	    }
-	    if {$type_of_motion=="FreeMotion"} {
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
-	    #Imposed velocities
-	    if {$imposed_velocity_X=="Constant"} {
-			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_X_VALUE $VelocityX"
-	    }
-	    if {$imposed_velocity_X=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VELOCITY_X $TableNumberVX"
-	    }
-	    if {$imposed_velocity_Y=="Constant"} {
-			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Y_VALUE $VelocityY"
-	    }
-	    if {$imposed_velocity_Y=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VELOCITY_Y $TableNumberVY"
-	    }
-	    if {$imposed_velocity_Z=="Constant"} {
-			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Z_VALUE $VelocityZ"
-	    }
-	    if {$imposed_velocity_Z=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VELOCITY_X $TableNumberVZ"
-	    }
-	    if {$imposed_angular_velocity_X=="Constant"} {
-			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_X_VALUE $AngularVelocityX"
-	    }
-	    if {$imposed_angular_velocity_X=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_ANGULAR_VELOCITY_X $TableNumberAVX"
-	    }
-	    if {$imposed_angular_velocity_Y=="Constant"} {
-			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Y_VALUE $AngularVelocityY"
-	    }
-	    if {$imposed_angular_velocity_Y=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_ANGULAR_VELOCITY_Y $TableNumberAVY"
-	    }
-	    if {$imposed_angular_velocity_Z=="Constant"} {
-			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Z_VALUE $AngularVelocityZ"
-	    }
-	    if {$imposed_angular_velocity_Z=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_ANGULAR_VELOCITY_X $TableNumberAVZ"
-	    }
-	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME $velocity_start_time"
-	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME $velocity_stop_time"
-	    #Initial velocities
-	    if {$initial_velocity_X=="Yes"} {
-		    GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_X_VALUE $InitialVelocityX"
-	    }
-	    if {$initial_velocity_Y=="Yes"} {
-    		GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_Y_VALUE $InitialVelocityY"
-	    }
-	    if {$initial_velocity_Z=="Yes"} {
-	    	GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_Z_VALUE $InitialVelocityZ"
-	    }
-	    if {$initial_angular_velocity_X=="Yes"} {
-		    GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_X_VALUE $InitialAngularVelocityX"
-	    }
-	    if {$initial_angular_velocity_Y=="Yes"} {
-    		GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Y_VALUE $InitialAngularVelocityY"
-	    }
-	    if {$initial_angular_velocity_Z=="Yes"} {
-	    	GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Z_VALUE $InitialAngularVelocityZ"
-	    }
-        #External forces
-	    if {$external_force_X=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_X $ExternalFX"
-		}
-	    if {$external_force_X=="FromATable"} {
-	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE_X $TableNumberFX"
-		}
-        if {$external_force_Y=="Constant"} {
-	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Y $ExternalFY"
-		}
-	    if {$external_force_Y=="FromATable"} {
-    	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE_Y $TableNumberFY"
-		}
-        if {$external_force_Z=="Constant"} {
-	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Z $ExternalFZ"
-		}
-	    if {$external_force_Z=="FromATable"} {
-	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE_Z $TableNumberFZ"
-		}
-	    if {$external_moment_X=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_X $ExternalMX"
-		}
-	    if {$external_moment_X=="FromATable"} {
-	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT_X $TableNumberMX"
-		}
-	    if {$external_moment_Y=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Y $ExternalMY"
-		}
-	    if {$external_moment_Y=="FromATable"} {
-    	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT_Y $TableNumberMY"
-		}
-	    if {$external_moment_Z=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Z $ExternalMZ"
-		}
-	    if {$external_moment_Z=="FromATable"} {
-	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT_Z $TableNumberMZ"
-		}
-	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-		GiD_File fprintf $demfemchannel "  FLOATING_OPTION $Buoyancy"
-		GiD_File fprintf $demfemchannel "  DEM_ENGINE_POWER $enginepower"
-		GiD_File fprintf $demfemchannel "  DEM_MAX_ENGINE_FORCE $maxengineforce"
-		GiD_File fprintf $demfemchannel "  DEM_THRESHOLD_VELOCITY $thresholdvelocity"
-		GiD_File fprintf $demfemchannel "  DEM_ENGINE_PERFORMANCE $engineperformance"
-		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_X $dragconstantx"
-		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Y $dragconstanty"
-		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Z $dragconstantz"
-	    }
-	    }
-        GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
-	    GiD_File fprintf $demfemchannel "  IDENTIFIER $cgroupid"
-
-	    set TOP 0
-	    if {$cgroupid in $TOPgrlist} {set TOP 1}
-	    GiD_File fprintf $demfemchannel "  [::xmlutils::getKKWord "Applications/$AppId" "TopGroup"] $TOP"
-	    set BOT 0
-	    if {$cgroupid in $BOTgrlist} {set BOT 1}
-	    GiD_File fprintf $demfemchannel "  [::xmlutils::getKKWord "Applications/$AppId" "BottomGroup"] $BOT"
-	    set FIG 0
-	    if {$cgroupid in $FIGgrlist} {set FIG 1}
-	    if {$BOT} {set FIG 1}
-	    if {$TOP} {set FIG 1}
-	    GiD_File fprintf $demfemchannel "  [::xmlutils::getKKWord "Applications/$AppId" "ForceIntegrationGroup"] $FIG"
-
-	    GiD_File fprintf $demfemchannel "  End SubModelPartData"
-	    GiD_File fprintf $demfemchannel "  Begin SubModelPartNodes"
-
-	    foreach nodeid $nlist {
-		GiD_File fprintf $demfemchannel "  $nodeid"
-	    }
-	    GiD_File fprintf $demfemchannel "  End SubModelPartNodes"
-	    #
-	    set nlist [GiD_EntitiesGroups get $cgroupid elements]
-        if {[llength $nlist]} {
-            GiD_File fprintf $demfemchannel "  Begin SubModelPartConditions"
-            foreach elemid $nlist {
-                GiD_File fprintf $demfemchannel "  $elemid"
-            }
-            GiD_File fprintf $demfemchannel "  End SubModelPartConditions"
-        }
-	    #
-	    GiD_File fprintf $demfemchannel "End SubModelPart"
-	    GiD_File fprintf $demfemchannel ""
-	    incr demfem_ref_to_props_number
         #Imposed velocity tables
 	    if {$imposed_velocity_X=="FromATable"} {
 			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameVx" dv]
@@ -3930,6 +3769,175 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	        GiD_File fprintf $demfemchannel "End Table"
 	        GiD_File fprintf $demfemchannel ""
 	    }
+	    # Write mesh properties for this group
+	    GiD_File fprintf $demfemchannel "%s" "Begin SubModelPart $demfem_ref_to_props_number \/\/ DEM-FEM-Wall. Group name: $cgroupid"
+	    GiD_File fprintf $demfemchannel "  Begin SubModelPartData // DEM-FEM-Wall. Group name: $cgroupid"
+	    GiD_File fprintf $demfemchannel "  PROPERTIES_ID $demfem_ref_to_props_number"
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
+	    GiD_File fprintf $demfemchannel "  FREE_BODY_MOTION $FreeBodyMotion"
+	    if {$type_of_motion=="LinearPeriodic"} {
+	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
+	    GiD_File fprintf $demfemchannel "  LINEAR_VELOCITY \[3\] ($LinearVelocityX,$LinearVelocityY,$LinearVelocityZ)"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_PERIOD $Period"
+	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY \[3\] ($AngularVelocityX,$AngularVelocityY,$AngularVelocityZ)"
+	    GiD_File fprintf $demfemchannel "  ROTATION_CENTER \[3\] ($CenterOfRotationX,$CenterOfRotationY,$CenterOfRotationZ)"
+	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_PERIOD $AngularPeriod"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME $LinearVelocityStartTime"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME $LinearVelocityEndTime"
+	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_START_TIME $AngularVelocityStartTime"
+	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_STOP_TIME $AngularVelocityEndTime"
+	    }
+	    if {$type_of_motion=="FreeMotion"} {
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
+	    #Imposed velocities
+	    if {$imposed_velocity_X=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_X_VALUE $VelocityX"
+	    }
+	    if {$imposed_velocity_Y=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Y_VALUE $VelocityY"
+	    }
+	    if {$imposed_velocity_Z=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Z_VALUE $VelocityZ"
+	    }
+		GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VELOCITY \[3\] ($TableNumberVX,$TableNumberVY,$TableNumberVZ)"
+	    if {$imposed_angular_velocity_X=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_X_VALUE $AngularVelocityX"
+	    }
+	    if {$imposed_angular_velocity_Y=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Y_VALUE $AngularVelocityY"
+	    }
+	    if {$imposed_angular_velocity_Z=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Z_VALUE $AngularVelocityZ"
+	    }
+	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_ANGULAR_VELOCITY \[3\] ($TableNumberAVX,$TableNumberAVY,$TableNumberAVZ)"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME $velocity_start_time"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME $velocity_stop_time"
+	    #Initial velocities
+	    if {$initial_velocity_X=="Yes"} {
+		    GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_X_VALUE $InitialVelocityX"
+	    }
+	    if {$initial_velocity_Y=="Yes"} {
+    		GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_Y_VALUE $InitialVelocityY"
+	    }
+	    if {$initial_velocity_Z=="Yes"} {
+	    	GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_Z_VALUE $InitialVelocityZ"
+	    }
+	    if {$initial_angular_velocity_X=="Yes"} {
+		    GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_X_VALUE $InitialAngularVelocityX"
+	    }
+	    if {$initial_angular_velocity_Y=="Yes"} {
+    		GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Y_VALUE $InitialAngularVelocityY"
+	    }
+	    if {$initial_angular_velocity_Z=="Yes"} {
+	    	GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Z_VALUE $InitialAngularVelocityZ"
+	    }
+        #External forces
+	    if {$external_force_X=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_X $ExternalFX"
+		}
+        if {$external_force_Y=="Constant"} {
+	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Y $ExternalFY"
+		}
+        if {$external_force_Z=="Constant"} {
+	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Z $ExternalFZ"
+		}
+	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE \[3\] ($TableNumberFX,$TableNumberFY,$TableNumberFZ)"
+	    if {$external_moment_X=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_X $ExternalMX"
+		}
+	    if {$external_moment_Y=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Y $ExternalMY"
+		}
+	    if {$external_moment_Z=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Z $ExternalMZ"
+		}
+	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT \[3\] ($TableNumberMX,$TableNumberMY,$TableNumberMZ)"
+	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+		GiD_File fprintf $demfemchannel "  FLOATING_OPTION $Buoyancy"
+		GiD_File fprintf $demfemchannel "  DEM_ENGINE_POWER $enginepower"
+		GiD_File fprintf $demfemchannel "  DEM_MAX_ENGINE_FORCE $maxengineforce"
+		GiD_File fprintf $demfemchannel "  DEM_THRESHOLD_VELOCITY $thresholdvelocity"
+		GiD_File fprintf $demfemchannel "  DEM_ENGINE_PERFORMANCE $engineperformance"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_X $dragconstantx"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Y $dragconstanty"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Z $dragconstantz"
+	    }
+	    }
+        GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
+	    GiD_File fprintf $demfemchannel "  IDENTIFIER $cgroupid"
+
+	    set TOP 0
+	    if {$cgroupid in $TOPgrlist} {set TOP 1}
+	    GiD_File fprintf $demfemchannel "  [::xmlutils::getKKWord "Applications/$AppId" "TopGroup"] $TOP"
+	    set BOT 0
+	    if {$cgroupid in $BOTgrlist} {set BOT 1}
+	    GiD_File fprintf $demfemchannel "  [::xmlutils::getKKWord "Applications/$AppId" "BottomGroup"] $BOT"
+	    set FIG 0
+	    if {$cgroupid in $FIGgrlist} {set FIG 1}
+	    if {$BOT} {set FIG 1}
+	    if {$TOP} {set FIG 1}
+	    GiD_File fprintf $demfemchannel "  [::xmlutils::getKKWord "Applications/$AppId" "ForceIntegrationGroup"] $FIG"
+
+	    GiD_File fprintf $demfemchannel "  End SubModelPartData"
+	    GiD_File fprintf $demfemchannel "  Begin SubModelPartNodes"
+
+	    foreach nodeid $nlist {
+		GiD_File fprintf $demfemchannel "  $nodeid"
+	    }
+	    GiD_File fprintf $demfemchannel "  End SubModelPartNodes"
+	    #
+	    set nlist [GiD_EntitiesGroups get $cgroupid elements]
+        if {[llength $nlist]} {
+            GiD_File fprintf $demfemchannel "  Begin SubModelPartConditions"
+            foreach elemid $nlist {
+                GiD_File fprintf $demfemchannel "  $elemid"
+            }
+            GiD_File fprintf $demfemchannel "  End SubModelPartConditions"
+        }
+        GiD_File fprintf $demfemchannel "  Begin SubModelPartTables"
+        if {$TableNumberVX>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberVX"
+		}
+        if {$TableNumberVY>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberVY"
+		}
+        if {$TableNumberVZ>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberVZ"
+		}
+        if {$TableNumberAVX>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberAVX"
+		}
+        if {$TableNumberAVY>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberAVY"
+		}
+        if {$TableNumberAVZ>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberAVZ"
+		}
+        if {$TableNumberFX>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberFX"
+		}
+        if {$TableNumberFY>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberFY"
+		}
+        if {$TableNumberFZ>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberFZ"
+		}
+        if {$TableNumberMX>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberMX"
+		}
+        if {$TableNumberMY>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberMY"
+		}
+        if {$TableNumberMZ>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberMZ"
+		}
+        GiD_File fprintf $demfemchannel "  End SubModelPartTables"
+	    #
+	    GiD_File fprintf $demfemchannel "End SubModelPart"
+	    GiD_File fprintf $demfemchannel ""
+	    incr demfem_ref_to_props_number
 	}
     }
 }
