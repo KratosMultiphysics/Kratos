@@ -44,7 +44,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         self.coarse_model_part_name = self.settings['main_model_part_name'].GetString()
         if (self.current_subscale > 0):
             self.coarse_model_part_name += '_' + str(self.current_subscale)
-        
+
         # Get the coarse model part
         self.coarse_model_part = self.model[self.coarse_model_part_name]
 

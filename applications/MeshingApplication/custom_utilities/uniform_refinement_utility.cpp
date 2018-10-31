@@ -172,7 +172,7 @@ void UniformRefinementUtility::RemoveRefinedEntities(Flags ThisFlag)
                 if (node->Id() == pair->second)
                     pair = mNodesMap.erase(pair);
                 else
-                    pair++;
+                    ++pair;
             }
 
             for (NodesInFaceMapType::iterator pair = mNodesInFaceMap.begin(); pair != mNodesInFaceMap.end(); )
@@ -180,7 +180,7 @@ void UniformRefinementUtility::RemoveRefinedEntities(Flags ThisFlag)
                 if (node->Id() == pair->second)
                     pair = mNodesInFaceMap.erase(pair);
                 else
-                    pair++;
+                    ++pair;
             }
         }
     }
