@@ -18,6 +18,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
 #include "meshing_application.h"
@@ -399,7 +400,7 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre1");
 
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
             MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
@@ -601,7 +602,7 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre2");
 
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
             MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
@@ -765,7 +766,7 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre1");
 
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
             MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
@@ -929,7 +930,7 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre2");
 
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
             MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);

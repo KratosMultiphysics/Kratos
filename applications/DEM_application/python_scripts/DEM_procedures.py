@@ -235,7 +235,8 @@ class PostUtils(object):
 
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
                     self.previous_vector_of_inner_nodes = vector_of_inner_nodes
-
+                    
+                absolute_path_to_file = os.path.join(graphs_path, filename)
                 f = open(absolute_path_to_file, 'a')
                 tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
                 if compute_flow:
@@ -275,13 +276,13 @@ class DEMEnergyCalculator(object):
                 self.kinematic_energy = 0.0
                 self.gravitational_energy = 0.0
                 self.elastic_energy = 0.0
-                self.inelastic_frictonal_energy = 0.0
+                self.inelastic_frictional_energy = 0.0
                 self.inelastic_viscodamping_energy = 0.0
                 self.external_energy = 0.0
                 self.total_energy = 0.0
                 self.graph_frequency = int(self.DEM_parameters["GraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))  # TODO: change the name GraphExportFreq to GraphExportTimeInterval
                 self.energy_graph_counter = 0
-                self.energy_plot.write(str("Time").rjust(9) + "   " + str("Trans kinematic energy").rjust(22) + "   " + str("Rot kinematic energy").rjust(20) + "   " + str("Kinematic energy").rjust(16) + "   " + str("Gravitational energy").rjust(20) + "   " + str("Elastic energy").rjust(14) + "   " + str("Frictonal energy").rjust(16) + "   " + str("Viscodamping energy").rjust(19) + "   " + str("Total energy").rjust(12) + "\n")
+                self.energy_plot.write(str("Time").rjust(9) + "   " + str("Trans kinematic energy").rjust(22) + "   " + str("Rot kinematic energy").rjust(20) + "   " + str("Kinematic energy").rjust(16) + "   " + str("Gravitational energy").rjust(20) + "   " + str("Elastic energy").rjust(14) + "   " + str("Frictional energy").rjust(16) + "   " + str("Viscodamping energy").rjust(19) + "   " + str("Total energy").rjust(12) + "\n")
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
@@ -479,8 +480,7 @@ class Procedures(object):
                 model_part.AddNodalSolutionStepVariable(ROLLING_RESISTANCE_MOMENT)
 
         # OTHER PROPERTIES
-        model_part.AddNodalSolutionStepVariable(
-            PARTICLE_MATERIAL)   # Colour defined in GiD
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
 
         if "PostSkinSphere" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostSkinSphere"].GetBool():
@@ -882,10 +882,10 @@ class DEMFEMProcedures(object):
 
         self.fem_mesh_nodes = []
 
-        self.graph_counter = 0
+        self.graph_counter = 1
         self.balls_graph_counter = 0
 
-        self.graph_frequency = int(self.DEM_parameters["GraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        self.graph_frequency = int((self.DEM_parameters["GraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))+1.0)
         if self.graph_frequency < 1:
             # that means it is not possible to print results with a higher frequency than the computations delta time
             self.graph_frequency = 1
@@ -1378,8 +1378,8 @@ class DEMIo(object):
         else:
             self.PostCharacteristicLength = self.DEM_parameters["PostCharacteristicLength"].GetBool()
 
-        #self.PostFaceNormalImpactVelocity = getattr(self.DEM_parameters, "PostFaceNormalImpactVelocity", 0)
-        #self.PostFaceTangentialImpactVelocity = getattr(self.DEM_parameters, "PostFaceTangentialImpactVelocity", 0)
+        #self.PostFaceNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostFaceNormalImpactVelocity", 0)
+        #self.PostFaceTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostFaceTangentialImpactVelocity", 0)
 
         if not "PostBoundingBox" in self.DEM_parameters.keys():
             self.PostBoundingBox = 0
@@ -1395,34 +1395,31 @@ class DEMIo(object):
         #self.b_box_maxZ = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
 
         self.continuum_element_types = ["SphericContPartDEMElement3D", "CylinderContPartDEMElement2D", "IceContPartDEMElement3D"]
-
-        one_level_up_path = os.path.join(self.post_path, "..")
-        self.multifiles = (
-            MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 10, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 20, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 50, "inner"),
-        )
-
-        self.SetMultifileLists(self.multifiles)
+        
+        self.OpenMultiFileLists()
 
         #Analytic
         if not "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             self.PostNormalImpactVelocity = 0
-            self.PostTangentialImpactVelocity = 0
-            self.PostFaceTangentialImpactVelocity = 0
-            self.PostFaceNormalImpactVelocity = 0
         else:
             self.PostNormalImpactVelocity = self.DEM_parameters["PostNormalImpactVelocity"].GetBool()
+
+        if not "PostTangentialImpactVelocity" in self.DEM_parameters.keys():
+            self.PostTangentialImpactVelocity = 0
+        else:
             self.PostTangentialImpactVelocity = self.DEM_parameters["PostTangentialImpactVelocity"].GetBool()
-            self.PostFaceTangentialImpactVelocity = 1
-            self.PostFaceNormalImpactVelocity = 1
+
+        if not "PostFaceNormalImpactVelocity" in self.DEM_parameters.keys():
+            self.PostFaceNormalImpactVelocity = 0
+        else:
+            self.PostFaceNormalImpactVelocity = self.DEM_parameters["PostFaceNormalImpactVelocity"].GetBool()
+
+        if not "PostFaceTangentialImpactVelocity" in self.DEM_parameters.keys():
+            self.PostFaceTangentialImpactVelocity = 0
+        else:
+            self.PostFaceTangentialImpactVelocity = self.DEM_parameters["PostFaceTangentialImpactVelocity"].GetBool()
 
         # Ice
-
         self.sea_settings = self.DEM_parameters["virtual_sea_surface_settings"]
 
         if self.sea_settings["print_sea_surface"].GetBool():
@@ -1435,6 +1432,20 @@ class DEMIo(object):
             self.SeaSurfaceX4 = self.sea_settings["PostVirtualSeaSurfaceX4"].GetDouble()
             self.SeaSurfaceY4 = self.sea_settings["PostVirtualSeaSurfaceY4"].GetDouble()
 
+    def OpenMultiFileLists(self):
+        one_level_up_path = os.path.join(self.post_path, "..")
+        self.multifiles = (
+            #MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 10, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 20, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 50, "inner"),
+        )
+        self.SetMultifileLists(self.multifiles)
+        
+        
     def KRATOSprint(self, message):
         Logger.Print(message,label="DEM")
         Logger.Flush()
@@ -1471,15 +1482,15 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDisplacement, DISPLACEMENT, self.global_variables)
         self.PushPrintVar(self.PostVelocity, VELOCITY, self.global_variables)
         self.PushPrintVar(self.PostTotalForces, TOTAL_FORCES, self.global_variables)
+        if self.DEM_parameters["PostAngularVelocity"].GetBool():
+            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
+        if self.DEM_parameters["PostParticleMoment"].GetBool():
+            self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
-        if self.DEM_parameters["PostAngularVelocity"].GetBool():
-            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.spheres_and_clusters_variables)
-        if self.DEM_parameters["PostParticleMoment"].GetBool():
-            self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.spheres_and_clusters_variables)
 
     # variables common to spheres and clusters
     def AddSpheresNotInClusterAndClustersVariables(self):
@@ -1549,7 +1560,7 @@ class DEMIo(object):
     def AddClusterVariables(self):
 
         if self.PostCharacteristicLength:
-            self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
+            self.PushPrintVar(self.PostCharacteristicLength, CHARACTERISTIC_LENGTH, self.clusters_variables)
 
         if self.DEM_parameters["PostEulerAngles"].GetBool():
             # JIG: SHOULD BE REMOVED IN THE FUTURE
@@ -1559,12 +1570,12 @@ class DEMIo(object):
             #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
 
     def AddRigidBodyVariables(self):
-        #self.PushPrintVar(1,                         ANGULAR_VELOCITY,             self.rigid_body_variables)
+        pass
         #self.PushPrintVar(1,                         PARTICLE_MOMENT,              self.rigid_body_variables)
         #self.PushPrintVar(1,                         DELTA_DISPLACEMENT,           self.rigid_body_variables)
         #self.PushPrintVar(1,                         DELTA_ROTATION,               self.rigid_body_variables)
-        self.PushPrintVar(1,                         EXTERNAL_APPLIED_FORCE,       self.rigid_body_variables)
-        self.PushPrintVar(1,                         EXTERNAL_APPLIED_MOMENT,      self.rigid_body_variables)
+        #self.PushPrintVar(1,                         EXTERNAL_APPLIED_FORCE,       self.rigid_body_variables)
+        #self.PushPrintVar(1,                         EXTERNAL_APPLIED_MOMENT,      self.rigid_body_variables)
 
     def AddContactVariables(self):
         # Contact Elements Variables
@@ -1741,8 +1752,7 @@ class DEMIo(object):
 
     def PrintingSpheresVariables(self, export_model_part, time):
         for variable in self.spheres_variables:
-            self.gid_io.WriteNodalResults(
-                variable, export_model_part.Nodes, time, 0)
+            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
         for variable in self.spheres_local_axis_variables:
             self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)
 
@@ -1788,6 +1798,7 @@ class DEMIo(object):
         self.PrintingSpheresNotInClusterAndClustersVariables(self.mixed_spheres_not_in_cluster_and_clusters_model_part, time)
         self.PrintingSpheresVariables(self.spheres_model_part, time)
         self.PrintingFEMBoundaryVariables(self.rigid_face_model_part, time)
+        self.PrintingRigidBodyVariables(self.rigid_face_model_part, time)
         self.PrintingClusterVariables(self.cluster_model_part, time)
         self.PrintingContactElementsVariables(self.contact_model_part, time)
 

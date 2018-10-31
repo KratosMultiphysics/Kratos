@@ -38,7 +38,7 @@ ModelPart::ModelPart(std::string const& NewName, Model& rOwnerModel)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-    , mrOwnerModel(rOwnerModel)
+    , mrModel(rOwnerModel)
 {
     KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
@@ -58,7 +58,7 @@ ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-    , mrOwnerModel(rOwnerModel)
+    , mrModel(rOwnerModel)
 {
     mName = "Default";
     MeshType mesh;
@@ -77,9 +77,16 @@ ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, M
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-    , mrOwnerModel(rOwnerModel)
+    , mrModel(rOwnerModel)
 {
-    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
+    KRATOS_ERROR_IF( NewName.empty() )
+        << "Please don't use empty names (\"\") when creating a ModelPart"
+        << std::endl;
+
+    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
+        << "Please don't use names containing (\".\") when creating a ModelPart"
+        << std::endl;
+
     mName = NewName;
     MeshType mesh;
     mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -97,9 +104,16 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-    , mrOwnerModel(rOwnerModel)
+    , mrModel(rOwnerModel)
 {
-    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
+    KRATOS_ERROR_IF( NewName.empty() )
+        << "Please don't use empty names (\"\") when creating a ModelPart"
+        << std::endl;
+
+    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
+        << "Please don't use names containing (\".\") when creating a ModelPart"
+        << std::endl;
+
     mName = NewName;
     MeshType mesh;
     mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -1445,7 +1459,7 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetOwnerModel());
+        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
         Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer            
         p_model_part->SetParentModelPart(this);
         p_model_part->mBufferSize = this->mBufferSize;

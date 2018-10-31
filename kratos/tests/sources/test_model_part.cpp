@@ -19,7 +19,7 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos {
-    namespace Testing {
+  namespace Testing {
 
     typedef Node<3> NodeType;
 
@@ -133,6 +133,33 @@ namespace Kratos {
         KRATOS_CHECK_IS_FALSE(r_model_part.HasNodalSolutionStepVariable(PRESSURE));
     }
 
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartEmptyName, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Constructor with name
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart(""),
+            "Error: Please don't use empty names (\"\") when creating a ModelPart");
+
+        // Constructor with name and bufferSize
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("", 2),
+            "Error: Please don't use empty names (\"\") when creating a ModelPart");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartNameContainingPoint, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Constructor with name
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other"),
+            "Error: Please don't use names containing (\".\") when creating a ModelPart");
+
+        // Constructor with name and bufferSize
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other", 2),
+            "Error: Please don't use names containing (\".\") when creating a ModelPart");
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElements, KratosCoreFastSuite)
     {
         Model current_model;
@@ -222,5 +249,5 @@ namespace Kratos {
         KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
         KRATOS_CHECK(r_model_part.NumberOfElements() == 2);
     }
-}  // namespace Testing.
+  }  // namespace Testing.
 }  // namespace Kratos.

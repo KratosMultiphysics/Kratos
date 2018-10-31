@@ -82,6 +82,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/swimming_dem_in_pfem_utils.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_utilities/mesh_rotation_utility.h"
+#include "custom_utilities/renumbering_nodes_utility.h"
 
 namespace Kratos{
 
@@ -490,6 +491,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("RotateDEMMesh", &MeshRotationUtility::RotateDEMMesh)
         .def("SetStationaryField", &MeshRotationUtility::SetStationaryField)
         .def("RotateFluidVelocities", &MeshRotationUtility::RotateFluidVelocities)
+        ;
+    class_<RenumberingNodesUtility> (m, "RenumberingNodesUtility")
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&,ModelPart&>())
+        .def(init<ModelPart&,ModelPart&,ModelPart&>())
+        .def(init<ModelPart&,ModelPart&,ModelPart&,ModelPart&>())
+        .def(init<ModelPart&,ModelPart&,ModelPart&,ModelPart&,ModelPart&>())
+        .def("Renumber", &RenumberingNodesUtility::Renumber)
+        .def("UndoRenumber", &RenumberingNodesUtility::UndoRenumber)
         ;
     }
 

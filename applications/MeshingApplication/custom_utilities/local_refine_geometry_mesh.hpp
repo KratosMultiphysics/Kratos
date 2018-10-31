@@ -61,7 +61,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class LocalRefineGeometryMesh
+class KRATOS_API(MESHING_APPLICATION) LocalRefineGeometryMesh
 {
 public:
 
