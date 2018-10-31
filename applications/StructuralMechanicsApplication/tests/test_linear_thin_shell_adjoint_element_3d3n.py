@@ -72,7 +72,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
     def _create_shape_perturbed_elements(self,mp,delta):
         dim=3
-        self.model_part_1 = mp.GetOwnerModel().CreateModelPart("Shape_Perturbed_Elements")
+        self.model_part_1 = mp.GetModel().CreateModelPart("Shape_Perturbed_Elements")
         add_variables(self.model_part_1)
 
         x1 = mp.Nodes[1].X
@@ -121,7 +121,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
 
     def _create_property_perturbed_elements(self,mp,delta):
         dim = 3
-        self.model_part_2 = mp.GetOwnerModel().CreateModelPart("Property_Perturbed_Elements")
+        self.model_part_2 = mp.GetModel().CreateModelPart("Property_Perturbed_Elements")
         add_variables(self.model_part_2)
         self.model_part_2.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z)
         self.model_part_2.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z)

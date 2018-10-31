@@ -30,9 +30,9 @@ void ListOfAllTestCases() {
 }
 
 void  AddTestingToPython(pybind11::module& m) {
-	using namespace pybind11;
+	namespace py = pybind11;
 
-    class_<Testing::Tester, Kratos::shared_ptr<Testing::Tester> > TesterPyBind(m, "Tester");
+    py::class_<Testing::Tester, Kratos::shared_ptr<Testing::Tester> > TesterPyBind(m, "Tester");
 
     // Properties
     TesterPyBind
@@ -54,7 +54,7 @@ void  AddTestingToPython(pybind11::module& m) {
         .def_static("ListOfAllTestCases", ListOfAllTestCases)
     ;
 
-    enum_<Testing::Tester::Verbosity>(TesterPyBind, "Verbosity")
+    py::enum_<Testing::Tester::Verbosity>(TesterPyBind, "Verbosity")
         .value("QUITE", Testing::Tester::Verbosity::QUITE)
         .value("PROGRESS", Testing::Tester::Verbosity::PROGRESS)
         .value("TESTS_LIST", Testing::Tester::Verbosity::TESTS_LIST)
