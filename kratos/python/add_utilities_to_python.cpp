@@ -699,8 +699,8 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     // Auxiliar ModelPart Utility
 
-    class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
-    .def(init<ModelPart&>())
+    py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
+    .def(py::init<ModelPart&>())
     .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings1)
     .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings2)
     .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings3)
