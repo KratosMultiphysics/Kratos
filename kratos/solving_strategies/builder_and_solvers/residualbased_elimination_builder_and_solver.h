@@ -240,8 +240,7 @@ public:
 
     /**
      * @brief Function to perform the building of the LHS
-     * @details Depending on the implementation choosen the size of the matrix could
-     * be equal to the total number of Dofs or to the number of unrestrained dofs
+     * @details Depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number of unrestrained dofs
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
