@@ -158,16 +158,16 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 print(">=======================================================================================\n")
 
                 # Initialize new shape
-                self.model_part_controller.DampNodalVariableIfSpecified(ALPHA_MAPPED)
+                self.model_part_controller.InitializeNewOptimizationStep(overall_iteration)
 
                 for node in self.design_surface.Nodes:
-                    normal = node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
-
-                    previos_shape_change = node.GetSolutionStepValue(SHAPE_CHANGE)
-                    new_shape_change = node.GetSolutionStepValue(ALPHA_MAPPED) * normal * self.bead_height
-                    shape_update = new_shape_change-previos_shape_change
-
+                    new_shape_change = node.GetSolutionStepValue(ALPHA_MAPPED) * node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL) * self.bead_height
                     node.SetSolutionStepValue(SHAPE_CHANGE, new_shape_change)
+
+                self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_CHANGE)
+
+                for node in self.design_surface.Nodes:
+                    shape_update = node.GetSolutionStepValue(SHAPE_CHANGE,0) - node.GetSolutionStepValue(SHAPE_CHANGE,1)
                     node.SetSolutionStepValue(SHAPE_UPDATE, shape_update)
 
                 self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
