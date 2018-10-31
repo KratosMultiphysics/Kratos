@@ -192,6 +192,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
 
             noalias(rPredictiveStressVector) -= delta_sigma;
+
             CalculateAndSubstractBackStress(rPredictiveStressVector, rValues, rPreviousStressVector,
                                             rPlasticStrainIncrement, rBackStressVector);
             
@@ -854,7 +855,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             dot_fflux_gflux += rFFlux[i] * rGFlux[i];
         }
         const double two_thirds = 2.0 / 3.0;
-		double dot_fflux_backstress = 0.0;
+		double dot_fflux_backstress = 0.0, dot_gflux_gflux = 0.0;
         switch (static_cast<KinematicHardeningType>(kinematic_hardening_type))
         {
             case KinematicHardeningType::LinearKinematicHardening:
@@ -867,7 +868,10 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 for (IndexType i = 0; i < VoigtSize; ++i) {
                     dot_fflux_backstress += rFFlux[i] * rBackStressVector[i];
                 }
-                A2 -= kinematic_parameters[1] * dot_fflux_backstress * std::sqrt(two_thirds * std::abs(dot_fflux_backstress));
+                for (IndexType i = 0; i < VoigtSize; ++i) {
+                    dot_gflux_gflux += rGFlux[i] * rGFlux[i];
+                }
+                A2 -= kinematic_parameters[1] * dot_fflux_backstress * std::sqrt(two_thirds * dot_gflux_gflux);
                 break;
 
             default:
