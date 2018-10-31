@@ -13,7 +13,11 @@ class Solution(BaseAlgorithm):
     def __init__(self, model):
         super(Solution, self).__init__(model)
 
-    def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
+    def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
+        self.coupling_algorithm.ReadDemModelParts()
+
+    def BaseReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
+        #super(Solution, self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
         os.chdir(self.main_path)
 
         # Reading the model_part
@@ -52,6 +56,9 @@ class Solution(BaseAlgorithm):
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
+
+    def PrintResultsForGid(self, time):
+        self.coupling_algorithm.gid_output.Writeresults(time)
 
 if __name__ == "__main__":
     model = Model()

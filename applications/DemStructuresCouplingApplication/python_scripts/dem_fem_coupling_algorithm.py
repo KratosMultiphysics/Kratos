@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import sys
 import time as timer
 import os
+import weakref
 import KratosMultiphysics as Kratos
 from Kratos import Logger
 import KratosMultiphysics.DEMApplication as Dem
@@ -12,6 +13,7 @@ import DEM_procedures
 import DEM_material_test_script
 import KratosMultiphysics.StructuralMechanicsApplication as Structural
 import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
+import dem_structures_coupling_gid_output
 
 class Algorithm(object):
 
@@ -20,6 +22,7 @@ class Algorithm(object):
 
         import dem_main_script_ready_for_coupling_with_fem
         self.dem_solution = dem_main_script_ready_for_coupling_with_fem.Solution(self.model)
+        self.dem_solution.coupling_algorithm = weakref.proxy(self)
 
         import structural_mechanics_analysis
         structural_parameters_file_name = "ProjectParameters.json"
@@ -35,11 +38,41 @@ class Algorithm(object):
         self.Finalize()
 
     def Initialize(self):
-        self.dem_solution.Initialize()
         self.structural_solution.Initialize()
+        self.dem_solution.Initialize()
 
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
+
+        mixed_mp = self.model.CreateModelPart('MixedPart')
+        filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
+        self.gid_output = dem_structures_coupling_gid_output.DemStructuresCouplingGiDOutput(
+                            filename,
+                            True,
+                            "Binary",
+                            "Multiples",
+                            True,
+                            True,
+                            self.structural_solution._GetSolver().GetComputingModelPart(),
+                            self.dem_solution.spheres_model_part,
+                            self.dem_solution.cluster_model_part,
+                            self.dem_solution.rigid_face_model_part,
+                            mixed_mp
+                            )
+        structures_nodal_results = []
+        dem_nodal_results = ["VELOCITY"]
+        clusters_nodal_results = []
+        rigid_faces_nodal_results = []
+        mixed_nodal_results = ["DISPLACEMENT"]
+        gauss_points_results = []
+        self.gid_output.initialize_dem_fem_results(
+                                                    structures_nodal_results,
+                                                    dem_nodal_results,
+                                                    clusters_nodal_results,
+                                                    rigid_faces_nodal_results,
+                                                    mixed_nodal_results,
+                                                    gauss_points_results
+                                                    )
 
     def _DetectStructuresSkin(self):
 
@@ -61,8 +94,6 @@ class Algorithm(object):
             sys.exit()
 
         self.structure_skin_detector.Execute()
-
-        print(str(computing_model_part.GetSubModelPart("DetectedByProcessSkinModelPart").NumberOfConditions(0)))
 
     def _TransferStructuresSkinToDem(self):
         skin_mp = self.structural_solution._GetSolver().GetComputingModelPart().GetSubModelPart("DetectedByProcessSkinModelPart")
@@ -141,6 +172,17 @@ class Algorithm(object):
 
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
 
+    def ReadDemModelParts(self,
+                                    starting_node_Id=0,
+                                    starting_elem_Id=0,
+                                    starting_cond_Id=0):
+        creator_destructor = self.dem_solution.creator_destructor
+        structures_model_part = self.structural_solution._GetSolver().GetComputingModelPart()
+        max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(structures_model_part)
+        max_elem_Id = creator_destructor.FindMaxElementIdInModelPart(structures_model_part)
+        max_cond_Id = creator_destructor.FindMaxConditionIdInModelPart(structures_model_part)
+        self.dem_solution.BaseReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
+        self.dem_solution.all_model_parts.MaxNodeId = max_node_Id
 
     def Finalize(self):
         self.dem_solution.Finalize()
