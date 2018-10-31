@@ -3672,37 +3672,37 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_X_VALUE $VelocityX"
 	    }
 	    if {$imposed_velocity_X=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VX $TableNumberVX"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VELOCITY_X $TableNumberVX"
 	    }
 	    if {$imposed_velocity_Y=="Constant"} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Y_VALUE $VelocityY"
 	    }
 	    if {$imposed_velocity_Y=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VY $TableNumberVY"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VELOCITY_Y $TableNumberVY"
 	    }
 	    if {$imposed_velocity_Z=="Constant"} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Z_VALUE $VelocityZ"
 	    }
 	    if {$imposed_velocity_Z=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VX $TableNumberVZ"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VELOCITY_X $TableNumberVZ"
 	    }
 	    if {$imposed_angular_velocity_X=="Constant"} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_X_VALUE $AngularVelocityX"
 	    }
 	    if {$imposed_angular_velocity_X=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVX $TableNumberAVX"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_ANGULAR_VELOCITY_X $TableNumberAVX"
 	    }
 	    if {$imposed_angular_velocity_Y=="Constant"} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Y_VALUE $AngularVelocityY"
 	    }
 	    if {$imposed_angular_velocity_Y=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVY $TableNumberAVY"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_ANGULAR_VELOCITY_Y $TableNumberAVY"
 	    }
 	    if {$imposed_angular_velocity_Z=="Constant"} {
 			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Z_VALUE $AngularVelocityZ"
 	    }
 	    if {$imposed_angular_velocity_Z=="FromATable"} {
-			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_AVX $TableNumberAVZ"
+			GiD_File fprintf $demfemchannel "  TABLE_NUMBER_ANGULAR_VELOCITY_X $TableNumberAVZ"
 	    }
 	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME $velocity_start_time"
 	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME $velocity_stop_time"
@@ -3730,37 +3730,37 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
     	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_X $ExternalFX"
 		}
 	    if {$external_force_X=="FromATable"} {
-	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FX $TableNumberFX"
+	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE_X $TableNumberFX"
 		}
         if {$external_force_Y=="Constant"} {
 	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Y $ExternalFY"
 		}
 	    if {$external_force_Y=="FromATable"} {
-    	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FY $TableNumberFY"
+    	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE_Y $TableNumberFY"
 		}
         if {$external_force_Z=="Constant"} {
 	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Z $ExternalFZ"
 		}
 	    if {$external_force_Z=="FromATable"} {
-	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FZ $TableNumberFZ"
+	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE_Z $TableNumberFZ"
 		}
 	    if {$external_moment_X=="Constant"} {
     	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_X $ExternalMX"
 		}
 	    if {$external_moment_X=="FromATable"} {
-	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MX $TableNumberMX"
+	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT_X $TableNumberMX"
 		}
 	    if {$external_moment_Y=="Constant"} {
     	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Y $ExternalMY"
 		}
 	    if {$external_moment_Y=="FromATable"} {
-    	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MY $TableNumberMY"
+    	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT_Y $TableNumberMY"
 		}
 	    if {$external_moment_Z=="Constant"} {
     	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Z $ExternalMZ"
 		}
 	    if {$external_moment_Z=="FromATable"} {
-	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MZ $TableNumberMZ"
+	        GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT_Z $TableNumberMZ"
 		}
 	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 		GiD_File fprintf $demfemchannel "  FLOATING_OPTION $Buoyancy"
