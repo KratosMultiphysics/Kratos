@@ -786,9 +786,9 @@ public:
 
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag) {
-            const SizeType ReactionsVectorSize = BaseType::mDofSet.size();
-            if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
-                BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
+            const SizeType reactions_vector_size = BaseType::mDofSet.size();
+            if (BaseType::mpReactionsVector->size() != reactions_vector_size)
+                BaseType::mpReactionsVector->resize(reactions_vector_size, false);
         }
 
         KRATOS_CATCH("")
