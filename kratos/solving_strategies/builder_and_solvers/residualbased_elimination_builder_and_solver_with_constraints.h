@@ -33,6 +33,7 @@
 #include "containers/pointer_vector_map.h"
 #include "containers/pointer_hash_map_set.h"
 #include "containers/data_value_container.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -186,7 +187,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             BaseType::Build(pScheme, rModelPart, rA, rb);
     }
 
-
     /**
      * @brief Function to perform the building and solving phase at the same time.
      * @details It is ideally the fastest and safer function to use when it is possible to solve
@@ -240,6 +240,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     #endif
 
         std::vector<set_type> dofs_aux_list_all(nthreads);
+        std::vector<set_type> dofs_aux_list_solvable(nthreads);
         std::vector<set_type> dofs_aux_list_master(nthreads);
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
@@ -247,9 +248,11 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         for (int i = 0; i < static_cast<int>(nthreads); i++) {
     #ifdef USE_GOOGLE_HASH
             dofs_aux_list_all[i].set_empty_key(DofPointerType());
+            dofs_aux_list_solvable[i].set_empty_key(DofPointerType());
             dofs_aux_list_master[i].set_empty_key(DofPointerType());
     #else
             dofs_aux_list_all[i].reserve(rModelPart.Elements().size());
+            dofs_aux_list_solvable[i].reserve(rModelPart.Elements().size());
             dofs_aux_list_master[i].reserve(rModelPart.MasterSlaveConstraints().size());
     #endif
         }
@@ -270,7 +273,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
 
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
-                dofs_aux_list_master[this_thread_id].insert(dof_list.begin(), dof_list.end());
+                dofs_aux_list_solvable[this_thread_id].insert(dof_list.begin(), dof_list.end());
             }
 
             KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
@@ -286,7 +289,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
-                dofs_aux_list_master[this_thread_id].insert(dof_list.begin(), dof_list.end());
+                dofs_aux_list_solvable[this_thread_id].insert(dof_list.begin(), dof_list.end());
             }
 
             auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
@@ -301,12 +304,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
                 // We remove the slave dofs
                 for (auto& dof : dof_list) {
-                    auto it = dofs_aux_list_master[this_thread_id].find(dof);
+                    auto it = dofs_aux_list_solvable[this_thread_id].find(dof);
                     // Check if Iterator is valid
-                    if(it != dofs_aux_list_master[this_thread_id].end())
-                        dofs_aux_list_master[this_thread_id].erase(it);
+                    if(it != dofs_aux_list_solvable[this_thread_id].end())
+                        dofs_aux_list_solvable[this_thread_id].erase(it);
                 }
                 dofs_aux_list_all[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
+                dofs_aux_list_solvable[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
                 dofs_aux_list_master[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
             }
         }
@@ -314,6 +318,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing tree reduction\n" << std::endl;
 
         // Here we do a reduction in a tree so to have everything on thread 0
+        // TODO: move to a function
         /* For all DoF */
         IndexType old_max = nthreads;
         IndexType new_max = ceil(0.5*static_cast<double>(old_max));
@@ -349,6 +354,26 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(new_max); ++i) {
                 if (i + new_max < old_max) {
+                    dofs_aux_list_solvable[i].insert(dofs_aux_list_solvable[i+new_max].begin(), dofs_aux_list_solvable[i+new_max].end());
+                    dofs_aux_list_solvable[i+new_max].clear();
+                }
+            }
+
+            old_max = new_max;
+            new_max = ceil(0.5*static_cast<double>(old_max));
+        }
+        old_max = nthreads;
+        new_max = ceil(0.5*static_cast<double>(old_max));
+        while (new_max>=1 && new_max != old_max) {
+            // Just for debugging
+            KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "old_max" << old_max << " new_max:" << new_max << std::endl;
+            for (int i = 0; i < static_cast<int>(new_max); ++i) {
+                KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2 && (i + new_max < old_max)) << i << " - " << i+new_max << std::endl;
+            }
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(new_max); ++i) {
+                if (i + new_max < old_max) {
                     dofs_aux_list_master[i].insert(dofs_aux_list_master[i+new_max].begin(), dofs_aux_list_master[i+new_max].end());
                     dofs_aux_list_master[i+new_max].clear();
                 }
@@ -360,15 +385,22 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
-        DofsArrayType dof_temp_all, dof_temp_master;
+        DofsArrayType dof_temp_all, dof_temp_solvable, dof_temp_master;
         BaseType::mDofSet = DofsArrayType();
-        mMasterDofSet = DofsArrayType();
+        mDoFToSolveSet = DofsArrayType();
+        mMasterDoFSet = DofsArrayType();
 
         dof_temp_all.reserve(dofs_aux_list_all[0].size());
         for (auto it= dofs_aux_list_all[0].begin(); it!= dofs_aux_list_all[0].end(); ++it) {
             dof_temp_all.push_back( it->get() );
         }
         dof_temp_all.Sort();
+
+        dof_temp_solvable.reserve(dofs_aux_list_solvable[0].size());
+        for (auto it= dofs_aux_list_solvable[0].begin(); it!= dofs_aux_list_solvable[0].end(); ++it) {
+            dof_temp_solvable.push_back( it->get() );
+        }
+        dof_temp_solvable.Sort();
 
         dof_temp_master.reserve(dofs_aux_list_master[0].size());
         for (auto it= dofs_aux_list_master[0].begin(); it!= dofs_aux_list_master[0].end(); ++it) {
@@ -377,11 +409,17 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         dof_temp_master.Sort();
 
         BaseType::mDofSet = dof_temp_all;
-        mMasterDofSet = dof_temp_master;
+        mDoFToSolveSet = dof_temp_solvable;
+        mMasterDoFSet = dof_temp_master;
+
+        // The total system of equations to be solved
+        mDoFToSolveSystemSize = mDoFToSolveSet.size();
+        mMasterDoFSystemSize = mMasterDoFSet.size();
 
         //Throws an exception if there are no Degrees Of Freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_ERROR_IF(mMasterDofSet.size() == 0) << "No MPC degrees of freedom!" << std::endl;
+        KRATOS_ERROR_IF(mDoFToSolveSystemSize == 0) << "No degrees of freedom to solve!" << std::endl;
+        KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", mMasterDoFSystemSize == 0) << "No MPC degrees of freedom to solve!" << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
 
@@ -549,9 +587,9 @@ protected:
         const LocalSystemMatrixType& rTransformationMatrix,
         const EquationIdVectorType& rSlaveEquationId,
         const EquationIdVectorType& rMasterEquationId
-#ifdef USE_LOCKS_IN_ASSEMBLY
+    #ifdef USE_LOCKS_IN_ASSEMBLY
         ,std::vector< omp_lock_t >& rLockArray
-#endif
+    #endif
         )
     {
         SizeType local_size = rTransformationMatrix.size1();
@@ -560,18 +598,18 @@ protected:
             IndexType i_global = rSlaveEquationId[i_local];
 
             if (i_global < BaseType::mEquationSystemSize) {
-#ifdef USE_LOCKS_IN_ASSEMBLY
+            #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_set_lock(&rLockArray[i_global]);
-#endif
+            #endif
                 for (IndexType j_local = 0; j_local < local_size; ++j_local) {
                     IndexType j_global = rMasterEquationId[j_local];
                     if (j_global < BaseType::mEquationSystemSize) {
                         rT(i_global, j_global) += rTransformationMatrix(i_local, j_local);
                     }
                 }
-#ifdef USE_LOCKS_IN_ASSEMBLY
+            #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&rLockArray[i_global]);
-#endif
+            #endif
 
             }
             //note that assembly on fixed rows is not performed here
@@ -686,9 +724,6 @@ protected:
         #endif
         }
 
-        // The process info
-        auto r_process_info = rModelPart.GetProcessInfo();
-
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
 
@@ -742,7 +777,7 @@ protected:
         #pragma omp parallel for firstprivate(nconstraints, ids, aux_ids)
         for (int i_const = 0; i_const < nconstraints; ++i_const) {
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-            it_const->EquationIdVector(ids, aux_ids, r_process_info);
+            it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
             for (IndexType i = 0; i < ids.size(); ++i) {
             #ifdef _OPENMP
                 omp_set_lock(&BaseType::mLockArray[ids[i]]);
@@ -817,124 +852,52 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("RelationMatrixStructure");
 
-         // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-        // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        auto el_begin = rModelPart.ElementsBegin();
-        auto cond_begin = rModelPart.ConditionsBegin();
-
-        const SizeType equation_size = BaseType::mEquationSystemSize;
+        std::unordered_map<IndexType, bool> dof_to_solve_indices;
+        dof_to_solve_indices.reserve(mDoFToSolveSystemSize);
 
     #ifdef USE_GOOGLE_HASH
-        std::vector<google::dense_hash_set<IndexType>> total_indices(equation_size);
-        std::vector<google::dense_hash_set<IndexType>> other_indices(equation_size);
-        std::vector<google::dense_hash_set<IndexType>> master_indices(equation_size);
-        const SizeType empty_key = 2 * equation_size + 10;
+        std::vector<google::dense_hash_set<IndexType>> master_indices(mMasterDoFSystemSize);
+        const SizeType empty_key = 2 * mMasterDoFSystemSize + 10;
     #else
-        std::vector<std::unordered_set<IndexType>> total_indices(equation_size);
-        std::vector<std::unordered_set<IndexType>> other_indices(equation_size);
-        std::vector<std::unordered_set<IndexType>> master_indices(equation_size);
+        std::vector<std::unordered_set<IndexType>> master_indices(mMasterDoFSystemSize);
     #endif
 
-        #pragma omp parallel for firstprivate(equation_size)
-        for (int index = 0; index < static_cast<int>(equation_size); ++index) {
+        #pragma omp parallel for
+        for (int index = 0; index < static_cast<int>(mMasterDoFSystemSize); ++index) {
         #ifdef USE_GOOGLE_HASH
-            total_indices[index].set_empty_key(empty_key);
-            other_indices[index].set_empty_key(empty_key);
             master_indices[index].set_empty_key(empty_key);
         #else
-            total_indices[index].reserve(40);
-            other_indices[index].reserve(40);
             master_indices[index].reserve(40);
         #endif
         }
 
+        // The set containing the solvable DoF that are not a master DoF
+        for (auto& dof : mDoFToSolveSet) {
+            auto it = mMasterDoFSet.find(dof);
+            if (it != mMasterDoFSet.end()) {
+                dof_to_solve_indices.insert(std::pair<IndexType, bool>({it->Id(), true}));
+            } else {
+                dof_to_solve_indices.insert(std::pair<IndexType, bool>({it->Id(), false}));
+            }
+        }
+
         // The process info
-        auto r_process_info = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
-
-        #pragma omp parallel for firstprivate(nelements, ids)
-        for (int i_elem = 0; i_elem<nelements; i_elem++) {
-            auto it_elem = el_begin + i_elem;
-            pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
-
-            for (IndexType i = 0; i < ids.size(); ++i) {
-                if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef _OPENMP
-                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
-                #endif
-                    auto& total_row_indices = total_indices[ids[i]];
-                    auto& other_row_indices = other_indices[ids[i]];
-                    auto& master_row_indices = master_indices[ids[i]];
-                    for (auto it = ids.begin(); it != ids.end(); ++it) {
-                        if (*it < BaseType::mEquationSystemSize)
-                            total_row_indices.insert(*it);
-                            other_row_indices.insert(*it);
-                            master_row_indices.insert(*it);
-                    }
-                #ifdef _OPENMP
-                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-                #endif
-                }
-            }
-
-        }
-
-        #pragma omp parallel for firstprivate(nconditions, ids)
-        for (int i_cond = 0; i_cond<nconditions; ++i_cond) {
-            auto it_cond = cond_begin + i_cond;
-            pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
-            for (IndexType i = 0; i < ids.size(); ++i) {
-                if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef _OPENMP
-                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
-                #endif
-                    auto& total_row_indices = total_indices[ids[i]];
-                    auto& other_row_indices = other_indices[ids[i]];
-                    auto& master_row_indices = master_indices[ids[i]];
-                    for (auto it = ids.begin(); it != ids.end(); ++it) {
-                        if (*it < BaseType::mEquationSystemSize)
-                            total_row_indices.insert(*it);
-                            other_row_indices.insert(*it);
-                            master_row_indices.insert(*it);
-                    }
-                #ifdef _OPENMP
-                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-                #endif
-                }
-            }
-        }
-
         EquationIdVectorType aux_ids(3, 0);
 
         const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         #pragma omp parallel for firstprivate(nconstraints, ids, aux_ids)
         for (int i_const = 0; i_const < nconstraints; ++i_const) {
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-            it_const->EquationIdVector(ids, aux_ids, r_process_info);
-            for (IndexType i = 0; i < ids.size(); ++i) {
-            #ifdef _OPENMP
-                omp_set_lock(&BaseType::mLockArray[ids[i]]);
-            #endif
-                auto &total_row_indices = total_indices[ids[i]];
-                total_row_indices.insert(ids.begin(), ids.end());
-            #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-            #endif
-            }
+            it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
             for (IndexType i = 0; i < aux_ids.size(); ++i) {
             #ifdef _OPENMP
                 omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
             #endif
-                auto &total_row_indices = total_indices[aux_ids[i]];
-                total_row_indices.insert(aux_ids.begin(), aux_ids.end());
-                auto &master_row_indices = total_indices[aux_ids[i]];
+                auto &master_row_indices = master_indices[aux_ids[i]];
                 master_row_indices.insert(aux_ids.begin(), aux_ids.end());
             #ifdef _OPENMP
                 omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
@@ -944,37 +907,60 @@ protected:
 
         // Count the row sizes
         SizeType nnz = 0;
-        for (IndexType i = 0; i < total_indices.size(); ++i)
-            nnz += total_indices[i].size();
-
-        rT = CompressedMatrixType(total_indices.size(), master_indices.size(), nnz);
-
-        double *Avalues = rT.value_data().begin();
-        IndexType *Arow_indices = rT.index1_data().begin();
-        IndexType *Acol_indices = rT.index2_data().begin();
-
-        // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-        Arow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(rT.size1()); i++)
-            Arow_indices[i + 1] = Arow_indices[i] + total_indices[i].size();
-
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rT.size1()); ++i) {
-            const IndexType row_begin = Arow_indices[i];
-            const IndexType row_end = Arow_indices[i + 1];
-            IndexType k = row_begin;
-            for (auto it = master_indices[i].begin(); it != master_indices[i].end(); ++it) {
-                Acol_indices[k] = *it;
-                Avalues[k] = 0.0;
-                k++;
+        IndexType counter = 0;
+        for (auto& to_solve : dof_to_solve_indices) {
+            if (to_solve.second) {
+                ++nnz;
+            } else {
+                nnz += master_indices[counter].size();
+                ++counter;
             }
-
-            total_indices[i].clear(); //deallocating the memory
-
-            std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
         }
 
-        rT.set_filled(total_indices.size() + 1, nnz);
+        rT = CompressedMatrixType(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, nnz);
+
+        double *Tvalues = rT.value_data().begin();
+        IndexType *Trow_indices = rT.index1_data().begin();
+        IndexType *Tcol_indices = rT.index2_data().begin();
+
+        // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        Trow_indices[0] = 0;
+
+        counter = 0;
+        for (auto& to_solve : dof_to_solve_indices) {
+            if (to_solve.second) {
+                Trow_indices[counter + 1] = Trow_indices[counter] + 1;
+            } else {
+                Trow_indices[counter + 1] = Trow_indices[counter] + master_indices[counter].size();
+            }
+            ++counter;
+        }
+
+        counter = 0;
+        IndexType master_counter = 0;
+        // TODO: OMP
+        for (auto& to_solve : dof_to_solve_indices) {
+            const IndexType row_begin = Trow_indices[counter];
+            const IndexType row_end = Trow_indices[counter + 1];
+            IndexType k = row_begin;
+            if (to_solve.second) {
+                Tvalues[k] = 1.0;
+            } else {
+                for (auto it = master_indices[master_counter].begin(); it != master_indices[master_counter].end(); ++it) {
+                    Tcol_indices[k] = *it;
+                    Tvalues[k] = 0.0;
+                    k++;
+                }
+                master_indices[master_counter].clear(); //deallocating the memory
+                ++master_counter;
+            }
+
+            std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
+
+            ++counter;
+        }
+
+        rT.set_filled(BaseType::mEquationSystemSize + 1, nnz);
 
         Timer::Stop("RelationMatrixStructure");
     }
@@ -1037,16 +1023,16 @@ protected:
         }
 
         // We compute the transposed matrix of the global relation matrix
-        TSystemMatrixType T_transpose_matrix(mMasterDoFSystemSize, BaseType::mEquationSystemSize);
+        TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
         SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
 
         // The auxiliar matrix to store the intermediate matrix multiplication
-        TSystemMatrixType auxiliar_A_matrix(mMasterDoFSystemSize, BaseType::mEquationSystemSize);
+        TSystemMatrixType auxiliar_A_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
         SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix);
 
         // We resize of system of equations
-        rA.resize(mMasterDoFSystemSize, mMasterDoFSystemSize);
-        rb.resize(mMasterDoFSystemSize);
+        rA.resize(mDoFToSolveSystemSize, mDoFToSolveSystemSize);
+        rb.resize(mDoFToSolveSystemSize);
 
         // Final multiplication
         SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, rTMatrix, rA);
@@ -1091,16 +1077,28 @@ protected:
 
             // Resizing the system vectors and matrix
             if (rTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) { // If the matrix is not initialized
-                rTMatrix.resize(BaseType::mEquationSystemSize, mMasterDoFSystemSize, false);
+                rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
                 ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
             } else {
-                if (rTMatrix.size1() != BaseType::mEquationSystemSize || rTMatrix.size2() != mMasterDoFSystemSize) {
+                if (rTMatrix.size1() != BaseType::mEquationSystemSize || rTMatrix.size2() != mDoFToSolveSystemSize) {
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
-                    rTMatrix.resize(BaseType::mEquationSystemSize, mMasterDoFSystemSize, true);
+                    rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, true);
                     ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
                 }
             }
         }
+    }
+
+    /**
+     * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
+     */
+    void Clear() override
+    {
+        BaseType::Clear();
+
+        mDoFToSolveSet = DofsArrayType();
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
     }
 
     ///@}
@@ -1127,9 +1125,11 @@ private:
 
     TSystemMatrixPointerType mpTMatrix = NULL; /// This is matrix containing the global relation for the constraints
 
-    DofsArrayType mMasterDofSet;               /// The set containing the master DoF of the system
+    DofsArrayType mDoFToSolveSet;              /// The set containing the solvable DoF of the system
+    DofsArrayType mMasterDoFSet;               /// The set containing the master DoF of the system
 
-    SizeType mMasterDoFSystemSize = 0;         /// Number of degrees of freedom of the problem to actually be solved
+    SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
+    SizeType mMasterDoFSystemSize = 0;         /// Number of master degrees of freedom of the problem
 
     ///@}
     ///@name Private Operators
@@ -1150,34 +1150,7 @@ private:
         // First we set up the system of equations without constraints
         BaseType::SetUpSystem(rModelPart);
 
-        // We add the contribution of the constrained system
-        const double start_formulate = OpenMPUtils::GetCurrentTime();
-
-        // Getting the array of the conditions
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
-        // Getting the beginning iterator
-        const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        #pragma omp parallel for schedule(guided, 512)
-        for (int i_constraints = 0; i_constraints < number_of_constraints; ++i_constraints) {
-            auto it_const = constraints_begin;
-            std::advance(it_const, i_constraints);
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
-
-            if (constraint_is_active) {
-//                 // Assemble the Constraint contribution
-//                 #pragma omp critical
-//                 AssembleConstraint(*it_const, r_current_process_info);
-            }
-        }
-        const double stop_formulate = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Formulate global constraints time: " << stop_formulate - start_formulate << std::endl;
+        // TODO: Add something if necessary
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
     }
