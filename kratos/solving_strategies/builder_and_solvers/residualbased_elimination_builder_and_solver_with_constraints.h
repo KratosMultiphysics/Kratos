@@ -697,10 +697,10 @@ protected:
         Timer::Start("MatrixStructure");
 
         // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
+        const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
 
         // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         auto el_begin = rModelPart.ElementsBegin();
@@ -727,8 +727,8 @@ protected:
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
 
-        #pragma omp parallel for firstprivate(nelements, ids)
-        for (int i_elem = 0; i_elem<nelements; i_elem++) {
+        #pragma omp parallel for firstprivate(number_of_elements, ids)
+        for (int i_elem = 0; i_elem<number_of_elements; i_elem++) {
             auto it_elem = el_begin + i_elem;
             pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
 
@@ -750,8 +750,8 @@ protected:
 
         }
 
-        #pragma omp parallel for firstprivate(nconditions, ids)
-        for (int i_cond = 0; i_cond<nconditions; ++i_cond) {
+        #pragma omp parallel for firstprivate(number_of_conditions, ids)
+        for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
             auto it_cond = cond_begin + i_cond;
             pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
             for (IndexType i = 0; i < ids.size(); ++i) {
@@ -773,30 +773,34 @@ protected:
 
         EquationIdVectorType aux_ids(3, 0);
 
-        const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        #pragma omp parallel for firstprivate(nconstraints, ids, aux_ids)
-        for (int i_const = 0; i_const < nconstraints; ++i_const) {
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        #pragma omp parallel for firstprivate(number_of_constraints, ids, aux_ids)
+        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
             it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
             for (IndexType i = 0; i < ids.size(); ++i) {
-            #ifdef _OPENMP
-                omp_set_lock(&BaseType::mLockArray[ids[i]]);
-            #endif
-                auto &row_indices = indices[ids[i]];
-                row_indices.insert(ids.begin(), ids.end());
-            #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-            #endif
+                if (ids[i] < BaseType::mEquationSystemSize) {
+                #ifdef _OPENMP
+                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                    auto &row_indices = indices[ids[i]];
+                    row_indices.insert(ids.begin(), ids.end());
+                #ifdef _OPENMP
+                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
+                #endif
+                }
             }
             for (IndexType i = 0; i < aux_ids.size(); ++i) {
-            #ifdef _OPENMP
-                omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
-            #endif
-                auto &row_indices = indices[aux_ids[i]];
-                row_indices.insert(aux_ids.begin(), aux_ids.end());
-            #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
-            #endif
+                if (aux_ids[i] < BaseType::mEquationSystemSize) {
+                #ifdef _OPENMP
+                    omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
+                #endif
+                    auto &row_indices = indices[aux_ids[i]];
+                    row_indices.insert(aux_ids.begin(), aux_ids.end());
+                #ifdef _OPENMP
+                    omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
+                #endif
+                }
             }
         }
 
