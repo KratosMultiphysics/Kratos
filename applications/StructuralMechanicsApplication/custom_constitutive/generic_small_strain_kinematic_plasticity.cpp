@@ -114,12 +114,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         array_1d<double, VoigtSize> g_flux = ZeroVector(VoigtSize); // DG/DS
         array_1d<double, VoigtSize> plastic_strain_increment = ZeroVector(VoigtSize);
 
-        TConstLawIntegratorType::CalculateAndSubstractBackStress(
-            predictive_stress_vector,
-            rValues,
-            this->GetPreviousStressVector(),
-            plastic_strain_increment,
-            back_stress_vector);
+        // Kinematic back stress substracted
+        predictive_stress_vector -= back_stress_vector;
 
 		TConstLawIntegratorType::CalculatePlasticParameters(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
@@ -129,6 +125,14 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
             plastic_strain, back_stress_vector);
 
         const double F = uniaxial_stress - threshold;
+
+
+		std::cout << "**************" << std::endl;
+        std::cout << "antes de integrar:" << std::endl;
+        KRATOS_WATCH(uniaxial_stress)
+        KRATOS_WATCH(threshold)
+        KRATOS_WATCH(back_stress_vector)
+        std::cout << "**************" << std::endl;
 
         if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -151,6 +155,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                 characteristic_length, back_stress_vector,
                 this->GetPreviousStressVector());
 
+            //KRATOS_WATCH(predictive_stress_vector)
+            // KRATOS_WATCH(back_stress_vector)
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             this->SetNonConvPlasticDissipation(plastic_dissipation);

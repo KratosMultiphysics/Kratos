@@ -186,7 +186,9 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         while (is_converged == false && iteration <= max_iter) {
             F = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = F * rPlasticDenominator;
-            //if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
+
+            if (plastic_consistency_factor_increment < 0.0) break;
+
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
@@ -199,6 +201,11 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
                                        rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
+
+			KRATOS_WATCH(rUniaxialStress)
+			KRATOS_WATCH(rBackStressVector)
+			KRATOS_WATCH(rPlasticDenominator)
+			KRATOS_WATCH(rThreshold)
 
             F = rUniaxialStress - rThreshold;
 
@@ -310,12 +317,11 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 KRATOS_ERROR_IF(kinematic_parameters.size() < 2) << "Kinematic Parameters not defined..." << std::endl;
                 dot_product_dp = 0.0;
                 for (int i = 0; i < rPlasticStrainIncrement.size(); ++i) {
-                    dot_product_dp += rPlasticStrainIncrement[i]*rPlasticStrainIncrement[i];
+                    dot_product_dp += rPlasticStrainIncrement[i] * rPlasticStrainIncrement[i];
                 }
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (kinematic_parameters[1] * pDot);
                 rBackStressVector += (2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
-                //KRATOS_WATCH(rBackStressVector)
 				break;
 
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
