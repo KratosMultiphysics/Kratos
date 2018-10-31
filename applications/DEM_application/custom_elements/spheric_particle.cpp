@@ -31,6 +31,7 @@ SphericParticle::SphericParticle()
 {
     mRadius = 0;
     mRealMass = 0;
+    mInitialNeighborsSize = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
@@ -42,6 +43,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     : DiscreteElement(NewId, pGeometry), mRealMass(0){
     mRadius = 0;
     mRealMass = 0;
+    mInitialNeighborsSize = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
@@ -54,6 +56,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
 {
     mRadius = 0;
     mRealMass = 0;
+    mInitialNeighborsSize = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
@@ -66,6 +69,7 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
 {
     mRadius = 0;
     mRealMass = 0;
+    mInitialNeighborsSize = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
@@ -405,6 +409,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& mTemp
         }
     }
 
+    mInitialNeighborsSize = new_size;
     vector_of_ids_of_neighbours.swap(mTempNeighboursIds);
     mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
     mNeighbourElasticExtraContactForces.swap(mTempNeighbourElasticExtraContactForces);

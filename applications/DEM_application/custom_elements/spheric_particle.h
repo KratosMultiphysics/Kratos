@@ -263,6 +263,8 @@ virtual void PrintData(std::ostream& rOStream) const override {}
 double mElasticEnergy;
 double mInelasticFrictionalEnergy;
 double mInelasticViscodampingEnergy;
+
+std::vector<ParticleContactElement*> mBondElements;
 std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<int>                  mContactingNeighbourIds;
 std::vector<int>                  mContactingFaceNeighbourIds;
@@ -289,6 +291,8 @@ double mPartialRepresentativeVolume;
 
 
 std::vector<int> mFemOldNeighbourIds;
+
+unsigned int mInitialNeighborsSize;
 
 protected:
 

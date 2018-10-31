@@ -293,48 +293,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ContinuumExplicitSolverStrategy::ContactInitializeSolutionStep() {
-        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
-
-        DenseVector<unsigned int> contact_element_partition;
-
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
-
-            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                (it_contact)->InitializeSolutionStep(r_process_info);
-            } //loop over CONTACT ELEMENTS
-
-        }// loop threads OpenMP
-
-    } //Contact_InitializeSolutionStep
-
-    void ContinuumExplicitSolverStrategy::PrepareContactElementsForPrinting() {
-
-        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-
-        DenseVector<unsigned int> contact_element_partition;
-
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
-
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
-
-            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                Element* raw_p_contact_element = &(*it_contact);
-                ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (raw_p_contact_element);
-                p_bond->PrepareForPrinting();
-            } //loop over CONTACT ELEMENTS
-        }// loop threads OpenMP
-        //Important TODO: renumber all id's to avoid repetition across partitions
-    } //PrepareContactElementsForPrinting
-
     void ContinuumExplicitSolverStrategy::SetCoordinationNumber(ModelPart& r_model_part) {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 

@@ -344,6 +344,9 @@ class ExplicitStrategy(object):
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
 
+    def PrepareContactElementsForPrinting(self):
+        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
+
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
         if gamma <= 1.0/math.sqrt(2.0) :

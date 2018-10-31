@@ -68,8 +68,6 @@ namespace Kratos {
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi);
         void ComputeNewNeighboursHistoricalData() override;
         void ComputeNewRigidFaceNeighboursHistoricalData() override;
-        void ContactInitializeSolutionStep();
-        void PrepareContactElementsForPrinting();
         void SetCoordinationNumber(ModelPart& r_model_part);
         double ComputeCoordinationNumber(double& standard_dev);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
@@ -102,10 +100,6 @@ namespace Kratos {
         }
 
         virtual void Reassign_Ids(ModelPart& mcontacts_model_part) {
-        }
-
-        virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
-            return r_model_part.Elements();
         }
 
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) override {
