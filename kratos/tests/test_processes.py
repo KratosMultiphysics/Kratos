@@ -1441,7 +1441,7 @@ def SetNodalValuesForPointOutputProcesses(model_part):
         node.SetSolutionStepValue(VISCOSITY, time**2 + 1.038)
 
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
-    current_model = model_part.GetOwnerModel()
+    current_model = model_part.GetModel()
     import process_factory
     list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
         settings["process_list"] )

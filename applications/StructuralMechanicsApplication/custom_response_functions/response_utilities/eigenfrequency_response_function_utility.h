@@ -118,13 +118,13 @@ public:
         CheckIfAllNecessaryEigenvaluesAreComputed();
 
         double resp_function_value = 0.0;
-        KRATOS_INFO("EigenfrequencyResponseFunctionUtility") << "CalculateValue:" << std::endl;
-        std::cout << "    #    Eigenfrequency [Hz]    weighting factor" <<std::endl;
+        KRATOS_INFO("EigenfrequencyResponseFunctionUtility") << "CalculateValue:" << std::endl
+        << "    #    Eigenfrequency [Hz]    weighting factor" <<std::endl;
         for(std::size_t i = 0; i < mTracedEigenfrequencyIds.size(); i++)
         {
             const double eigenfrequency = std::sqrt(GetEigenvalue(mTracedEigenfrequencyIds[i])) / (2*Globals::Pi);
             resp_function_value += mWeightingFactors[i] * eigenfrequency;
-            std::cout << std::setw(5)  << mTracedEigenfrequencyIds[i]
+            KRATOS_INFO("") << std::setw(5)  << mTracedEigenfrequencyIds[i]
                       << std::setw(23) << eigenfrequency
                       << std::setw(20) << mWeightingFactors[i]<< std::endl;
         }

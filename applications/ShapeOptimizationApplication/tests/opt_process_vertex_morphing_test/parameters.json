@@ -23,12 +23,11 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "type"                               : "vertex_morphing",
+            "type"  : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "gaussian",
                 "filter_radius"              : 5.0,
-                "max_nodes_in_filter_radius" : 100,
-                "matrix_free_filtering"      : false
+                "max_nodes_in_filter_radius" : 100
             }
         },
         "optimization_algorithm" : {

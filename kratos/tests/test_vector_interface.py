@@ -18,8 +18,10 @@ class TestVectorInterface(KratosUnittest.TestCase):
             self.assertEqual(a[i],i)
 
     def test_sum(self):
-        a = Vector(3,1.0)
-        b = Vector(3,2.0)
+        a = Vector(3)
+        a.fill(1.0)
+        b = Vector(3)
+        b.fill(2.0)
 
         c = a+b
         for it in c:
@@ -43,9 +45,9 @@ class TestVectorInterface(KratosUnittest.TestCase):
         e = Vector(2)
         e[0] = 0.0
         e[1] = 0.0
-        print(e)
+
         e += 2
-        print(e)
+
         for it in e:
             self.assertEqual(it,2.0)
 
@@ -80,16 +82,6 @@ class TestVectorInterface(KratosUnittest.TestCase):
         self.assertEqual(len(slice3),3)
         for i,value in enumerate(slice3):
             self.assertEqual(value, i )
-
-        slice4 = v[0::2] # slice get with step
-        self.assertEqual(len(slice4),3)
-        for i,value in enumerate(slice4):
-            self.assertEqual(value, 2*i )
-
-        slice5 = v[::-1] # slice get with reverse step
-        self.assertEqual(len(slice5),5)
-        for i,value in enumerate(slice5):
-            self.assertEqual(value, 4-i )
 
         # slice set
         v[0:3] = [2*i for i in range(3)]

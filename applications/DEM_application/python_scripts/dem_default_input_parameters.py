@@ -40,7 +40,9 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
-
+            "strategy_parameters" :{
+                "RemoveBallsInitiallyTouchingWalls": false
+            },
             "DeltaOption"                      : "Absolute",
             "SearchTolerance"                  : 0.0,
             "CoordinationNumber"               : 10,
@@ -80,7 +82,6 @@ def GetDefaultInputParameters():
                 "PostVirtualSeaSurfaceY4"      : 0.0
             },
 
-            "TestType"                         : false,
             "ConfinementPressure"              : 0.0,
             "LoadingVelocity"                  : -0.10,
             "MeshType"                         : "1",
