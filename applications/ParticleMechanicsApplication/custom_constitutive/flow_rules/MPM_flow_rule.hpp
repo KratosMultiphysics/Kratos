@@ -150,10 +150,11 @@ public:
 
         double CharacteristicSize;
 
-        Matrix TrialIsoStressMatrix;
+        Matrix TrialIsoStressMatrix {ZeroMatrix(3)};
 
-        Matrix StrainMatrix;
-        Matrix MainDirections;
+        Matrix StrainMatrix {ZeroMatrix(3)};
+
+        Matrix MainDirections {IdentityMatrix(3)};
 
         ThermalVariables Thermal;
 
@@ -213,7 +214,7 @@ public:
         {
             EquivalentPlasticStrain = 0;
             AccumulatedPlasticVolumetricStrain = 0;
-            AccumulatedPlasticDeviatoricStrain = 0; 
+            AccumulatedPlasticDeviatoricStrain = 0;
             DeltaPlasticStrain = 0;
             DeltaPlasticVolumetricStrain = 0;
             DeltaPlasticDeviatoricStrain = 0;
@@ -261,7 +262,7 @@ public:
             rSerializer.load("AccumulatedPlasticVolumetricStrain",AccumulatedPlasticVolumetricStrain);
             rSerializer.load("DeltaPlasticVolumetricStrain",DeltaPlasticVolumetricStrain);
             rSerializer.load("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
-            rSerializer.load("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);           
+            rSerializer.load("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);
             rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
         };
     };
@@ -411,7 +412,7 @@ public:
         KRATOS_ERROR << "Calling the base class function (GetPlasticRegion) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
-    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
     {
         KRATOS_ERROR << "Calling the base class function (CalculatePrincipalStressTrial) in MPM FlowRule:: illegal operation!" << std::endl;
     };
@@ -477,7 +478,7 @@ protected:
     virtual double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm )
     {
         KRATOS_ERROR << "Calling the base class function (CalculateStressNorm) in MPM FlowRule:: illegal operation!" << std::endl;
-    
+
         return rStressNorm;
     };
 
@@ -599,6 +600,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MPM_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_MPM_FLOW_RULE_H_INCLUDED  defined
 
 
