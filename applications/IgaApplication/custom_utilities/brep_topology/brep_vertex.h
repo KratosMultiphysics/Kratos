@@ -36,7 +36,7 @@ namespace Kratos
             int brep_id;
             int trim_index;
 
-			VertexTopology(const int& rBrepId, const int& rTrimIndex)
+            VertexTopology(const int& rBrepId, const int& rTrimIndex)
             {
                 brep_id    = rBrepId;
                 trim_index = rTrimIndex;
@@ -45,11 +45,11 @@ namespace Kratos
 
         ///@name Life Cycle 
         ///@{ 
-        Topology GetVertexInformation(const int& rTopologyIndex);
+        VertexTopology GetVertexInformation(const int& rTopologyIndex);
 
         /// Constructor.
         BrepVertex::BrepVertex(unsigned int& rVertexId,
-            std::vector<Topology>& rBrepVertexTopologyVector,
+            std::vector<VertexTopology>& rBrepVertexTopologyVector,
             int rControlPointId,
             Vector& rPoint)
             : m_brep_vertex_topology_vector(rBrepVertexTopologyVector),

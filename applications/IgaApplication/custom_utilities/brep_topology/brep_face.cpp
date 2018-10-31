@@ -12,21 +12,22 @@
 //
 
 // Project includes
-#include "BrepFace.h"
+#include "brep_face.h"
 
 namespace Kratos
 {
     ///Constructor
-    BrepFace::BrepFace(unsigned int rBrepId,
+    BrepFace::BrepFace(
+        int& rBrepId,
         bool rIsTrimmed,
         bool rIsRational,
-        TrimmingLoopVector& rTrimmingLoops,
-        TrimmingLoopVector& rEmbeddedLoops,
+        std::vector<BrepTrimmingCurve>& rTrimmingLoops,
+        std::vector<BrepBoundaryLoop>& rEmbeddedLoops,
         std::vector<EmbeddedPoint>& rEmbeddedPoints,
         Vector& rKnotVectorU,
         Vector& rKnotVectorV,
-        unsigned int& rP,
-        unsigned int& rQ,
+        int& rP,
+        int& rQ,
         IntVector& rControlPointIds,
         Kratos::shared_ptr<ModelPart> rModelPart)
         : m_trimming_loops(rTrimmingLoops),
@@ -39,19 +40,19 @@ namespace Kratos
           IndexedObject(rBrepId),
           Flags()
     {
-        int number_of_nodes_u = rKnotVectorU.size() + rP - 1;
-        int number_of_nodes_v = rKnotVectorV.size() + rQ - 1;
+        //int number_of_nodes_u = rKnotVectorU.size() + rP - 1;
+        //int number_of_nodes_v = rKnotVectorV.size() + rQ - 1;
 
 
-        m_node_surface_geometry_3d = NodeSurfaceGeometry3D(rP, rQ, number_of_nodes_u, number_of_nodes_v);
+        //NodeSurfaceGeometry3D& m_node_surface_geometry_3d(rP, rQ, number_of_nodes_u, number_of_nodes_v);
 
-        for (int i = 0; i < number_of_nodes_u; ++i)
-        {
-            for (int j = 0; j < number_of_nodes_v; ++j)
-            {
-                SetNode(i, j, rModelPart->pGetNode(rControlPointIds[i*(number_of_nodes_u)+j]));
-            }
-        }
+        //for (int i = 0; i < number_of_nodes_u; ++i)
+        //{
+        //    for (int j = 0; j < number_of_nodes_v; ++j)
+        //    {
+        //        m_node_surface_geometry_3d.SetNode(i, j, rModelPart->pGetNode(rControlPointIds[i*(number_of_nodes_u)+j]));
+        //    }
+        //}
     }
 
     ///Destructor

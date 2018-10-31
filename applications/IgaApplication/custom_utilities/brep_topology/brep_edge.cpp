@@ -14,7 +14,7 @@
 
 
 // Project includes
-#include "BrepEdge.h"
+#include "brep_edge.h"
 
 namespace Kratos
 {
@@ -30,32 +30,35 @@ namespace Kratos
     }
 
     ///Constructor
-    BrepEdge::BrepEdge(unsigned int rBrepId,
-		std::vector<Topology>& rBrepEdgeTopologyVector,
-		std::vector<TrimmingRange>& rTrimmingRangeVector,
-		Vector& rKnotVector,
-		Vector& rActiveRange,
-		std::vector<int>& rControlPointIds,
-		Kratos::shared_ptr<ModelPart> rModelPart)
+    BrepEdge::BrepEdge(
+        int rBrepId,
+        std::vector<EdgeTopology>& rBrepEdgeTopologyVector,
+        std::vector<TrimmingRange>& rTrimmingRangeVector,
+        Vector& rKnotVector,
+        Vector& rActiveRange,
+        std::vector<int>& rControlPointIds,
+        ModelPart& rModelPart)
         : m_brep_edge_topology_vector(rBrepEdgeTopologyVector),
           m_trimming_range_vector(rTrimmingRangeVector),
           m_active_range(rActiveRange),
           m_control_point_ids(rControlPointIds),
-          mp_model_part(rModelPart),
+          m_model_part(rModelPart),
           IndexedObject(rBrepId),
           Flags()
     {
-        m_curve_geometry = NodeCurveGeometry(degree, NumberOfNodes);
+        //int number_of_nodes = rKnotVector.size() + rP - 1;
 
-        for (int i = 0; i < control_point_ids.size(); ++i)
-        {
-            m_curve_geometry.SetNode(i, mp_model_part->pGetNode(control_point_ids[i]));
-        }
+        //NodeCurveGeometry3D& m_nurbs_curve_geometry_3d = new NodeCurveGeometry3D(degree, NumberOfNodes);
 
-        for (int i = 0; i < knot_vector.size(); ++i)
-        {
-            m_curve_geometry.SetPole(i, knot_vector[i]);
-        }
+        //for (int i = 0; i < rControlPointIds.size(); ++i)
+        //{
+        //    m_nurbs_curve_geometry_3d.SetNode(i, rModelPart.pGetNode(rControlPointIds[i]));
+        //}
+
+        //for (int i = 0; i < rKnotVector.size(); ++i)
+        //{
+        //    m_nurbs_curve_geometry_3d.SetPole(i, rKnotVector[i]);
+        //}
     }
 } // namespace Kratos.
 

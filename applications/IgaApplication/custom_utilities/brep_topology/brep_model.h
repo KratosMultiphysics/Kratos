@@ -4,9 +4,9 @@
 // System includes
 
 // Project includes
-#include "BrepFace.h"
-#include "BrepEdge.h"
-#include "BrepVertex.h"
+#include "brep_face.h"
+#include "brep_edge.h"
+#include "brep_vertex.h"
 
 namespace Kratos
 {

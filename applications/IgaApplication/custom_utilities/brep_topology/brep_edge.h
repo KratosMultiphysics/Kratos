@@ -33,28 +33,28 @@ namespace Kratos
     class BrepEdge : public IndexedObject, public Flags
     {
     public:
-		/* Geometry Refinement Parameters are used to pass the full refinement information
-		*  needed for face-refinement.
-		*/
-		struct GeometryRefinementParametersCurve
-		{
-			/// knot variables
-			Vector knot_insertions_u;
-			int multiply_knots_u;
-			double max_element_size_u;
-			/// degree variables
-			int order_elevation_p;
-			int min_order_p;
+        /* Geometry Refinement Parameters are used to pass the full refinement information
+        *  needed for face-refinement.
+        */
+        struct GeometryRefinementParametersCurve
+        {
+            /// knot variables
+            Vector knot_insertions_u;
+            int multiply_knots_u;
+            double max_element_size_u;
+            /// degree variables
+            int order_elevation_p;
+            int min_order_p;
 
-			/* Constructor */
-			GeometryRefinementParametersSurface() {
-				knot_insertions_u = ZeroVector(0);
-				multiply_knots_u = 0;
-				max_element_size_u = 0.0;
-				order_elevation_p = 0;
-				min_order_p = 0;
-			}
-		};
+            /* Constructor */
+            GeometryRefinementParametersCurve() {
+                knot_insertions_u = ZeroVector(0);
+                multiply_knots_u = 0;
+                max_element_size_u = 0.0;
+                order_elevation_p = 0;
+                min_order_p = 0;
+            }
+        };
 
 
         /* Used to separate the curve into trimmed ranges. */
@@ -77,7 +77,7 @@ namespace Kratos
             int trim_index;
             bool relative_direction;
 
-            Topology(const int& rBrepId, const int& rTrimIndex, const bool& rRelativeDirection)
+            EdgeTopology(const int& rBrepId, const int& rTrimIndex, const bool& rRelativeDirection)
             {
                 brep_id = rBrepId;
                 trim_index = rTrimIndex;
@@ -91,13 +91,14 @@ namespace Kratos
         bool IsCouplingEdge();
 
         ///Constructor
-        BrepEdge::BrepEdge(unsigned int rBrepId,
-            std::vector<Topology>& rBrepEdgeTopologyVector,
+        BrepEdge::BrepEdge(
+            int rBrepId,
+            std::vector<EdgeTopology>& rBrepEdgeTopologyVector,
             std::vector<TrimmingRange>& rTrimmingRangeVector,
             Vector& rKnotVector,
             Vector& rActiveRange,
             std::vector<int>& rControlPointIds,
-            Kratos::shared_ptr<ModelPart> rModelPart);
+            ModelPart& rModelPart);
 
         /// Destructor.
         virtual ~BrepEdge() {};
@@ -113,12 +114,12 @@ namespace Kratos
         std::vector<EdgeTopology>  m_brep_edge_topology_vector;
         std::vector<TrimmingRange> m_trimming_range_vector;
 
-        NodeCurveGeometry3D        m_curve_geometry;
+        //NodeCurveGeometry3D&        m_nurbs_curve_geometry_3d;
 
         //3d curve parameter
         Vector                        m_active_range;
         std::vector<int>              m_control_point_ids;
-        Kratos::shared_ptr<ModelPart> mp_model_part;
+        ModelPart& m_model_part;
         ///@}    
     }; // Class BrepEdge 
 

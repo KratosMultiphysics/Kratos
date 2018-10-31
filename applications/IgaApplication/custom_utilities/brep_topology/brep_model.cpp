@@ -13,7 +13,7 @@
 //
 
 // Project includes
-#include "BrepModel.h"
+#include "brep_model.h"
 
 #include "iga_application.h"
 #include "iga_application_variables.h"

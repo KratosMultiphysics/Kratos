@@ -12,7 +12,7 @@
 
 
 // Project includes
-#include "BrepVertex.h"
+#include "brep_vertex.h"
 
 namespace Kratos
 {
