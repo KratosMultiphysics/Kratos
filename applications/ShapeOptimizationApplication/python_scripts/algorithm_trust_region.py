@@ -130,8 +130,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __InitializeNewShape(self):
-            self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
-            self.model_part_controller.SetReferenceMeshToMesh()
+        self.model_part_controller.InitializeNewOptimizationStep(self.opt_iteration)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __AnalyzeShape(self):

@@ -38,10 +38,10 @@ class MeshControllerWithSolver(MeshController) :
                     "time_step"       : 1.0
                 },
                 "domain_size"     : 3,
-                "linear_solver_settings" : {
+                "mesh_motion_linear_solver_settings" : {
                     "solver_type" : "AMGCL",
                     "smoother_type":"ilu0",
-                    "krylov_type": "gmres",
+                    "krylov_type": "bicgstab",
                     "coarsening_type": "aggregation",
                     "max_iteration": 200,
                     "verbosity" : 0,
@@ -54,6 +54,11 @@ class MeshControllerWithSolver(MeshController) :
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
+        self.MeshSolverSettings["solver_settings"].ValidateAndAssignDefaults(default_settings["solver_settings"])
+
+        if not self.MeshSolverSettings["solver_settings"].Has("mesh_motion_linear_solver_settings"):
+            MeshSolverSettings.AddValue("mesh_motion_linear_solver_settings", default_settings["solver_settings"]["mesh_motion_linear_solver_settings"])
+            print("::[MeshControllerWithSolver]::INFO using default linear solver for mesh motion.")
 
         if not MeshSolverSettings.Has("problem_data"):
             self.__AddDefaultProblemData(self.MeshSolverSettings)
@@ -82,17 +87,26 @@ class MeshControllerWithSolver(MeshController) :
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
-        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
+        time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
+        step_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(STEP)
+        delta_time_before_update = self.OptimizationModelPart.ProcessInfo.GetValue(DELTA_TIME)
 
-        time_before_mesh_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
+        # Reset step/time iterators such that they match the current iteration after calling RunSolutionLoop (which internally calls CloneTimeStep)
+        self.OptimizationModelPart.ProcessInfo.SetValue(STEP, step_before_update-1)
+        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update-1)
+        self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, 0)
+
+        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
             self._mesh_moving_analysis.end_time += 1
         self._mesh_moving_analysis.RunSolutionLoop()
 
-        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_mesh_update)
-
         MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(MESH_DISPLACEMENT)
+
+        self.OptimizationModelPart.ProcessInfo.SetValue(STEP, step_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_update)
+        self.OptimizationModelPart.ProcessInfo.SetValue(DELTA_TIME, delta_time_before_update)
 
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
@@ -132,8 +146,7 @@ class MeshControllerWithSolver(MeshController) :
             }
             """)
 
-        print("Add automatic process to fix the whole surface to mesh motion solver:")
-        print(auto_process_settings)
+        print("> Add automatic process to fix the whole surface to mesh motion solver:")
         mesh_solver_settings["boundary_conditions_process_list"].Append(auto_process_settings)
 
 # ==============================================================================

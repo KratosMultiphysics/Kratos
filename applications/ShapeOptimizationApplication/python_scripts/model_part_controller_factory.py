@@ -75,12 +75,20 @@ class ModelPartController:
             raise RuntimeError("The model part for the optimization has to be read from the mdpa file!")
         input_filename = self.model_settings["model_import_settings"]["input_filename"].GetString()
 
+        if self.optimization_model_part.GetBufferSize() < 1:
+            self.optimization_model_part.SetBufferSize(1)
+
         model_part_io = ModelPartIO(input_filename)
         model_part_io.ReadModelPart(self.optimization_model_part)
 
     # --------------------------------------------------------------------------
     def InitializeMeshController(self):
         self.mesh_controller.Initialize()
+
+    # --------------------------------------------------------------------------
+    def InitializeNewOptimizationStep(self, step):
+        self.optimization_model_part.CloneTimeStep(step)
+        self.optimization_model_part.ProcessInfo.SetValue(STEP, step)
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, InputVariable):
