@@ -1179,33 +1179,33 @@ namespace Kratos {
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                     }
+
+                    if (submp.Has(TABLE_NUMBER_FORCE_X)) {
+                        const int table_number = submp[TABLE_NUMBER_FORCE_X];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = fem_model_part.GetTable(table_number).GetValue(time);
+                    }
+                    if (submp.Has(TABLE_NUMBER_FORCE_Y)) {
+                        const int table_number = submp[TABLE_NUMBER_FORCE_Y];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = fem_model_part.GetTable(table_number).GetValue(time);
+                    }
+                    if (submp.Has(TABLE_NUMBER_FORCE_Z)) {
+                        const int table_number = submp[TABLE_NUMBER_FORCE_Z];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = fem_model_part.GetTable(table_number).GetValue(time);
+                    }
+
+                    if (submp.Has(TABLE_NUMBER_MOMENT_X)) {
+                        const int table_number = submp[TABLE_NUMBER_MOMENT_X];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = fem_model_part.GetTable(table_number).GetValue(time);
+                    }
+                    if (submp.Has(TABLE_NUMBER_MOMENT_Y)) {
+                        const int table_number = submp[TABLE_NUMBER_MOMENT_Y];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = fem_model_part.GetTable(table_number).GetValue(time);
+                    }
+                    if (submp.Has(TABLE_NUMBER_MOMENT_Z)) {
+                        const int table_number = submp[TABLE_NUMBER_MOMENT_Z];
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = fem_model_part.GetTable(table_number).GetValue(time);
+                    }
                 }
-            }
-
-            if (submp.Has(TABLE_NUMBER_FORCE_X)) {
-                const int table_number = submp[TABLE_NUMBER_FORCE_X];
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = fem_model_part.GetTable(table_number).GetValue(time);
-            }
-            if (submp.Has(TABLE_NUMBER_FORCE_Y)) {
-                const int table_number = submp[TABLE_NUMBER_FORCE_Y];
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = fem_model_part.GetTable(table_number).GetValue(time);
-            }
-            if (submp.Has(TABLE_NUMBER_FORCE_Z)) {
-                const int table_number = submp[TABLE_NUMBER_FORCE_Z];
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = fem_model_part.GetTable(table_number).GetValue(time);
-            }
-
-            if (submp.Has(TABLE_NUMBER_MOMENT_X)) {
-                const int table_number = submp[TABLE_NUMBER_MOMENT_X];
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = fem_model_part.GetTable(table_number).GetValue(time);
-            }
-            if (submp.Has(TABLE_NUMBER_MOMENT_Y)) {
-                const int table_number = submp[TABLE_NUMBER_MOMENT_Y];
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = fem_model_part.GetTable(table_number).GetValue(time);
-            }
-            if (submp.Has(TABLE_NUMBER_MOMENT_Z)) {
-                const int table_number = submp[TABLE_NUMBER_MOMENT_Z];
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = fem_model_part.GetTable(table_number).GetValue(time);
             }
         }
         KRATOS_CATCH("")
