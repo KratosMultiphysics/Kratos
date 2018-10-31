@@ -118,12 +118,13 @@ namespace Kratos
 
             // Fix dofs
             for (auto& node : rModelPart.Nodes()) {
+                node.Fix(DISPLACEMENT_Y);
                 node.Fix(DISPLACEMENT_Z);
             }
             pnode1->Fix(DISPLACEMENT_X);
 
             if (WithConstraint) {
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_Y, *pnode2, DISPLACEMENT_Y, 1.0, 0.0);
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_X, *pnode2, DISPLACEMENT_X, 1.0, 0.0);
             }
         }
 
@@ -262,17 +263,17 @@ namespace Kratos
             return rA;
         }
 
-        static void DebugLHS(const SparseSpaceType::MatrixType& rA)
-        {
-            const double numeric_limit = std::numeric_limits<double>::epsilon();
-            for (int i = 0; i < rA.size1(); ++i) {
-                for (int j = 0; j < rA.size2(); ++j) {
-                    if (std::abs(rA(i, j)) > 1.0e4 * numeric_limit) {
-                        std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - " << rA(i, j) << ")/rA(" << i << "," << j << ")), tolerance);" << std::endl;
-                    }
-                }
-            }
-        }
+//         static void DebugLHS(const SparseSpaceType::MatrixType& rA)
+//         {
+//             const double numeric_limit = std::numeric_limits<double>::epsilon();
+//             for (int i = 0; i < rA.size1(); ++i) {
+//                 for (int j = 0; j < rA.size2(); ++j) {
+//                     if (std::abs(rA(i, j)) > 1.0e4 * numeric_limit) {
+//                         std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - " << rA(i, j) << ")/rA(" << i << "," << j << ")), tolerance);" << std::endl;
+//                     }
+//                 }
+//             }
+//         }
      
         /**
          * Checks if the block builder and solver performs correctly the resolution of the system
@@ -347,10 +348,8 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1)/rA(1,1)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1)/rA(2,2)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 4.138e+09)/rA(3,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,6) - -2.069e+09)/rA(3,6)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1)/rA(4,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1)/rA(5,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,3) - -2.069e+09)/rA(6,3)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 2.069e+09)/rA(6,6)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - 1)/rA(7,7)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,8) - 1)/rA(8,8)), tolerance);
@@ -382,12 +381,12 @@ namespace Kratos
 
             // The solution check
             constexpr double tolerance = 1e-4;
-            KRATOS_CHECK(rA.size1() == 5);
-            KRATOS_CHECK(rA.size2() == 5);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 4.138e+09)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,3) - -2.069e+09)/rA(1,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,1) - -2.069e+09)/rA(3,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 2.069e+09)/rA(3,3)), tolerance);
+            KRATOS_CHECK(rA.size1() == 2);
+            KRATOS_CHECK(rA.size2() == 2);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 4.138e+09)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,1) - -2.069e+09)/rA(0,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,0) - -2.069e+09)/rA(1,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 2.069e+09)/rA(1,1)), tolerance);
         }
 
         /**
