@@ -54,6 +54,12 @@ class MPIDataCommunicator: public DataCommunicator
     , mComm(TheMPIComm)
     {}
 
+    /// Copy constructor.
+    MPIDataCommunicator(MPIDataCommunicator const &rOther)
+    : DataCommunicator(rOther)
+    , mComm(rOther.mComm)
+    {}
+
     /// Destructor.
     ~MPIDataCommunicator() override {}
 
@@ -70,10 +76,10 @@ class MPIDataCommunicator: public DataCommunicator
     ///@name Access
     ///@{
 
-    MPI_Comm GetMPICommunicator() const override
+/*    MPI_Comm GetMPICommunicator() const override
     {
         return mComm;
-    }
+    }*/
 
     ///@}
     ///@name Inquiry
@@ -134,9 +140,6 @@ class MPIDataCommunicator: public DataCommunicator
 
     /// Assignment operator.
     MPIDataCommunicator &operator=(MPIDataCommunicator const &rOther) = delete;
-
-    /// Copy constructor.
-    MPIDataCommunicator(MPIDataCommunicator const &rOther) = delete;
 
     ///@}
 

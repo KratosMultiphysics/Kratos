@@ -16,14 +16,15 @@
 // System includes
 #include <string>
 #include <iostream>
-#ifdef KRATOS_USING_MPI
-#include <mpi.h>
-#endif
+//#ifdef KRATOS_USING_MPI
+//#include <mpi.h>
+//#endif
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_components.h"
 
 namespace Kratos
 {
@@ -52,6 +53,9 @@ class DataCommunicator
     /// Default constructor.
     DataCommunicator() {}
 
+    /// Copy constructor.
+    DataCommunicator(DataCommunicator const &rOther) {};
+
     /// Destructor.
     virtual ~DataCommunicator() {}
 
@@ -79,12 +83,12 @@ class DataCommunicator
     ///@name Access
     ///@{
 
-    #ifdef KRATOS_USING_MPI
+/*    #ifdef KRATOS_USING_MPI
     virtual MPI_Comm GetMPICommunicator() const
     {
         return MPI_COMM_SELF;
     }
-    #endif
+    #endif*/
 
     ///@}
     ///@name Inquiry
@@ -184,12 +188,13 @@ class DataCommunicator
     /// Assignment operator.
     DataCommunicator &operator=(DataCommunicator const &rOther) = delete;
 
-    /// Copy constructor.
-    DataCommunicator(DataCommunicator const &rOther) = delete;
-
     ///@}
 
 }; // Class DataCommunicator
+
+template class KRATOS_API(KRATOS_CORE) KratosComponents<DataCommunicator >;
+
+//void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, DataCommunicator const& ThisComponent);
 
 ///@}
 
