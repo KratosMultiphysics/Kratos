@@ -299,7 +299,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Gets list of Dof involved on every element
                 it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
-//                 dofs_aux_list_master[this_thread_id].erase(dof_list.begin(), dof_list.end()); // We remove the slave dofs
+                // We remove the slave dofs
+                for (auto& dof : dof_list) {
+                    auto it = dofs_aux_list_master[this_thread_id].find(dof);
+                    // Check if Iterator is valid
+                    if(it != dofs_aux_list_master[this_thread_id].end())
+                        dofs_aux_list_master[this_thread_id].erase(it);
+                }
                 dofs_aux_list_all[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
                 dofs_aux_list_master[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
             }
