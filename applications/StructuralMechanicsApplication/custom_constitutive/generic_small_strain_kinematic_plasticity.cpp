@@ -162,6 +162,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                 noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
             }
         }
+        this->SetNonConvergedPreviousStressVector(integrated_stress_vector);
     }
 } // End CalculateMaterialResponseCauchy
 
@@ -211,6 +212,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeSol
     this->SetThreshold(this->GetNonConvThreshold());
     this->SetPlasticStrain(this->GetNonConvPlasticStrain());
     this->SetBackStressVector(this->GetNonConvergedBackStressVector());
+    this->SetPreviousStressVector(this->GetNonConvergedPreviousStressVector());
 }
 
 /***********************************************************************************/

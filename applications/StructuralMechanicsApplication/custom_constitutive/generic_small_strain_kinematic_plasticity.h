@@ -388,6 +388,8 @@ protected:
 
     void SetPreviousStressVector (const Vector& toBS) {mPreviousStressVector = toBS; }
     Vector& GetPreviousStressVector() { return mPreviousStressVector;}
+    void SetNonConvergedPreviousStressVector (const Vector& toBS) {mNonConvergedPreviousStressVector = toBS; }
+    Vector GetNonConvergedPreviousStressVector() { return mNonConvergedPreviousStressVector;}
 
     ///@}
     ///@name Protected Operations
@@ -431,6 +433,7 @@ protected:
     Vector mPreviousStressVector = ZeroVector(VoigtSize);
     Vector mBackStressVector = ZeroVector(VoigtSize);
     Vector mNonConvergedBackStressVector = ZeroVector(VoigtSize);
+    Vector mNonConvergedPreviousStressVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
