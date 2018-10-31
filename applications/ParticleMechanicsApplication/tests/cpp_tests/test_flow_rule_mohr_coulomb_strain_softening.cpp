@@ -37,6 +37,9 @@ namespace Kratos
 namespace Testing
 {
 
+    // Tolerance
+    static constexpr double tolerance = 1.0e-6;
+
     typedef Node<3> NodeType;
 
     typedef MPMHardeningLaw HL;
@@ -52,10 +55,18 @@ namespace Testing
     typedef MCPlasticFlowRule MCFR;
 
     void GenerateTestMCSSVariables(
+        Matrix& rStress, Matrix& rStrain,
         Properties &rMaterialProperties)
     {
-        rMaterialProperties.SetValue(YOUNG_MODULUS, 2200.0);
-        rMaterialProperties.SetValue(POISSON_RATIO, 2000000.0);
+        rStress = ZeroMatrix(3);
+        rStrain = ZeroMatrix(3);
+        rStrain(0,0) = 5.5e-2;
+        rStrain(1,1) = -12.2e-2;
+        rStrain(2,2) = 8.3e-2;
+
+        rMaterialProperties.SetValue(DENSITY, 2200.0);
+        rMaterialProperties.SetValue(YOUNG_MODULUS, 2000000.0);
+        rMaterialProperties.SetValue(POISSON_RATIO, 0.3);
         rMaterialProperties.SetValue(INTERNAL_FRICTION_ANGLE, 0.872664625997165);
         rMaterialProperties.SetValue(INTERNAL_FRICTION_ANGLE_RESIDUAL, 0.5235987755982);
         rMaterialProperties.SetValue(COHESION, 5000.0);
@@ -70,8 +81,9 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(ParticleConstitutiveLawMohrCoulombStrainSoftening, KratosParticleMechanicsFastSuite)
     {
+        Matrix stress, strain;
         Properties material_properties;
-        GenerateTestMCSSVariables(material_properties);
+        GenerateTestMCSSVariables(stress, strain, material_properties);
 
         // Construct Flow Rule
         HL::Pointer mcss_hl_pointer = HL::Pointer( new ExpSSL() );

@@ -37,6 +37,9 @@ namespace Kratos
 namespace Testing
 {
 
+    // Tolerance
+    static constexpr double tolerance = 1.0e-6;
+
     typedef Node<3> NodeType;
 
     typedef MPMHardeningLaw HL;
@@ -52,8 +55,15 @@ namespace Testing
     typedef BorjaCamClayPlasticFlowRule BCCFR;
 
     void GenerateTestBCCVariables(
+        Matrix& rStress, Matrix& rStrain,
         Properties &rMaterialProperties)
     {
+        rStress = ZeroMatrix(3);
+        rStrain = ZeroMatrix(3);
+        rStrain(0,0) = 5.5e-2;
+        rStrain(1,1) = -12.2e-2;
+        rStrain(2,2) = 8.3e-2;
+
         rMaterialProperties.SetValue(PRE_CONSOLIDATION_STRESS, -90000.0);
         rMaterialProperties.SetValue(OVER_CONSOLIDATION_RATIO, 1.0);
         rMaterialProperties.SetValue(SWELLING_SLOPE          , 0.018);
@@ -69,8 +79,9 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(ParticleConstitutiveLawBorjaCamClay, KratosParticleMechanicsFastSuite)
     {
+        Matrix stress, strain;
         Properties material_properties;
-        GenerateTestBCCVariables(material_properties);
+        GenerateTestBCCVariables(stress, strain, material_properties);
 
         // Construct Flow Rule
         HL::Pointer bcc_hl_pointer = HL::Pointer( new CCHL() );
