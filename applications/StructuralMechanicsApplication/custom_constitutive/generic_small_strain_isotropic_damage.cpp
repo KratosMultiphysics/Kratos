@@ -95,8 +95,8 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
         // Converged values
-        double& threshold = this->GetThreshold();
-        double& damage = this->GetDamage();
+        double threshold = this->GetThreshold();
+        double damage = this->GetDamage();
 
         // S0 = C:E
         array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
@@ -113,12 +113,12 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             noalias(auxiliar_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 			noalias(integrated_stress_vector) = auxiliar_integrated_stress_vector;
 
+            TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
-
                 TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
 
         } else { // Damage case
@@ -130,14 +130,13 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             noalias(auxiliar_integrated_stress_vector) = predictive_stress_vector;
             this->SetNonConvDamage(damage);
             this->SetNonConvThreshold(uniaxial_stress);
+             TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rValues);
                 noalias(r_tangent_tensor) = rValues.GetConstitutiveMatrix();
-
                 TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
             
             noalias(integrated_stress_vector) = auxiliar_integrated_stress_vector;
