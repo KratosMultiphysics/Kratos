@@ -29,7 +29,38 @@ def CreateSolver(model, project_parameters):
     return PartitionedFSIBaseSolver(model, project_parameters)
 
 class PartitionedFSIBaseSolver(PythonSolver):
+
+    def _ValidateSettings(self, project_parameters):
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "echo_level": 0,
+            "parallel_type": "OpenMP",
+            "solver_type": "partitioned",
+            "coupling_scheme": "dirichlet_neumann",
+            "structure_solver_settings": {
+            },
+            "fluid_solver_settings":{
+            },
+            "mesh_solver_settings":{
+            },
+            "coupling_settings":{
+            }
+        }""")
+
+        project_parameters.ValidateAndAssignDefaults(default_settings)
+
+        if not project_parameters["structure_solver_settings"].Has("multi_point_constraints_used"):
+            project_parameters["structure_solver_settings"].AddEmptyValue("multi_point_constraints_used")
+            project_parameters["structure_solver_settings"]["multi_point_constraints_used"].SetBool(False)
+
+        return project_parameters
+
     def __init__(self, model, project_parameters):
+
+        # Validate settings
+        project_parameters = self._ValidateSettings(project_parameters)
+
+        # Call the base Python solver constructor
         super(PartitionedFSIBaseSolver,self).__init__(model, project_parameters)
 
         # Auxiliar variables
@@ -52,10 +83,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Construct the ALE mesh solver
         self.mesh_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(self.model, self.settings["mesh_solver_settings"], self.parallel_type)
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "ALE mesh solver construction finished.")
-
-        # Construct the coupling partitioned strategy
-        self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(coupling_settings["coupling_strategy_settings"])
-        self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Partitioned FSI base solver construction finished.")
 
     def GetMinimumBufferSize(self):
@@ -129,7 +156,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Initialize solution step of fluid, structure and coupling solvers
         self.fluid_solver.InitializeSolutionStep()
         self.structure_solver.InitializeSolutionStep()
-        self.coupling_utility.InitializeSolutionStep()
+        self._GetConvergenceAccelerator().InitializeSolutionStep()
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
@@ -176,7 +203,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
             self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
 
-            self.coupling_utility.InitializeNonLinearIteration()
+            self._GetConvergenceAccelerator().InitializeNonLinearIteration()
 
             # Solve the mesh problem as well as the fluid problem
             self._SolveMeshAndFluid()
@@ -195,15 +222,15 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
             # Check convergence
             if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
-                self.coupling_utility.FinalizeNonLinearIteration()
+                self._GetConvergenceAccelerator().FinalizeNonLinearIteration()
                 self._PrintInfoOnRankZero("","\tNon-linear iteration convergence achieved")
                 self._PrintInfoOnRankZero("","\tTotal non-linear iterations: ", nl_it, " |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
                 break
             else:
                 # If convergence is not achieved, perform the correction of the prediction
                 self._PrintInfoOnRankZero("","\tResidual computation finished. |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
-                self.coupling_utility.UpdateSolution(dis_residual, self.iteration_value)
-                self.coupling_utility.FinalizeNonLinearIteration()
+                self._GetConvergenceAccelerator().UpdateSolution(dis_residual, self.iteration_value)
+                self._GetConvergenceAccelerator().FinalizeNonLinearIteration()
 
                 if (nl_it == self.max_nl_it):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
@@ -217,7 +244,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         ## Finalize solution step
         self.fluid_solver.FinalizeSolutionStep()
         self.structure_solver.FinalizeSolutionStep()
-        self.coupling_utility.FinalizeSolutionStep()
+        self._GetConvergenceAccelerator().FinalizeSolutionStep()
 
     def SetEchoLevel(self, structure_echo_level, fluid_echo_level):
         self.structure_solver.SetEchoLevel(self, structure_echo_level)
@@ -246,6 +273,19 @@ class PartitionedFSIBaseSolver(PythonSolver):
     # This method is to be overwritten in the MPI solver
     def _PrintWarningOnRankZero(self, *args):
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str, args)))
+
+    # This method returns the convergence accelerator.
+    # If it is not created yet, it calls the _CreateConvergenceAccelerator first
+    def _GetConvergenceAccelerator(self):
+        if not hasattr(self, '_convergence_accelerator'):
+            self._convergence_accelerator = self._CreateConvergenceAccelerator()
+        return self._convergence_accelerator
+
+    # This method constructs the convergence accelerator coupling utility
+    def _CreateConvergenceAccelerator(self):
+        convergence_accelerator = convergence_accelerator_factory.CreateConvergenceAccelerator(self.settings["coupling_settings"]["coupling_strategy_settings"])
+        self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
+        return convergence_accelerator
 
     # This method finds the maximum buffer size between mesh, 
     # fluid and structure solvers and sets it to all the solvers.

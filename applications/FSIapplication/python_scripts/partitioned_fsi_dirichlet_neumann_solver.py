@@ -34,7 +34,6 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         self._PrintInfoOnRankZero("::[PartitionedFSIDirichletNeumannSolver]::", "Solver construction finished.")
 
     def Initialize(self):
-
         # Get the domain size
         self.domain_size = self._GetDomainSize()
 
@@ -73,7 +72,8 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         KratosMultiphysics.CalculateNodalAreaProcess(self.fluid_solver.GetComputingModelPart(), self.domain_size).Execute()
 
         # Coupling utility initialization
-        self.coupling_utility.Initialize()
+        # The _GetConvergenceAccelerator is supposed to construct the convergence accelerator in here
+        self._GetConvergenceAccelerator().Initialize()
 
     def _InitializeIterationValueVector(self):
         # Note that the FSI problem is defined in terms of the fluid interface
