@@ -173,7 +173,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         Vector& rPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength,
-        const Vector& rBackStressVector
+        Vector& rBackStressVector,
+        const Vector& rPreviousStressVector
         )
     {
         bool is_converged = false;
@@ -191,7 +192,9 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
 
             noalias(rPredictiveStressVector) -= delta_sigma;
-
+            CalculateAndSubstractBackStress(rPredictiveStressVector, rValues, rPreviousStressVector,
+                                            rPlasticStrainIncrement, rBackStressVector);
+            
             CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
                                        rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
@@ -311,7 +314,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (kinematic_parameters[1] * pDot);
                 rBackStressVector += (2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
-                break;
+                //KRATOS_WATCH(rBackStressVector)
+				break;
 
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
                 KRATOS_ERROR_IF(kinematic_parameters.size() != 3) << "Kinematic Parameters not defined..." << std::endl;
@@ -843,7 +847,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         for (IndexType i = 0; i < VoigtSize; ++i) {
             A1 += rFFlux[i] * delta_vector[i];
         }
-        A1 *= kinematic_parameters[2];
+        A1 *= (1.0 - kinematic_parameters[2]);
 
         double dot_fflux_gflux = 0.0, A2;
         for (IndexType i = 0; i < VoigtSize; ++i) {
@@ -863,7 +867,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 for (IndexType i = 0; i < VoigtSize; ++i) {
                     dot_fflux_backstress += rFFlux[i] * rBackStressVector[i];
                 }
-                A2 -= kinematic_parameters[1] * dot_fflux_backstress * std::sqrt(two_thirds * dot_fflux_backstress);
+                A2 -= kinematic_parameters[1] * dot_fflux_backstress * std::sqrt(two_thirds * std::abs(dot_fflux_backstress));
                 break;
 
             default:
@@ -872,12 +876,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         }
 
         const double A3 = rHardeningParameter;
-		if (std::abs(A1 + A2 + A3) > tolerance) {
-			rPlasticDenominator = 1.0 / (A1 + A2 + A3);
-			rPlasticDenominator *= (1.0 - kinematic_parameters[2]);
-		} else {
-            rPlasticDenominator = 1.0e-3 * std::numeric_limits<double>::max(); // TODO: Discuss this!!!
-        }
+        rPlasticDenominator = 1.0 / (A1 + A2 + A3);
+		rPlasticDenominator *= (1.0 - kinematic_parameters[2]);
     }
 
     /**

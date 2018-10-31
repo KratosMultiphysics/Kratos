@@ -120,9 +120,8 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
             this->GetPreviousStressVector(),
             plastic_strain_increment,
             back_stress_vector);
-        this->SetNonConvergedBackStressVector(back_stress_vector);
 
-        TConstLawIntegratorType::CalculatePlasticParameters(
+		TConstLawIntegratorType::CalculatePlasticParameters(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
             threshold, plastic_denominator, f_flux, g_flux,
             plastic_dissipation, plastic_strain_increment,
@@ -149,12 +148,15 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                 threshold, plastic_denominator, f_flux, g_flux,
                 plastic_dissipation, plastic_strain_increment,
                 r_constitutive_matrix, plastic_strain, rValues,
-                characteristic_length, back_stress_vector);
+                characteristic_length, back_stress_vector,
+                this->GetPreviousStressVector());
+
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             this->SetNonConvPlasticDissipation(plastic_dissipation);
             this->SetNonConvPlasticStrain(plastic_strain);
             this->SetNonConvThreshold(threshold);
+            this->SetNonConvergedBackStressVector(back_stress_vector);
             this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
