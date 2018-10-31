@@ -40,8 +40,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.point_load_updater = 1.5
         self.initial_point_load = 10000
 
-        self.nl_tol = 1.0e-9
-        self.max_nl_it = 25
+        self.max_nl_it = 250
+        self.nl_tol = 1.0e-10
         self.initial_relaxation = 0.825
 
     def tearDown(self):
@@ -59,12 +59,14 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQN(self):
-        self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation)
+        abs_cut_off = 1.0e-3
+        self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation, abs_cut_off)
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQNRecursive(self):
-        buffer_size = 3
-        self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size)
+        buffer_size = 7
+        abs_cut_off = 1.0e-3
+        self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size, abs_cut_off)
         self.RunTestCase()
 
     def RunTestCase(self):
@@ -176,7 +178,9 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
 
                     else:
                         # If convergence is not achieved, perform the correction of the prediction
+                        print("Before UpdateSolution")
                         self.coupling_utility.UpdateSolution(disp_residual, self.iteration_value)
+                        print("After UpdateSolution")
                         self.coupling_utility.FinalizeNonLinearIteration()
 
                 self.structure_solver.FinalizeSolutionStep()
