@@ -803,11 +803,7 @@ public:
         if(pprop_it != GetMesh(ThisIndex).Properties().end()) { //property does exist
             return true;
         } else {
-            if(IsSubModelPart()) {
-                return mpParentModelPart->HasProperties(PropertiesId, ThisIndex);
-            } else {
-                return false;
-            }
+            return false;
         }
 
         return false;
