@@ -394,7 +394,7 @@ namespace Kratos
         /**
          * Checks if the elimination builder and solver (with constraints) performs correctly the resolution of the system
          */
-        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementEliminationBuilderAndSolverWithConstraints, KratosCoreFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementEliminationBuilderAndSolverWithConstraints, KratosCoreFastSuite)
         {
             if (!KratosComponents<Element>::Has("TrussElement3D2N")) {
                 std::cout << "Please compile the StructuralMechanicsApplication in order to run this test" << std::endl;
@@ -415,10 +415,11 @@ namespace Kratos
             // To create the solution of reference
 //             DebugLHS(rA);
 
-//             // The solution check
-//             constexpr double tolerance = 1e-4;
-//             KRATOS_CHECK(rA.size1() == 1);
-//             KRATOS_CHECK(rA.size2() == 1);
+            // The solution check
+            constexpr double tolerance = 1e-4;
+            KRATOS_CHECK(rA.size1() == 1);
+            KRATOS_CHECK(rA.size2() == 1);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2.069e+09)/rA(0,0)), tolerance);
         }
 
         /**
