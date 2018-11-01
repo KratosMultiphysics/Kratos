@@ -431,9 +431,10 @@ class MechanicalSolver(PythonSolver):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
-            if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-                raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+            if self.settings["multi_point_constraints_used"].GetBool():
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
     def _create_solution_scheme(self):
