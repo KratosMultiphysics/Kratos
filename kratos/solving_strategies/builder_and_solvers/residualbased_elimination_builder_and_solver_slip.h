@@ -141,6 +141,21 @@ public:
         Parameters ThisParameters
         ) : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver, ThisParameters)
     {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "domain_size" : 3,
+            "variable_x" : "VELOCITY_X",
+            "variable_y" : "VELOCITY_Y",
+            "variable_z" : "VELOCITY_Z"
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mdim = ThisParameters["domain_size"].GetInt();
+        mrVar_x = KratosComponents<TVariableType>::Get(ThisParameters["variable_x"].GetString());
+        mrVar_y = KratosComponents<TVariableType>::Get(ThisParameters["variable_y"].GetString());
+        mrVar_z = KratosComponents<TVariableType>::Get(ThisParameters["variable_z"].GetString());
     }
 
     /**

@@ -121,6 +121,7 @@ public:
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver, ThisParameters)
     {
+        // NOTE: We don't validate because Parameters are not used, additionally this is the base class of others B&S and may case false errors if any default is check
     }
 
     /**
