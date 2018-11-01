@@ -126,7 +126,7 @@ namespace Kratos
             pnode1->Fix(DISPLACEMENT_X);
 
             if (WithConstraint) {
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_X, *pnode2, DISPLACEMENT_X, 1.0, 0.0);
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode2, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
             }
         }
 
@@ -349,7 +349,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2.069e+09)/rA(0,0)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1)/rA(1,1)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1)/rA(2,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 4.138e+09)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 2.069e+09)/rA(3,3)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1)/rA(4,4)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1)/rA(5,5)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 2.069e+09)/rA(6,6)), tolerance);
