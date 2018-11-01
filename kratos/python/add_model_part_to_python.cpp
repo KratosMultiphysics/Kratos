@@ -209,12 +209,12 @@ void ModelPartAddProperties2(ModelPart& rModelPart, Properties::Pointer pNewProp
     rModelPart.AddProperties(pNewProperties, ThisIndex);
 }
     
-bool ModelPartHasPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+bool ModelPartHasPropertiesById1(const ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
     return rModelPart.HasProperties(PropertiesId, MeshId);
 }
     
-bool ModelPartHasPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+bool ModelPartHasPropertiesById2(const ModelPart& rModelPart, unsigned int PropertiesId)
 {
     return rModelPart.HasProperties(PropertiesId, 0);
 }
