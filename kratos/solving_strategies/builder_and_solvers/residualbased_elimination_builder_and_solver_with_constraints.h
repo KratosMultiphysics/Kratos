@@ -875,13 +875,16 @@ protected:
         #endif
         }
 
+        // We do a pair to know which DoF are pure master MPC
+        typedef std::pair<IndexType, bool> PairIdBoolType;
+
         // The set containing the solvable DoF that are not a master DoF
         for (auto& dof : mDoFToSolveSet) {
             auto it = mMasterDoFSet.find(dof);
             if (it != mMasterDoFSet.end()) {
-                dof_to_solve_indices.insert(std::pair<IndexType, bool>({it->Id(), true}));
+                dof_to_solve_indices.insert(PairIdBoolType(dof.Id(), true));
             } else {
-                dof_to_solve_indices.insert(std::pair<IndexType, bool>({it->Id(), false}));
+                dof_to_solve_indices.insert(PairIdBoolType(dof.Id(), false));
             }
         }
 
