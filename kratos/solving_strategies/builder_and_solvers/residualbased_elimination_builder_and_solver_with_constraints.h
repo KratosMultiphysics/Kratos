@@ -951,11 +951,13 @@ protected:
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Trow_indices[0] = 0;
         counter = 0;
+        master_counter = 0;
         for (auto& to_solve : row_dof_indices) {
             if (to_solve.second) {
                 Trow_indices[counter + 1] = Trow_indices[counter] + 1;
             } else {
-                Trow_indices[counter + 1] = Trow_indices[counter] + master_indices[counter].size();
+                Trow_indices[counter + 1] = Trow_indices[counter] + master_indices[master_counter].size();
+                ++master_counter;
             }
             ++counter;
         }
