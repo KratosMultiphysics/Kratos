@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from math import sqrt, sin, cos, pi, exp, atan
 
 class TestComputeCenterOfGravity(KratosUnittest.TestCase):
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    #KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
     def _add_dofs(self,mp):
         # Adding dofs AND their corresponding reactions
