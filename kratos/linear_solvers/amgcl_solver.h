@@ -138,7 +138,10 @@ AMGCLBlockSolve(
     int verbosity_level
     )
 {
-    amgclParams.put("precond.coarsening.aggr.block_size",1);
+    if(amgclParams.get<std::string>("precond.class") != "amg")
+        amgclParams.erase("precond.coarsening");
+    else
+        amgclParams.put("precond.coarsening.aggr.block_size",1);
 
     typedef amgcl::static_matrix<double, TBlockSize, TBlockSize> value_type;
     typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
