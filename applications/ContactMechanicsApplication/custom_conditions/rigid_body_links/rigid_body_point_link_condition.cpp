@@ -1091,7 +1091,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddTangent(MatrixType& rLeftHandSi
     {
       for(SizeType j=0; j<rVariables.MasterAngularBlockSize; j++)
       {
-        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_deformable+j) += MomentMatrix(start_rotation+i,start_rotation+j);
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_deformable+j) -= MomentMatrix(start_rotation+i,start_rotation+j);
       }
     }
 
@@ -1141,9 +1141,9 @@ void RigidBodyPointLinkCondition::CalculateAndAddTangent(MatrixType& rLeftHandSi
     {
       for(SizeType j=0; j<rVariables.MasterAngularBlockSize; j++)
       {
-        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+j) += MomentRowMatrix(start_rotation+i,start_rotation+j);
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+j) -= MomentRowMatrix(start_rotation+i,start_rotation+j);
         rLeftHandSideMatrix(start_master+i,start_master+rVariables.MasterLinearBlockSize+j) -= MomentColumnMatrix(start_rotation+i,start_rotation+j);
-        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) -= MomentMatrix(start_rotation+i,start_rotation+j);
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) += MomentMatrix(start_rotation+i,start_rotation+j);
       }
     }
 
