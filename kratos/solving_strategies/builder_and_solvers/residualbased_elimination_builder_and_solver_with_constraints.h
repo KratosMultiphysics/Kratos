@@ -259,12 +259,12 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
-        #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list)
+//         #pragma omp parallel firstprivate(dof_list)
         {
             // Gets the array of elements from the modeler
             ElementsArrayType& r_elements_array = rModelPart.Elements();
             const int number_of_elements = static_cast<int>(r_elements_array.size());
-            #pragma omp for schedule(guided, 512) nowait
+//             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < number_of_elements; ++i) {
                 auto it_elem = r_elements_array.begin() + i;
                 const unsigned int this_thread_id = OpenMPUtils::ThisThread();
@@ -275,13 +275,16 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
                 dofs_aux_list_solvable[this_thread_id].insert(dof_list.begin(), dof_list.end());
             }
+        }
 
-            KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
 
+//         #pragma omp parallel firstprivate(dof_list)
+        {
             // Gets the array of conditions from the modeler
             ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
             const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-            #pragma omp for  schedule(guided, 512)
+//             #pragma omp for  schedule(guided, 512)
             for (int i = 0; i < number_of_conditions; ++i) {
                 auto it_cond = r_conditions_array.begin() + i;
                 const unsigned int this_thread_id = OpenMPUtils::ThisThread();
@@ -291,10 +294,15 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
                 dofs_aux_list_solvable[this_thread_id].insert(dof_list.begin(), dof_list.end());
             }
+        }
 
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing constraints loop" << std::endl;
+
+//         #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list)
+        {
             auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
             const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-            #pragma omp for  schedule(guided, 512)
+//             #pragma omp for  schedule(guided, 512)
             for (int i = 0; i < number_of_constraints; ++i) {
                 auto it_const = r_constraints_array.begin() + i;
                 const IndexType this_thread_id = OpenMPUtils::ThisThread();
@@ -479,7 +487,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Computing constraints
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-#pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
+        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; ++k) {
             auto it = constraints_begin + k;
             it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation slave_ids.
@@ -511,7 +519,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Computing constraints
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-#pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
+        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; ++k) {
             auto it = constraints_begin + k;
             it->FinalizeSolutionStep(r_process_info);
@@ -914,18 +922,12 @@ protected:
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
             it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
             for (IndexType i = 0; i < aux_ids.size(); ++i) {
-            #ifdef _OPENMP
-                omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
-            #endif
                 auto &master_row_indices = master_indices[master_counter];
                 for (auto& id : aux_ids) {
                     if (id < BaseType::mEquationSystemSize) {
                         master_row_indices.insert(mSolvableDoFReorder[id]);
                     }
                 }
-            #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
-            #endif
                 ++master_counter;
             }
         }
