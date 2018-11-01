@@ -967,6 +967,7 @@ protected:
             const IndexType row_end = Trow_indices[counter + 1];
             IndexType k = row_begin;
             if (to_solve.second) {
+                Tcol_indices[k] = mSolvableDoFReorder[to_solve.first];
                 Tvalues[k] = 1.0;
             } else {
                 for (auto it = master_indices[master_counter].begin(); it != master_indices[master_counter].end(); ++it) {
