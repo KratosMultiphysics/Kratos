@@ -882,11 +882,24 @@ protected:
         for (auto& dof : mDoFToSolveSet) {
             auto it = mMasterDoFSet.find(dof);
             if (it != mMasterDoFSet.end()) {
-                dof_to_solve_indices.insert(PairIdBoolType(dof.Id(), true));
-            } else {
                 dof_to_solve_indices.insert(PairIdBoolType(dof.Id(), false));
+            } else {
+                dof_to_solve_indices.insert(PairIdBoolType(dof.Id(), true));
             }
         }
+
+        // Defining counter for later use
+        IndexType counter = 0;
+
+    #ifdef KRATOS_DEBUG
+        // Checking that there is a consistency
+        for (auto& to_solve : dof_to_solve_indices) {
+            if (!(to_solve.second)) {
+                ++counter;
+            }
+        }
+        KRATOS_ERROR_IF_NOT(counter == mMasterDoFSystemSize) << "Inconsistency in the pure master MPC dofs: " << counter << "\t vs \t" << mMasterDoFSystemSize << std::endl;
+    #endif
 
         // The process info
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -917,7 +930,7 @@ protected:
 
         // Count the row sizes
         SizeType nnz = 0;
-        IndexType counter = 0;
+        counter = 0;
         for (auto& to_solve : dof_to_solve_indices) {
             if (to_solve.second) {
                 ++nnz;
