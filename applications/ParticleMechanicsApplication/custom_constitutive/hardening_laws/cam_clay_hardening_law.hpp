@@ -91,7 +91,7 @@ public:
     * @param[in] rOldPreconsolidationPressure Old value of Preconsolidation Pressure P_c at the previous time step t_n
     * @return Hardening parameter
     */
-    double& CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure) override;
+    double& CalculateHardening(double &rHardening, const double &rAlpha, const double &rOldPreconsolidationPressure) override;
 
     ///@}
     ///@name Access

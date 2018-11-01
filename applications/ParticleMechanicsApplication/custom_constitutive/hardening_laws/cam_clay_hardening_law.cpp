@@ -68,7 +68,7 @@ CamClayHardeningLaw::~CamClayHardeningLaw()
 //*******************************CALCULATE TOTAL HARDENING****************************
 //************************************************************************************
 
-double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure)
+double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double &rOldPreconsolidationPressure)
 {
     const double swelling_slope = GetProperties()[SWELLING_SLOPE];
     const double other_slope    = GetProperties()[NORMAL_COMPRESSION_SLOPE];
