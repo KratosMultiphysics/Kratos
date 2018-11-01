@@ -1107,6 +1107,8 @@ protected:
         BaseType::Clear();
 
         mDoFToSolveSet = DofsArrayType();
+        mMasterDoFSet = DofsArrayType();
+        mSolvableDoFReorder.clear();
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
     }
