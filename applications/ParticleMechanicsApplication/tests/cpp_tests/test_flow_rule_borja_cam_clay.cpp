@@ -89,7 +89,33 @@ namespace Testing
         FR::Pointer bcc_fr_pointer = FR::Pointer( new BCCFR() );
         bcc_fr_pointer->InitializeMaterial(bcc_yc_pointer, bcc_hl_pointer, material_properties);
 
+        // Compute trial elastic stresses
+        FR::RadialReturnVariables rma_variables;
+        bcc_fr_pointer->CalculatePrincipalStressTrial(rma_variables, strain, stress);
 
+        Vector stress_trial_analytic = ZeroVector(3);
+        stress_trial_analytic[0] =  4.993998938544e+05;
+        stress_trial_analytic[1] = -1.412200106146e+06;
+        stress_trial_analytic[2] =  8.017998938544e+05;
+
+        KRATOS_CHECK_NEAR(stress(0,0), stress_trial_analytic[0], tolerance);
+        KRATOS_CHECK_NEAR(stress(1,1), stress_trial_analytic[1], tolerance);
+        KRATOS_CHECK_NEAR(stress(2,2), stress_trial_analytic[2], tolerance);
+
+        // Compute new stresses after return mapping
+        Matrix dummy_deformation_gradient = IdentityMatrix(3);
+        bcc_fr_pointer->CalculateReturnMapping( rma_variables, dummy_deformation_gradient, stress, strain);
+
+        Vector stress_analytic = ZeroVector(3);
+        stress_analytic[0] = -3.112606631973e+04;
+        stress_analytic[1] = -7.351529252708e+04;
+        stress_analytic[2] = -2.442042601574e+04;
+        const double yield_analytic = 3.919787896261e+12;
+
+        KRATOS_CHECK_NEAR(rma_variables.TrialStateFunction, yield_analytic, 1.0);
+        KRATOS_CHECK_NEAR(stress(0,0), stress_analytic[0], tolerance);
+        KRATOS_CHECK_NEAR(stress(1,1), stress_analytic[1], tolerance);
+        KRATOS_CHECK_NEAR(stress(2,2), stress_analytic[2], tolerance);
 
     }
 

@@ -71,8 +71,6 @@ namespace Testing
 
     }
 
-    void Print(auto X){std::cout << std::scientific << std::setprecision(12) << X << std::endl;}
-
     /**
     * Check the correct calculation of the integrated stress with the CL's
     */
