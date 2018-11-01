@@ -77,59 +77,16 @@
                 "direction"       : [0.0,0.0,0.0]
             }
         }],
-        "list_other_processes": [{
-            "python_module"   : "from_json_check_result_process",
-            "kratos_module" : "KratosMultiphysics",
-            "help"                  : "",
-            "process_name"          : "FromJsonCheckResultProcess",
-            "Parameters"            : {
-                "check_variables"  : ["DISPLACEMENT"],
-                "input_file_name"  : "cl_tests/solid_cl/linear_elastic_2D_quad_test_results.json",
-                "model_part_name"  : "MPM_Material",
-                "time_frequency"   : 1.0
-            }
-        }]
-    },
-    "print_output_process" : [{
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT"],
-            "output_file_name" : "cl_tests/solid_cl/linear_elastic_2D_quad_test_results.json",
-            "model_part_name"  : "MPM_Material",
-            "time_frequency"   : 1.0
-        }
-    }],
-    "output_processes" : {
-        "body_output_process" : [{
-            "python_module" : "mpm_gid_output_process",
+        "print_output_process" : [{
+            "python_module"   : "mpm_json_output_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
-            "process_name"  : "ParticleMPMGiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
-            "Parameters"    : {
-                "model_part_name"        : "MPM_Material",
-                "output_name"            : "cl_tests/solid_cl/linear_elastic_2D_quad_test_Body",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "time",
-                        "output_frequency"    : 1.0,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "gauss_point_results" : ["MP_VELOCITY","MP_DISPLACEMENT","MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"]
-                    },
-                    "point_data_configuration"  : []
-                }
+            "help"                  : "",
+            "process_name"          : "ParticleMPMJsonOutputProcess",
+            "Parameters"            : {
+                "gauss_points_output_variables" : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
+                "output_file_name"              : "cl_tests/solid_cl/linear_elastic_2D_quad_test_results.json",
+                "model_part_name"               : "MPM_Material",
+                "time_frequency"                : 1.0
             }
         }]
     }
