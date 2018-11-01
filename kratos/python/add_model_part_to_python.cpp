@@ -209,9 +209,9 @@ void ModelPartAddProperties2(ModelPart& rModelPart, Properties::Pointer pNewProp
     rModelPart.AddProperties(pNewProperties, ThisIndex);
 }
     
-bool ModelPartHasPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MedhId)
+bool ModelPartHasPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
-    return rModelPart.HasProperties(PropertiesId, MedhId);
+    return rModelPart.HasProperties(PropertiesId, MeshId);
 }
     
 bool ModelPartHasPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
@@ -219,9 +219,9 @@ bool ModelPartHasPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesI
     return rModelPart.HasProperties(PropertiesId, 0);
 }
     
-Properties::Pointer ModelPartGetPropertiesById(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MedhId)
+Properties::Pointer ModelPartGetPropertiesById(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
-    return rModelPart.pGetProperties(PropertiesId, MedhId);
+    return rModelPart.pGetProperties(PropertiesId, MeshId);
 }
 
 ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
