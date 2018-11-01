@@ -79,9 +79,11 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         """
         if self.eigensolver_settings["solver_type"].GetString() == "FEAST":
             feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
+            import new_linear_solver_factory
+            linear_solver = new_linear_solver_factory.ConstructSolver(feast_system_solver_settings)
             if feast_system_solver_settings["solver_type"].GetString() == "complex_skyline_lu_solver":
                 # default built-in feast system solver
-                linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings)
+                linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings,linear_solver)
             elif feast_system_solver_settings["solver_type"].GetString() == "pastix":
                 feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
                 linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings, feast_system_solver)
