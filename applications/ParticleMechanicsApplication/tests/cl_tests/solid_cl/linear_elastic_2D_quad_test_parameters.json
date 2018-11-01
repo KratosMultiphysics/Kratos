@@ -77,17 +77,29 @@
                 "direction"       : [0.0,0.0,0.0]
             }
         }],
-        "print_output_process" : [{
-            "python_module"   : "mpm_json_output_process",
+        "list_other_processes": [{
+            "python_module"   : "mpm_from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "help"                  : "",
-            "process_name"          : "ParticleMPMJsonOutputProcess",
+            "process_name"          : "ParticleMPMFromJsonCheckResultProcess",
             "Parameters"            : {
-                "gauss_points_output_variables" : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
-                "output_file_name"              : "cl_tests/solid_cl/linear_elastic_2D_quad_test_results.json",
-                "model_part_name"               : "MPM_Material",
-                "time_frequency"                : 1.0
+                "check_variables"  : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
+                "input_file_name"  : "cl_tests/solid_cl/linear_elastic_2D_quad_test_results.json",
+                "model_part_name"  : "MPM_Material",
+                "time_frequency"   : 1.0
             }
         }]
-    }
+    },
+    "print_output_process" : [{
+        "python_module"   : "mpm_json_output_process",
+        "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ParticleMPMJsonOutputProcess",
+        "Parameters"            : {
+            "gauss_points_output_variables" : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
+            "output_file_name"              : "cl_tests/solid_cl/linear_elastic_2D_quad_test_results.json",
+            "model_part_name"               : "MPM_Material",
+            "time_frequency"                : 1.0
+        }
+    }]
 }
