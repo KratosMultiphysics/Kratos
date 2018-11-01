@@ -1059,12 +1059,12 @@ protected:
         SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix);
 
         // We resize of system of equations
-        rA.resize(mDoFToSolveSystemSize, mDoFToSolveSystemSize);
-        rb.resize(mDoFToSolveSystemSize);
+        rA.resize(mDoFToSolveSystemSize, mDoFToSolveSystemSize, false);
+        VectorType rb_copy(rb);
+        rb.resize(mDoFToSolveSystemSize, false);
 
         // Final multiplication
         SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, rTMatrix, rA);
-        VectorType rb_copy(rb);
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
         const double stop_build = OpenMPUtils::GetCurrentTime();
