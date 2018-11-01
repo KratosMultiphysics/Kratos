@@ -239,8 +239,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         typedef std::unordered_set < DofPointerType, DofPointerHasher>  set_type;
     #endif
 
+        // Declaring temporal variables
+        DofsArrayType dof_temp_all, dof_temp_solvable, dof_temp_master;
+        BaseType::mDofSet = DofsArrayType();
+        mDoFToSolveSet = DofsArrayType();
+        mMasterDoFSet = DofsArrayType();
+
         std::vector<set_type> dofs_aux_list_all(nthreads);
-        std::vector<set_type> dofs_aux_list_solvable(nthreads);
         std::vector<set_type> dofs_aux_list_master(nthreads);
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
@@ -248,23 +253,21 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         for (int i = 0; i < static_cast<int>(nthreads); i++) {
     #ifdef USE_GOOGLE_HASH
             dofs_aux_list_all[i].set_empty_key(DofPointerType());
-            dofs_aux_list_solvable[i].set_empty_key(DofPointerType());
             dofs_aux_list_master[i].set_empty_key(DofPointerType());
     #else
             dofs_aux_list_all[i].reserve(rModelPart.Elements().size());
-            dofs_aux_list_solvable[i].reserve(rModelPart.Elements().size());
             dofs_aux_list_master[i].reserve(rModelPart.MasterSlaveConstraints().size());
     #endif
         }
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
-//         #pragma omp parallel firstprivate(dof_list)
+        #pragma omp parallel firstprivate(dof_list)
         {
             // Gets the array of elements from the modeler
             ElementsArrayType& r_elements_array = rModelPart.Elements();
             const int number_of_elements = static_cast<int>(r_elements_array.size());
-//             #pragma omp for schedule(guided, 512) nowait
+            #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < number_of_elements; ++i) {
                 auto it_elem = r_elements_array.begin() + i;
                 const unsigned int this_thread_id = OpenMPUtils::ThisThread();
@@ -273,18 +276,17 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
 
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
-                dofs_aux_list_solvable[this_thread_id].insert(dof_list.begin(), dof_list.end());
             }
         }
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
 
-//         #pragma omp parallel firstprivate(dof_list)
+        #pragma omp parallel firstprivate(dof_list)
         {
             // Gets the array of conditions from the modeler
             ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
             const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-//             #pragma omp for  schedule(guided, 512)
+            #pragma omp for  schedule(guided, 512)
             for (int i = 0; i < number_of_conditions; ++i) {
                 auto it_cond = r_conditions_array.begin() + i;
                 const unsigned int this_thread_id = OpenMPUtils::ThisThread();
@@ -292,17 +294,16 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
-                dofs_aux_list_solvable[this_thread_id].insert(dof_list.begin(), dof_list.end());
             }
         }
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing constraints loop" << std::endl;
 
-//         #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list)
+        #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list)
         {
             auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
             const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-//             #pragma omp for  schedule(guided, 512)
+            #pragma omp for  schedule(guided, 512)
             for (int i = 0; i < number_of_constraints; ++i) {
                 auto it_const = r_constraints_array.begin() + i;
                 const IndexType this_thread_id = OpenMPUtils::ThisThread();
@@ -310,15 +311,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Gets list of Dof involved on every element
                 it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
-                // We remove the slave dofs
-                for (auto& dof : dof_list) {
-                    auto it = dofs_aux_list_solvable[this_thread_id].find(dof);
-                    // Check if Iterator is valid
-                    if(it != dofs_aux_list_solvable[this_thread_id].end())
-                        dofs_aux_list_solvable[this_thread_id].erase(it);
-                }
                 dofs_aux_list_all[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
-                dofs_aux_list_solvable[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
                 dofs_aux_list_master[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
             }
         }
@@ -362,26 +355,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(new_max); ++i) {
                 if (i + new_max < old_max) {
-                    dofs_aux_list_solvable[i].insert(dofs_aux_list_solvable[i+new_max].begin(), dofs_aux_list_solvable[i+new_max].end());
-                    dofs_aux_list_solvable[i+new_max].clear();
-                }
-            }
-
-            old_max = new_max;
-            new_max = ceil(0.5*static_cast<double>(old_max));
-        }
-        old_max = nthreads;
-        new_max = ceil(0.5*static_cast<double>(old_max));
-        while (new_max>=1 && new_max != old_max) {
-            // Just for debugging
-            KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "old_max" << old_max << " new_max:" << new_max << std::endl;
-            for (int i = 0; i < static_cast<int>(new_max); ++i) {
-                KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2 && (i + new_max < old_max)) << i << " - " << i+new_max << std::endl;
-            }
-
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); ++i) {
-                if (i + new_max < old_max) {
                     dofs_aux_list_master[i].insert(dofs_aux_list_master[i+new_max].begin(), dofs_aux_list_master[i+new_max].end());
                     dofs_aux_list_master[i+new_max].clear();
                 }
@@ -393,32 +366,75 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
-        DofsArrayType dof_temp_all, dof_temp_solvable, dof_temp_master;
-        BaseType::mDofSet = DofsArrayType();
-        mDoFToSolveSet = DofsArrayType();
-        mMasterDoFSet = DofsArrayType();
-
         dof_temp_all.reserve(dofs_aux_list_all[0].size());
-        for (auto it= dofs_aux_list_all[0].begin(); it!= dofs_aux_list_all[0].end(); ++it) {
-            dof_temp_all.push_back( it->get() );
+        for (auto& dof : dofs_aux_list_all[0]) {
+            dof_temp_all.push_back( dof.get() );
         }
         dof_temp_all.Sort();
-
-        dof_temp_solvable.reserve(dofs_aux_list_solvable[0].size());
-        for (auto it= dofs_aux_list_solvable[0].begin(); it!= dofs_aux_list_solvable[0].end(); ++it) {
-            dof_temp_solvable.push_back( it->get() );
-        }
-        dof_temp_solvable.Sort();
+        BaseType::mDofSet = dof_temp_all;
 
         dof_temp_master.reserve(dofs_aux_list_master[0].size());
-        for (auto it= dofs_aux_list_master[0].begin(); it!= dofs_aux_list_master[0].end(); ++it) {
-            dof_temp_master.push_back( it->get() );
+        for (auto& dof : dofs_aux_list_master[0]) {
+            dof_temp_master.push_back( dof.get() );
         }
         dof_temp_master.Sort();
-
-        BaseType::mDofSet = dof_temp_all;
-        mDoFToSolveSet = dof_temp_solvable;
         mMasterDoFSet = dof_temp_master;
+
+        // Repeating the loop for solvable DoF (in serial)
+        set_type dofs_aux_list_solvable;
+        // Gets the array of elements from the modeler
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
+        const int number_of_elements = static_cast<int>(r_elements_array.size());
+        #pragma omp for schedule(guided, 512) nowait
+        for (int i = 0; i < number_of_elements; ++i) {
+            auto it_elem = r_elements_array.begin() + i;
+
+            // Gets list of Dof involved on every element
+            pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
+            dofs_aux_list_solvable.insert(dof_list.begin(), dof_list.end());
+        }
+
+        // Gets the array of conditions from the modeler
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+        const int number_of_conditions = static_cast<int>(r_conditions_array.size());
+        #pragma omp for  schedule(guided, 512)
+        for (int i = 0; i < number_of_conditions; ++i) {
+            auto it_cond = r_conditions_array.begin() + i;
+
+            // Gets list of Dof involved on every element
+            pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
+            dofs_aux_list_solvable.insert(dof_list.begin(), dof_list.end());
+        }
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing constraints loop" << std::endl;
+
+        #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list)
+        {
+            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+            const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+            #pragma omp for  schedule(guided, 512)
+            for (int i = 0; i < number_of_constraints; ++i) {
+                auto it_const = r_constraints_array.begin() + i;
+
+                // Gets list of Dof involved on every element
+                it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
+                // We remove the slave dofs
+                for (auto& dof : dof_list) {
+                    auto it = dofs_aux_list_solvable.find(dof);
+                    // Check if Iterator is valid
+                    if(it != dofs_aux_list_solvable.end())
+                        dofs_aux_list_solvable.erase(it);
+                }
+                dofs_aux_list_solvable.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
+            }
+        }
+
+        dof_temp_solvable.reserve(dofs_aux_list_solvable.size());
+        for (auto& dof : dofs_aux_list_solvable) {
+            dof_temp_solvable.push_back( dof.get() );
+        }
+        dof_temp_solvable.Sort();
+        mDoFToSolveSet = dof_temp_solvable;
 
         // Throws an exception if there are no Degrees Of Freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
