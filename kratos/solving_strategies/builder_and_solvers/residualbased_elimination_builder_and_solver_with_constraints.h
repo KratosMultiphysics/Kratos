@@ -852,8 +852,8 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("RelationMatrixStructure");
 
-        std::unordered_map<IndexType, bool> dof_to_solve_indices;
-        dof_to_solve_indices.reserve(mDoFToSolveSystemSize);
+        std::unordered_map<IndexType, bool> row_dof_indices;
+        row_dof_indices.reserve(BaseType::mEquationSystemSize);
 
     #ifdef USE_GOOGLE_HASH
         std::vector<google::dense_hash_set<IndexType>> master_indices(mMasterDoFSystemSize);
@@ -875,12 +875,14 @@ protected:
         typedef std::pair<IndexType, bool> PairIdBoolType;
 
         // The set containing the solvable DoF that are not a master DoF
-        for (auto& dof : mDoFToSolveSet) {
-            auto it = mMasterDoFSet.find(dof);
-            if (it != mMasterDoFSet.end()) {
-                dof_to_solve_indices.insert(PairIdBoolType(dof.Id(), false));
-            } else {
-                dof_to_solve_indices.insert(PairIdBoolType(dof.Id(), true));
+        for (auto& dof : BaseType::mDofSet) {
+            if (dof.EquationId() < BaseType::mEquationSystemSize) {
+                auto it = mMasterDoFSet.find(dof);
+                if (it != mMasterDoFSet.end()) {
+                    row_dof_indices.insert(PairIdBoolType(dof.EquationId(), false));
+                } else {
+                    row_dof_indices.insert(PairIdBoolType(dof.EquationId(), true));
+                }
             }
         }
 
@@ -889,11 +891,12 @@ protected:
 
     #ifdef KRATOS_DEBUG
         // Checking that there is a consistency
-        for (auto& to_solve : dof_to_solve_indices) {
+        for (auto& to_solve : row_dof_indices) {
             if (!(to_solve.second)) {
                 ++counter;
             }
         }
+        KRATOS_ERROR_IF_NOT(row_dof_indices.size() == BaseType::mEquationSystemSize) << "Inconsistency in the dofs size: " << row_dof_indices.size() << "\t vs \t" << BaseType::mEquationSystemSize << std::endl;
         KRATOS_ERROR_IF_NOT(counter == mMasterDoFSystemSize) << "Inconsistency in the pure master MPC dofs: " << counter << "\t vs \t" << mMasterDoFSystemSize << std::endl;
     #endif
 
@@ -915,8 +918,11 @@ protected:
                 omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
             #endif
                 auto &master_row_indices = master_indices[master_counter];
-                for (auto& id : aux_ids)
-                    master_row_indices.insert(mSolvableDoFReorder[id]);
+                for (auto& id : aux_ids) {
+                    if (id < BaseType::mEquationSystemSize) {
+                        master_row_indices.insert(mSolvableDoFReorder[id]);
+                    }
+                }
             #ifdef _OPENMP
                 omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
             #endif
@@ -927,7 +933,7 @@ protected:
         // Count the row sizes
         SizeType nnz = 0;
         counter = 0;
-        for (auto& to_solve : dof_to_solve_indices) {
+        for (auto& to_solve : row_dof_indices) {
             if (to_solve.second) {
                 ++nnz;
             } else {
@@ -944,9 +950,8 @@ protected:
 
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Trow_indices[0] = 0;
-
         counter = 0;
-        for (auto& to_solve : dof_to_solve_indices) {
+        for (auto& to_solve : row_dof_indices) {
             if (to_solve.second) {
                 Trow_indices[counter + 1] = Trow_indices[counter] + 1;
             } else {
@@ -958,9 +963,10 @@ protected:
         counter = 0;
         master_counter = 0;
         // TODO: OMP
-        for (auto& to_solve : dof_to_solve_indices) {
+        for (auto& to_solve : row_dof_indices) {
             const IndexType row_begin = Trow_indices[counter];
             const IndexType row_end = Trow_indices[counter + 1];
+
             IndexType k = row_begin;
             if (to_solve.second) {
                 Tcol_indices[k] = mSolvableDoFReorder[to_solve.first];
@@ -1182,10 +1188,10 @@ private:
         IndexType counter = 0;
         IndexType master_counter = 0;
         for (auto& dof : BaseType::mDofSet) {
-            if (dof.Id() < BaseType::mEquationSystemSize) {
+            if (dof.EquationId() < BaseType::mEquationSystemSize) {
                 auto it = mDoFToSolveSet.find(dof);
                 if (it != mDoFToSolveSet.end()) {
-                    mSolvableDoFReorder.insert(IdPairType(dof.Id(), counter));
+                    mSolvableDoFReorder.insert(IdPairType(dof.EquationId(), counter));
                     ++counter;
 
                     // We check if this dofs is in the master set too
