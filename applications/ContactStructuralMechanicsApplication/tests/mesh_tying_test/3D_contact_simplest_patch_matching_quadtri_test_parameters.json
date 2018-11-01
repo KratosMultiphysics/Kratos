@@ -1,15 +1,14 @@
 {
     "problem_data"             : {
         "problem_name"    : "3D_contact_simplest_patch_matching_quadtri_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 3,
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
@@ -23,6 +22,9 @@
         "contact_settings":
         {
             "mortar_type"                        : "ComponentsMeshTying"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
         },
         "block_builder"                      : true,
         "line_search"                        : false,
@@ -41,42 +43,67 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3"],
         "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,-0.1],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "contact_process_list" :[{
+            "python_module"   : "mesh_tying_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "MeshTyingProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : {"0":["Parts_Parts_Auto1"]},
+                "mesh_tying_model_part"       : {"0":["DISPLACEMENT_Displacement_Auto3"]}
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,-0.1],
-            "interval"        : [0.0,"End"]
+        ],
+        "list_other_processes"     : [],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Z"],
+                "input_file_name"      : "mesh_tying_test/3D_contact_simplest_patch_matching_quadtri_test_results.json",
+                "model_part_name"      : "DISPLACEMENT_Displacement_Auto3",
+                "time_frequency"       : 1.0
+            }
         }
-    }],
-    "loads_process_list"       : [],
-    "contact_process_list" :[{
-        "python_module"   : "mesh_tying_process",
-        "kratos_module" : "ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "MeshTyingProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : {"0":["Parts_Parts_Auto1"]},
-            "mesh_tying_model_part"       : {"0":["DISPLACEMENT_Displacement_Auto3"]}
-        }
-    }
-    ],
-    "list_other_processes"     : [],
-    "_output_configuration"     : {
+        ]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -95,22 +122,8 @@
             "nodal_flags_results": ["ACTIVE"],
             "gauss_point_results" : []
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Z"],
-            "input_file_name"      : "mesh_tying_test/3D_contact_simplest_patch_matching_quadtri_test_results.json",
-            "model_part_name"      : "DISPLACEMENT_Displacement_Auto3",
-            "time_frequency"       : 1.0
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

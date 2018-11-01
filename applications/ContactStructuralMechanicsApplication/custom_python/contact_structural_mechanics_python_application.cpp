@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -28,22 +28,17 @@
 
 namespace Kratos
 {
-
 namespace Python
 {
-
-using namespace pybind11;
-
-
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
 {
-
-    class_<KratosContactStructuralMechanicsApplication,
-           KratosContactStructuralMechanicsApplication::Pointer,
-           KratosApplication >(m, "KratosContactStructuralMechanicsApplication")
-           .def(init<>())
-           ;
+    py::class_<KratosContactStructuralMechanicsApplication,
+        KratosContactStructuralMechanicsApplication::Pointer,
+        KratosApplication >(m, "KratosContactStructuralMechanicsApplication")
+        .def(py::init<>())
+        ;
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
@@ -52,7 +47,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     AddCustomLinearSolversToPython(m);
 
     // Adding enums
-    enum_<NormalDerivativesComputation>(m, "NormalDerivativesComputation")
+    py::enum_<NormalDerivativesComputation>(m, "NormalDerivativesComputation")
     .value("NO_DERIVATIVES_COMPUTATION",NO_DERIVATIVES_COMPUTATION)
     .value("ELEMENTAL_DERIVATIVES",ELEMENTAL_DERIVATIVES)
     .value("NODAL_ELEMENTAL_DERIVATIVES",NODAL_ELEMENTAL_DERIVATIVES)

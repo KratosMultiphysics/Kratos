@@ -139,9 +139,9 @@ namespace Kratos
       J2 *= 0.5;
 
       // Compute Equivalent Strain (rYieldCondition)
-      const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-      const double& StrengthRatio = rMaterialProperties[STRENGTH_RATIO];
-      const double& PoissonRatio  = rMaterialProperties[POISSON_RATIO];
+      const Properties& rProperties = rModelData.GetProperties();
+      const double& StrengthRatio   = rProperties[STRENGTH_RATIO];
+      const double& PoissonRatio    = rProperties[POISSON_RATIO];
 
       rYieldCondition  =  I1*(StrengthRatio-1.0)/(2.0*StrengthRatio*(1.0-2.0*PoissonRatio));
       rYieldCondition +=  sqrt( I1*I1*(StrengthRatio-1.0)*(StrengthRatio-1.0)/((1.0-2.0*PoissonRatio)*(1.0-2.0*PoissonRatio)) + J2*12.0*StrengthRatio/((1.0+PoissonRatio)*(1.0+PoissonRatio)) )/(2.0*StrengthRatio);

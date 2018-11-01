@@ -40,7 +40,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             pass
 
     def test_trilinos_levelset_convection(self):
-        self.model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        self.model_part = current_model.CreateModelPart("Main",2)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)

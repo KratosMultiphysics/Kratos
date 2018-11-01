@@ -5,5 +5,6 @@ import KratosMultiphysics.DEMApplication
 
 import main_script as Main
 
-solution = Main.Solution()
+model = KratosMultiphysics.Model()
+solution = Main.Solution(model)
 solution.Run()

@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 #include "spaces/ublas_space.h"
@@ -30,14 +29,14 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     // Tree contact search
-    class_<TreeContactSearch<2, 2>, typename TreeContactSearch<2, 2>::Pointer>(m, "TreeContactSearch2D2N")
-    .def(init<ModelPart&>())
-    .def(init<ModelPart&, Parameters>())
+    py::class_<TreeContactSearch<2, 2>, typename TreeContactSearch<2, 2>::Pointer>(m, "TreeContactSearch2D2N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<2, 2>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<2, 2>::ClearMortarConditions)
     .def("CheckContactModelParts",&TreeContactSearch<2, 2>::CheckContactModelParts)
@@ -48,9 +47,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CheckMortarConditions",&TreeContactSearch<2, 2>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<2, 2>::InvertSearch)
     ;
-    class_<TreeContactSearch<3, 3>, typename TreeContactSearch<3, 3>::Pointer>(m, "TreeContactSearch3D3N")
-    .def(init<ModelPart&>())
-    .def(init<ModelPart&, Parameters>())
+    py::class_<TreeContactSearch<3, 3>, typename TreeContactSearch<3, 3>::Pointer>(m, "TreeContactSearch3D3N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 3>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<3, 3>::ClearMortarConditions)
     .def("CheckContactModelParts",&TreeContactSearch<3, 3>::CheckContactModelParts)
@@ -61,9 +60,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CheckMortarConditions",&TreeContactSearch<3, 3>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 3>::InvertSearch)
     ;
-    class_<TreeContactSearch<3, 4>, typename TreeContactSearch<3, 4>::Pointer>(m, "TreeContactSearch3D4N")
-    .def(init<ModelPart&>())
-    .def(init<ModelPart&, Parameters>())
+    py::class_<TreeContactSearch<3, 4>, typename TreeContactSearch<3, 4>::Pointer>(m, "TreeContactSearch3D4N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 4>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<3, 4>::ClearMortarConditions)
     .def("CheckContactModelParts",&TreeContactSearch<3, 4>::CheckContactModelParts)
@@ -74,9 +73,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CheckMortarConditions",&TreeContactSearch<3, 4>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 4>::InvertSearch)
     ;
-    class_<TreeContactSearch<3, 3, 4>, typename TreeContactSearch<3, 3, 4>::Pointer>(m, "TreeContactSearch3D3N4N")
-    .def(init<ModelPart&>())
-    .def(init<ModelPart&, Parameters>())
+    py::class_<TreeContactSearch<3, 3, 4>, typename TreeContactSearch<3, 3, 4>::Pointer>(m, "TreeContactSearch3D3N4N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 3, 4>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<3, 3, 4>::ClearMortarConditions)
     .def("CheckContactModelParts",&TreeContactSearch<3, 3, 4>::CheckContactModelParts)
@@ -87,9 +86,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CheckMortarConditions",&TreeContactSearch<3, 3, 4>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 3, 4>::InvertSearch)
     ;
-    class_<TreeContactSearch<3, 4, 3>, typename TreeContactSearch<3, 4, 3>::Pointer>(m, "TreeContactSearch3D4N3N")
-    .def(init<ModelPart&>())
-    .def(init<ModelPart&, Parameters>())
+    py::class_<TreeContactSearch<3, 4, 3>, typename TreeContactSearch<3, 4, 3>::Pointer>(m, "TreeContactSearch3D4N3N")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 4, 3>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<3, 4, 3>::ClearMortarConditions)
     .def("CheckContactModelParts",&TreeContactSearch<3, 4, 3>::CheckContactModelParts)
@@ -102,10 +101,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     // Process Factory utility
-    class_<ProcessFactoryUtility, typename ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
-    .def(init< >())
-    .def(init<  list&>())
-    .def(init<  object&>())
+    py::class_<ProcessFactoryUtility, typename ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
+    .def(py::init<>())
+    .def(py::init<py::list&>())
+    .def(py::init<py::object&>())
     .def("AddProcess",&ProcessFactoryUtility::AddProcess)
     .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
     .def("ExecuteMethod",&ProcessFactoryUtility::ExecuteMethod)
@@ -122,8 +121,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     // Contact utilities
-    class_<ContactUtilities, typename ContactUtilities::Pointer>(m, "ContactUtilities")
-    .def(init<>())
+    py::class_<ContactUtilities, typename ContactUtilities::Pointer>(m, "ContactUtilities")
+    .def(py::init<>())
     .def("CalculateRelativeSizeMesh",&ContactUtilities::CalculateRelativeSizeMesh)
     .def("CalculateMaxNodalH",&ContactUtilities::CalculateMaxNodalH)
     .def("CalculateMeanNodalH",&ContactUtilities::CalculateMeanNodalH)

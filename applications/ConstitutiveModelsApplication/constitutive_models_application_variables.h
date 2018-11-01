@@ -35,6 +35,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/kratos_application.h"
 #include "includes/checks.h"
+#include "custom_utilities/properties_layout.hpp"
 
 namespace Kratos
 {
@@ -42,6 +43,7 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( CONSTITUTIVE_MODELS_APPLICATION, std::string, TEMPERATURE_VARIABLE )
   KRATOS_DEFINE_APPLICATION_VARIABLE( CONSTITUTIVE_MODELS_APPLICATION, std::string, PRESSURE_VARIABLE )
 
+  KRATOS_DEFINE_APPLICATION_VARIABLE( CONSTITUTIVE_MODELS_APPLICATION, PropertiesLayout, PROPERTIES_LAYOUT )
 }
 
 #endif	/* KRATOS_CONSTITUTIVE_MODELS_APPLICATION_VARIABLES_H_INCLUDED */

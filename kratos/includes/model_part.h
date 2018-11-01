@@ -70,6 +70,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+//forward declaring Model to be avoid cross references
+class Model;
+
 /// ModelPart class.
 
 /** Detail class definition.
@@ -269,17 +272,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ModelPart();
-
-    /// Constructor with name
-    ModelPart(std::string const& NewName);
-
-    /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize);
-
-    /// Copy constructor.
-    ModelPart(ModelPart const& rOther) = delete;
+    KRATOS_DEPRECATED_MESSAGE("Old style Modelpart constructor will be removed on nov 1 2018") 
+        ModelPart(std::string const& NewName, Model& rOwnerModel);
 
 
     /// Destructor.
@@ -318,6 +312,12 @@ public:
     IndexType CloneTimeStep(double NewTime);
 
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
+
+    //this function returns the "Owner" Model
+    Model& GetModel()
+    {
+        return mrModel;
+    }
 
     ///ATTENTION: this function does not touch the coordinates of the nodes.
     ///It just resets the database values to the values at the beginning of the time step
@@ -626,7 +626,7 @@ public:
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const 
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
@@ -713,15 +713,15 @@ public:
      * @todo Replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
      */
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id, 
+                                                                                    IndexType Id,
                                                                                     DofsVectorType& rMasterDofsVector,
                                                                                     DofsVectorType& rSlaveDofsVector,
                                                                                     const MatrixType& RelationMatrix,
                                                                                     const VectorType& ConstantVector,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
-                                                                                    IndexType Id, 
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id,
                                                                                     NodeType& rMasterNode,
                                                                                     const DoubleVariableType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
@@ -730,8 +730,8 @@ public:
                                                                                     const double Constant,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
-                                                                                    IndexType Id, 
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id,
                                                                                     NodeType& rMasterNode,
                                                                                     const VariableComponentType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
@@ -1287,7 +1287,7 @@ public:
     	In the case of conflict the new one would replace the old one
     	resulting inconsitency in parent.
     */
-    void AddSubModelPart(Kratos::shared_ptr<ModelPart> pThisSubModelPart);
+    void AddSubModelPart(ModelPart& rThisSubModelPart);
 
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
@@ -1312,7 +1312,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
             //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
-            return (i.base()->second).get();
+        return (i.base()->second).get();
     }
 
     /** Remove a sub modelpart with given name.
@@ -1358,7 +1358,6 @@ public:
     {
         return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
     }
-
 
     ///@}
     ///@name Access
@@ -1517,6 +1516,22 @@ public:
     ///@}
 
 private:
+
+    friend class Model;
+
+    /// Default constructor.
+    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Constructor with name
+    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Constructor with name and bufferSize
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Copy constructor.
+    ModelPart(ModelPart const& rOther) = delete;
+
+
     ///@name Static Member Variables
     ///@{
 
@@ -1544,6 +1559,8 @@ private:
     ModelPart* mpParentModelPart;
 
     SubModelPartsContainerType mSubModelParts;
+
+    Model& mrModel;
 
     ///@}
     ///@name Private Operators

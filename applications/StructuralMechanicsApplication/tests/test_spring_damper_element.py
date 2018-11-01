@@ -10,7 +10,6 @@ from math import sqrt, sin, cos, pi, exp, atan
 class SpringDamperElementTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -99,8 +98,8 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
-    def _set_up_mdof_system(self):
-        mp = KratosMultiphysics.ModelPart("mdof")
+    def _set_up_mdof_system(self, current_model):
+        mp = current_model.CreateModelPart("mdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
 
@@ -135,8 +134,8 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
         return mp
 
-    def _set_up_sdof_system(self):
-        mp = KratosMultiphysics.ModelPart("sdof")
+    def _set_up_sdof_system(self, current_model):
+        mp = current_model.CreateModelPart("sdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
 
@@ -166,7 +165,8 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
 
     def test_undamped_mdof_system_dynamic(self):
-        mp = self._set_up_mdof_system()
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_mdof_system(current_model)
 
         #set parameters
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,80.0)
@@ -213,7 +213,8 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0),current_analytical_displacement_y_2,delta=1e-2)
 
     def test_undamped_sdof_system_harmonic(self):
-        mp = self._set_up_sdof_system()
+        current_model = KratosMultiphysics.Model()
+        mp = self._set_up_sdof_system(current_model)
 
         #set parameters
         mass = 80.0
@@ -253,7 +254,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
 
     def test_damped_mdof_system_dynamic(self):
-        mp = self._set_up_mdof_system()
+        current_model = KratosMultiphysics.Model()
+
+        mp = self._set_up_mdof_system(current_model)
 
         #set parameters
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,1.0)
@@ -296,7 +299,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         if not hasattr(KratosMultiphysics.ExternalSolversApplication, "PastixSolver"):
             self.skipTest("Pastix Solver is not available")
 
-        mp = self._set_up_mdof_system()
+        current_model = KratosMultiphysics.Model()
+
+        mp = self._set_up_mdof_system(current_model)
 
         #set parameters
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,20.0)

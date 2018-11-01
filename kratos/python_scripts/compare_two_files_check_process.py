@@ -17,13 +17,13 @@ def Factory(settings, current_model):
     return CompareTwoFilesCheckProcess(settings["Parameters"])
 
 class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
-
+    """This process compares files that are written during a simulation
+    against reference files.
+    Please see the "ExecuteFinalize" functions for details about the
+    available file-formats
+    """
     def __init__(self, params):
-        """This process compares files that are written during a simulation
-        against reference files.
-        Please see the "ExecuteFinalize" functions for details about the
-        available file-formats
-        """
+        KratosMultiphysics.Process.__init__(self)
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {

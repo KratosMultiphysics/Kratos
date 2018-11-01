@@ -45,11 +45,16 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
             variable_list.extend([PARTITION_INDEX])
             self.parallel_execution = True
 
-        self.model_part_origin = self.partition_and_read_model_part("ModelPartNameOrigin",
+        self.model = Model()
+
+        self.model_part_origin = self.partition_and_read_model_part(self.model,
+                                                                     "ModelPartNameOrigin",
                                                                      input_file_origin, 3,
                                                                      variable_list,
                                                                      self.num_processors)
-        self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination",
+
+        self.model_part_destination = self.partition_and_read_model_part(self.model,
+                                                                         "ModelPartNameDestination",
                                                                          input_file_destination, 3,
                                                                          variable_list,
                                                                          self.num_processors)
@@ -599,11 +604,11 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
 
     ##### IO related Functions #####
-    def partition_and_read_model_part(self, model_part_name,
+    def partition_and_read_model_part(self, current_model, model_part_name,
                                       model_part_input_file,
                                       size_domain, variable_list,
                                       number_of_partitions):
-        model_part = ModelPart(model_part_name)
+        model_part = current_model.CreateModelPart(model_part_name)
         for variable in variable_list:
             model_part.AddNodalSolutionStepVariable(variable)
 
