@@ -162,27 +162,40 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 	  return mpHardeningLaw;
         }
 
-        // Calculate Yield Condition
+
+        /*
+        * @brief This function return the yield criterion at the given principal stress condition
+        * @param[in/out] rStateFunction Computed yield criterion
+        * @param[in] rVariables Parameter of yields
+        * @param[in] rPrincipalStress Current principal stress
+        * @param[in] rAlpha Used parameters
+        * @param[in] rBeta Used parameters
+        * @return Yield criterion
+        */
         virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
 	{
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
 		return rStateFunction;
 	};
 
         virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha)
 	{
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
         };
 
         virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const double& rBeta)
 	{
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
-
         };
 
-        // Calculate Yield Condition First Derivative
+
+        /*
+        * @brief This function return the first derivative of yield criterion at the given principal stress condition
+        * @param[in] rPrincipalStress Principal stresses
+        * @param[in/out] rFirstDerivative First stress derivative value of yield function
+        * @param[in] rAlpha Used parameters
+        * @param[in] rBeta Used parameters
+        */
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative)
 	{
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
@@ -199,7 +212,12 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
         };
 
-        // Calculate Yield Condition Second Derivative
+
+        /*
+        * @brief This function return the second derivative of yield criterion at the given principal stress condition
+        * @param[in] rStressVector Principal stresses
+        * @param[in/out] rSecondDerivative Second stress derivative value of yield function
+        */
         virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative)
 	{
 		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;

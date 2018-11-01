@@ -64,15 +64,15 @@ public:
     ///@{
 
     typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
-    typedef const Properties*              PropertiesPointer;
 
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
+
+    typedef const Properties*              PropertiesPointer;
 
     KRATOS_DEFINE_LOCAL_FLAG( IMPLEX_ACTIVE );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_REGION );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_RATE_REGION );
     KRATOS_DEFINE_LOCAL_FLAG( RETURN_MAPPING_COMPUTED );
-
 
     struct PlasticFactors
     {
@@ -111,7 +111,6 @@ public:
         friend class Serializer;
 
         // A private default constructor necessary for serialization
-
         void save(Serializer& rSerializer) const
         {
             rSerializer.save("PlasticDissipation",PlasticDissipation);
@@ -177,7 +176,6 @@ public:
             Temperature = 0;
         }
 
-
         void initialize()
         {
             Options.Set(IMPLEX_ACTIVE,false);
@@ -207,7 +205,6 @@ public:
         //needed in IMPLEX calculation
         double EquivalentPlasticStrainOld;
 
-
     public:
 
         void clear()
@@ -226,7 +223,6 @@ public:
             EquivalentPlasticStrainOld = 0;
         }
 
-
         void print()
         {
             KRATOS_INFO("MPMFlowRule.InternalVariables") << " EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
@@ -243,7 +239,6 @@ public:
         friend class Serializer;
 
         // A private default constructor necessary for serialization
-
         void save(Serializer& rSerializer) const
         {
             rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
@@ -278,7 +273,6 @@ public:
     /// Default constructor.
     MPMFlowRule()
     {
-        //KRATOS_ERROR << std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!", "" )
     };
 
     /// Initialization constructor.
@@ -336,11 +330,11 @@ public:
 
     virtual void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
     {
-        //set yield criterion
+        // Set yield criterion
         mpYieldCriterion = pYieldCriterion;
         mpYieldCriterion->InitializeMaterial(pHardeningLaw, rMaterialProperties);
 
-        //initialize material variables
+        // Initialize material variables
         mInternalVariables.clear();
         mThermalVariables.clear();
 
@@ -351,7 +345,7 @@ public:
 
         mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);
 
-        //initialize material variables
+        // Initialize material variables
         mInternalVariables.clear();
         mThermalVariables.clear();
 
@@ -366,7 +360,6 @@ public:
     {
         return mInternalVariables;
     };
-
 
     const ThermalVariables & GetThermalVariables()
     {

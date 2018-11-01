@@ -107,7 +107,6 @@ class ModifiedCamClayYieldCriterion
         * @param[in/out] rFirstDerivative First stress derivative value of yield function
         * @param[in] rAlpha Plastic volumetric strain
         * @param[in] rOldPreconsolidationPressure The value of Preconsolidation Stress at the previous time step
-        * @return Modified cam clay yield criterion first derivative
         */
         void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha, const double& rOldPreconsolidationPressure) override;
 
@@ -116,7 +115,6 @@ class ModifiedCamClayYieldCriterion
         * @brief This function return the second derivative of modified cam clay yield criterion at the given principal stress condition
         * @param[in] rStressVector Principal stresses
         * @param[in/out] rSecondDerivative Second stress derivative value of yield function
-        * @return Modified cam clay yield criterion second derivative
         */
         void CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative) override;
 
