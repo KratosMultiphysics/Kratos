@@ -235,7 +235,7 @@ public:
                     EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
 
                 //assemble the elemental contribution
-#ifdef USE_LOCKS_IN_ASSEMBLY
+#ifdef _OPENMP
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
@@ -278,7 +278,7 @@ public:
                     EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
                 }
 
-#ifdef USE_LOCKS_IN_ASSEMBLY
+#ifdef _OPENMP
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
