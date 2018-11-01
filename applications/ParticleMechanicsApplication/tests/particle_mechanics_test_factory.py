@@ -2,9 +2,11 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.ParticleMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import particle_mechanics_analysis
 
 # Other imports
 import os
@@ -12,7 +14,6 @@ import os
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
-# TODO: Should we move this to KratosUnittest?
 class controlledExecutionScope:
     def __init__(self, scope):
         self.currentPath = os.getcwd()
@@ -42,8 +43,8 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            #self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParameters)
-            #self.test.Initialize()
+            self.test = particle_mechanics_analysis.ParticleMechanicsAnalysis(model, ProjectParameters)
+            self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
         """This function can be used in derived classes to modify existing parameters
@@ -61,5 +62,5 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
 
-class DummyTest(ParticleMechanicsTestFactory):
-    file_name = "mesh_moving_test/simple_mesh_moving_test"
+class CLLinearElastic2DQuadTest(ParticleMechanicsTestFactory):
+    file_name = "cl_tests/solid_cl/linear_elastic_2D_quad_test"
