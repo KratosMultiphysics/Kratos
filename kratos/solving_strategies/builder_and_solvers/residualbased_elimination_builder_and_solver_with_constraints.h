@@ -412,14 +412,10 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         mDoFToSolveSet = dof_temp_solvable;
         mMasterDoFSet = dof_temp_master;
 
-        // The total system of equations to be solved
-        mDoFToSolveSystemSize = mDoFToSolveSet.size();
-        mMasterDoFSystemSize = mMasterDoFSet.size();
-
-        //Throws an exception if there are no Degrees Of Freedom involved in the analysis
+        // Throws an exception if there are no Degrees Of Freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_ERROR_IF(mDoFToSolveSystemSize == 0) << "No degrees of freedom to solve!" << std::endl;
-        KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", mMasterDoFSystemSize == 0) << "No MPC degrees of freedom to solve!" << std::endl;
+        KRATOS_ERROR_IF( mDoFToSolveSet.size() == 0) << "No degrees of freedom to solve!" << std::endl;
+        KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", mMasterDoFSet.size() == 0) << "No MPC degrees of freedom to solve!" << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
 
@@ -1184,13 +1180,26 @@ private:
         // Add the computation of the global ids of the solvable dofs
         mSolvableDoFReorder.reserve(mDoFToSolveSystemSize);
         IndexType counter = 0;
+        IndexType master_counter = 0;
         for (auto& dof : BaseType::mDofSet) {
-            auto it = mDoFToSolveSet.find(dof);
-            if (it != mDoFToSolveSet.end()) {
-                mSolvableDoFReorder.insert(IdPairType(dof.Id(), counter));
-                ++counter;
+            if (dof.Id() < BaseType::mEquationSystemSize) {
+                auto it = mDoFToSolveSet.find(dof);
+                if (it != mDoFToSolveSet.end()) {
+                    mSolvableDoFReorder.insert(IdPairType(dof.Id(), counter));
+                    ++counter;
+
+                    // We check if this dofs is in the master set too
+                    auto it_master = mMasterDoFSet.find(dof);
+                    if (it_master != mMasterDoFSet.end()) {
+                        ++master_counter;
+                    }
+                }
             }
         }
+
+        // The total system of equations to be solved
+        mDoFToSolveSystemSize = mSolvableDoFReorder.size();
+        mMasterDoFSystemSize = master_counter;
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
     }
