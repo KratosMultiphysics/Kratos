@@ -602,7 +602,7 @@ protected:
                 omp_set_lock(&rLockArray[i_global]);
             #endif
                 for (IndexType j_local = 0; j_local < local_size; ++j_local) {
-                    IndexType j_global = rMasterEquationId[j_local];
+                    IndexType j_global = mSolvableDoFReorder[rMasterEquationId[j_local]];
                     if (j_global < BaseType::mEquationSystemSize) {
                         rT(i_global, j_global) += rTransformationMatrix(i_local, j_local);
                     }
@@ -896,7 +896,8 @@ protected:
         EquationIdVectorType aux_ids(3, 0);
 
         const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        #pragma omp parallel for firstprivate(nconstraints, ids, aux_ids)
+        IndexType master_counter = 0;
+        // TODO: OMP
         for (int i_const = 0; i_const < nconstraints; ++i_const) {
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
             it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
@@ -904,11 +905,13 @@ protected:
             #ifdef _OPENMP
                 omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
             #endif
-                auto &master_row_indices = master_indices[aux_ids[i]];
-                master_row_indices.insert(aux_ids.begin(), aux_ids.end());
+                auto &master_row_indices = master_indices[master_counter];
+                for (auto& id : aux_ids)
+                    master_row_indices.insert(mSolvableDoFReorder[id]);
             #ifdef _OPENMP
                 omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
             #endif
+                ++master_counter;
             }
         }
 
@@ -944,7 +947,7 @@ protected:
         }
 
         counter = 0;
-        IndexType master_counter = 0;
+        master_counter = 0;
         // TODO: OMP
         for (auto& to_solve : dof_to_solve_indices) {
             const IndexType row_begin = Trow_indices[counter];
