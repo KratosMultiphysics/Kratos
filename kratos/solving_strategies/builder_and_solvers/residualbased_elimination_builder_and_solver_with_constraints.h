@@ -1138,6 +1138,8 @@ private:
     SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
     SizeType mMasterDoFSystemSize = 0;         /// Number of master degrees of freedom of the problem
 
+    std::unordered_map<IndexType, IndexType> mSolvableDoFReorder; /// The correlation between the global total DoF order and the solvable DoF order
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -1157,7 +1159,19 @@ private:
         // First we set up the system of equations without constraints
         BaseType::SetUpSystem(rModelPart);
 
-        // TODO: Add something if necessary
+        /// A pair of Ids
+        typedef std::pair<IndexType, IndexType> IdPairType;
+
+        // Add the computation of the global ids of the solvable dofs
+        mSolvableDoFReorder.reserve(mDoFToSolveSystemSize);
+        IndexType counter = 0;
+        for (auto& dof : BaseType::mDofSet) {
+            auto it = mDoFToSolveSet.find(dof);
+            if (it != mDoFToSolveSet.end()) {
+                mSolvableDoFReorder.insert(IdPairType(dof.Id(), counter));
+                ++counter;
+            }
+        }
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
     }
