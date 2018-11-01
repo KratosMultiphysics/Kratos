@@ -155,12 +155,6 @@ class ParticleMPMJsonOutputProcess(JsonOutputProcess):
         write_external_json(self.output_file_name, data)
 
     def __kratos_vector_to__python_list(self, value):
-        """ This method is executed in order to finalize the current computation
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        value -- The Kratos vector to transform
-        """
 
         list = []
         for index in range(len(value)):
@@ -168,12 +162,6 @@ class ParticleMPMJsonOutputProcess(JsonOutputProcess):
         return list
 
     def __check_flag(self, component):
-        """ Checks the flag over a component
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        component -- The Kratos mp or element to check
-        """
 
         if self.flag != None:
             if component.Is(self.flag) == False:
