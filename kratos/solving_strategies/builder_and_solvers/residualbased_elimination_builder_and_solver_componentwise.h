@@ -102,6 +102,7 @@ public:
 
 
     typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver> BaseType;
+    typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver> ResidualBasedEliminationBuilderAndSolverType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
@@ -137,17 +138,17 @@ public:
     explicit ResidualBasedEliminationBuilderAndSolverComponentwise(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
-        ) : ResidualBasedEliminationBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver, ThisParameters)
+        ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver, ThisParameters)
         , rVar(KratosComponents<TVariableType>::Get(ThisParameters["components_wise_variable"].GetString()))
     {
-
+        // There is not need for validation, because the only parameter used is a KratosComponents, which is not defined will throw an error
     }
 
     /** Constructor.
     */
     explicit ResidualBasedEliminationBuilderAndSolverComponentwise(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,TVariableType const& Var)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
+        : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
         , rVar(Var)
     {
 
