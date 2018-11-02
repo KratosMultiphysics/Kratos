@@ -412,7 +412,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing constraints loop" << std::endl;
 
         // We don't do a loop in OMP because erase is not a parallel threadsafe operation
-        IndexSetType dummy_set;
         typedef std::pair<IndexType, IndexSetType> IndexIndexSetPairType;
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
         const int number_of_constraints = static_cast<int>(r_constraints_array.size());
@@ -432,12 +431,17 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // We add the master dofs to the map of slave dofs relation
                 const IndexType equation_id_dof = dof->EquationId();
                 auto it_relation_dof = mSlaveMasterDoFRelation.find(equation_id_dof);
-                if ( it_relation_dof != mSlaveMasterDoFRelation.end())
+                if ( it_relation_dof == mSlaveMasterDoFRelation.end()) {
+                    IndexSetType dummy_set;
+                    dummy_set.reserve(auxiliar_dof_list.size());
+                    for (auto& auxiliar_dof : auxiliar_dof_list)
+                        dummy_set.insert(auxiliar_dof->EquationId());
                     mSlaveMasterDoFRelation.insert(IndexIndexSetPairType(equation_id_dof, dummy_set));
-
-                IndexSetType& set = it_relation_dof->second;
-                for (auto& auxiliar_dof : auxiliar_dof_list)
-                    set.insert(auxiliar_dof->EquationId());
+                } else {
+                    IndexSetType& set = it_relation_dof->second;
+                    for (auto& auxiliar_dof : auxiliar_dof_list)
+                        set.insert(auxiliar_dof->EquationId());
+                }
             }
             dofs_aux_list_solvable.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
         }
