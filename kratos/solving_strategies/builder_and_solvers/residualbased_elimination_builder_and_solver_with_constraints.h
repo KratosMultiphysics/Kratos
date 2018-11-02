@@ -1268,8 +1268,8 @@ private:
         TSystemMatrixType& rTMatrix = *mpTMatrix;
 
         // We reconstruct the complete vector of Unknowns
-        rDx.resize(BaseType::mEquationSystemSize);
         VectorType Dx_copy(rDx);
+        rDx.resize(BaseType::mEquationSystemSize);
         TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
 
         // TODO: Should be applied only once, because it is increment of the Unknowns (to solve later)
