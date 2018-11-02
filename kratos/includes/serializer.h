@@ -155,21 +155,9 @@ public:
     ///@{
 
     /// Default constructor.
-    Serializer(TraceType const& rTrace=SERIALIZER_NO_TRACE) : mpBuffer(new std::stringstream(std::ios::binary|std::ios::in|std::ios::out)), mTrace(rTrace), mNumberOfLines(0)
+    Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
+        mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0)
     {
-    }
-
-    Serializer(std::string const& Filename, TraceType const& rTrace=SERIALIZER_NO_TRACE) : mTrace(rTrace), mNumberOfLines(0)
-    {
-        std::fstream* p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::in|std::ios::out);
-        if(!(*p_file))
-        {
-            delete p_file;
-            p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::out);
-        }
-        mpBuffer = p_file;
-        KRATOS_ERROR_IF_NOT(*mpBuffer) << "Error opening input file : "
-                                       << std::string(Filename+".rest") << std::endl;
     }
 
     /// Destructor.
@@ -190,6 +178,11 @@ public:
     ///This function returns the "trace type" used in initializing the serializer. 
     ///Trace type is one of SERIALIZER_NO_TRACE,SERIALIZER_TRACE_ERROR,SERIALIZER_TRACE_ALL
     TraceType GetTraceType(){return mTrace;}
+
+    void SetBuffer(BufferType* pBuffer)
+    {
+        mpBuffer = pBuffer;
+    }
     
     template<class TDataType>
     static void* Create()
