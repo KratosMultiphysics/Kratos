@@ -111,7 +111,6 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.cpp
 
-
 	##processes
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/set_mechanical_initial_state_process.cpp
 
@@ -134,7 +133,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosPfemSolidMechanicsCore SHARED ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE})
-target_link_libraries(KratosPfemSolidMechanicsCore PUBLIC KratosCore KratosSolidMechanicsCore KratosContactMechanicsCore KratosDelaunayMeshingCore)
+target_link_libraries(KratosPfemSolidMechanicsCore PUBLIC KratosCore KratosSolidMechanicsCore KratosDelaunayMeshingCore)
 set_target_properties(KratosPfemSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "PFEM_SOLID_MECHANICS_APPLICATION=EXPORT,API")
 
 ###############################################################

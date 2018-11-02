@@ -121,7 +121,7 @@ class MechanicalSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model[model_part_name]
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateModelPart()
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
@@ -206,10 +206,6 @@ class MechanicalSolver(PythonSolver):
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
-
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
@@ -340,17 +336,13 @@ class MechanicalSolver(PythonSolver):
         """Prepare computing model part and import constitutive laws. """
         # Auxiliary parameters object for the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
+        params.AddValue("model_part_name",self.settings["model_part_name"])
         params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
         params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
         params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
         # Assign mesh entities from domain and process sub model parts to the computing model part.
         import check_and_prepare_model_process_structural
-        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
-
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        # NOTE: We do this here in case the model is empty, so the properties can be assigned
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
+        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
 
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
@@ -425,9 +417,11 @@ class MechanicalSolver(PythonSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        import linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
+            return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
+        else:
+            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
@@ -437,7 +431,7 @@ class MechanicalSolver(PythonSolver):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
-            if self.settings["multi_point_constraints_used"].GetBool():
+            if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
                 raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver

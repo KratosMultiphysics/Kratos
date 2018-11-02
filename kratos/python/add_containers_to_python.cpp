@@ -54,7 +54,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 Flags FlagsOr(const Flags& Left, const Flags& Right )
 {
@@ -166,10 +166,20 @@ TVariableComponentType CreateVariableComponent(const std::string& name, const st
 
 void  AddContainersToPython(pybind11::module& m)
 {
+    typedef Variable<array_1d<double, 3> > Array1DVariable3;
+    typedef Variable<array_1d<double, 4> > Array1DVariable4;
+    typedef Variable<array_1d<double, 6> > Array1DVariable6;
+    typedef Variable<array_1d<double, 9> > Array1DVariable9;
+
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > Array1DComponentVariable;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > Array1D4ComponentVariable;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > Array1D6ComponentVariable;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > Array1D9ComponentVariable;
+
     //def("TestContainers", TestContainers);
 
 //     BoundedVectorPythonInterface<array_1d<double, 3>, 3>::CreateInterface(m, "Array3" )
-//     .def( init<vector_expression<array_1d<double, 3> > >() )
+//     .def(py::init<vector_expression<array_1d<double, 3> > >() )
 //     .def( VectorScalarOperatorPython<array_1d<double, 3>, double, array_1d<double, 3> >() )
 //     .def( VectorVectorOperatorPython<array_1d<double, 3>, zero_vector<double>, array_1d<double, 3> >() )
 //     .def( VectorVectorOperatorPython<array_1d<double, 3>, unit_vector<double>, array_1d<double, 3> >() )
@@ -177,43 +187,43 @@ void  AddContainersToPython(pybind11::module& m)
 //     .def( VectorVectorOperatorPython<array_1d<double, 3>, mapped_vector<double>, array_1d<double, 3> >() )
 //     ;
 
-    class_<VariableData>(m, "VariableData" )
-    .def("Name", &VariableData::Name, return_value_policy::copy)
-    .def( "__repr__", &VariableData::Info )
+    py::class_<VariableData>(m, "VariableData" )
+    .def("Name", &VariableData::Name, py::return_value_policy::copy)
+    .def("__str__", PrintObject<VariableData>)
     ;
 
-    class_<Variable<std::string>, VariableData>(m, "StringVariable" )
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<std::string>>(name);} ))
-    .def( "__repr__", &Variable<std::string>::Info )
+    py::class_<Variable<std::string>, VariableData>(m, "StringVariable" )
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<std::string>>(name);} ))
+    .def("__str__", PrintObject<Variable<std::string>>)
     ;
 
-    class_<Variable<bool>, VariableData>(m, "BoolVariable" )
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<bool>>(name);} ))
-    .def( "__repr__", &Variable<bool>::Info )
+    py::class_<Variable<bool>, VariableData>(m, "BoolVariable" )
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<bool>>(name);} ))
+    .def("__str__", PrintObject<Variable<bool>>)
     ;
 
-    class_<Variable<int>,VariableData>(m, "IntegerVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<int>>(name);} ))
-    .def( "__repr__", &Variable<int>::Info )
+    py::class_<Variable<int>,VariableData>(m, "IntegerVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<int>>(name);} ))
+    .def("__str__", PrintObject<Variable<int>>)
     ;
 
-    class_<Variable<DenseVector<int> >,VariableData>(m, "IntegerVectorVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<DenseVector<int>>>(name);} ))
-    .def( "__repr__", &Variable<DenseVector<int>>::Info )
+    py::class_<Variable<DenseVector<int> >,VariableData>(m, "IntegerVectorVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<DenseVector<int>>>(name);} ))
+    .def("__str__", PrintObject<Variable<DenseVector<int> >>)
     ;
 
-    class_<Variable<double>,VariableData>(m, "DoubleVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<double>>(name);} ))
-    .def( "__repr__", &Variable<double>::Info )
+    py::class_<Variable<double>,VariableData>(m, "DoubleVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<double>>(name);} ))
+    .def("__str__", PrintObject<Variable<double>>)
     ;
 
-    class_<Variable<Vector >,VariableData>(m, "VectorVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<Vector >>(name);} ))
-    .def( "__repr__", &Variable<Vector >::Info )
+    py::class_<Variable<Vector >,VariableData>(m, "VectorVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<Vector >>(name);} ))
+    .def("__str__", PrintObject<Variable<Vector >>)
     ;
 
-    class_<Variable<array_1d<double, 3> >,VariableData>(m, "Array1DVariable3")
-    .def(init<>( [](const std::string& name)
+    py::class_<Variable<array_1d<double, 3> >,VariableData>(m, "Array1DVariable3")
+    .def(py::init<>( [](const std::string& name)
                  {
                     auto var_x = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
                                     (name+"_X", name, 1);
@@ -223,87 +233,87 @@ void  AddContainersToPython(pybind11::module& m)
                                     (name+"_Z", name, 1);
                     return CreateVariable<Variable<array_1d<double, 3> >>(name);
                  } ))
-    .def( "__repr__", &Variable<array_1d<double, 3> >::Info )
+    .def("__str__", PrintObject<Array1DVariable3>)
     ;
 
-    class_<Variable<array_1d<double, 4> >,VariableData>(m, "Array1DVariable4")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 4> >>(name);} ))
-    .def( "__repr__", &Variable<array_1d<double, 4> >::Info )
+    py::class_<Variable<array_1d<double, 4> >,VariableData>(m, "Array1DVariable4")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 4> >>(name);} ))
+    .def("__str__", PrintObject<Array1DVariable4>)
     ;
 
-    class_<Variable<array_1d<double, 6> >,VariableData>(m, "Array1DVariable6")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 6> >>(name);} ))
-    .def( "__repr__", &Variable<array_1d<double, 6> >::Info )
+    py::class_<Variable<array_1d<double, 6> >,VariableData>(m, "Array1DVariable6")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 6> >>(name);} ))
+    .def("__str__", PrintObject<Array1DVariable6>)
     ;
 
-    class_<Variable<array_1d<double, 9> >,VariableData>(m, "Array1DVariable9")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 9> >>(name);} ))
-    .def( "__repr__", &Variable<array_1d<double, 9> >::Info )
+    py::class_<Variable<array_1d<double, 9> >,VariableData>(m, "Array1DVariable9")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 9> >>(name);} ))
+    .def("__str__", PrintObject<Array1DVariable9>)
     ;
 
-    class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<DenseMatrix<double> >>(name);} ))
-    .def( "__repr__", &Variable<DenseMatrix<double> >::Info )
+    py::class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<DenseMatrix<double> >>(name);} ))
+    .def("__str__", PrintObject<Variable<DenseMatrix<double> >>)
     ;
 
-    class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
-    .def( "__repr__", &Variable<ConstitutiveLaw::Pointer>::Info )
+    py::class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
+    .def("__str__", PrintObject<Variable<ConstitutiveLaw::Pointer>>)
     ;
 
-    class_<Variable<ConvectionDiffusionSettings::Pointer > ,VariableData>(m,"ConvectionDiffusionSettingsVariable")
-    .def( "__repr__", &Variable<ConvectionDiffusionSettings::Pointer >::Info )
+    py::class_<Variable<ConvectionDiffusionSettings::Pointer > ,VariableData>(m,"ConvectionDiffusionSettingsVariable")
+    .def("__str__", PrintObject<Variable<ConvectionDiffusionSettings::Pointer >>)
     ;
 
-    class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
-    .def( "__repr__", &Variable<RadiationSettings::Pointer >::Info )
+    py::class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
+    .def("__str__", PrintObject<Variable<RadiationSettings::Pointer >>)
     ;
-    class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<Vector > >::Info )
+    py::class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
+    .def("__str__", PrintObject<VariableComponent<VectorComponentAdaptor<Vector > >>)
     // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
-    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
-    .def(init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
+    py::class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
+    .def(py::init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
     {
         return CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
             (name, source_name, component_index);
     } ))
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::GetSourceVariable )
+    .def("__str__", PrintObject<Array1DComponentVariable>)
+    .def( "GetSourceVariable", &Array1DComponentVariable::GetSourceVariable )
     ;
 
-    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >,VariableData>(m, "Array1D4ComponentVariable")
-    .def(init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
+    py::class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >,VariableData>(m, "Array1D4ComponentVariable")
+    .def(py::init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
     {
         return CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >>
             (name, source_name, component_index);
     } ))
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::GetSourceVariable )
+    .def("__str__", PrintObject<Array1D4ComponentVariable>)
+    .def( "GetSourceVariable", &Array1D4ComponentVariable::GetSourceVariable )
     ;
 
-    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >,VariableData>(m, "Array1D6ComponentVariable")
-    .def(init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
+    py::class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >,VariableData>(m, "Array1D6ComponentVariable")
+    .def(py::init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
     {
         return CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >>
             (name, source_name, component_index);
     } ))
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::GetSourceVariable )
+    .def("__str__", PrintObject<Array1D6ComponentVariable>)
+    .def( "GetSourceVariable", &Array1D6ComponentVariable::GetSourceVariable )
     ;
 
-    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >,VariableData>(m, "Array1D9ComponentVariable")
-    .def(init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
+    py::class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >,VariableData>(m, "Array1D9ComponentVariable")
+    .def(py::init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
     {
         return CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >>
             (name, source_name, component_index);
     } ))
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::GetSourceVariable )
+    .def("__str__", PrintObject<Array1D9ComponentVariable>)
+    .def( "GetSourceVariable", &Array1D9ComponentVariable::GetSourceVariable )
     ;
 
-    class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
-    .def( "__repr__", &Variable<Quaternion<double> >::Info )
+    py::class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
+    .def("__str__", PrintObject<Variable<Quaternion<double> >>)
     ;
 
     //***********************************************************************
@@ -321,7 +331,7 @@ void  AddContainersToPython(pybind11::module& m)
 //     RegisterInPythonVariables< Variable<std::string> >(m);
 
 
-    //class_<AllVariablesDataValueContainer, AllVariablesDataValueContainer::Pointer>( "DataValueContainer" )
+    //py::class_<AllVariablesDataValueContainer, AllVariablesDataValueContainer::Pointer>( "DataValueContainer" )
     //.def( "__len__", &AllVariablesDataValueContainer::Size )
     //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<std::string> >() )
     //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<int> >() )
@@ -335,52 +345,52 @@ void  AddContainersToPython(pybind11::module& m)
     //.def( self_ns::str( self ) )
     //;
 
-    typedef class_<DataValueContainer, DataValueContainer::Pointer> DataValueContainerBinderType;
+    typedef py::class_<DataValueContainer, DataValueContainer::Pointer> DataValueContainerBinderType;
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
     DataValueBinder.def( "__len__", &DataValueContainer::Size );
-    DataValueBinder.def( "__repr__", &DataValueContainer::Info );
+    DataValueBinder.def("__str__", PrintObject<DataValueContainer>);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<bool> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<int> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<double> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 3>> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 4>> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 6>> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 9>> >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable3 >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable4 >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable6 >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable9 >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DComponentVariable >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D4ComponentVariable >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D6ComponentVariable >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D9ComponentVariable >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
 
-    typedef class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
+    typedef py::class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
     VariableDataValueContainerBinderType VariableDataValueBinder(m, "VariablesListDataValueContainer" );
     VariableDataValueBinder.def( "__len__", &VariablesListDataValueContainer::Size );
-    VariableDataValueBinder.def( "__repr__", &VariablesListDataValueContainer::Info );
+    VariableDataValueBinder.def("__str__", PrintObject<VariablesListDataValueContainer>);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<bool> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<int> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<double> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 3>> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 4>> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 6>> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 9>> >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable3 >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable4 >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable6 >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable9 >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Vector> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Matrix> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DComponentVariable >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D4ComponentVariable >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D6ComponentVariable >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D9ComponentVariable >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Quaternion<double>> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<std::string> >(VariableDataValueBinder);
 
 
-    class_<Flags, Flags::Pointer>(m,"Flags")
-    .def(init<>())
-    .def(init<Flags>())
+    py::class_<Flags, Flags::Pointer>(m,"Flags")
+    .def(py::init<>())
+    .def(py::init<Flags>())
     .def("Is", &Flags::Is)
     .def("IsNot", &Flags::IsNot)
     .def("Set", FlagsSet1)
@@ -392,7 +402,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Clear", &Flags::Clear)
     .def("__or__", FlagsOr)
     .def("__and__", FlagsAnd)
-    .def("__repr__", &Flags::Info )
+    .def("__str__", PrintObject<Flags>)
     ;
 
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,STRUCTURE);
@@ -675,6 +685,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,ARRHENIUSAUX_)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PRESSUREAUX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NODAL_MAUX)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,NODAL_VAUX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NODAL_PAUX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,FACE_HEAT_FLUX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,HEAT_FLUX)
@@ -764,8 +775,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INTEGRATION_COORDINATES )
 
 
-    class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
-    .def(init<	>() )
+    py::class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
+    .def(py::init<	>() )
     .def("SetDensityVariable",&ConvectionDiffusionSettings::SetDensityVariable)
     .def("SetDiffusionVariable",&ConvectionDiffusionSettings::SetDiffusionVariable)
     .def("SetUnknownVariable",&ConvectionDiffusionSettings::SetUnknownVariable)
@@ -779,18 +790,18 @@ void  AddContainersToPython(pybind11::module& m)
     .def("SetVelocityVariable",&ConvectionDiffusionSettings::SetVelocityVariable)
     .def("SetReactionVariable",&ConvectionDiffusionSettings::SetReactionVariable)
 
-    .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, return_value_policy::reference_internal )
-    .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, return_value_policy::reference_internal )
-    .def("GetUnknownVariable",&ConvectionDiffusionSettings::GetUnknownVariable, return_value_policy::reference_internal )
-    .def("GetVolumeSourceVariable",&ConvectionDiffusionSettings::GetVolumeSourceVariable, return_value_policy::reference_internal )
-    .def("GetSurfaceSourceVariable",&ConvectionDiffusionSettings::GetSurfaceSourceVariable, return_value_policy::reference_internal )
-    .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetProjectionVariable, return_value_policy::reference_internal )
-    .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, return_value_policy::reference_internal )
-    .def("GetConvectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, return_value_policy::reference_internal )
-    .def("GetTransferCoefficientVariable",&ConvectionDiffusionSettings::GetTransferCoefficientVariable, return_value_policy::reference_internal)
-    .def("GetSpecificHeatVariable",&ConvectionDiffusionSettings::GetSpecificHeatVariable, return_value_policy::reference_internal )
-    .def("GetVelocityVariable",&ConvectionDiffusionSettings::GetVelocityVariable, return_value_policy::reference_internal )
-    .def("GetReactionVariable",&ConvectionDiffusionSettings::GetReactionVariable, return_value_policy::reference_internal )
+    .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, py::return_value_policy::reference_internal )
+    .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, py::return_value_policy::reference_internal )
+    .def("GetUnknownVariable",&ConvectionDiffusionSettings::GetUnknownVariable, py::return_value_policy::reference_internal )
+    .def("GetVolumeSourceVariable",&ConvectionDiffusionSettings::GetVolumeSourceVariable, py::return_value_policy::reference_internal )
+    .def("GetSurfaceSourceVariable",&ConvectionDiffusionSettings::GetSurfaceSourceVariable, py::return_value_policy::reference_internal )
+    .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetProjectionVariable, py::return_value_policy::reference_internal )
+    .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, py::return_value_policy::reference_internal )
+    .def("GetConvectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, py::return_value_policy::reference_internal )
+    .def("GetTransferCoefficientVariable",&ConvectionDiffusionSettings::GetTransferCoefficientVariable, py::return_value_policy::reference_internal)
+    .def("GetSpecificHeatVariable",&ConvectionDiffusionSettings::GetSpecificHeatVariable, py::return_value_policy::reference_internal )
+    .def("GetVelocityVariable",&ConvectionDiffusionSettings::GetVelocityVariable, py::return_value_policy::reference_internal )
+    .def("GetReactionVariable",&ConvectionDiffusionSettings::GetReactionVariable, py::return_value_policy::reference_internal )
 
     .def("IsDefinedDensityVariable",&ConvectionDiffusionSettings::IsDefinedDensityVariable)
     .def("IsDefinedDiffusionVariable",&ConvectionDiffusionSettings::IsDefinedDiffusionVariable)
@@ -806,8 +817,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def("IsDefinedReactionVariable",&ConvectionDiffusionSettings::IsDefinedReactionVariable)
     ;
 
-    class_< RadiationSettings, RadiationSettings::Pointer>	(m,"RadiationSettings")
-    .def(init<	>() )
+    py::class_< RadiationSettings, RadiationSettings::Pointer>	(m,"RadiationSettings")
+    .def(py::init<	>() )
     .def("SetDensityVariable",&RadiationSettings::SetDensityVariable)
     .def("SetDiffusionVariable",&RadiationSettings::SetDiffusionVariable)
     .def("SetUnknownVariable",&RadiationSettings::SetUnknownVariable)
@@ -815,14 +826,14 @@ void  AddContainersToPython(pybind11::module& m)
     .def("SetSurfaceSourceVariable",&RadiationSettings::SetSurfaceSourceVariable)
     .def("SetProjectionVariable",&RadiationSettings::SetProjectionVariable)
     .def("SetMeshVelocityVariable",&RadiationSettings::SetMeshVelocityVariable)
-    .def("GetDensityVariable",&RadiationSettings::GetDensityVariable, return_value_policy::reference_internal )
-    .def("GetDiffusionVariable",&RadiationSettings::GetDiffusionVariable, return_value_policy::reference_internal )
-    .def("GetUnknownVariable",&RadiationSettings::GetUnknownVariable, return_value_policy::reference_internal )
-    .def("GetVolumeSourceVariable",&RadiationSettings::GetVolumeSourceVariable, return_value_policy::reference_internal )
-    .def("GetSurfaceSourceVariable",&RadiationSettings::GetSurfaceSourceVariable, return_value_policy::reference_internal )
-    //.def("GetSurfaceSourceVariable",&RadiationSettings::GetSurfaceSourceVariable, return_value_policy::reference_internal )
-    .def("GetProjectionVariable",&RadiationSettings::GetProjectionVariable, return_value_policy::reference_internal )
-    .def("GetMeshVelocityVariable",&RadiationSettings::GetMeshVelocityVariable, return_value_policy::reference_internal )
+    .def("GetDensityVariable",&RadiationSettings::GetDensityVariable, py::return_value_policy::reference_internal )
+    .def("GetDiffusionVariable",&RadiationSettings::GetDiffusionVariable, py::return_value_policy::reference_internal )
+    .def("GetUnknownVariable",&RadiationSettings::GetUnknownVariable, py::return_value_policy::reference_internal )
+    .def("GetVolumeSourceVariable",&RadiationSettings::GetVolumeSourceVariable, py::return_value_policy::reference_internal )
+    .def("GetSurfaceSourceVariable",&RadiationSettings::GetSurfaceSourceVariable, py::return_value_policy::reference_internal )
+    //.def("GetSurfaceSourceVariable",&RadiationSettings::GetSurfaceSourceVariable, py::return_value_policy::reference_internal )
+    .def("GetProjectionVariable",&RadiationSettings::GetProjectionVariable, py::return_value_policy::reference_internal )
+    .def("GetMeshVelocityVariable",&RadiationSettings::GetMeshVelocityVariable, py::return_value_policy::reference_internal )
     ;
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)

@@ -42,6 +42,7 @@
 #include "utilities/timer.h"
 
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/geometry_tester.h"
 #include "utilities/cutting_utility.h"
@@ -52,6 +53,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
 
@@ -76,24 +78,24 @@ void SetOnProcessInfo(
 
 void AddUtilitiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
-    class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
-    .def(init<const std::string&>() )
-    .def(init<const std::string&, Parameters>())
+    py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
+    .def(py::init<const std::string&>() )
+    .def(py::init<const std::string&, Parameters>())
     .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
     .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
     .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
     .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
     ;
 
-    class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
-    .def(init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
+    py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
+    .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
     .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
@@ -103,8 +105,8 @@ void AddUtilitiesToPython(pybind11::module& m)
     ;
 
 
-    class_<DeflationUtils>(m,"DeflationUtils")
-    .def(init<>())
+    py::class_<DeflationUtils>(m,"DeflationUtils")
+    .def(py::init<>())
     .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
     ;
 
@@ -115,15 +117,15 @@ void AddUtilitiesToPython(pybind11::module& m)
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
 
-    class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
-    .def(init<>())
-    .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
+    py::class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
+    .def(py::init<>())
+    .def(py::init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
     .def("GetConditionNumber", ThisGetConditionNumber)
     .def("GetConditionNumber", ThisDirectGetConditionNumber)
     ;
 
-    class_<VariableUtils>(m, "VariableUtils")
-        .def(init<>())
+    py::class_<VariableUtils>(m, "VariableUtils")
+        .def(py::init<>())
         .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<bool>>)
         .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<double>>)
         .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,3>>>)
@@ -152,12 +154,12 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
-        .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVectorVar)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<Variable<double>>)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
         .def("SetVariable", &VariableUtils::SetVariable<bool>)
         .def("SetVariable", &VariableUtils::SetVariable<double>)
         .def("SetVariable", &VariableUtils::SetVariable<array_1d<double, 3>>)
@@ -229,6 +231,7 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SaveScalarNonHistoricalVar", &VariableUtils::SaveScalarNonHistoricalVar)
         .def("SelectNodeList", &VariableUtils::SelectNodeList)
         .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
+        .def("CopyComponentVar", &VariableUtils::CopyComponentVar)
         .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
         .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
         .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
@@ -303,8 +306,8 @@ void AddUtilitiesToPython(pybind11::module& m)
     CalcOnSimplexWithIntVarType CalcOnSimplexWithIntVar = &NormalCalculationUtils::CalculateOnSimplex;
     CalcOnSimplexWithDoubleVarAlphaType CalcOnSimplexWithDoubleVarAlpha = &NormalCalculationUtils::CalculateOnSimplex;
 
-    class_<NormalCalculationUtils > (m,"NormalCalculationUtils")
-    .def(init<>())
+    py::class_<NormalCalculationUtils > (m,"NormalCalculationUtils")
+    .def(py::init<>())
     .def("CalculateOnSimplex", CalcOnSimplex_Cond)
     .def("CalculateOnSimplex", CalcOnSimplex_ModelPart)
     .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVar)
@@ -314,68 +317,68 @@ void AddUtilitiesToPython(pybind11::module& m)
 //                    .def("CalculateOnSimplex", CalcOnSimplexWithArrayVar)
     ;
 
-    class_<BodyNormalCalculationUtils > (m,"BodyNormalCalculationUtils")
-    .def(init<>())
+    py::class_<BodyNormalCalculationUtils > (m,"BodyNormalCalculationUtils")
+    .def(py::init<>())
     .def("CalculateBodyNormals", &BodyNormalCalculationUtils::CalculateBodyNormals)
     ;
 
-    class_<BodyDistanceCalculationUtils > (m,"BodyDistanceCalculationUtils")
-    .def(init<>())
+    py::class_<BodyDistanceCalculationUtils > (m,"BodyDistanceCalculationUtils")
+    .def(py::init<>())
     .def("CalculateDistances2D", &BodyDistanceCalculationUtils::CalculateDistances < 2 >)
     .def("CalculateDistances3D", &BodyDistanceCalculationUtils::CalculateDistances < 3 >)
     ;
 
-    class_<SignedDistanceCalculationUtils < 2 > >(m,"SignedDistanceCalculationUtils2D")
-    .def(init<>())
+    py::class_<SignedDistanceCalculationUtils < 2 > >(m,"SignedDistanceCalculationUtils2D")
+    .def(py::init<>())
     .def("CalculateDistances", &SignedDistanceCalculationUtils < 2 > ::CalculateDistances)
     .def("FindMaximumEdgeSize", &SignedDistanceCalculationUtils < 2 > ::FindMaximumEdgeSize)
     ;
 
-    class_<SignedDistanceCalculationUtils < 3 > >(m,"SignedDistanceCalculationUtils3D")
-    .def(init<>())
+    py::class_<SignedDistanceCalculationUtils < 3 > >(m,"SignedDistanceCalculationUtils3D")
+    .def(py::init<>())
     .def("CalculateDistances", &SignedDistanceCalculationUtils < 3 > ::CalculateDistances)
     .def("FindMaximumEdgeSize", &SignedDistanceCalculationUtils < 3 > ::FindMaximumEdgeSize)
     ;
 
-    class_<ParallelDistanceCalculator < 2 > >(m,"ParallelDistanceCalculator2D")
-    .def(init<>())
+    py::class_<ParallelDistanceCalculator < 2 > >(m,"ParallelDistanceCalculator2D")
+    .def(py::init<>())
     .def("CalculateDistances", &ParallelDistanceCalculator < 2 > ::CalculateDistances)
     .def("CalculateInterfacePreservingDistances", &ParallelDistanceCalculator < 2 > ::CalculateInterfacePreservingDistances)
     .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 2 > ::CalculateDistancesLagrangianSurface)
     .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 2 > ::FindMaximumEdgeSize)
     ;
 
-    class_<ParallelDistanceCalculator < 3 > >(m,"ParallelDistanceCalculator3D")
-    .def(init<>())
+    py::class_<ParallelDistanceCalculator < 3 > >(m,"ParallelDistanceCalculator3D")
+    .def(py::init<>())
     .def("CalculateDistances", &ParallelDistanceCalculator < 3 > ::CalculateDistances)
     .def("CalculateInterfacePreservingDistances", &ParallelDistanceCalculator < 3 > ::CalculateInterfacePreservingDistances)
     .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 3 > ::CalculateDistancesLagrangianSurface)
     .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
     ;
 
-    class_<BruteForcePointLocator> (m, "BruteForcePointLocator")
-    .def(init<ModelPart& >())
+    py::class_<BruteForcePointLocator> (m, "BruteForcePointLocator")
+    .def(py::init<ModelPart& >())
     .def("FindNode", &BruteForcePointLocator::FindNode)
     .def("FindElement", &BruteForcePointLocator::FindElement)
     .def("FindCondition", &BruteForcePointLocator::FindCondition)
     ;
 
-    class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")
-    .def(init< BinBasedFastPointLocator < 2 >::Pointer >())
+    py::class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def("MoveParticles_Substepping", &ParticleConvectUtily<2>::MoveParticles_Substepping)
     .def("MoveParticles_RK4", &ParticleConvectUtily<2>::MoveParticles_RK4)
     ;
 
-    class_<ParticleConvectUtily<3> >(m,"ParticleConvectUtily3D")
-    .def(init< BinBasedFastPointLocator < 3 >::Pointer >())
+    py::class_<ParticleConvectUtily<3> >(m,"ParticleConvectUtily3D")
+    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("MoveParticles_Substepping", &ParticleConvectUtily<3>::MoveParticles_Substepping)
     .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
     ;
 
 
 
-    class_<IsosurfacePrinterApplication >(m,"IsosurfacePrinterApplication")
-    .def(init<ModelPart& >() )
+    py::class_<IsosurfacePrinterApplication >(m,"IsosurfacePrinterApplication")
+    .def(py::init<ModelPart& >() )
     .def("AddScalarVarIsosurface", &IsosurfacePrinterApplication::AddScalarVarIsosurface)
     .def("AddScalarVarIsosurfaceAndLower", &IsosurfacePrinterApplication::AddScalarVarIsosurfaceAndLower)
     .def("AddScalarVarIsosurfaceAndHigher", &IsosurfacePrinterApplication::AddScalarVarIsosurfaceAndHigher)
@@ -384,34 +387,34 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("CreateNodesArray", &IsosurfacePrinterApplication::CreateNodesArray)
     ;
 
-//     class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
+//     py::class_<SignedDistanceCalculationBinBased<2> >(m,"SignedDistanceCalculationBinBased2D", init<>())
 //             .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
 //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
 //             ;
 //
-//     class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
+//     py::class_<SignedDistanceCalculationBinBased<3> >(m,"SignedDistanceCalculationBinBased3D", init<>())
 //             .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
 //                             .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
 //             ;
 
-    class_<DivideElemUtils >(m,"DivideElemUtils")
-    .def(init<>())
+    py::class_<DivideElemUtils >(m,"DivideElemUtils")
+    .def(py::init<>())
     .def("DivideElement_2D", &DivideElemUtils::DivideElement_2D)
     ;
 
-    class_<Timer >(m,"Timer")
-    .def(init<>())
+    py::class_<Timer >(m,"Timer")
+    .def(py::init<>())
     .def_property("PrintOnScreen", &Timer::GetPrintOnScreen, &Timer::SetPrintOnScreen)
     .def_static("Start", &Timer::Start)
     .def_static("Stop", &Timer::Stop)
 //     .staticmethod("Start")
 //     .staticmethod("Stop")
     //      .def("PrintTimingInformation",Timer::PrintTimingInformation)
-    .def("__repr__",&Timer::Info)
+    .def("__str__", PrintObject<Timer>)
     ;
 
-    class_<OpenMPUtils >(m,"OpenMPUtils")
-    .def(init<>())
+    py::class_<OpenMPUtils >(m,"OpenMPUtils")
+    .def(py::init<>())
     .def_static("SetNumThreads", &OpenMPUtils::SetNumThreads)
 //     .staticmethod("SetNumThreads")
     .def_static("GetNumThreads", &OpenMPUtils::GetNumThreads)
@@ -420,41 +423,55 @@ void AddUtilitiesToPython(pybind11::module& m)
 //     .staticmethod("PrintOMPInfo")
     ;
 
-    class_< BinBasedFastPointLocator < 2 > >(m,"BinBasedFastPointLocator2D")
-    .def(init<ModelPart& >())
+    py::class_< BinBasedFastPointLocator < 2 > >(m,"BinBasedFastPointLocator2D")
+    .def(py::init<ModelPart& >())
     .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
     .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
     .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
     ;
 
-    class_< BinBasedFastPointLocator < 3 > >(m,"BinBasedFastPointLocator3D")
-    .def(init<ModelPart&  >())
+    py::class_< BinBasedFastPointLocator < 3 > >(m,"BinBasedFastPointLocator3D")
+    .def(py::init<ModelPart&  >())
     .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
     .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
     .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
     ;
 
-    class_< BinBasedNodesInElementLocator < 2 > >(m,"BinBasedNodesInElementLocator2D")
-    .def(init<ModelPart& >())
+    py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
+    .def(py::init<ModelPart& >())
+    .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabase)
+    .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabaseAssignedSize)
+    .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 2 > ::FindPointOnMeshSimplified)
+    ;
+
+    py::class_< BinBasedFastPointLocatorConditions < 3 > >(m,"BinBasedFastPointLocatorConditions3D")
+    .def(py::init<ModelPart&  >())
+    .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabase)
+    .def("FindPointOnMesh", &BinBasedFastPointLocatorConditions < 3 > ::FindPointOnMeshSimplified)
+    .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocatorConditions < 3 > ::UpdateSearchDatabaseAssignedSize)
+    ;
+
+    py::class_< BinBasedNodesInElementLocator < 2 > >(m,"BinBasedNodesInElementLocator2D")
+    .def(py::init<ModelPart& >())
     .def("UpdateSearchDatabase", &BinBasedNodesInElementLocator < 2 > ::UpdateSearchDatabase)
     .def("FindNodesInElement", &BinBasedNodesInElementLocator < 2 > ::FindNodesInElement)
     .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
     ;
 
-    class_< BinBasedNodesInElementLocator < 3 > >(m,"BinBasedNodesInElementLocator3D")
-    .def(init<ModelPart&  >())
+    py::class_< BinBasedNodesInElementLocator < 3 > >(m,"BinBasedNodesInElementLocator3D")
+    .def(py::init<ModelPart&  >())
     .def("UpdateSearchDatabase", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabase)
     .def("FindNodesInElement", &BinBasedNodesInElementLocator < 3 > ::FindNodesInElement)
     .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
     ;
 
-    class_< ActivationUtilities >(m,"ActivationUtilities")
-    .def(init< >())
+    py::class_< ActivationUtilities >(m,"ActivationUtilities")
+    .def(py::init< >())
     .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
     ;
 
-    class_< GeometryTesterUtility>(m,"GeometryTesterUtility")
-    .def(init< >())
+    py::class_< GeometryTesterUtility>(m,"GeometryTesterUtility")
+    .def(py::init< >())
     .def("RunTest", &GeometryTesterUtility::RunTest)
     .def("TestTriangle2D3N", &GeometryTesterUtility::TestTriangle2D3N)
     .def("TestTriangle2D6N", &GeometryTesterUtility::TestTriangle2D6N)
@@ -465,8 +482,8 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("TestHexahedra3D20N", &GeometryTesterUtility::TestHexahedra3D20N)
     ;
 
-    class_<CuttingUtility >(m,"CuttingUtility")
-    .def(init< >())
+    py::class_<CuttingUtility >(m,"CuttingUtility")
+    .def(py::init< >())
     .def("GenerateCut", &CuttingUtility::GenerateCut)
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
     .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
@@ -474,73 +491,73 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
     ;
 
-    class_<IntervalUtility >(m,"IntervalUtility")
-    .def(init<Parameters >())
+    py::class_<IntervalUtility >(m,"IntervalUtility")
+    .def(py::init<Parameters >())
     .def("GetIntervalBegin", &IntervalUtility::GetIntervalBegin)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
     ;
 
     // Adding table from table stream to python
-    class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
-    .def(init<>())
-    .def(init< bool >())
+    py::class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
+    .def(py::init<>())
+    .def(py::init< bool >())
     .def("SetOnProcessInfo",SetOnProcessInfo)
     ;
 
     // Exact integration (for testing)
-    class_<ExactMortarIntegrationUtility<2,2>>(m,"ExactMortarIntegrationUtility2D2N")
-    .def(init<>())
-    .def(init<const std::size_t>())
-    .def(init<const std::size_t, const double>())
-    .def(init<const std::size_t, const double, const std::size_t>())
+    py::class_<ExactMortarIntegrationUtility<2,2>>(m,"ExactMortarIntegrationUtility2D2N")
+    .def(py::init<>())
+    .def(py::init<const std::size_t>())
+    .def(py::init<const std::size_t, const double>())
+    .def(py::init<const std::size_t, const double, const std::size_t>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
     ;
 
-    class_<ExactMortarIntegrationUtility<3,3>>(m,"ExactMortarIntegrationUtility3D3N")
-    .def(init<>())
-    .def(init<const std::size_t>())
-    .def(init<const std::size_t, const double>())
-    .def(init<const std::size_t, const double, const std::size_t>())
+    py::class_<ExactMortarIntegrationUtility<3,3>>(m,"ExactMortarIntegrationUtility3D3N")
+    .def(py::init<>())
+    .def(py::init<const std::size_t>())
+    .def(py::init<const std::size_t, const double>())
+    .def(py::init<const std::size_t, const double, const std::size_t>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
     .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3>::TestGiDDebug)
     ;
 
-    class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
-    .def(init<>())
-    .def(init<const std::size_t>())
-    .def(init<const std::size_t, const double>())
-    .def(init<const std::size_t, const double, const std::size_t>())
+    py::class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
+    .def(py::init<>())
+    .def(py::init<const std::size_t>())
+    .def(py::init<const std::size_t, const double>())
+    .def(py::init<const std::size_t, const double, const std::size_t>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4>::TestGiDDebug)
     ;
 
-    class_<ExactMortarIntegrationUtility<3,3,false,4>>(m,"ExactMortarIntegrationUtility3D3N4N")
-    .def(init<>())
-    .def(init<const std::size_t>())
-    .def(init<const std::size_t, const double>())
-    .def(init<const std::size_t, const double, const std::size_t>())
+    py::class_<ExactMortarIntegrationUtility<3,3,false,4>>(m,"ExactMortarIntegrationUtility3D3N4N")
+    .def(py::init<>())
+    .def(py::init<const std::size_t>())
+    .def(py::init<const std::size_t, const double>())
+    .def(py::init<const std::size_t, const double, const std::size_t>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactAreaIntegration)
     .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestGiDDebug)
     ;
 
-    class_<ExactMortarIntegrationUtility<3,4,false,3>>(m,"ExactMortarIntegrationUtility3D4N3N")
-    .def(init<>())
-    .def(init<const std::size_t>())
-    .def(init<const std::size_t, const double>())
-    .def(init<const std::size_t, const double, const std::size_t>())
+    py::class_<ExactMortarIntegrationUtility<3,4,false,3>>(m,"ExactMortarIntegrationUtility3D4N3N")
+    .def(py::init<>())
+    .def(py::init<const std::size_t>())
+    .def(py::init<const std::size_t, const double>())
+    .def(py::init<const std::size_t, const double, const std::size_t>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
     .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestGiDDebug)
     ;
 
     // Sparse matrix multiplication utility
-    class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
-    .def(init<>())
+    py::class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
+    .def(py::init<>())
     .def("MatrixMultiplication",&SparseMatrixMultiplicationUtility::MatrixMultiplication<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
@@ -549,28 +566,36 @@ void AddUtilitiesToPython(pybind11::module& m)
     ;
 
     // Mortar utilities
-    class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
-    .def(init<>())
+    py::class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
+    .def(py::init<>())
     .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
     .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>)
     .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>)
     ;
 
     // Read materials utility
-    class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
-    .def(init<Parameters, Model&>())
+    py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
+    .def(py::init<Parameters, Model&>())
     ;
 
     // SubModelParts List Utility
-    class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
-    .def(init<ModelPart&>())
+    py::class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
+    .def(py::init<ModelPart&>())
     .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
     .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 
-    class_<MergeVariableListsUtility, typename MergeVariableListsUtility::Pointer>(m, "MergeVariableListsUtility")
-    .def(init<>())
+    // AssignUniqueModelPartCollectionTagUtility
+    py::class_<AssignUniqueModelPartCollectionTagUtility, typename AssignUniqueModelPartCollectionTagUtility::Pointer>(m, "AssignUniqueModelPartCollectionTagUtility")
+    .def(py::init<ModelPart&>())
+    .def("DebugAssignUniqueModelPartCollectionTag",&AssignUniqueModelPartCollectionTagUtility::DebugAssignUniqueModelPartCollectionTag)
+    .def("GetRecursiveSubModelPartNames",&AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames)
+    .def("GetRecursiveSubModelPart",&AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart)
+    ;
+
+    py::class_<MergeVariableListsUtility, typename MergeVariableListsUtility::Pointer>(m, "MergeVariableListsUtility")
+    .def(py::init<>())
     .def("Merge",&MergeVariableListsUtility::Merge)
     ;
     // VariableRedistributionUtility
@@ -587,7 +612,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     ConvertDistributedArrayType  ConvertDistributedArray  = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
 
     // Note: The StaticMethod thing should be done only once for each set of overloads
-    class_< VariableRedistributionUtility >(m,"VariableRedistributionUtility")
+    py::class_< VariableRedistributionUtility >(m,"VariableRedistributionUtility")
     .def_static("DistributePointValues",DistributePointDouble)
     .def_static("DistributePointValues",DistributePointArray)
     .def_static("ConvertDistributedValuesToPoint",ConvertDistributedDouble)

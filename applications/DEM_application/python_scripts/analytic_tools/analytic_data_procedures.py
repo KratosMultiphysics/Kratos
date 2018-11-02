@@ -196,11 +196,13 @@ class FaceWatcherAnalyzer:
         self.MakeReading()
         times = self.GetTimes()
         flux = self.GetNumberOfParticlesFlux()
+        '''
         plt.xlabel('time')
         plt.ylabel('accumulated number of particles through surface')
         plt.plot(times, flux)
         plt.savefig(self.folder_path + '/throughput.svg')
         plt.clf()
+        '''
 
     def MakeInletMassPlot(self):
         self.MakeInletReading()

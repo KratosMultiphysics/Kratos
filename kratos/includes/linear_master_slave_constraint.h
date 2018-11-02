@@ -337,8 +337,8 @@ public:
     void GetDofList(
         DofPointerVectorType& rSlaveDofsVector,
         DofPointerVectorType& rMasterDofsVector,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override
     {
         rSlaveDofsVector = mSlaveDofsVector;
         rMasterDofsVector = mMasterDofsVector;
@@ -353,8 +353,8 @@ public:
     void EquationIdVector(
         EquationIdVectorType& rSlaveEquationIds,
         EquationIdVectorType& rMasterEquationIds,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override
     {
         if (rSlaveEquationIds.size() != mSlaveDofsVector.size())
             rSlaveEquationIds.resize(mSlaveDofsVector.size());
@@ -379,7 +379,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rTransformationMatrix,
         VectorType& rConstantVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         rTransformationMatrix = mRelationMatrix;

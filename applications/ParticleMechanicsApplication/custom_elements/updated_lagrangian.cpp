@@ -187,22 +187,22 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
 
     rVariables.detJ = 1;
 
-    rVariables.B.resize( voigtsize, number_of_nodes * dimension );
+    rVariables.B.resize( voigtsize, number_of_nodes * dimension, false );
 
-    rVariables.F.resize( dimension, dimension );
+    rVariables.F.resize( dimension, dimension, false );
 
-    rVariables.F0.resize( dimension, dimension );
+    rVariables.F0.resize( dimension, dimension, false );
     
-    rVariables.FT.resize( dimension, dimension );
+    rVariables.FT.resize( dimension, dimension, false );
 
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
+    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize, false );
 
-    rVariables.StrainVector.resize( voigtsize );
+    rVariables.StrainVector.resize( voigtsize, false );
 
-    rVariables.StressVector.resize( voigtsize );
+    rVariables.StressVector.resize( voigtsize, false );
 
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
-    rVariables.DN_De.resize( number_of_nodes, dimension );
+    rVariables.DN_DX.resize( number_of_nodes, dimension, false );
+    rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
     array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
 
@@ -1069,7 +1069,7 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
 
     // Delta Plastic Strains
-    double DeltaPlasticStrain = mConstitutiveLawVector->GetValue(DELTA_PLASTIC_STRAIN, DeltaPlasticStrain );
+    double DeltaPlasticStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, DeltaPlasticStrain );
     this->SetValue(MP_DELTA_PLASTIC_STRAIN, DeltaPlasticStrain);
 
     double DeltaPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, DeltaPlasticVolumetricStrain);
@@ -1079,7 +1079,7 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
     this->SetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
     
     // Total Plastic Strain
-    double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
+    double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain );
     this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
 
     double AccumulatedPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, AccumulatedPlasticVolumetricStrain);
@@ -1500,7 +1500,7 @@ Matrix& UpdatedLagrangian::MPMJacobian( Matrix& rResult, array_1d<double,3>& rPo
 
     if (dimension ==2)
     {
-        rResult.resize( 2, 2);
+        rResult.resize( 2, 2, false );
         rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
@@ -1513,7 +1513,7 @@ Matrix& UpdatedLagrangian::MPMJacobian( Matrix& rResult, array_1d<double,3>& rPo
     }
     else if(dimension ==3)
     {
-        rResult.resize( 3,3);
+        rResult.resize( 3, 3, false );
         rResult = ZeroMatrix(3,3);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
@@ -1561,7 +1561,7 @@ Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, array_1d<double,3>
 
     if (dimension ==2)
     {
-        rResult.resize( 2, 2);
+        rResult.resize( 2, 2, false );
         rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
@@ -1574,7 +1574,7 @@ Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, array_1d<double,3>
     }
     else if(dimension ==3)
     {
-        rResult.resize( 3,3);
+        rResult.resize( 3, 3, false );
         rResult = ZeroMatrix(3,3);
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {

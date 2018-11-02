@@ -45,6 +45,16 @@
 #include "custom_constitutive/isotropic_damage_modified_mises_3D_law.hpp"
 #include "custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.hpp"
 #include "custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_thermal_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_thermal_johnson_cook_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_thermal_baker_johnson_cook_plane_strain_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_plastic_thermal_U_P_J2_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_thermal_U_P_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_thermal_U_P_J2_axisym_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_thermal_U_P_johnson_cook_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_thermal_U_P_johnson_cook_axisym_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_thermal_U_P_baker_johnson_cook_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
@@ -163,6 +173,42 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       (m, "IsotropicDamageModifiedMisesPlaneStress2DLaw").def(init<>() )
       ;
 
+  // Thermal laws
+  class_<HyperElasticPlasticThermalJ2PlaneStrain2DLaw, typename HyperElasticPlasticThermalJ2PlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalJ2PlaneStrain2DLaw").def(init<>() )
+      ;
+
+  class_<HyperElasticPlasticThermalJohnsonCookPlaneStrain2DLaw, typename HyperElasticPlasticThermalJohnsonCookPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalJohnsonCookPlaneStrain2DLaw").def(init<>() )
+      ;
+
+  class_<HyperElasticPlasticThermalBakerJohnsonCookPlaneStrain2DLaw, typename HyperElasticPlasticThermalBakerJohnsonCookPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalBakerJohnsonCookPlaneStrain2DLaw").def(init<>() )
+      ;
+
+  class_<HyperElasticPlasticThermalUPJ23DLaw, typename HyperElasticPlasticThermalUPJ23DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalUPJ23DLaw").def(init<>() )
+      ;
+
+  class_<HyperElasticPlasticThermalUPJ2PlaneStrain2DLaw, typename HyperElasticPlasticThermalUPJ2PlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalUPJ2PlaneStrain2DLaw").def(init<>() )
+      ;
+
+  class_<HyperElasticPlasticThermalUPJ2Axisym2DLaw, typename HyperElasticPlasticThermalUPJ2Axisym2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalUPJ2Axisym2DLaw").def(init<>() )
+      ;
+
+  class_<HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw, typename HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw").def(init<>() )
+      ;
+
+  class_<HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw, typename HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw").def(init<>() )
+      ;
+
+  class_<HyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw, typename HyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw").def(init<>() )
+      ;
 }
 
 }  // namespace Python.

@@ -1184,13 +1184,13 @@ void UpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, 
     // Evaluation of the mean stress on the material point
     double mean_stress = 0.0;
     for (unsigned int i = 0; i < dimension; i++)
-        mean_stress += rVariables.StressVector(i);
+        mean_stress += rVariables.StressVector[i];
     mean_stress /= dimension;
 
     Vector stress_vector = ZeroVector(voigtsize);
     stress_vector = rVariables.StressVector;
     for (unsigned int i = 0; i < dimension; i++)
-        stress_vector(i) += (nodal_mean_stress - mean_stress);
+        stress_vector[i] += (nodal_mean_stress - mean_stress);
 
     this->SetValue(MP_CAUCHY_STRESS_VECTOR, stress_vector);
 

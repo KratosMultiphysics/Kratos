@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -30,11 +31,11 @@
 namespace Kratos {
 	namespace Testing {
 
-        /** 
+        /**
 	     * Auxiliar function to generate a triangular element to be tested.
 	     */
         void GenerateTestModelPart(
-            ModelPart& rModelPart, 
+            ModelPart& rModelPart,
             bool is_embedded = false) {
 
             // Set buffer size
@@ -51,6 +52,7 @@ namespace Kratos {
             rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            rModelPart.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
 
             // Process info creation
             double delta_time = 0.1;
@@ -105,9 +107,9 @@ namespace Kratos {
             const double p_1 = 1.5;
             const double p_2 = 1.0;
             const double p_3 = 0.5;
-            array_1d<double, 3> v_1(3, 0.0);
-            array_1d<double, 3> v_2(3, 0.0);
-            array_1d<double, 3> v_3(3, 0.0);
+            array_1d<double, 3> v_1 = ZeroVector(3);
+            array_1d<double, 3> v_2 = ZeroVector(3);
+            array_1d<double, 3> v_3 = ZeroVector(3);
             v_1[0] = 1.0;
             v_2[0] = 2.0;
             v_3[0] = 3.0;
@@ -134,13 +136,14 @@ namespace Kratos {
 
         }
 
-	    /** 
+	    /**
 	     * Checks the body fitted drag computation utility.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(ComputeBodyFittedDrag, FluidDynamicsApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
-			ModelPart model_part("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -148,7 +151,7 @@ namespace Kratos {
             p_element->Initialize();
 
             // Set the reaction values manually. Note that the body fitted drag utilities assume
-            // that the REACTION has been already computed. Since this is assumed to be done by 
+            // that the REACTION has been already computed. Since this is assumed to be done by
             // the builder and solver, which is out of the scope of this test, we do it manually.
             model_part.GetNode(1).GetDof(VELOCITY_X).GetSolutionStepReactionValue() = 5.0;
             model_part.GetNode(1).GetDof(VELOCITY_Y).GetSolutionStepReactionValue() = 10.0;
@@ -165,7 +168,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(drag_force[2], 0.0, 1e-6);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the embedded drag computation utility.
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(ComputeEmbeddedDrag, FluidDynamicsApplicationFastSuite)
@@ -173,7 +176,8 @@ namespace Kratos {
             bool is_embedded = true;
 
             // Create a test element inside a modelpart
-			ModelPart model_part("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part, is_embedded);
             Element::Pointer p_element = model_part.pGetElement(1);
 

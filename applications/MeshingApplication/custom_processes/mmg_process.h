@@ -71,6 +71,16 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+    /**
+     * @brief This enum defines the type of MMG libray used
+     */
+    enum class MMGLibray
+    {
+        MMG2D = 0,
+        MMG3D = 1,
+        MMGS  = 2
+    };
+
 ///@}
 ///@name  Functions
 ///@{
@@ -87,8 +97,8 @@ namespace Kratos
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
  * @author Vicente Mataix Ferrandiz
  */
-template<SizeType TDim>
-class MmgProcess
+template<MMGLibray TMMGLibray>
+class KRATOS_API(MESHING_APPLICATION) MmgProcess
     : public Process
 {
 public:
@@ -132,13 +142,16 @@ public:
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
 
     /// Conditions array size
-    static constexpr SizeType ConditionsArraySize = (TDim == 2) ? 1 : 2;
+    static constexpr SizeType Dimension = (TMMGLibray == MMGLibray::MMG2D) ? 2 : 3;
+
+    /// Conditions array size
+    static constexpr SizeType ConditionsArraySize = (Dimension == 2) ? 1 : 2;
 
     /// Elements array size
-    static constexpr SizeType ElementsArraySize = (TDim == 2) ? 1 : 2;
+    static constexpr SizeType ElementsArraySize = (Dimension == 2) ? 1 : 2;
 
     /// The type of array considered for the tensor
-    typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
+    typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
 
     /// Double vector
     typedef std::vector<double> DoubleVectorType;
@@ -151,6 +164,9 @@ public:
 
     /// Colors map
     typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
+
+    /// Index pair
+    typedef std::pair<IndexType,IndexType> IndexPairType;
 
     ///@}
     ///@name  Enum's
@@ -598,7 +614,6 @@ private:
      * @param PostOutput If the ouput file is the solution after take into account the metric or not
      * @param Step The step to postprocess
      */
-
     void OutputSol(
         const bool PostOutput,
         const IndexType Step
@@ -607,13 +622,11 @@ private:
     /**
      * @brief This loads the solution
      */
-
     void MMGLibCall();
 
     /**
      * @brief This frees the MMG structures
      */
-
     void FreeAll();
 
     /**
@@ -624,7 +637,6 @@ private:
      * @param Color Reference of the node(submodelpart)
      * @param Index The index number of the node
      */
-
     void SetNodes(
         const double X,
         const double Y,
@@ -639,7 +651,6 @@ private:
      * @param Color Reference of the node(submodelpart)
      * @param Index The index number of the node
      */
-
     void SetConditions(
         GeometryType& Geom,
         const IndexType Color,
@@ -652,7 +663,6 @@ private:
      * @param Color Reference of the node(submodelpart)
      * @param Index The index number of the node
      */
-
     void SetElements(
         GeometryType& Geom,
         const IndexType Color,
@@ -663,7 +673,6 @@ private:
      * @brief This function is used to compute the metric scalar
      * @param Metric The inverse of the size node
      */
-
     void SetMetricScalar(
         const double Metric,
         const IndexType NodeId
@@ -673,9 +682,8 @@ private:
      * @brief This function is used to compute the metric vector (x, y, z)
      * @param Metric This array contains the components of the metric vector
      */
-
     void SetMetricVector(
-        const array_1d<double, TDim>& Metric,
+        const array_1d<double, Dimension>& Metric,
         const IndexType NodeId
         );
 
@@ -683,7 +691,6 @@ private:
      * @brief This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param Metric This array contains the components of the metric tensor in the MMG defined order
      */
-
     void SetMetricTensor(
         const TensorArrayType& Metric,
         const IndexType NodeId
@@ -692,14 +699,18 @@ private:
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
      */
-
     void CreateAuxiliarSubModelPartForFlags();
 
     /**
      * @brief This function assigns the flags and clears the auxiliar sub model part for flags
      */
-
     void AssignAndClearAuxiliarSubModelPartForFlags();
+
+    /**
+     * @brief This function creates an before/after remesh output file
+     * @param rOldModelPart The old model part before remesh
+     */
+    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     ///@}
     ///@name Private  Access
@@ -735,14 +746,14 @@ private:
 ///@{
 
 /// input stream function
-template<SizeType TDim>
+template<MMGLibray TMMGLibray>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MmgProcess<TDim>& rThis);
+                                  MmgProcess<TMMGLibray>& rThis);
 
 /// output stream function
-template<SizeType TDim>
+template<MMGLibray TMMGLibray>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MmgProcess<TDim>& rThis)
+                                  const MmgProcess<TMMGLibray>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

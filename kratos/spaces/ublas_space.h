@@ -90,6 +90,16 @@ public:
 ///@name Type Definitions
 ///@{
 
+template <class TDataType, class TMatrixType, class TVectorType>
+class UblasSpace;
+
+template <class TDataType>
+using TUblasSparseSpace =
+    UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+template <class TDataType>
+using TUblasDenseSpace =
+    UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -723,7 +733,7 @@ public:
 
     //***********************************************************************
 
-    inline static bool IsDistributed()
+    inline static constexpr bool IsDistributed()
     {
         return false;
     }

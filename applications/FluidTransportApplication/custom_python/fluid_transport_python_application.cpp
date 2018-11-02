@@ -15,6 +15,7 @@
 // System includes
 
 #if defined(KRATOS_PYTHON)
+
 // System includes
 #include <pybind11/pybind11.h>
 
@@ -22,6 +23,8 @@
 #include "includes/define.h"
 #include "includes/define_python.h"
 
+#include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "fluid_transport_application.h"
 
 
@@ -40,7 +43,14 @@ PYBIND11_MODULE(KratosFluidTransportApplication, m)
     KratosApplication>(m, "KratosFluidTransportApplication")
 	.def(init<>());
 
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
+
 	//registering variables in python
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PECLET);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,THETA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PHI_THETA);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,PHI_GRADIENT);
 }
 
 

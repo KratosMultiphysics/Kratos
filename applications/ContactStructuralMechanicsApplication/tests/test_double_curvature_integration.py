@@ -15,8 +15,8 @@ class TestDoubleCurvatureIntegration(KratosUnittest.TestCase):
     def __base_test_integration(self, input_filename, num_nodes):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-        self.main_model_part = KratosMultiphysics.ModelPart("Structure")
-        self.main_model_part.SetBufferSize(2)
+        self.model = KratosMultiphysics.Model()
+        self.main_model_part = self.model.CreateModelPart("Structure", 2)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
