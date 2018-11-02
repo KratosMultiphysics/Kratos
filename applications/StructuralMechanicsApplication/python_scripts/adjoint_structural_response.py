@@ -133,7 +133,6 @@ class AdjointResponseFunction(AdjointResponseFunctionBase):
         startTime = timer.time()
         self.adjoint_analysis._GetSolver().Predict()
         self.adjoint_analysis._GetSolver().SolveSolutionStep()
-        self.adjoint_postprocess.UpdateSensitivities()
         Logger.PrintInfo("> Time needed for solving the adjoint problem = ",round(timer.time() - startTime,2),"s")
 
     def PerformSensitivityPostprocess(self):
