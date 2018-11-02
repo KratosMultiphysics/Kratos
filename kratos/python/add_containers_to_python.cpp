@@ -134,23 +134,34 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 template <class TVariableType>
 TVariableType CreateVariable(const std::string& name)
 {
-    KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
-    TVariableType var(name);
-    AddKratosComponent(var.Name(), name);
-    KratosComponents<VariableData>::Add(var.Name(), var);
-    return var;
+    TVariableType new_var(name);
+    // Getting the variable if it exists already
+    if(KratosComponents<VariableData>::Has(name)){
+        auto& existing_var = KratosComponents<VariableData>::Get(name);
+        KRATOS_ERROR_IF(new_var.Key() == existing_var.Key())<<"The variable : "<<name<<" already exists."<<std::endl;
+    }
+
+    AddKratosComponent(new_var.Name(), name);
+    KratosComponents<VariableData>::Add(new_var.Name(), new_var);
+    return new_var;
 }
 
 
 template <class TVariableComponentType, class TVariableComponentAdapterType>
 TVariableComponentType CreateVariableComponent(const std::string& name, const std::string& source_name, const int component_index)
 {
-    KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable component : "<<name<<" already exists."<<std::endl;
-    TVariableComponentType  var(name, source_name, component_index,
+    TVariableComponentType  new_var(name, source_name, component_index,
                                     TVariableComponentAdapterType(source_name, component_index));
-    AddKratosComponent(var.Name(), name);
-    KratosComponents<VariableData>::Add(var.Name(), var);
-    return var;
+
+    // Getting the variable if it exists already
+    if(KratosComponents<VariableData>::Has(name)){
+        auto& existing_var = KratosComponents<TVariableComponentType>::Get(name);
+        KRATOS_ERROR_IF(new_var.Key() == existing_var.Key())<<"The variable component : "<<name<<" already exists."<<std::endl;
+    }
+
+    AddKratosComponent(new_var.Name(), name);
+    KratosComponents<VariableData>::Add(new_var.Name(), new_var);
+    return new_var;
 }
 
 void  AddContainersToPython(pybind11::module& m)
