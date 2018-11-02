@@ -131,6 +131,39 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 //         }
 //     }
 
+template <class TVariableType>
+TVariableType CreateVariable(const std::string& name)
+{
+    TVariableType new_var(name);
+    // Getting the variable if it exists already
+    if(KratosComponents<VariableData>::Has(name)){
+        auto& existing_var = KratosComponents<VariableData>::Get(name);
+        KRATOS_ERROR_IF(new_var.Key() == existing_var.Key())<<"The variable : "<<name<<" already exists."<<std::endl;
+    }
+
+    AddKratosComponent(new_var.Name(), name);
+    KratosComponents<VariableData>::Add(new_var.Name(), new_var);
+    return new_var;
+}
+
+
+template <class TVariableComponentType, class TVariableComponentAdapterType>
+TVariableComponentType CreateVariableComponent(const std::string& name, const std::string& source_name, const int component_index)
+{
+    TVariableComponentType  new_var(name, source_name, component_index,
+                                    TVariableComponentAdapterType(source_name, component_index));
+
+    // Getting the variable if it exists already
+    if(KratosComponents<VariableData>::Has(name)){
+        auto& existing_var = KratosComponents<TVariableComponentType>::Get(name);
+        KRATOS_ERROR_IF(new_var.Key() == existing_var.Key())<<"The variable component : "<<name<<" already exists."<<std::endl;
+    }
+
+    AddKratosComponent(new_var.Name(), name);
+    KratosComponents<VariableData>::Add(new_var.Name(), new_var);
+    return new_var;
+}
+
 void  AddContainersToPython(pybind11::module& m)
 {
     typedef Variable<array_1d<double, 3> > Array1DVariable3;
@@ -160,46 +193,66 @@ void  AddContainersToPython(pybind11::module& m)
     ;
 
     py::class_<Variable<std::string>, VariableData>(m, "StringVariable" )
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<std::string>>(name);} ))
     .def("__str__", PrintObject<Variable<std::string>>)
     ;
 
     py::class_<Variable<bool>, VariableData>(m, "BoolVariable" )
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<bool>>(name);} ))
     .def("__str__", PrintObject<Variable<bool>>)
     ;
 
     py::class_<Variable<int>,VariableData>(m, "IntegerVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<int>>(name);} ))
     .def("__str__", PrintObject<Variable<int>>)
     ;
 
     py::class_<Variable<DenseVector<int> >,VariableData>(m, "IntegerVectorVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<DenseVector<int>>>(name);} ))
     .def("__str__", PrintObject<Variable<DenseVector<int> >>)
     ;
 
     py::class_<Variable<double>,VariableData>(m, "DoubleVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<double>>(name);} ))
     .def("__str__", PrintObject<Variable<double>>)
     ;
 
     py::class_<Variable<Vector >,VariableData>(m, "VectorVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<Vector >>(name);} ))
     .def("__str__", PrintObject<Variable<Vector >>)
     ;
 
-    py::class_<Array1DVariable3,VariableData>(m, "Array1DVariable3")
+    py::class_<Variable<array_1d<double, 3> >,VariableData>(m, "Array1DVariable3")
+    .def(py::init<>( [](const std::string& name)
+                 {
+                    auto var_x = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
+                                    (name+"_X", name, 1);
+                    auto var_y = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
+                                    (name+"_Y", name, 1);
+                    auto var_z = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
+                                    (name+"_Z", name, 1);
+                    return CreateVariable<Variable<array_1d<double, 3> >>(name);
+                 } ))
     .def("__str__", PrintObject<Array1DVariable3>)
     ;
 
-    py::class_<Array1DVariable4,VariableData>(m, "Array1DVariable4")
+    py::class_<Variable<array_1d<double, 4> >,VariableData>(m, "Array1DVariable4")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 4> >>(name);} ))
     .def("__str__", PrintObject<Array1DVariable4>)
     ;
 
-    py::class_<Array1DVariable6,VariableData>(m, "Array1DVariable6")
+    py::class_<Variable<array_1d<double, 6> >,VariableData>(m, "Array1DVariable6")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 6> >>(name);} ))
     .def("__str__", PrintObject<Array1DVariable6>)
     ;
 
-    py::class_<Array1DVariable9,VariableData>(m, "Array1DVariable9")
+    py::class_<Variable<array_1d<double, 9> >,VariableData>(m, "Array1DVariable9")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 9> >>(name);} ))
     .def("__str__", PrintObject<Array1DVariable9>)
     ;
 
     py::class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
+    .def(py::init<>( [](const std::string& name){return CreateVariable<Variable<DenseMatrix<double> >>(name);} ))
     .def("__str__", PrintObject<Variable<DenseMatrix<double> >>)
     ;
 
@@ -219,22 +272,42 @@ void  AddContainersToPython(pybind11::module& m)
     // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
-    py::class_<Array1DComponentVariable,VariableData>(m, "Array1DComponentVariable")
+    py::class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
+    .def(py::init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
+    {
+        return CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
+            (name, source_name, component_index);
+    } ))
     .def("__str__", PrintObject<Array1DComponentVariable>)
     .def( "GetSourceVariable", &Array1DComponentVariable::GetSourceVariable )
     ;
 
-    py::class_<Array1D4ComponentVariable,VariableData>(m, "Array1D4ComponentVariable")
+    py::class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >,VariableData>(m, "Array1D4ComponentVariable")
+    .def(py::init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
+    {
+        return CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >>
+            (name, source_name, component_index);
+    } ))
     .def("__str__", PrintObject<Array1D4ComponentVariable>)
     .def( "GetSourceVariable", &Array1D4ComponentVariable::GetSourceVariable )
     ;
 
-    py::class_<Array1D6ComponentVariable,VariableData>(m, "Array1D6ComponentVariable")
+    py::class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >,VariableData>(m, "Array1D6ComponentVariable")
+    .def(py::init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
+    {
+        return CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >>
+            (name, source_name, component_index);
+    } ))
     .def("__str__", PrintObject<Array1D6ComponentVariable>)
     .def( "GetSourceVariable", &Array1D6ComponentVariable::GetSourceVariable )
     ;
 
-    py::class_<Array1D9ComponentVariable,VariableData>(m, "Array1D9ComponentVariable")
+    py::class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >,VariableData>(m, "Array1D9ComponentVariable")
+    .def(py::init<>( [](const std::string& name, const std::string& source_name, const int& component_index)
+    {
+        return CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >>
+            (name, source_name, component_index);
+    } ))
     .def("__str__", PrintObject<Array1D9ComponentVariable>)
     .def( "GetSourceVariable", &Array1D9ComponentVariable::GetSourceVariable )
     ;
