@@ -2,7 +2,7 @@
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
-from KratosMultiphysics import Serializer, StreamSerializer, SerializerTraceType
+from KratosMultiphysics import StreamSerializer, SerializerTraceType
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 

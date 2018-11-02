@@ -78,10 +78,6 @@ class TestModel(KratosUnittest.TestCase):
         self.assertTrue(1 in loaded_model["Other"].Nodes)
 
     def test_model_serialization_with_pickling(self):
-
-        file_name = "model_serialization"
-        serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE
-
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
@@ -93,7 +89,7 @@ class TestModel(KratosUnittest.TestCase):
         other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         other.CreateNewNode(1,0.0,0.0,0.0)
         
-        serializer = KratosMultiphysics.StreamSerializer(serializer_flag)
+        serializer = KratosMultiphysics.StreamSerializer()
         serializer.Save("ModelSerialization",current_model)
         del(current_model)
 
