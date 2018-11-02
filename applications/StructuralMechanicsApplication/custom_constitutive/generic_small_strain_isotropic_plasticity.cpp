@@ -94,15 +94,9 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
         // We get some variables
-<<<<<<< HEAD
         double threshold = this->GetThreshold();
         double plastic_dissipation = this->GetPlasticDissipation();
         Vector plastic_strain = this->GetPlasticStrain();
-=======
-        double r_threshold = this->GetThreshold();
-        double r_plastic_dissipation = this->GetPlasticDissipation();
-        Vector r_plastic_strain = this->GetPlasticStrain();
->>>>>>> master
 
         array_1d<double, VoigtSize> predictive_stress_vector;
         if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
@@ -129,15 +123,10 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
         if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
-<<<<<<< HEAD
+
             this->SetNonConvPlasticDissipation(plastic_dissipation);
             this->SetNonConvPlasticStrain(plastic_strain);
             this->SetNonConvThreshold(threshold);
-=======
-            this->SetNonConvPlasticDissipation(r_plastic_dissipation);
-            this->SetNonConvPlasticStrain(r_plastic_strain);
-            this->SetNonConvThreshold(r_threshold);
->>>>>>> master
             this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -154,15 +143,9 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
                 characteristic_length);
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
-<<<<<<< HEAD
             this->SetNonConvPlasticDissipation(plastic_dissipation);
             this->SetNonConvPlasticStrain(plastic_strain);
             this->SetNonConvThreshold(threshold);
-=======
-            this->SetNonConvPlasticDissipation(r_plastic_dissipation);
-            this->SetNonConvPlasticStrain(r_plastic_strain);
-            this->SetNonConvThreshold(r_threshold);
->>>>>>> master
             this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
