@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "linear_elastic_2D_hexa_test",
+        "problem_name"  : "linear_elastic_3D_hexa_test",
         "parallel_type" : "OpenMP",
         "start_time"    : 0.0,
         "end_time"      : 1.0,
@@ -14,10 +14,10 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_tests/solid_cl/linear_elastic_2D_hexa_test_Body"
+            "input_filename" : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_Body"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_tests/solid_cl/linear_elastic_2D_hexa_test_materials.json"
+            "materials_filename" : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -34,7 +34,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"],
         "grid_model_import_settings"         : {
             "input_type"     : "mdpa",
-            "input_filename" : "cl_tests/solid_cl/linear_elastic_2D_hexa_test_Grid"
+            "input_filename" : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_Grid"
         },
         "particle_per_element"               : 4,
         "pressure_dofs"                      : false,
@@ -72,7 +72,7 @@
             "process_name"          : "ParticleMPMFromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
-                "input_file_name"  : "cl_tests/solid_cl/linear_elastic_2D_hexa_test_results.json",
+                "input_file_name"  : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_results.json",
                 "model_part_name"  : "MPM_Material",
                 "time_frequency"   : 1.0
             }
@@ -85,7 +85,7 @@
         "process_name"          : "ParticleMPMJsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
-            "output_file_name"              : "cl_tests/solid_cl/linear_elastic_2D_hexa_test_results.json",
+            "output_file_name"              : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_results.json",
             "model_part_name"               : "MPM_Material",
             "time_frequency"                : 1.0
         }

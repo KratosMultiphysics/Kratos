@@ -14,7 +14,7 @@ from particle_mechanics_test_factory import BeamCantileverLinearElasticLineLoad2
 from particle_mechanics_test_factory import BeamCantileverLinearElasticSurfaceLoad3DTetraTest as TBeamCantileverLinearElasticSurfaceLoad3DTetraTest
 from particle_mechanics_test_factory import BeamCantileverLinearElasticSurfaceLoad3DHexaTest as TBeamCantileverLinearElasticSurfaceLoad3DHexaTest
 
-from particle_mechanics_test_factory import CLLinearElastic2DQuadTest as TCLLinearElastic2DQuadTest
+from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 
 # Import from Test Factories (with differet analysis flows)
 # from test_patch_test_particles import TestLoadingConditionsPoint
@@ -51,7 +51,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TBeamCantileverLinearElasticLineLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearElasticSurfaceLoad3DTetraTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearElasticSurfaceLoad3DHexaTest('test_execution'))
-    nightSuite.addTest(TCLLinearElastic2DQuadTest('test_execution'))
+    nightSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate
