@@ -29,11 +29,11 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        mSensitivityModelPartName = ResponseSettings["sensitivity_model_part_name"].GetString();
+        //mSensitivityModelPartName = ResponseSettings["sensitivity_model_part_name"].GetString();
 
-        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, ResponseSettings["nodal_sensitivity_variables"]);
-        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, ResponseSettings["element_sensitivity_variables"]);
-        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, ResponseSettings["condition_sensitivity_variables"]);
+        //this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, ResponseSettings["nodal_sensitivity_variables"]);
+        //this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, ResponseSettings["element_sensitivity_variables"]);
+        //this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, ResponseSettings["condition_sensitivity_variables"]);
 
         // Set gradient mode
         const std::string& gradient_mode = ResponseSettings["gradient_mode"].GetString();
@@ -73,21 +73,21 @@ namespace Kratos
 
         ModelPart& r_model_part = this->GetModelPart();
 
-        /*this->Clear();
+        this->Clear();
         this->Check();
 
-        ModelPart& r_sensitivity_model_part = r_model_part.GetSubModelPart(mSensitivityModelPartName);
+        /*ModelPart& r_sensitivity_model_part = r_model_part.GetSubModelPart(mSensitivityModelPartName);
 
         // Initialize flags.
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Nodes());
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Elements());
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Conditions());*/
 
-    if(mGradientMode == 1)
-    {
-        VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, r_model_part.Elements());
-        VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, r_model_part.Conditions());
-    }
+        if(mGradientMode == 1)
+        {
+            VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, r_model_part.Elements());
+            VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, r_model_part.Conditions());
+        }
 
         KRATOS_CATCH("");
     }
@@ -96,10 +96,10 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = this->GetModelPart();
+        //ModelPart& r_model_part = this->GetModelPart();
 
-        KRATOS_ERROR_IF_NOT(r_model_part.HasSubModelPart(mSensitivityModelPartName))
-            << "No sub model part \"" << mSensitivityModelPartName << "\"" << std::endl;
+        //KRATOS_ERROR_IF_NOT(r_model_part.HasSubModelPart(mSensitivityModelPartName))
+        //    << "No sub model part \"" << mSensitivityModelPartName << "\"" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -108,7 +108,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = this->GetModelPart();
+        /*ModelPart& r_model_part = this->GetModelPart();
 
         // Reset flags.
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Nodes());
@@ -161,7 +161,7 @@ namespace Kratos
                 for(IndexType j = 0; j < number_of_nodes; ++j)
                     it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
             }
-        }
+        }*/
 
         KRATOS_CATCH("");
     }
@@ -284,7 +284,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        for (const auto& variable_pair : mNodalSensitivityScalarVariables)
+        /*for (const auto& variable_pair : mNodalSensitivityScalarVariables)
             this->UpdateNodalSensitivities(variable_pair[0], variable_pair[1]);
         for (const auto& variable_pair : mNodalSensitivityVectorVariables)
             this->UpdateNodalSensitivities(variable_pair[0], variable_pair[1]);
@@ -295,7 +295,7 @@ namespace Kratos
         for (const auto& variable_pair : mConditionSensitivityScalarVariables)
             this->UpdateConditionSensitivities(variable_pair[0], variable_pair[1]);
         for (const auto& variable_pair : mConditionSensitivityVectorVariables)
-            this->UpdateConditionSensitivities(variable_pair[0], variable_pair[1]);
+            this->UpdateConditionSensitivities(variable_pair[0], variable_pair[1]);*/
 
         KRATOS_CATCH("");
     }
@@ -307,7 +307,7 @@ namespace Kratos
         return 0.0;
     }
 
-    template <typename TDataType>
+    /*template <typename TDataType>
     void AdjointStructuralResponseFunction::UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
     {
         KRATOS_TRY;
@@ -442,9 +442,9 @@ namespace Kratos
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
         KRATOS_CATCH("");
-    }
+    }*/
 
-    template <typename TDataType>
+    /*template <typename TDataType>
     void AdjointStructuralResponseFunction::UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
     {
         KRATOS_TRY;
@@ -514,9 +514,9 @@ namespace Kratos
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
         KRATOS_CATCH("");
-    }
+    }*/
 
-    template <typename TDataType>
+    /*template <typename TDataType>
     void AdjointStructuralResponseFunction::UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
     {
         KRATOS_TRY;
@@ -588,7 +588,7 @@ namespace Kratos
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
         KRATOS_CATCH("");
-    }
+    }*/
 
 
 
@@ -662,7 +662,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStructuralResponseFunction::AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
+    /*void AdjointStructuralResponseFunction::AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
                                               Element::GeometryType& rGeom)
     {
@@ -748,9 +748,9 @@ namespace Kratos
                 r_sensitivity[d] += rSensitivityVector[index++];
             rGeom[i_node].UnSetLock();
         }
-    }
+    }*/
 
-    void AdjointStructuralResponseFunction::ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables,
+    /*void AdjointStructuralResponseFunction::ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables,
         std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings)
     {
         for (IndexType i = 0; i < DesignVariableSettings.size(); ++i)
@@ -799,7 +799,7 @@ namespace Kratos
             else
                 KRATOS_ERROR << "Unsupported variable: " << variable_label << "." << std::endl;
         }
-    }
+    }*/
 
 };
 

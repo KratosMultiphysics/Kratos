@@ -165,7 +165,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    template <typename TDataType>
+    /*template <typename TDataType>
     void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
     template <typename TDataType>
     void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
@@ -197,7 +197,7 @@ protected:
                                               Element::GeometryType& rGeom);
 
     void ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables,
-        std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings);
+        std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings);*/
     ///@}
 
 private:
@@ -208,12 +208,12 @@ private:
     unsigned int mGradientMode;
     double mDelta;
 
-    std::vector<std::vector<Variable<double>>> mNodalSensitivityScalarVariables;
+    /*std::vector<std::vector<Variable<double>>> mNodalSensitivityScalarVariables;
     std::vector<std::vector<Variable<double>>> mElementSensitivityScalarVariables;
     std::vector<std::vector<Variable<double>>> mConditionSensitivityScalarVariables;
     std::vector<std::vector<Variable<array_1d<double,3>>>> mNodalSensitivityVectorVariables;
     std::vector<std::vector<Variable<array_1d<double,3>>>> mElementSensitivityVectorVariables;
-    std::vector<std::vector<Variable<array_1d<double,3>>>> mConditionSensitivityVectorVariables;
+    std::vector<std::vector<Variable<array_1d<double,3>>>> mConditionSensitivityVectorVariables;*/
 
     ///@}
     ///@name Private Operators
