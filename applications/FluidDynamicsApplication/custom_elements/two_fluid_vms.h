@@ -283,9 +283,9 @@ public:
         Matrix enrichment_terms_vertical   = ZeroMatrix(LocalSize,nenrichments);
         Matrix enrichment_terms_horizontal = ZeroMatrix(nenrichments,LocalSize);
 
-        Matrix enrichment_diagonal(nenrichments,nenrichments,0.0);
+        Matrix enrichment_diagonal = ScalarMatrix(nenrichments,nenrichments,0.0);
         Vector enriched_rhs(nenrichments,0.0);
-        array_1d<double,3> bf(3,0.0);
+        array_1d<double,3> bf = ZeroVector(3);
 
         double positive_volume = 0.0;
         double negative_volume = 0.0;
@@ -350,8 +350,8 @@ KRATOS_WATCH(Ngauss);  */
 
         // Porous media losses
         const Properties& r_properties = this->GetProperties();
-        const double A = r_properties[LIN_DARCY_COEF];
-        const double B = r_properties[NONLIN_DARCY_COEF];
+        const double c1 = r_properties[LIN_DARCY_COEF];
+        const double c2 = r_properties[NONLIN_DARCY_COEF];
 
 
         //****************************************************
@@ -385,7 +385,7 @@ KRATOS_WATCH(Ngauss);  */
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
 
-            const double DarcyTerm = this->CalculateDarcyTerm(A,B,N);
+            const double DarcyTerm = this->CalculateDarcyTerm(Density, Viscosity, c1, c2, N);
             // Calculate stabilization parameters
             double TauOne, TauTwo;
 
@@ -424,16 +424,17 @@ KRATOS_WATCH(Ngauss);  */
                     for (unsigned int inode = 0; inode < TNumNodes; inode++)
                     {
                         int base_index = (TDim + 1) * inode;
-                        array_1d<double,TNumNodes> AGradN(TNumNodes,0.0);
+                        array_1d<double,TNumNodes> AGradN = ZeroVector(TNumNodes);
                         this->GetConvectionOperator(AGradN,AdvVel,DN_DX);
                         //momentum term
                         for (unsigned int k = 0; k < TDim; k++)
                         {
-                            double ConvTerm = wGauss * TauOne * enriched_grad(enriched_id,k)* Density * AGradN[inode];
+                            double convection_stab = wGauss * TauOne * enriched_grad(enriched_id,k)* Density * AGradN[inode];
+                            double darcy_stab = wGauss * TauOne * enriched_grad(enriched_id,k) * DarcyTerm * N[enriched_id];
 
-                            //                      enrichment_terms_vertical[base_index + k] += ConvTerm + wGauss*N[inode]*enriched_grad(0, k);
-                            enrichment_terms_vertical(base_index + k,enriched_id) += ConvTerm - wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
-                            enrichment_terms_horizontal(enriched_id,base_index + k) += ConvTerm + wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
+                            //                      enrichment_terms_vertical[base_index + k] += velocity_stab + wGauss*N[inode]*enriched_grad(0, k);
+                            enrichment_terms_vertical(base_index + k,enriched_id) += convection_stab - darcy_stab - wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
+                            enrichment_terms_horizontal(enriched_id,base_index + k) += convection_stab + darcy_stab + wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
     //                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*enriched_grad(0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
     //                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*enriched_grad(0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
                         }
@@ -500,7 +501,7 @@ KRATOS_WATCH(Ngauss);  */
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
 
-            const double DarcyTerm = this->CalculateDarcyTerm(A,B,N);
+            const double DarcyTerm = this->CalculateDarcyTerm(Density, Viscosity, c1, c2, N);
 
             double TauOne,TauTwo;
             this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
@@ -902,7 +903,7 @@ protected:
                                       const array_1d< double, TNumNodes>& rShapeFunc,
                                       const double Weight = 1.0)
     {
-        array_1d<double, 3 > temp(3, 0.0);
+        array_1d<double, 3 > temp = ZeroVector(3);
         this->EvaluateInPoint(temp, rVariable, rShapeFunc);
         rResult += Weight*temp;
     }
@@ -925,7 +926,7 @@ protected:
         for (unsigned int i = 0; i < TNumNodes; i++)
             dist += rShapeFunc[i] * this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         double navg = 0.0;
-        array_1d< double, 3 > value(3, 0.0);
+        array_1d< double, 3 > value = ZeroVector(3);
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             if (dist * this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) > 0.0)
@@ -965,7 +966,7 @@ protected:
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
         double K, PDivV, L, qF; // Temporary results
 
-        array_1d<double,3> BodyForce(3,0.0);
+        array_1d<double,3> BodyForce = ZeroVector(3);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 
@@ -1106,6 +1107,8 @@ protected:
     }
 
     virtual double CalculateDarcyTerm(
+        const double Density,
+        const double DynamicViscosity,
         const double LinearCoefficient,
         const double NonlinearCoefficient,
         const array_1d<double, TNumNodes>& rShapefunctions) {
@@ -1114,7 +1117,7 @@ protected:
         this->GetAdvectiveVel(velocity, rShapefunctions);
         const double velocity_norm = MathUtils<double>::Norm3(velocity);
 
-        return LinearCoefficient + NonlinearCoefficient*velocity_norm;
+        return DynamicViscosity * LinearCoefficient + Density * NonlinearCoefficient*velocity_norm;
     }
 
     ///@}

@@ -137,7 +137,7 @@ namespace Kratos
          rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
       }
 
-      rValues.SetStrainMeasure( ConstitutiveModelData::CauchyGreen_None);
+      rValues.SetStrainMeasure( ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
 
       rVariables.TotalStrainMatrix = rValues.StrainMatrix;
       rVariables.IncrementalDeformation = rValues.GetDeltaDeformationMatrix();
@@ -224,7 +224,7 @@ namespace Kratos
       int npt = 0; // integration point number
 
       // A. Create Properties vector
-      const Properties & rMaterialProperties = rModelData.GetMaterialProperties();
+      const Properties & rMaterialProperties = rModelData.GetProperties();
       int number_properties;
       double* pPropertiesVector;
       this->CreateConstitutiveParametersVector( pPropertiesVector, number_properties, rMaterialProperties);

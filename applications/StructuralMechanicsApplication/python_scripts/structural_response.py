@@ -7,6 +7,20 @@ import structural_mechanics_analysis
 
 import time as timer
 
+def _GetModelPart(model, solver_settings):
+    #TODO can be removed once model is fully available
+    model_part_name = solver_settings["model_part_name"].GetString()
+    if not model.HasModelPart(model_part_name):
+        model_part = model.CreateModelPart(model_part_name, 2)
+        domain_size = solver_settings["domain_size"].GetInt()
+        if domain_size < 0:
+            raise Exception('Please specify a "domain_size" >= 0!')
+        model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
+    else:
+        model_part = model.GetModelPart(model_part_name)
+
+    return model_part
+
 # ==============================================================================
 class ResponseFunctionBase(object):
     """The base class for structural response functions. Each response function
@@ -60,26 +74,18 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
 
-    def __init__(self, identifier, response_settings, model_part):
+    def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
-
-        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(model_part, response_settings)
-
-        self.primal_model_part = model_part
 
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
 
-        self._CheckModelPartNameInPrimalSettings(ProjectParametersPrimal)
+        self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
 
-        model = Model()
-        model.AddModelPart(self.primal_model_part)
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
-    def _CheckModelPartNameInPrimalSettings(self, primal_parameters):
-        if self.primal_model_part.Name != primal_parameters["problem_data"]["model_part_name"].GetString():
-            raise RuntimeError("The model part of the primal analysis has a different name than the model part used to create the response function: " + self.primal_model_part.Name)
+        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, response_settings)
 
     def Initialize(self):
         self.primal_analysis.Initialize()
@@ -139,16 +145,11 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
 
-    def __init__(self, identifier, response_settings, model_part):
+    def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
-
-        self.primal_model_part = model_part
-        self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(model_part, response_settings)
 
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
-
-        self._CheckModelPartNameInPrimalSettings(ProjectParametersPrimal)
 
         eigen_solver_settings = ProjectParametersPrimal["solver_settings"]["eigensolver_settings"]
 
@@ -169,10 +170,12 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
             Logger.PrintWarning("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
             Logger.PrintWarning("  Primal parameters were adjusted accordingly!\n")
 
-        model = Model()
-        model.AddModelPart(self.primal_model_part)
+        self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
+
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+
+        self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(self.primal_model_part, response_settings)
 
 # ==============================================================================
 class MassResponseFunction(ResponseFunctionBase):
@@ -185,22 +188,41 @@ class MassResponseFunction(ResponseFunctionBase):
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
 
-    def __init__(self, identifier, response_settings, model_part):
+    def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
+
         self.response_settings = response_settings
+        self.model = model
+        self.model_part_needs_to_be_imported = False
 
-        self.response_function_utility = StructuralMechanicsApplication.MassResponseFunctionUtility(model_part, response_settings)
+        model_part_name = response_settings["model_part_name"].GetString()
+        input_type = response_settings["model_import_settings"]["input_type"].GetString()
+        if input_type == "mdpa":
+            self.model_part = self.model.CreateModelPart(model_part_name, 2)
+            domain_size = response_settings["domain_size"].GetInt()
+            if domain_size not in [2, 3]:
+                raise Exception("MassResponseFunction: Invalid 'domain_size': {}".format(domain_size))
+            self.model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
+            self.model_part_needs_to_be_imported = True
+        elif input_type == "use_input_model_part":
+            self.model_part = self.model.GetModelPart(model_part_name)
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
 
-        self.model_part = model_part
+        self.response_function_utility = StructuralMechanicsApplication.MassResponseFunctionUtility(self.model_part, response_settings)
+
         self.model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
     def Initialize(self):
         import read_materials_process
-        # Create a dictionary of model parts.
-        model = Model()
-        model.AddModelPart(self.model_part)
+
+        if self.model_part_needs_to_be_imported:
+            # import model part
+            model_part_io = ModelPartIO(self.response_settings["model_import_settings"]["input_filename"].GetString())
+            model_part_io.ReadModelPart(self.model_part)
+
         # Add constitutive laws and material properties from json file to model parts.
-        read_materials_process.ReadMaterialsProcess(model, self.response_settings["material_import_settings"])
+        read_materials_process.ReadMaterialsProcess(self.model, self.response_settings["material_import_settings"])
         self.response_function_utility.Initialize()
 
     def CalculateValue(self):
@@ -240,17 +262,16 @@ class AdjointResponseFunction(ResponseFunctionBase):
     primal_analysis : Primal analysis object of the response function
     adjoint_analysis : Adjoint analysis object of the response function
     """
-    def __init__(self, identifier, project_parameters, model_part):
+    def __init__(self, identifier, project_parameters, model):
         self.identifier = identifier
-
-        model = Model()
-        model.AddModelPart(model_part)
 
         # Create the primal solver
         with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read() )
+
+        self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
+
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
-        self.primal_model_part_name = ProjectParametersPrimal["problem_data"]["model_part_name"].GetString()
 
         # Create the adjoint solver
         with open(project_parameters["adjoint_settings"].GetString(),'r') as parameter_file:
@@ -258,17 +279,15 @@ class AdjointResponseFunction(ResponseFunctionBase):
         ProjectParametersAdjoint["solver_settings"].AddValue("response_function_settings", project_parameters)
 
         adjoint_model = Model()
+
+        self.adjoint_model_part = _GetModelPart(adjoint_model, ProjectParametersAdjoint["solver_settings"])
+
         # TODO find out why it is not possible to use the same model_part
         self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_model, ProjectParametersAdjoint)
-        self.adjoint_model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
-
 
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize()
-
-        self.primal_model_part = self.primal_analysis.model.GetModelPart(self.primal_model_part_name)
-        self.adjoint_model_part = self.adjoint_analysis.model.GetModelPart(self.adjoint_model_part_name)
 
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
@@ -293,7 +312,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
     def CalculateValue(self):
         startTime = timer.time()
-        value = self._GetResponseFunctionUtility().CalculateValue(self.adjoint_model_part)
+        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
@@ -344,15 +363,4 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
-# ==============================================================================
-class AdjointLinearStrainEnergyResponse(AdjointResponseFunction):
-    def __init__(self, identifier, project_parameters, model_part):
-        super(AdjointLinearStrainEnergyResponse, self).__init__(identifier, project_parameters, model_part)
 
-    def CalculateValue(self):
-        startTime = timer.time()
-        #The linear strain energy response needs the primal model part to calculate the response value!
-        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
-
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value

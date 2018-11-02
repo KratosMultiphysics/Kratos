@@ -15,9 +15,9 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/element.h"
-#include "includes/constitutive_law.h"
-
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -29,16 +29,12 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
-
-
 
 class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
     : public Element

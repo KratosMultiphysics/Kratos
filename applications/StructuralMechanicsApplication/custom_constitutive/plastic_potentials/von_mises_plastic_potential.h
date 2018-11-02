@@ -26,6 +26,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -40,16 +43,24 @@ namespace Kratos
 /**
  * @class VonMisesPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a plastic potential following the theory of Von Mises
+ * @details If the plastic potential is of vonMises (cylinder) type, on can see that the plastic strain increment tensor is in principle the scaled deviatoric stress tensor, hence principal directions coincide. When the yield and plastic potential surfaces are plotted in principal stress space the resulting surface will be a circular cylinder for Von-Mises. This means that both yield and strength are dependent on intermediate principal stress, sigma_2
+ * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
+template <SizeType TVoigtSize = 6>
+class VonMisesPlasticPotential
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// We define the dimension
+    static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
+      
+    /// The define the Voigt size
+    static constexpr SizeType VoigtSize = TVoigtSize;
+    
     /// Counted pointer of VonMisesPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(VonMisesPlasticPotential);
 
@@ -89,25 +100,25 @@ public:
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rGFlux,
+        array_1d<double, VoigtSize>& rGFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        Vector first_vector, second_vector, third_vector;
+        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         const double c1 = 0.0;
         const double c2 = std::sqrt(3.0);
@@ -200,18 +211,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

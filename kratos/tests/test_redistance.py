@@ -20,7 +20,9 @@ class TestRedistance(KratosUnittest.TestCase):
         #return -(math.sqrt(x**2+y**2+z**2) - 0.4)
 
     def test_model_part_sub_model_parts(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)

@@ -10,6 +10,7 @@
 //  Main authors:    Ilaria Iaconeta
 //
 
+
 #if !defined (KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED)
 #define       KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED
 
@@ -18,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
+#include "custom_constitutive/hencky_plastic_UP_3D_law.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 
@@ -26,12 +27,12 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D
- * With stress split in an isochoric and volumetric parts
+ * Defines a hyperelastic-plastic isotropic constitutive law for non-associative Mohr Coulomb (MC) constitutive law
+ * With an extra DOF for Pressure which will be solved at each nonlinear iteration
  * This material law is defined by the parameters needed by the yield criterion:
-
- * The functionality is limited to large displacements
- */
+ * YOUNG_MODULUS, POISSON_RATIO, COHESION, INTERNAL_FRICTION_ANGLE, INTERNAL_DILATANCY_ANGLE
+ * The functionality is designed for large displacements and perfectly plastic (no-hardening law)
+*/
 
 
 
@@ -48,8 +49,8 @@ public:
     typedef std::size_t             SizeType;
 
     typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
-    typedef YieldCriterion::Pointer    YieldCriterionPointer;
-    typedef HardeningLaw::Pointer        HardeningLawPointer;
+    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**

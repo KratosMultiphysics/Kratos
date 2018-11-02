@@ -34,21 +34,11 @@ namespace Kratos
 namespace Python
 {
 
-void Push_Back_String( std::vector<std::string>& ThisStringVector, std::string ThisString)
-{
-  ThisStringVector.push_back(ThisString);
-}
-
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
   using namespace pybind11;
-
-  class_< std::vector<std::string> >(m,"StringVector")
-      .def(init<>())
-      .def("PushBack", Push_Back_String)
-      ;
 
 
   //**********MODEL STRUCTURE*********//
@@ -64,7 +54,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       ;
 
   //**********CONTACT WITH PARAMETRIC WALLS*********//
-
 
   class_<ParametricWallContactSearchProcess, ParametricWallContactSearchProcess::Pointer, Process>
       (m,"ParametricWallContactSearch")
@@ -98,4 +87,3 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

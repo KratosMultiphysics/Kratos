@@ -17,19 +17,18 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
-#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/viscous_generalized_maxwell.h"
 #include "generic_small_strain_viscoplasticity_3d.h"
 
 namespace Kratos
 {
 ConstitutiveLaw::Pointer GenericSmallStrainViscoplasticity3D::Create(Kratos::Parameters NewParameters) const
 {
-    ConstitutiveLaw::Pointer p_plasticity_cl = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
-    ConstitutiveLaw::Pointer p_viscous_cl = Kratos::make_shared<ViscousGeneralizedMaxwell3D>();
+    ConstitutiveLaw::Pointer p_plasticity_cl = SmallStrainIsotropicPlasticityFactory().Create(NewParameters);
+    ConstitutiveLaw::Pointer p_viscous_cl = Kratos::make_shared<ViscousGeneralizedMaxwell<ElasticIsotropic3D>>();
     return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(p_plasticity_cl, p_viscous_cl);
 
-    //return GenericSmallStrainViscoplasticity3D(p_plasticity_cl, p_viscous_cl).Clone();
 }
 
 /***********************************************************************************/
@@ -61,26 +60,27 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseKirchhoff(Con
 
 void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
-    ConstitutiveLaw::Pointer plaw = this->GetPlasticityConstitutiveLaw();
+    ConstitutiveLaw::Pointer plaw     = this->GetPlasticityConstitutiveLaw();
+    ConstitutiveLaw::Pointer viscolaw = this->GetViscousConstitutiveLaw();
 
     Vector plastic_strain = ZeroVector(6);
-
     plaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
 
-    mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
-    //KRATOS_WATCH(plastic_strain)
+    Vector& strain_vector = rValues.GetStrainVector();
+    const Vector strain_for_visco = strain_vector - plastic_strain;
+    const Vector initial_strain_vector = strain_vector;
 
-    //Vector& strain_vector = rValues.GetStrainVector();
-    //const Vector strain_for_visco = strain_vector - plastic_strain;
-    //const Vector initial_strain_vector = strain_vector;
+    strain_vector = strain_for_visco;
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    viscolaw->CalculateMaterialResponseCauchy(rValues); // Viscous Process
 
-    // strain_vector = strain_for_visco;
-    // rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    // mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Relaxes the Stress...
-
-    //strain_vector = initial_strain_vector;
+    strain_vector = initial_strain_vector;
     rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Plastification occurs...
+
+    // Flag to tell the plasticity to take the predictor from the viscous law
+    rValues.GetOptions().Set(ConstitutiveLaw::U_P_LAW, true);
+
+    plaw->CalculateMaterialResponseCauchy(rValues); // Plastic Process
 
 } // End CalculateMaterialResponseCauchy
 
@@ -97,8 +97,8 @@ void GenericSmallStrainViscoplasticity3D::FinalizeSolutionStep(
     mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
                                                       rShapeFunctionsValues, rCurrentProcessInfo);
 
-    // mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
-    //                                                rShapeFunctionsValues, rCurrentProcessInfo);
+    mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
+                                                   rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -137,7 +137,7 @@ void GenericSmallStrainViscoplasticity3D::CalculateElasticMatrix(
 
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+    this->FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -145,7 +145,7 @@ void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK1(Constituti
 
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+    this->FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -153,7 +153,7 @@ void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK2(Constituti
 
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+    this->FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -170,12 +170,9 @@ double &GenericSmallStrainViscoplasticity3D::GetValue(
     const Variable<double> &rThisVariable,
     double &rValue)
 {
-    if (rThisVariable == UNIAXIAL_STRESS)
-    {
+    if (rThisVariable == UNIAXIAL_STRESS) {
         rValue = mpPlasticityConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
-    }
-    else if (rThisVariable == PLASTIC_DISSIPATION)
-    {
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
         rValue = mpPlasticityConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, rValue);
     }
     return rValue;
@@ -188,8 +185,7 @@ Vector &GenericSmallStrainViscoplasticity3D::GetValue(
     const Variable<Vector> &rThisVariable,
     Vector &rValue)
 {
-    if (rThisVariable == PLASTIC_STRAIN_VECTOR)
-    {
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         rValue = mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
     }
     return rValue;
@@ -200,15 +196,11 @@ Vector &GenericSmallStrainViscoplasticity3D::GetValue(
 
 bool GenericSmallStrainViscoplasticity3D::Has(const Variable<double> &rThisVariable)
 {
-    if (rThisVariable == UNIAXIAL_STRESS)
-    {
+    if (rThisVariable == UNIAXIAL_STRESS) {
+        return true;
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
     }
-    else if (rThisVariable == PLASTIC_DISSIPATION)
-    {
-        return true;
-    }
-
     return false;
 }
 

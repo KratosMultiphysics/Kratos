@@ -5,11 +5,11 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 
 class Solution(object):
 
-    def __init__(self):
-
+    def __init__(self, model):
+        self.model = model
         import ProjectParameters as pp
         self.pp = pp
-        self.fluid_model_part = ModelPart("FluidPart")
+        self.fluid_model_part = self.model.CreateModelPart("FluidPart")
 
     def Run(self):
         self.Initialize()
@@ -60,7 +60,7 @@ class Solution(object):
         model_part_io_fluid.ReadModelPart(self.fluid_model_part)
 
     def ActivateTurbulenceModel(self):
-        
+
         for element in self.fluid_model_part.Elements:
             element.SetValue(C_SMAGORINSKY, 0.0)
 
@@ -93,4 +93,5 @@ class Solution(object):
 
 
 if __name__ == "__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()
