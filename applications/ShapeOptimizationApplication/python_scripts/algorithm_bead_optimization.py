@@ -306,7 +306,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 previos_L = L
 
                 # Convergence check of inner loop
-                if inner_iteration >= self.min_inner_iterations:
+                if inner_iteration >= self.min_inner_iterations and inner_iteration >1:
                     if abs(dL_relative) < self.inner_iteration_tolerance:
                         break
 
