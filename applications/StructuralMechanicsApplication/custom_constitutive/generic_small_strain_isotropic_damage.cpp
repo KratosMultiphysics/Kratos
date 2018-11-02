@@ -129,6 +129,8 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             noalias(auxiliar_integrated_stress_vector) = predictive_stress_vector;
             this->SetNonConvDamage(damage);
             this->SetNonConvThreshold(uniaxial_stress);
+             TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
             this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
