@@ -709,6 +709,7 @@ protected:
 
         const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         ReconstructSlaveSolutionAfterSolve(rModelPart, rA, rDx, rb);
+
         const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
 
@@ -1102,6 +1103,8 @@ protected:
         SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, rTMatrix, rA);
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
 
+        // TODO: The proper way to include the constants os in the RHS as T^t(f - A * c) -> Include the constants once the problem of the delta is solved
+
         const double stop_build = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
 
@@ -1273,6 +1276,25 @@ private:
         rDx.resize(BaseType::mEquationSystemSize);
         TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
 
+        /* We reconstruct the rest of the system  */
+        // We compute the transposed matrix of the global relation matrix
+        TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
+        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
+
+        // The auxiliar matrix to store the intermediate matrix multiplication
+        TSystemMatrixType auxiliar_A_matrix(BaseType::mEquationSystemSize, mDoFToSolveSystemSize);
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(rA, T_transpose_matrix, auxiliar_A_matrix);
+
+        // We resize of system of equations
+        rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+        VectorType rb_copy(rb);
+        rb.resize(BaseType::mEquationSystemSize, false);
+
+        // Final multiplication
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(rTMatrix, auxiliar_A_matrix, rA);
+        TSparseSpace::Mult(rTMatrix, rb_copy, rb);
+
+        // TODO: Remember that the constants are compued in the building side too
         // TODO: Should be applied only once, because it is increment of the Unknowns (to solve later)
 //         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 //
