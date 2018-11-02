@@ -14,7 +14,6 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/laplacian_element.h"
@@ -76,28 +75,41 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients();
-    
+    const Matrix& N_gausspoint = GetGeometry().ShapeFunctionsValues();
+
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_points,dim);
     Matrix InvJ0(dim,dim);
     Vector temp(number_of_points);
 
+    Vector heat_flux_local(number_of_points);
+    for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
+    {
+        heat_flux_local[node_element] = GetGeometry()[node_element].FastGetSolutionStepValue(HEAT_FLUX);
+    }
+
     GetGeometry().Jacobian(J0);
     double DetJ0;
+    double qgauss;
+    
     for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
     {
         //calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(J0[PointNumber],InvJ0,DetJ0);
         
-
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[PointNumber],InvJ0);
-
-        double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
+        
+        const double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
+
+        // Calculating the local RHS
+        auto N = row(N_gausspoint,PointNumber); //these are the N which correspond to the gauss point "PointNumber"
+        qgauss = inner_prod(N, heat_flux_local);
+        
+        noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
     }
-    //calculating external forces
-    noalias(rRightHandSideVector) = ZeroVector(number_of_points); //case of zero ext forces
+
 
     // RHS = ExtForces - K*temp;
     for (unsigned int i=0; i<number_of_points; i++)
