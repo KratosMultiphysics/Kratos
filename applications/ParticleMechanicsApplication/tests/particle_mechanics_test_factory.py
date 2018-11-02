@@ -62,22 +62,22 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
 
-class BeamCantileverLinearElasticPointLoad2DTriTest(ParticleMechanicsTestFactory):
-    file_name = "beam_tests/cantilever_beam/linear_elastic_point_load_2d_tri_test"
+class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/cantilever_beam/static_point_load_2d_tri_test"
 
-class BeamCantileverLinearElasticPointLoad2DQuadTest(ParticleMechanicsTestFactory):
+class BeamCantileverStaticLinearElasticPointLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
 
-class BeamCantileverLinearElasticLineLoad2DTriTest(ParticleMechanicsTestFactory):
+class BeamCantileverStaticLinearElasticLineLoad2DTriTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
 
-class BeamCantileverLinearElasticLineLoad2DQuadTest(ParticleMechanicsTestFactory):
+class BeamCantileverStaticLinearElasticLineLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
 
-class BeamCantileverLinearElasticSurfaceLoad3DTetraTest(ParticleMechanicsTestFactory):
+class BeamCantileverStaticLinearElasticSurfaceLoad3DTetraTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
 
-class BeamCantileverLinearElasticSurfaceLoad3DHexaTest(ParticleMechanicsTestFactory):
+class BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
 
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
