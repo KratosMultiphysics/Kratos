@@ -143,40 +143,26 @@ class ApplyChimeraProcessFractionalStep : public Process
 		if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
 			info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
 
-		this->pMpcPatchVelocity = MpcDataPointerType(new MpcData(m_type));
-		this->pMpcBackgroundVelocity = MpcDataPointerType(new MpcData(m_type));
+		this->pMpcVelocity = MpcDataPointerType(new MpcData(m_type));
 
-		this->pMpcPatchPressure = MpcDataPointerType(new MpcData(m_type));
-		this->pMpcBackgroundPressure = MpcDataPointerType(new MpcData(m_type));
+		this->pMpcPressure = MpcDataPointerType(new MpcData(m_type));
 
-		this->pMpcPatchVelocity->SetName("MPC_Patch_Velocity");
-		this->pMpcPatchPressure->SetName("MPC_Patch_Pressure");
+		this->pMpcVelocity->SetName("MPC_Patch_Velocity");
+		this->pMpcPressure->SetName("MPC_Patch_Pressure");
 
-		this->pMpcBackgroundVelocity->SetName("MPC_Background_Velocity");
-		this->pMpcBackgroundPressure->SetName("MPC_Background_Pressure");
+		this->pMpcVelocity->SetActive(true);
+		this->pMpcPressure->SetActive(true);
 
-		this->pMpcPatchVelocity->SetActive(true);
-		this->pMpcPatchPressure->SetActive(true);
-
-		this->pMpcBackgroundVelocity->SetActive(true);
-		this->pMpcBackgroundPressure->SetActive(true);
-
-		this->pMpcPatchVelocity->SetVelocityOrPressure("Velocity");
-		this->pMpcPatchPressure->SetVelocityOrPressure("Pressure");
-
-		this->pMpcBackgroundVelocity->SetVelocityOrPressure("Velocity");
-		this->pMpcBackgroundPressure->SetVelocityOrPressure("Pressure");
+		this->pMpcVelocity->SetVelocityOrPressure("Velocity");
+		this->pMpcPressure->SetVelocityOrPressure("Pressure");
 
 		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
 		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
 
 		MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
-		(*mpcDataVector).push_back(pMpcPatchVelocity);
-		(*mpcDataVector).push_back(pMpcPatchPressure);
-
-		(*mpcDataVector).push_back(pMpcBackgroundVelocity);
-		(*mpcDataVector).push_back(pMpcBackgroundPressure);
+		(*mpcDataVector).push_back(pMpcVelocity);
+		(*mpcDataVector).push_back(pMpcPressure);
 
 	}
 
@@ -205,11 +191,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 	virtual void Clear()
 	{
-		pMpcPatchVelocity->Clear();
-		pMpcPatchPressure->Clear();
-
-		pMpcBackgroundVelocity->Clear();
-		pMpcBackgroundPressure->Clear();
+		pMpcVelocity->Clear();
+		pMpcPressure->Clear();
 
 		KRATOS_INFO( "FractionalStep Chimera process is cleared") << std::endl;
 	}
@@ -830,26 +813,23 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 			KRATOS_INFO("Formulate chimera for fractional step")<<std::endl;
 
-			pMpcPatchVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
-			pMpcPatchPressure->SetIsWeak(m_parameters["IsWeak"].GetBool());
-
-			pMpcBackgroundVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
-			pMpcBackgroundPressure->SetIsWeak(m_parameters["IsWeak"].GetBool());
+			pMpcVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
+			pMpcPressure->SetIsWeak(m_parameters["IsWeak"].GetBool());
 
 			std::string pr_coupling_patch = m_parameters["pressure_coupling"].GetString();
 			std::string pr_coupling_background = m_parameters["pressure_coupling"].GetString();
 
 			if (m_type == "nearest_element")
 			{
-				ApplyMpcConstraintForFractionalStep(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity,pMpcPatchPressure, pr_coupling_patch);
-				ApplyMpcConstraintForFractionalStep(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity,pMpcBackgroundPressure, pr_coupling_background);
+				ApplyMpcConstraintForFractionalStep(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
+				ApplyMpcConstraintForFractionalStep(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure, pr_coupling_background);
 				KRATOS_INFO( "Fractional : Patch boundary coupled with background and hole boundary with patch") << std::endl;
 			}
 			else if (m_type == "conservative")
 			{
 				KRATOS_INFO("Fractional step MPC Conservative not implemented ")<<std::endl;
-				ApplyMpcConstraintConservative(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity,pMpcPatchPressure, pr_coupling_patch);
-				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity,pMpcBackgroundPressure, pr_coupling_background);
+				ApplyMpcConstraintConservative(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
+				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure, pr_coupling_background);
 				KRATOS_INFO( "Patch boundary coupled with background and hole boundary with patch using conservative approach") << std::endl;
 			}
 			KRATOS_INFO("Formulate Chimera: Appplied MPCs ")<<std::endl;
@@ -871,11 +851,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 				KRATOS_THROW_ERROR("", "Second argument should be either nearest_element or conservative \n", "");
 
 			this->m_type = type;
-			pMpcPatchVelocity->SetType(this->m_type);
-			pMpcPatchPressure->SetType(this->m_type);
-
-			pMpcBackgroundVelocity->SetType(this->m_type);
-			pMpcBackgroundPressure->SetType(this->m_type);
+			pMpcVelocity->SetType(this->m_type);
+			pMpcPressure->SetType(this->m_type);
 
 		}
 
@@ -1211,11 +1188,9 @@ class ApplyChimeraProcessFractionalStep : public Process
 		*/
 	void SetActive(bool isActive = true)
 	{
-		pMpcPatchPressure->SetActive(isActive);
-		pMpcPatchVelocity->SetActive(isActive);
+		pMpcPressure->SetActive(isActive);
+		pMpcVelocity->SetActive(isActive);
 
-		pMpcBackgroundPressure->SetActive(isActive);
-		pMpcBackgroundVelocity->SetActive(isActive);
 	}
 
 	void SetRtMinvR(MpcDataPointerType pMpc, double value)
@@ -1274,12 +1249,10 @@ class ApplyChimeraProcessFractionalStep : public Process
 	{
 
 		KRATOS_INFO( "\nNumber of  Velocity slave nodes :: " )<< std::endl;
-		pMpcPatchPressure->GetInfo();
-		pMpcBackgroundPressure->GetInfo();
+		pMpcPressure->GetInfo();
 
 		KRATOS_INFO( "\nNumber of  Pressure slave nodes :: " )<< std::endl;
-		pMpcPatchVelocity->GetInfo();
-		pMpcBackgroundVelocity->GetInfo();
+		pMpcVelocity->GetInfo();
 	}
 
 	///@}
@@ -1331,12 +1304,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 	BinBasedPointLocatorPointerType pBinLocatorForBackground; // Template argument 3 stands for 3D case
 	BinBasedPointLocatorPointerType pBinLocatorForPatch;
 
-	MpcDataPointerType pMpcPatchVelocity;
-	MpcDataPointerType pMpcPatchPressure;
-
-	MpcDataPointerType pMpcBackgroundVelocity;
-	MpcDataPointerType pMpcBackgroundPressure;
-
+	MpcDataPointerType pMpcVelocity;
+	MpcDataPointerType pMpcPressure;
 
 	CustomHoleCuttingProcess::Pointer pHoleCuttingProcess;
 	typename CustomCalculateSignedDistanceProcess<TDim>::Pointer pCalculateDistanceProcess;
