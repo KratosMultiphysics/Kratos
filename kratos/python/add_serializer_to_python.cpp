@@ -98,20 +98,6 @@ void  AddSerializerToPython(pybind11::module& m)
         )
     )
     ;
-    // .def("__getstate__", [](StreamSerializer &self) { //METHOD NEEDED FOR PICKLE
-    //     /* Return a tuple that fully encodes the state of the object */
-    //     //note that we return a "bytes" object to avoid any "locale" conversion
-    //     return py::make_tuple(py::bytes(self.GetStringRepresentation()),self.GetTraceType());
-    // })
-    // .def("__setstate__", [](StreamSerializer &self, py::tuple t) { //METHOD NEEDED FOR PICKLE
-    //     if (t.size() != 2)
-    //         throw std::runtime_error("Invalid state!");
-
-    //     /* Invoke the in-place constructor. Note that this is needed even
-    //        when the object just has a trivial default constructor */
-    //     new (&self) StreamSerializer(t[0].cast<std::string>(), t[1].cast<Serializer::TraceType>());
-    // })
-    //;
 
     py::enum_<Serializer::TraceType>(m,"SerializerTraceType")
     .value("SERIALIZER_NO_TRACE", Serializer::SERIALIZER_NO_TRACE)
