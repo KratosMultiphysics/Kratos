@@ -950,15 +950,17 @@ protected:
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
             it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
             for (auto& slave_id : ids) {
-                auto it_slave = mSlaveMasterDoFRelation.find(slave_id);
-                if (it_slave != mSlaveMasterDoFRelation.end()) {
-                    auto& master_set = it_slave->second;
-                    for (auto& master_id : aux_ids) {
-                        auto it_master = master_set.find(master_id);
-                        if (it_master != master_set.end()) {
-                            auto &master_row_indices = master_indices[master_id];
-                            if (master_id < BaseType::mEquationSystemSize) {
-                                master_row_indices.insert(mSolvableDoFReorder[master_id]);
+                if (slave_id < BaseType::mEquationSystemSize) {
+                    auto it_slave = mSlaveMasterDoFRelation.find(slave_id);
+                    if (it_slave != mSlaveMasterDoFRelation.end()) {
+                        auto& master_set = it_slave->second;
+                        for (auto& master_id : aux_ids) {
+                            auto it_master = master_set.find(master_id);
+                            if (it_master != master_set.end()) {
+                                auto &master_row_indices = master_indices[master_id];
+                                if (master_id < BaseType::mEquationSystemSize) {
+                                    master_row_indices.insert(mSolvableDoFReorder[master_id]);
+                                }
                             }
                         }
                     }
