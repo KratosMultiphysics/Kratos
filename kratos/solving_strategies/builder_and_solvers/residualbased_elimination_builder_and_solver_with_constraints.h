@@ -1045,44 +1045,49 @@ protected:
         // We build the original system
         BaseType::Build(pScheme, rModelPart, rA, rb);
 
-        // We build the global T matrix
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
-
-        // Contributions to the system
-        LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-
-        // Vector containing the localization in the system of the different terms
-        EquationIdVectorType slave_equation_id, master_equation_id;
-
-        // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
 
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        #pragma omp parallel for firstprivate(number_of_constraints, transformation_matrix, constant_vector, slave_equation_id)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+        // We build the global T matrix
+        TSystemMatrixType& rTMatrix = *mpTMatrix;
 
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
+        // We compute only once (or if cleared)
+        if (BaseType::GetReshapeMatrixFlag() || mCleared) {
+            mCleared = false;
 
-            if (constraint_is_active) {
-                it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+            // Contributions to the system
+            LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
+            LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
 
-                it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
+            // Vector containing the localization in the system of the different terms
+            EquationIdVectorType slave_equation_id, master_equation_id;
 
-                // Assemble the constraint contribution
-            #ifdef USE_LOCKS_IN_ASSEMBLY
-                AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, mLockArray);
-            #else
-                AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
-            #endif
+            // The current process info
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+            #pragma omp parallel for firstprivate(number_of_constraints, transformation_matrix, constant_vector, slave_equation_id)
+            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (it_const->IsDefined(ACTIVE))
+                    constraint_is_active = it_const->Is(ACTIVE);
+
+                if (constraint_is_active) {
+                    it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+
+                    it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
+
+                    // Assemble the constraint contribution
+                #ifdef USE_LOCKS_IN_ASSEMBLY
+                    AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, mLockArray);
+                #else
+                    AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
+                #endif
+                }
             }
         }
 
@@ -1142,7 +1147,7 @@ protected:
             TSystemMatrixType& rTMatrix = *mpTMatrix;
 
             // Resizing the system vectors and matrix
-            if (rTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) { // If the matrix is not initialized
+            if (rTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() || mCleared) { // If the matrix is not initialized
                 rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
                 ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
             } else {
@@ -1166,6 +1171,9 @@ protected:
         mMasterDoFSet = DofsArrayType();
         mSolvableDoFReorder.clear();
         mSlaveMasterDoFRelation.clear();
+
+        // Set the flag
+        mCleared = true;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
     }
@@ -1199,6 +1207,8 @@ private:
 
     SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
     SizeType mMasterDoFSystemSize = 0;         /// Number of master degrees of freedom of the problem
+
+    bool mCleared = true; /// If the system has been reseted
 
     std::unordered_map<IndexType, IndexType> mSolvableDoFReorder; /// The correlation between the global total DoF order and the solvable DoF order
     std::unordered_map<IndexType, IndexSetType> mSlaveMasterDoFRelation; /// The relation between the slave and the master DoFs
