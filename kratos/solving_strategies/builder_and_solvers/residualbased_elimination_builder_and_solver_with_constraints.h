@@ -243,23 +243,19 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     #endif
 
         // Declaring temporal variables
-        DofsArrayType dof_temp_all, dof_temp_solvable, dof_temp_master;
+        DofsArrayType dof_temp_all, dof_temp_solvable;
         BaseType::mDofSet = DofsArrayType();
         mDoFToSolveSet = DofsArrayType();
-        mMasterDoFSet = DofsArrayType();
 
         std::vector<set_type> dofs_aux_list_all(nthreads);
-        std::vector<set_type> dofs_aux_list_master(nthreads);
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
 
         for (int i = 0; i < static_cast<int>(nthreads); i++) {
     #ifdef USE_GOOGLE_HASH
             dofs_aux_list_all[i].set_empty_key(DofPointerType());
-            dofs_aux_list_master[i].set_empty_key(DofPointerType());
     #else
             dofs_aux_list_all[i].reserve(rModelPart.Elements().size());
-            dofs_aux_list_master[i].reserve(rModelPart.MasterSlaveConstraints().size());
     #endif
         }
 
@@ -277,7 +273,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
                 // Gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
-
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
             }
         }
@@ -315,7 +310,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
                 dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
                 dofs_aux_list_all[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
-                dofs_aux_list_master[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
             }
         }
 
@@ -345,28 +339,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             new_max = ceil(0.5*static_cast<double>(old_max));
         }
 
-        /* For master DoF */
-        old_max = nthreads;
-        new_max = ceil(0.5*static_cast<double>(old_max));
-        while (new_max>=1 && new_max != old_max) {
-            // Just for debugging
-            KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "old_max" << old_max << " new_max:" << new_max << std::endl;
-            for (int i = 0; i < static_cast<int>(new_max); ++i) {
-                KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2 && (i + new_max < old_max)) << i << " - " << i+new_max << std::endl;
-            }
-
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); ++i) {
-                if (i + new_max < old_max) {
-                    dofs_aux_list_master[i].insert(dofs_aux_list_master[i+new_max].begin(), dofs_aux_list_master[i+new_max].end());
-                    dofs_aux_list_master[i+new_max].clear();
-                }
-            }
-
-            old_max = new_max;
-            new_max = ceil(0.5*static_cast<double>(old_max));
-        }
-
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
         dof_temp_all.reserve(dofs_aux_list_all[0].size());
@@ -375,13 +347,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         }
         dof_temp_all.Sort();
         BaseType::mDofSet = dof_temp_all;
-
-        dof_temp_master.reserve(dofs_aux_list_master[0].size());
-        for (auto& dof : dofs_aux_list_master[0]) {
-            dof_temp_master.push_back( dof.get() );
-        }
-        dof_temp_master.Sort();
-        mMasterDoFSet = dof_temp_master;
 
         // Repeating the loop for solvable DoF (in serial)
         set_type dofs_aux_list_solvable;
@@ -456,7 +421,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Throws an exception if there are no Degrees Of Freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
         KRATOS_ERROR_IF( mDoFToSolveSet.size() == 0) << "No degrees of freedom to solve!" << std::endl;
-        KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", mMasterDoFSet.size() == 0) << "No MPC degrees of freedom to solve!" << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
 
@@ -899,11 +863,25 @@ protected:
         std::unordered_map<IndexType, bool> row_dof_indices;
         row_dof_indices.reserve(BaseType::mEquationSystemSize);
 
+        std::unordered_map<IndexType, IndexSetType> aux_master_indices;
         std::unordered_map<IndexType, IndexSetType> master_indices;
-        master_indices.reserve(mMasterDoFSystemSize);
 
         // We do a pair to know which DoF are pure master MPC
         typedef std::pair<IndexType, bool> PairIdBoolType;
+
+        // We build aux_master_indices from the inverse of mSlaveMasterDoFRelation
+        for (auto& slave_set: mSlaveMasterDoFRelation) {
+            auto& master_indices = slave_set.second;
+            for (auto& master_id : master_indices) {
+                auto it_master = aux_master_indices.find(master_id);
+                if (it_master != aux_master_indices.end()) {
+                    aux_master_indices.insert({master_id, IndexSetType({slave_set.first})});
+                } else {
+                    aux_master_indices[master_id].insert(slave_set.first);
+                }
+            }
+        }
+        master_indices.reserve(aux_master_indices.size());
 
         // The set containing the solvable DoF that are not a master DoF
         IndexSetType dummy_set;
@@ -911,8 +889,8 @@ protected:
         for (auto& dof : BaseType::mDofSet) {
             const IndexType equation_id = dof.EquationId();
             if (equation_id < BaseType::mEquationSystemSize) {
-                auto it = mMasterDoFSet.find(dof);
-                if (it != mMasterDoFSet.end()) {
+                auto it = aux_master_indices.find(equation_id);
+                if (it != aux_master_indices.end()) {
                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
                     master_indices.insert(IndexIndexSetPairType(equation_id, dummy_set));
                 } else {
@@ -937,7 +915,7 @@ protected:
             }
         }
         KRATOS_ERROR_IF_NOT(row_dof_indices.size() == BaseType::mEquationSystemSize) << "Inconsistency in the dofs size: " << row_dof_indices.size() << "\t vs \t" << BaseType::mEquationSystemSize << std::endl;
-        KRATOS_ERROR_IF_NOT(counter == mMasterDoFSystemSize) << "Inconsistency in the pure master MPC dofs: " << counter << "\t vs \t" << mMasterDoFSystemSize << std::endl;
+        KRATOS_ERROR_IF_NOT(counter == aux_master_indices.size()) << "Inconsistency in the pure master MPC dofs: " << counter << "\t vs \t" << aux_master_indices.size() << std::endl;
     #endif
 
         // The process info
@@ -1169,7 +1147,6 @@ protected:
         BaseType::Clear();
 
         mDoFToSolveSet = DofsArrayType();
-        mMasterDoFSet = DofsArrayType();
         mSolvableDoFReorder.clear();
         mSlaveMasterDoFRelation.clear();
 
@@ -1204,10 +1181,8 @@ private:
     TSystemMatrixPointerType mpTMatrix = NULL; /// This is matrix containing the global relation for the constraints
 
     DofsArrayType mDoFToSolveSet;              /// The set containing the solvable DoF of the system
-    DofsArrayType mMasterDoFSet;               /// The set containing the master DoF of the system
 
     SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
-    SizeType mMasterDoFSystemSize = 0;         /// Number of master degrees of freedom of the problem
 
     bool mCleared = true; /// If the system has been reseted
 
@@ -1239,26 +1214,18 @@ private:
         // Add the computation of the global ids of the solvable dofs
         mSolvableDoFReorder.reserve(mDoFToSolveSystemSize);
         IndexType counter = 0;
-        IndexType master_counter = 0;
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
                 auto it = mDoFToSolveSet.find(dof);
                 if (it != mDoFToSolveSet.end()) {
                     mSolvableDoFReorder.insert(IdPairType(dof.EquationId(), counter));
                     ++counter;
-
-                    // We check if this dofs is in the master set too
-                    auto it_master = mMasterDoFSet.find(dof);
-                    if (it_master != mMasterDoFSet.end()) {
-                        ++master_counter;
-                    }
                 }
             }
         }
 
         // The total system of equations to be solved
         mDoFToSolveSystemSize = mSolvableDoFReorder.size();
-        mMasterDoFSystemSize = master_counter;
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
     }
