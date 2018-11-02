@@ -931,14 +931,15 @@ protected:
         EquationIdVectorType ids(3, 0);
         EquationIdVectorType aux_ids(3, 0);
 
-        const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         IndexType master_counter = 0;
         // TODO: OMP
-        for (int i_const = 0; i_const < nconstraints; ++i_const) {
+        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
             it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
             for (IndexType i = 0; i < aux_ids.size(); ++i) {
-                auto &master_row_indices = master_indices[master_counter];
+                KRATOS_DEBUG_ERROR_IF(master_counter == master_indices.size()) << "Incomplete Wrong size of master_indices. master_counter: " << master_counter << std::endl;
+                auto &master_row_indices = master_indices[master_counter]; // TODO: replace this counter for a proper index
                 for (auto& id : aux_ids) {
                     if (id < BaseType::mEquationSystemSize) {
                         master_row_indices.insert(mSolvableDoFReorder[id]);
