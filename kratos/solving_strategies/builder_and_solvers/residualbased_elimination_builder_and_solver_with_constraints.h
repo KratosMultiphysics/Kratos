@@ -896,35 +896,31 @@ protected:
         std::unordered_map<IndexType, bool> row_dof_indices;
         row_dof_indices.reserve(BaseType::mEquationSystemSize);
 
-    #ifdef USE_GOOGLE_HASH
-        std::vector<google::dense_hash_set<IndexType>> master_indices(mMasterDoFSystemSize);
-        const SizeType empty_key = 2 * mMasterDoFSystemSize + 10;
-    #else
-        std::vector<IndexSetType> master_indices(mMasterDoFSystemSize);
-    #endif
-
-        #pragma omp parallel for
-        for (int index = 0; index < static_cast<int>(mMasterDoFSystemSize); ++index) {
-        #ifdef USE_GOOGLE_HASH
-            master_indices[index].set_empty_key(empty_key);
-        #else
-            master_indices[index].reserve(40);
-        #endif
-        }
+        std::unordered_map<IndexType, IndexSetType> master_indices;
+        master_indices.reserve(mMasterDoFSystemSize);
 
         // We do a pair to know which DoF are pure master MPC
         typedef std::pair<IndexType, bool> PairIdBoolType;
 
         // The set containing the solvable DoF that are not a master DoF
+        IndexSetType dummy_set;
+        typedef std::pair<IndexType, IndexSetType> IndexIndexSetPairType;
         for (auto& dof : BaseType::mDofSet) {
-            if (dof.EquationId() < BaseType::mEquationSystemSize) {
+            const IndexType equation_id = dof.EquationId();
+            if (equation_id < BaseType::mEquationSystemSize) {
                 auto it = mMasterDoFSet.find(dof);
                 if (it != mMasterDoFSet.end()) {
-                    row_dof_indices.insert(PairIdBoolType(dof.EquationId(), false));
+                    row_dof_indices.insert(PairIdBoolType(equation_id, false));
+                    master_indices.insert(IndexIndexSetPairType(equation_id, dummy_set));
                 } else {
-                    row_dof_indices.insert(PairIdBoolType(dof.EquationId(), true));
+                    row_dof_indices.insert(PairIdBoolType(equation_id, true));
                 }
             }
+        }
+
+        // Reserve on the indexes set
+        for (auto& master_set : master_indices) {
+            (master_set.second).reserve(3);
         }
 
         // Defining counter for later use
@@ -949,32 +945,34 @@ protected:
         EquationIdVectorType aux_ids(3, 0);
 
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        IndexType master_counter = 0;
         // TODO: OMP
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
             it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
-            for (IndexType i = 0; i < aux_ids.size(); ++i) {
-                KRATOS_DEBUG_ERROR_IF(master_counter == master_indices.size()) << "Incomplete Wrong size of master_indices. master_counter: " << master_counter << std::endl;
-                auto &master_row_indices = master_indices[master_counter]; // TODO: replace this counter for a proper index
-                for (auto& id : aux_ids) {
-                    if (id < BaseType::mEquationSystemSize) {
-                        master_row_indices.insert(mSolvableDoFReorder[id]);
+            for (auto& slave_id : ids) {
+                auto it_slave = mSlaveMasterDoFRelation.find(slave_id);
+                if (it_slave != mSlaveMasterDoFRelation.end()) {
+                    auto& master_set = it_slave->second;
+                    for (auto& master_id : aux_ids) {
+                        auto it_master = master_set.find(master_id);
+                        if (it_master != master_set.end()) {
+                            auto &master_row_indices = master_indices[master_id];
+                            if (master_id < BaseType::mEquationSystemSize) {
+                                master_row_indices.insert(mSolvableDoFReorder[master_id]);
+                            }
+                        }
                     }
                 }
-                ++master_counter;
             }
         }
 
         // Count the row sizes
         SizeType nnz = 0;
-        counter = 0;
         for (auto& to_solve : row_dof_indices) {
             if (to_solve.second) {
                 ++nnz;
             } else {
-                nnz += master_indices[counter].size();
-                ++counter;
+                nnz += master_indices[to_solve.first].size();
             }
         }
 
@@ -987,19 +985,16 @@ protected:
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Trow_indices[0] = 0;
         counter = 0;
-        master_counter = 0;
         for (auto& to_solve : row_dof_indices) {
             if (to_solve.second) {
                 Trow_indices[counter + 1] = Trow_indices[counter] + 1;
             } else {
-                Trow_indices[counter + 1] = Trow_indices[counter] + master_indices[master_counter].size();
-                ++master_counter;
+                Trow_indices[counter + 1] = Trow_indices[counter] + master_indices[to_solve.first].size();
             }
             ++counter;
         }
 
         counter = 0;
-        master_counter = 0;
         // TODO: OMP
         for (auto& to_solve : row_dof_indices) {
             const IndexType row_begin = Trow_indices[counter];
@@ -1010,13 +1005,12 @@ protected:
                 Tcol_indices[k] = mSolvableDoFReorder[to_solve.first];
                 Tvalues[k] = 1.0;
             } else {
-                for (auto it = master_indices[master_counter].begin(); it != master_indices[master_counter].end(); ++it) {
+                for (auto it = master_indices[to_solve.first].begin(); it != master_indices[to_solve.first].end(); ++it) {
                     Tcol_indices[k] = *it;
                     Tvalues[k] = 0.0;
                     k++;
                 }
-                master_indices[master_counter].clear(); //deallocating the memory
-                ++master_counter;
+                master_indices[to_solve.first].clear(); //deallocating the memory
             }
 
             std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
