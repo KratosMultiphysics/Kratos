@@ -139,14 +139,6 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         } else { // Plastic case
             // while loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-			
-			// std::cout << "**************" << std::endl;
-			// std::cout << "antes de integrar:" << std::endl;
-			// KRATOS_WATCH(uniaxial_stress)
-			// KRATOS_WATCH(threshold)
-			// KRATOS_WATCH(back_stress_vector)
-			// std::cout << "**************" << std::endl;
-
 			TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
                 threshold, plastic_denominator, f_flux, g_flux,
@@ -154,9 +146,6 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                 r_constitutive_matrix, plastic_strain, rValues,
                 characteristic_length, back_stress_vector,
                 this->GetPreviousStressVector());
-
-            //KRATOS_WATCH(predictive_stress_vector)
-            // KRATOS_WATCH(back_stress_vector)
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             this->SetNonConvPlasticDissipation(plastic_dissipation);
