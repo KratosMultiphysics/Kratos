@@ -5,7 +5,7 @@ import KratosMultiphysics
 from KratosMultiphysics import Logger
 
 
-def ImportApplication(application, application_name, application_folder, caller):
+def ImportApplication(application, application_name, application_folder, caller, mod_path=None):
     Globals = KratosMultiphysics.KratosGlobals
     Kernel = Globals.Kernel
     main_caller = Globals.AuthorizedCaller
@@ -30,6 +30,10 @@ def ImportApplication(application, application_name, application_folder, caller)
         # Add constitutive laws python scrips folder to path
         constitutive_laws_path = os.path.join(python_path, 'constitutive_laws')
         sys.path.append(constitutive_laws_path)
+
+        if mod_path is not None: # optional for backwards compatibility
+            mod_path.append(python_path)
+
         # Add application to kernel
         Kernel.ImportApplication(application)
         # Dynamic renumbering of variables to ensure consistency
