@@ -74,32 +74,6 @@ protected:
                                 ConstitutiveLawVariables& rVariables,
                                 Parameters& rValues) override;
 
-    void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,
-                                            ConstitutiveLawVariables& rVariables,
-                                            Parameters& rValues) override;
-
-    void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,
-                                                    ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues) override;
-
-
-    void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,
-                                                ConstitutiveLawVariables& rVariables,
-                                                Parameters& rValues) override;
-
-    void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,
-                                                        ConstitutiveLawVariables& rVariables,
-                                                        Parameters& rValues) override;
-
-
-    void ComputeStressVector(Vector& rStressVector,
-                                ConstitutiveLawVariables& rVariables,
-                                Parameters& rValues) override;
-
-    void ComputeStressVectorContact(Vector& rStressVector,
-                                        ConstitutiveLawVariables& rVariables,
-                                        Parameters& rValues) override;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
