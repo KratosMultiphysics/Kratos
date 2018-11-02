@@ -349,7 +349,6 @@ class VtkOutput
                 else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(elementResultName))
                 {
                     dataCharacteristic = 2;
-                    std::cout<<"RISHITH "<<elementResultName<<std::endl;
                     outputFile << "VECTORS " << elementResultName << " float"
                                << "\n";
                 }

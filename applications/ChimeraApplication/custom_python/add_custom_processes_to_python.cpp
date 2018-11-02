@@ -87,6 +87,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     class_< RotateRegionProcess,RotateRegionProcess::Pointer, Process >(m, "RotateRegionProcess")
 		.def(init< ModelPart&, Parameters >())
 		.def("SetCentreOfRotation", &RotateRegionProcess::SetCentreOfRotation)
+		.def("ChangeAngularVelocity", &RotateRegionProcess::ChangeAngularVelocity)
 		;
 
 	class_<CustomCalculateSignedDistanceProcess<2>>(m, "SignedDistanceProcess2d")

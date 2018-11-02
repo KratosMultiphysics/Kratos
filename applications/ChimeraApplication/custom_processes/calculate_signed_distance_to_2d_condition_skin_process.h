@@ -475,30 +475,8 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         // several Elements, such that it is assigned several distance values
         // --> now synchronize these values by finding the minimal distance and assign to each node a minimal nodal distance
         AssignMinimalNodalDistance(); // revisit -nav
-
-        //rishith debug
-      /*   ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin();
-        ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_end();
-
-        for (ModelPart::ElementIterator it = it_begin; it != it_end; ++it)
-        {
-            if ((it->Id() == 56873) || (it->Id() == 56875) || (it->Id() == 56869) || (it->Id() == 56866))
-            {
-
-                KRATOS_WATCH(it->GetValue(ELEMENTAL_DISTANCES));
-            }
-        }
- */
-        /* ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();*/
-
-        // reset the node distance to 1.0 which is the maximum distance in our normalized space.
-        //int nodesSize = nodes.size();
-
-        //std::cout << "Finished calculating Elemental distances..." << std::endl;
     }
 
-    ///******************************************************************************************************************
-    ///******************************************************************************************************************
 
     void InitializeDistances()
     {
@@ -1278,7 +1256,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         }
 
         // Element is not set
-        //rishith
         if (numberNodesPositiveDistance == 3 && distChangedToLimit == true)
             Element->GetValue(SPLIT_ELEMENT) = false;
     }
@@ -1974,7 +1951,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         //#endif
         double distance = (fabs(distances[0]) > fabs(distances[1])) ? distances[1] : distances[0];
 
-        //rishith
          if (distances[0] * distances[1] < 0)
             distance = fabs(distance);
         //distance = (fabs(distance) > fabs(distances[2])) ? distances[2] : distance;
@@ -2163,11 +2139,11 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                     /* double Line1 = (fabs(i_begin->first - i_begin->second->Points()[0][direction]) > fabs(i_begin->first - i_begin->second->Points()[1][direction])) ? i_begin->first - i_begin->second->Points()[0][direction] : i_begin->first - i_begin->second->Points()[1][direction];
                     double Line2 = (fabs(i_intersection->first - i_intersection->second->Points()[0][direction]) > fabs(i_intersection->first - i_intersection->second->Points()[1][direction])) ? i_intersection->first - i_intersection->second->Points()[0][direction] : i_intersection->first - i_intersection->second->Points()[1][direction];
 
-                    std::cout<<"Rishith##########################################################################"<<Line1<<std::endl;
-                    std::cout<<"Rishith##########################################################################"<<Line2<<std::endl;
+                    std::cout<<"##########################################################################"<<Line1<<std::endl;
+                    std::cout<<"##########################################################################"<<Line2<<std::endl;
                     if( (Line1>0 && Line2>0) || (Line1<0 && Line2<0) )
                     {
-                        std::cout<<"Rishith : encountered a corner case beacause of this particular mesh, this part of the code taes care of it. But the code isnt tested yet"<<std::endl;
+                        std::cout<<"Encountered a corner case beacause of this particular mesh, this part of the code taes care of it. But the code isnt tested yet"<<std::endl;
                         std::cout<<i_begin->first<<"######"<<std::endl;
                         std::cout<<i_begin->second->Points()[0][direction]<<std::endl;
                         std::cout<<i_begin->second->Points()[1][direction]<<std::endl;
@@ -2285,7 +2261,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         MathUtils<double>::CrossProduct(vec_k, vec_cd, vec_ab);
         double mag_cd, gk, hk, kk;
         mag_cd = norm_2(vec_cd);
-        //rishith
         double mag_ab = norm_2(vec_ab);
 
         gk = inner_prod(vec_g, vec_k);

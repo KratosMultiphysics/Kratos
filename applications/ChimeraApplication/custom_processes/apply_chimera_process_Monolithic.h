@@ -20,7 +20,6 @@
 
 // External includes
 #include "includes/kratos_flags.h"
-
 #include "utilities/binbased_fast_point_locator.h"
 
 // Project includes
@@ -147,7 +146,6 @@ class ApplyChimeraProcessMonolithic : public Process
 		// this->pMpc = Kratos::make_shared<MpcDataType>(m_type);
 		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
 		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
-		//KRATOS_INFO("my_info") << "some more info" << std::endl;
 		this->pMpc->SetName("MPC");
 		this->pMpc->SetActive(true);
 
@@ -181,7 +179,7 @@ class ApplyChimeraProcessMonolithic : public Process
 	virtual void Clear()
 	{
 		pMpc->Clear();
-		std::cout << "Monolithic Chimera process is cleared" << std::endl;
+		KRATOS_INFO("Monolithic Chimera process is cleared")<<std::endl;
 	}
 
 	void ExecuteBeforeSolutionLoop() override
@@ -236,7 +234,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		std::size_t counter = 0;
 
-//#pragma omp parallel for firstprivate(results, N)
+	//#pragma omp parallel for firstprivate(results, N)
 		//MY NEW LOOP: reset the visited flag
 
 	/*
@@ -257,9 +255,7 @@ class ApplyChimeraProcessMonolithic : public Process
 				NodeCoupled = (p_boundary_node)->Is(VISITED);
 
 			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
 			Element::Pointer pElement;
-
 			bool is_found = false;
 			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
 
@@ -309,8 +305,6 @@ class ApplyChimeraProcessMonolithic : public Process
 					{
 						//Interpolation of velocity
 						p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
-
-						//Define master slave relation for velocity
 						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
 					}
 
@@ -318,10 +312,8 @@ class ApplyChimeraProcessMonolithic : public Process
 					{
 						//Interpolation of pressure
 						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-
 						//Defining master slave relation for pressure
 						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-
 						counter++;
 					}
 				} // end of loop over host element nodes
@@ -335,14 +327,12 @@ class ApplyChimeraProcessMonolithic : public Process
 				if (pressure_coupling == "all")
 					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
 			}
-
 			p_boundary_node->Set(VISITED, true);
 
 		} // end of loop over boundary nodes
 
 		if (pressure_coupling == "one")
 		{
-
 			Node<3>::Pointer p_boundary_node;
 			if (m_parameters["pressure_coupling_node"].GetDouble() == 0.0)
 			{
@@ -353,7 +343,6 @@ class ApplyChimeraProcessMonolithic : public Process
 			else
 			{
 				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
-
 				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
 			}
 
@@ -364,9 +353,7 @@ class ApplyChimeraProcessMonolithic : public Process
 			if (!NodeCoupled)
 			{
 				typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
 				Element::Pointer pElement;
-
 				bool is_found = false;
 				is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
 
@@ -388,16 +375,14 @@ class ApplyChimeraProcessMonolithic : public Process
 				// Setting the buffer 1 same buffer 0
 				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
 
-				std::cout << "Coordinates of node that are pressure coupled" << std::endl;
-				std::cout << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
+				KRATOS_INFO("Coordinates of node that are pressure coupled")<<p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
 			}
 			p_boundary_node->Set(VISITED, true);
 
 		} // end of if (pressure_coupling == "one")
 
 		counter /= TDim + 1;
-
-		std::cout << counter << " pressure nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
+		KRATOS_INFO("Pressure nodes from") << rBoundaryModelPart.Name() << " is coupled" << counter <<  std::endl;
 	}
 
 	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
@@ -430,8 +415,7 @@ class ApplyChimeraProcessMonolithic : public Process
 		}
 
 		SetRtMinvR(pMpc, rtMinvR);
-		std::cout << "RtMRinv of " << rBoundaryModelPart.Name() << rtMinvR << std::endl;
-
+		KRATOS_INFO("RtMRinv of ")<< rBoundaryModelPart.Name() << rtMinvR << std::endl; 
 		CalculateConservativeCorrections(mrMainModelPart, pMpc);
 		ApplyConservativeCorrections(mrMainModelPart, pMpc);
 	}
@@ -466,8 +450,8 @@ class ApplyChimeraProcessMonolithic : public Process
 		GetBoundingBox(A,min_cornerA,max_cornerA);
 		GetBoundingBox(B,min_cornerB,max_cornerB);
 
-		std::cout<<" Bounding box Background"<<min_cornerA[0]<<"::"<<max_cornerA[0]<<std::endl;
-		std::cout<<" Bounding box Patch"<<min_cornerB[0]<<"::"<<max_cornerB[0]<<std::endl;
+		KRATOS_INFO("Bounding box of Background") << min_cornerA[0]<<"::"<<max_cornerA[0]<<std::endl;
+		KRATOS_INFO("Bounding box of patch") << min_cornerB[0]<<"::"<<max_cornerB[0]<<std::endl;
 
 		//int max_dim =GetGeometry().WorkingSpaceDimension();
 
@@ -477,11 +461,9 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		for (int i=0;i<idim;i++)
 		{
-			std::cout<<" checked direction"<<"::"<<i<<std::endl;
 			if(min_cornerA[i]<min_cornerB[i]!=true) return false;
 			if(max_cornerA[i]>max_cornerB[i]!=true) return false;
 		}
-		std::cout<<" outside loop "<<std::endl;
 		return true;
 	}
 
@@ -527,8 +509,8 @@ class ApplyChimeraProcessMonolithic : public Process
 						m_domain_boundary_model_part_name = m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
 						m_patch_model_part_name       =  m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_name"].GetString();
 						m_patch_inside_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
-
-						std::cout<<"Formulating Chimera for the combination \n background::"<<m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
+						
+						KRATOS_INFO("Formulating Chimera for the combination \n background::") << m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
 
 						MainDomainOrNot = 1 ;
 						if(BG_i == 0) // a check to identify computational Domain boundary
@@ -539,7 +521,7 @@ class ApplyChimeraProcessMonolithic : public Process
 				}
 			}
 		}
-		std::cout<<"End of chimera loop"<<std::endl;
+		KRATOS_INFO("End of chimera loop") << std::endl;
 	}
 
 	//Apply Chimera with or without overlap
@@ -547,7 +529,7 @@ class ApplyChimeraProcessMonolithic : public Process
 	void FormulateChimera(int MainDomainOrNot)
 	{
 
-		//rishith : parameters for vtk output
+		//parameters for vtk output
 		Parameters parameters= Parameters(R"({
 						"result_file_configuration" : {
 							"gidpost_flags"       : {
@@ -574,15 +556,14 @@ class ApplyChimeraProcessMonolithic : public Process
 		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
  		//ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
- //rishith debug
-/*
-		std::cout<<"printing my background"<<rBackgroundModelPart<<std::endl;
-		std::cout<<"printing my domain boundary "<<rDomainBoundaryModelPart<<std::endl;
-
-		std::cout<<"printing my patch"<<rPatchModelPart<<std::endl;
-		std::cout<<"printing my patch boundary"<<rPatchBoundaryModelPart<<std::endl;
-		std::cout<<"printing my patch inside boundary"<<rPatchInsideBoundaryModelPart<<std::endl;
- */
+ 		//Debug for checking if the patch background combination and their boundaries are correct
+		/*
+		KRATOS_INFO("printing my background") << std::endl;
+		KRATOS_INFO("printing my domain boundary") << std::endl;
+		KRATOS_INFO("printing my patch") << std::endl;
+		KRATOS_INFO("printing my patchboundary") << std::endl;
+		KRATOS_INFO("printing my patch inside boundary") << std::endl;
+ 		*/
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
@@ -595,11 +576,9 @@ class ApplyChimeraProcessMonolithic : public Process
 			KRATOS_THROW_ERROR("", "Overlap distance should be a positive number \n", "");
 		}
 
-		//rishith
 		//this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
 
 		if (m_overlap_distance > epsilon)
-		//if (m_overlap_distance ==10)//rishith
 		{
 			ModelPartPointer pHoleModelPart = ModelPartPointer(new ModelPart("HoleModelpart"));
 			ModelPartPointer pHoleBoundaryModelPart = ModelPartPointer(new ModelPart("HoleBoundaryModelPart"));
@@ -617,28 +596,24 @@ class ApplyChimeraProcessMonolithic : public Process
 			}
 			else
 			{
-				std::cout<<" If bounding boxes overlap , find the modified patch boundary"<<std::endl;
+				KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
 				this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-			   			//this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pOutOfDomainPatchModelPart, *pOutOfDomainPatchBoundaryModelPart);
 				this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
 			}
 
-			//rishith
+			//VTK output of intermediate results like modified patch, mdified patch boundary and domain boundary
 			VtkOutput VtkOutput_Boundary = VtkOutput(*pModifiedPatchBoundaryModelPart,"nnn",parameters);
 			VtkOutput_Boundary.PrintOutput();
 
 			VtkOutput VtkOutput_ModPatch = VtkOutput(*pModifiedPatchModelPart,"nnn",parameters);
 			VtkOutput_ModPatch.PrintOutput();
 
-			VtkOutput VtkOutput_DBoundary = VtkOutput(rDomainBoundaryModelPart,"nnn",parameters);
-			VtkOutput_DBoundary.PrintOutput();
+			VtkOutput VtkOutput_DomainBoundary = VtkOutput(rDomainBoundaryModelPart,"nnn",parameters);
+			VtkOutput_DomainBoundary.PrintOutput();
 
-			//CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
-			//this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchInsideBoundaryModelPart);
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
 			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
 
-			//*pOutOfDomainPatchBoundaryModelPart  rPatchBoundaryModelPart   *pModifiedPatchBoundaryModelPart
 			//for multipatch
 			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
 				it->Set(VISITED, true);
@@ -646,7 +621,7 @@ class ApplyChimeraProcessMonolithic : public Process
 			CalculateNodalAreaAndNodalMass(*pModifiedPatchBoundaryModelPart, 1);
 			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
 
-			std::cout<<"Formulate Chimera: Calculated Nodal area and nodal mass "<<std::endl;
+			KRATOS_INFO("Formulate Chimera: Calculated Nodal area and nodal mass") << std::endl;
 
 			pMpc->SetIsWeak(m_parameters["IsWeak"].GetBool());
 
@@ -657,21 +632,18 @@ class ApplyChimeraProcessMonolithic : public Process
 			{
 				ApplyMpcConstraint(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
 				ApplyMpcConstraint(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
-				std::cout << "Patch boundary coupled with background & HoleBoundary  coupled with patch" << std::endl;
+				KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using nearest element approach") << std::endl;
 			}
 
 			else if (m_type == "conservative")
 			{
 				ApplyMpcConstraintConservative(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
 				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
-				std::cout << "Patch boundary coupled with background & HoleBoundary  coupled with patch  using conservative approach" << std::endl;
+				KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using conservativeapproach") << std::endl;
 			}
-			std::cout<<"Formulate Chimera: Appplied MPCs "<<std::endl;
+			KRATOS_INFO("Formulate Chimera: Appplied MPCs") << std::endl;
 		}
-
-		//pMpc->GetInfo();
-
-		std::cout<<"End of Formulate Chimera"<<std::endl;
+		KRATOS_INFO("End of Formulate Chimera") << std::endl;
 	}
 
 	// This function removes all the boundaries common to first and second but retain rest of the boundaries
@@ -768,7 +740,7 @@ class ApplyChimeraProcessMonolithic : public Process
 				FirstMinusSecondBoundary.AddNode(pnode2);
 			}
 		}
-		std::cout << "First minus Second .........Rishith " << FirstMinusSecondBoundary.GetMesh() << std::endl;
+		KRATOS_INFO("First minus Second ") << FirstMinusSecondBoundary.GetMesh() << std::endl;
 	}
 
 void SetOverlapDistance(double distance)
@@ -938,7 +910,6 @@ void CalculateConservativeCorrections(ModelPart &r_model_part, MpcDataPointerTyp
 	double RtMinvR = pMpc->RtMinvR;
 	double NodalNormalComponent;
 	double NodalNormalComponentOther;
-	//std::cout << " RtMinvR " << RtMinvR << std::endl;
 	std::vector<double> VectorOfconstants;
 	std::size_t slaveIndex = 0;
 
@@ -989,8 +960,7 @@ void CalculateConservativeCorrections(ModelPart &r_model_part, MpcDataPointerTyp
 
 	} // slaveMasterDofMap loop
 
-	//std::cout << "Conservative correction to the velocity field applied" << std::endl;
-	std::cout << "Conservative Correction of " << pMpc->mName << " is calculated" << std::endl;
+	KRATOS_INFO("Conservative Correction of ") << pMpc->mName << " is calculated" << std::endl;
 }
 
 void ApplyConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
@@ -1008,8 +978,7 @@ void ApplyConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pM
 		it->GetSolutionStepValue(0) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
 		it->GetSolutionStepValue(1) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
 	}
-
-	std::cout << "Conservative Correction of " << pMpc->mName << " is applied" << std::endl;
+	KRATOS_INFO("Conservative Correction of ") << pMpc->mName << " is applied" << std::endl;
 }
 
 // Functions which use two variable components
@@ -1183,8 +1152,7 @@ virtual void PrintInfo(std::ostream &rOStream) const override
 /// Print object's data.
 virtual void PrintData(std::ostream &rOStream) const override
 {
-
-	std::cout << "\nNumber of slave nodes :: " << std::endl;
+	KRATOS_INFO("\nNumber of slave nodes :: ")<<std::endl;
 	pMpc->GetInfo();
 }
 

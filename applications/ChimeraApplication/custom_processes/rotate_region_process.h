@@ -118,11 +118,16 @@ class RotateRegionProcess : public Process
 
         KRATOS_CATCH("");
     }
+    
+    void ChangeAngularVelocity(double ang_velocity) 
+    {
+        m_angular_velocity_radians = ang_velocity;
+
+    }
 
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
-
         ModelPart &sub_model_part = mr_model_part.GetSubModelPart(m_sub_model_part_name);
         double delta_t;
         int domain_size;
@@ -278,8 +283,7 @@ class RotateRegionProcess : public Process
         std::vector<double> rotatedNode(4);
         std::vector<double> U(3); // normalized axis of rotation
         node_cords.push_back(1.0);
-
-        //std::cout<<"############## HERE"<<std::endl;
+        
         // normalizing the axis of roatation
         double norm = 0.0;
         for (std::size_t d = 0; d < 3; ++d)

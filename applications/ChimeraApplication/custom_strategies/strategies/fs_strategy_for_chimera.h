@@ -286,7 +286,7 @@ public:
 
     double Solve() override
     {
-        std::cout<<"Inside FS Strategy for chimera solve"<<std::endl;
+        KRATOS_INFO("Inside Fractional Step Strategy for chimera solver")<<std::endl;
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
@@ -301,7 +301,7 @@ public:
             for(std::size_t it = 0; it < mMaxPressureIter; ++it)
             {
                 if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-                    std::cout << "Pressure iteration " << it << std::endl;
+                    KRATOS_INFO("Pressure iteration")<< it << std::endl;
 
                 NormDp = this->SolveStep();
 
@@ -310,17 +310,17 @@ public:
                 if ( Converged )
                 {
                     if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-                        std::cout << "Predictor-corrector converged in " << it+1 << " iterations." << std::endl;
+                        KRATOS_INFO("Predictor-corrector converged in " )<< it+1 << " iterations." << std::endl;
                     break;
                 }
             }
             if (!Converged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-                std::cout << "Predictor-correctior iterations did not converge." << std::endl;
+                KRATOS_INFO("Predictor-correctior iterations did not converge.") << std::endl;
 
         }
         else
         {
-            std::cout<<"Inside else of if(predictorcorrector) in FS Strategy for chimera -solve"<<std::endl;
+            KRATOS_INFO("Inside else of if(predictorcorrector) in FS Strategy for chimera -solve")<<std::endl;
             // Solve for fractional step velocity, then update pressure once
             NormDp = this->SolveStep();
         }
@@ -333,7 +333,7 @@ public:
 
     bool SolveSolutionStep() override
     {
-        std::cout<<" solve solution step inside fs strategy"<<std::endl;
+        KRATOS_INFO(" solve solution step inside fs strategy")<<std::endl;
         double norm_dp = this->Solve();
         /* If not doing predictor corrector iterations, norm_dp will
          * typically be "large" since we are not iterating on pressure.
@@ -542,7 +542,7 @@ protected:
     double SolveStep()
     {
 
-        std::cout << "Rishith : Solve step of fs strategy for chimera " << std::endl;
+        KRATOS_INFO("Solve step of fs strategy for chimera " )<< std::endl;
 
         ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -562,21 +562,21 @@ protected:
             if(mpcData->GetVelocityOrPressure() == "Velocity")
             {
                 mpcData->SetActive(true);
-                std::cout<<"made one MPC active for Velocity "<<std::endl;
+                KRATOS_INFO("made one MPC active for Velocity ")<<std::endl;
             }
             else
             {
                 mpcData->SetActive(false);
-                std::cout<<"made one MPC inactive for Velocity "<<std::endl;
+                KRATOS_INFO("made one MPC inactive for Velocity ")<<std::endl;
             }
         }
 
-        std::cout << "before Momentum iteration " <<std::endl;
+        KRATOS_INFO("before Momentum iteration ") <<std::endl;
 
         for(std::size_t it = 0; it < mMaxVelocityIter; ++it)
         {
             if ( BaseType::GetEchoLevel() > 1 && Rank == 0)
-                std::cout << "Momentum iteration " << it << std::endl;
+                KRATOS_INFO("Momentum iteration")<< it << std::endl;
 
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
@@ -597,16 +597,16 @@ protected:
             if (Converged)
             {
                 if ( BaseType::GetEchoLevel() > 0 && Rank == 0)
-                    std::cout << "Fractional velocity converged in " << it+1 << " iterations." << std::endl;
+                    KRATOS_INFO("Fractional velocity converged in ") << it+1 << " iterations." << std::endl;
                 break;
             }
         }
 
         if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Fractional velocity iterations did not converge." << std::endl;
+            KRATOS_INFO("Fractional velocity iterations did not converge.")<< std::endl;
 
-//Rishith
-        // std::cout<<"Finding and printing flux across boundary "<<std::endl;
+
+        // KRATOS_INFO("Finding and printing flux across boundary ")<<std::endl;
 
         // for (auto mpcData : (*mpcDataVector))
         // {
@@ -622,9 +622,9 @@ protected:
         //                 //MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
         //                 std::size_t slaveNodeId = slaveDofMap.first;
         //                 NodeType &node = rModelPart.Nodes()[slaveNodeId];
-        //                 //std::cout<<" Slave Fract velocity"<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
+        //                 //KRATOS_INFO(" Slave Fract velocity")<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
         //                 //array_1d<double,3> Fract_Vel_interpolated = array_1d<double,3>(3,0.0);
-        //                 //std::cout<<"variable before interpolation"<<Fract_Vel_interpolated<<std::endl;
+        //                 //KRATOS_INFO("variable before interpolation")<<Fract_Vel_interpolated<<std::endl;
         //                 /*
 
         //                 for (auto masterDofMapElem : masterDofMap)
@@ -637,20 +637,20 @@ protected:
         //                     NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
         //                     Fract_Vel_interpolated +=(masterNode.FastGetSolutionStepValue(FRACT_VEL))*weight;
         //                 }
-        //                 std::cout<<" Fract velocity interpolated from its masters "<<Fract_Vel_interpolated<<std::endl;
+        //                 KRATOS_INFO(" Fract velocity interpolated from its masters ")<<Fract_Vel_interpolated<<std::endl;
         //                  */
         //                 //node.FastGetSolutionStepValue(FRACT_VEL) = Fract_Vel_interpolated;
         //                 NodalNormalComponent = mpcData->mSlaveDofToNodalNormalMap[slaveDofMap];
 
-        //                 // std::cout<<"Nodal normal"<<node.GetValue(NORMAL)<<std::endl;
-        //                 // std::cout<<"Nodal normal"<<node.FastGetSolutionStepValue(NORMAL)<<std::endl;
-        //                 // std::cout<<"Fract velocity"<<node.FastGetSolutionStepValue(VELOCITY)<<std::endl;
-        //                 // std::cout<<"Fract velocity"<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
+        //                 // KRATOS_INFO("Nodal normal")<<node.GetValue(NORMAL)<<std::endl;
+        //                 // KRATOS_INFO("Nodal normal")<<node.FastGetSolutionStepValue(NORMAL)<<std::endl;
+        //                 // KRATOS_INFO("Fract velocity")<<node.FastGetSolutionStepValue(VELOCITY)<<std::endl;
+        //                 // KRATOS_INFO("Fract velocity")<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
         //                 flux = flux+ MathUtils<double>::Dot(node.FastGetSolutionStepValue(VELOCITY),node.FastGetSolutionStepValue(NORMAL));
 
         //             }
 
-        //             std::cout<<" total flux across "<<mpcData->GetName()<<"::"<<flux<<std::endl;
+        //             KRATOS_INFO(" total flux across ")<<mpcData->GetName()<<"::"<<flux<<std::endl;
 
         //             std::fstream myfile;
         //             myfile.open ("example.txt",std::ios_base::app);
@@ -661,7 +661,6 @@ protected:
         //     }
         // }
 
-        //Rishith
        // CalculateConservativeCorrections();
 
         // Compute projections (for stabilization)
@@ -683,7 +682,7 @@ protected:
                 if ((itNode)->IsDefined(SLAVE))
                     is_slave = (itNode)->Is(SLAVE);
 
-                if(true) //if(!is_slave)//rishith
+                if(true) //if(!is_slave)
                 {
                     const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
                     itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
@@ -696,17 +695,17 @@ protected:
             if(mpcData->GetVelocityOrPressure() == "Pressure")
             {
                 mpcData->SetActive(true);
-                std::cout<<"made one MPC active for pressure "<<std::endl;
+                KRATOS_INFO("made one MPC active for pressure ")<<std::endl;
             }
             else
             {
                 mpcData->SetActive(false);
-                std::cout<<"made one MPC inactive for pressure "<<std::endl;
+                KRATOS_INFO("made one MPC inactive for pressure ")<<std::endl;
             }
         }
 
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Calculating Pressure." << std::endl;
+            KRATOS_INFO("Calculating Pressure.")<< std::endl;
         //double NormDp = 0;
         double NormDp = mpPressureStrategy->Solve();
 
@@ -719,7 +718,7 @@ protected:
                 MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
                 std::size_t slaveNodeId = slaveDofMap.first;
                 NodeType &node = rModelPart.Nodes()[slaveNodeId];
-                std::cout<<" Slave pressure"<<node.FastGetSolutionStepValue(PRESSURE)<<std::endl;
+                KRATOS_INFO(" Slave pressure")<<node.FastGetSolutionStepValue(PRESSURE)<<std::endl;
                 double Pressure_interpolated = 0.0;
                 for (auto masterDofMapElem : masterDofMap)
                 {
@@ -731,7 +730,7 @@ protected:
                     NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
                     Pressure_interpolated +=(masterNode.FastGetSolutionStepValue(PRESSURE))*weight;
                 }
-                std::cout<<" Pressure interpolated from its masters "<<Pressure_interpolated<<std::endl;
+                KRATOS_INFO(" Pressure interpolated from its masters ")<<Pressure_interpolated<<std::endl;
             }
         }
         */
@@ -739,7 +738,7 @@ protected:
         for (auto mpcData : (*mpcDataVector))
         {
             mpcData->SetActive(true);
-            std::cout<<"made all patch active after solving for pressure "<<std::endl;
+            KRATOS_INFO("made all patch active after solving for pressure ")<<std::endl;
         }
 
 #pragma omp parallel
@@ -755,7 +754,7 @@ protected:
 
         // 3. Compute end-of-step velocity
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-            std::cout << "Updating Velocity." << std::endl;
+            KRATOS_INFO("Updating Velocity.")<< std::endl;
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
@@ -804,7 +803,7 @@ protected:
         double Ratio = NormDv / NormV;
 
         if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Fractional velocity relative error: " << Ratio << std::endl;
+            KRATOS_INFO("Fractional velocity relative error:")<< Ratio << std::endl;
 
         if (Ratio < mVelocityTolerance)
         {
@@ -842,7 +841,7 @@ protected:
         double Ratio = NormDp / NormP;
 
         if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Pressure relative error: " << Ratio << std::endl;
+            KRATOS_INFO("Pressure relative error: ")<< Ratio << std::endl;
 
         if (Ratio < mPressureTolerance)
         {
@@ -908,7 +907,7 @@ protected:
             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
             {
                 const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if(true) //if( NodalArea > 1E-8 )//rishith
+                if(true) //if( NodalArea > 1E-8 )
                 {
                     itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
@@ -917,7 +916,7 @@ protected:
             }
         }
 
-        //Rishith : for correcting projections for chimera
+        //For correcting projections for chimera
 
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
@@ -1029,7 +1028,7 @@ protected:
                 {
                     const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
 
-                    if(true) //if(NodalArea >1E-8) //rishith
+                    if(true) //if(NodalArea >1E-8) 
                     {
                         if ( ! itNode->IsFixed(VELOCITY_X) )
                             itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
@@ -1039,7 +1038,7 @@ protected:
                 }
             }
 
-            //std::cout<<"Interpolating end step velocity to slave nodes from their Masters"<<std::endl;
+            //KRATOS_INFO("Interpolating end step velocity to slave nodes from their Masters")<<std::endl;
 
             ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
             MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
@@ -1053,8 +1052,8 @@ protected:
                         MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
                         std::size_t slaveNodeId = slaveDofMap.first;
                         NodeType &node = rModelPart.Nodes()[slaveNodeId];
-                        //std::cout<<"interpolating for node id "<<node.Id()<<std::endl;
-                        //std::cout<<"It has a velocity of Vx "<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
+                        //KRATOS_INFO("interpolating for node id")<<node.Id()<<std::endl;
+                        //KRATOS_INFO("It has a velocity of Vx")<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
                         node.FastGetSolutionStepValue(VELOCITY_X)=0;
                         node.FastGetSolutionStepValue(VELOCITY_Y)=0;
                         for (auto masterDofMapElem : masterDofMap)
@@ -1065,13 +1064,13 @@ protected:
                             std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
                             double weight = masterDofMapElem.second;
                             NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
-                            //std::cout<<"master node velocity x"<<masterNode.FastGetSolutionStepValue(VELOCITY_X)<<"and weight is"<<weight<<std::endl;
-                            //std::cout<<"master node velocity y"<<masterNode.FastGetSolutionStepValue(VELOCITY_Y)<<"and weight is"<<weight<<std::endl;
+                            //KRATOS_INFO("master node velocity x")<<masterNode.FastGetSolutionStepValue(VELOCITY_X)<<"and weight is"<<weight<<std::endl;
+                            //KRATOS_INFO("master node velocity y")<<masterNode.FastGetSolutionStepValue(VELOCITY_Y)<<"and weight is"<<weight<<std::endl;
                             node.FastGetSolutionStepValue(VELOCITY_X) +=(masterNode.FastGetSolutionStepValue(VELOCITY_X))*weight;
                             node.FastGetSolutionStepValue(VELOCITY_Y) +=(masterNode.FastGetSolutionStepValue(VELOCITY_Y))*weight;
                         }
-                        //std::cout<<"interpolated value Velocity X for node id "<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
-                        //std::cout<<"interpolated value Velocity Y for node id "<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_Y)<<std::endl;
+                        //KRATOS_INFO("interpolated value Velocity X for node id ")<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
+                        //KRATOS_INFO("interpolated value Velocity Y for node id ")<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_Y)<<std::endl;
                     }
                 }
             }
@@ -1385,7 +1384,7 @@ protected:
                     double RtMinvR = mpcData->RtMinvR;
                     double NodalNormalComponent;
                     double NodalNormalComponentOther;
-                    //std::cout << " RtMinvR " << RtMinvR << std::endl;
+                    //KRATOS_INFO(" RtMinvR ") << RtMinvR << std::endl;
                     std::vector<double> VectorOfconstants;
                     std::size_t slaveIndex = 0;
                     double norm = 0;
@@ -1396,8 +1395,8 @@ protected:
                         slaveNodeId = slaveDofMap.first;
                         slaveDofKey = slaveDofMap.second;
 
-                        std::cout<<" slave node id"<<slaveNodeId<<std::endl;
-                        std::cout<<" slave dof key"<<slaveDofKey<<std::endl;
+                        KRATOS_INFO(" slave node id")<<slaveNodeId<<std::endl;
+                        KRATOS_INFO(" slave dof key")<<slaveDofKey<<std::endl;
 
                         Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
                         Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
@@ -1467,8 +1466,8 @@ protected:
 
                     } // slaveMasterDofMap loop
 
-                    //std::cout << "Conservative Correction norm  of " << mpcData->mName << " : " << sqrt(norm) << std::endl;
-                    std::cout << "Conservative Correction of " << mpcData->mName << " is calculated " << std::endl;
+                    //KRATOS_INFO("Conservative Correction norm  of ") << mpcData->mName << " : " << sqrt(norm) << std::endl;
+                    KRATOS_INFO("Conservative Correction of ") << mpcData->mName << " is calculated " << std::endl;
                 } // if type == "Conservative"
 
             } // mpcData->IsActive()
@@ -1581,7 +1580,7 @@ private:
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Velocity,mVelocityTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter);
-            std::cout<<"velcoity strategy"<<std::endl;
+            KRATOS_INFO("velcoity strategy")<<std::endl;
         }
         else
         {
@@ -1595,7 +1594,7 @@ private:
             rSolverConfig.FindTolerance(SolverSettingsType::Pressure,mPressureTolerance);
             rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,mMaxPressureIter);
 
-            std::cout<<"pressure strategy"<<std::endl;
+            KRATOS_INFO("pressure strategy")<<std::endl;
         }
         else
         {

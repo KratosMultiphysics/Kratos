@@ -1592,7 +1592,7 @@ class QuadtreeBinary
 
         GetAllLeavesVector(leaves);
 
-        std::cout << "writing " << leaves.size() << " leaves" << std::endl;
+        KRATOS_INFO("writing")<< leaves.size() << " leaves" << std::endl;
         rOStream << "MESH \"leaves\" dimension 3 ElemType Hexahedra Nnode 8" << std::endl;
         rOStream << "# color 96 96 96" << std::endl;
         rOStream << "Coordinates" << std::endl;
@@ -1642,7 +1642,7 @@ class QuadtreeBinary
 
         GetAllLeavesVector(leaves);
 
-        std::cout << "writing " << leaves.size() << " leaves" << std::endl;
+        KRATOS_INFO("writing") << leaves.size() << " leaves" << std::endl;
         rOStream << "MESH \"leaves\" dimension 2 ElemType Quadrilateral Nnode 4" << std::endl;
         rOStream << "# color 96 96 96" << std::endl;
         rOStream << "Coordinates" << std::endl;

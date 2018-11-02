@@ -257,9 +257,8 @@ class CustomCalculateSignedDistanceProcess
 
 		std::size_t max_level = 100;
 		double max_distance = 200;
-//rishith
 		//CorrectSign(toBackgroundModelPart);
-//nav
+
 		pDistanceCalculator->CalculateDistances(toBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
 	}
 
@@ -274,7 +273,6 @@ class CustomCalculateSignedDistanceProcess
 		}
 	}
 
-	//rishith
  	void CorrectSign(ModelPart &rModelPart)
 	 {
 		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)

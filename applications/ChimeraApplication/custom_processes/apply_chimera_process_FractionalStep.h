@@ -211,7 +211,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 		pMpcBackgroundVelocity->Clear();
 		pMpcBackgroundPressure->Clear();
 
-		std::cout << "FractionalStep Chimera process is cleared" << std::endl;
+		KRATOS_INFO( "FractionalStep Chimera process is cleared") << std::endl;
 	}
 
 	void ExecuteBeforeSolutionLoop() override
@@ -221,7 +221,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 	void ExecuteInitializeSolutionStep() override
 	{
 		KRATOS_TRY;
-		//Rishith : check the requirement of this for loop ???????
+		//Check the requirement of this for loop ???????
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
 		{
 			it->SetValue(SPLIT_ELEMENT,false);
@@ -415,15 +415,14 @@ class ApplyChimeraProcessFractionalStep : public Process
 				// Setting the buffer 1 same buffer 0
 				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
 
-				std::cout << "Coordinates of node that are pressure coupled" << std::endl;
-				std::cout << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
+				KRATOS_INFO("Coordinates of node that are pressure coupled") << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
 			}
 			p_boundary_node->Set(VISITED,true);
 		} // end of if (pressure_coupling == "one")
 
 		counter /= TDim + 1;
 
-		std::cout << counter << " pressure nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
+		KRATOS_INFO( " pressure nodes from ") << rBoundaryModelPart.Name() << " coupled = " <<counter <<  std::endl;
 	}
 
 	void ApplyMpcConstraintForFractionalStep(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV, MpcDataPointerType pMpcP, std::string pressure_coupling)
@@ -589,15 +588,14 @@ class ApplyChimeraProcessFractionalStep : public Process
 				// Setting the buffer 1 same buffer 0
 				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
 
-				std::cout << "Coordinates of node that are pressure coupled" << std::endl;
-				std::cout << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
+				KRATOS_INFO( "Coordinates of node that are pressure coupled" )<< p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
 			}
 			p_boundary_node->Set(VISITED, true);
 		} // end of if (pressure_coupling == "one")
 
 		counter /= TDim + 1;
 
-		std::cout << counter << " pressure nodes from " << rBoundaryModelPart.Name() << " is coupled" << std::endl;
+		KRATOS_INFO( " pressure nodes from ") << rBoundaryModelPart.Name() << "coupled = " <<counter <<  std::endl;
 	}
 
 	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV,MpcDataPointerType pMpcP,  std::string pressure_coupling)
@@ -630,7 +628,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 		}
 
 		SetRtMinvR(pMpcV, rtMinvR);
-		std::cout << "RtMRinv of " << rBoundaryModelPart.Name() << rtMinvR << std::endl;
+		KRATOS_INFO( "RtMRinv of ") << rBoundaryModelPart.Name() << rtMinvR << std::endl;
 
 		CalculateConservativeCorrections(mrMainModelPart, pMpcV);
 		ApplyConservativeCorrections(mrMainModelPart, pMpcV);
@@ -666,8 +664,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 		GetBoundingBox(A,min_cornerA,max_cornerA);
 		GetBoundingBox(B,min_cornerB,max_cornerB);
 
-		std::cout<<" Bounding box Background"<<min_cornerA[0]<<"::"<<max_cornerA[0]<<std::endl;
-		std::cout<<" Bounding box Patch"<<min_cornerB[0]<<"::"<<max_cornerB[0]<<std::endl;
+		KRATOS_INFO(" Bounding box Background")<<min_cornerA[0]<<"::"<<max_cornerA[0]<<std::endl;
+		KRATOS_INFO(" Bounding box Patch")<<min_cornerB[0]<<"::"<<max_cornerB[0]<<std::endl;
 
 		//int max_dim =GetGeometry().WorkingSpaceDimension();
 
@@ -677,11 +675,11 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		for (int i=0;i<idim;i++)
 		{
-			std::cout<<" checked direction"<<"::"<<i<<std::endl;
+			KRATOS_INFO(" checked direction")<<"::"<<i<<std::endl;
 			if(min_cornerA[i]<min_cornerB[i]!=true) return false;
 			if(max_cornerA[i]>max_cornerB[i]!=true) return false;
 		}
-		std::cout<<" outside loop "<<std::endl;
+		KRATOS_INFO(" outside loop ")<<std::endl;
 		return true;
 	}
 
@@ -691,13 +689,13 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		if (n_nodes == 3)
 		{
-			std::cout<<"BBOXrishith :: 3D surface extraction"<<std::endl;
+			KRATOS_INFO("BBOX :: 3D surface extraction")<<std::endl;
 			this->pHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary,rModelPart, rExtractedBoundaryModelPart);
 		}
 
 		else if (n_nodes == 4)
 		{
-			std::cout<<"BBOXrishith :: 3D surface extraction"<<std::endl;
+			KRATOS_INFO("BBOX :: 3D surface extraction")<<std::endl;
 			this->pHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary,rModelPart, rExtractedBoundaryModelPart);
 		}
 	}
@@ -730,7 +728,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 						m_patch_model_part_name       =  m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_name"].GetString();
 						m_patch_inside_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
 
-						std::cout<<"Formulating Chimera for the combination background::"<<m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
+						KRATOS_INFO("Formulating Chimera for the combination background::")<<m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
 
 						MainDomainOrNot = 1 ;
 						if(BG_i == 0)
@@ -741,7 +739,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 				}
 			}
 		}
-		std::cout<<"End of chimera loop"<<std::endl;
+		KRATOS_INFO("End of chimera loop")<<std::endl;
 	}
 
 	//Apply Chimera with or without overlap
@@ -753,14 +751,12 @@ class ApplyChimeraProcessFractionalStep : public Process
 		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 		//ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
 
-	 //rishith debug
+	/* 	KRATOS_INFO("printing my background")<<rBackgroundModelPart<<std::endl;
+		KRATOS_INFO("printing my domain boundary ")<<rDomainBoundaryModelPart<<std::endl;
 
-	/* 	std::cout<<"printing my background"<<rBackgroundModelPart<<std::endl;
-		std::cout<<"printing my domain boundary "<<rDomainBoundaryModelPart<<std::endl;
-
-		std::cout<<"printing my patch"<<rPatchModelPart<<std::endl;
-	//	std::cout<<"printing my patch boundary"<<rPatchBoundaryModelPart<<std::endl;
-		std::cout<<"printing my patch inside boundary"<<rPatchInsideBoundaryModelPart<<std::endl;
+		KRATOS_INFO("printing my patch")<<rPatchModelPart<<std::endl;
+	//	KRATOS_INFO("printing my patch boundary")<<rPatchBoundaryModelPart<<std::endl;
+		KRATOS_INFO("printing my patch inside boundary")<<rPatchInsideBoundaryModelPart<<std::endl;
  	*/
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
@@ -832,7 +828,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 			VtkOutput VtkOutput_ModifiedPatch = VtkOutput(*pModifiedPatchBoundaryModelPart,"nnn",parameters);
 			VtkOutput_ModifiedPatch.PrintOutput();
 
-			std::cout<<"Formulate chimera for fractional step"<<std::endl;
+			KRATOS_INFO("Formulate chimera for fractional step")<<std::endl;
 
 			pMpcPatchVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
 			pMpcPatchPressure->SetIsWeak(m_parameters["IsWeak"].GetBool());
@@ -847,26 +843,18 @@ class ApplyChimeraProcessFractionalStep : public Process
 			{
 				ApplyMpcConstraintForFractionalStep(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity,pMpcPatchPressure, pr_coupling_patch);
 				ApplyMpcConstraintForFractionalStep(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity,pMpcBackgroundPressure, pr_coupling_background);
-				std::cout << "Fractional : Patch boundary coupled with background and hole boundary with patch" << std::endl;
+				KRATOS_INFO( "Fractional : Patch boundary coupled with background and hole boundary with patch") << std::endl;
 			}
 			else if (m_type == "conservative")
 			{
-				std::cout<<"Fractional step MPC Conservative not implemented "<<std::endl;
+				KRATOS_INFO("Fractional step MPC Conservative not implemented ")<<std::endl;
 				ApplyMpcConstraintConservative(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity,pMpcPatchPressure, pr_coupling_patch);
 				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity,pMpcBackgroundPressure, pr_coupling_background);
-				std::cout << "Patch boundary coupled with background and hole boundary with patch using conservative approach" << std::endl;
+				KRATOS_INFO( "Patch boundary coupled with background and hole boundary with patch using conservative approach") << std::endl;
 			}
-			std::cout<<"Formulate Chimera: Appplied MPCs "<<std::endl;
+			KRATOS_INFO("Formulate Chimera: Appplied MPCs ")<<std::endl;
 		}
-
-		/*
-		pMpcPatchPressure->GetInfo();
-		pMpcPatchVelocity->GetInfo();
-
-		pMpcPatchPressure->GetInfo();
-		pMpcPatchVelocity->GetInfo(); */
-
-		std::cout<<"End of Formulate Chimera"<<std::endl;
+		KRATOS_INFO("End of Formulate Chimera")<<std::endl;
 	}
 
 	void SetOverlapDistance(double distance)
@@ -1042,7 +1030,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 		double RtMinvR = pMpc->RtMinvR;
 		double NodalNormalComponent;
 		double NodalNormalComponentOther;
-		//std::cout << " RtMinvR " << RtMinvR << std::endl;
+		//KRATOS_INFO( " RtMinvR " )<< RtMinvR << std::endl;
 		std::vector<double> VectorOfconstants;
 		std::size_t slaveIndex = 0;
 
@@ -1093,8 +1081,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		} // slaveMasterDofMap loop
 
-		//std::cout << "Conservative correction to the velocity field applied" << std::endl;
-		std::cout << "Conservative Correction of " << pMpc->mName << " is calculated" << std::endl;
+		//KRATOS_INFO( "Conservative correction to the velocity field applied" )<< std::endl;
+		KRATOS_INFO( "Conservative Correction of " )<< pMpc->mName << " is calculated" << std::endl;
 	}
 
 	void ApplyConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
@@ -1113,7 +1101,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 			it->GetSolutionStepValue(1) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
 		}
 
-		std::cout << "Conservative Correction of " << pMpc->mName << " is applied" << std::endl;
+		KRATOS_INFO( "Conservative Correction of " )<< pMpc->mName << " is applied" << std::endl;
 	}
 
 	// Functions which use two variable components
@@ -1285,11 +1273,11 @@ class ApplyChimeraProcessFractionalStep : public Process
 	virtual void PrintData(std::ostream &rOStream) const override
 	{
 
-		std::cout << "\nNumber of  Velocity slave nodes :: " << std::endl;
+		KRATOS_INFO( "\nNumber of  Velocity slave nodes :: " )<< std::endl;
 		pMpcPatchPressure->GetInfo();
 		pMpcBackgroundPressure->GetInfo();
 
-		std::cout << "\nNumber of  Pressure slave nodes :: " << std::endl;
+		KRATOS_INFO( "\nNumber of  Pressure slave nodes :: " )<< std::endl;
 		pMpcPatchVelocity->GetInfo();
 		pMpcBackgroundVelocity->GetInfo();
 	}

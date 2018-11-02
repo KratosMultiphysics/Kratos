@@ -153,12 +153,11 @@ class CustomHoleCuttingProcess
 	/// For CHIMERA boundary condition purposes: Extracts a  mesh with a certain threshold value
 	void ExtractMeshBetweenLimits(ModelPart &rModelPart, ModelPart &rExtractedModelPart, double lLimit, double uLimit)
 	{
-
 		KRATOS_TRY;
-		std::cout << "\n::[Mesh Extraction]::" << std::endl;
+		KRATOS_INFO("\n::[Mesh Extraction]::")<< std::endl;
 		// Initializing mesh nodes
 		// Extracting mesh elements which are only above the threshold value
-		std::cout << "  Extracting elements between " << lLimit << " and " << uLimit << std::endl;
+		KRATOS_INFO("Extracting elements between")<< lLimit << " and " << uLimit << std::endl;
 		Element::Pointer pElem;
 		std::vector<std::size_t> vector_of_node_ids;
 		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
@@ -200,18 +199,15 @@ class CustomHoleCuttingProcess
 	}
 
 	void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, double distance)
-
 	{
 		KRATOS_TRY;
-
-		std::cout << "\n::[Creating Hole]::" << std::endl;
+		KRATOS_INFO("\n::[Creating Hole]::")<< std::endl;
 		std::vector<std::size_t> vector_of_node_ids;
 		//For signed distance
 		distance *= -1;
 
 		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
 		{
-
 			double elementDistance = 0.0;
 			std::size_t numPointsOutside = 0;
 			std::size_t j = 0;
@@ -252,15 +248,12 @@ class CustomHoleCuttingProcess
 		}
 
 		//sorting and making unique list of node ids
-
 		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
 		vector_of_node_ids.assign(s.begin(), s.end());
 
 		// Add unique nodes in the ModelPart
-
 		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
 		{
-
 			Node<3>::Pointer pnode = rModelPart.Nodes()(*it);
 			rExtractedModelPart.AddNode(pnode);
 		}
@@ -279,104 +272,15 @@ class CustomHoleCuttingProcess
 		}
 
 		else
-			std::cout << "Hole cutting process is only supported for tetrahedral and triangular elements" << std::endl;
+			KRATOS_INFO("Hole cutting process is only supported for tetrahedral and triangular elements")<< std::endl;
 
 		KRATOS_CATCH("");
 	}
-
-
-	void RemoveOutOfDomainPatch(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart)
-	{
-		KRATOS_TRY;
-
-		std::cout << "\n:: Removing Out Of Domain Patch ::" << std::endl;
-		std::vector<std::size_t> vector_of_node_ids;
-
-		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
-		{
-
-			double elementDistance = 0.0;
-			std::size_t numPointsOutside = 0;
-			std::size_t j = 0;
-			Geometry<Node<3>> &geom = it->GetGeometry();
-
-			for (j = 0; j < geom.size(); j++)
-			{
-				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
-				if (elementDistance > 0)
-				{
-					numPointsOutside++;
-				}
-			}
-
-			//if (numPointsOutside == geom.size())
-			if (numPointsOutside > 0 )
-			{
-				it->Set(ACTIVE, false);
-				Element::Pointer pElem = *(it.base());
-				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
-				rExtractedModelPart.Elements().push_back(pElem);
-				for (j = 0; j <numNodesPerElem; j++)
-				{
-					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
-					if(numNodesPerElem-1 > 2)
-						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(1) = 0.0;
-					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(1) = 0.0;
-					if(numNodesPerElem-1 > 2)
-						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;
-					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
-					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
-				}
-			}
-			/* else
-			{
-				Element::Pointer pElem = *(it.base());
-				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
-				rExtractedModelPart.Elements().push_back(pElem);
-				for (j = 0; j <numNodesPerElem; j++)
-					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
-			} */
-		}
-
-		//sorting and making unique list of node ids
-		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
-		vector_of_node_ids.assign(s.begin(), s.end());
-
-		// Add unique nodes in the ModelPart
-		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
-		{
-
-			Node<3>::Pointer pnode = rModelPart.Nodes()(*it);
-			rExtractedModelPart.AddNode(pnode);
-		}
-
-		std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
-
-		if (n_nodes == 3)
-		{
-			ExtractBoundaryMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
-		}
-
-		else if (n_nodes == 4)
-		{
-			ExtractSurfaceMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
-		}
-
-		else
-			std::cout << "Hole cutting process is only supported for tetrahedral and triangular elements" << std::endl;
-
-		KRATOS_CATCH("");
-	}
-
 
 	void RemoveOutOfDomainPatchAndReturnModifiedPatch(ModelPart &rModelPart,ModelPart &rInsideBoundary, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart,int MainDomainOrNot)
 	{
 		KRATOS_TRY;
-
-		std::cout << "\n:: Removing Out Of Domain Patch with Inside boundary Given ::" << std::endl;
+		KRATOS_INFO("\n:: Removing Out Of Domain Patch with Inside boundary Given ::") << std::endl;
 		std::vector<std::size_t> vector_of_node_ids;
 
 		int count = 0;
@@ -393,21 +297,14 @@ class CustomHoleCuttingProcess
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
 				elementDistance = elementDistance*MainDomainOrNot;
-
-
-				//std::cout<<"Printing element distance on the patch nodes"<<elementDistance<<std::endl;
-/*
-KRATOS_WATCH("Printing element distance on the patch nodes");
-*/
 				if (elementDistance < 0)
 				{
 					numPointsOutside++;
 				}
 			}
 
-			//if (numPointsOutside == geom.size())
-			// any node goes out of the domain means the element need to be INACTIVE , otherwise the modified patch boundary
-			// wont find any nodes on background
+			/* Any node goes out of the domain means the element need to be INACTIVE , otherwise the modified patch boundary
+			 wont find any nodes on background */
 			if (numPointsOutside > 0 )
 			{
 				it->Set(ACTIVE, false);
@@ -440,7 +337,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 
 		rExtractedModelPart.Nodes() = rModelPart.Nodes();
 
-		std::cout<<" Rishith debug : printing number of elements added to modified patch part"<<count<<std::endl;
+		KRATOS_INFO("Number of elements added to the modified patch")<<count<<std::endl;
 		//sorting and making unique list of node ids
 		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
 		vector_of_node_ids.assign(s.begin(), s.end());
@@ -448,7 +345,6 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 		// Add unique nodes in the ModelPart
 		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
 		{
-
 			Node<3>::Pointer pnode = rModelPart.Nodes()(*it);
 			rExtractedModelPart.AddNode(pnode);
 		}
@@ -456,18 +352,19 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 		std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
 
 		if (n_nodes == 3)
-		{
+		{			
+			KRATOS_INFO("::[Boundary line extraction of modified patch]::") << std::endl;
 			ExtractOutsideBoundaryMesh(rInsideBoundary,rExtractedModelPart, rExtractedBoundaryModelPart);
 		}
 
 		else if (n_nodes == 4)
-		{
-			std::cout<<"rishith :: 3D surface extraction"<<std::endl;
+		{	
+			KRATOS_INFO("::[3D surface extraction of the modified patch]::") << std::endl;
 			ExtractOutsideSurfaceMesh(rInsideBoundary,rExtractedModelPart, rExtractedBoundaryModelPart);
 		}
 
 		else
-			std::cout << "Hole cutting process is only supported for tetrahedral and triangular elements" << std::endl;
+			KRATOS_INFO("Hole cutting process is only supported for tetrahedral and triangular elements")<< std::endl;
 
 		KRATOS_CATCH("");
 	}
@@ -476,8 +373,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 	void ExtractSurfaceMesh(ModelPart &rExtractedVolumeModelPart, ModelPart &rExtractedSurfaceModelPart)
 	{
 		KRATOS_TRY;
-
-		std::cout << "::[Surface Mesh Extraction]::" << std::endl;
+		KRATOS_INFO ("::[Surface Mesh Extraction]::") << std::endl;
 
 		// Some type-definitions
 		typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
@@ -542,7 +438,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 		//rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
 
 		// Add skin faces as triangles to skin-model-part (loop over all node sets)
-		std::cout << "  Extracting surface mesh and computing normals" << std::endl;
+		KRATOS_INFO("  Extracting surface mesh and computing normals") << std::endl;
 		std::vector<std::size_t> vector_of_node_ids;
 		for (typename hashmap::const_iterator it = n_faces_map.begin(); it != n_faces_map.end(); it++)
 		{
@@ -607,24 +503,23 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 		vector_of_node_ids.assign(s.begin(), s.end());
 
 		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
-
 		{
 			//Adding the nodes to the rExtractedSurfaceModelPart
 			Node<3>::Pointer pnode = rExtractedVolumeModelPart.Nodes()(*it);
 			rExtractedSurfaceModelPart.AddNode(pnode);
 		}
 
-		std::cout << "Successful extraction of the Surface " << rExtractedSurfaceModelPart.GetMesh() << std::endl;
+		KRATOS_INFO ("Successful extraction of the Surface ") << rExtractedSurfaceModelPart.GetMesh() << std::endl;
 
 		KRATOS_CATCH("");
 	}
 
-	//give the outside surface of a model part from model part and its inside boundary
+	//give the outside surface of a model part given inside boundary
 	void ExtractOutsideSurfaceMesh(ModelPart &rInsideBoundaryModelPart,ModelPart &rExtractedVolumeModelPart, ModelPart &rExtractedSurfaceModelPart)
 	{
 		KRATOS_TRY;
 
-		std::cout << "::rishith [Surface Mesh Extraction]::" << std::endl;
+		KRATOS_INFO (":: [Surface Mesh Extraction]::") << std::endl;
 
 			Parameters parameters= Parameters(R"({
 						"result_file_configuration" : {
@@ -678,7 +573,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 			}
 		}
 
-		std::cout<<"rishith :: comparing with inside boundary "<<rInsideBoundaryModelPart<<std::endl;
+		KRATOS_INFO(":: comparing with inside boundary ")<<rInsideBoundaryModelPart<<std::endl;
 
 		for (ModelPart::ConditionIterator itCond = rInsideBoundaryModelPart.ConditionsBegin(); itCond != rInsideBoundaryModelPart.ConditionsEnd(); ++itCond)
 		{
@@ -726,7 +621,6 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 		//rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
 
 		// Add skin faces as triangles to skin-model-part (loop over all node sets)
-		std::cout << "  Extracting surface mesh and computing normals" << std::endl;
 		std::vector<std::size_t> vector_of_node_ids;
 		for (typename hashmap::const_iterator it = n_faces_map.begin(); it != n_faces_map.end(); it++)
 		{
@@ -797,7 +691,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 			rExtractedSurfaceModelPart.AddNode(pnode);
 		}
 
-		std::cout << "Successful extraction of the Surface rishith" << rExtractedSurfaceModelPart.GetMesh() << std::endl;
+		KRATOS_INFO ("Successful extraction of the Surface" )<< rExtractedSurfaceModelPart.GetMesh() << std::endl;
 
 		VtkOutput VtkOutput_Extracted_Surface = VtkOutput(rExtractedSurfaceModelPart,"ExtracetedModelPart",parameters);
 		VtkOutput_Extracted_Surface.PrintOutput();
@@ -809,7 +703,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 	{
 		KRATOS_TRY;
 
-		std::cout << "::[Boundary Mesh Extraction]::" << std::endl;
+		KRATOS_INFO ("::[Boundary Mesh Extraction]::")<< std::endl;
 
 		// Some type-definitions
 		typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
@@ -874,7 +768,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 		//rExtractedBoundaryModelPart.Nodes() = rSurfaceModelPart.Nodes();
 
 		// Add skin edges as triangles to skin-model-part (loop over all node sets)
-		std::cout << "  Extracting boundary mesh and computing normals" << std::endl;
+		KRATOS_INFO("  Extracting boundary mesh and computing normals") << std::endl;
 		std::vector<std::size_t> vector_of_node_ids;
 		for (typename hashmap::const_iterator it = n_edges_map.begin(); it != n_edges_map.end(); it++)
 		{
@@ -882,14 +776,14 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 			if (it->second == 1)
 			{
 				// If skin edge is a triangle store triangle in with its original orientation in new skin model part
-				//std::cout<<"size of the ordered pair : "<<it->first.size()<<std::endl;
+				//KRATOS_INFO("size of the ordered pair : ")<<it->first.size()<<std::endl;
 				if (it->first.size() == 2)
 				{
 					// Getting original order is important to properly reproduce skin edge including its normal orientation
 					vector<std::size_t> original_nodes_order = ordered_skin_edge_nodes_map[it->first];
 
-					//std::cout<<"First Node: "<<original_nodes_order[0]<<std::endl;
-					//std::cout<<"Second Node: "<<original_nodes_order[1]<<std::endl;
+					//KRATOS_INFO("First Node: ")<<original_nodes_order[0]<<std::endl;
+					//KRATOS_INFO("Second Node: ")<<original_nodes_order[1]<<std::endl;
 
 					Node<3>::Pointer pnode1 = rSurfaceModelPart.Nodes()(original_nodes_order[0]);
 					Node<3>::Pointer pnode2 = rSurfaceModelPart.Nodes()(original_nodes_order[1]);
@@ -922,7 +816,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 			rExtractedBoundaryModelPart.AddNode(pnode);
 		}
 
-		std::cout << "Successful extraction of the Boundary " << rExtractedBoundaryModelPart.GetMesh() << std::endl;
+		KRATOS_INFO("Successful extraction of the Boundary") << rExtractedBoundaryModelPart.GetMesh() << std::endl;
 
 		KRATOS_CATCH("");
 	}
@@ -932,7 +826,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 	{
 		KRATOS_TRY;
 
-		std::cout << "::[Boundary Mesh Extraction rishith]::" << std::endl;
+
 
 		// Some type-definitions
 		typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
@@ -1007,7 +901,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 		//rExtractedBoundaryModelPart.Nodes() = rSurfaceModelPart.Nodes();
 
 		// Add skin edges as triangles to skin-model-part (loop over all node sets)
-		std::cout << "  Extracting boundary mesh and computing normals" << std::endl;
+		KRATOS_INFO("  Extracting boundary mesh and computing normals")<< std::endl;
 		std::vector<std::size_t> vector_of_node_ids;
 		for (typename hashmap::const_iterator it = n_edges_map.begin(); it != n_edges_map.end(); it++)
 		{
@@ -1015,14 +909,14 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 			if (it->second == 1)
 			{
 				// If skin edge is a triangle store triangle in with its original orientation in new skin model part
-				//std::cout<<"size of the ordered pair : "<<it->first.size()<<std::endl;
+				//KRATOS_INFO("size of the ordered pair : ")<<it->first.size()<<std::endl;
 				if (it->first.size() == 2)
 				{
 					// Getting original order is important to properly reproduce skin edge including its normal orientation
 					vector<std::size_t> original_nodes_order = ordered_skin_edge_nodes_map[it->first];
 
-					//std::cout<<"First Node: "<<original_nodes_order[0]<<std::endl;
-					//std::cout<<"Second Node: "<<original_nodes_order[1]<<std::endl;
+					//KRATOS_INFO("First Node: ")<<original_nodes_order[0]<<std::endl;
+					//KRATOS_INFO("Second Node: ")<<original_nodes_order[1]<<std::endl;
 					Node<3>::Pointer pnode1 = rSurfaceModelPart.Nodes()(original_nodes_order[0]);
 					Node<3>::Pointer pnode2 = rSurfaceModelPart.Nodes()(original_nodes_order[1]);
 
@@ -1054,7 +948,7 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 			rExtractedBoundaryModelPart.AddNode(pnode);
 		}
 
-		std::cout << "Successful extraction of the Boundary Rishith " << rExtractedBoundaryModelPart.GetMesh() << std::endl;
+		KRATOS_INFO("Successful extraction of the Boundary ")<< rExtractedBoundaryModelPart.GetMesh() << std::endl;
 
 		KRATOS_CATCH("");
 	}

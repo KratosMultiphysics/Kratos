@@ -332,7 +332,7 @@ namespace Kratos
 
                 typedef Tree< KDTreePartition<BucketType> > tree; 		//Kdtree;
 
-                std::cout << "kdt construction time " << kdtree_construction.elapsed() << std::endl;
+                KRATOS_INFO( "kdt construction time ") << kdtree_construction.elapsed() << std::endl;
                 //finishing calculating time of construction of the kdtree
 
                 //create a spatial database with the list of new nodes
@@ -408,7 +408,7 @@ namespace Kratos
 
                  }
 */
-                std::cout << "search and interpolation time " << search_and_interpolation_time.elapsed() << std::endl;
+                KRATOS_INFO( "search and interpolation time ") << search_and_interpolation_time.elapsed() << std::endl;
                 KRATOS_CATCH("")
             }
 
@@ -631,7 +631,7 @@ namespace Kratos
 
                       typedef Tree< KDTreePartition<BucketType> > tree; 		//Kdtree;
 
-                      std::cout << "kdt construction time " << kdtree_construction.elapsed() << std::endl;
+                      KRATOS_INFO( "kdt construction time " )<< kdtree_construction.elapsed() << std::endl;
                       //finishing calculating time of construction of the kdtree
 
                       //create a spatial database with the list of new nodes
@@ -707,7 +707,7 @@ namespace Kratos
 
                        }
       */
-                      std::cout << "search and interpolation time " << search_and_interpolation_time.elapsed() << std::endl;
+                      KRATOS_INFO( "search and interpolation time ") << search_and_interpolation_time.elapsed() << std::endl;
                       KRATOS_CATCH("")
                   }
 
@@ -1132,7 +1132,7 @@ namespace Kratos
 
           typedef Tree< KDTreePartition<BucketType> > tree; 		//Kdtree;
 
-          std::cout << "kdt construction time " << kdtree_construction.elapsed() << std::endl;
+          KRATOS_INFO( "kdt construction time ") << kdtree_construction.elapsed() << std::endl;
           //finishing calculating time of construction of the kdtree
 
           //create a spatial database with the list of new nodes
@@ -1188,7 +1188,7 @@ namespace Kratos
                   }
               }
           }
-          std::cout << "search and interpolation time " << search_and_interpolation_time.elapsed() << std::endl;
+          KRATOS_INFO( "search and interpolation time ") << search_and_interpolation_time.elapsed() << std::endl;
           KRATOS_CATCH("");
       }
 

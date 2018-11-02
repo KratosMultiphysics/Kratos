@@ -275,7 +275,7 @@ public:
 
         }
 
-        std::cout << "Found " << ConditionCount << " node pairs in periodic boundary." << std::endl;
+        KRATOS_INFO("Found ") << ConditionCount << " node pairs in periodic boundary." << std::endl;
 
         KRATOS_CATCH("")
     }

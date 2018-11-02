@@ -283,7 +283,6 @@ class ApplyMultipointConstraintsProcess : public Process
     /// Print object's data.
     void PrintData()
     {
-        std::cout << "Number of slave nodes :: " << std::endl;
         pMpc->GetInfo();
     }
 

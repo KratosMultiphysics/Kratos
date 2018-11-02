@@ -113,7 +113,6 @@ class GiDOutputProcess(Process):
 
     def ExecuteInitialize(self):
 
-        print("Rishith Inside the Gid output Executeinitialise")
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
 
@@ -322,7 +321,6 @@ class GiDOutputProcess(Process):
 
 
     def _InitializeGiDIO(self,gidpost_flags,param):
-        print("Rishith _InitializeGiDIO")
         '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
         self.volume_file_name = self.base_file_name
         self.cut_file_name = self.volume_file_name+"_cuts"

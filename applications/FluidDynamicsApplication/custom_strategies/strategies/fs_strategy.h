@@ -732,7 +732,7 @@ protected:
         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
         // If there are periodic conditions, add contributions from both sides to the periodic nodes
-        //this->PeriodicConditionProjectionCorrection(rModelPart); rishith
+        //this->PeriodicConditionProjectionCorrection(rModelPart);
 
 #pragma omp parallel
         {

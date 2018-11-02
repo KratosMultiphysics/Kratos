@@ -412,7 +412,6 @@ private:
           {
               CalcNodalDistancesOfTetNodes( i_fluidElement , TetEdgeIndexTable );
           }
-//rishith
         std::cout<<" finishded distance fluid structure"<<std::endl;
 
 		KRATOS_WATCH("ENDOF LOOP")
@@ -1282,7 +1281,6 @@ private:
         }
 
         Timer::Stop("Generating Octree");
-        //rishith
         std::cout << "######## Octree generated #########" << std::endl;
 
 //        KRATOS_WATCH(mOctree);

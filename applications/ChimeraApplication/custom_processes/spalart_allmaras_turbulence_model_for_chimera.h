@@ -479,17 +479,16 @@ private:
 //                    ratio = dT_norm / T_norm;
 //                else
 //                {
-//                    std::cout << "Nu norm = " << T_norm << " dNu_norm = " << dT_norm << std::endl;
+//                   KRATOS_INFO("Nu norm = ") << T_norm << " dNu_norm = " << dT_norm << std::endl;
 //                }
 
 //                if (dT_norm < 1e-11)
 //                    ratio = 0; //converged
 
-
 //                if (ratio < mtol)
 //                    is_converged = true;
 
-//                std::cout << "   SA iter = " << iter << " ratio = " << ratio << std::endl;
+//                KRATOS_INFO("   SA iter = ") << iter << " ratio = " << ratio << std::endl;
 
 //            }
 

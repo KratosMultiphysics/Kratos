@@ -1,0 +1,120 @@
+compiling Kratos Path: 	[1;48;5;4m /home/rishithe/software/Kratos_MT [0m
+compiling branch: 	[1;44m ChimeraApplication-development_2.0 [0m
+compiling mode: 	[1;44m serial [0m
+compiling version: 	[1;44m Release [0m 
+
+[1;43m Removing Kratos libraries ... [0m
+-- The C compiler identification is GNU 7.3.0
+-- The CXX compiler identification is GNU 7.3.0
+-- Check for working C compiler: /usr/bin/gcc
+-- Check for working C compiler: /usr/bin/gcc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/g++
+-- Check for working CXX compiler: /usr/bin/g++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Git: /usr/bin/git (found version "2.17.1") 
+-- Found PythonInterp: /usr/bin/python3.6 (found version "3.6.5") 
+-- Found PythonLibs: /usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so
+-- Performing Test HAS_CPP14_FLAG
+-- Performing Test HAS_CPP14_FLAG - Success
+-- Found OpenMP_C: -fopenmp (found version "4.5") 
+-- Found OpenMP_CXX: -fopenmp (found version "4.5") 
+-- Found OpenMP: TRUE (found version "4.5")  
+-- Boost version: 1.67.0
+-- The Fortran compiler identification is GNU 7.3.0
+-- Check for working Fortran compiler: /usr/bin/gfortran
+-- Check for working Fortran compiler: /usr/bin/gfortran  -- works
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Checking whether /usr/bin/gfortran supports Fortran 90
+-- Checking whether /usr/bin/gfortran supports Fortran 90 -- yes
+-- Detecting Fortran/C Interface
+-- Detecting Fortran/C Interface - Found GLOBAL and MODULE mangling
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - found
+-- Found Threads: TRUE  
+-- A library with BLAS API found.
+-- A library with BLAS API found.
+-- A library with LAPACK API found.
+-- Could NOT find ZLIB (missing: ZLIB_LIBRARY ZLIB_INCLUDE_DIR) 
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of off64_t
+-- Check size of off64_t - done
+-- Looking for fseeko
+-- Looking for fseeko - found
+-- Looking for unistd.h
+-- Looking for unistd.h - found
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/rishithe/software/Kratos_MT/cmake_build_serial_release
+[  3%] Built target tetMeshOpt
+[  4%] Built target runkratos
+[  8%] Built target zlib
+[  9%] Built target triangle
+[ 13%] Built target zlibstatic
+[ 26%] Built target superlu
+[ 26%] Built target example64
+[ 26%] Built target example
+[ 26%] Built target minigzip64
+[ 28%] Built target gidpost
+[ 29%] Built target minigzip
+[ 64%] Built target KratosCore
+[ 66%] Built target KratosMappingApplication
+[ 69%] Built target KratosChimeraApplication
+[ 70%] Built target KratosExternalSolversApplication
+[ 75%] Built target KratosMeshingApplication
+[ 85%] Built target Kratos
+[ 99%] Built target KratosFluidDynamicsCore
+[100%] Built target KratosFluidDynamicsApplication
+Install the project...
+-- Install configuration: "Release"
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/__init__.py
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/kratos_utilities.py
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/kratos_globals.py
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/application_importer.py
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/KratosUnittest.py
+-- Installing: /home/rishithe/software/Kratos_MT/libs/libblas.so.3.7.1
+-- Installing: /home/rishithe/software/Kratos_MT/libs/liblapack.so.3.7.1
+-- Installing: /home/rishithe/software/Kratos_MT/libs/libz.so.1.2.8
+-- Installing: /home/rishithe/software/Kratos_MT/libs/libz.so.1
+-- Installing: /home/rishithe/software/Kratos_MT/libs/libz.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/libz.so.1.2.8" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/libs/libz.a
+-- Installing: /home/rishithe/software/Kratos_MT/libs/Kratos.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/Kratos.cpython-36m-x86_64-linux-gnu.so" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/libs/libKratosCore.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/libKratosCore.so" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/libs/KratosExternalSolversApplication.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/KratosExternalSolversApplication.cpython-36m-x86_64-linux-gnu.so" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/ExternalSolversApplication.py
+-- Installing: /home/rishithe/software/Kratos_MT/libs/KratosMeshingApplication.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/KratosMeshingApplication.cpython-36m-x86_64-linux-gnu.so" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/MeshingApplication.py
+-- Installing: /home/rishithe/software/Kratos_MT/libs/libKratosFluidDynamicsCore.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/libKratosFluidDynamicsCore.so" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/libs/KratosFluidDynamicsApplication.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/KratosFluidDynamicsApplication.cpython-36m-x86_64-linux-gnu.so" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/FluidDynamicsApplication.py
+-- Installing: /home/rishithe/software/Kratos_MT/libs/KratosMappingApplication.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/KratosMappingApplication.cpython-36m-x86_64-linux-gnu.so" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/MappingApplication.py
+-- Installing: /home/rishithe/software/Kratos_MT/libs/KratosChimeraApplication.cpython-36m-x86_64-linux-gnu.so
+-- Set runtime path of "/home/rishithe/software/Kratos_MT/libs/KratosChimeraApplication.cpython-36m-x86_64-linux-gnu.so" to "/home/rishithe/software/Kratos_MT/libs:/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1:/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1"
+-- Installing: /home/rishithe/software/Kratos_MT/KratosMultiphysics/ChimeraApplication.py
+-- Up-to-date: /home/rishithe/software/Kratos_MT/./runkratos
+-- Up-to-date: /home/rishithe/software/Kratos_MT/./libpython3.6m.so.1.0
+[1;42m Compilation Successful [0m
+[1mexecution time: [1;48;5;57m0d 00h : 00m : 12s[0m
