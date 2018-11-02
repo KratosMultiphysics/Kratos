@@ -56,7 +56,7 @@ class TestModel(KratosUnittest.TestCase):
         other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         other.CreateNewNode(1,0.0,0.0,0.0)
         
-        KratosMultiphysics.Serializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
+        KratosMultiphysics.FileSerializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
 
 
     def test_model_serialization(self):
@@ -67,7 +67,7 @@ class TestModel(KratosUnittest.TestCase):
         self._create_and_save_model(file_name, serializer_flag)
 
         loaded_model = KratosMultiphysics.Model()
-        KratosMultiphysics.Serializer(file_name, serializer_flag).Load("ModelSerialization",loaded_model)
+        KratosMultiphysics.FileSerializer(file_name, serializer_flag).Load("ModelSerialization",loaded_model)
 
         self.assertTrue(loaded_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(loaded_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
@@ -99,7 +99,7 @@ class TestModel(KratosUnittest.TestCase):
 
         # ######## here we pickle the serializer
         try:
-            import cickle as pickle  # Use cPickle on Python 2.7
+            import cpickle as pickle  # Use cPickle on Python 2.7
         except ImportError:
             import pickle
 
