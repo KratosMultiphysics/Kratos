@@ -187,7 +187,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             F = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = F * rPlasticDenominator;
 
-            if (plastic_consistency_factor_increment < 0.0) break;
+            if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0;
 
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
@@ -205,6 +205,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 			KRATOS_WATCH(rUniaxialStress)
 			KRATOS_WATCH(rBackStressVector)
 			KRATOS_WATCH(rPlasticDenominator)
+			KRATOS_WATCH(rPlasticStrain)
 			KRATOS_WATCH(rThreshold)
 
             F = rUniaxialStress - rThreshold;
