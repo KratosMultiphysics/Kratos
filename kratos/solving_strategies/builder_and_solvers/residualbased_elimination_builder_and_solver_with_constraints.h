@@ -996,6 +996,8 @@ protected:
             ++counter;
         }
 
+        KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[counter] == nnz) << "Nonzero values does not coincide with the row index definition" << std::endl;
+
         counter = 0;
         // TODO: OMP
         for (auto& to_solve : row_dof_indices) {
@@ -1007,8 +1009,8 @@ protected:
                 Tcol_indices[k] = mSolvableDoFReorder[to_solve.first];
                 Tvalues[k] = 1.0;
             } else {
-                for (auto it = master_indices[to_solve.first].begin(); it != master_indices[to_solve.first].end(); ++it) {
-                    Tcol_indices[k] = *it;
+                for (auto& index : master_indices[to_solve.first]) {
+                    Tcol_indices[k] = index;
                     Tvalues[k] = 0.0;
                     k++;
                 }
