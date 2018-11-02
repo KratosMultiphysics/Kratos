@@ -83,7 +83,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             solver.FinalizeSolutionStep()
 
     ## OutputSolutionStep : Called once at the end of the solution step.
-    #                       The output of the solvers and / or cosimulation output
+    #                       The output of the solvers and / or co-simulation output
     #                       can be performed in this function.
     #
     #  @param self            The object pointer.
@@ -139,7 +139,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
     ## _SynchronizeInputData : Private Function to obtain new (if any) input data for the
     #                          participating solvers. That will get the data necessary from
-    #                          python cosimm solver with name solver_name and export (if necessary)
+    #                          python cosim solver with name solver_name and export (if necessary)
     #                          it to the remote solver of solver_name
     #
     #
@@ -157,13 +157,13 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 from_solver = self.participating_solvers[input_data["from_solver"]]
                 data_name = input_data["data_name"]
                 from_solver_data_conf = from_solver.GetDataConfig(data_name)
-                current_sovler_data_conf = solver.GetDataConfig(data_name)
-                if( from_solver_data_conf["dimension"] == current_sovler_data_conf["dimension"] ):
+                current_solver_data_conf = solver.GetDataConfig(data_name)
+                if( from_solver_data_conf["dimension"] == current_solver_data_conf["dimension"] ):
                     solver.ImportData(data_name, from_solver)
 
     ## _SynchronizeOutputData : Private Function to synchronize the out put data between the solver
     #                           interface and the remote solver. This assumes that the remote solver
-    #                           has output the data inthe format specified in the settings (of the out put data def in JSON)
+    #                           has output the data in the format specified in the settings (of the out put data def in JSON)
     #
     #  @param self            The object pointer.
     def _SynchronizeOutputData(self, solver_name):
@@ -175,7 +175,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 data_conf = solver.GetDataConfig(data_name)
                 solver.ExportData(data_conf)
 
-    ## _GetSolvers : Private Function to make the paticipating solver objects
+    ## _GetSolvers : Private Function to make the participating solver objects
     #
     #  @param self            The object pointer.
     def _GetSolvers(self, SolversDataList):
@@ -200,7 +200,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         for solver_settings in co_simulation_solver_settings:
             solver_name = solver_settings["name"]
             solver_cosim_details[solver_name] = solver_settings
-        # TODO check if the data is consitently defined! => maybe do at another place though...
+        # TODO check if the data is consistently defined! => maybe do at another place though...
         # - input in one is output in another
         # - one IO is defined for each data_name
         # - if the same data is defined multiple times

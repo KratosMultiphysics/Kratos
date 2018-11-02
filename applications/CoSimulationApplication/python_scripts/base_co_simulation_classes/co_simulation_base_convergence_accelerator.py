@@ -10,7 +10,7 @@ import co_simulation_tools as tools
 #               Please do not change any thing in this class.
 #
 # This Class servers as a base class for all the Convergence accelerator techniques
-# used in co simualation.
+# used in co simulation.
 class CoSimulationBaseConvergenceAccelerator(object):
     def __init__(self, settings):
         self.settings = settings
