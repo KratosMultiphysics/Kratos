@@ -279,7 +279,7 @@ void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
-    const bool calculate_residual_vector_flag = false; // TODO check is this can be false => see solids
+    const bool calculate_residual_vector_flag = true; // TODO check is this can be false => see solids
 
 	Vector dummy;
 	CalculateAll(rLeftHandSideMatrix, dummy, rCurrentProcessInfo,
@@ -290,7 +290,7 @@ void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 	ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
-    const bool calculate_stiffness_matrix_flag = false; // TODO check is this can be false => see solids
+    const bool calculate_stiffness_matrix_flag = true; // TODO check is this can be false => see solids
     const bool calculate_residual_vector_flag = true;
 
 	Matrix dummy;
