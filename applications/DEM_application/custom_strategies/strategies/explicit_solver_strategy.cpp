@@ -1412,7 +1412,7 @@ namespace Kratos {
                 unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mInitialNeighborsSize;
 
                 for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
-                    SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*> (neighbour_elements[j]);
+                    SphericParticle* neighbour_element = dynamic_cast<SphericParticle*> (neighbour_elements[j]);
                     if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
                     if (mListOfSphericParticles[i]->Id() > neighbour_element->Id()) continue;
 
@@ -1536,7 +1536,6 @@ namespace Kratos {
     void ExplicitSolverStrategy::PrepareContactElementsForPrinting() {
 
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-
         DenseVector<unsigned int> contact_element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);

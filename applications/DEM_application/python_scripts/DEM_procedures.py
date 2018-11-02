@@ -1583,9 +1583,9 @@ class DEMIo(object):
 
     def AddContactVariables(self):
         # Contact Elements Variables
-        if self.DEM_parameters["ElementType"].GetString() in self.continuum_element_types:
-            if self.DEM_parameters["ContactMeshOption"].GetBool():
-                self.PushPrintVar(self.PostLocalContactForce, LOCAL_CONTACT_FORCE, self.contact_variables)
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            self.PushPrintVar(self.PostLocalContactForce, LOCAL_CONTACT_FORCE, self.contact_variables)
+            if self.DEM_parameters["ElementType"].GetString() in self.continuum_element_types:
                 self.PushPrintVar(self.PostFailureCriterionState, FAILURE_CRITERION_STATE, self.contact_variables)
                 self.PushPrintVar(self.PostContactFailureId, CONTACT_FAILURE, self.contact_variables)
                 self.PushPrintVar(self.PostContactTau, CONTACT_TAU, self.contact_variables)
