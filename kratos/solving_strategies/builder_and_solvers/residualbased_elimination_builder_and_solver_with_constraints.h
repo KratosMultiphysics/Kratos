@@ -629,16 +629,17 @@ protected:
     #endif
         )
     {
-        SizeType local_size = rTransformationMatrix.size1();
+        SizeType local_size_1 = rTransformationMatrix.size1();
+        SizeType local_size_2 = rTransformationMatrix.size2();
 
-        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+        for (IndexType i_local = 0; i_local < local_size_1; ++i_local) {
             IndexType i_global = rSlaveEquationId[i_local];
 
             if (i_global < BaseType::mEquationSystemSize) {
             #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_set_lock(&rLockArray[i_global]);
             #endif
-                for (IndexType j_local = 0; j_local < local_size; ++j_local) {
+                for (IndexType j_local = 0; j_local < local_size_2; ++j_local) {
                     IndexType j_global = mSolvableDoFReorder[rMasterEquationId[j_local]];
                     if (j_global < BaseType::mEquationSystemSize) {
                         rT(i_global, j_global) += rTransformationMatrix(i_local, j_local);
