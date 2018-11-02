@@ -41,7 +41,7 @@ class RestartUtility:
             print("::Restart Utility:: RESTART file does not exist , check the RestartStep selected ")
 
         kratos_serializer_variable = globals()[self.serializer_flag]
-        serializer = Serializer(restart_path, kratos_serializer_variable)
+        serializer = FileSerializer(restart_path, kratos_serializer_variable)
 
         serializer.Load("ModelPart", self.model_part)
 
@@ -145,7 +145,7 @@ class RestartUtility:
         restart_path = os.path.join(self.problem_path, self.problem_name + "_" + str(label))
 
         kratos_serializer_variable = globals()[self.serializer_flag]
-        serializer = Serializer(restart_path, kratos_serializer_variable)
+        serializer = FileSerializer(restart_path, kratos_serializer_variable)
 
         serializer.Save("ModelPart", self.model_part)
         #print(" ::[Restart Utility]:: RESTART PRINTED: [ID: ", label, "] [STEP: ", current_step, "] [TIME: ", current_time, "]")

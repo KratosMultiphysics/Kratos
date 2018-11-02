@@ -268,7 +268,7 @@ class PfemFluidSolver:
             # self.serializer_flag = SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
             # self.serializer_flag = SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-            serializer = Serializer(restart_path, self.serializer_flag)
+            serializer = FileSerializer(restart_path, self.serializer_flag)
 
             serializer.Load(self.main_model_part.Name, self.main_model_part)
             print("    Load input restart file.")
