@@ -7,6 +7,13 @@ import run_cpp_unit_tests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import from Test Factories (with general analysis flows)
+from particle_mechanics_test_factory import BeamCantileverLinearElasticPointLoad2DTriTest as TBeamCantileverLinearElasticPointLoad2DTriTest
+from particle_mechanics_test_factory import BeamCantileverLinearElasticPointLoad2DQuadTest as TBeamCantileverLinearElasticPointLoad2DQuadTest
+from particle_mechanics_test_factory import BeamCantileverLinearElasticLineLoad2DTriTest as TBeamCantileverLinearElasticLineLoad2DTriTest
+from particle_mechanics_test_factory import BeamCantileverLinearElasticLineLoad2DQuadTest as TBeamCantileverLinearElasticLineLoad2DQuadTest
+from particle_mechanics_test_factory import BeamCantileverLinearElasticSurfaceLoad3DTetraTest as TBeamCantileverLinearElasticSurfaceLoad3DTetraTest
+from particle_mechanics_test_factory import BeamCantileverLinearElasticSurfaceLoad3DHexaTest as TBeamCantileverLinearElasticSurfaceLoad3DHexaTest
+
 from particle_mechanics_test_factory import CLLinearElastic2DQuadTest as TCLLinearElastic2DQuadTest
 
 # Import from Test Factories (with differet analysis flows)
@@ -38,6 +45,12 @@ def AssembleTestSuites():
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTest(TBeamCantileverLinearElasticPointLoad2DTriTest('test_execution'))
+    nightSuite.addTest(TBeamCantileverLinearElasticPointLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TBeamCantileverLinearElasticLineLoad2DTriTest('test_execution'))
+    nightSuite.addTest(TBeamCantileverLinearElasticLineLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TBeamCantileverLinearElasticSurfaceLoad3DTetraTest('test_execution'))
+    nightSuite.addTest(TBeamCantileverLinearElasticSurfaceLoad3DHexaTest('test_execution'))
     nightSuite.addTest(TCLLinearElastic2DQuadTest('test_execution'))
 
     ### Adding Validation Tests
