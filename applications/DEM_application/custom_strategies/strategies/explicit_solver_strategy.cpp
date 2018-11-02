@@ -498,10 +498,10 @@ namespace Kratos {
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
         GetClustersForce();
+        GetRigidBodyElementsForce();
 
         if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
             CalculateNodalPressuresAndStressesOnWalls();
-            GetRigidBodyElementsForce();
         }
 
         // 4. Synchronize (should be just FORCE and TORQUE)
@@ -1109,36 +1109,73 @@ namespace Kratos {
                     if (submp.Has(VELOCITY_STOP_TIME)) vel_stop = submp[VELOCITY_STOP_TIME];
 
                     if (time > vel_start && time < vel_stop) {
+
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+
                         if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
                         if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
                         if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
                         if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
                         if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
                         if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
                             rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
                             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                         }
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+
+                        if (submp.Has(TABLE_NUMBER_VELOCITY)) { // JIG: Backward compatibility, it should be removed in the future
+                            if (submp[TABLE_NUMBER_VELOCITY][0] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_VELOCITY_X];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                            }
+                            if (submp[TABLE_NUMBER_VELOCITY][1] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_VELOCITY_Y];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                            }
+                            if (submp[TABLE_NUMBER_VELOCITY][2] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_VELOCITY_Z];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                            }
+                        }
+                        if (submp.Has(TABLE_NUMBER_ANGULAR_VELOCITY)) { // JIG: Backward compatibility, it should be removed in the future
+                            if (submp[TABLE_NUMBER_ANGULAR_VELOCITY][0] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_ANGULAR_VELOCITY_X];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                            }
+                            if (submp[TABLE_NUMBER_ANGULAR_VELOCITY][1] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_ANGULAR_VELOCITY_Y];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                            }
+                            if (submp[TABLE_NUMBER_ANGULAR_VELOCITY][2] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_ANGULAR_VELOCITY_Z];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                            }
+                        }
                     }
 
                     else {
@@ -1155,15 +1192,37 @@ namespace Kratos {
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                     }
+
+                    if (submp.Has(TABLE_NUMBER_FORCE)) { // JIG: Backward compatibility, it should be removed in the future
+                        if (submp[TABLE_NUMBER_FORCE][0] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_FORCE][0];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = submp.GetTable(table_number).GetValue(time);
+                        }
+                        if (submp[TABLE_NUMBER_FORCE][1] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_FORCE][1];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = submp.GetTable(table_number).GetValue(time);
+                        }
+                        if (submp[TABLE_NUMBER_FORCE][2] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_FORCE][2];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = submp.GetTable(table_number).GetValue(time);
+                        }
+                    }
+
+                    if (submp.Has(TABLE_NUMBER_MOMENT)) { // JIG: Backward compatibility, it should be removed in the future
+                        if (submp[TABLE_NUMBER_MOMENT][0] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_MOMENT][0];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = submp.GetTable(table_number).GetValue(time);
+                        }
+                        if (submp[TABLE_NUMBER_MOMENT][1] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_MOMENT][1];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = submp.GetTable(table_number).GetValue(time);
+                        }
+                        if (submp[TABLE_NUMBER_MOMENT][2] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_MOMENT][2];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = submp.GetTable(table_number).GetValue(time);
+                        }
+                    }
                 }
-            }
-
-            if (submp.Has(EXTERNAL_APPLIED_FORCE)) { // JIG: Backward compatibility, it should be removed in the future
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = submp[EXTERNAL_APPLIED_FORCE];
-            }
-
-            if (submp.Has(EXTERNAL_APPLIED_MOMENT)) { // JIG: Backward compatibility, it should be removed in the future
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = submp[EXTERNAL_APPLIED_MOMENT];
             }
         }
         KRATOS_CATCH("")
