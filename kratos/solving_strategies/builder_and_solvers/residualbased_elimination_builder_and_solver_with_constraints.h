@@ -692,6 +692,7 @@ protected:
         Timer::Start("Build");
 
         Build(pScheme, rModelPart, rA, rb);
+        rDx.resize(mDoFToSolveSystemSize, false);
 
         Timer::Stop("Build");
 
