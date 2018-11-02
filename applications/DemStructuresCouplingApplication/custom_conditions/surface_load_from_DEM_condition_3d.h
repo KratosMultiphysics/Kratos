@@ -15,8 +15,8 @@
 
 // Project includes
 #include "includes/define.h"
+#include "geometries/geometry.h"
 #include "utilities/math_utils.h"
-#include "utilities/integration_utilities.h"
 #include "custom_conditions/surface_load_condition_3d.h"
 
 // Application includes
@@ -103,6 +103,11 @@ public:
         PropertiesType::Pointer pProperties
         ) const override;
 
+    /**
+     * returns the used integration method.
+     */
+    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -154,6 +159,11 @@ protected:
         const bool CalculateResidualVectorFlag
         ) override;
 
+
+    virtual void InterpolateSurfaceLoad(array_1d<double,3>& r_surface_load,
+                                        const Matrix& n_container,
+                                        const unsigned int& number_of_nodes,
+                                        const unsigned int& g_point);
 
     ///@}
     ///@name Protected  Access
