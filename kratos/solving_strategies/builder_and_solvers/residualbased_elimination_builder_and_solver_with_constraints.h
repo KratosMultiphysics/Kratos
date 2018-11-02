@@ -887,8 +887,9 @@ protected:
                 if (aux_master_indices.find(equation_id) != aux_master_indices.end()) {
                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
                     master_indices.insert(IndexIndexSetPairType(equation_id, dummy_set));
-//                 } else if (mSlaveMasterDoFRelation.find(equation_id) != mSlaveMasterDoFRelation.end()) {
+                } else if (mSlaveMasterDoFRelation.find(equation_id) != mSlaveMasterDoFRelation.end()) {
 //                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
+                    row_dof_indices.insert(PairIdBoolType(equation_id, false));
                 } else {
                     row_dof_indices.insert(PairIdBoolType(equation_id, true));
                 }
@@ -914,6 +915,8 @@ protected:
         KRATOS_ERROR_IF_NOT(counter == aux_master_indices.size()) << "Inconsistency in the pure master MPC dofs: " << counter << "\t vs \t" << aux_master_indices.size() << std::endl;
     #endif
 
+        // Clearing memory
+        aux_master_indices.clear();
         // The process info
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
