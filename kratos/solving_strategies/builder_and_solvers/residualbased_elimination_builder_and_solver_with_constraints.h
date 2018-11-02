@@ -888,7 +888,6 @@ protected:
                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
                     master_indices.insert(IndexIndexSetPairType(equation_id, dummy_set));
                 } else if (mSlaveMasterDoFRelation.find(equation_id) != mSlaveMasterDoFRelation.end()) {
-//                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
                 } else {
                     row_dof_indices.insert(PairIdBoolType(equation_id, true));
