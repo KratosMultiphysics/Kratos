@@ -863,7 +863,7 @@ protected:
         std::unordered_map<IndexType, bool> row_dof_indices;
         row_dof_indices.reserve(BaseType::mEquationSystemSize);
 
-        std::unordered_map<IndexType, IndexSetType> aux_master_indices;
+        IndexSetType aux_master_indices;
         std::unordered_map<IndexType, IndexSetType> master_indices;
 
         // We do a pair to know which DoF are pure master MPC
@@ -873,12 +873,7 @@ protected:
         for (auto& slave_set: mSlaveMasterDoFRelation) {
             auto& master_indices = slave_set.second;
             for (auto& master_id : master_indices) {
-                auto it_master = aux_master_indices.find(master_id);
-                if (it_master != aux_master_indices.end()) {
-                    aux_master_indices.insert({master_id, IndexSetType({slave_set.first})});
-                } else {
-                    aux_master_indices[master_id].insert(slave_set.first);
-                }
+                aux_master_indices.insert(master_id);
             }
         }
         master_indices.reserve(aux_master_indices.size());
@@ -889,10 +884,11 @@ protected:
         for (auto& dof : BaseType::mDofSet) {
             const IndexType equation_id = dof.EquationId();
             if (equation_id < BaseType::mEquationSystemSize) {
-                auto it = aux_master_indices.find(equation_id);
-                if (it != aux_master_indices.end()) {
+                if (aux_master_indices.find(equation_id) != aux_master_indices.end()) {
                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
                     master_indices.insert(IndexIndexSetPairType(equation_id, dummy_set));
+//                 } else if (mSlaveMasterDoFRelation.find(equation_id) != mSlaveMasterDoFRelation.end()) {
+//                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
                 } else {
                     row_dof_indices.insert(PairIdBoolType(equation_id, true));
                 }
