@@ -158,6 +158,8 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
      * @param rPlasticStrain The elastic constitutive matrix
      * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
+     * @param rBackStressVector The so-called BackStressVector used for the kinematic hardening
+     * @param rPreviousStressVector The previous converged stress vector
      */
     static void IntegrateStressVector(
         array_1d<double, VoigtSize>& rPredictiveStressVector,
@@ -191,7 +193,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= delta_sigma;
-            
+
             CalculateAndSubstractBackStress(rPredictiveStressVector, rValues, rPreviousStressVector,
                                             rPlasticStrainIncrement, rBackStressVector);
             CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
@@ -278,12 +280,14 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     }
 
     /**
-     * @brief This method computes the back stress for the kinematic plasticity
+     * @brief This method computes the back stress for the kinematic plasticity 
+     * This method has 3 different ways of computing this back-stress:
+     * Linear hardening, Amstrong-Frederick  and Araujo-Voyiadjis.
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
-     * @param rKinematicParameters The oarameters required for the models
+     * @param rKinematicParameters The parameters required for the models
      * @param rPreviousStressVector The previous stress vector
-     * @param rPlasticStrainIncrement The plastric strain increment of this step
-     * @param rBackStressVector The back stress for the kinematic plasticity
+     * @param rPlasticStrainIncrement The plastic strain increment of this iteration
+     * @param rBackStressVector The back-stress vector for the kinematic plasticity
      */
     static void CalculateAndSubstractBackStress(
         array_1d<double, VoigtSize>& rPredictiveStressVector,
@@ -294,7 +298,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         )
     {
         const Vector& kinematic_parameters = rValues.GetMaterialProperties()[KINEMATIC_PLASTICITY_PARAMETERS];
-        const int kinematic_hardening_type = rValues.GetMaterialProperties()[KINEMATIC_HARDENING_TYPE];
+        const unsigned int kinematic_hardening_type = rValues.GetMaterialProperties()[KINEMATIC_HARDENING_TYPE];
 
         switch (static_cast<KinematicHardeningType>(kinematic_hardening_type))
         {
@@ -307,7 +311,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             case KinematicHardeningType::AmstrongFrederickKinematicHardening:
                 KRATOS_ERROR_IF(kinematic_parameters.size() < 2) << "Kinematic Parameters not defined..." << std::endl;
                 dot_product_dp = 0.0;
-                for (int i = 0; i < rPlasticStrainIncrement.size(); ++i) {
+                for (IndexType i = 0; i < rPlasticStrainIncrement.size(); ++i) {
                     dot_product_dp += rPlasticStrainIncrement[i] * rPlasticStrainIncrement[i];
                 }
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
@@ -318,12 +322,12 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
             case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
                 KRATOS_ERROR_IF(kinematic_parameters.size() != 3) << "Kinematic Parameters not defined..." << std::endl;
                 dot_product_dp = 0.0;
-                for (int i = 0; i < rPlasticStrainIncrement.size(); ++i) {
-                    dot_product_dp += rPlasticStrainIncrement[i]*rPlasticStrainIncrement[i];
+                for (IndexType i = 0; i < rPlasticStrainIncrement.size(); ++i) {
+                    dot_product_dp += rPlasticStrainIncrement[i] * rPlasticStrainIncrement[i];
                 }
                 pDot = std::sqrt(2.0 / 3.0 * dot_product_dp);
                 denominator = 1.0 + (kinematic_parameters[1] * pDot);
-                if (pDot != 0.0) {
+                if (pDot > tolerance) {
                     rBackStressVector += (2.0 / 3.0 * kinematic_parameters[0] * rPlasticStrainIncrement) / denominator;
                 } else {
                     const Vector& delta_stress = rPredictiveStressVector - rPreviousStressVector;
@@ -845,8 +849,10 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         for (IndexType i = 0; i < VoigtSize; ++i) {
             A1 += rFFlux[i] * delta_vector[i];
         }
-        A1 *= (1.0 - kinematic_parameters[2]);
-
+        if (kinematic_parameters.size() == 3) {
+            A1 *= (1.0 - kinematic_parameters[2]);
+        } // Araujo case with 3 params
+        
         double dot_fflux_gflux = 0.0, A2;
         for (IndexType i = 0; i < VoigtSize; ++i) {
             dot_fflux_gflux += rFFlux[i] * rGFlux[i];
@@ -861,7 +867,17 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
             case KinematicHardeningType::AmstrongFrederickKinematicHardening:
                 A2 = two_thirds * kinematic_parameters[0] * dot_fflux_gflux;
+                for (IndexType i = 0; i < VoigtSize; ++i) {
+                    dot_fflux_backstress += rFFlux[i] * rBackStressVector[i];
+                }
+                for (IndexType i = 0; i < VoigtSize; ++i) {
+                    dot_gflux_gflux += rGFlux[i] * rGFlux[i];
+                }
+                A2 -= kinematic_parameters[1] * dot_fflux_backstress * std::sqrt(two_thirds * dot_gflux_gflux);
+                break;
 
+            case KinematicHardeningType::AraujoVoyiadjisKinematicHardening:
+                A2 = two_thirds * kinematic_parameters[0] * dot_fflux_gflux;
                 for (IndexType i = 0; i < VoigtSize; ++i) {
                     dot_fflux_backstress += rFFlux[i] * rBackStressVector[i];
                 }
@@ -878,7 +894,10 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 
         const double A3 = rHardeningParameter;
         rPlasticDenominator = 1.0 / (A1 + A2 + A3);
-		rPlasticDenominator *= (1.0 - kinematic_parameters[2]);
+
+        if (kinematic_parameters.size() == 3) {
+           rPlasticDenominator *= (1.0 - kinematic_parameters[2]);
+        } // Araujo case with 3 params
     }
 
     /**

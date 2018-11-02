@@ -48,7 +48,7 @@ namespace Kratos
 /**
  * @class GenericSmallStrainKinematicPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for plasticity in small deformation
+ * @brief This class is the base class which define all the constitutive laws for kinematic plasticity in small deformation
  * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @author Alejandro Cornejo 
@@ -103,13 +103,16 @@ public:
     */
     GenericSmallStrainKinematicPlasticity(const GenericSmallStrainKinematicPlasticity &rOther)
         : BaseType(rOther),
-          mPlasticDissipation(rOther.mPlasticDissipation),
-          mThreshold(rOther.mThreshold),
-          mPlasticStrain(rOther.mPlasticStrain),
-          mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation),
-          mNonConvThreshold(rOther.mNonConvThreshold),
-          mNonConvPlasticStrain(rOther.mNonConvPlasticStrain),
-          mUniaxialStress(rOther.mUniaxialStress)
+        mPlasticDissipation(rOther.mPlasticDissipation),
+        mThreshold(rOther.mThreshold),
+        mPlasticStrain(rOther.mPlasticStrain),
+        mPreviousStressVector(rOther.mPreviousStressVector),
+        mBackStressVector(rOther.mBackStressVector),
+        mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation),
+        mNonConvThreshold(rOther.mNonConvThreshold),
+        mNonConvPlasticStrain(rOther.mNonConvPlasticStrain),
+        mNonConvergedBackStressVector(rOther.mNonConvergedBackStressVector),
+        mNonConvergedPreviousStressVector(rOther.mNonConvergedPreviousStressVector)
     {
     }
 
@@ -463,29 +466,37 @@ protected:
 
     // Serialization
 
-    // friend class Serializer;
+    friend class Serializer;
 
-    // void save(Serializer &rSerializer) const override
-    // {
-    //     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    //     rSerializer.save("PlasticDissipation", mPlasticDissipation);
-    //     rSerializer.save("Threshold", mThreshold);
-    //     rSerializer.save("PlasticStrain", mPlasticStrain);
-    //     rSerializer.save("NonConvPlasticDissipation", mNonConvPlasticDissipation);
-    //     rSerializer.save("NonConvThreshold", mNonConvThreshold);
-    //     rSerializer.save("NonConvPlasticStrain", mNonConvPlasticStrain);
-    // }
+    void save(Serializer &rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("PlasticDissipation", mPlasticDissipation);
+        rSerializer.save("Threshold", mThreshold);
+        rSerializer.save("PlasticStrain", mPlasticStrain);
+        rSerializer.save("NonConvPlasticDissipation", mNonConvPlasticDissipation);
+        rSerializer.save("NonConvThreshold", mNonConvThreshold);
+        rSerializer.save("NonConvPlasticStrain", mNonConvPlasticStrain);
+        rSerializer.save("PreviousStressVector", mPreviousStressVector);
+        rSerializer.save("BackStressVector", mBackStressVector);
+        rSerializer.save("NonConvergedBackStressVector", mNonConvergedBackStressVector);
+        rSerializer.save("NonConvergedPreviousStressVector", mNonConvergedPreviousStressVector);
+    }
 
-    // void load(Serializer &rSerializer) override
-    // {
-    //     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    //     rSerializer.load("PlasticDissipation", mPlasticDissipation);
-    //     rSerializer.load("Threshold", mThreshold);
-    //     rSerializer.load("PlasticStrain", mPlasticStrain);
-    //     rSerializer.load("NonConvPlasticDissipation", mNonConvPlasticDissipation);
-    //     rSerializer.load("NonConvThreshold", mNonConvThreshold);
-    //     rSerializer.load("NonConvPlasticStrain", mNonConvPlasticStrain);
-    // }
+    void load(Serializer &rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.load("PlasticDissipation", mPlasticDissipation);
+        rSerializer.load("Threshold", mThreshold);
+        rSerializer.load("PlasticStrain", mPlasticStrain);
+        rSerializer.load("NonConvPlasticDissipation", mNonConvPlasticDissipation);
+        rSerializer.load("NonConvThreshold", mNonConvThreshold);
+        rSerializer.load("NonConvPlasticStrain", mNonConvPlasticStrain);
+        rSerializer.load("PreviousStressVector", mPreviousStressVector);
+        rSerializer.load("BackStressVector", mBackStressVector);
+        rSerializer.load("NonConvergedBackStressVector", mNonConvergedBackStressVector);
+        rSerializer.load("NonConvergedPreviousStressVector", mNonConvergedPreviousStressVector);
+    }
 
     ///@}
 

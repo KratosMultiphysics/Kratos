@@ -146,6 +146,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
                 r_constitutive_matrix, plastic_strain, rValues,
                 characteristic_length, back_stress_vector,
                 this->GetPreviousStressVector());
+
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             this->SetNonConvPlasticDissipation(plastic_dissipation);
