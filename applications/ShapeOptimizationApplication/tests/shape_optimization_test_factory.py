@@ -76,6 +76,10 @@ class trust_region_projector_test(ShapeOptimizationTestFactory):
     execution_directory = "trust_region_projector_test"
     execution_file = "run_test"
 
+class algorithm_bead_optimization_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_bead_optimization_test"
+    execution_file = "run_test"
+
 class mapper_test(ShapeOptimizationTestFactory):
     execution_directory = "mapper_test"
     execution_file = "run_test"

@@ -1,0 +1,108 @@
+{
+  "problem_data"             : {
+      "problem_name"    : "plate",
+      "parallel_type"   : "OpenMP",
+      "start_time"      : 0.0,
+      "end_time"        : 1.0,
+      "echo_level"      : 0
+  },
+  "solver_settings"          : {
+      "solver_type"     : "static",
+      "echo_level"      : 0,
+      "analysis_type"   : "linear",
+      "model_part_name" : "plate",
+      "domain_size"     : 3,
+      "time_stepping" : {
+          "time_step"       : 1.0
+      },
+      "model_import_settings"              : {
+          "input_type"     : "use_input_model_part",
+          "input_filename" : "plate"
+      },
+          "material_import_settings" :{
+          "materials_filename": "material_parameters.json"
+      },
+      "line_search"                        : false,
+      "convergence_criterion"              : "residual_criterion",
+      "displacement_relative_tolerance"    : 0.0001,
+      "displacement_absolute_tolerance"    : 1e-9,
+      "residual_relative_tolerance"        : 0.0001,
+      "residual_absolute_tolerance"        : 1e-9,
+      "max_iteration"                      : 10,
+      "linear_solver_settings"             : {
+          "solver_type" : "eigen_pardiso_lu",
+          "scaling"     : false,
+          "verbosity"   : 0
+      },
+      "problem_domain_sub_model_part_list" : ["structure"],
+      "processes_sub_model_part_list"      : ["corner_points","load_point"],
+      "rotation_dofs"                      : true
+  },
+  "constraints_process_list" : [{
+      "python_module" : "assign_vector_variable_process",
+      "kratos_module" : "KratosMultiphysics",
+      "help"          : "This process fixes the selected components of a given vector variable",
+      "process_name"  : "AssignVectorVariableProcess",
+      "Parameters"    : {
+          "mesh_id"         : 0,
+          "model_part_name" : "plate.corner_points",
+          "variable_name"   : "DISPLACEMENT",
+          "value"           : [0.0,0.0,0.0]
+      }
+  },
+  {
+      "python_module" : "assign_vector_variable_process",
+      "kratos_module" : "KratosMultiphysics",
+      "help"          : "This process fixes the selected components of a given vector variable",
+      "process_name"  : "AssignVectorVariableProcess",
+      "Parameters"    : {
+          "mesh_id"         : 0,
+          "model_part_name" : "plate.corner_points",
+          "variable_name"   : "ROTATION",
+          "value"           : [0.0,0.0,0.0]
+      }
+  }],
+  "loads_process_list"       : [{
+      "python_module" : "assign_vector_by_direction_process",
+      "kratos_module" : "KratosMultiphysics",
+      "process_name"  : "AssignVectorByDirectionProcess",
+      "Parameters"    : {
+          "mesh_id"         : 0,
+          "model_part_name" : "plate.load_point",
+          "variable_name"   : "POINT_LOAD",
+          "modulus"         : 100.0,
+          "constrained"     : false,
+          "direction"       : [0.0,0.0,-1.0]
+      }
+  }],
+  "output_configuration"     : {
+      "result_file_configuration" : {
+          "gidpost_flags"       : {
+              "GiDPostMode"           : "GiD_PostBinary",
+              "WriteDeformedMeshFlag" : "WriteDeformed",
+              "WriteConditionsFlag"   : "WriteConditions",
+              "MultiFileFlag"         : "SingleFile"
+          },
+          "file_label"          : "step",
+          "output_control_type" : "step",
+          "output_frequency"    : 1.0,
+          "body_output"         : true,
+          "node_output"         : false,
+          "skin_output"         : false,
+          "plane_output"        : [],
+          "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD"],
+          "gauss_point_results" : []
+      },
+      "point_data_configuration"  : []
+  },
+  "restart_options"          : {
+      "SaveRestart"      : false,
+      "RestartFrequency" : 0,
+      "LoadRestart"      : false,
+      "Restart_Step"     : 0
+  },
+  "constraints_data"         : {
+      "incremental_load"         : false,
+      "incremental_displacement" : false
+  }
+}
