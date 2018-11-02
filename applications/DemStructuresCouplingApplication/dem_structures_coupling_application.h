@@ -16,6 +16,9 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
+/* CONDITIONS */
+#include "custom_conditions/surface_load_from_DEM_condition_3d.h"
+
 namespace Kratos {
 
     class KRATOS_API(DEM_STRUCTURES_COUPLING_APPLICATION) KratosDemStructuresCouplingApplication : public KratosApplication {
@@ -60,6 +63,9 @@ namespace Kratos {
         protected:
 
         private:
+
+            // Surface load from DEM
+            const SurfaceLoadFromDEMCondition3D mSurfaceLoadFromDEMCondition3D3N;
 
             KratosDemStructuresCouplingApplication& operator=(KratosDemStructuresCouplingApplication const& rOther);
 

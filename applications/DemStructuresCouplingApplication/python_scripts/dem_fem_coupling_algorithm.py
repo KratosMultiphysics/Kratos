@@ -31,6 +31,8 @@ class Algorithm(object):
             parameters = Kratos.Parameters(parameter_file.read())
         self.structural_solution = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.model, parameters)
 
+        # Adding DEM Surface Load variable to Structural Model Part
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DEM_SURFACE_LOAD)
 
     def Run(self):
         self.Initialize()
@@ -79,7 +81,7 @@ class Algorithm(object):
         skin_detection_parameters = Kratos.Parameters("""
         {
             "name_auxiliar_model_part"              : "DetectedByProcessSkinModelPart",
-            "name_auxiliar_condition"               : "Condition",
+            "name_auxiliar_condition"               : "SurfaceLoadFromDEMCondition",
             "list_model_parts_to_assign_conditions" : []
         }
         """)

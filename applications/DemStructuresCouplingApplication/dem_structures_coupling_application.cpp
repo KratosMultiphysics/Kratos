@@ -9,14 +9,26 @@
 #include "includes/variables.h"
 #include "dem_structures_coupling_application.h"
 
+#include "geometries/triangle_3d_3.h"
+
 namespace Kratos {
 
-    KratosDemStructuresCouplingApplication::KratosDemStructuresCouplingApplication() : KratosApplication("DemStructuresCouplingApplication"){}
+    // We define the node type
+    typedef Node<3> NodeType;
+
+    KratosDemStructuresCouplingApplication::KratosDemStructuresCouplingApplication()
+        : KratosApplication("DemStructuresCouplingApplication"),
+
+        // Adding surface load conditions
+        mSurfaceLoadFromDEMCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))) {}
 
     void KratosDemStructuresCouplingApplication::Register() {
         // Calling base class register to register Kratos components
 
         KratosApplication::Register();
+
+        // Surface loads
+        KRATOS_REGISTER_CONDITION("SurfaceLoadFromDEMCondition3D3N", mSurfaceLoadFromDEMCondition3D3N)
 
         KRATOS_INFO("Dem-Struct") << std::endl;
         KRATOS_INFO("Dem-Struct") << "     KRATOS DEM STRUCTURES COUPLING APPLICATION " << std::endl;
