@@ -46,9 +46,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        # Initialize shallow water variables utility
-        self.ShallowVariableUtils = Shallow.ShallowWaterVariablesUtility(self.main_model_part, self.settings["dry_height"].GetDouble())
-
     def AddVariables(self):
         # Primitive variables
         self.main_model_part.AddNodalSolutionStepVariable(Shallow.HEIGHT)
@@ -124,6 +121,9 @@ class ShallowWaterBaseSolver(PythonSolver):
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             raise Exception("Estimation Dt utility not yet implemented")
+
+        # Initialize shallow water variables utility
+        self.ShallowVariableUtils = Shallow.ShallowWaterVariablesUtility(self.main_model_part, self.settings["dry_height"].GetDouble())
 
         # Creating the solution strategy for the mesh stage
         self.conv_criteria = KratosMultiphysics.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
