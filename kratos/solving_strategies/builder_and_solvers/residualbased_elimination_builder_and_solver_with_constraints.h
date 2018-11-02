@@ -111,6 +111,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
+    /// Set definition
+    typedef std::unordered_set<IndexType> IndexSetType;
+
     /// MPC definitions
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
     typedef typename MasterSlaveConstraint::Pointer MasterSlaveConstraintPointerType;
@@ -408,25 +411,35 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing constraints loop" << std::endl;
 
-        #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list)
-        {
-            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-            const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-            #pragma omp for  schedule(guided, 512)
-            for (int i = 0; i < number_of_constraints; ++i) {
-                auto it_const = r_constraints_array.begin() + i;
+        // We don't do a loop in OMP because erase is not a parallel threadsafe operation
+        IndexSetType dummy_set;
+        typedef std::pair<IndexType, IndexSetType> IndexIndexSetPairType;
+        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+        const int number_of_constraints = static_cast<int>(r_constraints_array.size());
 
-                // Gets list of Dof involved on every element
-                it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
-                // We remove the slave dofs
-                for (auto& dof : dof_list) {
-                    auto it = dofs_aux_list_solvable.find(dof);
-                    // Check if Iterator is valid
-                    if(it != dofs_aux_list_solvable.end())
-                        dofs_aux_list_solvable.erase(it);
-                }
-                dofs_aux_list_solvable.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
+        for (int i = 0; i < number_of_constraints; ++i) {
+            auto it_const = r_constraints_array.begin() + i;
+
+            // Gets list of Dof involved on every element
+            it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
+            // We remove the slave dofs
+            for (auto& dof : dof_list) {
+                auto it = dofs_aux_list_solvable.find(dof);
+                // Check if Iterator is valid
+                if(it != dofs_aux_list_solvable.end())
+                    dofs_aux_list_solvable.erase(it);
+
+                // We add the master dofs to the map of slave dofs relation
+                const IndexType equation_id_dof = dof->EquationId();
+                auto it_relation_dof = mSlaveMasterDoFRelation.find(equation_id_dof);
+                if ( it_relation_dof != mSlaveMasterDoFRelation.end())
+                    mSlaveMasterDoFRelation.insert(IndexIndexSetPairType(equation_id_dof, dummy_set));
+
+                IndexSetType& set = it_relation_dof->second;
+                for (auto& auxiliar_dof : auxiliar_dof_list)
+                    set.insert(auxiliar_dof->EquationId());
             }
+            dofs_aux_list_solvable.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
         }
 
         dof_temp_solvable.reserve(dofs_aux_list_solvable.size());
@@ -732,7 +745,7 @@ protected:
         std::vector<google::dense_hash_set<IndexType>> indices(equation_size);
         const SizeType empty_key = 2 * equation_size + 10;
     #else
-        std::vector<std::unordered_set<IndexType>> indices(equation_size);
+        std::vector<IndexSetType> indices(equation_size);
     #endif
 
         #pragma omp parallel for firstprivate(equation_size)
@@ -883,7 +896,7 @@ protected:
         std::vector<google::dense_hash_set<IndexType>> master_indices(mMasterDoFSystemSize);
         const SizeType empty_key = 2 * mMasterDoFSystemSize + 10;
     #else
-        std::vector<std::unordered_set<IndexType>> master_indices(mMasterDoFSystemSize);
+        std::vector<IndexSetType> master_indices(mMasterDoFSystemSize);
     #endif
 
         #pragma omp parallel for
@@ -1146,6 +1159,7 @@ protected:
         mDoFToSolveSet = DofsArrayType();
         mMasterDoFSet = DofsArrayType();
         mSolvableDoFReorder.clear();
+        mSlaveMasterDoFRelation.clear();
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 1) << "Clear Function called" << std::endl;
     }
@@ -1181,6 +1195,7 @@ private:
     SizeType mMasterDoFSystemSize = 0;         /// Number of master degrees of freedom of the problem
 
     std::unordered_map<IndexType, IndexType> mSolvableDoFReorder; /// The correlation between the global total DoF order and the solvable DoF order
+    std::unordered_map<IndexType, IndexSetType> mSlaveMasterDoFRelation; /// The relation between the slave and the master DoFs
 
     ///@}
     ///@name Private Operators
