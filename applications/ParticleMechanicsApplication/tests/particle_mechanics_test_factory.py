@@ -82,6 +82,9 @@ class CooksMembraneCompressibleTest(ParticleMechanicsTestFactory):
 class CooksMembraneUPCompressibleTest(ParticleMechanicsTestFactory):
     file_name = "cooks_membrane_tests/UP_compressible_cook_membrane_2D_test"
 
+class CooksMembraneUPIncompressibleTest(ParticleMechanicsTestFactory):
+    file_name = "cooks_membrane_tests/UP_incompressible_cook_membrane_2D_test"
+
 ### Constitutive Law Tests
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
