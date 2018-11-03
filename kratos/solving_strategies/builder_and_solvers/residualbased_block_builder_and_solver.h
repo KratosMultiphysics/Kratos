@@ -119,9 +119,14 @@ public:
     explicit ResidualBasedBlockBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
-        ) : BaseType(pNewLinearSystemSolver, ThisParameters)
+        ) : BaseType(pNewLinearSystemSolver)
     {
-        // NOTE: We don't validate because Parameters are not used, additionally this is the base class of others B&S and may case false errors if any default is check
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**
@@ -131,7 +136,6 @@ public:
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
-
     }
 
     /** Destructor.

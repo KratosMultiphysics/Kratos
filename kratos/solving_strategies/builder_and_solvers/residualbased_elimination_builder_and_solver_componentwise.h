@@ -138,7 +138,7 @@ public:
     explicit ResidualBasedEliminationBuilderAndSolverComponentwise(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
-        ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver, ThisParameters)
+        ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(

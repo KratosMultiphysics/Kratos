@@ -114,9 +114,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
-        ) : BaseType(pNewLinearSystemSolver, ThisParameters)
+        ) : BaseType(pNewLinearSystemSolver)
     {
-        // NOTE: We don't validate because Parameters are not used
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**

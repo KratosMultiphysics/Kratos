@@ -120,7 +120,12 @@ public:
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
     {
-        // NOTE: We don't validate because Parameters are not used
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**

@@ -210,7 +210,12 @@ public:
      */
     explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver, Parameters ThisParameters)
     {
-        // NOTE: We don't validate because Parameters are not used, additionally this is the base class of others B&S and may case false errors if any default is check
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
