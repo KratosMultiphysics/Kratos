@@ -303,7 +303,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
         .def(init<>())
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
-        .def("MoveAllMeshesUsingATable", &DEMFEMUtilities::MoveAllMeshesUsingATable)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
         ;
 
@@ -345,7 +344,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(init<>())
         .def("MoveDemMesh", &MoveMeshUtility::MoveDemMesh)
         ;
-    
+
     class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")
         .def(init<>())
         .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
