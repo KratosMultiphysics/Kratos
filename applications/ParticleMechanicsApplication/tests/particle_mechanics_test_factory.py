@@ -62,7 +62,7 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
 
-### Cantilever Beam Tests
+### Beam Tests
 class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_point_load_2D_tri_test"
 
@@ -71,6 +71,9 @@ class BeamCantileverStaticLinearElasticLineLoad2DQuadTest(ParticleMechanicsTestF
 
 class BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_surface_load_3D_hexa_test"
+
+class BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
+    file_name = "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test"
 
 ### Constitutive Law Tests
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
