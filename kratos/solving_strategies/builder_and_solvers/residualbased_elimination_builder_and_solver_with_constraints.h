@@ -19,11 +19,6 @@
 #include <unordered_map>
 
 /* External includes */
-// #define USE_GOOGLE_HASH
-#ifdef USE_GOOGLE_HASH
-#include "sparsehash/dense_hash_set" //included in external libraries
-#endif
-// #define _OPENMP
 
 /* Project includes */
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -245,11 +240,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         const SizeType nthreads = OpenMPUtils::GetNumThreads();
 
-    #ifdef USE_GOOGLE_HASH
-        typedef google::dense_hash_set < DofPointerType, DofPointerHasher>  set_type;
-    #else
         typedef std::unordered_set < DofPointerType, DofPointerHasher>  set_type;
-    #endif
 
         // Declaring temporal variables
         DofsArrayType dof_temp_all, dof_temp_solvable;
@@ -260,13 +251,8 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
 
-        for (int i = 0; i < static_cast<int>(nthreads); i++) {
-    #ifdef USE_GOOGLE_HASH
-            dofs_aux_list_all[i].set_empty_key(DofPointerType());
-    #else
+        for (int i = 0; i < static_cast<int>(nthreads); i++)
             dofs_aux_list_all[i].reserve(rModelPart.Elements().size());
-    #endif
-        }
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
@@ -705,21 +691,11 @@ protected:
 
         const SizeType equation_size = BaseType::mEquationSystemSize;
 
-    #ifdef USE_GOOGLE_HASH
-        std::vector<google::dense_hash_set<IndexType>> indices(equation_size);
-        const SizeType empty_key = 2 * equation_size + 10;
-    #else
         std::vector<IndexSetType> indices(equation_size);
-    #endif
 
         #pragma omp parallel for firstprivate(equation_size)
-        for (int index = 0; index < static_cast<int>(equation_size); ++index) {
-        #ifdef USE_GOOGLE_HASH
-            indices[index].set_empty_key(empty_key);
-        #else
+        for (int index = 0; index < static_cast<int>(equation_size); ++index)
             indices[index].reserve(40);
-        #endif
-        }
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
