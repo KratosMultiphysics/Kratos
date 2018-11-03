@@ -70,7 +70,7 @@ class BeamCantileverStaticLinearElasticLineLoad2DQuadTest(ParticleMechanicsTestF
     file_name = "beam_tests/cantilever_beam/static_line_load_2D_quad_test"
 
 class BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest(ParticleMechanicsTestFactory):
-    file_name = "beam_tests/cantilever_beam/static_surface_load_3D_quad_test"
+    file_name = "beam_tests/cantilever_beam/static_surface_load_3D_hexa_test"
 
 ### Constitutive Law Tests
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
