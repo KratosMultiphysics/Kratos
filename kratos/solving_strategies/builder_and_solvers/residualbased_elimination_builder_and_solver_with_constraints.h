@@ -15,6 +15,7 @@
 
 /* System includes */
 #include <unordered_set>
+#include <map>
 #include <unordered_map>
 
 /* External includes */
@@ -122,6 +123,10 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     typedef std::vector<IndexType> VectorIndexType;
     typedef Vector VectorType;
     typedef Internals::ConstraintImposer<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerType;
+
+    ///@}
+    ///@name  Enum's
+    ///@{
 
     ///@}
     ///@name Life Cycle
@@ -377,7 +382,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing constraints loop" << std::endl;
 
         // We don't do a loop in OMP because erase is not a parallel threadsafe operation
-        typedef std::pair<IndexType, IndexSetType> IndexIndexSetPairType;
         auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
         const int number_of_constraints = static_cast<int>(r_constraints_array.size());
 
@@ -392,21 +396,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Check if Iterator is valid
                 if(it != dofs_aux_list_solvable.end())
                     dofs_aux_list_solvable.erase(it);
-
-                // We add the master dofs to the map of slave dofs relation
-                const IndexType equation_id_dof = dof->EquationId();
-                auto it_relation_dof = mSlaveMasterDoFRelation.find(equation_id_dof);
-                if ( it_relation_dof == mSlaveMasterDoFRelation.end()) {
-                    IndexSetType dummy_set;
-                    dummy_set.reserve(auxiliar_dof_list.size());
-                    for (auto& auxiliar_dof : auxiliar_dof_list)
-                        dummy_set.insert(auxiliar_dof->EquationId());
-                    mSlaveMasterDoFRelation.insert(IndexIndexSetPairType(equation_id_dof, dummy_set));
-                } else {
-                    IndexSetType& set = it_relation_dof->second;
-                    for (auto& auxiliar_dof : auxiliar_dof_list)
-                        set.insert(auxiliar_dof->EquationId());
-                }
             }
             dofs_aux_list_solvable.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
         }
@@ -860,8 +849,7 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("RelationMatrixStructure");
 
-        std::unordered_map<IndexType, bool> row_dof_indices;
-        row_dof_indices.reserve(BaseType::mEquationSystemSize);
+        std::map<IndexType, bool> row_dof_indices; // Must be ordered to avoid problems filling the matrix
 
         IndexSetType aux_master_indices;
         std::unordered_map<IndexType, IndexSetType> master_indices;
@@ -876,19 +864,18 @@ protected:
                 aux_master_indices.insert(master_id);
             }
         }
-        master_indices.reserve(aux_master_indices.size());
+        master_indices.reserve(mSlaveMasterDoFRelation.size());
 
         // The set containing the solvable DoF that are not a master DoF
-        IndexSetType dummy_set;
         typedef std::pair<IndexType, IndexSetType> IndexIndexSetPairType;
         for (auto& dof : BaseType::mDofSet) {
             const IndexType equation_id = dof.EquationId();
             if (equation_id < BaseType::mEquationSystemSize) {
                 if (aux_master_indices.find(equation_id) != aux_master_indices.end()) {
-                    row_dof_indices.insert(PairIdBoolType(equation_id, false));
-                    master_indices.insert(IndexIndexSetPairType(equation_id, dummy_set));
+                    row_dof_indices.insert(PairIdBoolType(equation_id, true));
                 } else if (mSlaveMasterDoFRelation.find(equation_id) != mSlaveMasterDoFRelation.end()) {
                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
+                    master_indices.insert(IndexIndexSetPairType(equation_id, IndexSetType({})));
                 } else {
                     row_dof_indices.insert(PairIdBoolType(equation_id, true));
                 }
@@ -900,22 +887,11 @@ protected:
             (master_set.second).reserve(3);
         }
 
-        // Defining counter for later use
-        IndexType counter = 0;
-
-    #ifdef KRATOS_DEBUG
-        // Checking that there is a consistency
-        for (auto& to_solve : row_dof_indices) {
-            if (!(to_solve.second)) {
-                ++counter;
-            }
-        }
-        KRATOS_ERROR_IF_NOT(row_dof_indices.size() == BaseType::mEquationSystemSize) << "Inconsistency in the dofs size: " << row_dof_indices.size() << "\t vs \t" << BaseType::mEquationSystemSize << std::endl;
-        KRATOS_ERROR_IF_NOT(counter == aux_master_indices.size()) << "Inconsistency in the pure master MPC dofs: " << counter << "\t vs \t" << aux_master_indices.size() << std::endl;
-    #endif
-
         // Clearing memory
         aux_master_indices.clear();
+
+        KRATOS_DEBUG_ERROR_IF_NOT(row_dof_indices.size() == BaseType::mEquationSystemSize) << "Inconsistency in the dofs size: " << row_dof_indices.size() << "\t vs \t" << BaseType::mEquationSystemSize << std::endl;
+
         // The process info
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -934,10 +910,10 @@ protected:
                     if (it_slave != mSlaveMasterDoFRelation.end()) {
                         auto& master_set = it_slave->second;
                         for (auto& master_id : aux_ids) {
-                            auto it_master = master_set.find(master_id);
-                            if (it_master != master_set.end()) {
-                                auto &master_row_indices = master_indices[master_id];
-                                if (master_id < BaseType::mEquationSystemSize) {
+                            if (master_id < BaseType::mEquationSystemSize) {
+                                auto it_master = master_set.find(master_id);
+                                if (it_master != master_set.end()) {
+                                    auto &master_row_indices = master_indices[slave_id];
                                     master_row_indices.insert(mSolvableDoFReorder[master_id]);
                                 }
                             }
@@ -946,6 +922,8 @@ protected:
                 }
             }
         }
+
+        KRATOS_DEBUG_ERROR_IF_NOT(mSlaveMasterDoFRelation.size() == master_indices.size()) << "Inconsistency in the master dofs size: " << mSlaveMasterDoFRelation.size() << "\t vs \t" << master_indices.size() << std::endl;
 
         // Count the row sizes
         SizeType nnz = 0;
@@ -965,7 +943,7 @@ protected:
 
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Trow_indices[0] = 0;
-        counter = 0;
+        IndexType counter = 0;
         for (auto& to_solve : row_dof_indices) {
             if (to_solve.second) {
                 Trow_indices[counter + 1] = Trow_indices[counter] + 1;
@@ -1224,6 +1202,41 @@ private:
 
         // The total system of equations to be solved
         mDoFToSolveSystemSize = mSolvableDoFReorder.size();
+
+        /* We fill the relation master slave map */
+        // We don't do a loop in OMP because erase is not a parallel threadsafe operation
+        DofsVectorType dof_list, auxiliar_dof_list;
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        typedef std::pair<IndexType, IndexSetType> IndexIndexSetPairType;
+        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+        const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+
+        for (int i = 0; i < number_of_constraints; ++i) {
+            auto it_const = r_constraints_array.begin() + i;
+
+            // Gets list of Dof involved on every element
+            it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
+            // We remove the slave dofs
+            for (auto& dof : dof_list) {
+                // We add the master dofs to the map of slave dofs relation
+                const IndexType equation_id_dof = dof->EquationId();
+                if (equation_id_dof < BaseType::mEquationSystemSize) {
+                    auto it_relation_dof = mSlaveMasterDoFRelation.find(equation_id_dof);
+                    if ( it_relation_dof == mSlaveMasterDoFRelation.end()) {
+                        IndexSetType dummy_set;
+                        dummy_set.reserve(auxiliar_dof_list.size());
+                        for (auto& auxiliar_dof : auxiliar_dof_list)
+                            dummy_set.insert(auxiliar_dof->EquationId());
+                        mSlaveMasterDoFRelation.insert(IndexIndexSetPairType(equation_id_dof, dummy_set));
+                    } else {
+                        IndexSetType& set = it_relation_dof->second;
+                        for (auto& auxiliar_dof : auxiliar_dof_list)
+                            set.insert(auxiliar_dof->EquationId());
+                    }
+                }
+            }
+        }
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
     }
