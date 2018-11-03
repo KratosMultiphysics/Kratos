@@ -12,6 +12,7 @@ from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticLin
 from particle_mechanics_test_factory import BeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest as TBeamCantileverStaticLinearElasticSurfaceLoad3DHexaTest
 from particle_mechanics_test_factory import BeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 from particle_mechanics_test_factory import CooksMembraneCompressibleTest as TCooksMembraneCompressibleTest
+from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 
 # Import from Test Factories (with differet analysis flows)
@@ -50,6 +51,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
 
     nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
+    nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
 
     ### Adding Validation Tests
