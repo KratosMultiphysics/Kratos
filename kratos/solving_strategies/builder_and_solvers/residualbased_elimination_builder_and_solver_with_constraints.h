@@ -238,106 +238,66 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        const SizeType nthreads = OpenMPUtils::GetNumThreads();
-
-        typedef std::unordered_set < DofPointerType, DofPointerHasher>  set_type;
+        typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
 
         // Declaring temporal variables
         DofsArrayType dof_temp_all, dof_temp_solvable;
         BaseType::mDofSet = DofsArrayType();
         mDoFToSolveSet = DofsArrayType();
 
-        std::vector<set_type> dofs_aux_list_all(nthreads);
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
-
-        for (int i = 0; i < static_cast<int>(nthreads); i++)
-            dofs_aux_list_all[i].reserve(rModelPart.Elements().size());
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+        set_type dof_global_set;
 
         #pragma omp parallel firstprivate(dof_list)
         {
+            set_type dofs_tmp_set;
+            dofs_tmp_set.reserve(20000);
+
             // Gets the array of elements from the modeler
             ElementsArrayType& r_elements_array = rModelPart.Elements();
             const int number_of_elements = static_cast<int>(r_elements_array.size());
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < number_of_elements; ++i) {
                 auto it_elem = r_elements_array.begin() + i;
-                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
                 // Gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
-                dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
-        }
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
-
-        #pragma omp parallel firstprivate(dof_list)
-        {
             // Gets the array of conditions from the modeler
             ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
             const int number_of_conditions = static_cast<int>(r_conditions_array.size());
             #pragma omp for  schedule(guided, 512)
             for (int i = 0; i < number_of_conditions; ++i) {
                 auto it_cond = r_conditions_array.begin() + i;
-                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
-                dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
             }
-        }
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing constraints loop" << std::endl;
-
-        #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list)
-        {
             auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
             const int number_of_constraints = static_cast<int>(r_constraints_array.size());
             #pragma omp for  schedule(guided, 512)
             for (int i = 0; i < number_of_constraints; ++i) {
                 auto it_const = r_constraints_array.begin() + i;
-                const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
                 // Gets list of Dof involved on every element
                 it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
-                dofs_aux_list_all[this_thread_id].insert(dof_list.begin(), dof_list.end());
-                dofs_aux_list_all[this_thread_id].insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
-            }
-        }
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing tree reduction\n" << std::endl;
-
-        // Here we do a reduction in a tree so to have everything on thread 0
-        // TODO: move to a function
-        /* For all DoF */
-        IndexType old_max = nthreads;
-        IndexType new_max = ceil(0.5*static_cast<double>(old_max));
-        while (new_max>=1 && new_max != old_max) {
-            // Just for debugging
-            KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2) << "old_max" << old_max << " new_max:" << new_max << std::endl;
-            for (int i = 0; i < static_cast<int>(new_max); ++i) {
-                KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", this->GetEchoLevel() > 2 && (i + new_max < old_max)) << i << " - " << i+new_max << std::endl;
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_set.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
             }
 
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); ++i) {
-                if (i + new_max < old_max) {
-                    dofs_aux_list_all[i].insert(dofs_aux_list_all[i+new_max].begin(), dofs_aux_list_all[i+new_max].end());
-                    dofs_aux_list_all[i+new_max].clear();
-                }
+            #pragma omp critical
+            {
+                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
             }
-
-            old_max = new_max;
-            new_max = ceil(0.5*static_cast<double>(old_max));
         }
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
-        dof_temp_all.reserve(dofs_aux_list_all[0].size());
-        for (auto& dof : dofs_aux_list_all[0]) {
+        dof_temp_all.reserve(dof_global_set.size());
+        for (auto& dof : dof_global_set) {
             dof_temp_all.push_back( dof.get() );
         }
         dof_temp_all.Sort();
