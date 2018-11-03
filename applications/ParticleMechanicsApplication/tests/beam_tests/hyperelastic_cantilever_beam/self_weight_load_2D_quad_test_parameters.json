@@ -73,20 +73,8 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT"],
-                "input_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results1.json",
+                "input_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results.json",
                 "model_part_name"  : "Background_Grid",
-                "time_frequency"   : 1.0
-            }
-        },
-        {
-            "python_module"   : "mpm_from_json_check_result_process",
-            "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
-            "help"                  : "",
-            "process_name"          : "ParticleMPMFromJsonCheckResultProcess",
-            "Parameters"            : {
-                "check_variables"  : ["MP_CAUCHY_STRESS_VECTOR"],
-                "input_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results2.json",
-                "model_part_name"  : "MPM_Material",
                 "time_frequency"   : 1.0
             }
         }]
@@ -98,20 +86,8 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables"  : ["DISPLACEMENT"],
-            "output_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results1.json",
+            "output_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results.json",
             "model_part_name"   : "Background_Grid",
-            "time_frequency"    : 1.0
-        }
-    },
-    {
-        "python_module"   : "mpm_json_output_process",
-        "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ParticleMPMJsonOutputProcess",
-        "Parameters"            : {
-            "gauss_points_output_variables"  : ["MP_CAUCHY_STRESS_VECTOR"],
-            "output_file_name"  : "beam_tests/hyperelastic_cantilever_beam/self_weight_load_2D_quad_test_results2.json",
-            "model_part_name"   : "MPM_Material",
             "time_frequency"    : 1.0
         }
     }]
