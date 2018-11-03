@@ -980,6 +980,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+#ifdef _OPENMP
+   std::vector< omp_lock_t > mlock_array;
+#endif
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -1305,9 +1309,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-#ifdef _OPENMP
-   std::vector< omp_lock_t > mlock_array;
-#endif
+
     ///@}
     ///@name Private Operators
     ///@{
