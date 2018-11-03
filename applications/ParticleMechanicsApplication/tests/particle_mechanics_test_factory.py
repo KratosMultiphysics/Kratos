@@ -65,14 +65,8 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
 class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_point_load_2d_tri_test"
 
-class BeamCantileverStaticLinearElasticPointLoad2DQuadTest(ParticleMechanicsTestFactory):
-    file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
-
-class BeamCantileverStaticLinearElasticLineLoad2DTriTest(ParticleMechanicsTestFactory):
-    file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
-
 class BeamCantileverStaticLinearElasticLineLoad2DQuadTest(ParticleMechanicsTestFactory):
-    file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
+    file_name = "beam_tests/cantilever_beam/static_line_load_2d_quad_test"
 
 class BeamCantileverStaticLinearElasticSurfaceLoad3DTetraTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
