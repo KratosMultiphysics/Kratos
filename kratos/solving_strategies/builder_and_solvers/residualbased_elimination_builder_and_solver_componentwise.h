@@ -139,13 +139,21 @@ public:
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
         ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver, ThisParameters)
-        , rVar(KratosComponents<TVariableType>::Get(ThisParameters["components_wise_variable"].GetString()))
     {
-        // There is not need for validation, because the only parameter used is a KratosComponents, which is not defined will throw an error
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "components_wise_variable" : "DISPLACEMENT"
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        rVar = KratosComponents<TVariableType>::Get(ThisParameters["components_wise_variable"].GetString());
     }
 
-    /** Constructor.
-    */
+    /**
+     * @brief Default constructor. Constructor.
+     */
     explicit ResidualBasedEliminationBuilderAndSolverComponentwise(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,TVariableType const& Var)
         : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
