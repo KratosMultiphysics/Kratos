@@ -1307,7 +1307,7 @@ protected:
             }
         }
 
-        if (counter < EquationId.size()) {
+        if (counter <= EquationId.size()) {
 #ifndef USE_LOCKS_IN_ASSEMBLY
             double& r_a = values_vector[last_pos];
             const double& v_a = Alocal(i_local,counter - 1);
@@ -1318,7 +1318,7 @@ protected:
 #endif
             // Now find all of the other entries
             std::size_t pos = 0;
-            for(std::size_t j=counter; j<EquationId.size(); ++j) {
+            for(std::size_t j = counter; j < EquationId.size(); ++j) {
                 std::size_t id_to_find = EquationId[j];
                 if (id_to_find < BaseType::mEquationSystemSize) {
                     if(id_to_find > last_found)
