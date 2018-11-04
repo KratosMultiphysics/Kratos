@@ -1001,7 +1001,7 @@ protected:
 #ifdef USE_LOCKS_IN_ASSEMBLY
         ,std::vector< omp_lock_t >& lock_array
 #endif
-    )
+        )
     {
         unsigned int local_size = LHS_Contribution.size1();
 
@@ -1013,22 +1013,20 @@ protected:
             {
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_set_lock(&lock_array[i_global]);
-#endif
                 b[i_global] += RHS_Contribution(i_local);
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = EquationId[j_local];
-                    if (j_global < BaseType::mEquationSystemSize)
-                    {
-                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                    }
-                }
+#else
+                double& r_a = b[i_global];
+                const double& v_a = RHS_Contribution(i_local);
+                #pragma omp atomic
+                r_a += v_a;
+#endif
+                AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
+
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&lock_array[i_global]);
 #endif
-
             }
-            //note that assembly on fixed rows is not performed here
+            //note that computation of reactions is not performed here!
         }
     }
 
@@ -1286,6 +1284,81 @@ protected:
                 }
             }
         }
+    }
+
+    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, const Element::EquationIdVectorType& EquationId)
+    {
+        double* values_vector = A.value_data().begin();
+        std::size_t* index1_vector = A.index1_data().begin();
+        std::size_t* index2_vector = A.index2_data().begin();
+
+        const std::size_t left_limit = index1_vector[i];
+
+        // Find the first entry
+        std::size_t last_pos, last_found;
+        std::size_t counter = 0;
+        for(std::size_t j=0; j < EquationId.size(); ++j) {
+            ++counter;
+            const std::size_t j_global = EquationId[j];
+            if (j_global < BaseType::mEquationSystemSize) {
+                last_pos = ForwardFind(j_global,left_limit,index2_vector);
+                last_found = j_global;
+                break;
+            }
+        }
+
+        if (counter < EquationId.size()) {
+#ifndef USE_LOCKS_IN_ASSEMBLY
+            double& r_a = values_vector[last_pos];
+            const double& v_a = Alocal(i_local,counter - 1);
+            #pragma omp atomic
+            r_a +=  v_a;
+#else
+            values_vector[last_pos] += Alocal(i_local,counter - 1);
+#endif
+            // Now find all of the other entries
+            std::size_t pos = 0;
+            for(std::size_t j=counter; j<EquationId.size(); ++j) {
+                std::size_t id_to_find = EquationId[j];
+                if (id_to_find < BaseType::mEquationSystemSize) {
+                    if(id_to_find > last_found)
+                        pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+                    else if(id_to_find < last_found)
+                        pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+                    else
+                        pos = last_pos;
+
+#ifndef USE_LOCKS_IN_ASSEMBLY
+                    double& r = values_vector[pos];
+                    const double& v = Alocal(i_local,j);
+                    #pragma omp atomic
+                    r +=  v;
+#else
+                    values_vector[pos] += Alocal(i_local,j);
+#endif
+                    last_found = id_to_find;
+                    last_pos = pos;
+                }
+            }
+        }
+    }
+
+    inline std::size_t ForwardFind(const std::size_t id_to_find,
+                                   const std::size_t start,
+                                   const std::size_t* index_vector)
+    {
+        std::size_t pos = start;
+        while(id_to_find != index_vector[pos]) pos++;
+        return pos;
+    }
+
+    inline std::size_t BackwardFind(const std::size_t id_to_find,
+                                    const std::size_t start,
+                                    const std::size_t* index_vector)
+    {
+        std::size_t pos = start;
+        while(id_to_find != index_vector[pos]) pos--;
+        return pos;
     }
 
     ///@}
