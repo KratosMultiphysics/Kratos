@@ -111,7 +111,7 @@ public:
 
     typedef Variable<double> DoubleVariableType;
 
-    typedef WeakPointerVector<NodeType, WeakPointer, std::vector<WeakPointer> > WeakPointerVectorType;
+    typedef WeakPointerVector<NodeType > WeakPointerVectorType;
 
 
     ///@}
