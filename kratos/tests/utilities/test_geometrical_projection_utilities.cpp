@@ -29,9 +29,9 @@ using GeometryType = typename GeometricalProjectionUtilities::GeometryType;
 GeometryType::Pointer CreateTriangle2D3NForTest()
 {
     GeometryType::PointsArrayType points;
-    points.push_back(Kratos::make_shared<NodeType>(1,0.04, 0.02, 0.0));
-    points.push_back(Kratos::make_shared<NodeType>(2,1.1, 0.03, 0.0));
-    points.push_back(Kratos::make_shared<NodeType>(3,1.08, 1.0, 0.0));
+    points.push_back(std::make_intrusive<NodeType>(1,0.04, 0.02, 0.0));
+    points.push_back(std::make_intrusive<NodeType>(2,1.1, 0.03, 0.0));
+    points.push_back(std::make_intrusive<NodeType>(3,1.08, 1.0, 0.0));
 
     return GeometryType::Pointer(new Triangle3D3<NodeType>(points));
 }

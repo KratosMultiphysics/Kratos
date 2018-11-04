@@ -14,7 +14,12 @@
 #define  KRATOS_DEFINE_PYTHON_H_INCLUDED
 
 /* System includes */
+#include "containers/intrusive_ptr.hpp"
 #include <pybind11/pybind11.h>
+
+// Always needed for custom holder types
+PYBIND11_DECLARE_HOLDER_TYPE(T, std::intrusive_ptr<T>);
+
 #include <pybind11/stl.h>
 
 #include "includes/define.h"
