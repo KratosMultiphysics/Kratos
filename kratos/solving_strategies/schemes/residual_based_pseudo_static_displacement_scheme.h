@@ -89,9 +89,16 @@ public:
      * @param ThisParameters Parameters with the Rayleigh variable
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
-      :DerivedBaseType(0.0),
-       mRayleighBeta(ThisParameters.Has("rayleigh_beta_variable") ? KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString()) : KratosComponents<Variable<double>>::Get("RAYLEIGH_BETA"))
+      :DerivedBaseType(0.0)
     {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "rayleigh_beta_variable" : "RAYLEIGH_BETA"
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mRayleighBeta = KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString());
     }
 
     /**

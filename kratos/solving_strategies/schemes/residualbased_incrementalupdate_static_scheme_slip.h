@@ -101,7 +101,13 @@ public:
     explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(Parameters ThisParameters)
         : BaseType(),
           mpRotationTool(Kratos::make_shared<RotationToolType>(ThisParameters.Has("domain_size") ? ThisParameters["domain_size"].GetInt() : 3, ThisParameters.Has("block_size") ? ThisParameters["block_size"].GetInt() : 3, IS_STRUCTURE, 0.0))
-    {}
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
 
     /// Constructor.
     /** @param DomainSize Number of spatial dimensions (2 or 3).

@@ -90,6 +90,11 @@ public:
     explicit ResidualBasedNewmarkDisplacementScheme(Parameters ThisParameters)
       :DerivedBaseType(0.0)
     {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**

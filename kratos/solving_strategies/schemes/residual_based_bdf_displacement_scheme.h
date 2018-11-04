@@ -99,6 +99,12 @@ public:
     explicit ResidualBasedBDFDisplacementScheme(Parameters ThisParameters)
         : ResidualBasedBDFDisplacementScheme(ThisParameters.Has("integration_order") ? static_cast<std::size_t>(ThisParameters["integration_order"].GetInt()) : 2)
     {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "integration_order" : 2
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**
