@@ -80,25 +80,25 @@ namespace Kratos
             element_nodes_0[0] = p_node_1;
             element_nodes_0[1] = p_node_2;
             element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( Geometry<NodeType>::PointsArrayType{element_nodes_0} );
+            Triangle2D3 <NodeType> triangle_0( PointerVector<NodeType>{element_nodes_0} );
             
             std::vector<NodeType::Pointer> element_nodes_1 (3);
             element_nodes_1[0] = p_node_1;
             element_nodes_1[1] = p_node_3;
             element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( Geometry<NodeType>::PointsArrayType{element_nodes_1} );
+            Triangle2D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
             
             std::vector<NodeType::Pointer> element_nodes_2 (3);
             element_nodes_2[0] = p_node_2;
             element_nodes_2[1] = p_node_5;
             element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( Geometry<NodeType>::PointsArrayType{element_nodes_2} );
+            Triangle2D3 <NodeType> triangle_2( PointerVector<NodeType>{element_nodes_2} );
             
             std::vector<NodeType::Pointer> element_nodes_3 (3);
             element_nodes_3[0] = p_node_5;
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( Geometry<NodeType>::PointsArrayType{element_nodes_3} );
+            Triangle2D3 <NodeType> triangle_3( PointerVector<NodeType>{element_nodes_3} );
             
             Element::Pointer p_elem_0 = this_model_part.CreateNewElement("Element2D3N", 1, triangle_0, p_elem_prop);
             Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D3N", 2, triangle_1, p_elem_prop);
@@ -168,84 +168,84 @@ namespace Kratos
             element_nodes_0[1] = p_node_10;
             element_nodes_0[2] = p_node_8;
             element_nodes_0[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_0( Geometry<NodeType>::PointsArrayType{element_nodes_0} );
+            Tetrahedra3D4 <NodeType> tetrahedra_0( PointerVector<NodeType>{element_nodes_0} );
             
             std::vector<NodeType::Pointer> element_nodes_1 (4);
             element_nodes_1[0] = p_node_4;
             element_nodes_1[1] = p_node_6;
             element_nodes_1[2] = p_node_9;
             element_nodes_1[3] = p_node_7;
-            Tetrahedra3D4 <NodeType> tetrahedra_1( Geometry<NodeType>::PointsArrayType{element_nodes_1} );
+            Tetrahedra3D4 <NodeType> tetrahedra_1( PointerVector<NodeType>{element_nodes_1} );
             
             std::vector<NodeType::Pointer> element_nodes_2 (4);
             element_nodes_2[0] = p_node_11;
             element_nodes_2[1] = p_node_7;
             element_nodes_2[2] = p_node_9;
             element_nodes_2[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_2( Geometry<NodeType>::PointsArrayType{element_nodes_2} );
+            Tetrahedra3D4 <NodeType> tetrahedra_2( PointerVector<NodeType>{element_nodes_2} );
             
             std::vector<NodeType::Pointer> element_nodes_3 (4);
             element_nodes_3[0] = p_node_5;
             element_nodes_3[1] = p_node_3;
             element_nodes_3[2] = p_node_8;
             element_nodes_3[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_3( Geometry<NodeType>::PointsArrayType{element_nodes_3} );
+            Tetrahedra3D4 <NodeType> tetrahedra_3( PointerVector<NodeType>{element_nodes_3} );
             
             std::vector<NodeType::Pointer> element_nodes_4 (4);
             element_nodes_4[0] = p_node_4;
             element_nodes_4[1] = p_node_6;
             element_nodes_4[2] = p_node_7;
             element_nodes_4[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_4( Geometry<NodeType>::PointsArrayType{element_nodes_4} );
+            Tetrahedra3D4 <NodeType> tetrahedra_4( PointerVector<NodeType>{element_nodes_4} );
             
             std::vector<NodeType::Pointer> element_nodes_5 (4);
             element_nodes_5[0] = p_node_2;
             element_nodes_5[1] = p_node_3;
             element_nodes_5[2] = p_node_5;
             element_nodes_5[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_5( Geometry<NodeType>::PointsArrayType{element_nodes_5} );
+            Tetrahedra3D4 <NodeType> tetrahedra_5( PointerVector<NodeType>{element_nodes_5} );
             
             std::vector<NodeType::Pointer> element_nodes_6 (4);
             element_nodes_6[0] = p_node_10;
             element_nodes_6[1] = p_node_9;
             element_nodes_6[2] = p_node_6;
             element_nodes_6[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_6( Geometry<NodeType>::PointsArrayType{element_nodes_6} );
+            Tetrahedra3D4 <NodeType> tetrahedra_6( PointerVector<NodeType>{element_nodes_6} );
             
             std::vector<NodeType::Pointer> element_nodes_7 (4);
             element_nodes_7[0] = p_node_7;
             element_nodes_7[1] = p_node_8;
             element_nodes_7[2] = p_node_3;
             element_nodes_7[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_7( Geometry<NodeType>::PointsArrayType{element_nodes_7} );
+            Tetrahedra3D4 <NodeType> tetrahedra_7( PointerVector<NodeType>{element_nodes_7} );
             
             std::vector<NodeType::Pointer> element_nodes_8 (4);
             element_nodes_8[0] = p_node_7;
             element_nodes_8[1] = p_node_8;
             element_nodes_8[2] = p_node_6;
             element_nodes_8[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_8( Geometry<NodeType>::PointsArrayType{element_nodes_8} );
+            Tetrahedra3D4 <NodeType> tetrahedra_8( PointerVector<NodeType>{element_nodes_8} );
             
             std::vector<NodeType::Pointer> element_nodes_9 (4);
             element_nodes_9[0] = p_node_4;
             element_nodes_9[1] = p_node_1;
             element_nodes_9[2] = p_node_6;
             element_nodes_9[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_9( Geometry<NodeType>::PointsArrayType{element_nodes_9} );
+            Tetrahedra3D4 <NodeType> tetrahedra_9( PointerVector<NodeType>{element_nodes_9} );
             
             std::vector<NodeType::Pointer> element_nodes_10 (4);
             element_nodes_10[0] = p_node_9;
             element_nodes_10[1] = p_node_12;
             element_nodes_10[2] = p_node_11;
             element_nodes_10[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_10( Geometry<NodeType>::PointsArrayType{element_nodes_10} );
+            Tetrahedra3D4 <NodeType> tetrahedra_10( PointerVector<NodeType>{element_nodes_10} );
             
             std::vector<NodeType::Pointer> element_nodes_11 (4);
             element_nodes_11[0] = p_node_3;
             element_nodes_11[1] = p_node_2;
             element_nodes_11[2] = p_node_1;
             element_nodes_11[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_11( Geometry<NodeType>::PointsArrayType{element_nodes_11} );
+            Tetrahedra3D4 <NodeType> tetrahedra_11( PointerVector<NodeType>{element_nodes_11} );
             
             Element::Pointer p_elem_0 = this_model_part.CreateNewElement("Element3D4N", 1, tetrahedra_0, p_elem_prop);
             Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element3D4N", 2, tetrahedra_1, p_elem_prop);
