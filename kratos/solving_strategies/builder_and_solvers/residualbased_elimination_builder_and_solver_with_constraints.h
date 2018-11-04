@@ -256,12 +256,14 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         BaseType::mDofSet = DofsArrayType();
         mDoFToSolveSet = DofsArrayType();
 
-        set_type dof_global_set;
+        set_type dof_global_set, dof_global_solvable_set, dof_global_slave_set;
 
-        #pragma omp parallel firstprivate(dof_list)
+        #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list, r_current_process_info)
         {
-            set_type dofs_tmp_set;
+            set_type dofs_tmp_set, dofs_tmp_solvable_set, dof_temp_slave_set;
             dofs_tmp_set.reserve(20000);
+            dofs_tmp_solvable_set.reserve(20000);
+            dof_temp_slave_set.reserve(200);
 
             // Gets the array of elements from the modeler
             ElementsArrayType& r_elements_array = rModelPart.Elements();
@@ -273,6 +275,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_solvable_set.insert(dof_list.begin(), dof_list.end());
             }
 
             // Gets the array of conditions from the modeler
@@ -285,6 +288,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_solvable_set.insert(dof_list.begin(), dof_list.end());
             }
 
             auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
@@ -297,11 +301,15 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
                 dofs_tmp_set.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
+                dof_temp_slave_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_solvable_set.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
             }
 
             #pragma omp critical
             {
                 dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+                dof_global_solvable_set.insert(dofs_tmp_solvable_set.begin(), dofs_tmp_solvable_set.end());
+                dof_global_slave_set.insert(dof_temp_slave_set.begin(), dof_temp_slave_set.end());
             }
         }
 
@@ -314,55 +322,17 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         dof_temp_all.Sort();
         BaseType::mDofSet = dof_temp_all;
 
-        // Repeating the loop for solvable DoF (in serial)
-        set_type dofs_aux_list_solvable;
-        // Gets the array of elements from the modeler
-        ElementsArrayType& r_elements_array = rModelPart.Elements();
-        const int number_of_elements = static_cast<int>(r_elements_array.size());
-        #pragma omp for schedule(guided, 512) nowait
-        for (int i = 0; i < number_of_elements; ++i) {
-            auto it_elem = r_elements_array.begin() + i;
-
-            // Gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
-            dofs_aux_list_solvable.insert(dof_list.begin(), dof_list.end());
+        // We remove the slave DoF from the set
+        for (auto& dof : dof_global_slave_set) {
+            auto it = dof_global_solvable_set.find(dof);
+            // Check if Iterator is valid
+            if(it != dof_global_solvable_set.end())
+                dof_global_solvable_set.erase(it);
         }
 
-        // Gets the array of conditions from the modeler
-        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-        const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-        #pragma omp for  schedule(guided, 512)
-        for (int i = 0; i < number_of_conditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
-
-            // Gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
-            dofs_aux_list_solvable.insert(dof_list.begin(), dof_list.end());
-        }
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing constraints loop" << std::endl;
-
-        // We don't do a loop in OMP because erase is not a parallel threadsafe operation
-        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-        const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-
-        for (int i = 0; i < number_of_constraints; ++i) {
-            auto it_const = r_constraints_array.begin() + i;
-
-            // Gets list of Dof involved on every element
-            it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
-            // We remove the slave dofs
-            for (auto& dof : dof_list) {
-                auto it = dofs_aux_list_solvable.find(dof);
-                // Check if Iterator is valid
-                if(it != dofs_aux_list_solvable.end())
-                    dofs_aux_list_solvable.erase(it);
-            }
-            dofs_aux_list_solvable.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end()); // We add the master dofs
-        }
-
-        dof_temp_solvable.reserve(dofs_aux_list_solvable.size());
-        for (auto& dof : dofs_aux_list_solvable) {
+        dof_global_slave_set.clear();
+        dof_temp_solvable.reserve(dof_global_solvable_set.size());
+        for (auto& dof : dof_global_solvable_set) {
             dof_temp_solvable.push_back( dof.get() );
         }
         dof_temp_solvable.Sort();
@@ -533,47 +503,6 @@ protected:
     * @param rMasterEquationId The equation id of the master dofs
     * @param rLockArray The lock of the dof
     */
-//     void AssembleRelationMatrix(
-//         TSystemMatrixType& rT,
-//         const LocalSystemMatrixType& rTransformationMatrix,
-//         const EquationIdVectorType& rSlaveEquationId,
-//         const EquationIdVectorType& rMasterEquationId
-//     #ifdef USE_LOCKS_IN_ASSEMBLY
-//         ,std::vector< omp_lock_t >& rLockArray
-//     #endif
-//         )
-//     {
-//         SizeType local_size_1 = rTransformationMatrix.size1();
-//         SizeType local_size_2 = rTransformationMatrix.size2();
-//
-//         for (IndexType i_local = 0; i_local < local_size_1; ++i_local) {
-//             IndexType i_global = rSlaveEquationId[i_local];
-//
-//             if (i_global < BaseType::mEquationSystemSize) {
-//             #ifdef USE_LOCKS_IN_ASSEMBLY
-//                 omp_set_lock(&rLockArray[i_global]);
-//             #endif
-//                 for (IndexType j_local = 0; j_local < local_size_2; ++j_local) {
-//                     IndexType j_global = mSolvableDoFReorder[rMasterEquationId[j_local]];
-//                     if (j_global < BaseType::mEquationSystemSize) {
-//                     #ifdef USE_LOCKS_IN_ASSEMBLY
-//                         omp_set_lock(&rLockArray[j_global]);
-//                     #endif
-//                         rT(i_global, j_global) += rTransformationMatrix(i_local, j_local);
-//                     #ifdef USE_LOCKS_IN_ASSEMBLY
-//                         omp_unset_lock(&rLockArray[j_global]);
-//                     #endif
-//                     }
-//                 }
-//             #ifdef USE_LOCKS_IN_ASSEMBLY
-//                 omp_unset_lock(&rLockArray[i_global]);
-//             #endif
-//
-//             }
-//             //note that assembly on fixed rows is not performed here
-//         }
-//     }
-
     void AssembleRelationMatrix(
         TSystemMatrixType& rT,
         const LocalSystemMatrixType& rTransformationMatrix,
@@ -693,8 +622,6 @@ protected:
         const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        auto el_begin = rModelPart.ElementsBegin();
-        auto cond_begin = rModelPart.ConditionsBegin();
 
         const SizeType equation_size = BaseType::mEquationSystemSize;
 
@@ -707,45 +634,48 @@ protected:
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
 
-        #pragma omp parallel for firstprivate(number_of_elements, ids)
+        // Element initial iterator
+        const auto el_begin = rModelPart.ElementsBegin();
+
+        #pragma omp parallel for firstprivate(number_of_elements, ids, r_current_process_info)
         for (int i_elem = 0; i_elem<number_of_elements; i_elem++) {
             auto it_elem = el_begin + i_elem;
             pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
 
-            for (IndexType i = 0; i < ids.size(); ++i) {
-                if (ids[i] < BaseType::mEquationSystemSize) {
+            for (auto& id_i : ids) {
+                if (id_i < BaseType::mEquationSystemSize) {
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
+                    omp_set_lock(&BaseType::mLockArray[id_i]);
                 #endif
-                    auto& row_indices = indices[ids[i]];
-                    for (auto it = ids.begin(); it != ids.end(); ++it) {
-                        if (*it < BaseType::mEquationSystemSize)
-                            row_indices.insert(*it);
-                    }
+                    auto& row_indices = indices[id_i];
+                    for (auto& id_j : ids)
+                        if (id_j < BaseType::mEquationSystemSize)
+                            row_indices.insert(id_j);
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
+                    omp_unset_lock(&BaseType::mLockArray[id_i]);
                 #endif
                 }
             }
-
         }
 
-        #pragma omp parallel for firstprivate(number_of_conditions, ids)
+        // Condition initial iterator
+        const auto cond_begin = rModelPart.ConditionsBegin();
+
+        #pragma omp parallel for firstprivate(number_of_conditions, ids, r_current_process_info)
         for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
             auto it_cond = cond_begin + i_cond;
             pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
-            for (IndexType i = 0; i < ids.size(); ++i) {
-                if (ids[i] < BaseType::mEquationSystemSize) {
+            for (auto& id_i : ids) {
+                if (id_i < BaseType::mEquationSystemSize) {
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
+                    omp_set_lock(&BaseType::mLockArray[id_i]);
                 #endif
-                    auto& row_indices = indices[ids[i]];
-                    for (auto it = ids.begin(); it != ids.end(); ++it) {
-                        if (*it < BaseType::mEquationSystemSize)
-                            row_indices.insert(*it);
-                    }
+                    auto& row_indices = indices[id_i];
+                    for (auto& id_j : ids)
+                        if (id_j < BaseType::mEquationSystemSize)
+                            row_indices.insert(id_j);
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
+                    omp_unset_lock(&BaseType::mLockArray[id_i]);
                 #endif
                 }
             }
@@ -753,32 +683,39 @@ protected:
 
         EquationIdVectorType aux_ids(3, 0);
 
+        // Constraint initial iterator
+        const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
+
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        #pragma omp parallel for firstprivate(number_of_constraints, ids, aux_ids)
+        #pragma omp parallel for firstprivate(number_of_constraints, ids, aux_ids, r_current_process_info)
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+            auto it_const = const_begin + i_const;
             it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
-            for (IndexType i = 0; i < ids.size(); ++i) {
-                if (ids[i] < BaseType::mEquationSystemSize) {
+            for (auto& id_i : ids) {
+                if (id_i < BaseType::mEquationSystemSize) {
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
+                    omp_set_lock(&BaseType::mLockArray[id_i]);
                 #endif
-                    auto &row_indices = indices[ids[i]];
-                    row_indices.insert(ids.begin(), ids.end());
+                    auto& row_indices = indices[id_i];
+                    for (auto& id_j : ids)
+                    if (id_j < BaseType::mEquationSystemSize)
+                        row_indices.insert(id_j);
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
+                    omp_unset_lock(&BaseType::mLockArray[id_i]);
                 #endif
                 }
             }
-            for (IndexType i = 0; i < aux_ids.size(); ++i) {
-                if (aux_ids[i] < BaseType::mEquationSystemSize) {
+            for (auto& id_i : aux_ids) {
+                if (id_i < BaseType::mEquationSystemSize) {
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
+                    omp_set_lock(&BaseType::mLockArray[id_i]);
                 #endif
-                    auto &row_indices = indices[aux_ids[i]];
-                    row_indices.insert(aux_ids.begin(), aux_ids.end());
+                    auto& row_indices = indices[id_i];
+                    for (auto& id_j : aux_ids)
+                    if (id_j < BaseType::mEquationSystemSize)
+                        row_indices.insert(id_j);
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
+                    omp_unset_lock(&BaseType::mLockArray[id_i]);
                 #endif
                 }
             }
@@ -1008,7 +945,7 @@ protected:
             ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-            #pragma omp parallel for firstprivate(number_of_constraints, transformation_matrix, constant_vector, slave_equation_id)
+            #pragma omp parallel for firstprivate(number_of_constraints, r_current_process_info, transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
