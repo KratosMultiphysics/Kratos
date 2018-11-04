@@ -64,18 +64,18 @@ namespace Kratos
 		rWeights[min_i] = 1.00;
 	}
 
-	void TetrahedraMeshWorstElementSmoothingProcess::CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point& rOptimumPoint) {
-		std::size_t i = 0;
+	// void TetrahedraMeshWorstElementSmoothingProcess::CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point& rOptimumPoint) {
+		// std::size_t i = 0;
 
-		for (; i < 4; i++)
-			if (rNode.Id() == rTetrahedra[i].Id())
-				break;
-		const int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
-		Triangle3D3<Point > face(rTetrahedra(tetrahedra_connectivity[i][0]), rTetrahedra(tetrahedra_connectivity[i][1]), rTetrahedra(tetrahedra_connectivity[i][2]));
-		Point center(0.5,0.5,0.5);
-		Point normal = face.UnitNormal(center);
-		const double height_coeficient = 0.81649658092772603273242802490196; // sqrt(6.00)/3.00
-		rOptimumPoint = center + normal * face.AverageEdgeLength() * height_coeficient;
-	}
+		// for (; i < 4; i++)
+		// 	if (rNode.Id() == rTetrahedra[i].Id())
+		// 		break;
+		// const int tetrahedra_connectivity[4][3] = { {3,2,1},{2,3,0},{0,3,1},{0,1,2} };
+		// Triangle3D3<Point > face(rTetrahedra(tetrahedra_connectivity[i][0]), rTetrahedra(tetrahedra_connectivity[i][1]), rTetrahedra(tetrahedra_connectivity[i][2]));
+		// Point center(0.5,0.5,0.5);
+		// Point normal = face.UnitNormal(center);
+		// const double height_coeficient = 0.81649658092772603273242802490196; // sqrt(6.00)/3.00
+		// rOptimumPoint = center + normal * face.AverageEdgeLength() * height_coeficient;
+	// }
 
 }  // namespace Kratos.

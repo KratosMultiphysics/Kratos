@@ -1092,7 +1092,7 @@ namespace Kratos
             ExtractValue(word, y);
             ReadWord(word);
             ExtractValue(word, z);
-            NodeType::Pointer temp_node = Kratos::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
+            NodeType::Pointer temp_node = std::make_intrusive< NodeType >( ReorderedNodeId(temp_id), x, y, z);
             temp_node->X0() = temp_node->X();
             temp_node->Y0() = temp_node->Y();
             temp_node->Z0() = temp_node->Z();

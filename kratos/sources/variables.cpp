@@ -456,9 +456,9 @@ KRATOS_CREATE_VARIABLE(Matrix, INERTIA)
 //for General kratos application:
 KRATOS_CREATE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 //NEIGHBOUR_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<NodeType >, NEIGHBOUR_NODES)
+KRATOS_CREATE_VARIABLE(NodeType::WeakPointerVectorType, NEIGHBOUR_NODES)
 //FATHER_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<NodeType >, FATHER_NODES)
+KRATOS_CREATE_VARIABLE(NodeType::WeakPointerVectorType, FATHER_NODES)
 //NEIGHBOR_ELEMENTS defined in element.h
 KRATOS_CREATE_VARIABLE(WeakPointerVector<Element>, NEIGHBOUR_ELEMENTS)
 //NEIGHBOR_CONDITIONS defined in condition.h

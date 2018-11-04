@@ -93,14 +93,14 @@ namespace Testing {
         Model current_model;
 
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, -0.5, -0.5, -0.5);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2,  0.5, -0.5, -0.5);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3,  0.5,  0.5, -0.5);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, -0.5,  0.5, -0.5);
-        Node<3>::Pointer p_point_5 = Kratos::make_shared<Node<3>>(5, -0.5, -0.5,  0.5);
-        Node<3>::Pointer p_point_6 = Kratos::make_shared<Node<3>>(6,  0.5, -0.5,  0.5);
-        Node<3>::Pointer p_point_7 = Kratos::make_shared<Node<3>>(7,  0.5,  0.5,  0.5);
-        Node<3>::Pointer p_point_8 = Kratos::make_shared<Node<3>>(8, -0.5,  0.5,  0.5);
+        Node<3>::Pointer p_point_1 = std::make_intrusive<Node<3>>(1, -0.5, -0.5, -0.5);
+        Node<3>::Pointer p_point_2 = std::make_intrusive<Node<3>>(2,  0.5, -0.5, -0.5);
+        Node<3>::Pointer p_point_3 = std::make_intrusive<Node<3>>(3,  0.5,  0.5, -0.5);
+        Node<3>::Pointer p_point_4 = std::make_intrusive<Node<3>>(4, -0.5,  0.5, -0.5);
+        Node<3>::Pointer p_point_5 = std::make_intrusive<Node<3>>(5, -0.5, -0.5,  0.5);
+        Node<3>::Pointer p_point_6 = std::make_intrusive<Node<3>>(6,  0.5, -0.5,  0.5);
+        Node<3>::Pointer p_point_7 = std::make_intrusive<Node<3>>(7,  0.5,  0.5,  0.5);
+        Node<3>::Pointer p_point_8 = std::make_intrusive<Node<3>>(8, -0.5,  0.5,  0.5);
 
         Hexahedra3D8<Node<3> > geometry(p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
 
@@ -164,14 +164,14 @@ namespace Testing {
         Model current_model;
 
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, 0.0, 0.0, 0.0);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, 1.0, 0.0, 0.0);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3, 1.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4, 0.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_5 = Kratos::make_shared<Node<3>>(5, 0.0, 0.0, 1.0);
-        Node<3>::Pointer p_point_6 = Kratos::make_shared<Node<3>>(6, 1.0, 0.0, 1.0);
-        Node<3>::Pointer p_point_7 = Kratos::make_shared<Node<3>>(7, 1.0, 1.0, 1.0);
-        Node<3>::Pointer p_point_8 = Kratos::make_shared<Node<3>>(8, 0.0, 1.0, 1.0);
+        Node<3>::Pointer p_point_1 = std::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
+        Node<3>::Pointer p_point_2 = std::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0);
+        Node<3>::Pointer p_point_3 = std::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
+        Node<3>::Pointer p_point_4 = std::make_intrusive<Node<3>>(4, 0.0, 1.0, 0.0);
+        Node<3>::Pointer p_point_5 = std::make_intrusive<Node<3>>(5, 0.0, 0.0, 1.0);
+        Node<3>::Pointer p_point_6 = std::make_intrusive<Node<3>>(6, 1.0, 0.0, 1.0);
+        Node<3>::Pointer p_point_7 = std::make_intrusive<Node<3>>(7, 1.0, 1.0, 1.0);
+        Node<3>::Pointer p_point_8 = std::make_intrusive<Node<3>>(8, 0.0, 1.0, 1.0);
 
         Hexahedra3D8<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
 

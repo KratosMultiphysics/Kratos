@@ -65,7 +65,10 @@ namespace Kratos
  * @see GeometryAndFormulationElement
  */
 template<class TPointType>
-class Geometry : public PointerVector<TPointType>
+class Geometry : public PointerVector<TPointType, 
+                                      typename TPointType::Pointer, 
+                                      std::vector<typename TPointType::Pointer> 
+                                      >
 {
 public:
     ///@}
@@ -97,7 +100,7 @@ public:
 
     /** Base type for geometry.
     */
-    typedef PointerVector<TPointType> BaseType;
+    typedef PointerVector<TPointType, typename TPointType::Pointer, std::vector<typename TPointType::Pointer> > BaseType;
 
 
     /** The bounding box */
@@ -106,7 +109,7 @@ public:
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
-    typedef PointerVector<TPointType> PointsArrayType;
+    typedef PointerVector<TPointType, typename TPointType::Pointer, std::vector<typename TPointType::Pointer> > PointsArrayType;
 
     /** Integration methods implemented in geometry.
     */

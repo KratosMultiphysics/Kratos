@@ -360,14 +360,14 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNoIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            GeneratePoint<Point >(0.0, 0.0, 0.0),
+            GeneratePoint<Point >(10., 0.0, 2.0),
+            GeneratePoint<Point >(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.01),
-            GeneratePoint<NodeType >(10., 0.0, 2.01),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.01)
+            GeneratePoint<Point >(0.0, 0.0, 0.01),
+            GeneratePoint<Point >(10., 0.0, 2.01),
+            GeneratePoint<Point >(0.0, 1.0, 0.01)
             );
 
         KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
@@ -375,14 +375,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNearIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            GeneratePoint<Point >(0.0, 0.0, 0.0),
+            GeneratePoint<Point >(10., 0.0, 2.0),
+            GeneratePoint<Point >(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.00000001),
-            GeneratePoint<NodeType >(10., 0.0, 2.00000001),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.00000001)
+            GeneratePoint<Point>(0.0, 0.0, 0.00000001),
+            GeneratePoint<Point>(10., 0.0, 2.00000001),
+            GeneratePoint<Point>(0.0, 1.0, 0.00000001)
             );
 
         KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
@@ -390,14 +390,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarNoIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            GeneratePoint<Point>(0.0, 0.0, 0.0),
+            GeneratePoint<Point>(10., 0.0, 2.0),
+            GeneratePoint<Point>(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.00000001, 0.00000001, 0.00000001),
-            GeneratePoint<NodeType >(-10., 0.0, -2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00)
+            GeneratePoint<Point>(0.00000001, 0.00000001, 0.00000001),
+            GeneratePoint<Point>(-10., 0.0, -2.0),
+            GeneratePoint<Point>(0.0, -1.0, 0.00)
             );
 
         KRATOS_CHECK_IS_FALSE(triangle_1.HasIntersection(triangle_2));
@@ -405,14 +405,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarPointIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            GeneratePoint<Point>(0.0, 0.0, 0.0),
+            GeneratePoint<Point>(10., 0.0, 2.0),
+            GeneratePoint<Point>(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.00, 0.00, 0.0),
-            GeneratePoint<NodeType >(-10., 0.0, -2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00)
+            GeneratePoint<Point>(0.00, 0.00, 0.0),
+            GeneratePoint<Point>(-10., 0.0, -2.0),
+            GeneratePoint<Point>(0.0, -1.0, 0.00)
             );
 
         KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
@@ -420,14 +420,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgeIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 0.0)
+            GeneratePoint<Point>(0.0, 0.0, 0.0),
+            GeneratePoint<Point>(10., 0.0, 2.0),
+            GeneratePoint<Point>(0.0, 1.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.00, 0.00, 0.0),
-            GeneratePoint<NodeType >(10., 0.0, 2.0),
-            GeneratePoint<NodeType >(0.0, -1.0, 0.00)
+            GeneratePoint<Point>(0.00, 0.00, 0.0),
+            GeneratePoint<Point>(10., 0.0, 2.0),
+            GeneratePoint<Point>(0.0, -1.0, 0.00)
             );
 
         KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
@@ -435,14 +435,14 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3InsideIntersection, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.0, 0.0, 0.0),
-            GeneratePoint<NodeType >(0.0, 0.0, 4.0),
-            GeneratePoint<NodeType >(0.0, 4.0, 0.0)
+            GeneratePoint<Point>(0.0, 0.0, 0.0),
+            GeneratePoint<Point>(0.0, 0.0, 4.0),
+            GeneratePoint<Point>(0.0, 4.0, 0.0)
             );
         Triangle3D3<Point > triangle_2(
-            GeneratePoint<NodeType >(0.0, 1.0, 1.0),
-            GeneratePoint<NodeType >(0.0, 1.0, 3.0),
-            GeneratePoint<NodeType >(0.0, 3.0, 1.0)
+            GeneratePoint<Point>(0.0, 1.0, 1.0),
+            GeneratePoint<Point>(0.0, 1.0, 3.0),
+            GeneratePoint<Point>(0.0, 3.0, 1.0)
             );
 
         KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
@@ -509,9 +509,9 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneX, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
-            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
-            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+            GeneratePoint<Point>(0.55, -0.25, 0.25),
+            GeneratePoint<Point>(0.50, -0.25, 0.75),
+            GeneratePoint<Point>(0.50,  0.25, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -522,9 +522,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneY, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
-            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
-            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+            GeneratePoint<Point>(-0.25, 0.50, 0.25),
+            GeneratePoint<Point>(-0.25, 0.55, 0.75),
+            GeneratePoint<Point>( 0.25, 0.50, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -535,9 +535,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneZ, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
-            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
-            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+            GeneratePoint<Point>(-0.25, 0.25, 0.50),
+            GeneratePoint<Point>(-0.25, 0.75, 0.50),
+            GeneratePoint<Point>( 0.25, 0.25, 0.55)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -548,9 +548,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneX, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
-            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
-            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+            GeneratePoint<Point>(0.55, -0.25, 0.25),
+            GeneratePoint<Point>(0.50, -0.25, 0.75),
+            GeneratePoint<Point>(0.50,  0.25, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -561,9 +561,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneY, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
-            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
-            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+            GeneratePoint<Point>(-0.25, 0.50, 0.25),
+            GeneratePoint<Point>(-0.25, 0.55, 0.75),
+            GeneratePoint<Point>( 0.25, 0.50, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -574,9 +574,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneZ, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
-            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
-            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+            GeneratePoint<Point>(-0.25, 0.25, 0.50),
+            GeneratePoint<Point>(-0.25, 0.75, 0.50),
+            GeneratePoint<Point>( 0.25, 0.25, 0.55)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -587,9 +587,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneX, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
-            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
-            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+            GeneratePoint<Point>(0.55, -0.25, 0.25),
+            GeneratePoint<Point>(0.50, -0.25, 0.75),
+            GeneratePoint<Point>(0.50,  0.25, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -600,9 +600,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneY, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
-            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
-            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+            GeneratePoint<Point>(-0.25, 0.50, 0.25),
+            GeneratePoint<Point>(-0.25, 0.55, 0.75),
+            GeneratePoint<Point>( 0.25, 0.50, 0.25)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
@@ -613,9 +613,9 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneZ, KratosCoreGeometriesFastSuite) {
         Triangle3D3<Point > triangle_1(
-            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
-            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
-            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+            GeneratePoint<Point>(-0.25, 0.25, 0.50),
+            GeneratePoint<Point>(-0.25, 0.75, 0.50),
+            GeneratePoint<Point>( 0.25, 0.25, 0.55)
         );
 
         auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);

@@ -61,13 +61,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_3;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_1;
-            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
+            Triangle3D3 <NodeType> triangle_0( Geometry<NodeType>::PointsArrayType{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
+            Triangle3D3 <NodeType> triangle_1( Geometry<NodeType>::PointsArrayType{condition_nodes_1} );
 
             Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
@@ -121,13 +121,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_3;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_1;
-            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
+            Triangle3D3 <NodeType> triangle_0( Geometry<NodeType>::PointsArrayType{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
+            Triangle3D3 <NodeType> triangle_1( Geometry<NodeType>::PointsArrayType{condition_nodes_1} );
 
             Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
@@ -203,13 +203,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_3;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_1;
-            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
+            Triangle3D3 <NodeType> triangle_0( Geometry<NodeType>::PointsArrayType{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
+            Triangle3D3 <NodeType> triangle_1( Geometry<NodeType>::PointsArrayType{condition_nodes_1} );
 
             Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
@@ -263,13 +263,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_3;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_1;
-            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
+            Triangle3D3 <NodeType> triangle_0( Geometry<NodeType>::PointsArrayType{condition_nodes_0} );
             
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
+            Triangle3D3 <NodeType> triangle_1( Geometry<NodeType>::PointsArrayType{condition_nodes_1} );
             
             Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);

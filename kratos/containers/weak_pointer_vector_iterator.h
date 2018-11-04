@@ -141,7 +141,8 @@ private:
 
     typename BaseType::reference dereference() const
     {
-        return *(Kratos::shared_ptr<TDataType>(*(this->base())));
+        typename TDataType::Pointer p( (this->base())->lock() );
+        return *p;
     }
 
     ///@}
