@@ -380,7 +380,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
         if (BaseType::mLockArray.size() != 0) {
             for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
                 omp_destroy_lock(&BaseType::mLockArray[i]);
@@ -533,38 +533,74 @@ protected:
     * @param rMasterEquationId The equation id of the master dofs
     * @param rLockArray The lock of the dof
     */
+//     void AssembleRelationMatrix(
+//         TSystemMatrixType& rT,
+//         const LocalSystemMatrixType& rTransformationMatrix,
+//         const EquationIdVectorType& rSlaveEquationId,
+//         const EquationIdVectorType& rMasterEquationId
+//     #ifdef USE_LOCKS_IN_ASSEMBLY
+//         ,std::vector< omp_lock_t >& rLockArray
+//     #endif
+//         )
+//     {
+//         SizeType local_size_1 = rTransformationMatrix.size1();
+//         SizeType local_size_2 = rTransformationMatrix.size2();
+//
+//         for (IndexType i_local = 0; i_local < local_size_1; ++i_local) {
+//             IndexType i_global = rSlaveEquationId[i_local];
+//
+//             if (i_global < BaseType::mEquationSystemSize) {
+//             #ifdef USE_LOCKS_IN_ASSEMBLY
+//                 omp_set_lock(&rLockArray[i_global]);
+//             #endif
+//                 for (IndexType j_local = 0; j_local < local_size_2; ++j_local) {
+//                     IndexType j_global = mSolvableDoFReorder[rMasterEquationId[j_local]];
+//                     if (j_global < BaseType::mEquationSystemSize) {
+//                     #ifdef USE_LOCKS_IN_ASSEMBLY
+//                         omp_set_lock(&rLockArray[j_global]);
+//                     #endif
+//                         rT(i_global, j_global) += rTransformationMatrix(i_local, j_local);
+//                     #ifdef USE_LOCKS_IN_ASSEMBLY
+//                         omp_unset_lock(&rLockArray[j_global]);
+//                     #endif
+//                     }
+//                 }
+//             #ifdef USE_LOCKS_IN_ASSEMBLY
+//                 omp_unset_lock(&rLockArray[i_global]);
+//             #endif
+//
+//             }
+//             //note that assembly on fixed rows is not performed here
+//         }
+//     }
+
     void AssembleRelationMatrix(
         TSystemMatrixType& rT,
         const LocalSystemMatrixType& rTransformationMatrix,
         const EquationIdVectorType& rSlaveEquationId,
         const EquationIdVectorType& rMasterEquationId
-    #ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
         ,std::vector< omp_lock_t >& rLockArray
-    #endif
+#endif
         )
     {
         SizeType local_size_1 = rTransformationMatrix.size1();
-        SizeType local_size_2 = rTransformationMatrix.size2();
 
         for (IndexType i_local = 0; i_local < local_size_1; ++i_local) {
             IndexType i_global = rSlaveEquationId[i_local];
 
             if (i_global < BaseType::mEquationSystemSize) {
-            #ifdef _OPENMP
-                omp_set_lock(&rLockArray[i_global]);
-            #endif
-                for (IndexType j_local = 0; j_local < local_size_2; ++j_local) {
-                    IndexType j_global = mSolvableDoFReorder[rMasterEquationId[j_local]];
-                    if (j_global < BaseType::mEquationSystemSize) {
-                        rT(i_global, j_global) += rTransformationMatrix(i_local, j_local);
-                    }
-                }
-            #ifdef _OPENMP
-                omp_unset_lock(&rLockArray[i_global]);
+            #ifdef USE_LOCKS_IN_ASSEMBLY
+                omp_set_lock(&lock_array[i_global]);
             #endif
 
+                BaseType::AssembleRowContribution(rT, rTransformationMatrix, i_global, i_local, rMasterEquationId);
+
+            #ifdef USE_LOCKS_IN_ASSEMBLY
+                omp_unset_lock(&rLockArray[i_global]);
+            #endif
             }
-            //note that assembly on fixed rows is not performed here
+            //note that computation of reactions is not performed here!
         }
     }
 
@@ -678,7 +714,7 @@ protected:
 
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_set_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                     auto& row_indices = indices[ids[i]];
@@ -686,7 +722,7 @@ protected:
                         if (*it < BaseType::mEquationSystemSize)
                             row_indices.insert(*it);
                     }
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_unset_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                 }
@@ -700,7 +736,7 @@ protected:
             pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_set_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                     auto& row_indices = indices[ids[i]];
@@ -708,7 +744,7 @@ protected:
                         if (*it < BaseType::mEquationSystemSize)
                             row_indices.insert(*it);
                     }
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_unset_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                 }
@@ -724,24 +760,24 @@ protected:
             it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_set_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                     auto &row_indices = indices[ids[i]];
                     row_indices.insert(ids.begin(), ids.end());
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_unset_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                 }
             }
             for (IndexType i = 0; i < aux_ids.size(); ++i) {
                 if (aux_ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
                 #endif
                     auto &row_indices = indices[aux_ids[i]];
                     row_indices.insert(aux_ids.begin(), aux_ids.end());
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
                 #endif
                 }
@@ -988,7 +1024,7 @@ protected:
                     it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
 
                     // Assemble the constraint contribution
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, BaseType::mLockArray);
                 #else
                     AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
