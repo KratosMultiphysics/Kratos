@@ -118,11 +118,11 @@ void SearchPointsImplementation(
     nodes_to_find_temp.reserve(nodes_to_find.size());
 
     for (NodesContainerType::ContainerType::iterator it = nodes.begin(); it != nodes.end(); ++it){
-        nodes_temp.push_back(*it);
+        nodes_temp.push_back(std::make_shared<Point>(it->Coordinates()));
     }
 
     for (NodesContainerType::ContainerType::iterator it = nodes_to_find.begin(); it != nodes_to_find.end(); ++it){
-        nodes_to_find_temp.push_back(*it);
+        nodes_to_find_temp.push_back(std::make_shared<Point>(it->Coordinates()));
     }
 
     PointBinsType bins(nodes_to_find_temp.begin(), nodes_to_find_temp.end());
