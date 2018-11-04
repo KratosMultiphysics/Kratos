@@ -650,16 +650,10 @@ protected:
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
-                    #ifdef USE_LOCKS_IN_ASSEMBLY
-                        omp_set_lock(&BaseType::mLockArray[id_i]);
-                    #endif
                         auto& row_indices = aux_indices[id_i];
                         for (auto& id_j : ids)
                             if (id_j < BaseType::mEquationSystemSize)
                                 row_indices.insert(id_j);
-                    #ifdef USE_LOCKS_IN_ASSEMBLY
-                        omp_unset_lock(&BaseType::mLockArray[id_i]);
-                    #endif
                     }
                 }
             }
@@ -670,7 +664,7 @@ protected:
             // Condition initial iterator
             const auto cond_begin = rModelPart.ConditionsBegin();
 
-            #pragma omp parallel for firstprivate(number_of_conditions, ids, r_current_process_info)
+            #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
                 auto it_cond = cond_begin + i_cond;
                 pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
@@ -684,13 +678,12 @@ protected:
                 }
             }
 
-
-
             // Constraint initial iterator
             const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
 
             const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-            #pragma omp parallel for firstprivate(number_of_constraints, ids, aux_ids, r_current_process_info)
+
+            #pragma omp for schedule(guided, 512) nowait
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = const_begin + i_const;
                 it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
