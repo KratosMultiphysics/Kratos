@@ -110,7 +110,7 @@ public:
         // The divided part length from second node of edge respect to the edge length
         array_1d<double, n_edges> edge_division_j = ZeroVector(n_edges); // The 0 is for no split
 
-        bounded_matrix<double, 8, 3 > aux_coordinates; //8 is the max number of nodes and aux_nodes
+        BoundedMatrix<double, 8, 3 > aux_coordinates; //8 is the max number of nodes and aux_nodes
         for (unsigned int i = 0; i < 4; i++)
             for (unsigned int j = 0; j < 3; j++)
                 aux_coordinates(i, j) = rPoints(i, j);
@@ -120,7 +120,7 @@ public:
 
         int split_edge[] = {0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1};
         int new_node_id = 4;
-        bounded_matrix<double, 4, 4 > length = ZeroMatrix(4, 4);
+        BoundedMatrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
         //int n_zero_distance_nodes = 0;
         int n_negative_distance_nodes = 0;
@@ -492,7 +492,7 @@ public:
 private:
 
 
-static double ComputeSubTetraVolumeAndCenter(const bounded_matrix<double, 3, 8 > & aux_coordinates,
+static double ComputeSubTetraVolumeAndCenter(const BoundedMatrix<double, 3, 8 > & aux_coordinates,
         array_1d<double, 3 > & center_position,
         const int i0, const int i1, const int i2, const int i3)
 {
@@ -521,7 +521,7 @@ static double ComputeSubTetraVolumeAndCenter(const bounded_matrix<double, 3, 8 >
 }
 
 //compute 4 gauss point per subtetra
-static void ComputeSubTetraVolumeAndGaussPoints(const bounded_matrix<double, 3, 8 > & aux_coordinates,
+static void ComputeSubTetraVolumeAndGaussPoints(const BoundedMatrix<double, 3, 8 > & aux_coordinates,
         Vector& volumes,
         std::vector< array_1d<double, 3 > >& center_position,
         const int i0, const int i1, const int i2, const int i3)
@@ -628,8 +628,8 @@ static inline double CalculateVol(const double x0, const double y0, const double
 
 //2d
 static inline void CalculateGeometryData(
-    const bounded_matrix<double, 3, 3 > & coordinates,
-    boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+    const BoundedMatrix<double, 3, 3 > & coordinates,
+    BoundedMatrix<double,3,2>& DN_DX,
     array_1d<double,3>& N,
     double& Area)
 {
@@ -664,7 +664,7 @@ static inline void CalculateGeometryData(
 
 //template<class TMatrixType, class TVectorType, class TGradientType>
 static inline double CalculateVolume2D(
-    const bounded_matrix<double, 3, 3 > & coordinates)
+    const BoundedMatrix<double, 3, 3 > & coordinates)
 {
     double x10 = coordinates(1,0) - coordinates(0,0);
     double y10 = coordinates(1,1) - coordinates(0,1);
@@ -675,7 +675,7 @@ static inline double CalculateVolume2D(
     return 0.5*detJ;
 }
 
-static inline bool CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
+static inline bool CalculatePosition(const BoundedMatrix<double, 3, 3 > & coordinates,
                                      const double xc, const double yc, const double zc,
                                      array_1d<double, 3 > & N
                                     )
@@ -719,8 +719,8 @@ static inline double CalculateVol(const double x0, const double y0,
 }
 
 static inline void CalculateGeometryData(
-    const bounded_matrix<double, 3, 3 > & coordinates,
-    boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+    const BoundedMatrix<double, 3, 3 > & coordinates,
+    BoundedMatrix<double,3,2>& DN_DX,
     double& Area)
 {
     double x10 = coordinates(1,0) - coordinates(0,0);

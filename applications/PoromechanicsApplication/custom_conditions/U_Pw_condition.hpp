@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_U_PW_CONDITION_H_INCLUDED )
 #define  KRATOS_U_PW_CONDITION_H_INCLUDED
@@ -18,6 +24,7 @@
 #include "includes/process_info.h"
 
 // Application includes
+#include "custom_utilities/poro_condition_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -50,19 +57,19 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
  
-    void GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo );
+    void GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
     
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo );
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo ) override;
     
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo );
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo );
+    void EquationIdVector(EquationIdVectorType& rResult,ProcessInfo& rCurrentProcessInfo ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,12 +93,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }

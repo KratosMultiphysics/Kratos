@@ -17,51 +17,53 @@
 
 
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/kratos_version.h"
 #include "add_vector_to_python.h"
-//#include "add_mapped_vector_to_python.h"
+#include "add_model_part_to_python.h"
+#include "add_kernel_to_python.h"
+#include "add_deprecated_variables_to_python.h"
+#include "add_c2c_variables_to_python.h"
+#include "add_cfd_variables_to_python.h"
+#include "add_mesh_moving_variables_to_python.h"
+#include "add_mapping_variables_to_python.h"
+#include "add_dem_variables_to_python.h"
+#include "add_fsi_variables_to_python.h"
+#include "add_mat_variables_to_python.h"
+#include "add_legacy_structural_app_vars_to_python.h"
+#include "add_containers_to_python.h"
 #include "add_matrix_to_python.h"
 #include "add_points_to_python.h"
 #include "add_geometries_to_python.h"
-//#include "add_quadratures_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_processes_to_python.h"
-#include "add_model_part_to_python.h"
 #include "add_model_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"
 #include "add_modeler_to_python.h"
-#include "add_kernel_to_python.h"
 #include "add_kratos_application_to_python.h"
-
 #include "add_linear_solvers_to_python.h"
+#include "add_factories_to_python.h"
 #include "add_amgcl_solver_to_python.h"
 #include "add_process_info_to_python.h"
 #include "add_constitutive_law_to_python.h"
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
-//#include "add_sparse_vector_to_python.h"
-#include "pointer_vector_set_python_interface.h"
-#include "solution_step_variable_indexing_python.h"
-
 #include "add_strategies_to_python.h"
 #include "add_utilities_to_python.h"
-
-// #include "add_parallel_strategies_to_python.h"
-// #include "add_parallel_linear_solvers_to_python.h"
-
 #include "add_matrix_market_interface_to_python.h"
-
 #include "add_search_strategies_to_python.h"
 #include "add_kratos_parameters_to_python.h"
 #include "add_testing_to_python.h"
 #include "add_logger_to_python.h"
 #include "add_memory_info_to_python.h"
+#include "add_constraint_to_python.h"
+#include "add_response_functions_to_python.h"
 
 namespace Kratos
 {
@@ -76,61 +78,75 @@ char const* greet()
     return header.str().c_str();
 }
 
-using namespace boost::python;
-
-BOOST_PYTHON_MODULE(Kratos)
+PYBIND11_MODULE(Kratos, m)
 {
-    AddVectorToPython();
-//    AddSparseVectorToPython();
-    AddMatrixToPython();
-    AddBandedMatrixToPython();
-    AddTriangularMatrixToPython();
-    AddSymmetricMatrixToPython();
-#if defined KRATOS_ADD_HERMITIAN_MATRIX_INTERFACE
-    AddHermitianMatrixToPython();
-#endif
-    AddIdentityMatrixToPython();
-    AddZeroMatrixToPython();
-    AddScalarMatrixToPython();
-    AddSparseMatrixToPython();
-    AddCompressedMatrixToPython();
-#if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
-    AddCoordinateMatrixToPython();
-#endif
-    AddPointsToPython();
-    //  AddQuadraturesToPython();
-    //  AddIntegrationPointsToPython();
-    AddContainersToPython();
-    AddProcessesToPython();
-    AddIOToPython();
-    AddModelPartToPython();
-    AddModelToPython();
-    AddNodeToPython();
-    AddPropertiesToPython();
-    AddMeshToPython();
-    AddModelerToPython();
-    AddKernelToPython();
-    AddKratosApplicationToPython();
-    AddLinearSolversToPython();
-    AddAMGCLSolverToPython();
-    AddStrategiesToPython();
-    AddUtilitiesToPython();
-    AddProcessInfoToPython();
-    AddConstitutiveLawToPython();
-    AddSerializerToPython();
-    AddTableToPython();
-    AddGeometriesToPython();
-//     AddParallelStrategiesToPython(); 
-//     AddParallelLinearSolversToPython();
-    AddMatrixMarketInterfaceToPython();
-    AddKratosParametersToPython();
+    namespace py = pybind11;
 
-    AddSearchStrategiesToPython();
-    AddTestingToPython();
-    AddLoggerToPython();
-    AddMemoryInfoToPython();
+    AddVectorToPython(m);
+    AddMatrixToPython(m);
+    AddPointsToPython(m);
+    AddKernelToPython(m);
+    AddContainersToPython(m);
+    AddModelPartToPython(m);
+    AddNodeToPython(m);
+    AddPropertiesToPython(m);
+    AddMeshToPython(m);
 
-    def("Hello", greet);
+    AddCFDVariablesToPython(m);
+    AddDEMVariablesToPython(m);
+    AddALEVariablesToPython(m);
+    AddC2CVariablesToPython(m);
+    AddFSIVariablesToPython(m);
+    AddLegacyStructuralAppVarsToPython(m);
+    AddMappingVariablesToPython(m);
+    AddMATVariablesToPython(m);
+    AddDeprecatedVariablesToPython(m);
+
+
+
+//     //  AddQuadraturesToPython();
+//     //  AddIntegrationPointsToPython();
+
+     AddProcessesToPython(m);
+     AddIOToPython(m);
+     AddModelToPython(m);
+
+     AddModelerToPython(m);
+
+     AddKratosApplicationToPython(m);
+     AddLinearSolversToPython(m);
+     AddFactoriesToPython(m);
+     AddAMGCLSolverToPython(m);
+     AddStrategiesToPython(m);
+     AddUtilitiesToPython(m);
+     AddProcessInfoToPython(m);
+     AddConstitutiveLawToPython(m);
+     AddSerializerToPython(m);
+     AddTableToPython(m);
+     AddGeometriesToPython(m);
+
+    AddMatrixMarketInterfaceToPython(m);
+    AddKratosParametersToPython(m);
+//
+    AddSearchStrategiesToPython(m);
+     AddTestingToPython(m);
+     AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
+     AddConstraintToPython(m);
+     AddResponseFunctionsToPython(m);
+
+     //     AddBandedMatrixToPython();
+     //     AddTriangularMatrixToPython();
+     //     AddSymmetricMatrixToPython();
+     //     AddIdentityMatrixToPython();
+     //     AddZeroMatrixToPython();
+     //     AddScalarMatrixToPython();
+     //     AddSparseMatrixToPython();
+     //     AddCompressedMatrixToPython();
+     // #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
+     //     AddCoordinateMatrixToPython();
+     // #endif
+
+     m.def("Hello", greet);
 }
 
 

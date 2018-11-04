@@ -12,7 +12,7 @@ class DerivativesRecoverer:
     def __init__(self, pp, model_part):
         self.pp = pp
         self.model_part = model_part
-        self.cplusplus_recovery_tool = DerivativeRecoveryTool3D(model_part)
+        self.cplusplus_recovery_tool = DerivativeRecoveryTool3D(model_part, pp.CFD_DEM)
 
 class EmptyGradientRecoverer(DerivativesRecoverer):
     def __init__(self, pp, model_part):
@@ -76,7 +76,7 @@ class VorticityRecoverer(GradientRecoverer, EmptyVorticityRecoverer):
     def RecoverVorticityFromGradient(self):
         self.cplusplus_recovery_tool.CalculateVorticityFromGradient(self.model_part, VELOCITY_X_GRADIENT, VELOCITY_Y_GRADIENT, VELOCITY_Z_GRADIENT, VORTICITY)
     def CalculateVorticityContributionOfTheGradientOfAComponent(self):
-        self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_Z_GRADIENT, VORTICITY)
+        self.cplusplus_recovery_tool.CalculateVorticityContributionOfTheGradientOfAComponent(self.model_part, VELOCITY_COMPONENT_GRADIENT, VORTICITY)
 
 class LaplacianRecoverer(GradientRecoverer, EmptyLaplacianRecoverer):
     def __init__(self, pp, model_part):

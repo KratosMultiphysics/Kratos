@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ THE SOFTWARE.
  * \brief  Dummy preconditioner (identity matrix).
  */
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
 
@@ -57,12 +57,12 @@ class dummy {
                 const params& = params(),
                 const backend_params &bprm = backend_params()
                 )
-            : A(Backend::copy_matrix(boost::make_shared<build_matrix>(M), bprm))
+            : A(Backend::copy_matrix(std::make_shared<build_matrix>(M), bprm))
         {
         }
 
         dummy(
-                boost::shared_ptr<build_matrix> M,
+                std::shared_ptr<build_matrix> M,
                 const params& = params(),
                 const backend_params &bprm = backend_params()
                 )
@@ -71,23 +71,23 @@ class dummy {
         }
 
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             backend::copy(rhs, x);
+        }
+
+        std::shared_ptr<matrix> system_matrix_ptr() const {
+            return A;
         }
 
         const matrix& system_matrix() const {
             return *A;
         }
+
+        size_t bytes() const {
+            return 0;
+        }
     private:
-        boost::shared_ptr<matrix>   A;
+        std::shared_ptr<matrix>   A;
 
         friend std::ostream& operator<<(std::ostream &os, const dummy &p) {
             os << "identity matrix as preconditioner" << std::endl;

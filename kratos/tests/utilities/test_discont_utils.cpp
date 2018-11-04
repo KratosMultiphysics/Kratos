@@ -13,6 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
 #include "geometries/triangle_2d_3.h"
@@ -26,8 +27,10 @@ namespace Kratos
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleHorizontalDiscontUtils, KratosCoreFastSuite)
 		{
+			Model current_model;
+			
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -43,14 +46,14 @@ namespace Kratos
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
 			// Compute the triangle intersection
-			bounded_matrix<double, 3, 2> point_coordinates;
-			bounded_matrix<double, 3, 2> continuous_N_gradients;
+			BoundedMatrix<double, 3, 2> point_coordinates;
+			BoundedMatrix<double, 3, 2> continuous_N_gradients;
 			array_1d<double, 3> nodal_distances;
 			array_1d<double, 3> partition_volumes;
-			bounded_matrix<double, 3, 3> gauss_pt_continuous_N_values;
+			BoundedMatrix<double, 3, 3> gauss_pt_continuous_N_values;
 			array_1d<double, 3> partition_signs;
 			std::vector<Matrix> enriched_N_gradients_values(3);
-			bounded_matrix<double, 3, 3> enriched_N_values;
+			BoundedMatrix<double, 3, 3> enriched_N_values;
 			array_1d<double, 3> edge_areas;
 
 
@@ -144,10 +147,12 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(edge_areas(2), 0.25, 1e-6);
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(TriangleVercitalDiscontUtils, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(TriangleVerticalDiscontUtils, KratosCoreFastSuite)
 		{
+			Model current_model;
+
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -163,14 +168,14 @@ namespace Kratos
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -1.0;
 
 			// Compute the triangle intersection
-			bounded_matrix<double, 3, 2> point_coordinates;
-			bounded_matrix<double, 3, 2> continuous_N_gradients;
+			BoundedMatrix<double, 3, 2> point_coordinates;
+			BoundedMatrix<double, 3, 2> continuous_N_gradients;
 			array_1d<double, 3> nodal_distances;
 			array_1d<double, 3> partition_volumes;
-			bounded_matrix<double, 3, 3> gauss_pt_continuous_N_values;
+			BoundedMatrix<double, 3, 3> gauss_pt_continuous_N_values;
 			array_1d<double, 3> partition_signs;
 			std::vector<Matrix> enriched_N_gradients_values(3);
-			bounded_matrix<double, 3, 3> enriched_N_values;
+			BoundedMatrix<double, 3, 3> enriched_N_values;
 			array_1d<double, 3> edge_areas;
 
 
@@ -266,8 +271,10 @@ namespace Kratos
 
 		KRATOS_TEST_CASE_IN_SUITE(TriangleNoIntersectionDiscontUtils, KratosCoreFastSuite)
 		{
+			Model current_model;
+
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -283,14 +290,14 @@ namespace Kratos
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = 1.0;
 
 			// Compute the triangle intersection
-			bounded_matrix<double, 3, 2> point_coordinates;
-			bounded_matrix<double, 3, 2> continuous_N_gradients;
+			BoundedMatrix<double, 3, 2> point_coordinates;
+			BoundedMatrix<double, 3, 2> continuous_N_gradients;
 			array_1d<double, 3> nodal_distances;
 			array_1d<double, 3> partition_volumes;
-			bounded_matrix<double, 3, 3> gauss_pt_continuous_N_values;
+			BoundedMatrix<double, 3, 3> gauss_pt_continuous_N_values;
 			array_1d<double, 3> partition_signs;
 			std::vector<Matrix> enriched_N_gradients_values(3);
-			bounded_matrix<double, 3, 3> enriched_N_values;
+			BoundedMatrix<double, 3, 3> enriched_N_values;
 			array_1d<double, 3> edge_areas;
 
 

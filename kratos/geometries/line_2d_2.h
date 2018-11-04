@@ -50,7 +50,15 @@ namespace Kratos
 ///@{
 
 /**
-*/
+ * @class Line2D2
+ * @ingroup KratosCore
+ * @brief An two node 2D line geometry with linear shape functions
+ * @details The node ordering corresponds with: 
+ *      0----------1 --> u  
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
+ */
 template<class TPointType>
 
 class Line2D2 : public Geometry<TPointType>
@@ -639,24 +647,30 @@ public:
 
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 2 )
             NumberNodesInFaces.resize(2,false);
+
         // Lines have 1 node in edges/faces
         NumberNodesInFaces[0]=1;
         NumberNodesInFaces[1]=1;
 
     }
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
         if(NodesInFaces.size1() != 2 || NodesInFaces.size2() != 2)
             NodesInFaces.resize(2,2,false);
 
-        NodesInFaces(0,0)=0;//face or other node
+        //face 1
+        NodesInFaces(0,0)=0;//contrary node to the face
         NodesInFaces(1,0)=1;
 
+        //face 2
+        NodesInFaces(0,1)=1;//contrary node to the face
+        NodesInFaces(1,1)=0;
     }
 
     ///@}
@@ -853,14 +867,14 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside(
+    bool IsInside(
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -868,24 +882,105 @@ public:
     {
         PointLocalCoordinates( rResult, rPoint );
 
-        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
-        {
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) ) {
             return true;
         }
 
         return false;
     }
 
+    /** Test the intersection with another geometry
+     *  Test if this geometry intersects with other line_2d_2
+     *
+     * @param  rOtherGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     */
+    bool HasIntersection(const BaseType& rOtherGeometry) override
+    {
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        // We get the local points
+        const TPointType& first_point  = BaseType::GetPoint(0); //p1
+        const TPointType& second_point = BaseType::GetPoint(1); //p2
+
+        // We get the other line's points
+        const TPointType& first_point_other  = *rOtherGeometry(0); //p3
+        const TPointType& second_point_other = *rOtherGeometry(1); //p4
+
+        // parametric coordinate of intersection on current line
+        const double numerator   = ( (first_point[0]-first_point_other[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-first_point_other[1])*(first_point_other[0]-second_point_other[0]) );
+        const double denominator = ( (first_point[0]-second_point[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-second_point[1])*(first_point_other[0]-second_point_other[0]) );
+        if (std::abs(denominator) < tolerance) // this means parallel lines.
+            return false;
+        const double t = numerator  /  denominator;
+
+        return (0.0-tolerance<=t) && (t<=1.0+tolerance);
+    }
+
+    /** Test intersection of the geometry with a box (AABB)
+     * Tests the intersection of the geometry with
+     * a 3D box defined by rLowPoint and rHighPoint
+     *
+     * @param  rLowPoint  Lower point of the box to test the intersection
+     * @param  rHighPoint Higher point of the box to test the intersection
+     * @return            True if the geometry intersects the box, False in any other case.
+     */
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    {
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        // We get the local points
+        const TPointType& first_point  = BaseType::GetPoint(0);
+        const TPointType& second_point = BaseType::GetPoint(1);
+
+        if (    // If one of the point is inside the box then there is an intersection. If none is inside then we check further.
+                ( (first_point[0] >= rLowPoint[0] && first_point[0] <= rHighPoint[0])
+                    && (first_point[1] >= rLowPoint[1] && first_point[1] <= rHighPoint[1]) ) // IF the first point is inside the box
+                ||
+                  ( (second_point[0] >= rLowPoint[0] && second_point[0] <= rHighPoint[0])
+                    && (second_point[1] >= rLowPoint[1] && second_point[1] <= rHighPoint[1]) ) // IF the second point is inside the box
+            )
+            return true;
+
+        const double high_x = rHighPoint[0];
+        const double high_y = rHighPoint[1];
+        const double low_x = rLowPoint[0];
+        const double low_y = rLowPoint[1];
+
+        const double denominator = ( second_point[0] - first_point[0] );
+        const double numerator = (second_point[1] - first_point[1]);
+        const double slope = std::abs(denominator) > tolerance ? std::abs(numerator) > tolerance ? numerator / denominator : 1.0e-12 : 1.0e12;
+
+        // Intersection with left vertical line of the box that is x = low_x
+        const double y_1 = slope*( low_x - first_point[0] ) + first_point[1];
+        if(y_1 >= low_y - tolerance && y_1 <= high_y+tolerance) // If y intersection is between two y bounds there is an intersection
+            return true;
+        // Intersection with right vertical line of the box that is x = high_x
+        const double y_2 = slope*( high_x - first_point[0] ) + first_point[1];
+        if(y_2 >= low_y - tolerance && y_2 <= high_y+tolerance) // If y intersection is between two y bounds there is an intersection
+            return true;
+        // Intersection with bottom horizontal line of the box that is y = low_y
+        const double x_1 = first_point[0] + ( (low_y - first_point[1]) / slope );
+        if(x_1 >= low_x-tolerance && x_1 <= high_x+tolerance) // If x intersection is between two x bounds there is an intersection
+            return true;
+        // Intersection with top horizontal line of the box that is y = high_y
+        const double x_2 = first_point[0] + ( (high_y - first_point[1]) / slope );
+        if(x_2 >= low_x-tolerance && x_2 <= high_x+tolerance) // If x intersection is between two x bounds there is an intersection
+            return true;
+
+
+        return false;
+    }
+
+
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    virtual CoordinatesArrayType& PointLocalCoordinates(
-            CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint
-            ) override
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
     {
         rResult.clear();
 

@@ -1,0 +1,65 @@
+{
+    "problem_data"                     : {
+        "problem_name"           : "manufactured_solution",
+        "model_part_name"        : "MainModelPart",
+        "parallel_type"          : "OpenMP",
+        "echo_level"             : 0,
+        "start_step"             : 0.0,
+        "end_time"               : 0.1
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["VELOCITY","PRESSURE","REACTION","BODY_FORCE"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "model_part_name"        : "MainModelPart",
+        "domain_size"            : 2,
+        "solver_type"                  : "Embedded",
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "ManufacturedSolutionTest/"
+        },
+        "compute_reactions"            : true,
+        "dynamic_tau"                  : 0.001,
+        "maximum_iterations"           : 20,
+        "relative_velocity_tolerance"  : 1e-5,
+        "absolute_velocity_tolerance"  : 1e-7,
+        "relative_pressure_tolerance"  : 1e-5,
+        "absolute_pressure_tolerance"  : 1e-7,
+        "linear_solver_settings"       : {
+            "solver_type"         : "SuperLUSolver"
+        },
+        "volume_model_part_name"       : "Parts_Fluid",
+        "skin_parts"                   : ["Inlet2D_Contour"],
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        }
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [],
+    "gravity"                          : []
+}

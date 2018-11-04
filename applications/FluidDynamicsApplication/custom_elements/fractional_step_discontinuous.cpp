@@ -129,7 +129,7 @@ void FractionalStepDiscontinuous<TDim>::AddMomentumSystemTerms(Matrix& rLHSMatri
 template< unsigned int TDim >
 void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -167,10 +167,10 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         // Evaluate required variables at the integration point
         double Density;
         double pgauss;
-        //        array_1d<double,3> Velocity(3,0.0);
-        //        array_1d<double,3> MeshVelocity(3,0.0);
-        array_1d<double, 3 > BodyForce(3, 0.0);
-        array_1d<double, 3 > MomentumProjection(3, 0.0);
+        //        array_1d<double,3> Velocity = ZeroVector(3);
+        //        array_1d<double,3> MeshVelocity = ZeroVector(3);
+        array_1d<double, 3 > BodyForce = ZeroVector(3);
+        array_1d<double, 3 > MomentumProjection = ZeroVector(3);
 
         this->EvaluateInPoint(Density, DENSITY, N);
         this->EvaluateInPoint(pgauss, PRESSURE, N);
@@ -184,14 +184,14 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         //        double OldPressure;
         //        this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
 
-        array_1d<double, TDim> OldPressureGradient(TDim, 0.0);
+        array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
         this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
 
         //        // For ALE: convective velocity
         //        array_1d<double,3> ConvVel = Velocity - MeshVelocity;
 
         // Stabilization parameters
-        array_1d<double, 3 > ConvVel(3, 0.0);
+        array_1d<double, 3 > ConvVel = ZeroVector(3);
         this->EvaluateConvVelocity(ConvVel, N);
         double Viscosity = this->EffectiveViscosity(Density,N, rDN_DX, ElemSize, rCurrentProcessInfo);
         this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density, Viscosity, rCurrentProcessInfo);
@@ -246,10 +246,10 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
 
             rRightHandSideVector[i] += GaussWeight * RHSi;
         }
-        
+
         //adding a penalization term to ask for the pressure to be zero in average
         double epsilon = 1.0e-15/Viscosity;
-        if (rCurrentProcessInfo.Has(PRESSURE_MASSMATRIX_COEFFICIENT)) 
+        if (rCurrentProcessInfo.Has(PRESSURE_MASSMATRIX_COEFFICIENT))
             epsilon = rCurrentProcessInfo[PRESSURE_MASSMATRIX_COEFFICIENT]/Viscosity;
         for (SizeType i = 0; i < NumNodes; ++i)
         {
@@ -269,7 +269,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         const Vector& distances = this->GetValue(ELEMENTAL_DISTANCES);
 
         double Volume_tot;
-        boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DXcontinuous;
+        BoundedMatrix<double, 4, 3 > DN_DXcontinuous;
         array_1d<double, 4 > Ncontinuous;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 
@@ -419,7 +419,7 @@ void FractionalStepDiscontinuous<TDim>::Calculate(const Variable<array_1d<double
 
             const double Coeff = GaussWeights[g] / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]);
 
-            array_1d<double, TDim> DeltaPressureGradient(TDim, 0.0);
+            array_1d<double, TDim> DeltaPressureGradient = ZeroVector(TDim);
             this->EvaluateGradientInPoint(DeltaPressureGradient, PRESSURE_OLD_IT, rDN_DX);
 
             // Calculate contribution to the gradient term (RHS)
@@ -526,14 +526,14 @@ void FractionalStepDiscontinuous<TDim>::CalculateGeometryData(ShapeFunctionDeriv
 
         if (nneg != 0 && npos != 0)
         {
-            boost::numeric::ublas::bounded_matrix<double, 3 * (TDim - 1), (TDim + 1) > Nenriched;
+            BoundedMatrix<double, 3 * (TDim - 1), (TDim + 1) > Nenriched;
             array_1d<double, (3 * (TDim - 1)) > volumes;
-            boost::numeric::ublas::bounded_matrix<double, (TDim + 1), TDim > coords;
-            boost::numeric::ublas::bounded_matrix<double, 3 * (TDim - 1), (TDim + 1) > Ngauss;
+            BoundedMatrix<double, (TDim + 1), TDim > coords;
+            BoundedMatrix<double, 3 * (TDim - 1), (TDim + 1) > Ngauss;
             array_1d<double, (3 * (TDim - 1)) > signs;
             std::vector< Matrix > gauss_gradients(3 * (TDim - 1));
 
-            boost::numeric::ublas::bounded_matrix<double, (TDim + 1), TDim > DN_DX;
+            BoundedMatrix<double, (TDim + 1), TDim > DN_DX;
             array_1d<double, (TDim + 1) > N;
 
 
@@ -643,7 +643,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
         {
 
             double Volume_tot;
-            boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DXcontinuous;
+            BoundedMatrix<double, 4, 3 > DN_DXcontinuous;
             array_1d<double, 4 > Ncontinuous;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
 
@@ -668,8 +668,12 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
             //compute the block diagonal parallel projection
             //defined as the operator which extracts the part of the velocity
             //tangent to the embedded wall
-            bounded_matrix<double, TDim, TDim> block = IdentityMatrix(TDim, TDim);
-            bounded_matrix<double, TDim, TDim> nn_matrix = outer_prod(normal, normal);
+            #ifdef KRATOS_USE_AMATRIX
+            BoundedMatrix<double, TDim, TDim> block = IdentityMatrix(TDim);
+            #else
+            BoundedMatrix<double, TDim, TDim> block = IdentityMatrix(TDim, TDim);
+            #endif
+            BoundedMatrix<double, TDim, TDim> nn_matrix = outer_prod(normal, normal);
             noalias(block) -= nn_matrix;
             //KRATOS_WATCH(block)
 

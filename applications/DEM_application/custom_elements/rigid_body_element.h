@@ -5,7 +5,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cmath>
 
 // Project includes
@@ -27,28 +27,26 @@
 
 
 namespace Kratos {
-    
-    class RigidBodyElement3D : public Element {
-        
+
+    class KRATOS_API(DEM_APPLICATION) RigidBodyElement3D : public Element {
+
     public:
         /// Pointer definition of RigidBodyElement3D
         KRATOS_CLASS_POINTER_DEFINITION(RigidBodyElement3D);
-       
+
         RigidBodyElement3D();
         RigidBodyElement3D(IndexType NewId, GeometryType::Pointer pGeometry);
         RigidBodyElement3D(IndexType NewId, NodesArrayType const& ThisNodes);
         RigidBodyElement3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
         /// Destructor
         virtual ~RigidBodyElement3D();
-      
+
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info);
         virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
-        virtual void InitializeSolutionStep(ProcessInfo& r_process_info){};
-        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info){};
         virtual void CustomInitialize(ModelPart& rigid_body_element_sub_model_part);
         virtual void SetOrientation(const Quaternion<double> Orientation);
         virtual void UpdateLinearDisplacementAndVelocityOfNodes();
@@ -56,15 +54,14 @@ namespace Kratos {
         virtual void GetRigidBodyElementsForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromTheNodes();
         virtual void ComputeExternalForces(const array_1d<double,3>& gravity);
-        virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
         virtual void SetInitialConditionsToNodes(const array_1d<double,3>& velocity);
-        
+
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
         virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
         virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
 
         virtual double GetMass();
-        
+
         double GetSqrtOfRealMass();
 
         virtual std::string Info() const override
@@ -73,31 +70,31 @@ namespace Kratos {
 	    buffer << "Discrete Element #" << Id();
 	    return buffer.str();
         }
-      
+
         /// Print information about this object.
         virtual void PrintInfo(std::ostream& rOStream) const override
         {
 	    rOStream << "Discrete Element #" << Id();
         }
-      
+
         /// Print object's data.
         virtual void PrintData(std::ostream& rOStream) const override
         {
 	    //mpGeometry->PrintData(rOStream);
         }
-        
+
         std::vector<array_1d<double, 3> > mListOfCoordinates;
         std::vector<Node<3>::Pointer > mListOfNodes;
         DEMIntegrationScheme* mpTranslationalIntegrationScheme;
         DEMIntegrationScheme* mpRotationalIntegrationScheme;
- 
+
     //protected:
 
         std::vector<RigidFace3D*> mListOfRigidFaces;
         array_1d<double,3> mInertias;
-      
+
     private:
-       
+
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override
@@ -111,7 +108,7 @@ namespace Kratos {
         }
 
     }; // Class RigidBodyElement3D
-    
+
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, RigidBodyElement3D& rThis);
 
@@ -124,7 +121,7 @@ namespace Kratos {
 
         return rOStream;
     }
-   
+
 } // namespace Kratos
 
 #endif // KRATOS_RIGID_BODY_ELEMENT_H_INCLUDED  defined

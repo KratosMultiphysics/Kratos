@@ -13,18 +13,17 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-
+#include "custom_utilities/turbulence_statistics_container.h"
 
 namespace Kratos
 {
@@ -33,21 +32,18 @@ namespace Python
 {
 
 
-  void  AddCustomUtilitiesToPython()
+  void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
-	using namespace boost::python;
+    namespace py = pybind11;
 
+    //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-
+    py::class_<Variable<TurbulenceStatisticsContainer::Pointer>,VariableData>(m, "TurbulenceStatisticsContainerVariable")
+    .def("__str__", PrintObject<Variable<TurbulenceStatisticsContainer::Pointer>>)
+    ;
   }
-
-
-
-
 
 }  // namespace Python.
 

@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 
 namespace Kratos
 {
@@ -40,39 +40,62 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicKirchhoffPlaneStrain2D : public ConstitutiveLaw
+/**
+ * @class HyperElasticIsotropicKirchhoffPlaneStrain2D
+ * @ingroup StructuralMechanicsApplication
+ * @brief This law defines an hyperelastic material according to the Saint-Venant–Kirchhoff formulation for 2D-plane strain cases
+ * @details The simplest hyperelastic material model is the Saint Venant–Kirchhoff model which is just an extension of the linear elastic material model to the nonlinear regime. 
+ * More info https://en.wikipedia.org/wiki/Hyperelastic_material#Saint_Venant%E2%80%93Kirchhoff_model
+ * @author Malik Ali Dawi
+ * @author Ruben Zorrilla
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicKirchhoffPlaneStrain2D 
+    : public HyperElasticIsotropicKirchhoff3D
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
-    typedef std::size_t             SizeType;
+    /// The definition of the process info
+    typedef ProcessInfo               ProcessInfoType;
     
-    /**
-     * Counted pointer of HyperElasticIsotropicKirchhoffPlaneStrain2D
-     */
+    /// The definition of the CL base  class
+    typedef ConstitutiveLaw                CLBaseType;
+    
+    /// The definition of the base class
+    typedef HyperElasticIsotropicKirchhoff3D BaseType;
+    
+    /// The definition of the size type
+    typedef std::size_t                      SizeType;
+    
+    /// The definition of the index type
+    typedef std::size_t                      IndexType;
+
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
+    
+    /// Pointer definition of HyperElasticIsotropicKirchhoffPlaneStrain2D
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicKirchhoffPlaneStrain2D );
 
     ///@name Lyfe Cycle
     ///@{
 
     /**
-     * Default constructor.
+     * @brief Default constructor.
      */
     HyperElasticIsotropicKirchhoffPlaneStrain2D();
 
-    ConstitutiveLaw::Pointer Clone() const override;
-
     /**
-     * Copy constructor.
+     * @brief Copy constructor.
      */
     HyperElasticIsotropicKirchhoffPlaneStrain2D (const HyperElasticIsotropicKirchhoffPlaneStrain2D& rOther);
 
     /**
-     * Destructor.
+     * @brief Destructor.
      */
     ~HyperElasticIsotropicKirchhoffPlaneStrain2D() override;
 
@@ -85,111 +108,31 @@ public:
     ///@{
 
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures: The Features of the law
+     * @brief Clone operator 
+     */
+    ConstitutiveLaw::Pointer Clone() const override;
+    
+    /**
+     * @brief This function is designed to be called once to check compatibility with element
+     * @param rFeatures The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * Dimension of the law:
+     * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override {
-        return 2;
+    SizeType WorkingSpaceDimension() override 
+    {
+        return Dimension;
     };
 
     /**
-     * Voigt tensor size:
+     * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override {
-        return 3;
+    SizeType GetStrainSize() override 
+    {
+        return VoigtSize;
     };
-
-    /**
-     * Computes the material response:
-     * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
-
-    /**
-     * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
-
-    /**
-     * Computes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
-
-    /**
-     * Computes the material response:
-     * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues)  override;
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
-
-    /**
-     * calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rMaterialProperties: The properties of the material
-     * @param rElementGeometry: The geometry of the element
-     * @param rCurrentProcessInfo: The current process info instance
-     */
-    int Check(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 
@@ -208,6 +151,38 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief It calculates the constitutive matrix C (PK2)
+     * @param rConstitutiveMatrix The constitutive matrix
+     * @param YoungModulus The Young modulus
+     * @param PoissonCoefficient The Poisson coefficient
+     */
+    void CalculateConstitutiveMatrixPK2(
+        Matrix& rConstitutiveMatrix,
+        const double YoungModulus,
+        const double PoissonCoefficient
+        ) override;
+
+    /**
+     * @brief It calculates the strain vector
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    void CalculateGreenLagrangianStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        ) override;
+
+    /**
+     * @brief Calculates the Almansi strains
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    void CalculateAlmansiStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        ) override;
+    
     ///@}
 
 private:
@@ -222,79 +197,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-     * It calculates the constitutive matrix C (PK2)
-     * @param ConstitutiveMatrix: The constitutive matrix
-     * @param InverseCTensor: The inverse right Cauchy-Green tensor
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
-     */
-    virtual void CalculateConstitutiveMatrixPK2(
-        Matrix& ConstitutiveMatrix,
-        const double& YoungModulus,
-        const double& PoissonCoefficient);
-
-    /**
-     * It calculates the constitutive matrix C (Kirchoff)
-     * @param ConstitutiveMatrix: The constitutive matrix
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
-     */
-    virtual void CalculateConstitutiveMatrixKirchhoff(
-        Matrix& ConstitutiveMatrix,
-        const Matrix& DeformationGradientF,
-        const double& YoungModulus,
-        const double& PoissonCoefficient);
-
-    /**
-     * It calculates the PK2 stress vector
-     * @param InvCTensor: The inverse of the right Cauchy-Green tensor
-     * @param rStressVector: The stress vector in Voigt notation
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
-     */
-    virtual void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
-        const double& YoungModulus,
-        const double& PoissonCoefficient);
-
-    /**
-     * It calculates the Kirchoff stress vector
-     * @param BTensor: The left Cauchy-Green tensor
-     * @param rStressVector: The stress vector in Voigt notation
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
-     */
-    virtual void CalculateKirchhoffStress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
-        const Matrix& DeformationGradientF,
-        const double& YoungModulus,
-        const double& PoissonCoefficient);
-
-    /**
-     * It calculates the strain vector
-     * @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
-     */
-    virtual void CalculateGreenLagrangianStrain(
-        Parameters& rValues,
-        Vector& rStrainVector);
-
-    /**
-     * Calculates the Almansi strains
-     * @param @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
-     */
-    virtual void CalculateAlmansiStrain(
-        Parameters& rValues,
-        Vector& rStrainVector);
 
     ///@}
     ///@name Private Operations
@@ -311,12 +213,14 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+    void save(Serializer& rSerializer) const override 
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
-    void load(Serializer& rSerializer) override {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+    void load(Serializer& rSerializer) override 
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType)
     }
 
 

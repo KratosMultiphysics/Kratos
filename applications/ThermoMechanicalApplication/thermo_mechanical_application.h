@@ -83,7 +83,7 @@ public:
     KratosThermoMechanicalApplication();
 
     /// Destructor.
-    virtual ~KratosThermoMechanicalApplication() {}
+    ~KratosThermoMechanicalApplication() override {}
 
 
     ///@}
@@ -95,7 +95,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -114,20 +114,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosThermoMechanicalApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -207,7 +207,7 @@ private:
     const SUPGConvDiff2D  mSUPGConvDiff2D;
     const SUPGConvDiff3D  mSUPGConvDiff3D;
     const SUPGConv3D  mSUPGConv3D;
-    const SUPGConv2D  mSUPGConv2D;  
+    const SUPGConv2D  mSUPGConv2D;
     const SUPGConvLevelSet  mSUPGConvLevelSet;
 
  //   const Poisson3D mPoisson3D;
@@ -262,6 +262,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_THERMOMECHANICAL_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_THERMOMECHANICAL_APPLICATION_H_INCLUDED  defined
 
 

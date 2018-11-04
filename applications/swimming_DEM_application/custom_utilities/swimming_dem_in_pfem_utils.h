@@ -17,8 +17,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -65,10 +63,10 @@ void TransferWalls(ModelPart& r_source_model_part, ModelPart& r_destination_mode
   r_destination_model_part.Conditions().Sort();
   int id = 1;
   if (r_destination_model_part.Conditions().size()) {
-    id = (r_destination_model_part.ConditionsEnd()-1)->Id() + 1;  
+    id = (r_destination_model_part.ConditionsEnd()-1)->Id() + 1;
   }
 
-  ModelPart::ElementsContainerType& source_elements = r_source_model_part.Elements();    
+  ModelPart::ElementsContainerType& source_elements = r_source_model_part.Elements();
 
   for (unsigned int i = 0; i < source_elements.size(); i++) {
     ModelPart::ElementsContainerType::iterator it = r_source_model_part.ElementsBegin() + i;

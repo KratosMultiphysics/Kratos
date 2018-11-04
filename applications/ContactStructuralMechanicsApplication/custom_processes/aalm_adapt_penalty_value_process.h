@@ -1,4 +1,4 @@
- 
+
 // KRATOS  ___|  |                   |                   |
 //       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
 //             | |   |    |   | (    |   |   | |   (   | |
@@ -29,20 +29,23 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/// Short class definition.
-// This process adapts the penalty following the algorithm (Algorithm 3) from "The adapted augmented Lagrangian method: a new method for the resolution of the mechanical frictional contact problem" Philippe Bussetta · Daniel Marceau ·Jean-Philippe Ponthot
-/** Detail class definition.
+
+/**
+ * @class AALMAdaptPenaltyValueProcess
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief This process is used in order to adapt the penalty in the ALM formulation
+ * @details This process adapts the penalty following the algorithm (Algorithm 3) from "The adapted augmented Lagrangian method: a new method for the resolution of the mechanical frictional contact problem" Philippe Bussetta · Daniel Marceau ·Jean-Philippe Ponthot
+ * @author Vicente Mataix Ferrandiz
 */
-class AALMAdaptPenaltyValueProcess
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AALMAdaptPenaltyValueProcess
     : public Process
 {
 public:
@@ -51,7 +54,7 @@ public:
 
     /// Pointer definition of AALMAdaptPenaltyValueProcess
     KRATOS_CLASS_POINTER_DEFINITION(AALMAdaptPenaltyValueProcess);
-    
+
     // General type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
@@ -66,8 +69,8 @@ public:
     AALMAdaptPenaltyValueProcess( ModelPart& rThisModelPart):mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY;
-        
-        KRATOS_CATCH(""); 
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -89,7 +92,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -98,13 +101,13 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
-    void Execute();
-    
+
+    void Execute() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -188,7 +191,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart;
 
     ///@}
@@ -238,7 +241,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   AALMAdaptPenaltyValueProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const AALMAdaptPenaltyValueProcess& rThis)
@@ -246,7 +249,7 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 

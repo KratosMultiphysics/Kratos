@@ -1,46 +1,13 @@
-/*
-==============================================================================
-KratosIncompressibleFluidApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
-
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Riccardo Rossi
+//
 
 #if !defined(KRATOS_EULERIAN_DIFFUSION_ELEMENT_INCLUDED )
 #define  KRATOS_EULERIAN_DIFFUSION_ELEMENT_INCLUDED
@@ -50,7 +17,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -63,7 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "convection_diffusion_application.h"
 #include "includes/convection_diffusion_settings.h"
 #include "utilities/math_utils.h"
-#include "utilities/geometry_utilities.h" 
+#include "utilities/geometry_utilities.h"
 
 
 
@@ -98,7 +64,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of 
+    /// Counted pointer of
     KRATOS_CLASS_POINTER_DEFINITION(EulerianDiffusionElement);
 
     ///@}
@@ -128,18 +94,21 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY
-        return Element::Pointer(new EulerianDiffusionElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        KRATOS_CATCH("");
+        return Kratos::make_shared<EulerianDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+    
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<EulerianDiffusionElement>(NewId, pGeom, pProperties);
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
-       
+
         if (rLeftHandSideMatrix.size1() != TNumNodes)
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false); //false says not to preserve existing storage!!
 
@@ -161,10 +130,10 @@ public:
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
         //getting data for the given geometry
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
         double Volume;
-        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);        
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 
         //here we get all the variables we will need
         array_1d<double,TNumNodes> phi, phi_old, phi_convected;
@@ -184,7 +153,7 @@ public:
 	//that is, to take the convection into account.
 
         for (unsigned int i = 0; i < TNumNodes; i++)
-        {	
+        {
             phi[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
             phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
 	    if (IsDefinedProjectionVariable)
@@ -192,9 +161,9 @@ public:
 	    else
 		phi_convected[i] = phi_old[i];
 
-                 
+
 //             dphi_dt[i] = dt_inv*(phi[i] - phi_old [i];
-			
+
 			if (IsDefinedDensityVariable)
 			{
 				const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
@@ -202,21 +171,21 @@ public:
 			}
 			else
 				density += 1.0;
-				
+
 			if (IsDefinedSpecificHeatVariableVariable)
 			{
 				const Variable<double>& rSpecificHeatVar = my_settings->GetSpecificHeatVariable();
 				specific_heat += GetGeometry()[i].FastGetSolutionStepValue(rSpecificHeatVar);
 			}
 			else
-				specific_heat += 1.0;			
-				
+				specific_heat += 1.0;
+
 			if (IsDefinedDiffusionVariable)
 			{
 				const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
 				conductivity += GetGeometry()[i].FastGetSolutionStepValue(rDiffusionVar);
 			}
-			//if not, then the conductivity = 0   
+			//if not, then the conductivity = 0
         }
 
         conductivity *= lumping_factor;
@@ -224,25 +193,25 @@ public:
         specific_heat *= lumping_factor;
         //heat_flux *= lumping_factor;
 
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
-            
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
+
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
         for(unsigned int igauss=0; igauss<TDim+1; igauss++)
         {
             noalias(N) = row(Ncontainer,igauss);
             noalias(aux1) += outer_prod(N, N);
         }
-        
+
         //mass matrix
-        noalias(rLeftHandSideMatrix)  = (dt_inv*density*specific_heat)*aux1; 
-        noalias(rRightHandSideVector) = (dt_inv*density*specific_heat)*prod(aux1,phi_convected); 
+        noalias(rLeftHandSideMatrix)  = (dt_inv*density*specific_heat)*aux1;
+        noalias(rRightHandSideVector) = (dt_inv*density*specific_heat)*prod(aux1,phi_convected);
         //adding the diffusion
         noalias(rLeftHandSideMatrix)  += (conductivity *0.5 * prod(DN_DX, trans(DN_DX)))*static_cast<double>(TNumNodes);
         noalias(rRightHandSideVector) -= prod((conductivity *0.5 * prod(DN_DX, trans(DN_DX))),phi_convected)*static_cast<double>(TNumNodes) ;
-        
 
-        
+
+
         //take out the dirichlet part to finish computing the residual
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, phi);
 
@@ -253,19 +222,19 @@ public:
     }
 
 
-    
-    
-    
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+
+
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
     }
-    
-    
-    
-    
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+
+
+
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -282,12 +251,12 @@ public:
         KRATOS_CATCH("")
 
     }
-    
-    
-    
-    
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+
+
+
+
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -322,14 +291,14 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "LevelSetConvectionElementSimplex #";
     }
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -367,22 +336,22 @@ protected:
     ///@{
 
     //gauss points for the 3D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4, 4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
-        Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;	
+        Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
         Ncontainer(2,0) = 0.13819660; Ncontainer(2,1) = 0.13819660; Ncontainer(2,2) = 0.58541020; Ncontainer(2,3) = 0.13819660;
         Ncontainer(3,0) = 0.13819660; Ncontainer(3,1) = 0.13819660; Ncontainer(3,2) = 0.13819660; Ncontainer(3,3) = 0.58541020;
     }
 
     //gauss points for the 2D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
-        Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third; 
-        Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt; 
-        Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt; 
+        Ncontainer(0,0) = one_sixt; Ncontainer(0,1) = one_sixt; Ncontainer(0,2) = two_third;
+        Ncontainer(1,0) = one_sixt; Ncontainer(1,1) = two_third; Ncontainer(1,2) = one_sixt;
+        Ncontainer(2,0) = two_third; Ncontainer(2,1) = one_sixt; Ncontainer(2,2) = one_sixt;
     }
 
 
@@ -423,12 +392,12 @@ private:
     //         {
     //         }
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
@@ -459,7 +428,7 @@ private:
 
     ///@}
 
-}; 
+};
 
 ///@}
 
@@ -490,6 +459,6 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED  defined 
+#endif // KRATOS_EULERIAN_CONVECTION_DIFFUSION_ELEMENT_INCLUDED  defined
 
 

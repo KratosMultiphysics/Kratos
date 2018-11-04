@@ -16,32 +16,29 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/properties.h"
 #include "includes/constitutive_law.h"
-//#include "python/add_mesh_to_python.h"
-#include "python/pointer_vector_set_python_interface.h"
-//#include "python/variable_indexing_python.h"
+#include "python/add_mesh_to_python.h"
+#include "python/containers_interface.h"
 
 namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
+namespace py = pybind11;
 
 typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 
 
-template< class TContainerType, class TVariableType > 
+template< class TContainerType, class TVariableType >
 bool HasHelperFunction_Element(TContainerType& el, const TVariableType& rVar)
 {
     return el.Has(rVar);
@@ -54,6 +51,33 @@ template< class TContainerType, class TVariableType > void SetValueHelperFunctio
     const typename TVariableType::Type& Data)
 {
     el.SetValue(rVar,Data);
+}
+
+void SetArrayValue(
+    Properties& el,
+    const Variable<array_1d<double,3>>& rVar,
+    const std::vector<double> Data)
+{
+    if(Data.size() != 3)
+        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << Data.size() << std::endl;
+
+    array_1d<double,3> tmp;
+    for(unsigned int i=0;i<3; ++i)
+        tmp[i] = Data[i];
+
+    el.SetValue(rVar,tmp);
+}
+
+void SetVectorValue(
+    Properties& el,
+    const Variable<Vector>& rVar,
+    const std::vector<double> Data)
+{
+    Vector tmp(Data.size());
+    for(unsigned int i=0;i<tmp.size(); ++i)
+        tmp[i] = Data[i];
+
+    el.SetValue(rVar,tmp);
 }
 
 template< class TContainerType, class TVariableType >
@@ -82,25 +106,28 @@ typename Properties::TableType& GetTableHelperFunction1( TContainerType& el,
     return el.GetTable(XVar, YVar);
 }
 
-void  AddPropertiesToPython()
+void  AddPropertiesToPython(pybind11::module& m)
 {
-    class_<Properties, Properties::Pointer, bases<Properties::BaseType > >("Properties", init<int>())
+    py::class_<Properties, Properties::Pointer, Properties::BaseType >(m,"Properties")
+    .def(py::init<Kratos::Properties::IndexType>())
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("Has", HasHelperFunction_Element< Properties, Variable< array_1d<double, 6> > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-	
+
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("Has", HasHelperFunction_Element< Properties, Variable< array_1d<double, 3> > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
+//     .def("SetValue", SetArrayValue)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Vector > >)
     .def("Has", HasHelperFunction_Element< Properties, Variable< Vector > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< Vector > >)
+//     .def("SetValue", SetVectorValue)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< Vector > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Matrix > >)
@@ -139,20 +166,21 @@ void  AddPropertiesToPython()
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
 
-	.def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, return_internal_reference<>())
-    .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >, return_internal_reference<>())
-    .def("GetTable", GetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, return_internal_reference<>())
-    .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, return_internal_reference<>())
+	.def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, py::return_value_policy::reference_internal)
+    .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >, py::return_value_policy::reference_internal)
+    .def("GetTable", GetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, py::return_value_policy::reference_internal)
+    .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, py::return_value_policy::reference_internal)
     .def("SetTable", SetTableHelperFunction1< Properties, Variable< double > , Variable<double> >)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >)
     .def("SetTable", SetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-
-	.def(self_ns::str(self))
+    .def("HasVariables", &Properties::HasVariables)
+    .def("HasTables", &Properties::HasTables)
+    .def("IsEmpty", &Properties::IsEmpty)
+    .def("__str__", PrintObject<Properties>)
     ;
 
-    PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>::CreateInterface("PropertiesArray")
-    ;
+    PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
 }
 }  // namespace Python.
 } // Namespace Kratos

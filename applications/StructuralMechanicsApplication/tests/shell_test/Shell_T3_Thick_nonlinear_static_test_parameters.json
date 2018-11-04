@@ -1,22 +1,23 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_T3_Thick_nonlinear_static_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.05,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
+        "model_part_name" : "Structure",
         "echo_level"                         : 0,
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.05
+        },
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "shell_test/Shell_T3_Thick_nonlinear_static_test",
-            "input_file_label" : 0
+            "input_filename"   : "shell_test/Shell_T3_Thick_nonlinear_static_test"
         },
         "material_import_settings"           : {
             "materials_filename" : "shell_test/Shell_T3_Thick_nonlinear_static_test_materials.json"
@@ -32,6 +33,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_hinged_edges","DISPLACEMENT_XY_sym","DISPLACEMENT_YZ_sym","DISPLACEMENT_point_load","ROTATION_XY_sym","ROTATION_YZ_sym"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -106,19 +108,6 @@
         }
     }],
     "loads_process_list"       : [],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "shell_test/Shell_T3_Thick_nonlinear_static_test_materials.json"
-    },
 	"list_other_processes": [
     {
         "python_module"   : "from_json_check_result_process",
@@ -132,7 +121,7 @@
             "time_frequency"   : 0.01
         }
     }
-    ],
+    ]},
     "print_output_process" : [
     {
         "python_module"   : "json_output_process",

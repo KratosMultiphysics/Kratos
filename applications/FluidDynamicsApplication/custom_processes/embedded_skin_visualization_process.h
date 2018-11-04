@@ -54,50 +54,50 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-// struct NodeKeyComparor {
-//     bool operator()(const Node<3>::Pointer& p_lhs, const Node<3>::Pointer& p_rhs) const {
-//         if (p_lhs->Id() != p_rhs->Id()){
-//             return false;
-//         }
-
-//         return true;
-//     }
-// };
-
-// struct NodeKeyHasher {
-//     std::size_t operator()(const Node<3>::Pointer& k) const {
-//         return k->Id();
-//     }
-// };
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// This process saves the intersected elements in a different model part for its visualization.
-/** For a given model part, this process checks if its elements are intersected. If they are, 
- *  calls the corresponding splitting utility to get the subgeometries that conform the splitting
- *  pattern. Then, it saves that subgeometries in another model part for its visualization.
- * 
- *  It has to be mentioned that all the origin model part nodes are kept. Then, the unique nodes
- *  that are created are that ones in the intersection edge points.
- * 
- *  Finally, the values in the visualization model part are computed using the corresponding 
- *  modify shape functions utility. 
+/**
+ * @class EmbeddedSkinVisualizationProcess
+ * @ingroup FluidDynamicsApplication
+ * @brief This process saves the intersected elements in a different model part for its visualization.
+ * @details For a given model part, this process checks if its elements are intersected. If they are,
+ * calls the corresponding splitting utility to get the subgeometries that conform the splitting
+ * pattern. Then, it saves that subgeometries in another model part for its visualization.
+ * It has to be mentioned that all the origin model part nodes are kept. Then, the unique nodes
+ * that are created are that ones in the intersection edge points.
+ * Finally, the values in the visualization model part are computed using the corresponding
+ * modify shape functions utility.
+ * @author Ruben Zorrilla
  */
-class EmbeddedSkinVisualizationProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) EmbeddedSkinVisualizationProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    struct Hash{
+        std::size_t operator()(const std::pair<unsigned int,bool>& k) const{
+            std::size_t h1 = std::hash<unsigned int>()(std::get<0>(k));
+            std::size_t h2 = std::hash<bool>()(std::get<1>(k));
+            return h1 ^ (h2 << 1);
+        }
+    };
+
+    struct KeyEqual{
+        bool operator()(const std::pair<unsigned int,bool>& lhs, const std::pair<unsigned int,bool>& rhs) const{
+            return ((std::get<0>(lhs) == std::get<0>(rhs)) && (std::get<1>(lhs) == std::get<1>(rhs)));
+        }
+    };
+
     /// Pointer definition of EmbeddedSkinVisualizationProcess
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinVisualizationProcess);
 
-    typedef std::unordered_map< 
-        Node<3>::Pointer, 
-        std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >, 
-        SharedPointerHasher<Node<3>::Pointer>, 
+    typedef std::unordered_map<
+        Node<3>::Pointer,
+        std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >,
+        SharedPointerHasher<Node<3>::Pointer>,
         SharedPointerComparator<Node<3>::Pointer> > CutNodesMapType;
 
     ///@}
@@ -105,6 +105,17 @@ public:
     ///@{
 
     /// Constructor.
+
+    /**
+     * @brief Default constructor
+     * @param rModelPart The origin model part
+     * @param rVisualizationModelPart The visualization model part to be filled
+     * @param rVisualizationScalarVariables Scalar variables to be interpolated in the visualization model part
+     * @param rVisualizationVectorVariables Vector variables to be interpolated in the visualization model part
+     * @param rVisualizationComponentVariables Component variables to be interpolated in the visualization model part
+     * @param rShapeFunctions Shape functions type. So far "standard" and "ausas" are implemented
+     * @param ReformModelPartAtEachTimeStep Redo visualization model part at each time step flag
+     */
     EmbeddedSkinVisualizationProcess(
         ModelPart& rModelPart,
         ModelPart& rVisualizationModelPart,
@@ -114,7 +125,12 @@ public:
         const std::string& rShapeFunctions = "standard",
         const bool ReformModelPartAtEachTimeStep = false);
 
-    /// Constructor with Kratos parameters.
+    /**
+     * @brief Constructor with Kratos parameters
+     * @param rModelPart The origin model part
+     * @param rVisualizationModelPart The visualization model part to be filled
+     * @param rParameters Kratos parameters encapsulating the settings
+     */
     EmbeddedSkinVisualizationProcess(
         ModelPart& rModelPart,
         ModelPart& rVisualizationModelPart,
@@ -207,20 +223,81 @@ private:
     ///@name Private Operations
     ///@{
 
-    const bool ElementIsSplit(
+    /**
+     * Computes the interpolation in the new (interface) nodes
+     */
+    void ComputeNewNodesInterpolation();
+
+    /**
+     * Copies the non-interface nodes from the origin model part to the visualization one
+     */
+    void CopyOriginNodes();
+
+    /**
+     * Copies the non-interface nodes values from the origin model part to the visualization one
+     */
+    void CopyOriginNodalValues();
+
+    /**
+     * Creates the new geometrical entities (elements and conditions) in the visualization model part
+     */
+    void CreateVisualizationGeometries();
+
+    /**
+     * Checks wether the element is split or not
+     * @param pGeometry Pointer to the element geometry
+     * @param rNodalDistances Vector containing the distance values
+     * @return True if it is split and false if not
+     */
+    bool ElementIsSplit(
         Geometry<Node<3>>::Pointer pGeometry,
-        Vector& rNodalDistances);
+        const Vector &rNodalDistances);
 
-    const bool ElementIsPositive(
-        Geometry<Node<3>>::Pointer pGeometry);
+    /**
+     * Checks wether the element is in the positive side or not
+     * @param pGeometry Pointer to the element geometry
+     * @param rNodalDistances Vector containing the distance values
+     * @return True if it is split and false if not
+     */
+    bool ElementIsPositive(
+        Geometry<Node<3>>::Pointer pGeometry,
+        const Vector &rNodalDistances);
 
+    /**
+     * Sets the distance values. If Ausas shape functions are used,
+     * it takes the ELEMENTAL_DISTANCES. Otherwise, the nodal ones
+     * @param ItElem Element iterator
+     * @return Vector containing the distance values
+     */
+    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem);
+
+    /**
+     * Sets the the modified shape functions utility according to the
+     * distance values.
+     * @param pGeometry Pointer to the element geometry
+     * @param rNodalDistances Vector containing the distance values
+     * @return A pointer to the modified shape functions utility
+     */
     ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
         const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
+    /**
+     * Sets the new interface condition geometry
+     * @param rOriginGeometryType Interface subgeometry type
+     * @param rNewNodesArray Nodes that conform the new interface geometry
+     * @return A pointer to the new geometry
+     */
     Geometry< Node<3> >::Pointer SetNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray);
+
+    /**
+     * Sets the visualization properties (one for the positive side
+     * and one for the negative)
+     * @return Tuple containing two properties pointers
+     */
+    std::tuple< Properties::Pointer , Properties::Pointer > SetVisualizationProperties();
 
     ///@}
     ///@name Private  Access

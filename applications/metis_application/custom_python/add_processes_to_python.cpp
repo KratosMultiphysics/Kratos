@@ -16,16 +16,12 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/io.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
-#include "python/vector_python_interface.h"
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
 #include "custom_processes/metis_divide_heterogeneous_input_in_memory_process.h"
@@ -41,70 +37,67 @@
 #include "custom_processes/metis_scalar_reorder_process.h"
 #endif
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+void AddProcessesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
-
-
-
-void AddProcessesToPython()
-{
-    using namespace boost::python;
-
-    class_<std::vector<int> >("IndicesVector")
-    .def(vector_indexing_suite<std::vector<int> >())
-    ;
 #ifndef KRATOS_USE_METIS_5
-    class_<MetisScalarReorder, bases<Process> >("MetisScalarReorder",init<ModelPart&>())
-    ;
+    py::class_<MetisScalarReorder, MetisScalarReorder::Pointer, Process>(m,"MetisScalarReorder")
+        .def(py::init<ModelPart&>())
+        ;
 
-    class_<MetisPartitioningProcess, bases<Process> >("MetisPartitioningProcess",
-            init<ModelPart&, IO&, unsigned int, unsigned int>())
-    .def(init<ModelPart&, IO&, unsigned int>())
-    ;
+    py::class_<MetisPartitioningProcess, MetisPartitioningProcess::Pointer, Process>(m,"MetisPartitioningProcess")
+        .def(py::init<ModelPart&, IO&, unsigned int, unsigned int>())
+        .def(py::init<ModelPart&, IO&, unsigned int>())
+        ;
 
-    class_<MetisDivideInputToPartitionsProcess, bases<Process> >("MetisDivideInputToPartitionsProcess",
-            init<IO&, unsigned int, unsigned int>())
-    .def(init<IO&, unsigned int>())
-    ;
+    py::class_<MetisDivideInputToPartitionsProcess, MetisDivideInputToPartitionsProcess::Pointer, Process>(
+        m,"MetisDivideInputToPartitionsProcess")
+        .def(py::init<IO&, unsigned int, unsigned int>())
+        .def(py::init<IO&, unsigned int>())
+        ;
 
-    class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
-            init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
-    .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
-    ;
+    py::class_<MetisContactPartitioningProcess, MetisContactPartitioningProcess::Pointer, MetisPartitioningProcess>(
+        m, "MetisContactPartitioningProcess")
+        .def(py::init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
+        .def(py::init<ModelPart&, IO&, unsigned int, std::vector<int> >())
+        ;
 
-    class_<MetisPartitioningProcessQuadratic, bases<MetisPartitioningProcess> >("MetisPartitioningProcessQuadratic",
-            init<ModelPart&, IO&, unsigned int, unsigned int>())
-    .def(init<ModelPart&, IO&, unsigned int>())
-    ;
+    py::class_<MetisPartitioningProcessQuadratic, MetisPartitioningProcessQuadratic::Pointer, MetisPartitioningProcess >(
+        m, "MetisPartitioningProcessQuadratic")
+        .def(py::init<ModelPart&, IO&, unsigned int, unsigned int>())
+        .def(py::init<ModelPart&, IO&, unsigned int>())
+        ;
 #endif
-    class_<MetisDivideHeterogeneousInputProcess, bases<Process> >("MetisDivideHeterogeneousInputProcess",
-                                                                   init<IO&, unsigned int>())
-            .def(init<IO&, unsigned int, int>())
-            .def(init<IO&, unsigned int, int, int>())
-            .def(init<IO&, unsigned int, int, int, bool>())
-            ;
+    py::class_<MetisDivideHeterogeneousInputProcess, MetisDivideHeterogeneousInputProcess::Pointer, Process>(
+        m,"MetisDivideHeterogeneousInputProcess")
+        .def(py::init<IO&, unsigned int>())
+        .def(py::init<IO&, unsigned int, int>())
+        .def(py::init<IO&, unsigned int, int, int>())
+        .def(py::init<IO&, unsigned int, int, int, bool>())
+        ;
 
-    class_<MetisDivideHeterogeneousInputInMemoryProcess, bases<Process> >("MetisDivideHeterogeneousInputInMemoryProcess",
-                                                                   init<IO&, unsigned int>())
-            .def(init<IO&, unsigned int, int>())
-            .def(init<IO&, unsigned int, int, int>())
-            .def(init<IO&, unsigned int, int, int, bool>())
-            ;
+    py::class_<MetisDivideHeterogeneousInputInMemoryProcess, MetisDivideHeterogeneousInputInMemoryProcess::Pointer, Process>(
+        m,"MetisDivideHeterogeneousInputInMemoryProcess")
+        .def(py::init<IO&, unsigned int>())
+        .def(py::init<IO&, unsigned int, int>())
+        .def(py::init<IO&, unsigned int, int, int>())
+        .def(py::init<IO&, unsigned int, int, int, bool>())
+        ;
 
-    class_<MortonDivideInputToPartitionsProcess, bases<Process> >("MetisDivideNodalInputToPartitionsProcess",
-                                                                   init<IO&, unsigned int, unsigned int>())
-            .def(init<IO&, unsigned int>())
-    ;
+    py::class_<MortonDivideInputToPartitionsProcess, MortonDivideInputToPartitionsProcess::Pointer, Process>(
+        m,"MetisDivideNodalInputToPartitionsProcess")
+        .def(py::init<IO&, std::size_t, int>())
+        .def(py::init<IO&, std::size_t>())
+        ;
 
-    class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
-            init<ModelPart&>())
-    ;
-
+    py::class_<SetMPICommunicatorProcess, SetMPICommunicatorProcess::Pointer, Process>(m,"SetMPICommunicatorProcess")
+        .def(py::init<ModelPart&>())
+        ;
 }
 
 } // namespace Python.
-
 } // Namespace Kratos

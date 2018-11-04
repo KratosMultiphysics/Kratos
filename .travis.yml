@@ -21,14 +21,11 @@ addons:
   apt:
     sources:
       - sourceline: 'ppa:ubuntu-toolchain-r/test'
-      - sourceline: 'ppa:boost-latest/ppa'
     packages:
       - gcc-6
       - g++-6
       - gfortran-6
-      - libboost1.55-dev
-      - libboost-serialization1.55-dev
-      - libboost-python1.55-dev
+      - libboost-dev
       - libblas-dev
       - liblapack-dev
 
@@ -43,7 +40,6 @@ script:
 - make all_unity
 - make runkratos
 - make install/fast
+- cd ../kratos/python_scripts
+- python3 run_tests.py -l small -c python3
 - ccache -s
-
-# - cd ../kratos/python_scripts
-# - python3 run_tests.py -l small

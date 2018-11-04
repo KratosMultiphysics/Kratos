@@ -41,11 +41,16 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
             variable_list.extend([PARTITION_INDEX])
             self.parallel_execution = True
 
-        self.model_part_origin  = self.partition_and_read_model_part("ModelPartNameOrigin",
+        self.model = Model()
+
+        self.model_part_origin = self.partition_and_read_model_part(self.model,
+                                                                     "ModelPartNameOrigin",
                                                                      input_file_origin, 3,
                                                                      variable_list,
                                                                      self.num_processors)
-        self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination",
+
+        self.model_part_destination = self.partition_and_read_model_part(self.model,
+                                                                         "ModelPartNameDestination",
                                                                          input_file_destination, 3,
                                                                          variable_list,
                                                                          self.num_processors)
@@ -216,7 +221,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         self.nearest_neighbor_mapper.UpdateInterface(Mapper.REMESHED)
 
     def TestMapConstantVectorValues(self, output_time):
-        map_value = [15.99, -2.88, 3.123]
+        map_value = Vector([15.99, -2.88, 3.123])
         variable_origin = FORCE
         variable_destination = VELOCITY
 
@@ -278,7 +283,7 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
                          [-x for x in map_value])
 
     def TestInverseMapConstantVectorValues(self, output_time):
-        map_value = [1.4785, -0.88, -33.123]
+        map_value = Vector([1.4785, -0.88, -33.123])
         variable_origin = VELOCITY
         variable_destination = FORCE
 
@@ -453,11 +458,11 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
                                    variable_origin,
                                    self.vector_values_origin_receive)
 
-    def partition_and_read_model_part(self, model_part_name,
+    def partition_and_read_model_part(self, current_model, model_part_name,
                                       model_part_input_file,
                                       size_domain, variable_list,
                                       number_of_partitions):
-        model_part = ModelPart(model_part_name)
+        model_part = current_model.CreateModelPart(model_part_name)
         for variable in variable_list:
             model_part.AddNodalSolutionStepVariable(variable)
 
@@ -514,7 +519,10 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
 
     def SetValuesOnNodesPrescribedExec(self, node, variable, nodal_values):
         nodal_coords = (node.X, node.Y, node.Z)
-        node.SetSolutionStepValue(variable, nodal_values[nodal_coords])
+        value_to_prescribe = nodal_values[nodal_coords]
+        if isinstance(value_to_prescribe, tuple):
+            value_to_prescribe = Vector(list(value_to_prescribe))
+        node.SetSolutionStepValue(variable, value_to_prescribe)
 
 
     def CheckValues(self, model_part, variable, value_mapped):

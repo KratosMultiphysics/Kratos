@@ -1,0 +1,25 @@
+{
+    "material_models_list":[{
+        "python_module"   : "assign_materials_process",
+        "kratos_module"   : "ConstitutiveModelsApplication",
+        "help"            : "This process creates a material and assigns its properties",
+        "process_name"    : "AssignMaterialsProcess",
+	"Parameters"      : {
+	    "model_part_name" : "MaterialDomain",
+	    "properties_id"   : 0,
+            "material_name"   : "rubber",
+	    "constitutive_law": {
+                "name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw.IsochoricNeoHookeanModel"
+            },
+	    "variables": {
+		"C10": 4.00969e10,
+		"BULK_MODULUS": 164.206349206e9
+            },
+	    "tables": {
+	    },
+ 	    "echo_level" : 0
+         }
+      }
+    ]
+
+}

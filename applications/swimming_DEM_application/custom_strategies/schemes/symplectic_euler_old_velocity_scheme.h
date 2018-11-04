@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class SymplecticEulerOldVelocityScheme : public SymplecticEulerScheme {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) SymplecticEulerOldVelocityScheme : public SymplecticEulerScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;

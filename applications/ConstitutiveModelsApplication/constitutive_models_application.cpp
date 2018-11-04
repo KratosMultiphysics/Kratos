@@ -33,33 +33,42 @@ namespace Kratos {
     std::cout << "           |_|  |_\\__,_|\\__\\___|_| |_\\__,_|_|MODELS" << std::endl;
     std::cout << "Initializing KratosConstitutiveModelsApplication... " << std::endl;
 
-    //Register Variables (variables created in constitutive_models_application_variables.cpp) 
+    //Register Variables (variables created in constitutive_models_application_variables.cpp)
+    KRATOS_REGISTER_VARIABLE(TEMPERATURE_VARIABLE)
+    KRATOS_REGISTER_VARIABLE(PRESSURE_VARIABLE)
+    KRATOS_REGISTER_VARIABLE(PROPERTIES_LAYOUT)
 
     //specific constitutive models variables must be REGISTERED here
-    
+
     //Register Constitutive Laws
 
     //outfitted python laws
-    Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
-    
+    //Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
+
     //general constitutive laws
-    
+
     //elasticity laws
-    
+
     //small strain laws
-    Serializer::Register( "SmallStrain3DLaw", mSmallStrain3DLaw );
-    Serializer::Register( "SmallStrainOrthotropic3DLaw", mSmallStrainOrthotropic3DLaw );
-    Serializer::Register( "SmallStrainPlaneStrain2DLaw", mSmallStrainPlaneStrain2DLaw );
-    Serializer::Register( "SmallStrainPlaneStress2DLaw", mSmallStrainPlaneStress2DLaw );
-    Serializer::Register( "SmallStrainAxisymmetric2DLaw", mSmallStrainAxisymmetric2DLaw );
-    
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrain3DLaw", mSmallStrain3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrainOrthotropic3DLaw", mSmallStrainOrthotropic3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrainPlaneStrain2DLaw", mSmallStrainPlaneStrain2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrainPlaneStress2DLaw", mSmallStrainPlaneStress2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrainAxisymmetric2DLaw", mSmallStrainAxisymmetric2DLaw );
+
     //large strain laws
-    Serializer::Register( "LargeStrain3DLaw", mLargeStrain3DLaw );
-    Serializer::Register( "LargeStrainPlaneStrain2DLaw", mLargeStrainPlaneStrain2DLaw );
-    Serializer::Register( "LargeStrainAxisymmetric2DLaw", mLargeStrainAxisymmetric2DLaw );
-    
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "LargeStrain3DLaw", mLargeStrain3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "LargeStrainPlaneStrain2DLaw", mLargeStrainPlaneStrain2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "LargeStrainAxisymmetric2DLaw", mLargeStrainAxisymmetric2DLaw );
+
+    //strain rate laws
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "StrainRate3DLaw", mStrainRate3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "StrainRatePlaneStrain2DLaw", mStrainRatePlaneStrain2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "Newtonian3DLaw", mNewtonian3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "NewtonianPlaneStrain2DLaw", mNewtonianPlaneStrain2DLaw );
+
     //general constitutive models
-    
+
     //elasticity models
     Serializer::Register( "LinearElasticModel", mLinearElasticModel );
     Serializer::Register( "SaintVenantKirchhoffModel", mSaintVenantKirchhoffModel );
@@ -70,21 +79,26 @@ namespace Kratos {
     Serializer::Register( "IsochoricNeoHookeanLnJSquaredModel", mIsochoricNeoHookeanLnJSquaredModel );
     Serializer::Register( "IncompressibleNeoHookeanModel", mIncompressibleNeoHookeanModel );
     Serializer::Register( "BorjaModel", mBorjaModel );
-    
+    Serializer::Register( "OgdenModel", mOgdenModel );
+    Serializer::Register( "IsochoricOgdenModel", mIsochoricOgdenModel );
+    Serializer::Register( "HypoElasticModel", mHypoElasticModel );
+    Serializer::Register( "IsochoricHypoElasticModel", mIsochoricHypoElasticModel );
+    Serializer::Register( "IncompressibleHypoElasticModel", mIncompressibleHypoElasticModel );
+
     //plasticity models
     Serializer::Register( "VonMisesLinearElasticPlasticityModel", mVonMisesLinearElasticPlasticityModel );
     Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
     Serializer::Register( "SimoJ2PlasticityModel", mSimoJ2PlasticityModel );
     Serializer::Register( "CamClayModel", mCamClayModel );
     Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
-	
+
     //yield criteria
     Serializer::Register( "MisesHuberYieldSurface", mMisesHuberYieldSurface );
-    Serializer::Register( "MisesHuberThermalYieldSurface", mMisesHuberThermalYieldSurface );      
+    Serializer::Register( "MisesHuberThermalYieldSurface", mMisesHuberThermalYieldSurface );
     Serializer::Register( "SimoJuYieldSurface", mSimoJuYieldSurface );
     Serializer::Register( "ModifiedMisesYieldSurface", mModifiedMisesYieldSurface );
     Serializer::Register( "ModifiedCamClaySurface", mModifiedCamClayYieldSurface );
-    
+
     //hardening rules
     Serializer::Register( "SimoExponentialHardeningRule", mSimoExponentialHardeningRule );
     Serializer::Register( "SimoLinearHardeningRule", mSimoLinearHardeningRule );
@@ -96,7 +110,7 @@ namespace Kratos {
     Serializer::Register( "CamClayHardeningRule", mCamClayHardeningRule );
     Serializer::Register( "SimoJuExponentialDamageModel", mSimoJuExponentialDamageModel );
     Serializer::Register( "SimoJuModifiedExponentialDamageModel", mSimoJuModifiedExponentialDamageModel );
-      
+
 
   }
 }  // namespace Kratos.

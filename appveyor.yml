@@ -7,7 +7,7 @@ branches:
 version: "{build}"
 
 # set clone depth
-clone_depth: 1
+shallow_clone: true
 
 # Image
 image: Visual Studio 2017
@@ -42,13 +42,17 @@ install:
 
 # Scripts to run before build
 before_build:
+  - cmd: cd C:\projects\kratos\applications\DelaunayMeshingApplication
+  - cmd: mkdir external_modules
+  - cmd: cd external_modules
+  - cmd: curl -L https://github.com/PFEM/tetgen/archive/0f0c1c95388d9a515e2383533c6b4f18524d9e76.zip -o tetgen.zip
+  - cmd: 7z e tetgen.zip -o"tetgen"
   - cmd: cd C:\projects\kratos\cmake_build
   - cmd: .\configure_appveyor_VS2017.bat
 
-# Build
-build:
-  project: C:\projects\kratos\cmake_build\kratosMultiphysics.sln  # path to Visual Studio solution or project
-  parallel: true                                                  # enable MSBuild parallel builds
-  verbosity: minimal                                              # MSBuild verbosity level (quiet|minimal|normal|detailed)
+# Custom build script
+build_script:
+  - cmd: SET preferredToolArchitecture=x64
+  - cmd: MSBuild.exe kratos/all_unity.vcxproj /p:Configuration=Debug /p:Platform="x64"
 
 test: off

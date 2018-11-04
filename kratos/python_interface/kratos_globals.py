@@ -23,8 +23,27 @@ class KratosGlobals:
         print("Kratos Applications base folder:", self.ApplicationsRoot)
         return
 
-    def GetVariable(self,VarName):
+    def GetFlag(self, FlagName):
+        """ This method returns the flag with the given name
 
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        FlagName -- The name of the flag to return
+        """
+        kernel = self.Kernel
+
+        if kernel.HasFlag(FlagName):
+            return kernel.GetFlag(FlagName)
+        else:
+            raise ValueError("\nKernel.GetFlag() ERROR: Flag {0} is unknown. Check that is properly spelled\n".format(FlagName))
+
+    def GetVariable(self, VarName):
+        """ This method returns the variable with the given name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        VarName -- The name of the variable to return
+        """
         kernel = self.Kernel
 
         if kernel.HasDoubleVariable(VarName):
@@ -51,9 +70,14 @@ class KratosGlobals:
             raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is defined but is of unsupported type\n".format(VarName))
         else:
             raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is unknown. Maybe you need to import the application where it is defined?\n".format(VarName))
-        
-    def HasVariable(self,VarName):
 
+    def HasVariable(self, VarName):
+        """ This method checks if a variable exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        VarName -- The name of the variable to check
+        """
         kernel = self.Kernel
 
         if kernel.HasDoubleVariable(VarName):
@@ -78,6 +102,62 @@ class KratosGlobals:
             return True
         elif kernel.HasVariableData(VarName):
             raise True
+        else:
+            return False
+
+    def GetVariableType(self, VarName):
+        """ This method checks the type of variable
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        VarName -- The name of the variable to check
+        """
+        kernel = self.Kernel
+
+        if kernel.HasBoolVariable(VarName):
+            return "Bool"
+        elif kernel.HasIntVariable(VarName):
+            return "Integer"
+        elif kernel.HasUnsignedIntVariable(VarName):
+            return "Unsigned Integer"
+        elif kernel.HasDoubleVariable(VarName):
+            return "Double"
+        elif kernel.HasArrayVariable(VarName):
+            return "Array"
+        elif kernel.HasVectorVariable(VarName):
+            return "Vector"
+        elif kernel.HasMatrixVariable(VarName):
+            return "Matrix"
+        elif kernel.HasStringVariable(VarName):
+            return "String"
+        elif kernel.HasVariableComponent(VarName):
+            return "Component"
+        elif kernel.HasFlagsVariable(VarName):
+            return "Flag"
+        else:
+            return "NONE"
+
+    def GetConstitutiveLaw(self, ConstitutiveLawName):
+        """ This method returns the constitutive law with the given name
+        It throws an error if the ConstitutiveLawName does not exist/is not
+        registered in KratosComponenets. In this case it prints the names
+        of the registeres constitutive laws
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ConstitutiveLawName -- The name of the constitutive law to return
+        """
+        return self.Kernel.GetConstitutiveLaw(ConstitutiveLawName)
+
+    def HasConstitutiveLaw(self, ConstitutiveLawName):
+        """ This method checks if a constitutive law exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ConstitutiveLawName -- The name of the constitutive law to check
+        """
+        if self.Kernel.HasConstitutiveLaw(ConstitutiveLawName):
+            return True
         else:
             return False
 

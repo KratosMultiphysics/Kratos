@@ -12,26 +12,22 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
+#include "includes/define_python.h"
 #include "custom_python/add_mappers_to_python.h"
 #include "custom_utilities/interface_preprocess.h"
 
 namespace Kratos
 {
-
 namespace Python
 {
-void  AddCustomMappersToPython()
+namespace py = pybind11;
+void  AddCustomMappersToPython(pybind11::module& m)
 {
-
-    using namespace boost::python;
-
-    class_<InterfacePreprocessCondition>("InterfacePreprocessCondition", init<ModelPart&>())
+    py::class_<InterfacePreprocessCondition, typename InterfacePreprocessCondition::Pointer>(m, "InterfacePreprocessCondition")
+    .def(py::init<ModelPart&>())
     .def("GenerateInterfacePart2D",&InterfacePreprocessCondition::GenerateInterfacePart<2>)
     .def("GenerateInterfacePart3D",&InterfacePreprocessCondition::GenerateInterfacePart<3>)
     ;

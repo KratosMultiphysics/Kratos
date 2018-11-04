@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -14,21 +14,20 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 
 # Import serial monolithic embedded solver
 import navier_stokes_embedded_solver
+import trilinos_import_model_part_utility
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesMPIEmbeddedMonolithicSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return NavierStokesMPIEmbeddedMonolithicSolver(model, custom_settings)
 
 class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
-    def __init__(self, main_model_part, custom_settings):
 
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
+    def _ValidateSettings(self, settings):
 
-        ## Default settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "trilinos_navier_stokes_embedded_solver",
+        default_settings = KratosMultiphysics.Parameters("""{
+            "solver_type": "Embedded",
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -37,21 +36,21 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "import_mode"         : "from_GID_file",
                 "distance_file_name"  : "distance_file"
             },
-            "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
+            "maximum_iterations": 7,
+            "dynamic_tau": 1.0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "reform_dofs_at_each_step": true,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
+            "reform_dofs_at_each_step": false,
+            "relative_velocity_tolerance": 1e-3,
+            "absolute_velocity_tolerance": 1e-5,
+            "relative_pressure_tolerance": 1e-3,
+            "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
                 "solver_type"                        : "MultiLevelSolver",
                 "max_iteration"                      : 200,
-                "tolerance"                          : 1e-8,
+                "tolerance"                          : 1e-6,
                 "max_levels"                         : 3,
                 "symmetric"                          : false,
                 "reform_preconditioner_at_each_step" : true,
@@ -70,34 +69,29 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
             "move_mesh_flag": false
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+    def __init__(self, model, custom_settings):
+        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
+        super(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver, self).__init__(model,custom_settings)
+
+        self.element_name = "EmbeddedNavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        self.min_buffer_size = 3
+
+        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
+
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
+            self.element_name = "EmbeddedSymbolicNavierStokes"
 
         ## Construct the linear solver
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedNavierStokes3D4N",
-                    "condition_name": "NavierStokesWallCondition3D3N"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedNavierStokes2D3N",
-                    "condition_name": "NavierStokesWallCondition2D2N"
-                }
-                """)
-        else:
-            raise Exception("Domain size is not 2 or 3!!")
-
-        print("Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
 
     def AddVariables(self):
@@ -107,35 +101,32 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
         KratosMPI.mpi.world.barrier()
 
-        if KratosMPI.mpi.rank == 0:
-            print("Variables for the Trilinos monolithic embedded fluid solver added correctly.")
-
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Variables for the Trilinos monolithic embedded fluid solver added correctly.")
 
     def ImportModelPart(self):
+        ## Construct the Trilinos import model part utility
+        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        ## Execute the Metis partitioning and reading
+        self.trilinos_model_part_importer.ImportModelPart()
+        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
 
-        # Construct the Trilinos import model part utility
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-        # Execute the Metis partitioning and reading
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
-        # Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._ExecuteAfterReading()
-        # Call the base class set buffer size
-        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._SetBufferSize()
-        # Construct the communicators
-        TrilinosModelPartImporter.CreateCommunicators()
+        if self._IsPrintingRank():
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","MPI model reading finished.")
 
-        if KratosMPI.mpi.rank == 0:
-            print("Trilinos import model part performed correctly.")
-
+    def PrepareModelPart(self):
+        super(NavierStokesMPIEmbeddedMonolithicSolver,self).PrepareModelPart()
+        ## Construct Trilinos the communicators
+        self.trilinos_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
 
         super(NavierStokesMPIEmbeddedMonolithicSolver, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
-        if KratosMPI.mpi.rank == 0:
-            print("DOFs for the VMS Trilinos fluid solver added correctly.")
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","DOFs for the VMS Trilinos fluid solver added correctly.")
 
 
     def Initialize(self):
@@ -154,6 +145,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                                                                self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                                self.settings["relative_pressure_tolerance"].GetDouble(),
                                                                self.settings["absolute_pressure_tolerance"].GetDouble())
+
+        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         ## Constructing the BDF process (time coefficients update)
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,self.settings["time_order"].GetInt())

@@ -3,15 +3,14 @@
 //
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h" 
+#include "includes/define_python.h"
 
-#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"    
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h" 
-#include "../custom_constitutive/DEM_compound_constitutive_law.h" 
+#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
+#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "../custom_constitutive/DEM_compound_constitutive_law.h"
 
 #include "../custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
@@ -24,13 +23,14 @@
 
 #include "../custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "../custom_constitutive/DEM_D_Linear_confined_CL.h"
-
+#include "../custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
 
 #include "../custom_constitutive/DEM_Dempack_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
+#include "../custom_constitutive/dem_kdem_fissured_rock_cl.h"
 #include "../custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
@@ -43,120 +43,156 @@
 #include "../custom_constitutive/dem_kdem_fabric_2d_cl.h"
 
 namespace Kratos {
+namespace Python {
 
-    namespace Python {
+using namespace pybind11;
 
-        using namespace boost::python;
+void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
-        void AddCustomConstitutiveLawsToPython() {
+    // DEM Discontinuum Constitutive Laws:
 
-            // DEM Discontinuum Constitutive Laws:  
+    class_<DEMDiscontinuumConstitutiveLaw, DEMDiscontinuumConstitutiveLaw::Pointer>(m, "DEMDiscontinuumConstitutiveLaw")
+        .def(init<>())
+        .def("Clone", &DEMDiscontinuumConstitutiveLaw::Clone)
+        .def("SetConstitutiveLawInProperties", &DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties)
+        .def("GetTypeOfLaw", &DEMDiscontinuumConstitutiveLaw::GetTypeOfLaw)
+        ;
 
-            class_< DEMDiscontinuumConstitutiveLaw, DEMDiscontinuumConstitutiveLaw::Pointer, boost::noncopyable > //bases< ConstitutiveLawBaseType >
-                    ("DEMDiscontinuumConstitutiveLaw",
-                    init<>())
-                    .def("Clone", &DEMDiscontinuumConstitutiveLaw::Clone)
-                    .def("SetConstitutiveLawInProperties", &DEMDiscontinuumConstitutiveLaw::SetConstitutiveLawInProperties)
-                    .def("GetTypeOfLaw", &DEMDiscontinuumConstitutiveLaw::GetTypeOfLaw)
-                    ;
+    class_<Variable<DEMDiscontinuumConstitutiveLaw::Pointer>, Variable<DEMDiscontinuumConstitutiveLaw::Pointer>::Pointer>(m, "DEMDiscontinuumConstitutiveLawPointerVariable")
+        .def("__str__", PrintObject<Variable<DEMDiscontinuumConstitutiveLaw::Pointer>>)
+        ;
 
-            class_<Variable<DEMDiscontinuumConstitutiveLaw::Pointer>, boost::noncopyable >("DEMDiscontinuumConstitutiveLawPointerVariable", no_init)
-                    .def(self_ns::str(self))
-                    ;
+    class_<DEM_D_Linear_viscous_Coulomb, DEM_D_Linear_viscous_Coulomb::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_viscous_Coulomb")
+        .def(init<>())
+        ;
 
-            class_<DEM_D_Linear_viscous_Coulomb, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb",init<>())
-                    ;          
+    class_<DEM_D_Bentonite_Colloid, DEM_D_Bentonite_Colloid::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Bentonite_Colloid")
+        .def(init<>())
+        ;
 
-            class_<DEM_D_Bentonite_Colloid, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Bentonite_Colloid",init<>())
-                    ;
-            
-            class_<DEM_D_Linear_viscous_Coulomb2D, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb2D",init<>())
-                    ;  
-          
-            class_<DEM_D_Hertz_viscous_Coulomb, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Hertz_viscous_Coulomb",init<>())
-                    ;
+    class_<DEM_D_Linear_viscous_Coulomb2D, DEM_D_Linear_viscous_Coulomb2D::Pointer, DEM_D_Linear_viscous_Coulomb>(m, "DEM_D_Linear_viscous_Coulomb2D")
+        .def(init<>())
+        ;
 
-            class_<DEM_D_Hertz_viscous_Coulomb2D, bases< DEM_D_Hertz_viscous_Coulomb >, boost::noncopyable >("DEM_D_Hertz_viscous_Coulomb2D",init<>())
-                    ;  
-          
-            class_<DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>, bases< DEM_D_Hertz_viscous_Coulomb >, boost::noncopyable >("DEM_D_Hertz_viscous_Coulomb_JKR", init<>())
-                    ;
+    class_<DEM_D_Hertz_viscous_Coulomb, DEM_D_Hertz_viscous_Coulomb::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Hertz_viscous_Coulomb")
+        .def(init<>())
+        ;
 
-            class_<DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>, bases< DEM_D_Hertz_viscous_Coulomb >, boost::noncopyable >("DEM_D_Hertz_viscous_Coulomb_DMT", init<>())
-                    ;
-            
-            class_<DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb_JKR", init<>())
-                    ;
-            
-            class_<DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_viscous_Coulomb_DMT", init<>())
-                    ;
-                    
-            class_<DEM_D_Linear_Custom_Constants, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_Custom_Constants",init<>())
-                    ;
-                    
-            class_<DEM_D_Hertz_dependent_friction, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Hertz_dependent_friction",init<>())
-                    ;
-            
-            class_<DEM_D_Hertz_confined, bases< DEM_D_Hertz_viscous_Coulomb >, boost::noncopyable >("DEM_D_Hertz_confined",init<>())
-                    ;
-            class_<DEM_D_Linear_confined, bases< DEM_D_Linear_viscous_Coulomb >, boost::noncopyable >("DEM_D_Linear_confined",init<>())
-                    ;
-            class_<DEM_D_Hertz_viscous_Coulomb_Nestle, bases<DEM_D_Hertz_viscous_Coulomb>, boost::noncopyable >("DEM_D_Hertz_viscous_Coulomb_Nestle",init<>())
-                    ;
-            // DEM Continuum Constitutive Laws:  
+    class_<DEM_D_Hertz_viscous_Coulomb2D, DEM_D_Hertz_viscous_Coulomb2D::Pointer, DEM_D_Hertz_viscous_Coulomb>(m, "DEM_D_Hertz_viscous_Coulomb2D")
+        .def(init<>())
+        ;
 
-            class_< DEMContinuumConstitutiveLaw, DEMContinuumConstitutiveLaw::Pointer, boost::noncopyable > //bases< ConstitutiveLawBaseType >
-                    ("DEMContinuumConstitutiveLaw",
-                    init<>())
-                    .def("Clone", &DEMContinuumConstitutiveLaw::Clone)
-                    .def("SetConstitutiveLawInProperties", &DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties)
-                    .def("GetTypeOfLaw", &DEMContinuumConstitutiveLaw::GetTypeOfLaw)
-                    .def("CheckRequirementsOfStressTensor", &DEMContinuumConstitutiveLaw::CheckRequirementsOfStressTensor)
-                    ;
+    class_<DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>, DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>::Pointer, DEM_D_Hertz_viscous_Coulomb>(m, "DEM_D_Hertz_viscous_Coulomb_JKR")
+        .def(init<>())
+        ;
 
-            class_<Variable<DEMContinuumConstitutiveLaw::Pointer>, boost::noncopyable >("DEMContinuumConstitutiveLawPointerVariable", no_init)
-                    .def(self_ns::str(self))
-                    ;
+    class_<DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>, DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>::Pointer, DEM_D_Hertz_viscous_Coulomb>(m, "DEM_D_Hertz_viscous_Coulomb_DMT")
+        .def(init<>())
+        ;
 
-            class_<DEM_Dempack, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_Dempack",init<>())
-                    ;
+    class_<DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>, DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>::Pointer, DEM_D_Linear_viscous_Coulomb>(m, "DEM_D_Linear_viscous_Coulomb_JKR")
+        .def(init<>())
+        ;
 
-            class_<DEM_Dempack2D, bases< DEM_Dempack >, boost::noncopyable >("DEM_Dempack2D",init<>())
-                    ;
+    class_<DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>, DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>::Pointer, DEM_D_Linear_viscous_Coulomb>(m, "DEM_D_Linear_viscous_Coulomb_DMT")
+        .def(init<>())
+        ;
 
-            class_<DEM_Dempack_torque, bases< DEM_Dempack >, boost::noncopyable >("DEM_Dempack_torque",init<>())
-                    ;
+    class_<DEM_D_Linear_Custom_Constants, DEM_D_Linear_Custom_Constants::Pointer, DEM_D_Linear_viscous_Coulomb>(m, "DEM_D_Linear_Custom_Constants")
+        .def(init<>())
+        ;
 
-            class_<DEM_Dempack_dev, bases< DEM_Dempack >, boost::noncopyable >("DEM_Dempack_dev",init<>())
-                    ;
+    class_<DEM_D_Hertz_dependent_friction, DEM_D_Hertz_dependent_friction::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Hertz_dependent_friction")
+        .def(init<>())
+        ;
 
-            class_<DEM_Dempack2D_dev, bases< DEM_Dempack_dev >, boost::noncopyable >("DEM_Dempack2D_dev",init<>())
-                    ;
+    class_<DEM_D_Hertz_confined, DEM_D_Hertz_confined::Pointer, DEM_D_Hertz_viscous_Coulomb>(m, "DEM_D_Hertz_confined")
+        .def(init<>())
+        ;
 
-            class_<DEM_KDEM, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_KDEM",init<>())
-                    ;
+    class_<DEM_D_Linear_confined, DEM_D_Linear_confined::Pointer, DEM_D_Linear_viscous_Coulomb>(m, "DEM_D_Linear_confined")
+        .def(init<>())
+        ;
 
-            class_<DEM_sintering_continuum, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_sintering_continuum", init<>())
-                    ;
-            
-            class_<DEM_KDEMFabric, bases< DEM_KDEM >, boost::noncopyable >("DEM_KDEMFabric",init<>())
-                    ;
-            
-            class_<DEM_KDEM_Rankine, bases< DEM_KDEM >, boost::noncopyable >("DEM_KDEM_Rankine",init<>())
-                    ;
-            
-            class_<DEM_KDEM_Mohr_Coulomb, bases< DEM_KDEM_Rankine >, boost::noncopyable >("DEM_KDEM_Mohr_Coulomb",init<>())
-                    ;
-            
-            class_<DEM_KDEM2D, bases< DEM_KDEM >, boost::noncopyable >("DEM_KDEM2D",init<>())
-                    ;
-            
-            class_<DEM_KDEMFabric2D, bases< DEM_KDEM2D >, boost::noncopyable >("DEM_KDEMFabric2D",init<>())
-                    ;
-            
-            class_<DEM_ExponentialHC, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >("DEM_ExponentialHC",init<>())
-                    ;
-        }
+    class_<DEM_D_Hertz_viscous_Coulomb_Nestle, DEM_D_Hertz_viscous_Coulomb_Nestle::Pointer, DEM_D_Hertz_viscous_Coulomb>(m, "DEM_D_Hertz_viscous_Coulomb_Nestle")
+        .def(init<>())
+        ;
 
-    } // namespace Python.
+    class_<DEM_D_Linear_HighStiffness, DEM_D_Linear_HighStiffness::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_HighStiffness")
+        .def(init<>())
+        ;
+    // DEM Continuum Constitutive Laws:
+
+    // DEM Continuum Constitutive Laws:
+
+    class_<DEMContinuumConstitutiveLaw, DEMContinuumConstitutiveLaw::Pointer>(m, "DEMContinuumConstitutiveLaw")
+        .def(init<>())
+        .def("Clone", &DEMContinuumConstitutiveLaw::Clone)
+        .def("SetConstitutiveLawInProperties", &DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties)
+        .def("GetTypeOfLaw", &DEMContinuumConstitutiveLaw::GetTypeOfLaw)
+        .def("CheckRequirementsOfStressTensor", &DEMContinuumConstitutiveLaw::CheckRequirementsOfStressTensor)
+        ;
+
+    class_<Variable<DEMContinuumConstitutiveLaw::Pointer>, Variable<DEMContinuumConstitutiveLaw::Pointer>::Pointer>(m, "DEMContinuumConstitutiveLawPointerVariable")
+        .def("__str__", PrintObject<Variable<DEMContinuumConstitutiveLaw::Pointer>>)
+        ;
+
+    class_<DEM_Dempack, DEM_Dempack::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_Dempack")
+        .def(init<>())
+        ;
+
+    class_<DEM_Dempack2D, DEM_Dempack2D::Pointer, DEM_Dempack>(m, "DEM_Dempack2D")
+        .def(init<>())
+        ;
+
+    class_<DEM_Dempack_torque, DEM_Dempack_torque::Pointer, DEM_Dempack>(m, "DEM_Dempack_torque")
+        .def(init<>())
+        ;
+
+    class_<DEM_Dempack_dev, DEM_Dempack_dev::Pointer, DEM_Dempack>(m, "DEM_Dempack_dev")
+        .def(init<>())
+        ;
+
+    class_<DEM_Dempack2D_dev, DEM_Dempack2D_dev::Pointer, DEM_Dempack_dev>(m, "DEM_Dempack2D_dev")
+        .def(init<>())
+        ;
+
+    class_<DEM_KDEM, DEM_KDEM::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_KDEM")
+        .def(init<>())
+        ;
+
+    class_<DEM_sintering_continuum, DEM_sintering_continuum::Pointer, DEM_KDEM>(m, "DEM_sintering_continuum")
+        .def(init<>())
+        ;
+
+    class_<DEM_KDEMFabric, DEM_KDEMFabric::Pointer, DEM_KDEM>(m, "DEM_KDEMFabric")
+        .def(init<>())
+        ;
+
+    class_<DEM_KDEM_Rankine, DEM_KDEM_Rankine::Pointer, DEM_KDEM>(m, "DEM_KDEM_Rankine")
+        .def(init<>())
+        ;
+
+    class_<DEM_KDEM_Mohr_Coulomb, DEM_KDEM_Mohr_Coulomb::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Mohr_Coulomb")
+        .def(init<>())
+        ;
+
+    class_<DEM_KDEM_Fissured_Rock_CL, DEM_KDEM_Fissured_Rock_CL::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Fissured_Rock")
+        .def(init<>())
+        ;
+
+    class_<DEM_KDEM2D, DEM_KDEM2D::Pointer, DEM_KDEM>(m, "DEM_KDEM2D")
+        .def(init<>())
+        ;
+
+    class_<DEM_KDEMFabric2D, DEM_KDEMFabric2D::Pointer, DEM_KDEM2D>(m, "DEM_KDEMFabric2D")
+        .def(init<>())
+        ;
+
+    class_<DEM_ExponentialHC, DEM_ExponentialHC::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_ExponentialHC")
+        .def(init<>())
+        ;
+}
+
+} // namespace Python.
 } // namespace Kratos.

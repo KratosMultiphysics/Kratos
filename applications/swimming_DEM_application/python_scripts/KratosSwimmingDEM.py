@@ -10,9 +10,9 @@ import sys
 
 # Kratos
 from KratosMultiphysics import *
+from KratosMultiphysics.ExternalSolversApplication   import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
 class Solution:
@@ -22,16 +22,18 @@ class Solution:
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
+    def __init__(self, model, algorithm = None, varying_parameters = Parameters("{}")):
 
+        self.model = model
         if algorithm == None:
             import swimming_DEM_algorithm
-            self.alg = swimming_DEM_algorithm.Algorithm(varying_parameters)
+            self.alg = swimming_DEM_algorithm.Algorithm(model, varying_parameters)
         else:
-            self.alg = algorithm.Algorithm(varying_parameters)
+            self.alg = algorithm.Algorithm(model, varying_parameters)
 
     def Run(self):
         return self.alg.Run()
 
 if __name__=="__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()

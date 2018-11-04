@@ -12,25 +12,23 @@
 //
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "includes/table.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
 #include "custom_utilities/streamlines_output_3D_utilities.hpp"
 #include "custom_utilities/global_joint_stress_utility.hpp"
 #include "custom_utilities/transfer_selfweight_stress_utility.hpp"
 #include "custom_utilities/construction_utility.hpp"
+#include "custom_utilities/mapping_variables_2D_utilities.hpp"
+#include "custom_utilities/mapping_variables_3D_utilities.hpp"
 
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
@@ -41,6 +39,15 @@ void AssignTimeActivation(
         int phase, double time_activation)
 {
     rThisUtil.AssignTimeActivation(ThermalSubModelPartName, phase, time_activation);
+}
+
+inline
+void AssignInitialTemperature(
+        ConstructionUtility& rThisUtil,
+        std::string ThermalSubModelPartName,
+        int phase, double initial_temperature)
+{
+    rThisUtil.AssignInitialTemperature(ThermalSubModelPartName, phase, initial_temperature);
 }
 
 inline
@@ -56,7 +63,7 @@ void InitializeSolutionStep(
 
 inline
 void ActiveHeatFluxNoorzai(
-        ConstructionUtility& rThisUtil,    
+        ConstructionUtility& rThisUtil,
         Parameters& NoorzaiParameters)
 {
     rThisUtil.ActiveHeatFluxNoorzai(NoorzaiParameters);
@@ -64,41 +71,58 @@ void ActiveHeatFluxNoorzai(
 
 inline
 void ActiveHeatFluxAzenha(
-        ConstructionUtility& rThisUtil,    
+        ConstructionUtility& rThisUtil,
         Parameters& AzenhaParameters)
 {
     rThisUtil.ActiveHeatFluxAzenha(AzenhaParameters);
 }
 
 
-void  AddCustomUtilitiesToPython() 
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    typedef Table<double,double> TableType;  
-    
-    using namespace boost::python;
-    
-    class_< StreamlinesOutput3DUtilities > ("StreamlinesOutput3DUtilities", init<>())
-    .def("ComputeOutputStep",&StreamlinesOutput3DUtilities::ComputeOutputStep)
-    ;
-  
-    class_< GlobalJointStressUtility > ("GlobalJointStressUtility", init<ModelPart&, Parameters>())
-    .def("ComputingGlobalStress",&GlobalJointStressUtility::ComputingGlobalStress)
-    ;
+    using namespace pybind11;
 
-    class_< TransferSelfweightStressUtility > ("TransferSelfweightStressUtility", init<>())
+    typedef Table<double,double> TableType;
+
+    class_< StreamlinesOutput3DUtilities >
+    (m, "StreamlinesOutput3DUtilities")
+    .def(init<>())
+    .def("ComputeOutputStep",&StreamlinesOutput3DUtilities::ComputeOutputStep);
+
+    class_< GlobalJointStressUtility >
+    (m, "GlobalJointStressUtility")
+    .def(init<ModelPart&, Parameters>())
+    .def("ComputingGlobalStress",&GlobalJointStressUtility::ComputingGlobalStress);
+
+    class_< TransferSelfweightStressUtility >
+    (m ,"TransferSelfweightStressUtility")
+    .def(init<>())
     .def("Transfer",&TransferSelfweightStressUtility::Transfer)
-    ;
-    
-    class_< ConstructionUtility > ("ConstructionUtility", init<ModelPart&, ModelPart&, TableType&, Parameters&>())
+    .def("TransferInitialStress",&TransferSelfweightStressUtility::TransferInitialStress);
+
+    class_< ConstructionUtility >
+    (m, "ConstructionUtility")
+    .def(init<ModelPart&, ModelPart&, TableType&, Parameters&>())
     .def("Initialize",&ConstructionUtility::Initialize)
-    .def("AssignTimeActivation", AssignTimeActivation)    
+    .def("AssignTimeActivation", AssignTimeActivation)
+    .def("AssignInitialTemperature", AssignInitialTemperature)
     .def("InitializeSolutionStep",InitializeSolutionStep)
     .def("SearchingFluxes",&ConstructionUtility::SearchingFluxes)
-    .def("ActiveHeatFluxNoorzai",ActiveHeatFluxNoorzai)    
-    .def("ActiveHeatFluxAzenha",ActiveHeatFluxAzenha)       
-    .def("AfterOutputStep",&ConstructionUtility::AfterOutputStep)
-    ;
+    .def("ActiveHeatFluxNoorzai",ActiveHeatFluxNoorzai)
+    .def("ActiveHeatFluxAzenha",ActiveHeatFluxAzenha)
+    .def("AfterOutputStep",&ConstructionUtility::AfterOutputStep);
 
+    class_< MappingVariables2DUtilities >
+    (m, "MappingVariables2DUtilities")
+    .def(init<>())
+    .def("MappingThermalModelParts",&MappingVariables2DUtilities::MappingThermalModelParts)
+    .def("MappingMechanicalModelParts",&MappingVariables2DUtilities::MappingMechanicalModelParts);
+
+    class_< MappingVariables3DUtilities >
+    (m, "MappingVariables3DUtilities")
+    .def(init<>())
+    .def("MappingThermalModelParts",&MappingVariables3DUtilities::MappingThermalModelParts)
+    .def("MappingMechanicalModelParts",&MappingVariables3DUtilities::MappingMechanicalModelParts);
 }
 
 }  // namespace Python.

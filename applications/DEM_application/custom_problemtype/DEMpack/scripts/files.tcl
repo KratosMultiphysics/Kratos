@@ -163,7 +163,7 @@ proc ::kfiles::LoadSPD {filename} {
 }
 
 proc ::kfiles::SaveSPD {filename} {
-    global KPriv;
+    global KPriv
     
     #Actualizamos los posibles cambios que haya habido en el ".spd"
     if {[info exists ::KMProps::WinPath]} {

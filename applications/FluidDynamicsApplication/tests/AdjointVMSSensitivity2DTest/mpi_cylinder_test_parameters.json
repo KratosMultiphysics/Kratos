@@ -1,0 +1,198 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "mpi_cylinder_test",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "start_time"      : 0.0,
+        "parallel_type"   : "MPI",
+        "echo_level"      : 0,
+        "end_time"        : 0.095
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                "WriteConditionsFlag"   : "WriteElementsOnly",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : false,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["VELOCITY","PRESSURE"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "Monolithic",
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
+        },
+        "maximum_iterations"           : 10,
+        "dynamic_tau"                  : 1.0,
+        "oss_switch"                   : 0,
+        "echo_level"                   : 0,
+        "consider_periodic_conditions" : false,
+        "compute_reactions"            : false,
+        "reform_dofs_at_each_step"     : false,
+        "alpha"                        : -0.3,
+        "relative_velocity_tolerance"  : 1e-3,
+        "absolute_velocity_tolerance"  : 1e-5,
+        "relative_pressure_tolerance"  : 1e-3,
+        "absolute_pressure_tolerance"  : 1e-5,
+        "volume_model_part_name"       : "Parts_Fluid",
+        "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        }
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Inlet2D_Inlet",
+            "variable_name"   : "VELOCITY",
+            "value"           : [0.0001, 0.0, 0.0]
+        }
+    },{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Outlet2D_Outlet",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0
+        }
+    },{
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_Wall"
+        }
+    },{
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_Cylinder"
+        }
+    }],
+    "gravity"                          : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Fluid",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"         : 0.0,
+            "constrained"     : false,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
+    "auxiliar_process_list" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "partitioned_single_mesh_primal_output_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+            "model_part_name" : "MainModelPart",
+            "file_settings" : {
+                "file_access_mode" : "truncate",
+                "file_driver" : "mpio"
+            },
+            "model_part_output_settings" : {},
+            "nodal_solution_step_data_settings" : {
+                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+            },
+            "element_data_value_settings" : {
+                "list_of_variables": []
+            },
+            "output_time_settings" : {
+                "output_step_frequency": 1,
+                "file_name":     "primal"
+            }
+        }
+    },{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.015717, 0.0043484, 0.0],
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_settings": {
+                "file_name"  : "mpi_cylinder_test_probe1.dat",
+                "folder_name": "AdjointVMSSensitivity2DTest",
+                "write_buffer_size" : 1
+            },
+            "output_variables" : [
+                "VELOCITY_X",
+                "VELOCITY_Y",
+                "PRESSURE"]
+        }
+     },{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.02601,-0.0018744, 0.0],
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_settings": {
+                "file_name"  : "mpi_cylinder_test_probe2.dat",
+                "folder_name": "AdjointVMSSensitivity2DTest",
+                "write_buffer_size" : 1
+            },
+            "output_variables" : [
+                "VELOCITY_X",
+                "VELOCITY_Y",
+                "PRESSURE"]
+        }
+    },{
+        "python_module"   : "compare_two_files_check_process_mpi",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoFilesCheckProcessMPI",
+        "Parameters" :{
+            "output_file_name"    : "AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe1.dat",
+            "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe1_ref.dat",
+            "comparison_type"     : "dat_file",
+            "decimal_places"      : 6,
+            "remove_output_file"  : false
+        }
+    },{
+        "python_module"   : "compare_two_files_check_process_mpi",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoFilesCheckProcessMPI",
+        "Parameters" :{
+            "output_file_name"    : "AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe2.dat",
+            "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe2_ref.dat",
+            "comparison_type"     : "dat_file",
+            "decimal_places"      : 6,
+            "remove_output_file"  : false
+        }
+    }]
+}

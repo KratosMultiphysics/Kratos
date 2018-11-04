@@ -116,7 +116,7 @@ void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofLis
 * @param data Gauss pt. data structure
 */
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs_gauss,
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs_gauss,
 const ConditionDataStruct& data)
 {
     const unsigned int LocalSize = TDim+1;

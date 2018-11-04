@@ -1,17 +1,19 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: pooyan $
-//   Date:                $Date: 2006-11-27 16:07:42 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi, Ruben Zorrilla
 //
 //
-
 
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
@@ -28,31 +30,30 @@ namespace Kratos
 
 namespace Python
 {
-void  AddMappersToPython()
+void AddMappersToPython(pybind11::module &m)
 {
 
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<SharedPointsMapper >("SharedPointsMapper",
-                                init< const ModelPart::NodesContainerType&, const  ModelPart::NodesContainerType&, double>())
-    .def("ScalarMap",&SharedPointsMapper::ScalarMap)
-    .def("InverseScalarMap",&SharedPointsMapper::InverseScalarMap)
-    .def("VectorMap",&SharedPointsMapper::VectorMap)
-    .def("InverseVectorMap",&SharedPointsMapper::InverseVectorMap)
-    ;
+    class_<SharedPointsMapper>(m,"SharedPointsMapper")
+        .def(init<const ModelPart::NodesContainerType &, const ModelPart::NodesContainerType &, double>())
+        .def("ScalarMap", &SharedPointsMapper::ScalarMap)
+        .def("InverseScalarMap", &SharedPointsMapper::InverseScalarMap)
+        .def("VectorMap", &SharedPointsMapper::VectorMap)
+        .def("InverseVectorMap", &SharedPointsMapper::InverseVectorMap);
 
-    class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init< ModelPart&, ModelPart&>())
-    .def("FindNeighbours",&AdvancedNMPointsMapper::FindNeighbours)
-    .def("ScalarToNormalVectorMap",&AdvancedNMPointsMapper::ScalarToNormalVectorMap)
-    .def("NormalVectorToScalarMap",&AdvancedNMPointsMapper::NormalVectorToScalarMap)
-    .def("ScalarMap",&AdvancedNMPointsMapper::ScalarMap)
-    .def("VectorMap",&AdvancedNMPointsMapper::VectorMap)
-    ;
+    class_<AdvancedNMPointsMapper>(m,"AdvancedNMPointsMapper")
+        .def(init<ModelPart &, ModelPart &>())
+        .def("FindNeighbours", &AdvancedNMPointsMapper::FindNeighbours)
+        .def("ScalarToNormalVectorMap", &AdvancedNMPointsMapper::ScalarToNormalVectorMap)
+        .def("NormalVectorToScalarMap", &AdvancedNMPointsMapper::NormalVectorToScalarMap)
+        .def("ScalarMap", &AdvancedNMPointsMapper::ScalarMap)
+        .def("VectorMap", &AdvancedNMPointsMapper::VectorMap);
 
-    class_<InterfacePreprocess>("InterfacePreprocess", init<>())
-    .def("GenerateTriangleInterfacePart",&InterfacePreprocess::GenerateTriangleInterfacePart)
-    .def("GenerateLineInterfacePart",&InterfacePreprocess::GenerateLineInterfacePart)
-    ;
+    class_<InterfacePreprocess>(m,"InterfacePreprocess")
+        .def(init<>())
+        .def("GenerateTriangleInterfacePart", &InterfacePreprocess::GenerateTriangleInterfacePart)
+        .def("GenerateLineInterfacePart", &InterfacePreprocess::GenerateLineInterfacePart);
 }
 
 }  // namespace Python.

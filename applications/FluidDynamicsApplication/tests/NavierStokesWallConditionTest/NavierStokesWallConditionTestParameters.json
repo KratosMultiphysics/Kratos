@@ -1,0 +1,134 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "test_wall_condition",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 10.0
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["VELOCITY","PRESSURE","REACTION","EXTERNAL_PRESSURE"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "Embedded",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "test_wall_condition"
+        },
+        "compute_reactions"            : true,
+        "dynamic_tau"                  : 0.01,
+        "relative_velocity_tolerance"  : 1e-3,
+        "absolute_velocity_tolerance"  : 1e-5,
+        "relative_pressure_tolerance"  : 1e-3,
+        "absolute_pressure_tolerance"  : 1e-5,
+        "linear_solver_settings"       : {
+            "solver_type"         : "SuperLUSolver"
+        },
+        "volume_model_part_name"       : "Parts_Fluid",
+        "skin_parts"                   : ["Outlet2D_Inlet","Outlet2D_Outlet","Slip2D_Slip","NoSlip2D_NoSlip"],
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 1.0
+        }
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Outlet2D_Inlet",
+            "variable_name"   : "EXTERNAL_PRESSURE",
+            "constrained"     : false,
+            "interval"        : [0.0,"End"],
+            "value"           : 1000.0
+        }
+    },{
+        "python_module" : "apply_outlet_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyOutletProcess",
+        "Parameters"    : {
+            "model_part_name" : "Outlet2D_Outlet",
+            "variable_name"   : "PRESSURE",
+            "constrained"     : true,
+            "interval"        : [0.0,"End"],
+            "value"           : 0.0
+        }
+    },{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignScalarVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Parts_Fluid",
+            "variable_name"   : "DISTANCE",
+            "constrained"     : false,
+            "value"           : 1.0
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Outlet2D_Inlet",
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, null],
+            "constrained"     : [false,true,false]
+        }
+    },{
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplySlipProcess",
+        "Parameters"    : {
+            "model_part_name" : "Slip2D_Slip"
+        }
+    },{
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_NoSlip"
+        }
+    }],
+    "gravity"                          : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
+            "model_part_name" : "Parts_Fluid",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"         : 0.0,
+            "constrained"     : false,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
+    "auxiliar_process_list"            : []
+}

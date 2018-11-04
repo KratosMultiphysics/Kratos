@@ -51,7 +51,6 @@
 #include <omp.h>
 #include <boost/timer.hpp>
 
-#include "boost/smart_ptr.hpp"
 // #include "utilities/superlu_interface.h"
 #include "includes/ublas_interface.h"
 // #include "external_includes/bindings/superlu/superlu.hpp"

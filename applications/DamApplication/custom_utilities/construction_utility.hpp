@@ -14,12 +14,12 @@
 #if !defined(KRATOS_CONSTRUCTION_UTILITIES)
 #define KRATOS_CONSTRUCTION_UTILITIES
 
+// System includes
 #include <cmath>
 
 // Project includes
-#include "includes/kratos_flags.h"
+#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "processes/process.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
 #include "includes/element.h"
@@ -46,7 +46,6 @@ class ConstructionUtility
         KRATOS_TRY
 
         // Getting values
-        mMeshId = rParameters["mesh_id"].GetInt();
         mGravityDirection = rParameters["gravity_direction"].GetString();
         mReferenceCoordinate = rParameters["reservoir_bottom_coordinate_in_gravity_direction"].GetDouble();
         mHeight = rParameters["height_dam"].GetDouble();
@@ -54,9 +53,20 @@ class ConstructionUtility
         mSourceType = rParameters["source_type"].GetString();
         mAging = rParameters["aging"].GetBool();
         mH0 = rParameters["h_0"].GetDouble();
+        mActivateSoilPart = rParameters["activate_soil_part"].GetBool();
+        mActivateExistingPart = rParameters["activate_existing_part"].GetBool();
         mTimeUnitConverter = mrMechanicalModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
-        mMechanicalSoilPart = rParameters["mechanical_soil_part"].GetString();
-        mThermalSoilPart = rParameters["thermal_soil_part"].GetString();
+
+        if (mActivateSoilPart == true)
+        {
+            mMechanicalSoilPart = rParameters["mechanical_soil_part"].GetString();
+            mThermalSoilPart = rParameters["thermal_soil_part"].GetString();
+        }
+        if (mActivateExistingPart == true)
+        {
+            mMechanicalExistingPart = rParameters["mechanical_existing_part"].GetString();
+            mThermalExistingPart = rParameters["thermal_existing_part"].GetString();
+        }
 
         if (mSourceType == "NonAdiabatic")
             mAlphaInitial = rParameters["alpha_initial"].GetDouble();
@@ -78,11 +88,11 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
-        const int nnodes = mrMechanicalModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nelements = mrMechanicalModelPart.GetMesh(0).Elements().size();
+        const int nnodes = mrMechanicalModelPart.GetMesh(0).Nodes().size();
 
-        mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(mMeshId).Conditions().size();
-        mThermalLastCondition = mrThermalModelPart.GetMesh(mMeshId).Conditions().size();
+        mMechanicalLastCondition = mrMechanicalModelPart.GetMesh(0).Conditions().size();
+        mThermalLastCondition = mrThermalModelPart.GetMesh(0).Conditions().size();
 
         if (nelements != 0)
         {
@@ -110,33 +120,68 @@ class ConstructionUtility
             }
         }
 
-        // Activation of the soil ( User must specify the soil part through the interface)
-        const int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();
-        const int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
-
-        if (soil_nelements != 0)
+        // Activation of the existing parts, either the soil or the already built dam ( User must specify each part through the interface)
+        if (mActivateSoilPart == true)
         {
-            ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).ElementsBegin();
-            ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).ElementsBegin();
-            mNumNode = el_begin->GetGeometry().PointsNumber();
+            const int soil_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Elements().size();
+            const int soil_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).Nodes().size();
 
-#pragma omp parallel for
-            for (int k = 0; k < soil_nelements; ++k)
+            if (soil_nelements != 0)
             {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
-                ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
-                it->Set(ACTIVE, true);
-                it_thermal->Set(ACTIVE, true);
+                ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(mMechanicalSoilPart).ElementsBegin();
+                ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).ElementsBegin();
+                mNumNode = el_begin->GetGeometry().PointsNumber();
+
+    #pragma omp parallel for
+                for (int k = 0; k < soil_nelements; ++k)
+                {
+                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                    ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+                    it->Set(ACTIVE, true);
+                    it_thermal->Set(ACTIVE, true);
+                }
+
+                // Same nodes for both computing model part
+                ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).NodesBegin();
+    #pragma omp parallel for
+                for (int i = 0; i < soil_nnodes; ++i)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    it->Set(ACTIVE, true);
+                    it->Set(SOLID, true);
+                }
             }
+        }
 
-            // Same nodes for both computing model part
-            ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).NodesBegin();
-#pragma omp parallel for
-            for (int i = 0; i < soil_nnodes; ++i)
+        if (mActivateExistingPart == true)
+        {
+            const int existing_nelements = mrMechanicalModelPart.GetSubModelPart(mMechanicalExistingPart).Elements().size();
+            const int existing_nnodes = mrMechanicalModelPart.GetSubModelPart(mMechanicalExistingPart).Nodes().size();
+
+            if (existing_nelements != 0)
             {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->Set(ACTIVE, true);
-                it->Set(SOLID, true);
+                ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(mMechanicalExistingPart).ElementsBegin();
+                ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(mThermalExistingPart).ElementsBegin();
+                mNumNode = el_begin->GetGeometry().PointsNumber();
+
+    #pragma omp parallel for
+                for (int k = 0; k < existing_nelements; ++k)
+                {
+                    ModelPart::ElementsContainerType::iterator it = el_begin + k;
+                    ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
+                    it->Set(ACTIVE, true);
+                    it_thermal->Set(ACTIVE, true);
+                }
+
+                // Same nodes for both computing model part
+                ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalExistingPart).NodesBegin();
+    #pragma omp parallel for
+                for (int i = 0; i < existing_nnodes; ++i)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    it->Set(ACTIVE, true);
+                    it->Set(SOLID, true);
+                }
             }
         }
 
@@ -202,12 +247,52 @@ class ConstructionUtility
                     const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
                     for (unsigned int i = 0; i < number_of_points; ++i)
                     {
-                        it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation;
+                        if (it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION)==0)
+                        {
+                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation * mTimeUnitConverter;
+                        }
                     }
                 }
             }
         }
 
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void AssignInitialTemperature(std::string ThermalSubModelPartName, int phase, double initial_temperature)
+    {
+        KRATOS_TRY;
+
+        const int nnodes = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).GetMesh(0).Nodes().size();
+
+        int direction;
+        if (mGravityDirection == "X")
+            direction = 0;
+        else if (mGravityDirection == "Y")
+            direction = 1;
+        else
+            direction = 2;
+
+        if (nnodes != 0)
+        {
+            ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).GetMesh(0).NodesBegin();
+
+            double current_height = mReferenceCoordinate + (mHeight / mPhases) * (phase);
+            double previous_height = mReferenceCoordinate + (mHeight / mPhases) * (phase - 1);
+
+            for (int i = 0; i < nnodes; ++i)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                double coordinate_gravity_direction = it->Coordinates()[direction];
+
+                if ((coordinate_gravity_direction > previous_height) && (coordinate_gravity_direction <= (current_height+0.1)) && (it->Is(SOLID) == false))
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = initial_temperature;
+                }
+            }
+        }
         KRATOS_CATCH("");
     }
 
@@ -266,7 +351,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const int nelements = mrThermalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrThermalModelPart.GetMesh(0).Elements().size();
         const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::vector<std::size_t> ConditionNodeIds(Dim);
         if (mNumNode == 8)
@@ -363,7 +448,7 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-        const int nelements = mrMechanicalModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrMechanicalModelPart.GetMesh(0).Elements().size();
         const unsigned int Dim = mrMechanicalModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::vector<std::size_t> ConditionNodeIds(Dim);
         if (mNumNode == 8)
@@ -519,7 +604,7 @@ class ConstructionUtility
             double c_coef = AzenhaParameters["C"].GetDouble();
             double d_coef = AzenhaParameters["D"].GetDouble();
 
-            // Tempotal variables
+            // Temporal variables
             double time = mrThermalModelPart.GetProcessInfo()[TIME];
             double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
@@ -568,11 +653,14 @@ class ConstructionUtility
     ModelPart &mrMechanicalModelPart;
     ModelPart &mrThermalModelPart;
     int mNumNode;
-    std::size_t mMeshId;
     std::string mGravityDirection;
     std::string mMechanicalSoilPart;
     std::string mThermalSoilPart;
+    std::string mMechanicalExistingPart;
+    std::string mThermalExistingPart;
     std::string mSourceType;
+    bool mActivateSoilPart;
+    bool mActivateExistingPart;
     double mReferenceCoordinate;
     double mHeight;
     int mPhases;
@@ -647,12 +735,12 @@ class ConstructionUtility
         KRATOS_TRY;
 
         const unsigned int size = ConditionNodeIds.size();
-        const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
-        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
+        const unsigned int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(0).NodesBegin();
 
         double time = mrThermalModelPart.GetProcessInfo()[TIME];
         time = time / mTimeUnitConverter;
-        double ambient_temp = mrTableAmbientTemp.GetValue(time - 1);
+        double ambient_temp = mrTableAmbientTemp.GetValue(time);
 
         if (size != 0)
         {
@@ -662,7 +750,7 @@ class ConstructionUtility
                 {
                     ModelPart::NodesContainerType::iterator it_thermal = it_begin_thermal + i;
 
-                    if (it_thermal->Id() == ConditionNodeIds[j])
+                    if ((it_thermal->Id() == ConditionNodeIds[j]) && (it_thermal->Is(SOLID) == false))
                     {
                         const double temp_current = it_thermal->FastGetSolutionStepValue(TEMPERATURE);
                         const double heat_flux = mH0 * (ambient_temp - temp_current);
@@ -682,8 +770,8 @@ class ConstructionUtility
         KRATOS_TRY;
 
         const unsigned int size = ConditionNodeIds.size();
-        const unsigned int nnodes = mrThermalModelPart.GetMesh(mMeshId).Nodes().size();
-        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(mMeshId).NodesBegin();
+        const unsigned int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+        ModelPart::NodesContainerType::iterator it_begin_thermal = mrThermalModelPart.GetMesh(0).NodesBegin();
 
         if (size != 0)
         {

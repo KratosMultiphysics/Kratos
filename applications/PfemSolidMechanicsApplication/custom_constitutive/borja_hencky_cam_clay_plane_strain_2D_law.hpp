@@ -33,7 +33,7 @@ namespace Kratos
 
 
 
-class BorjaHenckyCamClayPlasticPlaneStrain2DLaw 
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) BorjaHenckyCamClayPlasticPlaneStrain2DLaw 
   : public NonLinearHenckyElasticPlasticPlaneStrain2DLaw
 
 {
@@ -84,7 +84,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
@@ -95,13 +95,13 @@ public:
      * Operators
      */
 
-   virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+   double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
-   virtual void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
+   void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
 
-   virtual void SetValue( const Variable<Vector>& rThisVarialbe, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
+   void SetValue( const Variable<Vector>& rThisVarialbe, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
 
-   int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo); 
+   int Check( const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override; 
     /**
      * Operations needed by the base class:
      */
@@ -126,15 +126,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -186,12 +186,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlasticPlaneStrain2DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlasticPlaneStrain2DLaw )
     }

@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -10,23 +10,21 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 #include "meshing_application.h"
 #include "custom_python/add_meshers_to_python.h"
 #include "custom_python/add_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 
 namespace Kratos
 {
@@ -34,34 +32,30 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+namespace py = pybind11;
 
-
-
-BOOST_PYTHON_MODULE(KratosMeshingApplication)
+PYBIND11_MODULE(KratosMeshingApplication,m)
 {
+    py::class_<KratosMeshingApplication,
+        KratosMeshingApplication::Pointer,
+        KratosApplication >(m, "KratosMeshingApplication")
+        .def(py::init<>())
+        ;
+    AddMeshersToPython(m);
+    AddProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
-    class_<KratosMeshingApplication,
-           KratosMeshingApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosMeshingApplication")
-           ;
-    AddMeshersToPython();
-    AddProcessesToPython();
-    AddCustomUtilitiesToPython();
-    AddCustomStrategiesToPython();
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AVERAGE_NODAL_ERROR)                                  // The average nodal error
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ANISOTROPIC_RATIO)                                    // The anisotropic aspect ratio
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_GRADIENT)                                    // An auxiliar gradient needed to compute the metric
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUXILIAR_HESSIAN)                                     // An auxiliar hessian needed to compute the metric
+    KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(m, METRIC_TENSOR_2D) // A 2D metric vector
+    KRATOS_REGISTER_IN_PYTHON_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(m, METRIC_TENSOR_3D) // A 3D metric vector
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AVERAGE_NODAL_ERROR)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ANISOTROPIC_RATIO)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUXILIAR_GRADIENT)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUXILIAR_HESSIAN)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MMG_METRIC)
-        
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(COUNTER)
-
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(WEIGHT_FATHER_NODES) //used in the cutting planes app
-
+    //for ULF (surface_tension) application:
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TRIPLE_POINT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONTACT_ANGLE)
 }
-
 
 }  // namespace Python.
 

@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -27,7 +27,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/gid_io.h"
 #include "geometries/geometry_data.h"
 
 #define tet10_a 0.108103018168070
@@ -62,6 +61,9 @@ public:
         mGidElementFamily(gid_element_type), mSize(number_of_integration_points),
         mIndexContainer(index_container) {}
 
+    ///Destructor
+  virtual ~GidGaussPointsContainer(){};
+
     bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
         KRATOS_TRY
@@ -88,13 +90,44 @@ public:
         else return false;
         KRATOS_CATCH("")
     }
-    
 
-//            virtual void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
-//                                        double SolutionTag, unsigned int value_index )
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+//            virtual void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& rModelPart,
+//                                        double SolutionTag, unsigned int ValueIndex )
+
+    virtual void PrintFlagsResults(
+        GiD_FILE ResultFile,
+        Kratos::Flags rFlag,
+        std::string rFlagName,
+        ModelPart& rModelPart,
+        double SolutionTag
+        )
+    {
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 ) {
+            //WriteGaussPoints(ResultFile);
+            GiD_fBeginResult(ResultFile,  (char *)(rFlagName).c_str(), (char *)("Kratos"), SolutionTag, GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+            if( mMeshElements.size() != 0 ) {
+                for( auto it = mMeshElements.begin(); it != mMeshElements.end(); it++ ) {
+                    const double double_flag = static_cast<double>(it->Is(rFlag));
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                        GiD_fWriteScalar( ResultFile, it->Id(), double_flag);
+                    }
+                }
+            }
+            if( mMeshConditions.size() != 0 ) {
+                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
+                    const double double_flag = static_cast<double>(it->Is(rFlag));
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++) {
+                        GiD_fWriteScalar( ResultFile, it->Id(), double_flag );
+                    }
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
+    }
+
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -110,13 +143,13 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
                             GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
                         }
-                    }           
+                    }
                 }
             }
             if( mMeshConditions.size() != 0 )
@@ -127,21 +160,21 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
                             GiD_fWriteScalar( ResultFile, it->Id(), ValuesOnIntPoint[index] );
                         }
-                    }                
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -157,13 +190,13 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
                             GiD_fWriteScalar( ResultFile, it->Id(), double(ValuesOnIntPoint[index]) );
                         }
-                    }             
+                    }
                 }
             }
             if( mMeshConditions.size() != 0 )
@@ -174,13 +207,13 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
                             GiD_fWriteScalar( ResultFile, it->Id(), double(ValuesOnIntPoint[index]) );
                         }
-                    }               
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
@@ -188,8 +221,8 @@ public:
     }
 
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,3> > rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -205,7 +238,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -213,7 +246,7 @@ public:
                                 GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
                                                  ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
                         }
-                    }               
+                    }
                 }
             }
             if( mMeshConditions.size() != 0 )
@@ -224,7 +257,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -238,8 +271,8 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,6> > rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double,6> > rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -255,7 +288,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -264,7 +297,7 @@ public:
                                                ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
                                                ValuesOnIntPoint[index][5] );
                         }
-                    }             
+                    }
                 }
             }
             if( mMeshConditions.size() != 0 )
@@ -275,7 +308,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -284,7 +317,7 @@ public:
                                                ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
                                                ValuesOnIntPoint[index][5] );
                         }
-                    }                   
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
@@ -292,8 +325,8 @@ public:
     }
 
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& rModelPart,
+                               double SolutionTag, unsigned int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -310,7 +343,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -332,7 +365,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -343,15 +376,15 @@ public:
                                 GiD_fWrite3DMatrix( ResultFile, it->Id(), values[0], values[1], values[2],
                                     values[3], values[4], values[5] );
                         }
-                    }                 
+                    }
                 }
             }
             GiD_fEndResult(ResultFile);
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, int value_index )
+    virtual void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& rModelPart,
+                               double SolutionTag, int ValueIndex )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -367,7 +400,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
@@ -419,7 +452,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
-                                                         r_model_part.GetProcessInfo() );
+                                                         rModelPart.GetProcessInfo() );
 
 					    if (ValuesOnIntPoint[0].size1() == 0 && ValuesOnIntPoint[0].size2() == 0)
 					    {
@@ -730,7 +763,7 @@ public:
             }
         }
     }
-    
+
 
 protected:
 
@@ -746,5 +779,5 @@ protected:
 };//class GidGaussPointsContainer
 }// namespace Kratos.
 
-#endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined 
+#endif // KRATOS_GID_GAUSS_POINT_CONTAINER_H_INCLUDED defined
 

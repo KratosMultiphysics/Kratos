@@ -36,7 +36,8 @@
             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"]
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"],
+        "auxiliary_variables_list" : ["NODAL_H", "NODAL_AREA"]
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
@@ -135,12 +136,11 @@
         "help"                  : "This process compares two files and executes an Unittest Assert",
         "process_name"          : "CompareTwoFilesCheckProcess",
         "Parameters"            : {
-            "file_name_1"            : "mmg_lagrangian_test/beam2D_line_load_test_step=10.sol",
-            "file_name_2"            : "mmg_lagrangian_test/beam2D_line_load_test_result.sol",
-            "deterministic"          : false,
-            "error_assumed"          : 1.0e-6,
-            "dimension"              : 2,
-            "non_deterministic_comp" : "sol_file"
+            "reference_file_name"   : "mmg_lagrangian_test/beam2D_line_load_test_result.sol",
+            "output_file_name"      : "mmg_lagrangian_test/beam2D_line_load_test_step=10.sol",
+            "dimension"             : 2,
+            "decimal_places"        : 5,
+            "comparison_type"       : "sol_file"
         }
     }
     ]

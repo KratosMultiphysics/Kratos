@@ -68,13 +68,13 @@ class DivideElemUtils
 {
 public:
 
-// 		boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX
+// 		BoundedMatrix<double,3,2>& DN_DX
     static void DivideElement_2D( Element::GeometryType& geom,
 // 					const double toll,
 // 					double is_divided,
-                                  boost::numeric::ublas::bounded_matrix<double,4,2>& aux_gp,
+                                  BoundedMatrix<double,4,2>& aux_gp,
                                   array_1d<double,4>& A_on_agp,
-                                  boost::numeric::ublas::bounded_matrix<double,4,3>&  N_on_agp,
+                                  BoundedMatrix<double,4,3>&  N_on_agp,
                                   array_1d<double,4>& dist_on_agp
                                 )
     {
@@ -119,7 +119,7 @@ public:
         //Calculating the 3 VIRTUAL NODES:
         //if the edge intersects the free surface: proportional calculation
         //otherwise mean point of the edge
-        boost::numeric::ublas::bounded_matrix<double,3,2> virt_nodes = ZeroMatrix(3,2);
+        BoundedMatrix<double,3,2> virt_nodes = ZeroMatrix(3,2);
 // 				noalias(virt_nodes) = ZeroMatrix(3,2);
         if(sign0 < 0)
         {

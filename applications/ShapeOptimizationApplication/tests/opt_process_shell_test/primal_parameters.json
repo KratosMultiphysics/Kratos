@@ -1,0 +1,135 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "structure",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "Static",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "model_part_name" : "structure",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.1
+        },
+        "model_import_settings"              : {
+            "input_type"     : "use_input_model_part"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "material.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["shell"],
+        "processes_sub_model_part_list"      : ["support","support","load_point"],
+        "rotation_dofs"                      : true
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "structure.support",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "structure.support",
+            "variable_name"   : "ROTATION",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "contact_process_list"     : [],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "structure.load_point",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : 1.0,
+            "direction"       : [0.0,0.0,-1],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "_output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "list_other_processes": [
+        {
+            "python_module" : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "FromJsonCheckResultProcess",
+            "Parameters"    : {
+                "check_variables"  : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
+                "input_file_name"  : "shape_change_results.json",
+                "model_part_name"  : "structure",
+                "time_frequency"   : 0.0
+            }
+        }
+    ],
+    "_json_output_process" : [
+        {
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
+                "output_file_name" : "shape_change_results.json",
+                "model_part_name"  : "structure",
+                "time_frequency"   : 0.0
+            }
+    }],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}

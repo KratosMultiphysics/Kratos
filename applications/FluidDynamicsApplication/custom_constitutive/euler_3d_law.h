@@ -27,7 +27,7 @@ namespace Kratos
      * Defines an Euler fluid constitutive law
      * This material law represents a null shear stress contribution.
      */
-    class Euler3DLaw : public FluidConstitutiveLaw
+    class KRATOS_API(FLUID_DYNAMICS_APPLICATION) Euler3DLaw : public FluidConstitutiveLaw
     {
     public:
         /**

@@ -13,6 +13,16 @@ namespace Kratos {
 
 NanoParticle::~NanoParticle(){}
 
+NanoParticle& NanoParticle::operator=(NanoParticle const& rOther) {
+    
+    SphericParticle::operator=(rOther);
+        
+    mThicknessOverRadius = rOther.mThicknessOverRadius;
+    mInteractionRadius = rOther.mInteractionRadius;
+
+    return *this;
+}
+
 void NanoParticle::Initialize(const ProcessInfo& r_process_info) {   
     SphericParticle::Initialize(r_process_info);
     double added_mass_coefficient = 1.0;

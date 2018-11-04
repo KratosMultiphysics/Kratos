@@ -16,8 +16,12 @@
 // System includes
 
 // External includes
+#ifdef KRATOS_USING_MPI
+#include "mpi.h"
+#endif
 
 // Project includes
+#include "utilities/builtin_timer.h"
 
 // Application includes
 #include "custom_io/hdf5_file.h"
@@ -32,6 +36,10 @@ namespace HDF5
 ///@{
 
 /// A class for accessing a single shared HDF5 file across MPI processes.
+/**
+ * This class is responsible for reading and writing data sets from all MPI
+ * processes.
+ */
 class FileParallel : public File
 {
     enum class DataTransferMode { independent, collective };
@@ -47,7 +55,7 @@ public:
     ///@{
 
     /// Constructor.
-    explicit FileParallel(Parameters& rParams);
+    explicit FileParallel(Parameters& rSettings);
 
     // Copy constructor.
     FileParallel(const FileParallel& rOther) = delete;
@@ -59,87 +67,77 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteDataSet(std::string Path, const Vector<int>& rData) override;
+    void WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSet(std::string Path, const Vector<double>& rData) override;
+    void WriteDataSet(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData) override;
+    void WriteDataSet(const std::string& rPath, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSet(std::string Path, const Matrix<int>& rData) override;
+    void WriteDataSet(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSet(std::string Path, const Matrix<double>& rData) override;
+    void WriteDataSet(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo) override;
     
-    void WriteDataPartition(std::string Path, const Vector<int>& rData) override;
+    void WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo) override;
     
-    void WriteDataPartition(std::string Path, const Vector<double>& rData) override;
-    
-    void WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData) override;
+    void WriteDataSetIndependent(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataPartition(std::string Path, const Matrix<int>& rData) override;
+    void WriteDataSetIndependent(const std::string& rPath,
+                                const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataPartition(std::string Path, const Matrix<double>& rData) override;
+    void WriteDataSetIndependent(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo) override;
     
-    void WriteDataSetIndependent(std::string Path, const Vector<int>& rData) override;
-    
-    void WriteDataSetIndependent(std::string Path, const Vector<double>& rData) override;
-
-    void WriteDataSetIndependent(std::string Path,
-                                const Vector<array_1d<double, 3>>& rData) override;
-
-    void WriteDataSetIndependent(std::string Path, const Matrix<int>& rData) override;
-    
-    void WriteDataSetIndependent(std::string Path, const Matrix<double>& rData) override;
+    void WriteDataSetIndependent(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo) override;
     
     unsigned GetPID() const override;
 
     unsigned GetTotalProcesses() const override;
 
-    void ReadDataSet(std::string Path,
+    void ReadDataSet(const std::string& rPath,
                      Vector<int>& rData,
                      unsigned StartIndex, 
                      unsigned BlockSize) override;
 
-    void ReadDataSet(std::string Path,
+    void ReadDataSet(const std::string& rPath,
                      Vector<double>& rData,
                      unsigned StartIndex,
                      unsigned BlockSize) override;
 
-    void ReadDataSet(std::string Path,
+    void ReadDataSet(const std::string& rPath,
                      Vector<array_1d<double, 3>>& rData,
                      unsigned StartIndex,
                      unsigned BlockSize) override;
 
-    void ReadDataSet(std::string Path,
+    void ReadDataSet(const std::string& rPath,
                      Matrix<int>& rData,
                      unsigned StartIndex,
                      unsigned BlockSize) override;
 
-    void ReadDataSet(std::string Path,
+    void ReadDataSet(const std::string& rPath,
                      Matrix<double>& rData,
                      unsigned StartIndex,
                      unsigned BlockSize) override;
 
-    void ReadDataSetIndependent(std::string Path,
+    void ReadDataSetIndependent(const std::string& rPath,
                                 Vector<int>& rData,
                                 unsigned StartIndex,
                                 unsigned BlockSize) override;
 
-    void ReadDataSetIndependent(std::string Path,
+    void ReadDataSetIndependent(const std::string& rPath,
                                 Vector<double>& rData,
                                 unsigned StartIndex,
                                 unsigned BlockSize) override;
 
-    void ReadDataSetIndependent(std::string Path,
+    void ReadDataSetIndependent(const std::string& rPath,
                                 Vector<array_1d<double, 3>>& rData,
                                 unsigned StartIndex,
                                 unsigned BlockSize) override;
 
-    void ReadDataSetIndependent(std::string Path,
+    void ReadDataSetIndependent(const std::string& rPath,
                                 Matrix<int>& rData,
                                 unsigned StartIndex,
                                 unsigned BlockSize) override;
 
-    void ReadDataSetIndependent(std::string Path,
+    void ReadDataSetIndependent(const std::string& rPath,
                                 Matrix<double>& rData,
                                 unsigned StartIndex,
                                 unsigned BlockSize) override;
@@ -158,18 +156,18 @@ private:
     ///@name Private Operations
     ///@{
     template <class T>
-    void WriteDataSetVectorImpl(std::string Path, const Vector<T>& rData, DataTransferMode Mode)
+    void WriteDataSetVectorImpl(const std::string& rPath, const Vector<T>& rData, DataTransferMode Mode, WriteInfo& rInfo)
     {
         KRATOS_TRY;
-        boost::timer timer;
+        BuiltinTimer timer;
         // Expects a valid free path.
-        KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
+        KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
 
         // Create any missing subpaths.
-        auto pos = Path.find_last_of('/');
+        auto pos = rPath.find_last_of('/');
         if (pos != 0) // Skip if last '/' is root.
         {
-            std::string sub_path = Path.substr(0, pos);
+            std::string sub_path = rPath.substr(0, pos);
             AddPath(sub_path);
         }
 
@@ -223,7 +221,7 @@ private:
         hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
         // H5Dcreate() must be called collectively for both collective and
         // independent write.
-        hid_t dset_id = H5Dcreate(file_id, Path.c_str(), dtype_id, fspace_id,
+        hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, fspace_id,
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
 
@@ -237,31 +235,45 @@ private:
             H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
                                 local_dims, nullptr);
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, &rData[0]) < 0)
-                << "H5Dwrite failed. Please ensure global data set is non-empty." << std::endl;
+            if (local_dims[0] > 0)
+            {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, &rData[0]) < 0)
+                    << "H5Dwrite failed." << std::endl;
+            }
+            else
+            {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0)
+                    << "H5Dwrite failed. Please ensure global data set is non-empty." << std::endl;
+            }
             KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-        if (GetEchoLevel() == 1 && GetPID() == 0)
-            std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
-        KRATOS_CATCH("Path: \"" + Path + "\".");
+
+        // Set the write info.
+        rInfo.StartIndex = local_start[0];
+        rInfo.BlockSize = local_dims[0];
+        rInfo.TotalSize = global_dims[0];
+
+        if (GetEchoLevel() == 2 && GetPID() == 0)
+            std::cout << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_CATCH("Path: \"" + rPath + "\".");
     }
 
     template <class T>
-    void WriteDataSetMatrixImpl(std::string Path, const Matrix<T>& rData, DataTransferMode Mode)
+    void WriteDataSetMatrixImpl(const std::string& rPath, const Matrix<T>& rData, DataTransferMode Mode, WriteInfo& rInfo)
     {
         KRATOS_TRY;
-        boost::timer timer;
+        BuiltinTimer timer;
         // Check that full path does not exist before trying to write data.
-        KRATOS_ERROR_IF(HasPath(Path)) << "Path already exists: " << Path << std::endl;
+        KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
         
         // Create any missing subpaths.
-        auto pos = Path.find_last_of('/');
+        auto pos = rPath.find_last_of('/');
         if (pos != 0) // Skip if last '/' is root.
         {
-            std::string sub_path = Path.substr(0, pos);
+            std::string sub_path = rPath.substr(0, pos);
             AddPath(sub_path);
         }
 
@@ -299,7 +311,7 @@ private:
         hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
         // H5Dcreate() must be called collectively for both collective and
         // independent write.
-        hid_t dset_id = H5Dcreate(file_id, Path.c_str(), dtype_id, fspace_id,
+        hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, fspace_id,
                                   H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
 
@@ -313,95 +325,45 @@ private:
             H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
                                 local_dims, nullptr);
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
-                                     dxpl_id, &rData(0, 0)) < 0)
-                << "H5Dwrite failed. Please ensure global data set is non-empty." << std::endl;
+            if (local_dims[0] > 0)
+            {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
+                    dxpl_id, &rData(0, 0)) < 0) << "H5Dwrite failed." << std::endl;
+            }
+            else
+            {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0)
+                    << "H5Dwrite failed. Please ensure global data set is non-empty"
+                    << " and the second matrix dimension is consistent across all processes." << std::endl;
+            }
             KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-        if (GetEchoLevel() == 1 && GetPID() == 0)
-            std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
-        KRATOS_CATCH("Path: \"" + Path + "\".");
+
+        // Set the write info.
+        rInfo.StartIndex = local_start[0];
+        rInfo.BlockSize = local_dims[0];
+        rInfo.TotalSize = global_dims[0];
+
+        if (GetEchoLevel() == 2 && GetPID() == 0)
+            std::cout << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_CATCH("Path: \"" + rPath + "\".");
     }
 
     template <class T>
-    void WriteDataPartitionVectorImpl(std::string Path, const Vector<T>& rData)
-    {
-        KRATOS_TRY;
-        int rank, end_pos, ierr;
-        int block_size = rData.size();
-        Vector<int> partition;
-        ierr = MPI_Scan(&block_size, &end_pos, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Scan failed." << std::endl;
-        ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_rank failed." << std::endl;
-
-        if (rank == 0)
-        {
-            int num_proc;
-            ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
-            partition.resize(num_proc + 1, false);
-            partition[0] = 0; // Partition always starts at 0.
-            ierr = MPI_Gather(&end_pos, 1, MPI_INT, &partition[1], 1, MPI_INT, 0, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
-        }
-        else
-        {
-            ierr = MPI_Gather(&end_pos, 1, MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
-        }
-
-        WriteDataSetIndependent(Path, partition);
-        KRATOS_CATCH("");
-    }
-
-    template <class T>
-    void WriteDataPartitionMatrixImpl(std::string Path, const Matrix<T>& rData)
-    {
-        KRATOS_TRY;
-        int rank, end_pos, ierr;
-        int block_size = rData.size1();
-        Vector<int> partition;
-        ierr = MPI_Scan(&block_size, &end_pos, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Scan failed." << std::endl;
-        ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_rank failed." << std::endl;
-
-        if (rank == 0)
-        {
-            int num_proc;
-            ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
-            partition.resize(num_proc + 1, false);
-            partition[0] = 0; // Partition always starts at 0.
-            ierr = MPI_Gather(&end_pos, 1, MPI_INT, &partition[1], 1, MPI_INT, 0, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
-        }
-        else
-        {
-            ierr = MPI_Gather(&end_pos, 1, MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
-        }
-
-        WriteDataSetIndependent(Path, partition);
-        KRATOS_CATCH("");
-    }
-
-    template <class T>
-    void ReadDataSetVectorImpl(std::string Path,
+    void ReadDataSetVectorImpl(const std::string& rPath,
                          Vector<T>& rData,
                          unsigned StartIndex,
                          unsigned BlockSize,
                          DataTransferMode Mode)
     {
         KRATOS_TRY;
-        boost::timer timer;
+        BuiltinTimer timer;
         // Check that full path exists.
-        KRATOS_ERROR_IF_NOT(IsDataSet(Path))
-            << "Path is not a data set: " << Path << std::endl;
+        KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
+            << "Path is not a data set: " << rPath << std::endl;
 
         constexpr bool is_int_type = std::is_same<int, T>::value;
         constexpr bool is_double_type = std::is_same<double, T>::value;
@@ -409,7 +371,7 @@ private:
         constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
 
         // Check consistency of file's data set dimensions.
-        std::vector<unsigned> file_space_dims = GetDataDimensions(Path);
+        std::vector<unsigned> file_space_dims = GetDataDimensions(rPath);
         KRATOS_ERROR_IF(file_space_dims.size() != ndims) << "Invalid data set dimension." << std::endl;
         KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
         << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
@@ -436,20 +398,20 @@ private:
         hid_t dtype_id;
         if (is_int_type)
         {
-            KRATOS_ERROR_IF_NOT(HasIntDataType(Path))
-                << "Data type is not int: " << Path << std::endl;
+            KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
+                << "Data type is not int: " << rPath << std::endl;
             dtype_id = H5T_NATIVE_INT;
         }
         else if (is_double_type)
         {
-            KRATOS_ERROR_IF_NOT(HasFloatDataType(Path))
-                << "Data type is not float: " << Path << std::endl;
+            KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
+                << "Data type is not float: " << rPath << std::endl;
             dtype_id = H5T_NATIVE_DOUBLE;
         }
         else if (is_array_1d_type)
         {
-            KRATOS_ERROR_IF_NOT(HasFloatDataType(Path))
-                << "Data type is not float: " << Path << std::endl;
+            KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
+                << "Data type is not float: " << rPath << std::endl;
             dtype_id = H5T_NATIVE_DOUBLE;
         }
         else
@@ -462,42 +424,51 @@ private:
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
         else
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
-        hid_t dset_id = H5Dopen(file_id, Path.c_str(), H5P_DEFAULT);
+        hid_t dset_id = H5Dopen(file_id, rPath.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t file_space_id = H5Dget_space(dset_id);
         hid_t mem_space_id = H5Screate_simple(ndims, local_mem_dims, nullptr);
         KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_start,
                                             nullptr, local_mem_dims, nullptr) < 0)
             << "H5Sselect_hyperslab failed." << std::endl;
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
-                                dxpl_id, &rData[0]) < 0)
-            << "H5Dread failed." << std::endl;
+        if (local_mem_dims[0] > 0)
+        {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
+                                    dxpl_id, &rData[0]) < 0)
+                << "H5Dread failed." << std::endl;
+        }
+        else
+        {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
+                                    dxpl_id, nullptr) < 0)
+                << "H5Dread failed." << std::endl;
+        }
         KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-        if (GetEchoLevel() == 1 && GetPID() == 0)
-            std::cout << "Read time \"" << Path << "\": " << timer.elapsed() << std::endl;
-        KRATOS_CATCH("Path: \"" + Path + "\".");
+        if (GetEchoLevel() == 2 && GetPID() == 0)
+            std::cout << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_CATCH("Path: \"" + rPath + "\".");
     }
 
     template <class T>
-    void ReadDataSetMatrixImpl(std::string Path,
+    void ReadDataSetMatrixImpl(const std::string& rPath,
                                Matrix<T>& rData,
                                unsigned StartIndex,
                                unsigned BlockSize,
                                DataTransferMode Mode)
     {
         KRATOS_TRY;
-        boost::timer timer;
+        BuiltinTimer timer;
         // Check that full path exists.
-        KRATOS_ERROR_IF_NOT(IsDataSet(Path))
-            << "Path is not a data set: " << Path << std::endl;
+        KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
+            << "Path is not a data set: " << rPath << std::endl;
 
         const unsigned ndims = 2;
 
         // Check consistency of file's data set dimensions.
-        std::vector<unsigned> file_space_dims = GetDataDimensions(Path);
+        std::vector<unsigned> file_space_dims = GetDataDimensions(rPath);
         KRATOS_ERROR_IF(file_space_dims.size() != ndims) << "Invalid data set dimension." << std::endl;
         KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
         << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
@@ -518,13 +489,13 @@ private:
         hid_t dtype_id = Internals::GetScalarDataType<T>();
         if (dtype_id == H5T_NATIVE_INT)
         {
-            KRATOS_ERROR_IF_NOT(HasIntDataType(Path))
-                << "Data type is not int: " << Path << std::endl;
+            KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
+                << "Data type is not int: " << rPath << std::endl;
         }
         else if (dtype_id == H5T_NATIVE_DOUBLE)
         {
-            KRATOS_ERROR_IF_NOT(HasFloatDataType(Path))
-                << "Data type is not float: " << Path << std::endl;
+            KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
+                << "Data type is not float: " << rPath << std::endl;
         }
 
         hid_t file_id = GetFileId();
@@ -533,23 +504,32 @@ private:
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
         else
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
-        hid_t dset_id = H5Dopen(file_id, Path.c_str(), H5P_DEFAULT);
+        hid_t dset_id = H5Dopen(file_id, rPath.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
         hid_t file_space_id = H5Dget_space(dset_id);
         hid_t mem_space_id = H5Screate_simple(ndims, local_mem_dims, nullptr);
         KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_start,
                                             nullptr, local_mem_dims, nullptr) < 0)
             << "H5Sselect_hyperslab failed." << std::endl;
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
-                                dxpl_id, &rData(0,0)) < 0)
-            << "H5Dread failed." << std::endl;
+        if (local_mem_dims[0] > 0)
+        {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
+                                    dxpl_id, &rData(0,0)) < 0)
+                << "H5Dread failed." << std::endl;
+        }
+        else
+        {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
+                                    dxpl_id, nullptr) < 0)
+                << "H5Dread failed." << std::endl;
+        }
         KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-        if (GetEchoLevel() == 1 && GetPID() == 0)
-            std::cout << "Read time \"" << Path << "\": " << timer.elapsed() << std::endl;
-        KRATOS_CATCH("Path: \"" + Path + "\".");
+        if (GetEchoLevel() == 2 && GetPID() == 0)
+            std::cout << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_CATCH("Path: \"" + rPath + "\".");
     }
     ///@}
 };

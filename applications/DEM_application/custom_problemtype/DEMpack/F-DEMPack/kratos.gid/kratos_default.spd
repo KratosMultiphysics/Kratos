@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.238">
+<Kratos_Data version="1.2.248">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -33,49 +33,49 @@
         <Container id="ApplicationTypes" pid="Application types" state="hiddenAll" icon="aplicationTree.gif" help="Application types" open="1">
             <Item id="StructuralAnalysis" pid="Structural analysis" class="application" state="normal" dv="No" ivalues="No,Yes" values="No,Yes" help="Structural analysis" icon="aplicationTree.gif" open="0"/>
             <Item id="Fluid" pid="Fluid" class="application" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Fluid dynamics" icon="aplicationTree.gif"/>
-	    <Item id="PFEM" pid="PFEM" class="application" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="PFEM" icon="aplicationTree.gif"/>
+            <Item id="PFEM" pid="PFEM" class="application" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="PFEM" icon="aplicationTree.gif"/>
             <Item id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" class="application" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid structure interaction (FSI)" icon="aplicationTree.gif"/>
             <Item id="ConvectionDiffusion" pid="Convection diffusion" class="application" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Convection diffusion" icon="aplicationTree.gif"/>
-	        <Item id="DEM" pid="DEM" class="application" dv="Yes" state="normal" ivalues="Yes,No" values="Yes,No" help="DEM" icon="aplicationTree.gif"/>            
+            <Item id="DEM" pid="DEM" class="application" dv="Yes" state="normal" ivalues="Yes,No" values="Yes,No" help="DEM" icon="aplicationTree.gif"/>
             <Item id="DSOLID" pid="SOLID" class="application" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="DEM" icon="aplicationTree.gif"/>
        </Container>
         <Container id="SimulationOptions" pid="Simulation Options" class="Tab" help="General options concerning the whole simulation" open="0">
             <Item id="StartTime" pid="Start time" state="hidden" dv="0.0" help=""/>
-            <Item id="EndTime" pid="Simulation Duration" dv="1" help="Total duration of the simulation (final time)"/>        
+            <Item id="EndTime" pid="Simulation Duration" dv="1" help="Total duration of the simulation (final time)"/>
             <Item id="OutputDeltaTime" pid="Output delta time" dv="0.1" help="Output delta time"/>
             <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="1" help="Number of OMP threads"/>
         </Container>
-        <Container id="SDEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">  
+        <Container id="SDEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">
         <Item id="GravityValue" pid="Gravity modulus" dv="9.81" help="Modulus of the Gravity acceleration vector"/>
         <Item id="Cx" pid="Direction X" dv="0.0" help="X-component of a vector parallel to the gravity"/>
         <Item id="Cy" pid="Direction Y" dv="0.0" help="Y-component of a vector parallel to the gravity"/>
         <Item id="Cz" pid="Direction Z" dv="-1.0" nDim="3D" help="Z-component of a vector parallel to the gravity"/>
         </Container>
         <Container id="CouplingParameters" pid="Coupling parameters" class="Tab" help="Parameters concerning the inter-component coupling" open="0">
-            <Item id="CouplingLevel" pid="Coupling level" class="CouplingLevel" dv="3" ivalues="0,1,2,3" values="No interactions,One-way,Soft two-way,Full two-way" help="No interactions, Only fluid to DEM, unmodified fluid equations, averaged Navier-Stokes"/>
-            <Item id="TimeAveragingType" pid="Time averaging mode" dv="0" ivalues="0,1" values="Take newest values, Take uniform average over DEM substeps" help="Take the present value of the hydrodynamic forces from DEM for the fluid integration, average values of the hydrodynamic force over all substeps within one fluid step"/>            
+            <Item id="CouplingLevel" pid="Coupling level" class="CouplingLevel" dv="1" ivalues="1,2,3" values="One-way,Soft two-way,Full two-way" help="Only fluid to DEM, unmodified fluid equations, averaged Navier-Stokes"/>
+            <Item id="TimeAveragingType" pid="Time averaging mode" dv="0" ivalues="0,1" values="Take newest values, Take uniform average over DEM substeps" help="Take the present value of the hydrodynamic forces from DEM for the fluid integration, average values of the hydrodynamic force over all substeps within one fluid step"/>
             <Item id="InteractionStartTime" pid="Interaction start time" dv="0.05" help="Set the time to start the interaction between DEM and fluid"/>
             <Container id="HydrodynamicForceModel" pid="Hydrodynamic Force Model" class="Tab" help="Determine the model for the hydrodynamic forces" open="0">
                 <Item id="PickIndividualForces" pid="Pick each individual force" class="PickForces" dv="0" ivalues="0,1" values="No,Yes" help="Pick specific expressions for the usual terms, one at a time (compatibility not guaranteed)"/>
-                <Item id="BuoyancyForceType" pid="Buoyancy force type" PickForces="0" class="Tab" dv="2" ivalues="0,2" values="Null,Active" help="Pick the buoyancy force model"/>
-                <Item id="DragForceType" pid="Drag Force type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2,3,4,5,6,7,8,9" values="Null,Stokes,Weatherford,Ganser,Ishii,Haider-Newtonian regime,Schiller,Haider-all regimes,Beetstra,Coin-Shaped-Colloid" help="Pick the Drag force model"/>
+                <Item id="BuoyancyForceType" pid="Buoyancy force type" PickForces="1" class="Tab" dv="2" ivalues="0,2" values="Null,Active" help="Pick the buoyancy force model"/>
+                <Item id="DragForceType" pid="Drag Force type" PickForces="1" class="DragForceType" dv="1" ivalues="0,1,2,3,4,5,6,7,8,9" values="Null,Stokes,Default,Ganser,Ishii,Haider-Newtonian regime,Schiller,Haider-all regimes,Beetstra,Coin-Shaped-Colloid" help="Pick the Drag force model"/>
                 <Item id="VirtualMassForceType" pid="Virtual mass force type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="Null,Zuber,Odar" help="Pick the virtual mass force model"/>
                 <Item id="SaffmanLiftForceType" pid="Saffman lift Force type" PickForces="1" class="Tab" dv="0" ivalues="0,1" values="Null,Saffman" help="Pick the shear-induced lift force model"/>
-                <Item id="MagnusLiftForceType" pid="Magnus lift force type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="Null,Rubinow,Oesterle" help="Pick the magnus effect lift force model"/>            
-                <Item id="HydrodynamicTorqueType" pid="Hydrodynamic torque type" PickForces="1" class="Tab" dv="0" ivalues="0,1" values="Null,Dennis" help="Pick the hydrodynamic torque (rotational drag) model"/>    
-                <Item id="DragModifier" pid="Drag Modifier type" PickForces="1" class="Tab" dv="0" ivalues="0,2,3" values="None,Hayder,Chien" help="Pick the drag-modifying coefficient due to non-sphericity"/>                        
-                <Item id="ViscosityModificationType" pid="Viscosity modification type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="None,Einstein,Liu" help="Pick the law by which the viscosity is modified by the particles"/>                        
-                <Container id="MaxeyRileyEquations" pid="Maxey Riley Equations" PickForces="0" class="Tab" help="Use the Maxey-Riley equations (valid for small Re)" open="0">
-                    <Item id="MRDragModifier" pid="Drag Modifier type" class="Tab" dv="0" ivalues="0,1,2" values="One,Another,YetAnother" help="Pick the drag-modifying coefficient"/>                        
+                <Item id="MagnusLiftForceType" pid="Magnus lift force type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="Null,Rubinow,Oesterle" help="Pick the magnus effect lift force model"/>
+                <Item id="HydrodynamicTorqueType" pid="Hydrodynamic torque type" PickForces="1" class="Tab" dv="0" ivalues="0,1" values="Null,Dennis" help="Pick the hydrodynamic torque (rotational drag) model"/>
+                <Item id="DragModifier" pid="Drag Modifier type" PickForces="1" DragForceType="2" class="Tab" dv="0" ivalues="0,2,3" values="None,Hayder,Chien" help="Pick the drag-modifying coefficient due to non-sphericity"/>
+                <Item id="ViscosityModificationType" pid="Viscosity modification type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="None,Einstein,Liu" help="Pick the law by which the viscosity is modified by the particles"/>
+                <Container id="MaxeyRileyEquations" pid="Using Maxey Riley Equations" state="hiddenAll" PickForces="0" class="Tab" help="Use the Maxey-Riley equations (valid for small Re)" open="0">
+                    <Item id="MRDragModifier" pid="Drag Modifier type" class="Tab" dv="0" ivalues="0,1,2" state="hidden" values="One,Another,YetAnother" help="Pick the drag-modifying coefficient"/>
                 </Container>
-                <Item id="IncludeFaxenTerms0" pid="Include Faxen Terms" LaplacianMode="0" state="disabled" dv="0" ivalues="0" values="No" help="They require the calculation of the local laplacian and its derivative"/>                                                            
-                <Item id="IncludeFaxenTerms1" pid="Include Faxen Terms" dv="0" LaplacianMode="1" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>                                                            
-                <Item id="IncludeFaxenTerms" pid="Include Faxen Terms" dv="0" LaplacianMode="2" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>                                                                            
+                <Item id="IncludeFaxenTerms0" pid="Include Faxen Terms" LaplacianMode="0" state="disabled" dv="0" ivalues="0" values="No" help="They require the calculation of the local laplacian and its derivative"/>
+                <Item id="IncludeFaxenTerms1" pid="Include Faxen Terms" dv="0" LaplacianMode="1" state="disabled" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>
+                <Item id="IncludeFaxenTerms" pid="Include Faxen Terms" dv="0" LaplacianMode="2" state="disabled" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>
             </Container>
         </Container>
         <Container id="PostProcessingVariables" pid="Post-Processing variables" class="Tab" help="Options concerning variables that are calculated by post-processing the fluid-field solution" open="0">
-            <Item id="GradientCalculationType" pid="Gradient Calculation Mode" dv="1" ivalues="0,1,2" values="Null,Volume-Weighed Mean,Superconvergent Recovery" help="The pressure gradient is calculated as a post-process from the fluid solution"/>                                
-            <Item id="VelocityLaplacianCalculationType" pid="Velocity Laplacian Calculation Mode" class="LaplacianMode" dv="2" ivalues="0,1,2" values="Null,Finite Element Projection,Superconvergent recovery" help="The Laplacian gradient is calculated as a post-process from the fluid solution"/>    
+            <Item id="GradientCalculationType" pid="Gradient Calculation Mode" dv="1" ivalues="0,1,2" values="Null,Volume-Weighed Mean,Superconvergent Recovery" help="The pressure gradient is calculated as a post-process from the fluid solution"/>
+            <Item id="VelocityLaplacianCalculationType" pid="Velocity Laplacian Calculation Mode" state="disabled" class="LaplacianMode" dv="0" ivalues="0,1,2" values="Null,Finite Element Projection,Superconvergent recovery" help="The Laplacian gradient is calculated as a post-process from the fluid solution"/>
         </Container>
         <Container id="SDEM-Results" pid="Results" help="Options concerning the results to be post-processed" open="0">
         <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess additional options" open="0">
@@ -83,213 +83,212 @@
           <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
           <Item id="GiDWriteConditionsFlag" pid="Write conditions" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
           <Item id="GiDWriteParticlesFlag" pid="Write particles" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
-          <Item id="GiDMultiFileFlag" pid="Result file" dv="Multiples" ivalues="Multiples,Single" values="Multiple files,Single file" help="Write one GiD result file or multiple files"/>
+          <Item id="GiDMultiFileFlag" pid="Result file" dv="Multiples" ivalues="Multiples,Single" state="hidden" values="Multiple files,Single file" help="Write one GiD result file or multiple files"/>
         </Container>
         <Container id="ResultsToPrint" pid="Nodal values to be printed for post-process" help="Corresponding memory may need to be allocated, thus harming performance in some cases">
             <Container id="DEMResults" pid="Particle's results" help="These are data stored for each DEM particle">
-                <Item id="DEM-AngularVelocity" pid="Angular velocity" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Angular velocity"/> 
-                <Item id="DEM-AppliedForces" pid="Applied forces" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Applied forces"/> 
-                <Item id="DEM-Basset" pid="Basset Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Basset history force"/>                 
-                <Item id="DEM-Buoyancy" pid="Buoyancy Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Buoyancy Force"/> 
-                <Item id="DEM-ContactForces" pid="Contact Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Contact Forces"/> 
-                <Item id="DEM-DampForces" pid="Damp forces" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Damp forces"/> 
-                <Item id="DEM-Displacement" pid="Displacement" dv="No" ivalues="Yes,No" values="Yes,No" help="Displacement"/> 
-                <Item id="DEM-Drag" pid="Drag Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Drag Force"/> 
-                <Item id="DEM-SkinSphere" pid="dummy" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Hydrodynamic Torque"/> 
-                <Item id="DEM-EulerAngles" pid="dummy" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Hydrodynamic Torque"/> 
-                <Item id="DEM-ElasForces" pid="Elastic Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Elastic Forces"/> 
-                <Item id="DEM-ExportId" pid="Export Id" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="ExportId"/> 
-                <Item id="DEM-ExportSkinSphere" pid="Export skin sphere" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Export skin sphere"/> 
-                <Item id="DEM-GroupId" pid="GroupId" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="GroupId"/> 
-                <Item id="DEM-HydroForce" pid="Hydrodynamic Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Sum of all hydrodynamic forces (coupling forces minus buoyancy)"/> 
-                <Item id="DEM-HydroMoment" pid="Hydrodynamic Torque" dv="No" ivalues="Yes,No" values="Yes,No" help="Hydrodynamic Torque"/> 
-                <Item id="DEM-FluidAccelProj" pid="Interpolated Fluid Acceleration" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid acceleration at the particle location"/>                 
-                <Item id="DEM-FluidFractionProj" pid="Interpolated Fluid Fraction" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid fraction at the particle location"/>       
-                <Item id="DEM-FluidVelProj" pid="Interpolated Fluid Velocity" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid velocity at the particle location"/>        
-                <Item id="DEM-FluidVelRate" pid="Interpolated Fluid Velocity Rate" dv="No" ivalues="Yes,No" values="Yes,No" help="Rate of change of the interpolated fluid velocity at the particle location (following the particle)"/>                    
-                <Item id="DEM-PressureGradProj" pid="Interpolated Pressure Gradient" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated pressure gradient at the particle location"/> 
-                <Item id="DEM-VelocityLaplacianProjected" pid="Interpolated Velocity Laplacian" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid velocity Laplacian at the particle location"/> 
-                <Item id="DEM-VelocityLaplacianRateProjected" pid="Interpolated Velocity Laplacian Rate" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid velocity Laplacian time derivative at the particle location"/> 
-                <Item id="DEM-FluidViscosity" pid="Interpolated Viscosity" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid viscosity at the particle location"/> 
-                <Item id="DEM-Lift" pid="Lift Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Sum of lift forces"/> 
-                <Item id="DEM-NodalArea" pid="Nodal Area" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Nodal Area"/> 
-                <Item id="DEM-ParticleMoment" pid="Particle Moment" dv="No" ivalues="Yes,No" values="Yes,No" help="Particle moment"/> 
-                <Item id="DEM-ReynoldsNumber" pid="Particle Reynolds Number" dv="No" ivalues="Yes,No" values="Yes,No" help="Reynolds Number"/> 
-                <Item id="DEM-Pressure" pid="Pressure" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Pressure"/>                 
-                <Item id="DEM-Radius" pid="Radius" dv="No" ivalues="Yes,No" values="Yes,No" help="Radius"/> 
-                <Item id="DEM-Rhs" pid="Rhs" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Rhs"/> 
-                <Item id="DEM-RigidElementForces" pid="Rigid Element Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Rigid Element Forces"/> 
-                <Item id="DEM-ShearStress" pid="Shear Stress" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Shear Stress"/> 
-                <Item id="DEM-Stresses" pid="Stresses in DEM particles" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Stresses in DEM particles"/> 
-                <Item id="DEM-TangElasForces" pid="Tangential Elastic Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Tangential Elastic Forces"/> 
-                <Item id="DEM-TotalForces" pid="Total forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Total Forces"/> 
-                <Item id="DEM-PostVel" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/> 
-                <Item id="DEM-VirtualMass" pid="Virtual Mass Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Virtual mass (or Added mass) force"/> 
-                <Item id="DEM-Wear" pid="Wear" dv="No" ivalues="Yes,No" values="Yes,No" help="It computes the volume of removed material due to wear"/> 
+                <Item id="DEM-AngularVelocity" pid="Angular velocity" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Angular velocity"/>
+                <Item id="DEM-AppliedForces" pid="Applied forces" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
+                <Item id="DEM-Basset" pid="Basset Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Basset history force"/>
+                <Item id="DEM-Buoyancy" pid="Buoyancy Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Buoyancy Force"/>
+                <Item id="DEM-ContactForces" pid="Contact Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Contact Forces"/>
+                <Item id="DEM-DampForces" pid="Damp forces" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Damp forces"/>
+                <Item id="DEM-Displacement" pid="Displacement" dv="No" ivalues="Yes,No" values="Yes,No" help="Displacement"/>
+                <Item id="DEM-Drag" pid="Drag Force" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Drag Force"/>
+                <Item id="DEM-SkinSphere" pid="dummy" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Hydrodynamic Torque"/>
+                <Item id="DEM-EulerAngles" pid="dummy" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Hydrodynamic Torque"/>
+                <Item id="DEM-ElasForces" pid="Elastic Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Elastic Forces"/>
+                <Item id="DEM-ExportId" pid="Export Id" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="ExportId"/>
+                <Item id="DEM-ExportSkinSphere" pid="Export skin sphere" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Export skin sphere"/>
+                <Item id="DEM-GroupId" pid="GroupId" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="GroupId"/>
+                <Item id="DEM-HydroForce" pid="Hydrodynamic Force" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Sum of all hydrodynamic forces (coupling forces minus buoyancy)"/>
+                <Item id="DEM-HydroMoment" pid="Hydrodynamic Torque" dv="No" ivalues="Yes,No" values="Yes,No" help="Hydrodynamic Torque"/>
+                <Item id="DEM-FluidAccelProj" pid="Interpolated Fluid Acceleration" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid acceleration at the particle location"/>
+                <Item id="DEM-FluidFractionProj" pid="Interpolated Fluid Fraction" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid fraction at the particle location"/>
+                <Item id="DEM-FluidVelProj" pid="Interpolated Fluid Velocity" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid velocity at the particle location"/>
+                <Item id="DEM-FluidVelRate" pid="Interpolated Fluid Velocity Rate" dv="No" ivalues="Yes,No" values="Yes,No" help="Rate of change of the interpolated fluid velocity at the particle location (following the particle)"/>
+                <Item id="DEM-PressureGradProj" pid="Interpolated Pressure Gradient" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated pressure gradient at the particle location"/>
+                <Item id="DEM-VelocityLaplacianProjected" pid="Interpolated Velocity Laplacian" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid velocity Laplacian at the particle location"/>
+                <Item id="DEM-VelocityLaplacianRateProjected" pid="Interpolated Velocity Laplacian Rate" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid velocity Laplacian time derivative at the particle location"/>
+                <Item id="DEM-FluidViscosity" pid="Interpolated Viscosity" dv="No" ivalues="Yes,No" values="Yes,No" help="Interpolated fluid viscosity at the particle location"/>
+                <Item id="DEM-Lift" pid="Lift Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Sum of lift forces"/>
+                <Item id="DEM-NodalArea" pid="Nodal Area" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Nodal Area"/>
+                <Item id="DEM-ParticleMoment" pid="Particle Moment" dv="No" ivalues="Yes,No" values="Yes,No" help="Particle moment"/>
+                <Item id="DEM-ReynoldsNumber" pid="Particle Reynolds Number" dv="No" ivalues="Yes,No" values="Yes,No" help="Reynolds Number"/>
+                <Item id="DEM-Pressure" pid="Pressure" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
+                <Item id="DEM-Radius" pid="Radius" dv="No" ivalues="Yes,No" values="Yes,No" help="Radius"/>
+                <Item id="DEM-Rhs" pid="Rhs" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Rhs"/>
+                <Item id="DEM-RigidElementForces" pid="Rigid Element Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Rigid Element Forces"/>
+                <Item id="DEM-ShearStress" pid="Shear Stress" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Shear Stress"/>
+                <Item id="DEM-Stresses" pid="Stresses in DEM particles" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Stresses in DEM particles"/>
+                <Item id="DEM-TangElasForces" pid="Tangential Elastic Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Tangential Elastic Forces"/>
+                <Item id="DEM-TotalForces" pid="Total forces" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Total Forces"/>
+                <Item id="DEM-PostVel" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
+                <Item id="DEM-VirtualMass" pid="Virtual Mass Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Virtual mass (or Added mass) force"/>
+                <Item id="DEM-Wear" pid="Wear" dv="No" ivalues="Yes,No" values="Yes,No" help="It computes the volume of removed material due to wear"/>
+                <Item id="DEM-RollingResistanceMoment" pid="Rolling resistance moment" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Rolling resistance moment"/>
             </Container>
             <Container id="FluidResults" pid="Fluid phase nodal values" help="These are data stored for each fluid-phase mesh node">
-                <Item id="Fluid-AugmentedVel" pid="Augmented Fluid Velocity" CouplingLevel="2" dv="No" ivalues="Yes,No" values="Yes,No" help="Calculated fluid velocity divided by the fluid fraction to take into account the reduced space due tot the presence of the particles (only for weak coupling)"/> 
-                <Item id="Fluid-BodyForce" pid="Body Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Body force per unit mass"/>                 
-                <Item id="Fluid-FluidFraction" pid="Fluid Fraction" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid fraction"/> 
+                <Item id="Fluid-AugmentedVel" pid="Augmented Fluid Velocity" CouplingLevel="2" dv="No" ivalues="Yes,No" values="Yes,No" help="Calculated fluid velocity divided by the fluid fraction to take into account the reduced space due tot the presence of the particles (only for weak coupling)"/>
+                <Item id="Fluid-BodyForce" pid="Body Force" dv="No" ivalues="Yes,No" values="Yes,No" help="Body force per unit mass"/>
+                <Item id="Fluid-FluidFraction" pid="Fluid Fraction" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid fraction"/>
                 <Item id="Fluid-FluidFractionGrad" pid="Fluid Fraction Gradient" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid fraction gradient"/>
-                <Item id="Fluid-HydroReaction" pid="Hydrodynamic Reaction on Fluid" dv="No" ivalues="Yes,No" values="Yes,No" help="Reaction term coming from the hydrodynamic force"/>                 
-                <Item id="Fluid-Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>                 
-                <Item id="Fluid-PressureGrad" pid="Pressure gradient" dv="No" ivalues="Yes,No" values="Yes,No" help="Pressure gradient"/>                                                 
-                <Item id="Fluid-SolidFraction" pid="Solid Fraction" dv="No" ivalues="Yes,No" values="Yes,No" help="1 - Fluid Fraction"/>                 
-                <Item id="Fluid-MeanHydroReaction" pid="Time-Averaged Hydrodynamic Reaction on Fluid" dv="No" ivalues="Yes,No" values="Yes,No" help="Time-averaged reaction term coming from the hydrodynamic force"/>                                                 
-                <Item id="Fluid-Velocity" pid="Velocity" DebugOrRel="Debug" state="disabled" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>                                 
-                <Item id="Fluid-VelocityLaplacian" pid="Velocity Laplacian" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid field velocity Laplacian"/> 
-                <Item id="Fluid-VelocityLaplacianRate" pid="Velocity Laplacian Rate" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid field velocity Laplacian time derivative"/> 
+                <Item id="Fluid-HydroReaction" pid="Hydrodynamic Reaction on Fluid" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Reaction term coming from the hydrodynamic force"/>
+                <Item id="Fluid-Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
+                <Item id="Fluid-PressureGrad" pid="Pressure gradient" dv="No" ivalues="Yes,No" values="Yes,No" help="Pressure gradient"/>
+                <Item id="Fluid-SolidFraction" pid="Solid Fraction" dv="Yes" ivalues="Yes,No" values="Yes,No" help="1 - Fluid Fraction"/>
+                <Item id="Fluid-MeanHydroReaction" pid="Time-Averaged Hydrodynamic Reaction on Fluid" state="disabled" dv="No" ivalues="Yes,No" values="Yes,No" help="Time-averaged reaction term coming from the hydrodynamic force"/>
+                <Item id="Fluid-Velocity" pid="Velocity" DebugOrRel="Debug" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
+                <Item id="Fluid-VelocityLaplacian" pid="Velocity Laplacian" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid field velocity Laplacian"/>
+                <Item id="Fluid-VelocityLaplacianRate" pid="Velocity Laplacian Rate" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid field velocity Laplacian time derivative"/>
             </Container>
         </Container>
         </Container>
     </RootData>
     <RootData id="StructuralAnalysis" pid="Structural simulation" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Structural simulation" open="1">
         <Container id="AnalysisData" pid="Analysis type" class="Tab" help="Analysis Data" open="0">
-        <Item id="StructuralType" pid="Structural type" state="normal" class="strucType" dv="Generic" GCV="ElemType" help="Structural Element type"/>
-        <Item id="KinematicType" pid="Kinematic type" state="normal" class="kinemType" dv="SmallDisplacements" ivalues="SmallDisplacements,LargeDisplacements" values="SmallDisplacements,LargeDisplacements" help="Kinematic Element type"/>
-        <Item id="SolutionType" pid="Solution type" class="soluType" dv="Static" ivalues="Static,Dynamic,Quasi-Static,Pseudo-Dynamic" values="Static,Dynamic,Quasi-Static,Pseudo-Dynamic" help="Solution type"/>
+            <Item id="StructuralType" pid="Structural type" state="normal" class="strucType" dv="Generic" GCV="ElemType" help="Structural Element type"/>
+            <Item id="KinematicType" pid="Kinematic type" state="normal" class="kinemType" dv="SmallDisplacements" ivalues="SmallDisplacements,LargeDisplacements" values="SmallDisplacements,LargeDisplacements" help="Kinematic Element type"/>
+            <Item id="SolutionType" pid="Solution type" class="soluType" dv="Static" ivalues="Static,Dynamic,Quasi-Static,Pseudo-Dynamic" values="Static,Dynamic,Quasi-Static,Pseudo-Dynamic" help="Solution type"/>
             <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" icon="solstrategy.gif">
-      <Container id="ParallelType" pid="Parallel type" class="Tab" open="0" icon="groupsTreeNew.gif">
-        <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
-        <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
-        <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
-      </Container>
-      <Container id="LinearSolver" pid="Linear solver" class="Tab" open="0" icon="groupsTreeNew.gif">
-        <Item id="LinearSolverType" pid="Linear solver type" class="solverType" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-        <Item id="DirectSolverType" pid="Direct solver type" solverType="Direct" dv="SuperLU" ivalues="SkylineLUFactorization,SuperLU" values="SkylineLUFactorization,SuperLU" delvalues="PastixDirect" help=""/>
+        <Container id="ParallelType" pid="Parallel type" class="Tab" open="0" icon="groupsTreeNew.gif">
+            <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+            <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
+            <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
+        </Container>
+        <Container id="LinearSolver" pid="Linear solver" class="Tab" open="0" icon="groupsTreeNew.gif">
+            <Item id="LinearSolverType" pid="Linear solver type" class="solverType" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+            <Item id="DirectSolverType" pid="Direct solver type" solverType="Direct" dv="SuperLU" ivalues="SkylineLUFactorization,SuperLU" values="SkylineLUFactorization,SuperLU" delvalues="PastixDirect" help=""/>
             <Item id="IterativeSolverType" pid="Iterative solver type" solverType="Iterative" dv="ConjugateGradient" ivalues="ConjugateGradient,DeflatedCG,SuperLUIterative,GMRES,BCGS" values="ConjugateGradient,DeflatedCG,SuperLUIterative,GMRES,BCGS" delvalues="Pastix,AMGCL" help=""/>
             <Item id="Tolerance" pid="Solver tolerance" solverType="Iterative" dv="1E-6" help=""/>
             <Item id="MaximumIteration" pid="Solver maximum iteration" solverType="Iterative" dv="5000" help=""/>
             <Item id="PreconditionerType" pid="Preconditioner type" state="hidden" solverType="Iterative" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
-      </Container>
-      <Container id="Dynamic" pid="Time parameters" class="Tab" soluType="Dynamic,Quasi-Static,Pseudo-Dynamic" open="0" icon="groupsTreeNew.gif">
-        <Item id="StartTime" pid="Start time" state="hidden" dv="0.01" help=""/>
-        <Item id="DeltaTime" pid="Time step" dv="0.01" help=""/>
-        <Item id="EndTime" pid="Total time" dv="1" help=""/>
-        <Item id="NumberOfSteps" pid="Number of Steps" state="hidden" dv="1" help=""/>
-      </Container>
-      <Container id="Non-Linear" pid="Non-Linear" class="Tab" analysType="Non-Linear" help="" open="0" icon="nonlinear.gif">
-        <Item id="SolutionMethod" pid="Solution method" dv="Newton-Raphson" ivalues="Newton-Raphson" values="Newton-Raphson" delvalues= "LineSearch,ArcLength" help=""/>
-        <Item id="ConvergenceCriteria" pid="Convergence criteria" class="convCriteria" dv="Residual" ivalues="Residual,Displacement,DisplacementAndResidual" values="Residual,Displacement,DisplacementAndResidual" delvalues="DisplacementOrResidual" help=""/>
-        <Item id="ResidualConvergenceTolerance" pid="Residual convergence tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-3" help="Residual convergence tolerance"/>
-        <Item id="ResidualAbsoluteTolerance" pid="Residual absolute tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-6" help="Residual absolute tolerance"/>
-        <Item id="DisplacementConvergenceTolerance" pid="Displacement convergence tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-6" help="Displacement convergence tolerance"/>
-        <Item id="DisplacementAbsoluteTolerance" pid="Displacement absolute tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-9" help="Displacement absolute tolerance"/>
-        <Item id="MaximumIterations" pid="Maximum iterations" dv="30" help="Newton-Raphson iterations stop when the maximum is reached"/>
-      </Container>
+        </Container>
+        <Container id="Dynamic" pid="Time parameters" class="Tab" soluType="Dynamic,Quasi-Static,Pseudo-Dynamic" open="0" icon="groupsTreeNew.gif">
+            <Item id="StartTime" pid="Start time" state="hidden" dv="0.01" help=""/>
+            <Item id="DeltaTime" pid="Time step" dv="0.01" help=""/>
+            <Item id="EndTime" pid="Total time" dv="1" help=""/>
+            <Item id="NumberOfSteps" pid="Number of Steps" state="hidden" dv="1" help=""/>
+        </Container>
+        <Container id="Non-Linear" pid="Non-Linear" class="Tab" analysType="Non-Linear" help="" open="0" icon="nonlinear.gif">
+            <Item id="SolutionMethod" pid="Solution method" dv="Newton-Raphson" ivalues="Newton-Raphson" values="Newton-Raphson" delvalues= "LineSearch,ArcLength" help=""/>
+            <Item id="ConvergenceCriteria" pid="Convergence criteria" class="convCriteria" dv="Residual" ivalues="Residual,Displacement,DisplacementAndResidual" values="Residual,Displacement,DisplacementAndResidual" delvalues="DisplacementOrResidual" help=""/>
+            <Item id="ResidualConvergenceTolerance" pid="Residual convergence tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-3" help="Residual convergence tolerance"/>
+            <Item id="ResidualAbsoluteTolerance" pid="Residual absolute tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-6" help="Residual absolute tolerance"/>
+            <Item id="DisplacementConvergenceTolerance" pid="Displacement convergence tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-6" help="Displacement convergence tolerance"/>
+            <Item id="DisplacementAbsoluteTolerance" pid="Displacement absolute tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-9" help="Displacement absolute tolerance"/>
+            <Item id="MaximumIterations" pid="Maximum iterations" dv="30" help="Newton-Raphson iterations stop when the maximum is reached"/>
+        </Container>
         </Container>
         <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesStruct" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
         <Container id="Elements" pid="Elements" help="Elements" open="0" icon="femelements.gif">
-      <Container id="PlaneStress2D" pid="Plane Stress" class="Groups" nDim="2D" axiSym="No" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Plane Stress" open="0"/>
-      <Container id="PlaneStrain2D" pid="Plane Strain" class="Groups" nDim="2D" axiSym="No" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Plane Strain" open="0"/>
-      <Container id="Axisymmetric2D" pid="Axisymmetric SD" class="Groups" nDim="2D" axiSym="Yes" kinemType="SmallDisplacements"  GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Axisymmetric" open="0"/>
-      <Container id="SolidElement3D" pid="Solid Element" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="volume" GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Small Displacement 3D" open="0"/>
-      <Container id="BeamElement" pid="Beam Element" class="Groups" nDim="3D" kinemType="SmallDisplacements" strucType="Beam" idTemplate="BeamElement" GiDEntity="line" icon="femelements.gif" help="Beam Element type" open="0"/>
-      <Container id="CrisfieldTrussElement" pid="Crisfield truss element" state="hidden" class="Groups" strucType="Truss" idTemplate="TrussElement" GiDEntity="line" nDim="3D" icon="femelements.gif" help="Crisfield truss element" open="0"/>
-      <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell isotropic" open="0"/>
-      <Container id="ShellAnisotropic" pid="Shell anisotropic" state="hidden" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="ShellAnisotropic" open="0"/>
-      <Container id="EBST" pid="EBST (formulation)" state="hidden" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Total Lagrangian" open="0"/>
-      <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Membrane" idTemplate="MembraneElement" icon="femelements.gif" help="Membrane element type" open="0"/>
-      <Container id="TotalLagrangian2DPlaneStress" pid="Plane Stress TL" state="hidden" class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Total Lagrangian 2D Plane Stress" open="0"/>
-      <Container id="TotalLagrangian2DPlaneStrain" pid="Plane Strain TL" state="hidden" class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Total Lagrangian 2D Plane Strain" open="0"/>
-      <Container id="TotalLagrangian3D" pid="Solid Element TL" state="hidden" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="volume" GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Total Lagrangian 3D" open="0"/>
-      <Container id="UpdatedLagrangian2DPlaneStress" pid="Plane Stress UL" state="hidden" class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Updated Lagrangian 2D Plane Stress" open="0"/>
-      <Container id="UpdatedLagrangian2DPlaneStrain" pid="Plane Strain UL" state="hidden" class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Updated Lagrangian 2D Plane Strain" open="0"/>
-      <Container id="UpdatedLagrangian3D" pid="Solid Element UL" state="hidden" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="volume"  GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Updated Lagrangian 3D" open="0"/>
-      <Container id="SpatialLagrangian2DPlaneStress" pid="Plane Stress LD"  class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Plane Stress" open="0"/>
-      <Container id="SpatialLagrangian2DPlaneStrain" pid="Plane Strain LD"  class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Plane Strain" open="0"/>
-      <Container id="SpatialLagrangian2DAxisymmetric" pid="Axisymmetric LD" class="Groups" nDim="2D" axiSym="Yes" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Axisymmetric" open="0"/>
-      <Container id="SpatialLagrangian3D" pid="Solid Element" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="volume"  GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Spatial Lagrangian 3D" open="0"/>
-    </Container>
+        <Container id="PlaneStress2D" pid="Plane Stress" class="Groups" nDim="2D" axiSym="No" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Plane Stress" open="0"/>
+        <Container id="PlaneStrain2D" pid="Plane Strain" class="Groups" nDim="2D" axiSym="No" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Plane Strain" open="0"/>
+        <Container id="Axisymmetric2D" pid="Axisymmetric SD" class="Groups" nDim="2D" axiSym="Yes" kinemType="SmallDisplacements"  GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Axisymmetric" open="0"/>
+        <Container id="SolidElement3D" pid="Solid Element" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="volume" GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Small Displacement 3D" open="0"/>
+        <Container id="BeamElement" pid="Beam Element" class="Groups" nDim="3D" kinemType="SmallDisplacements" strucType="Beam" idTemplate="BeamElement" GiDEntity="line" icon="femelements.gif" help="Beam Element type" open="0"/>
+        <Container id="CrisfieldTrussElement" pid="Crisfield truss element" state="hidden" class="Groups" strucType="Truss" idTemplate="TrussElement" GiDEntity="line" nDim="3D" icon="femelements.gif" help="Crisfield truss element" open="0"/>
+        <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell isotropic" open="0"/>
+        <Container id="ShellAnisotropic" pid="Shell anisotropic" state="hidden" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="ShellAnisotropic" open="0"/>
+        <Container id="EBST" pid="EBST (formulation)" state="hidden" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Total Lagrangian" open="0"/>
+        <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Membrane" idTemplate="MembraneElement" icon="femelements.gif" help="Membrane element type" open="0"/>
+        <Container id="TotalLagrangian2DPlaneStress" pid="Plane Stress TL" state="hidden" class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Total Lagrangian 2D Plane Stress" open="0"/>
+        <Container id="TotalLagrangian2DPlaneStrain" pid="Plane Strain TL" state="hidden" class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Total Lagrangian 2D Plane Strain" open="0"/>
+        <Container id="TotalLagrangian3D" pid="Solid Element TL" state="hidden" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="volume" GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Total Lagrangian 3D" open="0"/>
+        <Container id="UpdatedLagrangian2DPlaneStress" pid="Plane Stress UL" state="hidden" class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Updated Lagrangian 2D Plane Stress" open="0"/>
+        <Container id="UpdatedLagrangian2DPlaneStrain" pid="Plane Strain UL" state="hidden" class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Updated Lagrangian 2D Plane Strain" open="0"/>
+        <Container id="UpdatedLagrangian3D" pid="Solid Element UL" state="hidden" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="volume"  GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Updated Lagrangian 3D" open="0"/>
+        <Container id="SpatialLagrangian2DPlaneStress" pid="Plane Stress LD"  class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Plane Stress" open="0"/>
+        <Container id="SpatialLagrangian2DPlaneStrain" pid="Plane Strain LD"  class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Plane Strain" open="0"/>
+        <Container id="SpatialLagrangian2DAxisymmetric" pid="Axisymmetric LD" class="Groups" nDim="2D" axiSym="Yes" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Axisymmetric" open="0"/>
+        <Container id="SpatialLagrangian3D" pid="Solid Element" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="volume"  GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Spatial Lagrangian 3D" open="0"/>
+        </Container>
         <Container id="Loads" pid="Loads" help="Loads" open="0" icon="loads.gif">
-            <Container id="VolumeAcceleration" pid="Self weight" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity (Body Force)" open="0"/>
-            <Container id="Load" pid="Load" class="SameTemplateGroups" help="External Load" open="0" icon="groupsTreeNew.gif">
-          <Container id="PointLoad2D" pid="Over Points" nDim="2D" axiSym="No" class="Groups" idTemplate="PointLoad" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Point Load" open="0"/>
-          <Container id="PointLoad3D" pid="Over Points" nDim="3D" class="Groups" idTemplate="PointLoad" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Point Load" open="0"/>
-          <Container id="AxisymPointLoad" pid="Over AxiSym Points" axiSym="Yes" class="Groups" idTemplate="PointLoad" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Point Load" open="0"/>
-          <Container id="LineLoad" pid="Over Lines" nDim="2D" axiSym="No" class="Groups" idTemplate="LineLoad" GiDEntity="line" GiDValidMesh="Triangle,Quadrilateral" strucType="Beam,Solid,Generic" icon="groupsTreeNew.gif" help="Line Load" open="0"/>
-          <Container id="AxisymLineLoad" pid="Over AxiSym Lines" nDim="2D"  axiSym="Yes" class="Groups" idTemplate="LineLoad" GiDEntity="line" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" icon="groupsTreeNew.gif" help="Axisymmetric Line Load" open="0"/>
-          <Container id="BeamLoad3D" pid="Over Lines" nDim="3D" class="Groups" idTemplate="LineLoad" GiDEntity="line" GiDValidMesh="Linear" strucType="Beam" icon="groupsTreeNew.gif" help="Line Load in 3D" open="0"/>
-          <Container id="SurfaceLoad2D" pid="Over Surfaces" nDim="2D" axiSym="No" class="Groups" idTemplate="FaceLoad" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Plate" icon="groupsTreeNew.gif" help="Define Surface Load" open="0"/>
-          <Container id="SurfaceLoad3D" pid="Over Surfaces" nDim="3D" class="Groups" idTemplate="FaceLoad" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral,Tetrahedra,Hexahedra" strucType="Shell,Membrane,Solid,Generic" icon="groupsTreeNew.gif" help="Define Surface Load" open="0"/>
+        <Container id="VolumeAcceleration" pid="Self weight" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity (Body Force)" open="0"/>
+        <Container id="Load" pid="Load" class="SameTemplateGroups" help="External Load" open="0" icon="groupsTreeNew.gif">
+        <Container id="PointLoad2D" pid="Over Points" nDim="2D" axiSym="No" class="Groups" idTemplate="PointLoad" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Point Load" open="0"/>
+        <Container id="PointLoad3D" pid="Over Points" nDim="3D" class="Groups" idTemplate="PointLoad" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Point Load" open="0"/>
+        <Container id="AxisymPointLoad" pid="Over AxiSym Points" axiSym="Yes" class="Groups" idTemplate="PointLoad" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Point Load" open="0"/>
+        <Container id="LineLoad" pid="Over Lines" nDim="2D" axiSym="No" class="Groups" idTemplate="LineLoad" GiDEntity="line" GiDValidMesh="Triangle,Quadrilateral" strucType="Beam,Solid,Generic" icon="groupsTreeNew.gif" help="Line Load" open="0"/>
+        <Container id="AxisymLineLoad" pid="Over AxiSym Lines" nDim="2D"  axiSym="Yes" class="Groups" idTemplate="LineLoad" GiDEntity="line" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" icon="groupsTreeNew.gif" help="Axisymmetric Line Load" open="0"/>
+        <Container id="BeamLoad3D" pid="Over Lines" nDim="3D" class="Groups" idTemplate="LineLoad" GiDEntity="line" GiDValidMesh="Linear" strucType="Beam" icon="groupsTreeNew.gif" help="Line Load in 3D" open="0"/>
+        <Container id="SurfaceLoad2D" pid="Over Surfaces" nDim="2D" axiSym="No" class="Groups" idTemplate="FaceLoad" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Plate" icon="groupsTreeNew.gif" help="Define Surface Load" open="0"/>
+        <Container id="SurfaceLoad3D" pid="Over Surfaces" nDim="3D" class="Groups" idTemplate="FaceLoad" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral,Tetrahedra,Hexahedra" strucType="Shell,Membrane,Solid,Generic" icon="groupsTreeNew.gif" help="Define Surface Load" open="0"/>
         </Container>
         <Container id="Moment" pid="Moment Load" nDim="3D" class="SameTemplateGroups" help="External Load" open="0" icon="groupsTreeNew.gif">
-          <Container id="PointMoment" pid="Over Points" nDim="3D" class="Groups" idTemplate="PointMoment" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Bending Moment" open="0"/>
+        <Container id="PointMoment" pid="Over Points" nDim="3D" class="Groups" idTemplate="PointMoment" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Bending Moment" open="0"/>
         </Container>
         <Container id="Pressure" pid="Pressure Load" class="SameTemplateGroups" help="Pressure Load" open="0" icon="groupsTreeNew.gif">
-          <Container id="LinePressureLoad" pid="Over Lines" nDim="2D" axiSym="No" class="Groups" idTemplate="LinePressure" GiDEntity="line" GiDValidMesh="Triangle,Quadrilateral" strucType="Beam,Solid,Generic" icon="groupsTreeNew.gif" help="Line Face Pressure" open="0"/>
-          <Container id="AxisymLinePressureLoad" pid="Over Axisym Lines"  nDim="2D" axiSym="Yes" class="Groups" idTemplate="LinePressure" GiDEntity="line" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" icon="groupsTreeNew.gif" help="Axisymmetric Line Face Pressure" open="0"/>
-          <Container id="BeamPressure3D" pid="Over Lines" nDim="3D" class="Groups" idTemplate="LinePressure" GiDEntity="line" GiDValidMesh="Linear" strucType="Beam" icon="groupsTreeNew.gif" help="Line Pressure in 3D" open="0"/>
-          <Container id="SurfacePressureLoad2D" pid="Over Surfaces" nDim="2D" axiSym="No" class="Groups" idTemplate="FacePressure" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Plate" icon="groupsTreeNew.gif" help="Define Surface Pressure" open="0"/>
-          <Container id="SurfacePressureLoad3D" pid="Over Surfaces" nDim="3D" class="Groups" idTemplate="FacePressure" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral,Tetrahedra,Hexahedra" strucType="Shell,Membrane,Solid,Generic" icon="groupsTreeNew.gif" help="Define Surface Load" open="0"/>
+        <Container id="LinePressureLoad" pid="Over Lines" nDim="2D" axiSym="No" class="Groups" idTemplate="LinePressure" GiDEntity="line" GiDValidMesh="Triangle,Quadrilateral" strucType="Beam,Solid,Generic" icon="groupsTreeNew.gif" help="Line Face Pressure" open="0"/>
+        <Container id="AxisymLinePressureLoad" pid="Over Axisym Lines"  nDim="2D" axiSym="Yes" class="Groups" idTemplate="LinePressure" GiDEntity="line" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" icon="groupsTreeNew.gif" help="Axisymmetric Line Face Pressure" open="0"/>
+        <Container id="BeamPressure3D" pid="Over Lines" nDim="3D" class="Groups" idTemplate="LinePressure" GiDEntity="line" GiDValidMesh="Linear" strucType="Beam" icon="groupsTreeNew.gif" help="Line Pressure in 3D" open="0"/>
+        <Container id="SurfacePressureLoad2D" pid="Over Surfaces" nDim="2D" axiSym="No" class="Groups" idTemplate="FacePressure" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Plate" icon="groupsTreeNew.gif" help="Define Surface Pressure" open="0"/>
+        <Container id="SurfacePressureLoad3D" pid="Over Surfaces" nDim="3D" class="Groups" idTemplate="FacePressure" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral,Tetrahedra,Hexahedra" strucType="Shell,Membrane,Solid,Generic" icon="groupsTreeNew.gif" help="Define Surface Load" open="0"/>
         </Container>
-        <Item id="IncrementalLoad" pid="Incremental" soluType="Dynamic,Quasi-Static,Pseudo-Dynamic" dv="No" ivalues="Yes,No" values="Yes,No" help="Incremental Loads"/>
-    </Container>
-    <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
-            <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="0" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
-            <Container id="Rotations" pid="Rotations" class="Groups" strucType="Beam,Plate,Shell" GiDEntity="point,line,surface" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Rotations" open="0"/>
-        <Item id="IncrementalMovement" pid="Incremental" soluType="Dynamic,Quasi-Static,Pseudo-Dynamic" dv="No" ivalues="Yes,No" values="Yes,No" help="Incremental Movements"/>
+            <Item id="IncrementalLoad" pid="Incremental" soluType="Dynamic,Quasi-Static,Pseudo-Dynamic" dv="No" ivalues="Yes,No" values="Yes,No" help="Incremental Loads"/>
+        </Container>
+        <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
+        <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="0" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
+        <Container id="Rotations" pid="Rotations" class="Groups" strucType="Beam,Plate,Shell" GiDEntity="point,line,surface" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Rotations" open="0"/>
+            <Item id="IncrementalMovement" pid="Incremental" soluType="Dynamic,Quasi-Static,Pseudo-Dynamic" dv="No" ivalues="Yes,No" values="Yes,No" help="Incremental Movements"/>
         </Container>
         <Container id="Results" pid="Results" help="Results" open="0" icon="outputresults.gif">
-      <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delta time"/>
-            <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
-                <Item id="Displacements" pid="Displacements" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
-        <Item id="Velocities" pid="Velocities" dv="No" soluType="Dynamic" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
-        <Item id="Accelerations" pid="Accelerations" dv="No" soluType="Dynamic" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
-                <Item id="Rotations" pid="Rotations" dv="No" strucType="Beam,Shell,General" ivalues="Yes,No" values="Yes,No" help="Rotations"/>
-                <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Reactions"/>
-                <Item id="Forces" pid="Loads" dv="No" ivalues="Yes,No" values="Yes,No" help="Loads"/>
-            </Container>
-            <Container id="OnGaussPoints" pid="On gauss points" class="Tab" help="On gauss points" open="0">
-                <Item id="StrainTensor" pid="Green-Lagrange Strain tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Green Lagrange strain tensor"/>
-                <Item id="StressTensor" pid="Cauchy stress tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Cauchy stress tensor"/>
-                <Item id="VonMises" pid="VonMises" dv="No" strucType="Solid,General" ivalues="Yes,No" values="Yes,No" help="Von Mises Criterion"/>
-        <Item id="BeamMoments" pid="Beam moments" dv="No" strucType="Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Beam moments"/>
-        <Item id="BeamForces" pid="Beam forces" dv="No" strucType="Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Beam forces"/>
+            <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delta time"/>
+        <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
+            <Item id="Displacements" pid="Displacements" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
+            <Item id="Velocities" pid="Velocities" dv="No" soluType="Dynamic" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
+            <Item id="Accelerations" pid="Accelerations" dv="No" soluType="Dynamic" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
+            <Item id="Rotations" pid="Rotations" dv="No" strucType="Beam,Shell,General" ivalues="Yes,No" values="Yes,No" help="Rotations"/>
+            <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Reactions"/>
+            <Item id="Forces" pid="Loads" dv="No" ivalues="Yes,No" values="Yes,No" help="Loads"/>
+        </Container>
+        <Container id="OnGaussPoints" pid="On gauss points" class="Tab" help="On gauss points" open="0">
+            <Item id="StrainTensor" pid="Green-Lagrange Strain tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Green Lagrange strain tensor"/>
+            <Item id="StressTensor" pid="Cauchy stress tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Cauchy stress tensor"/>
+            <Item id="VonMises" pid="VonMises" dv="No" strucType="Solid,General" ivalues="Yes,No" values="Yes,No" help="Von Mises Criterion"/>
+            <Item id="BeamMoments" pid="Beam moments" dv="No" strucType="Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Beam moments"/>
+            <Item id="BeamForces" pid="Beam forces" dv="No" strucType="Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Beam forces"/>
         </Container>
         <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
-          <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
-          <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
-          <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
-          <Item id="GiDWriteParticlesFlag" pid="Write particles" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
-          <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
+            <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
+            <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
+            <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
+            <Item id="GiDWriteParticlesFlag" pid="Write particles" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
+            <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
         </Container>
-    </Container>
+        </Container>
     </RootData>
-
     <RootData id="DSOLID" pid="SOLID" state="hidden" class="application" icon="dem.gif" help="Solid pluggin for DEM application" open="1">
-    <Container id="Solid-Elements" pid="Solids" state="hidden" help="Elements assignation" open="0" icon="femelements.gif">
-      <Container id="Solid-Element" pid="Solid Element" state="hidden" class="Groups" GiDEntity="volume" idTemplate="Solid-Element" icon="femlements.gif" help="Assign this atribute to a group containing Volumes which will be meshed as Tetrahedra or Hexahedra or to a group containing 3D FEM Mesh. Only the Solids tagged with this attribute as Solid Elements will be actually calculated. Double click to add a group." open="0"/>
-    </Container>
-    <Container id="DEM-Conditions" pid="Conditions" state="hidden" class="Tab" help="Boundary Conditions, including inlets, moving walls, prescribed degrees of freedom and initial conditions" icon="trianglesmesh.gif" open="0">
+        <Container id="Solid-Elements" pid="Solids" state="hidden" help="Elements assignation" open="0" icon="femelements.gif">
+        <Container id="Solid-Element" pid="Solid Element" state="hidden" class="Groups" GiDEntity="volume" idTemplate="Solid-Element" icon="femlements.gif" help="Assign this atribute to a group containing Volumes which will be meshed as Tetrahedra or Hexahedra or to a group containing 3D FEM Mesh. Only the Solids tagged with this attribute as Solid Elements will be actually calculated. Double click to add a group." open="0"/>
+        </Container>
+        <Container id="DEM-Conditions" pid="Conditions" state="hidden" class="Tab" help="Boundary Conditions, including inlets, moving walls, prescribed degrees of freedom and initial conditions" icon="trianglesmesh.gif" open="0">
         <Container id="DEM-FEM-Solid-Wall" state="hidden" pid="DEM-FEM Solid wall" class="Groups" idTemplate="DEM-FEM-Solid-Wall" GiDEntity="surface" icon="trianglesmesh.gif" help="Apply this attribute to a Group containing a FEM mesh. The Group will act as a wall which cannot be crossed by DEM Spheres. Double click to add a group." open="0"/>
         <Container id="Displacements" state="hidden" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="0" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
-    </Container>
-    <Container id="Solid-Post" pid="Print on Solids" state="hidden" class="Tab" help="Specific results on Solid Elements to be shown in the GiD PostProcess">
-      <Container id="OnNodes" pid="On nodes" state="hidden" class="Tab" help="On nodes" open="0">
-    <Item id="Displacements" pid="Displacement" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacement"/>
-    <Item id="Velocities" pid="Velocity"  state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
-    </Container>
-    <Container id="OnGaussPoints"  pid="On gauss points" state="hidden" class="Tab" help="On gauss points" open="0">
-    <Item id="StrainTensor" pid="Green-Lagrange Strain tensor" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Green Lagrange strain tensor"/>
-    <Item id="StressTensor" pid="Cauchy stress tensor" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Cauchy stress tensor"/>
-    <Item id="VonMises" pid="VonMises" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Von Mises Criterion"/>
         </Container>
-    </Container>
+        <Container id="Solid-Post" pid="Print on Solids" state="hidden" class="Tab" help="Specific results on Solid Elements to be shown in the GiD PostProcess">
+        <Container id="OnNodes" pid="On nodes" state="hidden" class="Tab" help="On nodes" open="0">
+            <Item id="Displacements" pid="Displacement" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacement"/>
+            <Item id="Velocities" pid="Velocity"  state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
+        </Container>
+        <Container id="OnGaussPoints"  pid="On gauss points" state="hidden" class="Tab" help="On gauss points" open="0">
+            <Item id="StrainTensor" pid="Green-Lagrange Strain tensor" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Green Lagrange strain tensor"/>
+            <Item id="StressTensor" pid="Cauchy stress tensor" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Cauchy stress tensor"/>
+            <Item id="VonMises" pid="VonMises" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Von Mises Criterion"/>
+        </Container>
+        </Container>
     </RootData>
-
     <RootData id="Fluid" pid="Fluid" state="normal" class="application" icon="medium_wave.gif" help="Fluid" open="1">
         <Container id="AnalysisDataCouplingL0" pid="Analysis data" CouplingLevel="0" class="Tab" help="Analysis data" open="0">
             <Item id="FluidType" pid="Fluid type" state="hidden" class="fluidType" dv="Incompressible" ivalues="Compressible,Incompressible" values="Compressible,Incompressible" help="Fluid type"/>
             <Item id="FluidApproach" pid="Fluid Approach" state="hidden" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian"/>
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="0" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="Fractional step"/>
-            <Item id="SolverType" pid="Solver type" CouplingLevel="0" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="ElementBased" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
+            <Item id="SolverType" pid="Solver type" CouplingLevel="0" state="disabled" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="ElementBased" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="0" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active turbulence model"/>     
+            <Item id="TurbulenceModel" pid="Turbulence model" state="disabled" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active turbulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
             <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
@@ -300,9 +299,9 @@
             <Item id="FluidApproach" pid="Fluid Approach" state="hidden" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian"/>
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="1" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="Fractional step"/>
-            <Item id="SolverType" pid="Solver type" CouplingLevel="1" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
+            <Item id="SolverType" pid="Solver type" CouplingLevel="1" state="disabled" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="1" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>     
+            <Item id="TurbulenceModel" pid="Turbulence model" state="disabled" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
             <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
@@ -313,9 +312,9 @@
             <Item id="FluidApproach" pid="Fluid Approach" state="hidden" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian"/>
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="2" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
-            <Item id="SolverType" pid="Solver type" CouplingLevel="2" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
+            <Item id="SolverType" pid="Solver type" CouplingLevel="2" state="disabled" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="2" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>     
+            <Item id="TurbulenceModel" pid="Turbulence model" state="disabled" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
             <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
@@ -328,7 +327,7 @@
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="3" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="SolverType"/>
             <Item id="SolverType" pid="Solver type" state="disabled" CouplingLevel="3" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic" values="Monolithic" help="Only the monolithic solver is available for full two-way interaction between the particles and the fluid"/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="3" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>     
+            <Item id="TurbulenceModel" pid="Turbulence model" state="disabled" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
             <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
@@ -345,7 +344,7 @@
                 <Item id="MonolithicDirectSolverType" pid="Solver" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
                 <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="AMGCL" ivalues="GMRES-UP Block,SuperLUIterativeSolver,AMGCL" values="GMRES-UP Block,SuperLU iterative solver,AMGCL" help="Iterative solver type options"/>
                 <Item id="MonolithicISTolerance" pid="Solver tolerance" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="1E-6" help=""/>
-                <Item id="MonolithicISMaximumIteration" pid="Solver maximum iterations" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="5000" help="Monolithic solver maximum iteration numbers"/>
+                <Item id="MonolithicISMaximumIteration" pid="Solver maximum iterations" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="1000" help="Monolithic solver maximum iteration numbers"/>
                 <Item id="MonolithicMixedUPKrylovSpaceDimension" pid="Krylov space dimension" monolithiciterativesolvertype="GMRES-UP Block" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="30" help="Mixed UP Krylov space dimension"/>
                 <Item id="MonolithicPreconditionerType" pid="Preconditioner type" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Diagonal" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
                 <Item id="VelocityLinearSolverType" pid="Velocity-Solver type" class="velocityLinearSolvTyp" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="Iterative" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
@@ -377,7 +376,7 @@
                 <Item id="TimeOrder" pid="Time order" dv="2" fluidAppr="Eulerian" fluidSolvTyp="ElementBased,EdgeBased" ivalues="1,2" values="1,2" help=""/>
                 <Item id="LaplacianForm" pid="Laplacian form" state="hidden" dv="Discrete" fluidAppr="Eulerian" fluidSolvTyp="ElementBased,EdgeBased" ivalues="Continuous,Discrete,DiscreteWithDt" values="Continuous,Discrete,Discrete with dt" help=""/>
                 <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" fluidAppr="Eulerian" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
-                <Item id="OssSwitch" pid="Use orthogonal subscales" DebugOrRel="Debug" dv="0" ivalues="0,1" values="No,Yes" fluidAppr="Eulerian"  help=""/> 
+                <Item id="OssSwitch" pid="Use orthogonal subscales" DebugOrRel="Debug" dv="0" ivalues="0,1" values="No,Yes" fluidAppr="Eulerian"  help=""/>
                 <Item id="RedistanceFrequency" pid="Redistance frequency" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="5" help="Redistance frequency"/>
                 <Item id="ExtrapolationLayers" pid="Extrapolation layers" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="10" help="Extrapolation layers"/>
                 <Item id="StabdtPressureFactor" pid="Stabilized dt pressure factor" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="1.0" help="Stabilized dt pressure factor"/>
@@ -413,7 +412,7 @@
             <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" state="hidden" fluidSolvTyp="ElementBased,Monolithic" fluidAppr="Eulerian" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
             <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.01" help=""/>
             <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
-            <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="0" fluidAppr="Eulerian" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
+            <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="0" fluidAppr="Eulerian" state="disabled" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
             <Item id="EnvironmentTemperature" pid="Environment temperature" state="hidden" fluidAppr="Eulerian" fluidType="Incompressible" dv="0.0" help=""/>
             <Item id="MaxVart" pid="Max Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Max time variation"/>
             <Item id="MinVart" pid="Min Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Min time variation"/>
@@ -442,13 +441,13 @@
             <Container id="InitialPressure" pid="Initial pressure" class="Groups" idTemplate="InitialPressure" icon="groupsTreeNew.gif" help="Initial Conditions" open="0"/>
         </Container>
         <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0">
-            <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidAppr="Eulerian" fluidType="Incompressible" idTemplate="InletVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
+            <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidAppr="Eulerian" fluidType="Incompressible" GiDEntity="surface" idTemplate="InletVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
             <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidAppr="Eulerian" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
-            <Container id="OutletPressure" pid="Outlet pressure" class="Groups" fluidAppr="Eulerian" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="0"/>
-            <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
+            <Container id="OutletPressure" pid="Outlet pressure" class="Groups" fluidAppr="Eulerian" idTemplate="OutletPressure" GiDEntity="surface,line,point" icon="groupsTreeNew.gif" help="Outlet pressure" open="0"/>
+            <Container id="Is-Slip" pid="Is-Slip" state="hiddenAll" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet" idTemplate="IsSlip" GiDEntity="surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
             <Container id="WallLaw" pid="Wall law" fluidAppr="Eulerian" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="0"/>
             <Container id="Distance" pid="Distance" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="LevelSetDistance" GiDEntity="line,surface,volume" icon="groupsTreeNew.gif" help="Distance variable for the free surface using level set method" open="0"/>
-            <Container id="No-Slip" pid="No-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="NoSlip" icon="groupsTreeNew.gif" help="No-Slip" open="0"/>
+            <Container id="No-Slip" pid="No-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="NoSlip" GiDEntity="surface" icon="groupsTreeNew.gif" help="No-Slip" open="0"/>
             <Container id="Flag-Variable" pid="Flag-Variable" DebugOrRel="Debug" fluidAppr="Eulerian" class="Groups" state="disabled" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties. Deactivated at this moment" open="0"/>
             <Container id="PFEMWall" pid="Wall/Object" class="Groups" fluidAppr="PFEM-Lagrangian" state="hiddenAll" idTemplate="PFEMwall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="0"/>
             <Container id="PFEMFixedWall" pid="Fixed Wall" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMFixedWall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="0"/>
@@ -487,7 +486,7 @@
     </Container>
     <Container id="Advanced" pid="Advanced" fluidType="Incompressible" class="Tab" help="" open="0">
       <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
-      <Item id="OssSwitch" pid="Use orthogonal subscales" state="hidden" dv="0" ivalues="0,1" values="0,1" help=""/> 
+      <Item id="OssSwitch" pid="Use orthogonal subscales" state="hidden" dv="0" ivalues="0,1" values="0,1" help=""/>
         </Container>
       </Container>
       <Container id="ProblemParameters" pid="Problem Parameters" help="Problem Parameters" open="0" dv="fh" values="">
@@ -595,124 +594,128 @@
             <Item id="compressiontest" pid="Compression Test" dv="1" rpath=""/>
             <Item id="cutting" pid="Cutting Test" dv="0" rpath=""/>
         </Container>
-    <Container id="DEM-ConstitutiveParameters" pid="Constitutive parameters" state="hiddenAll" help="Constitutive parameters" open="0">
-        <Item id="DEM-MaterialModel" pid="Material model" dv="Linear" state="hidden" class="DEM-MaterialModel" ivalues="Linear,Hertz,1DPlasticity,ExpHard" values="Linear,Hertz,1D Plasticity,Exponential Hardening" help="Elasticity"/>
+        <Container id="DEM-ConstitutiveParameters" pid="Constitutive parameters" state="hiddenAll" help="Constitutive parameters" open="0">
+            <Item id="DEM-MaterialModel" pid="Material model" dv="Linear" state="hidden" class="DEM-MaterialModel" ivalues="Linear,Hertz,1DPlasticity,ExpHard" values="Linear,Hertz,1D Plasticity,Exponential Hardening" help="Elasticity"/>
         </Container>
-    <Container id="DEM-MaterialTest" pid="Material test" state="hiddenAll"  DEM-MaterialTestLab="Hide" class="Tab">
-        <Item id="DEM-TestType" pid="Test type" dv="None" ivalues="UCS,Triaxial,Oedometric,Hydrostatic,BTS" values="UCS,Triaxial,Oedometric,Hydrostatic,BTS" class="DEM-TestType" help="Test type"/>
-        <Item id="DEM-LoadVelocity" pid="Load velocity" dv="0.1"/>
-        <Item id="DEM-ConfinementPressure" pid="Confinement pressure" DEM-TestType="Triaxial" dv="0.0" unit=""/>
-        <Item id="DEM-MeshType" pid="Mesh type"  dv="Current" class="DEM-MeshType" ivalues="Current,Predefined" values="Current,Predefined"/>
-        <Item id="DEM-MeshPath" pid="Mesh path" DEM-MeshType="Predefined" dv="0"/>
-        <Item id="DEM-ProbeLength" pid="Specimen length" state="normal" dv="0.30"/>
-        <Item id="DEM-ProbeDiameter" pid="Specimen diameter" state="normal"  dv="0.15"/>
-    </Container>
-    <Container id="DEM-Elements" pid="Elements" help="Elements assignation" open="0" icon="demelements.gif">
+        <Container id="DEM-MaterialTest" pid="Material test" state="hiddenAll"  DEM-MaterialTestLab="Hide" class="Tab">
+            <Item id="DEM-TestType" pid="Test type" dv="None" ivalues="UCS,Triaxial,Oedometric,Hydrostatic,BTS" values="UCS,Triaxial,Oedometric,Hydrostatic,BTS" class="DEM-TestType" help="Test type"/>
+            <Item id="DEM-LoadVelocity" pid="Load velocity" dv="0.1"/>
+            <Item id="DEM-ConfinementPressure" pid="Confinement pressure" DEM-TestType="Triaxial" dv="0.0" unit=""/>
+            <Item id="DEM-MeshType" pid="Mesh type"  dv="Current" class="DEM-MeshType" ivalues="Current,Predefined" values="Current,Predefined"/>
+            <Item id="DEM-MeshPath" pid="Mesh path" DEM-MeshType="Predefined" dv="0"/>
+            <Item id="DEM-ProbeLength" pid="Specimen length" state="normal" dv="0.30"/>
+            <Item id="DEM-ProbeDiameter" pid="Specimen diameter" state="normal"  dv="0.15"/>
+        </Container>
+        <Container id="DEM-Elements" pid="Elements" help="Elements assignation" open="0" icon="demelements.gif">
         <Container id="DEM-Element" pid="DEM Element" state="normal" class="Groups" GiDEntity="all" idTemplate="DEM-Element" icon="demelements.gif" help="Assign this atribute to a group containing Volumes which will be meshed as Spheres or to a group containing Spheres of the Mesh. Only the Spheres tagged with this attribute as DEM Element will be actually calculated. Double click to add a group." open="0"/>
-    </Container>
-    <Container id="DEM-Conditions" pid="Conditions" class="Tab" help="Boundary Conditions, including inlets, moving walls, prescribed degrees of freedom and initial conditions" icon="trianglesmesh.gif" open="0">
+        </Container>
+        <Container id="DEM-Conditions" pid="Conditions" class="Tab" help="Boundary Conditions, including inlets, moving walls, prescribed degrees of freedom and initial conditions" icon="trianglesmesh.gif" open="0">
         <Container id="DEM-FEM-Wall" pid="DEM-FEM wall" class="Groups" idTemplate="DEM-FEM-Wall" GiDEntity="surface" icon="trianglesmesh.gif" help="Apply this attribute to a Group containing a FEM mesh. The Group will act as a wall which cannot be crossed by DEM Spheres. Double click to add a group." open="0"/>
         <Container id="DEM-Inlet" pid="Inlet" class="Groups" idTemplate="DEM-InletBC" GiDEntity="all" icon="demelements.gif" help="It allows the insertion of new DEM elements into the domain. Double click to add a group." open="0"/>
         <Container id="DEM-VelocityBC" pid="Prescribe motion on Elements" class="Groups" idTemplate="DEM-VelocityBC" GiDEntity="all" icon="handball.gif" help="It allows to impose a rigid body motion or to constrict certain degrees of freedom of a group of elements. Double click to add a group." open="0"/>
         <Container id="DEM-VelocityIC" pid="Initial conditions on Elements" class="Groups" idTemplate="DEM-VelocityIC" GiDEntity="all" icon="beginning.gif" help="It allows to impose initial velocities or angular velocities to a group of elements. Double click to add a group." open="0"/>
-    </Container>
-    <Container id="DEM-Options" pid="General options" class="Tab" help="DEM general options" icon="aplicationTree.gif" open="0">
-        <Container id="DEM-Boundingbox" pid="Bounding box" icon="cube.gif" help="Any Discrete Element going outside of the Bounding Box will be deleted" class="Tab">
-        <Item id="UseBoundingBox" pid="Bounding box" dv="Yes" class="DEM-BBox" ivalues="Yes,No" icon="active.gif" values="Active,Not active" help="Any Discrete element going out of the bounding box will be deleted"/>
-        <Item id="BoundingBoxType" pid="Bounding box type" DEM-BBox="Yes" class="DEM-BBoxType" dv="Fixed" ivalues="Automatic,Fixed" values="Automatic,Fixed" help="If Automatic is chosen, the bounding box will be created using the existing entities at the beginning of the computation"/>
-        <Item id="EnlargementFactor" pid="Enlargement factor" DEM-BBox="Yes" DEM-BBoxType="Automatic" dv="1.1" help="Enlargement factor"/>
-        <Item id="MaxX" pid="Max X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max X"/>
-        <Item id="MaxY" pid="Max Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/>
-        <Item id="MaxZ" pid="Max Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Z"/>
-        <Item id="MinX" pid="Min X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min X"/>
-        <Item id="MinY" pid="Min Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
-        <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
-        <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
-        <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
-        <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="No" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
         </Container>
-        <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">  
-        <Item id="GravityValue" state="hidden" pid="Gravity value" dv="9.81" help="Gravity value"/>
-        <Item id="Cx" pid="Gx" state="hidden" dv="0.0" help="X Vector"/>
-        <Item id="Cy" pid="Gy" state="hidden" dv="0.0" help="Y Vector"/>
-        <Item id="Cz" pid="Gz" state="hidden" dv="-1.0" nDim="3D" help="Z Vector"/>
-        <Item id="PeriodicDomainOption" pid="Periodic Domain" dv="No" class="PeriodicDomain" ivalues="Yes,No" values="Yes,No" help="Consider a parallepipedic periodic domain defined by the bounding box for the DEM problem"/>        
+        <Container id="DEM-Options" pid="General options" class="Tab" help="DEM general options" icon="aplicationTree.gif" open="0">
+            <Container id="DEM-Boundingbox" pid="Bounding box" icon="cube.gif" help="Any Discrete Element going outside of the Bounding Box will be deleted" class="Tab">
+                <Item id="UseBoundingBox" pid="Bounding box" dv="Yes" class="DEM-BBox" ivalues="Yes,No" icon="active.gif" values="Active,Not active" help="Any Discrete element going out of the bounding box will be deleted"/>
+                <Item id="BoundingBoxType" pid="Bounding box type" DEM-BBox="Yes" class="DEM-BBoxType" dv="Fixed" ivalues="Automatic,Fixed" values="Automatic,Fixed" help="If Automatic is chosen, the bounding box will be created using the existing entities at the beginning of the computation"/>
+                <Item id="EnlargementFactor" pid="Enlargement factor" DEM-BBox="Yes" DEM-BBoxType="Automatic" dv="1.1" help="Enlargement factor"/>
+                <Item id="MaxX" pid="Max X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max X"/>
+                <Item id="MaxY" pid="Max Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/>
+                <Item id="MaxZ" pid="Max Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Z"/>
+                <Item id="MinX" pid="Min X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min X"/>
+                <Item id="MinY" pid="Min Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
+                <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
+                <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
+                <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
+                <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
+            </Container>
+            <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">
+                <Item id="SearchNeighboursOption" pid="Search Neighbours" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Activates or deactivates the search of DEM neighbours"/>
+                <Item id="GravityValue" state="hidden" pid="Gravity value" dv="9.81" help="Gravity value"/>
+                <Item id="Cx" pid="Gx" state="hidden" dv="0.0" help="X Vector"/>
+                <Item id="Cy" pid="Gy" state="hidden" dv="0.0" help="Y Vector"/>
+                <Item id="Cz" pid="Gz" state="hidden" dv="-1.0" nDim="3D" help="Z Vector"/>
+                <Item id="PeriodicDomainOption" pid="Periodic Domain" dv="No" class="PeriodicDomain" ivalues="Yes,No" values="Yes,No" help="Consider a parallepipedic periodic domain defined by the bounding box for the DEM problem"/>
+            </Container>
+            <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" help="More advanced options that modify the computation" open='0'>
+                <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
+                <Item id="DEM-RemoveBallsInitiallyTouchingWalls" pid="Remove spheres initially touching walls" dv="No" ivalues="Yes,No" values="Yes,No" help="If activated, all spheres touching any wall at the beginning of the computations will be eliminated"/>
+                <Item id="DEM-TangencyTolerance" pid="Tangency tolerance" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose a margin by which the radius of the particle is incremented to obtain the seach radius. A larger than 0 value will allow for less frequent search"/>
+                <Item id="DEM-TangencyToleranceValueAbsolute" pid="Tangency tolerance value" dv="0.0001" DEM-TangTolerance="Absolute" help=""/>
+                <Item id="DEM-TangencyCoordinationNumber" pid="Coordination number" state="hidden" dv="10" DEM-TangTolerance="Coordination_Number" help=""/>
+                <Item id="DEM-ExportModelDataInformation" pid="Export model data information" state="hidden" dv="No" ivalues="Yes,No" values="Active,Not Active" help="Export Model Data Information"/>
+                <Item id="DEM-VirtualMassCoef" pid="Virtual mass coefficient" state="hidden" dv="1.0" help="Virtual Mass"/>
+                <Item id="DEM-CalculateRotations" pid="Calculate rotations" state="normal" dv="Yes" ivalues="Yes,No" values="Yes,No" class="DEM-Rotation" help="If activated, torques and rotations will be calculated on the Discrete Elements. Will increase computation time slightly. "/>
+                <Item id="DEM-RollingFriction" pid="Rolling friction" dv="No" ivalues="Yes,No" class="DEM-Rolling" values="Active,Not Active" help="If activated, the Rolling Friction parameter set in the Materials Tree will be taken into account. Otherwise it will be ignored. Will increase computation time slightly"/>
+                <Item id="DEM-GlobalDamping" pid="Global Damping" dv="0.0" help="Choose the value for the damping. 0.0 means no damping at all, while 1.0 means full damping."/>
+                <Item id="DEM-MaterialTestActivate" pid="Material Analysis" state="hidden" dv="No" class="DEM-MaterialTestLab" ivalues="Yes,No" values="Show,Hide" help="Show or Hide Material Test"/>
+                <Item id="DEM-DontSearchUntilFail" pid="Don't search until failure" state="hidden" dv="OFF" ivalues="ON,OFF" values="ON,OFF" help="Don't search until failure"/>
+                <Item id="DEM-RemoveBallsInEmbedded" pid="Remove DEM elements inside embedded" DebugOrRel="Debug" dv="No" ivalues="Yes,No" values="Yes,No" help="Removes DEM elements that are inside an embedded DEM-FEM wall"/>
+            </Container>
         </Container>
-        <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" help="More advanced options that modify the computation" open='0'>
-            <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
-            <Item id="DEM-TangencyTolerance" pid="Tangency tolerance" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose a margin by which the radius of the particle is incremented to obtain the seach radius. A larger than 0 value will allow for less frequent search"/>
-            <Item id="DEM-TangencyToleranceValueAbsolute" pid="Tangency tolerance value" dv="0.0001" DEM-TangTolerance="Absolute" help=""/>
-            <Item id="DEM-TangencyCoordinationNumber" pid="Coordination number" state="hidden" dv="10" DEM-TangTolerance="Coordination_Number" help=""/>
-            <Item id="DEM-ExportModelDataInformation" pid="Export model data information" state="hidden" dv="No" ivalues="Yes,No" values="Active,Not Active" help="Export Model Data Information"/>
-            <Item id="DEM-VirtualMassCoef" pid="Virtual mass coefficient" state="hidden" dv="1.0" help="Virtual Mass"/>
-            <Item id="DEM-CalculateRotations" pid="Calculate rotations" state="normal" dv="Yes" ivalues="Yes,No" values="Yes,No" class="DEM-Rotation" help="If activated, torques and rotations will be calculated on the Discrete Elements. Will increase computation time slightly. "/>
-            <Item id="DEM-RollingFriction" pid="Rolling friction" dv="No" ivalues="Yes,No" class="DEM-Rolling" values="Active,Not Active" help="If activated, the Rolling Friction parameter set in the Materials Tree will be taken into account. Otherwise it will be ignored. Will increase computation time slightly"/>
-            <Item id="DEM-GlobalDamping" pid="Global Damping" dv="0.0" help="Choose the value for the damping. 0.0 means no damping at all, while 1.0 means full damping."/>
-            <Item id="DEM-MaterialTestActivate" pid="Material Analysis" state="hidden" dv="No" class="DEM-MaterialTestLab" ivalues="Yes,No" values="Show,Hide" help="Show or Hide Material Test"/>
-            <Item id="DEM-DontSearchUntilFail" pid="Don't search until failure" state="hidden" dv="OFF" ivalues="ON,OFF" values="ON,OFF" help="Don't search until failure"/>
-            <Item id="DEM-RemoveBallsInEmbedded" pid="Remove DEM elements inside embedded" DebugOrRel="Debug" dv="No" ivalues="Yes,No" values="Yes,No" help="Removes DEM elements that are inside an embedded DEM-FEM wall"/>
-	    </Container>
-	</Container>
-    <Container id="DEM-SolutionStrategy" pid="Solution strategy" class="Tab" help="Options and parameters that change the numerical strategy" icon="gear.gif" open="0">
-        <Item id="DEM-TimeTranslationalIntegrationScheme" pid="Translational integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Velocity_Verlet" values="Symplectic Euler,Forward Euler,Taylor Scheme,Velocity Verlet" help="Time Integration Scheme for translational motion"/>
-        <Item id="DEM-TimeRotationalIntegrationScheme" pid="Rotational integration scheme" dv="Direct_Integration" ivalues="Direct_Integration,Runge_Kutta,Quaternion_Integration" values="Direct Integration,Runge Kutta,Quaternion Integration" help="Time Integration Scheme for rotational motion"/>
-        <Container id="DEM-ParallelType" pid="Parallel type" state="hiddenAll" help="Locked to OpenMP (MPI will be available in the future)" class="Tab">
-            <Item id="ParallelType" pid="Parallel type" state="disabled" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help="Locked to OpenMP (MPI will be available in the future)"/>
-            <Item id="NumberOfThreads" state="hidden" pid="Number of threads"  dv="1" help="Set the number of threads you want to use for this computation. Do not choose more than the available threads on your computer or the computation will be slower"/>
+        <Container id="DEM-SolutionStrategy" pid="Solution strategy" class="Tab" help="Options and parameters that change the numerical strategy" icon="gear.gif" open="0">
+            <Item id="DEM-TimeTranslationalIntegrationScheme" pid="Translational integration scheme" dv="Symplectic_Euler" ivalues="Hybrid_Bashforth,Symplectic_Euler,Forward_Euler,Taylor_Scheme,Newmark_Beta_Method,Velocity_Verlet" values="Hybrid_Bashforth,Symplectic Euler,Forward Euler,Taylor Scheme,Newmark Beta Method,Velocity Verlet" help="Time Integration Scheme for translational motion"/>
+            <Item id="DEM-TimeRotationalIntegrationScheme" pid="Rotational integration scheme" dv="Direct_Integration" ivalues="Direct_Integration,Runge_Kutta,Quaternion_Integration" values="Direct Integration,Runge Kutta,Quaternion Integration" help="Time Integration Scheme for rotational motion"/>
+            <Container id="DEM-ParallelType" pid="Parallel type" state="hiddenAll" help="Locked to OpenMP (MPI will be available in the future)" class="Tab">
+                <Item id="ParallelType" pid="Parallel type" state="disabled" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help="Locked to OpenMP (MPI will be available in the future)"/>
+                <Item id="NumberOfThreads" state="hidden" pid="Number of threads"  dv="1" help="Set the number of threads you want to use for this computation. Do not choose more than the available threads on your computer or the computation will be slower"/>
+            </Container>
+            <Container id="DEM-TimeParameters" pid="Time parameters" icon="hourglass.gif" help="Options and parameters related with time" class="Tab">
+                <Item id="UseAutomaticDeltaTime" pid="Delta time selection" state="hidden" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the type of Delta time to be used"/>
+                <Item id="DeltaTime" DEM-deltatimetype="Fixed" pid="Delta time (s)" dv="5e-5"  help="Delta time used by DEM"/>
+                <Item id="DeltaTimeSafetyFactor" DEM-deltatimetype="Automatic" pid="Delta time safety factor" dv="1.0" help="Delta time safety factor"/>
+                <Item id="DEM-TotalTime" pid="Total time (s)" state="hidden" dv="1.0" help="Total Time"/>
+                <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
+                <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency"  dv="10" unit="Hz" help="Choose how often neighbours are searched. 1 means every time step, 10 means 1 in 10 steps"/>
+            </Container>
         </Container>
-        <Container id="DEM-TimeParameters" pid="Time parameters" icon="hourglass.gif" help="Options and parameters related with time" class="Tab">
-            <Item id="UseAutomaticDeltaTime" pid="Delta time selection" state="hidden" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the type of Delta time to be used"/>
-            <Item id="DeltaTime" DEM-deltatimetype="Fixed" pid="Delta time (s)" dv="5e-5"  help="Delta time used by DEM"/>
-            <Item id="DeltaTimeSafetyFactor" DEM-deltatimetype="Automatic" pid="Delta time safety factor" dv="1.0" help="Delta time safety factor"/>
-            <Item id="DEM-TotalTime" pid="Total time (s)" state="hidden" dv="1.0" help="Total Time"/>
-            <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
-            <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency"  dv="10" unit="Hz" help="Choose how often neighbours are searched. 1 means every time step, 10 means 1 in 10 steps"/>
-        </Container>
-    </Container>
-    <Container id="DEM-Results" pid=" DEM-Specific Results" help="Adjust the level of detail, frequency and type of the results that must be printed on disk during the computation" icon="bouncingball.gif" open="0">
-         <Item id="DEM-OTimeStepType" pid="Set Output Frequency" dv="Time interval" icon="hourglass.gif" class="DEM-OTimestepType" ivalues="Detail_priority,Storage_priority" values="Time interval,Total number of files" help="Select printing interval or the total amount of result files to print"/>
-        <Item id="DEM-OTimeStepDetail" pid="Output interval" dv="1e-2" DEM-OTimestepType="Detail_priority" help="Set printing interval for GiD results"/>
-        <Item id="DEM-OTimeStepStorage" pid="Number of files" dv="100" DEM-OTimestepType="Storage_priority" help="Select the amount of GiD result files to print"/>
+        <Container id="DEM-CustomSubModelParts" pid="Custom SubModelParts" class="Groups" idTemplate="DEM-CustomSubModelPartTemp" GiDEntity="all" icon="demelements.gif" help="It allows the creation of SubModelParts that will be printed in the mpda input files for Kratos. Double click to add a group." open="0"/>
+        <Container id="DEM-Results" pid=" DEM-Specific Results" help="Adjust the level of detail, frequency and type of the results that must be printed on disk during the computation" icon="bouncingball.gif" open="0">
+            <Item id="DEM-OTimeStepType" pid="Set Output Frequency" dv="Detail_priority" class="DEM-OTimestepType" ivalues="Detail_priority,Storage_priority" values="Time interval,Total number of files" icon="hourglass.gif" help="Select printing interval or the total amount of result files to print"/>
+            <Item id="DEM-OTimeStepDetail" pid="Output interval" dv="1e-2" DEM-OTimestepType="Detail_priority" help="Set printing interval for GiD results"/>
+            <Item id="DEM-OTimeStepStorage" pid="Number of files" dv="100" DEM-OTimestepType="Storage_priority" help="Select the amount of GiD result files to print"/>
         <Container id="DEM-PartElem" state="hiddenAll" pid="Print in Post-Process" icon="text_list_bullets.gif" help="Results on DEM elements that can be colored or shown as vectors on GiD, among other options">
-	    <Item id="DEM-Displacement" pid="Displacement" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacement"/>
-	    <Item id="DEM-Radius" pid="Radius" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Radius"/>
-	    <Item id="DEM-PostVel" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
-	    <Item id="DEM-AngularVelocity" pid="Angular velocity" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Angular velocity"/>
-	    <Item id="DEM-ElasForces" pid="Elastic Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Elastic Forces"/>
-        <Item id="DEM-ContactForces" pid="Contact Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Contact Forces"/>
-        <Item id="DEM-RigidElementForces" pid="Rigid Element Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Rigid Element Forces"/>
-	    <Item id="DEM-TangElasForces" pid="Tangential Elastic Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Tangential Elastic Forces"/>
-	    <Item id="DEM-TotalForces" pid="Total forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Total Forces"/>
-        <Item id="DEM-Stresses" pid="Stresses in DEM particles" dv="No" ivalues="Yes,No" values="Yes,No" help="Stresses in DEM particles"/>
-	    <Item id="DEM-Pressure" pid="Pressure" dv="No" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
-	    <Item id="DEM-ShearStress" pid="Shear Stress" dv="No" ivalues="Yes,No" values="Yes,No" help="Shear Stress"/>
-	    <Item id="DEM-Wear" pid="Wear" dv="No" ivalues="Yes,No" values="Yes,No" help="It computes the volume of removed material due to wear"/>
-	    <Item id="DEM-NodalArea" pid="Nodal Area" dv="No" ivalues="Yes,No" values="Yes,No" help="Nodal Area"/>
-	    <Item id="DEM-Rhs" pid="Rhs" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Rhs"/>
-	    <Item id="DEM-DampForces" pid="Damp forces" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Damp forces"/>
-	    <Item id="DEM-AppliedForces" pid="Applied forces" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
-	    <Item id="DEM-GroupId" pid="GroupId" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="GroupId"/>
-	    <Item id="DEM-ExportId" pid="Export Id" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="ExportId"/>
-	    <Item id="DEM-SkinSphere" pid="Skin sphere" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Print the spheres that form the skin of the DEM groups"/>
-	    <Item id="DEM-ParticleMoment" pid="Particle moment" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Particle moment"/>
-	    <Item id="DEM-EulerAngles" pid="Euler angles" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Euler angles"/>
-	    <Item id="DEM-RollingResistanceMoment" pid="Rolling resistance moment" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Rolling resistance moment"/>
+            <Item id="DEM-Displacement" pid="Displacement" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacement"/>
+            <Item id="DEM-Radius" pid="Radius" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Radius"/>
+            <Item id="DEM-PostVel" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
+            <Item id="DEM-AngularVelocity" pid="Angular velocity" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Angular velocity"/>
+            <Item id="DEM-ElasForces" pid="Elastic Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Elastic Forces"/>
+            <Item id="DEM-ContactForces" pid="Contact Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Contact Forces"/>
+            <Item id="DEM-RigidElementForces" pid="Rigid Element Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Rigid Element Forces"/>
+            <Item id="DEM-TangElasForces" pid="Tangential Elastic Forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Tangential Elastic Forces"/>
+            <Item id="DEM-TotalForces" pid="Total forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Total Forces"/>
+            <Item id="DEM-Stresses" pid="Stresses in DEM particles" dv="No" ivalues="Yes,No" values="Yes,No" help="Stresses in DEM particles"/>
+            <Item id="DEM-Pressure" pid="Pressure" dv="No" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
+            <Item id="DEM-ShearStress" pid="Shear Stress" dv="No" ivalues="Yes,No" values="Yes,No" help="Shear Stress"/>
+            <Item id="DEM-Wear" pid="Wear" dv="No" ivalues="Yes,No" values="Yes,No" help="It computes the volume of removed material due to wear"/>
+            <Item id="DEM-NodalArea" pid="Nodal Area" dv="No" ivalues="Yes,No" values="Yes,No" help="Nodal Area"/>
+            <Item id="DEM-Rhs" pid="Rhs" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Rhs"/>
+            <Item id="DEM-DampForces" pid="Damp forces" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Damp forces"/>
+            <Item id="DEM-AppliedForces" pid="Applied forces" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
+            <Item id="DEM-GroupId" pid="GroupId" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="GroupId"/>
+            <Item id="DEM-ExportId" pid="Export Id" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="ExportId"/>
+            <Item id="DEM-SkinSphere" pid="Skin sphere" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Print the spheres that form the skin of the DEM groups"/>
+            <Item id="DEM-ParticleMoment" pid="Particle moment" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Particle moment"/>
+            <Item id="DEM-EulerAngles" pid="Euler angles" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Euler angles"/>
+            <Item id="DEM-RollingResistanceMoment" pid="Rolling resistance moment" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Rolling resistance moment"/>
+            <Item id="DEM-CharacteristicLength" pid="Characteristic Length" dv="No" ivalues="No,Yes" values="No,Yes" help="Print the characteristic length"/>
         </Container>
         <Container id="FEM-PartElem" pid="On FEM elements" state="hiddenAll" help="Results on FEM elements">
-	    <Item id="DEM-Displacement" pid="Displacement" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacement"/>
-	    <Item id="DEM-PostVel" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
-	    <Item id="DEM-TotalForces" pid="Total forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Total Forces"/>
+            <Item id="DEM-Displacement" pid="Displacement" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacement"/>
+            <Item id="DEM-PostVel" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
+            <Item id="DEM-TotalForces" pid="Total forces" dv="No" ivalues="Yes,No" values="Yes,No" help="Total Forces"/>
         </Container>
         <Container id="DEM-Graphs" pid="Graphs" icon="curves.gif" help="Options for printing graphs from the computed results">
-	    <Item id="DEM-ForceTimeGraph" pid="Force evolution with time" class="DEM-ShowGraphsVars" dv="No" ivalues="Yes,No" values="Yes,No" help="Force evolution with time" />
-	    <Item id="DEM-GraphExportFreq" pid="Printing delta time (s)" DEM-ShowGraphsVars="Yes" dv="1e-3" help="Printing delta time" />
-            <Container id="DEM-ForceIntegrationGroup" pid="Force integration group" DEM-ShowGraphsVars="Yes" class="Groups" idTemplate="DEM-ForceIntegrationGroupTemplate" GiDEntity="all" icon="add.gif" help="Force Integration Group. Double click to add a group." open="0"/>
+            <Item id="DEM-ForceTimeGraph" pid="Force evolution with time" class="DEM-ShowGraphsVars" dv="No" ivalues="Yes,No" values="Yes,No" help="Force evolution with time" />
+            <Item id="DEM-GraphExportFreq" pid="Printing delta time (s)" DEM-ShowGraphsVars="Yes" dv="1e-3" help="Printing delta time" />
+        <Container id="DEM-ForceIntegrationGroup" pid="Force integration group" DEM-ShowGraphsVars="Yes" class="Groups" idTemplate="DEM-ForceIntegrationGroupTemplate" GiDEntity="all" icon="add.gif" help="Force Integration Group. Double click to add a group." open="0"/>
             <Item id="UseComputeEnergies" pid="Compute energy" dv="No" class="DEM-ComputeEnergy" ivalues="Yes,No" values="Yes,No" help="If activated, this option calculates the kinetic, potential, elastic, frictional and viscodamping energies of all the particles (spheres and clusters)" />
             <Item id="PotentialEnergyReferencePointX" pid="Potential Energy Reference Point X" DEM-ComputeEnergy="Yes" dv="0.0" help="Potential Energy Reference Point X"/>
             <Item id="PotentialEnergyReferencePointY" pid="Potential Energy Reference Point Y" DEM-ComputeEnergy="Yes" dv="0.0" help="Potential Energy Reference Point Y"/>
             <Item id="PotentialEnergyReferencePointZ" pid="Potential Energy Reference Point Z" DEM-ComputeEnergy="Yes" dv="0.0" help="Potential Energy Reference Point Z"/>
         </Container>
-        <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Show Bond Elements"/>
+            <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Show Bond Elements"/>
         <Container id="DEM-BondElem" pid="On bond elements" DEM-ShowBondElements="Yes" help="Results on bond elements">
             <Item id="DEM-ContactSigma" pid="Contact sigma" dv="No" ivalues="Yes,No" values="Yes,No" help="Contact sigma"/>
             <Item id="DEM-ContactTau" pid="Contact tau" dv="No" ivalues="Yes,No" values="Yes,No" help="Contact tau"/>
@@ -722,47 +725,47 @@
             <Item id="DEM-MeanContactArea" pid="Mean contact area" dv="No" ivalues="Yes,No" values="Yes,No" help="Mean contact area"/>
         </Container>
         <Container id="DEM-VelocityTrap" pid="Velocity trap" icon="cube.gif" help="If activated, this option creates a Box in which some measurements are done: average velocity of the particles, entering flux of particles, entering flux of mass,..." class="Tab">
-        <Item id="UseVelocityTrap" pid="Activate velocity trap" dv="No" state="normal" class="DEM-VTrap" ivalues="No,Yes" icon="active.gif" values="Not active,Active" help="If activated, this option creates a Box in which some measurements are done: average velocity of the particles, entering flux of particles, entering flux of mass,..."/>
+            <Item id="UseVelocityTrap" pid="Activate velocity trap" dv="No" state="normal" class="DEM-VTrap" ivalues="No,Yes" icon="active.gif" values="Not active,Active" help="If activated, this option creates a Box in which some measurements are done: average velocity of the particles, entering flux of particles, entering flux of mass,..."/>
             <Item id="MaxX" pid="Max X" DEM-VTrap="Yes" dv="100.0" help="Max X"/>
             <Item id="MaxY" pid="Max Y" DEM-VTrap="Yes" dv="100.0" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/>
             <Item id="MaxZ" pid="Max Z" DEM-VTrap="Yes" dv="100.0" help="Max Z"/>
             <Item id="MinX" pid="Min X" DEM-VTrap="Yes" dv="-100.0" help="Min X"/>
             <Item id="MinY" pid="Min Y" DEM-VTrap="Yes" dv="-100.0" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
             <Item id="MinZ" pid="Min Z" DEM-VTrap="Yes" dv="-100.0" help="Min Z"/>
-	    <Item id="DEM-VelTrapGraphExportFreq" pid="Printing time step (s)" DEM-VTrap="Yes" dv="1e-3" help="Printing delta time for the velocity trap" />
+            <Item id="DEM-VelTrapGraphExportFreq" pid="Printing time step (s)" DEM-VTrap="Yes" dv="1e-3" help="Printing delta time for the velocity trap" />
         </Container>
         <Container id="GiDOptions" state="hiddenAll" pid="Options" class="Tab" help="GiD postprocess additional options" open="0">
-          <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format. Choose Binary or Ascii. Ascii takes more hard disk space, but is human readable"/>
-          <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
-          <Item id="GiDWriteConditionsFlag" pid="Write conditions" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
-          <Item id="GiDWriteParticlesFlag" pid="Write particles" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
-          <Item id="GiDMultiFileFlag" pid="Result file" dv="Multiples" ivalues="Multiples,Single" values="Multiple files,Single file" state="hidden" help="Write one GiD result file or multiple files"/>
+            <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format. Choose Binary or Ascii. Ascii takes more hard disk space, but is human readable"/>
+            <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
+            <Item id="GiDWriteConditionsFlag" pid="Write conditions" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
+            <Item id="GiDWriteParticlesFlag" pid="Write particles" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
+            <Item id="GiDMultiFileFlag" pid="Result file" dv="Multiples" ivalues="Multiples,Single" values="Multiple files,Single file" state="hidden" help="Write one GiD result file or multiple files"/>
         </Container>
-    </Container>
-    <Container id="Properties" pid="Properties" class="Properties" state="hidden" idTemplate="PropertiesDEM" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
+        </Container>
+        <Container id="Properties" pid="Properties" class="Properties" state="hidden" idTemplate="PropertiesDEM" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
     </RootData>
     <RootData id="Curves" pid="Curves" state="hiddenAll" class="Curves" icon="arc.gif" help="Curve definition" open="1">
     </RootData>
-     <Templates>
+        <Templates>
         <Template id="Solid2DElement" icon="groupsTree.gif" help="2D element">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle,Quadrilateral" values="Triangle,Quadrilateral" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>
-    <Template id="ShellElement" icon="groupsTree.gif" help="Isotropic shell formulation">
+        <Template id="ShellElement" icon="groupsTree.gif" help="Isotropic shell formulation">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>
-         <Template id="Trusselement" icon="groupsTree.gif" help="Total Lagrangian">
+        <Template id="Trusselement" icon="groupsTree.gif" help="Total Lagrangian">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Linear" ivalues="Linear" values="Linear" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>
-    <Template id="BeamElement" icon="groupsTree.gif" help="Beam total Lagrangian">
+        <Template id="BeamElement" icon="groupsTree.gif" help="Beam total Lagrangian">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Linear" ivalues="Linear" values="Linear" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
@@ -783,17 +786,17 @@
        <Template id="Fluid2DElement" icon="groupsTree.gif" help="Fluid 2D Element">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
-                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+                <Item id="Property" pid="Property" dv="Property1" GCV="Properties" help="Property"/>
             </Container>
         </Template>
          <Template id="Fluid3DElement" icon="groupsTree.gif" help="Fluid 3D Element">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Tetrahedra" ivalues="Tetrahedra" values="Tetrahedra" help="Element Type"/>
-                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+                <Item id="Property" pid="Property" dv="Property1" GCV="Properties" help="Property"/>
             </Container>
         </Template>
         <Template id="Displacements" icon="groupsTree.gif" help="Activation">
-      <Container id="Values" pid="Values" help="Set the values">
+            <Container id="Values" pid="Values" help="Set the values">
                 <Item id="Vx" pid="X" dv="0.0" help="X coordinate"/>
                 <Item id="Vy" pid="Y" dv="0.0" help="Y coordinate"/>
                 <Item id="Vz" pid="Z" dv="0.0" nDim="3D" help="Z coordinate"/>
@@ -926,6 +929,7 @@
                 <Item id="TypeOfFlowMeasurement" pid="Flow measurement" DEM-GeneralActivation="Yes" dv="number_of_particles" ivalues="number_of_particles,mass_flow" values="Particles per second, Kilograms per second" class="DEM-Inlet_measurement_type" help="Choose the type of measurement of the inlet"/>
                 <Item id="NumberOfParticles" pid="Number of particles" DEM-GeneralActivation="Yes" DEM-Inlet_measurement_type="number_of_particles" dv="200.0" help="Number of particles per second generated by this inlet"/>
                 <Item id="InletMassFlow" pid="Mass flow (Kg/s)" DEM-GeneralActivation="Yes" DEM-Inlet_measurement_type="mass_flow" dv="0.5" help="Mass generated by this inlet per second"/>
+                <Item id="InletLimitedVelocity" pid="Inlet injection speed limit (m/s)" DEM-GeneralActivation="Yes" DEM-Inlet_measurement_type="mass_flow" dv="2.0" help="Inlet injection speed limit (m/s)"/>
                 <Item id="InletStartTime" pid="Inlet start time (s)" DEM-GeneralActivation="Yes" dv="0.0" help="Inlet start time"/>
                 <Item id="InletStopTime" pid="Inlet stop time (s)" DEM-GeneralActivation="Yes" dv="1000.0" help="Inlet stop time"/>
                 <Item id="MatModel" pid="Material model" DEM-GeneralActivation="Yes" dv="" GCV="MatModel" help="Material model" state="hidden"/>
@@ -939,12 +943,17 @@
                 <Item id="OrientationY" pid="Orientation Y" DEM-RandomOrientation="No" DEM-InletElementType="Cluster3D" DEM-GeneralActivation="Yes" dv="0.0" help="Second parameter of the imaginary part of the orientation quaternion"/>
                 <Item id="OrientationZ" pid="Orientation Z" DEM-RandomOrientation="No" DEM-InletElementType="Cluster3D" DEM-GeneralActivation="Yes" dv="0.0" help="Third parameter of the imaginary part of the orientation quaternion"/>
                 <Item id="OrientationW" pid="Orientation W" DEM-RandomOrientation="No" DEM-InletElementType="Cluster3D" DEM-GeneralActivation="Yes" dv="1.0" help="Real part of the orientation quaternion"/>
-                <Container id="Rigid_Body_Motion" pid="Rigid_Body_Motion" class="Groups" idTemplate="RigidBodyMotion" help="" open="0"/>
+                <Item id="DEM-RBImposedMotion" pid="Type of Motion" class="DEM-RBImposedMotion" DEM-GeneralActivation="Yes" dv="None" ivalues="None,LinearPeriodic,FromATable" values="None,Linear/Periodic,From a table" help="Set Yes to impose a predefined motion to the group"/>
+            <Container id="Rigid_Body_Motion" pid="Rigid_Body_Motion" DEM-RBImposedMotion="LinearPeriodic" class="Groups" idTemplate="RigidBodyMotion" help="" open="0"/>
+                <Item id="VelocitiesFilename" pid="Filename" DEM-RBImposedMotion="FromATable" dv="velocities.dat" help="Insert here the name of the file containing the velocity data"/>
+                <Item id="TableVelocityComponent" pid="Velocity Component" DEM-RBImposedMotion="FromATable" DEM-GeneralActivation="Yes" dv="0" ivalues="0,1,2" values="X,Y,Z" help="Choose the Component of the Table of Velocity"/>
             </Container>
         </Template>
         <Template id="DEM-VelocityBC" help="DEM velocity boundary condition">
             <Item id="SetActive" pid="Active" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>
-            <Item id="MotionType" pid="Type of Motion" class="DEM-VelocityBCMotionType" DEM-GeneralActivation="Yes" dv="FixedDOFs" ivalues="FixedDOFs,RigidBodyMotion" values="Fixed DOFs,Rigid Body Motion" help="Sets the dynamics of the group. Fixed DOFs in a free motion or imposed movement. In the DOFs section, set Fix to 1 and a Value of 0 to avoid the motion along a given axis. Set a Fix to 0 and a desired Value to give an initial value. Finally, set a Fix to 1 and a certain Value to impose this motion along an axis."/>
+            <Item id="DEM-VelocityBCMotion" pid="Type of Motion" class="DEM-VelocityBCMotionType" DEM-GeneralActivation="Yes" dv="None" ivalues="None,LinearPeriodic,FromATable,FixedDOFs" values="None,Linear/Periodic,From a table,Fixed DOFs" help="Set Yes to impose a predefined motion to the group"/>
+            <Item id="VelocitiesFilename" pid="Filename" DEM-VelocityBCMotionType="FromATable" dv="velocities.dat" help="Insert here the name of the file containing the velocity data"/>
+            <Item id="TableVelocityComponent" pid="Velocity Component" DEM-VelocityBCMotionType="FromATable" DEM-GeneralActivation="Yes" dv="0" ivalues="0,1,2" values="X,Y,Z" help="Choose the Component of the Table of Velocity"/>
             <Item id="Ax" pid="Fix Velocity X" class="DEM-FixVelocityX" DEM-VelocityBCMotionType="FixedDOFs" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Velocity X"/>
             <Item id="Vx" pid="   Value (m/s)" DEM-VelocityBCMotionType="FixedDOFs" DEM-GeneralActivation="Yes" DEM-FixVelocityX="Yes" dv="0.0" help="X Velocity"/>
             <Item id="Ay" pid="Fix Velocity Y" class="DEM-FixVelocityY" DEM-VelocityBCMotionType="FixedDOFs" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Velocity Y"/>
@@ -959,43 +968,128 @@
             <Item id="AVz" pid="   Value (rad/s)" DEM-VelocityBCMotionType="FixedDOFs" DEM-GeneralActivation="Yes" DEM-FixAngularVelocityZ="Yes" dv="0.0" help="Z Angular Velocity"/>
             <Item id="VStart" pid="Start time (s)" DEM-VelocityBCMotionType="FixedDOFs" DEM-GeneralActivation="Yes" dv="0.0" help="Start Time"/>
             <Item id="VEnd" pid="End time (s)" DEM-VelocityBCMotionType="FixedDOFs" DEM-GeneralActivation="Yes" dv="100.0" help="Start Time"/>
-            <Container id="LinearVelocity" pid="Linear velocity" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Values">
-                <Item id="LinearVelocityX" pid="Vx (m/s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component X of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearVelocityY" pid="Vy (m/s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component Y of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearVelocityZ" pid="Vz (m/s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component Z of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearPeriodic" pid="Periodic" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicLinear" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
-                <Item id="LinearPeriod" pid="Period (s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" DEM-IsPeriodicLinear="Yes" help="in seconds" dv="5.0"/>
-                <Item id="LinearStartTime" pid="Start time (s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
-                <Item id="LinearEndTime" pid="End time (s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
+            <Container id="LinearVelocity" pid="Linear velocity" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Values">
+                <Item id="LinearVelocityX" pid="Vx (m/s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearVelocityY" pid="Vy (m/s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearVelocityZ" pid="Vz (m/s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearPeriodic" pid="Periodic" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicLinear" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
+                <Item id="LinearPeriod" pid="Period (s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" DEM-IsPeriodicLinear="Yes" help="in seconds" dv="5.0"/>
+                <Item id="LinearStartTime" pid="Start time (s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
+                <Item id="LinearEndTime" pid="End time (s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
             </Container>
-            <Container id="AngularVelocity" pid="Angular velocity" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Values">
-                <Item id="AngularVelocityX" pid="Wx (rad/s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component X of the Angular Velocity" dv="0.0"/>
-                <Item id="AngularVelocityY" pid="Wy (rad/s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component Y of the Angular Velocity" dv="0.0"/>
-                <Item id="AngularVelocityZ" pid="Wz (rad/s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component Z of the Angular Velocity" dv="0.0"/>
-                <Item id="CenterOfRotationX" pid="CenterX (m)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component X of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
-                <Item id="CenterOfRotationY" pid="CenterY (m)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component Y of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"  sbi="PickCoordinates" sbp="Pick" sbxp="CenterOfRotationX,CenterOfRotationY,CenterOfRotationZ"/>
-                <Item id="CenterOfRotationZ" pid="CenterZ (m)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="Component Z of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
-                <Item id="AngularPeriodic" pid="Periodic" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicAngular" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
-                <Item id="AngularPeriod" pid="Period (s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" DEM-IsPeriodicAngular="Yes" help="in seconds" dv="5.0"/>
-                <Item id="AngularStartTime" pid="Start time (s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
-                <Item id="AngularEndTime" pid="End time (s)" DEM-VelocityBCMotionType="RigidBodyMotion" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
+            <Container id="AngularVelocity" pid="Angular velocity" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Values">
+                <Item id="AngularVelocityX" pid="Wx (rad/s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the Angular Velocity" dv="0.0"/>
+                <Item id="AngularVelocityY" pid="Wy (rad/s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the Angular Velocity" dv="0.0"/>
+                <Item id="AngularVelocityZ" pid="Wz (rad/s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the Angular Velocity" dv="0.0"/>
+                <Item id="CenterOfRotationX" pid="CenterX (m)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
+                <Item id="CenterOfRotationY" pid="CenterY (m)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"  sbi="PickCoordinates" sbp="Pick" sbxp="CenterOfRotationX,CenterOfRotationY,CenterOfRotationZ"/>
+                <Item id="CenterOfRotationZ" pid="CenterZ (m)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
+                <Item id="AngularPeriodic" pid="Periodic" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicAngular" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
+                <Item id="AngularPeriod" pid="Period (s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" DEM-IsPeriodicAngular="Yes" help="in seconds" dv="5.0"/>
+                <Item id="AngularStartTime" pid="Start time (s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
+                <Item id="AngularEndTime" pid="End time (s)" DEM-VelocityBCMotionType="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
             </Container>
         </Template>
         <Template id="DEM-VelocityIC" help="DEM velocity initial conditions">
-            <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>   
-            <Container id="Values" pid="Values" DEM-GeneralActivation="Yes" help="Velocities Values">                     
+            <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>
+            <Container id="Values" pid="Values" DEM-GeneralActivation="Yes" help="Velocities Values">
                 <Item id="Vx" pid="Velocity X (m/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Velocity X"/>
                 <Item id="Vy" pid="Velocity Y (m/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Velocity Y"/>
                 <Item id="Vz" pid="Velocity Z (m/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Velocity Z"/>
                 <Item id="AVx" pid="Angular Velocity X (rad/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Angular Velocity X"/>
                 <Item id="AVy" pid="Angular Velocity Y (rad/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Angular Velocity Y"/>
-                <Item id="AVz" pid="Angular Velocity Z (rad/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Angular Velocity Z"/>   
+                <Item id="AVz" pid="Angular Velocity Z (rad/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Angular Velocity Z"/>
             </Container>
         </Template>
         <Template id="DEM-FEM-Wall" help="DEM-FEM wall boundary condition">
             <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>
-            <Container id="Rigid_Body_Motion" pid="Rigid_Body_Motion" class="Groups" idTemplate="RigidBodyMotion" help="" open="0"/>
-            <Container id="Options" pid="Settings" fluidSolvTyp="Monolithic" DEM-GeneralActivation="Yes" help="Options that will affect the behaviour during the contact bewteen Discrete Elements and this wall">
+            <Item id="DEM-RBImposedMotion" pid="Type of Motion" class="DEM-RBImposedMotion" DEM-GeneralActivation="Yes" dv="None" ivalues="None,LinearPeriodic,FreeMotion" values="None,Linear/Periodic,Free motion" help="Set Yes to impose a predefined motion to the group"/>
+            <Container id="Rigid_Body_Motion" pid="Rigid_Body_Motion" DEM-RBImposedMotion="LinearPeriodic" class="Groups" idTemplate="RigidBodyMotion" help="" open="0"/>
+                <Item id="Mass" pid="Mass(Kg)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="1.0" help=""/>
+            <Container id="Centroid" pid="Centroid" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
+                <Item id="CX" pid="Cx(m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
+                <Item id="CY" pid="Cy(m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
+                <Item id="CZ" pid="Cz(m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
+            </Container>
+            <Container id="DEM-Inertias" pid="Inertias" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
+                <Item id="IX" pid="Ix(Kg*m2)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="1.0" help=""/>
+                <Item id="IY" pid="Iy(Kg*m2)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="1.0" help=""/>
+                <Item id="IZ" pid="Iz(Kg*m2)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="1.0" help=""/>
+            </Container>
+            <Container id="DEM-RBE-DOFS" pid="Degrees of Freedom" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
+                <Item id="Ax" pid="Fix Velocity X" class="DEM-RBE-FixVelocityX" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Velocity X"/>
+                <Item id="Vx" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityX="Constant" dv="0.0" help="X Velocity"/>
+                <Item id="FilenameVx" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityX="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="Ay" pid="Fix Velocity Y" class="DEM-RBE-FixVelocityY" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Velocity Y"/>
+                <Item id="Vy" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityY="Constant" dv="0.0" help="Y Velocity"/>
+                <Item id="FilenameVy" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityY="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="Az" pid="Fix Velocity Z" class="DEM-RBE-FixVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Velocity Z"/>
+                <Item id="Vz" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityZ="Constant" dv="0.0" help="Z Velocity"/>
+                <Item id="FilenameVz" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityZ="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="Bx" pid="Fix Angular Velocity X" class="DEM-RBE-FixAngularVelocityX" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Angular Velocity X"/>
+                <Item id="AVx" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityX="Constant" dv="0.0" help="X Angular Velocity"/>
+                <Item id="FilenameAVx" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityX="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="By" pid="Fix Angular Velocity Y" class="DEM-RBE-FixAngularVelocityY" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Angular Velocity Y"/>
+                <Item id="AVy" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityY="Constant" dv="0.0" help="Y Angular Velocity"/>
+                <Item id="FilenameAVy" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityY="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="Bz" pid="Fix Angular Velocity Z" class="DEM-RBE-FixAngularVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Angular Velocity Z"/>
+                <Item id="AVz" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityZ="Constant" dv="0.0" help="Z Angular Velocity"/>
+                <Item id="FilenameAVz" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityZ="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="VStart" pid="Start time (s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help="Start Time"/>
+                <Item id="VEnd" pid="End time (s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="100.0" help="Start Time"/>
+            </Container>
+            <Container id="DEM-RBE-InitialVelocities" pid="Initial Velocities" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
+                <Item id="Ax" pid="Set Initial Velocity X" class="DEM-RBE-SetInitialVelocityX" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Velocity X"/>
+                <Item id="Vx" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialVelocityX="Yes" dv="0.0" help="X Velocity"/>
+                <Item id="Ay" pid="Set Initial Velocity Y" class="DEM-RBE-SetInitialVelocityY" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Velocity Y"/>
+                <Item id="Vy" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialVelocityY="Yes" dv="0.0" help="Y Velocity"/>
+                <Item id="Az" pid="Set Initial Velocity Z" class="DEM-RBE-SetInitialVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Velocity Z"/>
+                <Item id="Vz" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialVelocityZ="Yes" dv="0.0" help="Z Velocity"/>
+                <Item id="Bx" pid="Set Initial Angular Velocity X" class="DEM-RBE-SetInitialAngularVelocityX" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Ang Velocity X"/>
+                <Item id="AVx" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityX="Yes" dv="0.0" help="X Angular Velocity"/>
+                <Item id="By" pid="Set Initial Angular Velocity Y" class="DEM-RBE-SetInitialAngularVelocityY" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Ang Velocity Y"/>
+                <Item id="AVy" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityY="Yes" dv="0.0" help="Y Angular Velocity"/>
+                <Item id="Bz" pid="Set Initial Angular Velocity Z" class="DEM-RBE-SetInitialAngularVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Ang Velocity Z"/>
+                <Item id="AVz" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityZ="Yes" dv="0.0" help="Z Angular Velocity"/>
+            </Container>
+            <Container id="DEM-RBImposedForces" pid="Impose external forces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
+                <Item id="DEM-RBE-ExternalForceX" pid="External Forces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalForceX" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force in the X direction to the group"/>
+                <Item id="FX" pid="   Fx(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceX="Constant" dv="0.0" help="Insert the value of the external force in X direction"/>
+                <Item id="FilenameFX" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceX="FromATable" dv="- No file -" help="Insert here the name of the file containing the external force in X direction"/>
+                <Item id="DEM-RBE-ExternalForceY" pid="External Forces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalForceY" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force in the Y direction  to the group"/>
+                <Item id="FY" pid="   Fy(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceY="Constant" dv="0.0" help="Insert the value of the external force in Y direction"/>
+                <Item id="FilenameFY" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceY="FromATable" dv="- No file -" help="Insert here the name of the file containing the external force in Y direction"/>
+                <Item id="DEM-RBE-ExternalForceZ" pid="External Forces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalForceZ" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force in the Z direction  to the group"/>
+                <Item id="FZ" pid="   Fz(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceZ="Constant" dv="0.0" help="Insert the value of the external force in Z direction"/>
+                <Item id="FilenameFZ" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceZ="FromATable" dv="- No file -" help="Insert here the name of the file containing the external force in Z direction"/>
+            </Container>
+            <Container id="DEM-RBImposedMoments" pid="Impose external moments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
+                <Item id="DEM-RBE-ExternalMomentX" pid="External Moments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalMomentX" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force to the group"/>
+                <Item id="MX" pid="   Mx(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentX="Constant" dv="0.0" help="Insert the value of the external moment in X direction"/>
+                <Item id="FilenameMX" pid="   FilenameMx(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentX="FromATable" dv="- No file -" help="Insert here the name of the file containing the external moment in X direction"/>
+                <Item id="DEM-RBE-ExternalMomentY" pid="External Moments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalMomentY" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force to the group"/>
+                <Item id="MY" pid="   My(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentY="Constant" dv="0.0" help="Insert the value of the external moment in Y direction"/>
+                <Item id="FilenameMY" pid="   FilenameMy(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentY="FromATable" dv="- No file -" help="Insert here the name of the file containing the external moment in Y direction"/>
+                <Item id="DEM-RBE-ExternalMomentZ" pid="External Moments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalMomentZ" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force to the group"/>
+                <Item id="MZ" pid="   Mz(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentZ="Constant" dv="0.0" help="Insert the value of the external moment in Z direction"/>
+                <Item id="FilenameMZ" pid="   FilenameMz(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentZ="FromATable" dv="- No file -" help="Insert here the name of the file containing the external moment in Z direction"/>
+            </Container>
+            <Container id="Options" pid="Settings" DEM-GeneralActivation="Yes" help="Options that will affect the behaviour during the contact bewteen Discrete Elements and this wall">
+                <Item id="AnalyticProps" pid="Ghost Wall" class="DEM-GhostWall" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will compute data related to particles crossing it"/>
+                <Item id="fixed_wall" pid="Update velocity, not displacements" DEM-GhostWall="No" DEM-RBImposedMotion="LinearPeriodic" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will not move and will just have an imposed velocity field"/>
+                <Item id="friction_coeff" pid="Friction angle (deg)" DEM-GhostWall="No" DEM-GeneralActivation="Yes" dv="30.0" help="Coulomb friction coefficient"/>
+                <Item id="CohesiveWall" pid="Cohesive Wall" class="DEM-CohesiveWall" DEM-GhostWall="No" DEM-GeneralActivation="Yes" help="Specify if the wall presents a cohesive behaviour" dv="No" values="No,Yes"/>
+                <Item id="WallCohesion" pid="Wall Cohesion (Pa)" DEM-CohesiveWall="Yes" DEM-GhostWall="No" DEM-GeneralActivation="Yes" help="JKR or DMT energy surface" dv="0.0"/>
+                <Item id="DEM_Wear" pid="Compute Wear" class="DEM-Wear" DEM-GhostWall="No" DEM-GeneralActivation="Yes" help="If activated, wear will be computed on this wall. It can increase computation time" dv="No" values="No,Yes"/>
+                <Item id="K_Abrasion" pid="Severity of Abrasion" DEM-GhostWall="No" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's abrasion K parameter" dv="0.001"/>
+                <Item id="K_Impact" pid="Severity of Impact" DEM-GhostWall="No" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's impact K parameter" dv="0.001"/>
+                <Item id="H_Brinell" pid="Brinell Hardness (HB)" DEM-GhostWall="No" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Brinell hardness value" dv="200.0"/>
+                <Item id="is-embedded-in-fluid" pid="Embed this Wall in the fluid" DEM-GhostWall="No" DebugOrRel="Debug" state="hidden" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the fluid will also feel this group as a wall. This option is at the moment only compatible with the fractional step solver."/>
+                <Item id="RigidPlane" pid="Rigid Structure" class="DEM-RigidWall" DEM-GhostWall="No" DEM-GeneralActivation="Yes" help="Give this DEM-FEM group an ideally rigid behaviour or an elastic response with a particular Young Modulus" dv="Yes" values="Yes,No"/>
+                <Item id="YoungModulus" pid="Young Modulus (Pa)" DEM-GhostWall="No" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="1e20" help=""/>
+                <Item id="PoissonRatio" pid="Poisson Ratio" DEM-GhostWall="No" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="0.25" help=""/>
+            </Container>
+            <Container id="OptionsFractionalStep" pid="Settings" fluidSolvTyp="ElementBased" DEM-GeneralActivation="Yes" help="Options that will affect the behaviour during the contact bewteen Discrete Elements and this wall">
                 <Item id="fixed_wall" pid="Update velocity, not displacements" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will not move and will just have an imposed velocity field"/>
                 <Item id="friction_coeff" pid="Friction angle (deg)" DEM-GeneralActivation="Yes" dv="30.0" help="Coulomb friction coefficient"/>
                 <Item id="CohesiveWall" pid="Cohesive Wall" class="DEM-CohesiveWall" DEM-GeneralActivation="Yes" help="Specify if the wall presents a cohesive behaviour" dv="No" values="No,Yes"/>
@@ -1004,21 +1098,7 @@
                 <Item id="K_Abrasion" pid="Severity of Abrasion" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's abrasion K parameter" dv="0.001"/>
                 <Item id="K_Impact" pid="Severity of Impact" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's impact K parameter" dv="0.001"/>
                 <Item id="H_Brinell" pid="Brinell Hardness (HB)" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Brinell hardness value" dv="200.0"/>
-                <Item id="is-embedded-in-fluid" pid="Embed this Wall in the fluid" DebugOrRel="Debug" state="disabled" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the fluid will also feel this group as a wall. This option is at the moment only compatible with the fractional step solver."/>
-                <Item id="RigidPlane" pid="Rigid Structure" class="DEM-RigidWall" DEM-GeneralActivation="Yes" help="Give this DEM-FEM group an ideally rigid behaviour or an elastic response with a particular Young Modulus" dv="Yes" values="Yes,No"/>
-                <Item id="YoungModulus" pid="Young Modulus (Pa)" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="1e20" help=""/>
-                <Item id="PoissonRatio" pid="Poisson Ratio" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="0.25" help=""/>
-			</Container>            
-			<Container id="OptionsFractionalStep" pid="Settings" fluidSolvTyp="ElementBased" DEM-GeneralActivation="Yes" help="Options that will affect the behaviour during the contact bewteen Discrete Elements and this wall">
-                <Item id="fixed_wall" pid="Update velocity, not displacements" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will not move and will just have an imposed velocity field"/>
-                <Item id="friction_coeff" pid="Friction angle (deg)" DEM-GeneralActivation="Yes" dv="30.0" help="Coulomb friction coefficient"/>
-                <Item id="CohesiveWall" pid="Cohesive Wall" class="DEM-CohesiveWall" DEM-GeneralActivation="Yes" help="Specify if the wall presents a cohesive behaviour" dv="No" values="No,Yes"/>
-                <Item id="WallCohesion" pid="Wall Cohesion (Pa)" DEM-CohesiveWall="Yes" DEM-GeneralActivation="Yes" help="JKR or DMT energy surface" dv="0.0"/>
-                <Item id="DEM_Wear" pid="Compute Wear" class="DEM-Wear" DEM-GeneralActivation="Yes" help="If activated, wear will be computed on this wall. It can increase computation time" dv="No" values="No,Yes"/>
-                <Item id="K_Abrasion" pid="Severity of Abrasion" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's abrasion K parameter" dv="0.001"/>
-                <Item id="K_Impact" pid="Severity of Impact" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's impact K parameter" dv="0.001"/>
-                <Item id="H_Brinell" pid="Brinell Hardness (HB)" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Brinell hardness value" dv="200.0"/>
-                <Item id="is-embedded-in-fluid" pid="Embed this Wall in the fluid" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the fluid will also feel this group as a wall. This option is at the moment only compatible with the fractional step solver."/>
+                <Item id="is-embedded-in-fluid" pid="Embed this Wall in the fluid" DEM-GeneralActivation="Yes" state="hidden" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the fluid will also feel this group as a wall. This option is at the moment only compatible with the fractional step solver."/>
                 <Item id="RigidPlane" pid="Rigid Structure" class="DEM-RigidWall" DEM-GeneralActivation="Yes" help="Give this DEM-FEM group an ideally rigid behaviour or an elastic response with a particular Young Modulus" dv="Yes" values="Yes,No"/>
                 <Item id="YoungModulus" pid="Young Modulus (Pa)" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="1e20" help=""/>
                 <Item id="PoissonRatio" pid="Poisson Ratio" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="0.25" help=""/>
@@ -1030,27 +1110,26 @@
             <Item id="friction_coeff" pid="Friction angle (deg)" DEM-FEMSOLIDActivation="Yes" dv="30.0" help="Coulomb friction coefficient"/>
         </Template>
         <Template id="RigidBodyMotion" pid="Rigid Body Motion" help="Imposes a rigid body motion to the group">
-            <Item id="DEM-RBImposedMotion" pid="Impose Motion" class="DEM-RBImposedMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Yes to impose a predefined motion to the group"/>
-            <Container id="LinearVelocity" pid="Linear velocity" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Values">
-                <Item id="LinearVelocityX" pid="Vx (m/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component X of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearVelocityY" pid="Vy (m/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Y of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearVelocityZ" pid="Vz (m/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Z of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearPeriodic" pid="Periodic" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicLinear" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
-                <Item id="LinearPeriod" pid="Period (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" DEM-IsPeriodicLinear="Yes" help="in seconds" dv="5.0"/>
-                <Item id="LinearStartTime" pid="Start time (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
-                <Item id="LinearEndTime" pid="End time (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
+            <Container id="LinearVelocity" pid="Linear velocity" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Values">
+                <Item id="LinearVelocityX" pid="Vx (m/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearVelocityY" pid="Vy (m/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearVelocityZ" pid="Vz (m/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearPeriodic" pid="Periodic" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicLinear" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
+                <Item id="LinearPeriod" pid="Period (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" DEM-IsPeriodicLinear="Yes" help="in seconds" dv="5.0"/>
+                <Item id="LinearStartTime" pid="Start time (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
+                <Item id="LinearEndTime" pid="End time (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
             </Container>
-            <Container id="AngularVelocity" pid="Angular velocity" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Values">
-                <Item id="AngularVelocityX" pid="Wx (rad/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component X of the Angular Velocity" dv="0.0"/>
-                <Item id="AngularVelocityY" pid="Wy (rad/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Y of the Angular Velocity" dv="0.0"/>
-                <Item id="AngularVelocityZ" pid="Wz (rad/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Z of the Angular Velocity" dv="0.0"/>
-                <Item id="CenterOfRotationX" pid="CenterX (m)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component X of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
-                <Item id="CenterOfRotationY" pid="CenterY (m)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Y of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"  sbi="PickCoordinates" sbp="Pick" sbxp="CenterOfRotationX,CenterOfRotationY,CenterOfRotationZ"/>
-                <Item id="CenterOfRotationZ" pid="CenterZ (m)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Z of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
-                <Item id="AngularPeriodic" pid="Periodic" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicAngular" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
-                <Item id="AngularPeriod" pid="Period (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" DEM-IsPeriodicAngular="Yes" help="in seconds" dv="5.0"/>
-                <Item id="AngularStartTime" pid="Start time (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
-                <Item id="AngularEndTime" pid="End time (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
+            <Container id="AngularVelocity" pid="Angular velocity" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Values">
+                <Item id="AngularVelocityX" pid="Wx (rad/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the Angular Velocity" dv="0.0"/>
+                <Item id="AngularVelocityY" pid="Wy (rad/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the Angular Velocity" dv="0.0"/>
+                <Item id="AngularVelocityZ" pid="Wz (rad/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the Angular Velocity" dv="0.0"/>
+                <Item id="CenterOfRotationX" pid="CenterX (m)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
+                <Item id="CenterOfRotationY" pid="CenterY (m)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"  sbi="PickCoordinates" sbp="Pick" sbxp="CenterOfRotationX,CenterOfRotationY,CenterOfRotationZ"/>
+                <Item id="CenterOfRotationZ" pid="CenterZ (m)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
+                <Item id="AngularPeriodic" pid="Periodic" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicAngular" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
+                <Item id="AngularPeriod" pid="Period (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" DEM-IsPeriodicAngular="Yes" help="in seconds" dv="5.0"/>
+                <Item id="AngularStartTime" pid="Start time (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
+                <Item id="AngularEndTime" pid="End time (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
             </Container>
         </Template>
         <Template id="ConvDiff2D" icon="groupsTree.gif" help="Convection diffusion 2D element type">
@@ -1298,26 +1377,35 @@
         <TItem id="1" Xval="0" Yval="0"/>
     </ContainerTable>
             </Template>
+        <Template id="DEM-CustomSubModelPartTemp" help="DEM custom SubModelPart">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="WhatMdpa" pid="Destination mdpa" dv="DEM" ivalues="DEM,DEM-Inlet,FEM" values="DEM,DEM-Inlet,FEM" help="Decide what mpda file you want this SubModelPart to be added to"/>
+            </Container>
+        </Template>
     </Templates>
     <GlobalProjectSettings>
         <Item id="ValidateModel" pid="Validate model before calculate" dv="1" widget="check" help=""/>
         <Item id="CheckSpdVersion" pid="Check problem type version" dv="1" widget="check" help=""/>
-    <Item id="WriteAllGiDGroups" pid="Write all GiD groups" dv="0" widget="check" help="Write all GiD groups to the Kratos meshes"/>
+        <Item id="WriteAllGiDGroups" pid="Write all GiD groups" dv="0" widget="check" help="Write all GiD groups to the Kratos meshes"/>
     </GlobalProjectSettings>
     <ClassConfiguration>
-		<Class>nDim,axiSym,kinemType,strucType,soluType,analysType,Solid-ElementActivation,DEM-FEMSOLIDActivation,</Class>
-		<Class>,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,</Class>
-		<Class>,linearSolvTyp,solverType,fluidSolvTyp,fluidType,fluidAppr,freeSurf,convCriteria,application,deltatimetype,</Class>
-		<Class>,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType,ErgunEquationType,BaseCFType,</Class>
-		<Class>,cddeltatimetype,CDLinearSolverType,DEM-deltatimetype,DEM-TestType,DEM-MeshType,DEM-CompressionTest,DEM-BBox,</Class>
-		<Class>,DEM-BBoxType,CDAnalysisType,DEM-MaterialModel,DEM-TangTolerance,DEM-localcontactdamp,DEM-globallocdamp,</Class>
-		<Class>,DEM-MaterialTestLab,DEM-ShowBondElements,DEM-Rotation,DEM-Rolling,DEM-IsPeriodicAngular,</Class>
-		<Class>,DEM-IsPeriodicLinear,DEM-VTrap,DEM-Wear,DEM-RandomOrientation,DEM-CohesiveWall,DEM-ShowGraphsVars,</Class>
-		<Class>,DEM-ComputeEnergy,DEM-InletElementType,DEM-RigidWall,DEM-AdvancedMeshingFeatures,DEM-VelocityBCMotionType,</Class>
-		<Class>,DEM-InletImposedMotion,DEM-FEMImposedMotion,DEM-FEMWallActivation,DEM-VelocityBCActivation,DEM-InletBCActivation,</Class>
-		<Class>,DEM-ElementActivation,DEM-FEMtoDEMAlgorithm,DEM-RBImposedMotion,DEM-GeneralActivation,DEM-FixVelocityX,</Class>
-		<Class>,DEM-FixVelocityY,DEM-FixVelocityZ,DEM-FixAngularVelocityX,DEM-FixAngularVelocityY,DEM-FixAngularVelocityZ,</Class>
-		<Class>,DEM-Cluster,DEM-AdvancedMeshingFeaturesAlgorithmType,DebugOrRel,CouplingLevel,PeriodicDomain,PickForces,LaplacianMode,</Class>
-		<Class>,DEM-Inlet_measurement_type</Class>
+        <Class>nDim,axiSym,kinemType,strucType,soluType,analysType,Solid-ElementActivation,DEM-FEMSOLIDActivation,</Class>
+        <Class>,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,</Class>
+        <Class>,linearSolvTyp,solverType,fluidSolvTyp,fluidType,fluidAppr,freeSurf,convCriteria,application,deltatimetype,</Class>
+        <Class>,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType,ErgunEquationType,BaseCFType,</Class>
+        <Class>,cddeltatimetype,CDLinearSolverType,DEM-deltatimetype,DEM-TestType,DEM-MeshType,DEM-CompressionTest,DEM-BBox,</Class>
+        <Class>,DEM-BBoxType,CDAnalysisType,DEM-MaterialModel,DEM-TangTolerance,DEM-localcontactdamp,DEM-globallocdamp,</Class>
+        <Class>,DEM-MaterialTestLab,DEM-ShowBondElements,DEM-Rotation,DEM-Rolling,DEM-IsPeriodicAngular,</Class>
+        <Class>,DEM-IsPeriodicLinear,DEM-VTrap,DEM-Wear,DEM-RandomOrientation,DEM-CohesiveWall,DEM-ShowGraphsVars,</Class>
+        <Class>,DEM-ComputeEnergy,DEM-InletElementType,DEM-RigidWall,DEM-AdvancedMeshingFeatures,DEM-VelocityBCMotionType,</Class>
+        <Class>,DEM-InletImposedMotion,DEM-FEMImposedMotion,DEM-FEMWallActivation,DEM-VelocityBCActivation,DEM-InletBCActivation,</Class>
+        <Class>,DEM-ElementActivation,DEM-FEMtoDEMAlgorithm,DEM-RBImposedMotion,DEM-GeneralActivation,DEM-FixVelocityX,</Class>
+        <Class>,DEM-FixVelocityY,DEM-FixVelocityZ,DEM-FixAngularVelocityX,DEM-FixAngularVelocityY,DEM-FixAngularVelocityZ,</Class>
+        <Class>,DEM-RBE-ExternalForceX,DEM-RBE-ExternalForceY,DEM-RBE-ExternalForceZ,DEM-RBE-ExternalMomentX,DEM-RBE-ExternalMomentY,DEM-RBE-ExternalMomentZ,</Class>
+        <Class>,DEM-Cluster,DEM-AdvancedMeshingFeaturesAlgorithmType,DEM-PrintSeaSurface,DEM-RBE-FixVelocityX,DEM-RBE-FixVelocityY,DEM-RBE-FixVelocityZ,</Class>
+        <Class>,DEM-RBE-FixAngularVelocityX,DEM-RBE-FixAngularVelocityY,DEM-RBE-FixAngularVelocityZ,</Class>
+        <Class>,DEM-RBE-SetInitialVelocityX,DEM-RBE-SetInitialVelocityY,DEM-RBE-SetInitialVelocityZ,DEM-GhostWall,</Class>
+        <Class>,DEM-RBE-SetInitialAngularVelocityX,DEM-RBE-SetInitialAngularVelocityY,DEM-RBE-SetInitialAngularVelocityZ,</Class>
+        <Class>,DEM-Inlet_measurement_type,DebugOrRel,CouplingLevel,PeriodicDomain,PickForces,DragForceType,LaplacianMode,DEM-OTimestepType,</Class>
     </ClassConfiguration>
 </Kratos_Data>

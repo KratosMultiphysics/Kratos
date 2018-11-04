@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 ShellEdgeLoadCondition3D2N::ShellEdgeLoadCondition3D2N(IndexType NewId, GeometryType::Pointer pGeometry)
 	: MyBase(NewId, pGeometry)
 {
@@ -76,7 +76,7 @@ ShellEdgeLoadCondition3D2N::ShellEdgeLoadCondition3D2N(IndexType NewId, Geometry
 	: MyBase(NewId, pGeometry, pProperties)
 {
 }
-	
+
 ShellEdgeLoadCondition3D2N::ShellEdgeLoadCondition3D2N(const ShellEdgeLoadCondition3D2N& rOther)
 	: MyBase(rOther)
 {
@@ -99,19 +99,19 @@ void ShellEdgeLoadCondition3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
 	if(rLeftHandSideMatrix.size1() != num_dofs || rLeftHandSideMatrix.size2() != num_dofs) rLeftHandSideMatrix.resize(num_dofs, num_dofs,false);
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(num_dofs, num_dofs);
-	
+
 	if(rRightHandSideVector.size() != num_dofs) rRightHandSideVector.resize(num_dofs, false);
 	noalias( rRightHandSideVector ) = ZeroVector(num_dofs);
 
 	PropertiesType& props = GetProperties();
 	double th = props[THICKNESS];
-	
+
 	// todo: generalize it for any geometry / load pattern
 	double lx = geom[1].X0() - geom[0].X0();
 	double ly = geom[1].X0() - geom[0].X0();
 	double lz = geom[1].X0() - geom[0].X0();
 	double L = std::sqrt(lx*lx + ly*ly + lz*lz);
-	
+
 	array_1d<double, 3> F_vector_over_2;
 	array_1d<double, 3> M_vector_over_2;
 	F_vector_over_2.clear();
@@ -121,7 +121,7 @@ void ShellEdgeLoadCondition3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideM
 		if(geom[i].SolutionStepsDataHas(SHELL_EDGE_FORCE))
 		{
 			const array_1d<double,3>& F = geom[i].FastGetSolutionStepValue(SHELL_EDGE_FORCE);
-			
+
 		}
 		if(geom[i].SolutionStepsDataHas(SHELL_EDGE_TORQUE))
 		{
@@ -183,7 +183,7 @@ int ShellEdgeLoadCondition3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	unsigned int num_nodes = geom.PointsNumber();
 	if(num_nodes != 2)
 		KRATOS_THROW_ERROR(std::invalid_argument,"ShellEdgeLoadCondition works only with linear elements","");
-	
+
 	//verify that the variables are correctly initialized
 	if(DISPLACEMENT.Key() == 0)
 		KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
@@ -194,24 +194,24 @@ int ShellEdgeLoadCondition3D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	for(unsigned int i = 0; i < num_nodes; i++)
 	{
 		NodeType & iNode = geom[i];
-		
+
 		if(iNode.SolutionStepsDataHas(DISPLACEMENT) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ", iNode.Id());
-			
+
 		if(iNode.HasDofFor(DISPLACEMENT_X) == false || iNode.HasDofFor(DISPLACEMENT_Y) == false || iNode.HasDofFor(DISPLACEMENT_Z) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", iNode.Id());
-		
+
 		if(iNode.SolutionStepsDataHas(ROTATION) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable ROTATION on node ", iNode.Id());
-			
+
 		if(iNode.HasDofFor(ROTATION_X) == false || iNode.HasDofFor(ROTATION_Y) == false || iNode.HasDofFor(ROTATION_Z) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ", iNode.Id());
 	}
-	
+
 	PropertiesType & props = this->GetProperties();
 	if(!props.Has(THICKNESS))
 		KRATOS_THROW_ERROR(std::invalid_argument,"ShellEdgeLoadCondition needs THICKNESS property","");
-	
+
 	KRATOS_CATCH("")
 	return 0;
 }

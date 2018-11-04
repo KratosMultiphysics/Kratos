@@ -19,7 +19,7 @@
 // Project includes
 #include "custom_conditions/ALM_mortar_contact_condition.h"
 
-namespace Kratos 
+namespace Kratos
 {
 
 ///@name Kratos Globals
@@ -28,110 +28,127 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
-    typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
-    
+
+    /// The definition of the size type
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** \brief AugmentedLagrangianMethodFrictionlessMortarContactCondition
- * This is a contact condition which employes the mortar method with dual lagrange multiplier 
+
+/**
+ * @class AugmentedLagrangianMethodFrictionlessMortarContactCondition
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief AugmentedLagrangianMethodFrictionlessMortarContactCondition
+ * @details This is a contact condition which employes the mortar method with dual lagrange multiplier
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
+ * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNormalVariation If we are consider normal variation
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
-class AugmentedLagrangianMethodFrictionlessMortarContactCondition: public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, false, TNormalVariation> 
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes >
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionlessMortarContactCondition
+    : public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
-        
+
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, false, TNormalVariation> BaseType;
-    
-    typedef typename BaseType::MortarConditionMatrices                                 MortarConditionMatrices;
-    
-    typedef Condition                                                                        ConditionBaseType;
-    
-    typedef PairedCondition                                                            PairedConditionBaseType;
-    
-    typedef typename ConditionBaseType::VectorType                                                  VectorType;
+    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster> BaseType;
 
-    typedef typename ConditionBaseType::MatrixType                                                  MatrixType;
+    typedef typename BaseType::MortarConditionMatrices                    MortarConditionMatrices;
 
-    typedef typename ConditionBaseType::IndexType                                                    IndexType;
+    typedef Condition                                                           ConditionBaseType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                              GeometryPointerType;
+    typedef PairedCondition                                               PairedConditionBaseType;
 
-    typedef typename ConditionBaseType::NodesArrayType                                          NodesArrayType;
+    typedef typename ConditionBaseType::VectorType                                     VectorType;
 
-    typedef typename ConditionBaseType::PropertiesType                                          PropertiesType;
-    
-    typedef typename ConditionBaseType::PropertiesType::Pointer                          PropertiesPointerType;
-    
-    typedef typename ConditionBaseType::EquationIdVectorType                              EquationIdVectorType;
-    
-    typedef typename ConditionBaseType::DofsVectorType                                          DofsVectorType;
-    
-    typedef typename std::vector<array_1d<PointType,TDim>>                              ConditionArrayListType;
-    
-    typedef Line2D2<Point>                                                                            LineType;
-    
-    typedef Triangle3D3<Point>                                                                    TriangleType;
-    
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type              DecompositionType;
-    
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation>                               DerivativeDataType;
-    
-    static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes) + TNumNodes;
-         
+    typedef typename ConditionBaseType::MatrixType                                     MatrixType;
+
+    typedef typename ConditionBaseType::IndexType                                       IndexType;
+
+    typedef typename ConditionBaseType::GeometryType::Pointer                 GeometryPointerType;
+
+    typedef typename ConditionBaseType::NodesArrayType                             NodesArrayType;
+
+    typedef typename ConditionBaseType::PropertiesType                             PropertiesType;
+
+    typedef typename ConditionBaseType::PropertiesType::Pointer             PropertiesPointerType;
+
+    typedef typename ConditionBaseType::EquationIdVectorType                 EquationIdVectorType;
+
+    typedef typename ConditionBaseType::DofsVectorType                             DofsVectorType;
+
+    /// Point definition
+    typedef Point                                                                       PointType;
+
+    /// Node type definition
+    typedef Node<3>                                                                      NodeType;
+
+    /// Geoemtry type definition
+    typedef Geometry<NodeType>                                                       GeometryType;
+
+    // Type definition for integration methods
+    typedef GeometryType::IntegrationPointsArrayType                        IntegrationPointsType;
+
+    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
+
+    typedef Line2D2<Point>                                                               LineType;
+
+    typedef Triangle3D3<Point>                                                       TriangleType;
+
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+
+    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataType;
+
+    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster) + TNumNodes;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
     AugmentedLagrangianMethodFrictionlessMortarContactCondition()
-        : BaseType() 
+        : BaseType()
     {
     }
-    
+
     // Constructor 1
     AugmentedLagrangianMethodFrictionlessMortarContactCondition(
-        IndexType NewId, 
+        IndexType NewId,
         GeometryPointerType pGeometry
         ):BaseType(NewId, pGeometry)
     {
     }
-    
+
     // Constructor 2
     AugmentedLagrangianMethodFrictionlessMortarContactCondition(
-        IndexType NewId, 
-        GeometryPointerType pGeometry, 
+        IndexType NewId,
+        GeometryPointerType pGeometry,
         PropertiesPointerType pProperties
         ):BaseType( NewId, pGeometry, pProperties )
     {
     }
-    
+
     // Constructor 3
     AugmentedLagrangianMethodFrictionlessMortarContactCondition(
-        IndexType NewId, 
-        GeometryPointerType pGeometry, 
+        IndexType NewId,
+        GeometryPointerType pGeometry,
         PropertiesPointerType pProperties,
         GeometryType::Pointer pMasterGeometry
         ):BaseType( NewId, pGeometry, pProperties, pMasterGeometry )
@@ -154,21 +171,21 @@ public:
     ///@}
     ///@name Operations
     ///@{
-   
+
     /**
      * Creates a new element pointer from an arry of nodes
      * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
+     * @param rThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    
-    Condition::Pointer Create( 
+
+    Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& rThisNodes,
-        PropertiesPointerType pProperties 
+        PropertiesPointerType pProperties
         ) const override;
-    
+
     /**
      * Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
@@ -176,13 +193,13 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryPointerType pGeom,
         PropertiesPointerType pProperties
         ) const override;
-        
+
     /**
      * Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
@@ -191,38 +208,38 @@ public:
      * @param pMasterGeom the paired geometry
      * @return a Pointer to the new element
      */
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryPointerType pGeom,
         PropertiesPointerType pProperties,
         GeometryPointerType pMasterGeom
         ) const override;
-        
+
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
-     * @return rResult The result vector with the ID's of the DOF
+     * @param rResult The result vector with the ID's of the DOF
      * @param rCurrentProcessInfo the current process info instance
      */
-    
-    void EquationIdVector( 
+
+    void EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
      * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
-     * @return rConditionalDofList
-     * @param rCurrentProcessInfo the current process info instance
+     * @param rConditionalDofList The list of DOFs
+     * @param rCurrentProcessInfo The current process info instance
      */
-    
-    void GetDofList( 
+
+    void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -230,10 +247,10 @@ public:
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rCurrentProcessInfo
+     * @param rCurrentProcessInfo The current process information
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-        
+
     ///@}
     ///@name Access
     ///@{
@@ -259,7 +276,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -272,44 +289,58 @@ protected:
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
     /********************************************************************************/
 
-    /*
+    /**
      * Calculates the local contibution of the LHS
+     * @param rLocalLHS The local LHS to compute
+     * @param rMortarConditionMatrices The mortar operators to be considered
+     * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
+     * @param rActiveInactive The integer that is used to identify which case is the currectly computed
      */
-    
-    bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
+
+    void CalculateLocalLHS(
+        Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const IndexType rActiveInactive,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
-    
-    /*
-     * Calculates the local contibution of the LHS
+
+    /**
+     * Calculates the local contibution of the RHS
+     * @param rLocalRHS The local RHS to compute
+     * @param rMortarConditionMatrices The mortar operators to be considered
+     * @param rDerivativeData The class containing all the derivatives uses to compute the jacobian
+     * @param rActiveInactive The integer that is used to identify which case is the currectly computed
      */
-    
-    array_1d<double, MatrixSize> CalculateLocalRHS(
+
+    void CalculateLocalRHS(
+        Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const IndexType rActiveInactive,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
-        
+
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
-    
-    /*
+
+    /**
      * Returns a value depending of the active/inactive set
+     * @param CurrentGeometry The geometry containing the nodes that are needed to be checked as active or inactive
+     * @return The integer that can be used to identify the case to compute
      */
-    
-    unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
+
+    IndexType GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
     {
-        unsigned int value = 0;
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        IndexType value = 0;
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
             if (CurrentGeometry[i_node].Is(ACTIVE) == true)
                 value += 1 << i_node;
-        
+
         return value;
     }
-        
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -330,7 +361,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -351,18 +382,18 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    // Serialization 
-    
+    // Serialization
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
     ///@}
@@ -382,4 +413,4 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_ALM_FRICTIONLESS_MORTAR_CONTACT_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_ALM_FRICTIONLESS_MORTAR_CONTACT_CONDITION_H_INCLUDED  defined

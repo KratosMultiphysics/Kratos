@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_U_PW_FORCE_CONDITION_H_INCLUDED )
 #define  KRATOS_U_PW_FORCE_CONDITION_H_INCLUDED
@@ -47,11 +53,11 @@ public:
     UPwForceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
     // Destructor
-    virtual ~UPwForceCondition() {}
+    ~UPwForceCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
   
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -61,7 +67,7 @@ protected:
         
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
         
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -75,12 +81,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }

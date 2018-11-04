@@ -310,7 +310,7 @@ public:
         return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.GetSourceVariable().Key())) != mData.end());
     }
 
-    bool IsEmpty()
+    bool IsEmpty() const
     {
         return mData.empty();
     }
@@ -392,7 +392,7 @@ private:
     {
         std::size_t mI;
     public:
-        IndexCheck(int I) : mI(I) {}
+        IndexCheck(std::size_t I) : mI(I) {}
         bool operator()(const ValueType& I)
         {
             return I.first->Key() == mI;

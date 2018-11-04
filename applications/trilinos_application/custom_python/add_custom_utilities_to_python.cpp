@@ -11,7 +11,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 #include "Epetra_MpiComm.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_FEVector.h"
@@ -23,8 +22,9 @@
 
 // Application includes
 #include "trilinos_space.h"
-#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/trilinos_pointer_wrapper.h"
+#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
@@ -44,57 +44,82 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
+namespace py = pybind11;
 
-void  AddCustomUtilitiesToPython()
+typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+
+template <unsigned int TDim>
+void AuxiliarUpdateInterfaceValues(
+    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TDim> &dummy,
+    ModelPart &rModelPart,
+    const Variable<array_1d<double, 3>> &rSolutionVariable,
+    AuxiliaryVectorWrapper &rCorrectedGuess)
 {
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-    typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+    dummy.UpdateInterfaceValues(rModelPart, rSolutionVariable, rCorrectedGuess.GetReference());
+}
 
-    class_<TrilinosDeactivationUtility, boost::noncopyable >
-    ("TrilinosDeactivationUtility",
-     init<>() )
-    .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
-    .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
-    .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
-    .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
-    .def("Initialize", &TrilinosDeactivationUtility::Initialize )
-    ;
+template <unsigned int TDim>
+void AuxiliarComputeInterfaceResidualVector(
+    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TDim> &dummy,
+    ModelPart &rInterfaceModelPart,
+    const Variable<array_1d<double, 3>> &rOriginalVariable,
+    const Variable<array_1d<double, 3>> &rModifiedVariable,
+    AuxiliaryVectorWrapper &rInterfaceResidual)
+{
+    dummy.ComputeInterfaceResidualVector(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rInterfaceResidual.GetReference());
+}
 
-    class_<ParallelFillCommunicator, boost::noncopyable >
-    ("ParallelFillCommunicator",
-     init<ModelPart& >() )
-    .def("Execute", &ParallelFillCommunicator::Execute )
-    .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
-    ;
+void AuxiliarUpdateSolution(
+    ConvergenceAccelerator<TrilinosSparseSpaceType> &dummy,
+    AuxiliaryVectorWrapper &rResidualVector,
+    AuxiliaryVectorWrapper &rIterationGuess)
+{
+    dummy.UpdateSolution(rResidualVector.GetReference(), rIterationGuess.GetReference());
+}
 
-    class_<TrilinosCuttingApplication, boost::noncopyable >
-    ("TrilinosCuttingApplication",
-     init< Epetra_MpiComm& >() )
-    .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
-    .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
-    .def("AddSkinConditions", &TrilinosCuttingApplication::AddSkinConditions )
-    .def("UpdateCutData", &TrilinosCuttingApplication::UpdateCutData )
-    ;
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
+    py::class_<TrilinosDeactivationUtility >
+        (m,"TrilinosDeactivationUtility")
+        .def(py::init<>() )
+        .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
+        .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
+        .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
+        .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
+        .def("Initialize", &TrilinosDeactivationUtility::Initialize )
+        ;
 
-    class_<TrilinosCuttingIsosurfaceApplication,boost::noncopyable >
-    ("TrilinosCuttingIsosurfaceApplication",
-     init< Epetra_MpiComm& >() )
-    .def("GenerateScalarVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut<double>)
-    //.def("GenerateVectorialComponentVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
-    //.def("GenerateVectorialVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut< array_1d < double, 3 > >)
-    .def("AddSkinConditions", &TrilinosCuttingIsosurfaceApplication::AddSkinConditions)
-    .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
-    .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
-    ;
+    py::class_<ParallelFillCommunicator >
+        (m,"ParallelFillCommunicator")
+        .def(py::init<ModelPart& >() )
+        .def("Execute", &ParallelFillCommunicator::Execute )
+        .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
+        ;
 
-    class_<TrilinosRefineMesh, boost::noncopyable >
-    ("TrilinosRefineMesh",
-     init<ModelPart& , Epetra_MpiComm& >() )
-    .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
-    .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
-    ;
+    py::class_<TrilinosCuttingApplication>(m,"TrilinosCuttingApplication").def(py::init< Epetra_MpiComm& >() )
+        .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
+        .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
+        .def("AddSkinConditions", &TrilinosCuttingApplication::AddSkinConditions )
+        .def("AddVariablesToCutModelPart", &TrilinosCuttingApplication::AddVariablesToCutModelPart )
+        .def("UpdateCutData", &TrilinosCuttingApplication::UpdateCutData )
+        ;
+
+    py::class_<TrilinosCuttingIsosurfaceApplication >
+        (m,"TrilinosCuttingIsosurfaceApplication").def(py::init< Epetra_MpiComm& >() )
+        .def("GenerateScalarVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut<double>)
+        //.def("GenerateVectorialComponentVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
+        //.def("GenerateVectorialVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut< array_1d < double, 3 > >)
+        .def("AddSkinConditions", &TrilinosCuttingIsosurfaceApplication::AddSkinConditions)
+        .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
+        .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
+        ;
+
+    py::class_<TrilinosRefineMesh>(m,"TrilinosRefineMesh").def(py::init<ModelPart& , Epetra_MpiComm& >() )
+        .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
+        .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
+        ;
 
     typedef SolverSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSettingsType;
     typedef void (BaseSettingsType::*BuildTurbModelType)(BaseSettingsType::TurbulenceModelLabel const&, TrilinosLinearSolverType::Pointer, const double, const unsigned int);
@@ -102,94 +127,95 @@ void  AddCustomUtilitiesToPython()
     BuildTurbModelType SetTurbModel_Build = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
     PassTurbModelType SetTurbModel_Pass = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
 
-
-    class_ < BaseSettingsType, boost::noncopyable >
-    ( "BaseSettingsType",no_init )
-    .def("SetTurbulenceModel",SetTurbModel_Build)
-    .def("SetTurbulenceModel",SetTurbModel_Pass)
-    ;
+    py::class_ < BaseSettingsType >(m,"BaseSettingsType" )
+        .def("SetTurbulenceModel",SetTurbModel_Build)
+        .def("SetTurbulenceModel",SetTurbModel_Pass)
+        ;
 
     typedef TrilinosFractionalStepSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsType;
 
-    enum_<BaseSettingsType::StrategyLabel>("TrilinosStrategyLabel")
-    .value("Velocity",BaseSettingsType::Velocity)
-    .value("Pressure",BaseSettingsType::Pressure)
-    //.value("EddyViscosity",TrilinosFractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
-    ;
+    py::enum_<BaseSettingsType::StrategyLabel>(m,"TrilinosStrategyLabel")
+        .value("Velocity",BaseSettingsType::Velocity)
+        .value("Pressure",BaseSettingsType::Pressure)
+        //.value("EddyViscosity",TrilinosFractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
+        ;
 
-    enum_<BaseSettingsType::TurbulenceModelLabel>("TrilinosTurbulenceModelLabel")
-    .value("SpalartAllmaras",BaseSettingsType::SpalartAllmaras)
-    ;
+    py::enum_<BaseSettingsType::TurbulenceModelLabel>(m,"TrilinosTurbulenceModelLabel")
+        .value("SpalartAllmaras",BaseSettingsType::SpalartAllmaras)
+        ;
 
     typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
     SetStrategyByParamsType ThisSetStrategyOverload = &TrilinosFSSettingsType::SetStrategy;
 
-    class_< TrilinosFSSettingsType,bases<BaseSettingsType>, boost::noncopyable>
-            ("TrilinosFractionalStepSettings",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
-    .def("SetStrategy",ThisSetStrategyOverload)
-    .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
-    .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
-    ;
-
+    py::class_< TrilinosFSSettingsType,BaseSettingsType>(m,"TrilinosFractionalStepSettings")
+        .def(py::init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+        .def("SetStrategy",ThisSetStrategyOverload)
+        .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
+        .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
+        ;
 
     typedef TrilinosFractionalStepSettingsPeriodic<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsPeriodicType;
 
     typedef void (TrilinosFSSettingsPeriodicType::*SetStrategyByParamsPeriodicType)(BaseSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
     SetStrategyByParamsPeriodicType ThatSetStrategyOverload = &TrilinosFSSettingsPeriodicType::SetStrategy;
 
-    class_< TrilinosFSSettingsPeriodicType,bases<BaseSettingsType>, boost::noncopyable>
-            ("TrilinosFractionalStepSettingsPeriodic",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
-    .def("SetStrategy",ThatSetStrategyOverload)
-    .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
-    .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
-    ;
+    py::class_< TrilinosFSSettingsPeriodicType,BaseSettingsType>
+        (m,"TrilinosFractionalStepSettingsPeriodic").def(py::init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
+        .def("SetStrategy",ThatSetStrategyOverload)
+        .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
+        .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
+        ;
 
+    py::class_<GatherModelPartUtility>(m,"GatherModelPartUtility")
+        .def(py::init<int, ModelPart&, int , ModelPart&>() )
+        .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<double> )
+        .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<array_1d<double,3> > )
+        .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
+        .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<array_1d<double,3> > )
+        ;
 
-    class_<GatherModelPartUtility, boost::noncopyable >
-    ("GatherModelPartUtility",
-     init<int, ModelPart&, int , ModelPart&>() )
-      .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<double> )
-      .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<array_1d<double,3> > )
-      .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
-      .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<array_1d<double,3> > )
-   ;
+    py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils").def(py::init<>())
+        .def("Check",&MPINormalCalculationUtils::Check)
+        .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
+        .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
+        ;
 
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, 2> BasePartitionedFSIUtilities2DType;
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, 3> BasePartitionedFSIUtilities3DType;
 
-    class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer, boost::noncopyable > ("MPINormalCalculationUtils",init<>())
-            .def("Check",&MPINormalCalculationUtils::Check)
-            .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
-            .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
-            ;
+    py::class_<BasePartitionedFSIUtilities2DType, BasePartitionedFSIUtilities2DType::Pointer>(m, "PartitionedFSIUtilities2D");
+    py::class_<BasePartitionedFSIUtilities3DType, BasePartitionedFSIUtilities3DType::Pointer>(m, "PartitionedFSIUtilities3D");
 
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,2> TrilinosPartitionedFSIUtilities2DType;
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,3> TrilinosPartitionedFSIUtilities3DType;
 
-    class_< TrilinosPartitionedFSIUtilities2DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities2D", init < const Epetra_MpiComm& >())
+    py::class_<TrilinosPartitionedFSIUtilities2DType, TrilinosPartitionedFSIUtilities2DType::Pointer, BasePartitionedFSIUtilities2DType>(m, "TrilinosPartitionedFSIUtilities2D")
+        .def(py::init<const Epetra_MpiComm &>())
         .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceResidualSize)
-        .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities2DType::SetUpInterfaceVector)
-        .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities2DType::ComputeInterfaceVectorResidual)
-        .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities2DType::UpdateInterfaceValues)
-        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities2DType& self, ModelPart& rModelPart){ 
+            return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<2>)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<2>)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
         .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesFluid)
-        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesStructure)
-        ;
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesStructure);
 
-    class_< TrilinosPartitionedFSIUtilities3DType, boost::noncopyable > ("TrilinosPartitionedFSIUtilities3D", init < const Epetra_MpiComm& >())
+    py::class_<TrilinosPartitionedFSIUtilities3DType, TrilinosPartitionedFSIUtilities3DType::Pointer, BasePartitionedFSIUtilities3DType>(m, "TrilinosPartitionedFSIUtilities3D")
+        .def(py::init<const Epetra_MpiComm &>())
         .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceResidualSize)
-        .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities3DType::SetUpInterfaceVector)
-        .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities3DType::ComputeInterfaceVectorResidual)
-        .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities3DType::UpdateInterfaceValues)
-        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities3DType& self, ModelPart& rModelPart){ 
+            return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<3>)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<3>)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
         .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesFluid)
-        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesStructure)
-        ;
-
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesStructure);
 
     // Convergence accelerators (from FSIApplication)
     typedef ConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosConvergenceAccelerator;
@@ -197,23 +223,24 @@ void  AddCustomUtilitiesToPython()
     typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosMVQNRecursiveAccelerator;
 
     // Convergence accelerator base class
-    class_< TrilinosConvergenceAccelerator, boost::noncopyable > ("TrilinosConvergenceAccelerator", init < >())
+    py::class_< TrilinosConvergenceAccelerator> (m,"TrilinosConvergenceAccelerator").def(py::init < >())
         .def("Initialize", &TrilinosConvergenceAccelerator::Initialize)
         .def("InitializeSolutionStep", &TrilinosConvergenceAccelerator::InitializeSolutionStep)
         .def("InitializeNonLinearIteration", &TrilinosConvergenceAccelerator::InitializeNonLinearIteration)
-        .def("UpdateSolution", &TrilinosConvergenceAccelerator::UpdateSolution)
+        .def("UpdateSolution", AuxiliarUpdateSolution)
         .def("FinalizeNonLinearIteration", &TrilinosConvergenceAccelerator::FinalizeNonLinearIteration)
         .def("FinalizeSolutionStep", &TrilinosConvergenceAccelerator::FinalizeSolutionStep)
         .def("SetEchoLevel", &TrilinosConvergenceAccelerator::SetEchoLevel)
         ;
 
-    class_<TrilinosAitkenAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable>("TrilinosAitkenConvergenceAccelerator", init<double>())
-        .def(init< Parameters& >())
+    py::class_<TrilinosAitkenAccelerator, TrilinosConvergenceAccelerator>(m,"TrilinosAitkenConvergenceAccelerator")
+        .def(py::init<double>())
+        .def(py::init< Parameters& >())
         ;
 
-    class_< TrilinosMVQNRecursiveAccelerator, bases<TrilinosConvergenceAccelerator>, boost::noncopyable >("TrilinosMVQNRecursiveJacobianConvergenceAccelerator",
-        init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >())
-        .def(init< ModelPart&, const Epetra_MpiComm&, Parameters& >())
+    py::class_< TrilinosMVQNRecursiveAccelerator, TrilinosConvergenceAccelerator>(m,"TrilinosMVQNRecursiveJacobianConvergenceAccelerator")
+        .def(py::init< ModelPart&, const Epetra_MpiComm&, Parameters& >())
+        .def(py::init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >())
         ;
 
 }

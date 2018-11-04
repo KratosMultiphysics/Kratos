@@ -506,7 +506,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -514,12 +514,11 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const  override
     {
-        boost::numeric::ublas::bounded_matrix<double,3,4> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
+        BoundedMatrix<double,3,4> X;
+        BoundedMatrix<double,3,2> DN;
+        for(unsigned int i=0; i<this->size();i++) {
             X(0,i ) = this->GetPoint( i ).X();
             X(1,i ) = this->GetPoint( i ).Y();
             X(2,i ) = this->GetPoint( i ).Z();
@@ -1165,7 +1164,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 

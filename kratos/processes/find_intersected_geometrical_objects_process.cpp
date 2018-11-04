@@ -17,7 +17,9 @@
 
 
 // Project includes
+#include "geometries/line_2d_2.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
+#include "utilities/intersection_utilities.h"
 
 
 namespace Kratos
@@ -110,7 +112,12 @@ namespace Kratos
 
 		// Adding mrModelPart2 to the octree
 		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+			mOctree.Insert(i_node->Coordinates().data());
+
+#else
 			mOctree.Insert(i_node->Coordinates().data().data());
+#endif // ifdef KRATOS_USE_AMATRIX
 		}
 
 		for (auto i_element = mrModelPart2.ElementsBegin(); i_element != mrModelPart2.ElementsEnd(); i_element++) {
@@ -147,7 +154,12 @@ namespace Kratos
 
 
 		// TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
-		mOctree.SetBoundingBox(low.data().data(), high.data().data());
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+	mOctree.SetBoundingBox(low.data(), high.data());
+#else
+	mOctree.SetBoundingBox(low.data().data(), high.data().data());
+#endif // ifdef KRATOS_USE_AMATRIX
+	
 	}
 
 	void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves) {
@@ -161,18 +173,67 @@ namespace Kratos
 		}
 	}
 
-	bool FindIntersectedGeometricalObjectsProcess::HasIntersection(Element::GeometryType& rFirstGeometry, Element::GeometryType& rSecondGeometry) {
-		auto faces = rFirstGeometry.Faces();
-		for (auto& face : faces) {
-			if (face.HasIntersection(rSecondGeometry))
+	bool FindIntersectedGeometricalObjectsProcess::HasIntersection2D(
+		Element::GeometryType& rFirstGeometry,
+		Element::GeometryType& rSecondGeometry)
+	{
+		// Check the intersection of each edge against the intersecting object
+		auto edges = rFirstGeometry.Edges();
+		Point int_pt(0.0,0.0,0.0);
+		for (auto& edge : edges) {
+        	const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Node<3>>>(
+				edge, 
+				rSecondGeometry[0].Coordinates(), 
+				rSecondGeometry[1].Coordinates(), 
+				int_pt.Coordinates());
+
+			if (int_id != 0){
 				return true;
+			}
 		}
+
 		// Let check second geometry is inside the first one.
 		// Considering that there are no intersection, if one point is inside all of it is inside.
 		array_1d<double, 3> local_point;
-		if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point))
+		if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
 			return true;
+		}
+
 		return false;
+	}
+
+	bool FindIntersectedGeometricalObjectsProcess::HasIntersection3D(
+		Element::GeometryType& rFirstGeometry,
+		Element::GeometryType& rSecondGeometry)
+	{
+		// Check the intersection of each face against the intersecting object
+		auto faces = rFirstGeometry.Faces();
+		for (auto& face : faces) {
+			if (face.HasIntersection(rSecondGeometry)){
+				return true;
+			}
+		}
+
+		// Let check second geometry is inside the first one.
+		// Considering that there are no intersection, if one point is inside all of it is inside.
+		array_1d<double, 3> local_point;
+		if (rFirstGeometry.IsInside(rSecondGeometry.GetPoint(0), local_point)){
+			return true;
+		}
+
+		return false;
+	}
+
+	bool FindIntersectedGeometricalObjectsProcess::HasIntersection(
+		Element::GeometryType &rFirstGeometry,
+		Element::GeometryType &rSecondGeometry)
+	{
+		const auto work_dim = rFirstGeometry.WorkingSpaceDimension();
+		if (work_dim == 2){
+			return this->HasIntersection2D(rFirstGeometry, rSecondGeometry);
+		} else {
+			return this->HasIntersection3D(rFirstGeometry, rSecondGeometry);
+		}
 	}
 
 	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves, PointerVector<GeometricalObject>& rResults) {

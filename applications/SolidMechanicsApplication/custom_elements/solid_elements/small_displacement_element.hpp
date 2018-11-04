@@ -7,10 +7,10 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED)
 #define  KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
 
-// System includes 
+// System includes
 
 // External includes
 
@@ -58,7 +58,11 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-   
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef SolidElement::ElementDataType ElementDataType;
+
     /// Counted pointer of SmallDisplacementElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementElement );
 
@@ -80,7 +84,7 @@ public:
     SmallDisplacementElement(SmallDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementElement();
+    ~SmallDisplacementElement() override;
 
     ///@}
     ///@name Operators
@@ -100,7 +104,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -109,27 +113,27 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //on integration points:
-    
+
     /**
      * Calculate a double Variable on the Element Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Vector Variable on the Element Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Matrix Variable on the Element Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -139,7 +143,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -175,49 +179,43 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix
      */
-    
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
-                                     double& rIntegrationWeight);
+
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+                             ElementDataType& rVariables,
+                             double& rIntegrationWeight) override;
 
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    virtual void SetElementVariables(ElementVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues,
-                                     const int & rPointNumber);
+   void SetElementData(ElementDataType& rVariables,
+                       ConstitutiveLaw::Parameters& rValues,
+                       const int & rPointNumber) override;
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
-                                     const double& rPointNumber);
+    void CalculateKinematics(ElementDataType& rVariables,
+                             const double& rPointNumber) override;
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, 
-					    const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementData(ElementDataType & rVariables,
+                                    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Calculation of the Infinitesimal Strain Vector
      */
     virtual void CalculateInfinitesimalStrain(const Matrix& rH,
-            Vector& rStrainVector);
+                                              Vector& rStrainVector);
 
     /**
      * Calculation of the Displacement Gradient H
      */
     void CalculateDisplacementGradient(Matrix& rH,
                                        const Matrix& rDN_DX);
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    const Matrix& rDN_DX);
 
 
     ///@}
@@ -262,9 +260,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -285,4 +283,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined

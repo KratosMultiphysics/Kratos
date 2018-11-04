@@ -26,8 +26,8 @@ from KratosMultiphysics.StructuralApplication import *
 if(Kratos_Structural_Application_var.LinearSolver == "SuperLUSolver"):
     from KratosMultiphysics.ExternalSolversApplication import *
 
-if(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
-    from KratosMultiphysics.MKLSolversApplication import *
+# if(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
+#     from KratosMultiphysics.MKLSolversApplication import *
 
 
 # from now on the order is not anymore crucial
@@ -168,8 +168,6 @@ elif(Kratos_Structural_Application_var.LinearSolver == "BiCGStab_DIAG"):
     LST = Kratos_Structural_Application_var.Linear_Solver_Tolerance
     LSMI = Kratos_Structural_Application_var.Linear_Solver_Max_Iteration
     solver.structure_linear_solver = BICGSTABSolver(LST, LSMI, pDiagPrecond)
-elif(Kratos_Structural_Application_var.LinearSolver == "ParallelMKLPardisoSolver"):
-    solver.structure_linear_solver = ParallelMKLPardisoSolver()
 
 CT = Kratos_Structural_Application_var.Convergence_Tolerance;
 AT = Kratos_Structural_Application_var.Absolute_Tolerance;

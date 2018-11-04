@@ -3,12 +3,14 @@
 #include <algorithm>
 #include <sstream>
 #include <regex>
+#include <utility>
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
-File::File(Parameters& rParams)
+File::File(Parameters Settings)
 {
     KRATOS_TRY;
 
@@ -20,15 +22,16 @@ File::File(Parameters& rParams)
                 "echo_level" : 0
             })");
 
-    rParams.RecursivelyValidateAndAssignDefaults(default_params);
+    Settings.RecursivelyValidateAndAssignDefaults(default_params);
 
-    m_file_name = rParams["file_name"].GetString();
+    m_file_name = Settings["file_name"].GetString();
+    KRATOS_ERROR_IF(m_file_name == "PLEASE_SPECIFY_HDF5_FILENAME") << "Invalid file name: " << m_file_name << std::endl;
 
     hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
-    std::string file_driver = rParams["file_driver"].GetString();
+    std::string file_driver = Settings["file_driver"].GetString();
     SetFileDriver(file_driver, fapl_id);
 
-    std::string file_access_mode = rParams["file_access_mode"].GetString();
+    std::string file_access_mode = Settings["file_access_mode"].GetString();
     if (file_access_mode == "exclusive")
         m_file_id = H5Fcreate(m_file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, fapl_id);
     else if (file_access_mode == "truncate")
@@ -53,9 +56,28 @@ File::File(Parameters& rParams)
 
     KRATOS_ERROR_IF(H5Pclose(fapl_id) < 0) << "H5Pclose failed." << std::endl;
 
-    m_echo_level = rParams["echo_level"].GetInt();
+    m_echo_level = Settings["echo_level"].GetInt();
 
     KRATOS_CATCH("");
+}
+
+File::File(File&& rOther)
+{
+    m_file_name = std::move(rOther.m_file_name);
+    m_file_id = rOther.m_file_id;
+    rOther.m_file_id = -1;
+    m_echo_level = rOther.m_echo_level;
+    rOther.m_echo_level = 0;
+}
+
+File& File::operator=(File&& rOther)
+{
+    m_file_name = std::move(rOther.m_file_name);
+    m_file_id = rOther.m_file_id;
+    rOther.m_file_id = -1;
+    m_echo_level = rOther.m_echo_level;
+    rOther.m_echo_level = 0;
+    return *this;
 }
 
 File::~File()
@@ -63,13 +85,13 @@ File::~File()
     H5Fclose(m_file_id);
 }
 
-bool File::HasPath(std::string Path) const
+bool File::HasPath(const std::string& rPath) const
 {
     KRATOS_TRY;
     // Expects a valid path.
-    KRATOS_ERROR_IF_NOT(Internals::IsPath(Path)) << "Invalid path: \"" << Path << '"' << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << '"' << std::endl;
 
-    std::vector<std::string> splitted_path = Internals::Split(Path, '/');
+    std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
@@ -90,89 +112,135 @@ bool File::HasPath(std::string Path) const
     KRATOS_CATCH("");
 }
 
-bool File::IsGroup(std::string Path) const
+bool File::IsGroup(const std::string& rPath) const
 {
     KRATOS_TRY;
-    if (HasPath(Path) == false) // Expects a valid path.
+    if (HasPath(rPath) == false) // Expects a valid path.
         return false;
 
     H5O_info_t object_info;
-    KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, Path.c_str(), &object_info, H5P_DEFAULT) < 0)
+    KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, rPath.c_str(), &object_info, H5P_DEFAULT) < 0)
         << "H5Oget_info_by_name failed." << std::endl;
 
     return (object_info.type == H5O_TYPE_GROUP);
     KRATOS_CATCH("");
 }
 
-bool File::IsDataSet(std::string Path) const
+bool File::IsDataSet(const std::string& rPath) const
 {
     KRATOS_TRY;
-    if (HasPath(Path) == false) // Expects a valid path.
+    if (HasPath(rPath) == false) // Expects a valid path.
         return false;
 
     H5O_info_t object_info;
-    KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, Path.c_str(), &object_info, H5P_DEFAULT) < 0)
+    KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, rPath.c_str(), &object_info, H5P_DEFAULT) < 0)
         << "H5Oget_info_by_name failed." << std::endl;
 
     return (object_info.type == H5O_TYPE_DATASET);
     KRATOS_CATCH("");
 }
 
-bool File::HasAttribute(std::string ObjectPath, std::string Name) const
+bool File::HasAttribute(const std::string& rObjectPath, const std::string& rName) const
 {
     KRATOS_TRY;
     htri_t status =
-        H5Aexists_by_name(m_file_id, ObjectPath.c_str(), Name.c_str(), H5P_DEFAULT);
+        H5Aexists_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT);
     KRATOS_ERROR_IF(status < 0) << "H5Aexists_by_name failed" << std::endl;
     return (status > 0);
     KRATOS_CATCH("");
 }
 
-void File::GetAttributeNames(std::string ObjectPath, std::vector<std::string>& rNames) const
+std::vector<std::string> File::GetAttributeNames(const std::string& rObjectPath) const
 {
     KRATOS_TRY;
     constexpr unsigned max_ssize = 100;
     char buffer[max_ssize];
     // Get number of attributes.
-    hid_t object_id = H5Oopen(m_file_id, ObjectPath.c_str(), H5P_DEFAULT);
+    hid_t object_id = H5Oopen(m_file_id, rObjectPath.c_str(), H5P_DEFAULT);
     KRATOS_ERROR_IF(object_id < 0) << "H5Oopen failed." << std::endl;
     H5O_info_t object_info;
     KRATOS_ERROR_IF(H5Oget_info(object_id, &object_info) < 0)
         << "H5Oget_info failed." << std::endl;
     hsize_t num_attrs = object_info.num_attrs;
-    rNames.resize(num_attrs);
+    std::vector<std::string> names(num_attrs);
 
     for (hsize_t i = 0; i < num_attrs; ++i)
     {
         // Get size of name.
         ssize_t ssize;
-        ssize = H5Aget_name_by_idx(m_file_id, ObjectPath.c_str(), H5_INDEX_CRT_ORDER,
+        ssize = H5Aget_name_by_idx(m_file_id, rObjectPath.c_str(), H5_INDEX_CRT_ORDER,
                                    H5_ITER_INC, i, buffer, max_ssize, H5P_DEFAULT);
         KRATOS_ERROR_IF(ssize < 0) << "H5Aget_name_by_idx failed." << std::endl;
         KRATOS_ERROR_IF(ssize > max_ssize) << "Attribute name size exceeds "
                                            << max_ssize << std::endl;
-        rNames[i].resize(ssize);
-        std::copy_n(buffer, ssize, rNames[i].begin());
+        names[i].resize(ssize);
+        std::copy_n(buffer, ssize, names[i].begin());
     }
     KRATOS_ERROR_IF(H5Oclose(object_id) < 0) << "H5Oclose failed." << std::endl;
+    return names;
     KRATOS_CATCH("");
 }
 
-void File::CreateGroup(std::string Path)
+void File::CreateGroup(const std::string& rPath)
 {
     KRATOS_TRY;
     hid_t group_id =
-        H5Gcreate(m_file_id, Path.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        H5Gcreate(m_file_id,rPath.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(group_id < 0) << "H5Gcreate failed." << std::endl;
     KRATOS_ERROR_IF(H5Gclose(group_id) < 0) << "H5Gclose failed." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::AddPath(std::string Path)
+std::vector<std::string> File::GetLinkNames(const std::string& rGroupPath) const
 {
-    KRATOS_ERROR_IF(Internals::IsPath(Path) == false) << "Invalid path: " << Path << std::endl;
+    KRATOS_TRY;
+    constexpr unsigned max_ssize = 100;
+    char buffer[max_ssize];
+    // Get number of links.
+    hid_t group_id = H5Gopen(m_file_id, rGroupPath.c_str(), H5P_DEFAULT);
+    KRATOS_ERROR_IF(group_id < 0) << "H5Gopen failed." << std::endl;
+    
+    H5G_info_t group_info;
+    KRATOS_ERROR_IF(H5Gget_info(group_id, &group_info) < 0)
+        << "H5Gget_info failed." << std::endl;
+    hsize_t num_links = group_info.nlinks;
+    std::vector<std::string> names(num_links);
 
-    std::vector<std::string> splitted_path = Internals::Split(Path, '/');
+    for (hsize_t i=0; i < num_links; ++i)
+    {
+        // Get size of name.
+        ssize_t ssize;
+        ssize = H5Lget_name_by_idx(m_file_id, rGroupPath.c_str(), H5_INDEX_NAME,
+                                    H5_ITER_INC, i, buffer, max_ssize, H5P_DEFAULT);
+        KRATOS_ERROR_IF(ssize < 0) << "H5Lget_name_by_idx failed." << std::endl;
+        KRATOS_ERROR_IF(ssize > max_ssize) << "Link name size exceeds "
+                                           << max_ssize << std::endl;
+        names[i].resize(ssize);
+        std::copy_n(buffer, ssize, names[i].begin());
+    }
+    KRATOS_ERROR_IF(H5Gclose(group_id) < 0) << "H5Gclose failed." << std::endl;
+    return names;
+    KRATOS_CATCH("");
+}
+
+std::vector<std::string> File::GetGroupNames(const std::string& rGroupPath) const
+{
+    KRATOS_TRY;
+    std::vector<std::string> names;
+    std::vector<std::string> link_names = GetLinkNames(rGroupPath);
+    names.reserve(link_names.size());
+    for (const auto& r_name : link_names)
+        if (IsGroup(rGroupPath + '/' + r_name))
+            names.push_back(r_name);
+    return names;
+    KRATOS_CATCH("");
+}
+
+void File::AddPath(const std::string& rPath)
+{
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
+
+    std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
     std::string sub_path;
     for (const auto& r_link: splitted_path)
     {
@@ -185,119 +253,115 @@ void File::AddPath(std::string Path)
     }
 }
 
-void File::WriteDataSet(std::string Path, const Vector<int>& rData)
+void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue)
+{
+    KRATOS_TRY;
+    BuiltinTimer timer;
+    hid_t type_id, space_id, attr_id;
+
+    type_id = H5T_NATIVE_CHAR;
+    const unsigned ndims = 1;
+    hsize_t dims[ndims];
+    dims[0] = rValue.size();
+    space_id = H5Screate_simple(ndims, dims, nullptr);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
+    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
+                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
+    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, rValue.c_str()) < 0) << "H5Awrite failed." << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    if (GetEchoLevel() == 2 && GetPID() == 0)
+        std::cout << "Write time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
+void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const array_1d<double, 3>& rValue)
+{
+    KRATOS_TRY;
+    Vector<double> vector_value = rValue;
+    WriteAttribute(rObjectPath, rName, vector_value);
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
+void File::WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSet(std::string Path, const Vector<double>& rData)
+void File::WriteDataSet(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void File::WriteDataSet(const std::string& rPath, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSet(std::string Path, const Matrix<int>& rData)
+void File::WriteDataSet(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSet(std::string Path, const Matrix<double>& rData)
+void File::WriteDataSet(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataPartition(std::string Path, const Vector<int>& rData)
+void File::WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataPartition(std::string Path, const Vector<double>& rData)
+void File::WriteDataSetIndependent(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData)
+void File::WriteDataSetIndependent(const std::string& rPath, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataPartition(std::string Path, const Matrix<int>& rData)
+void File::WriteDataSetIndependent(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataPartition(std::string Path, const Matrix<double>& rData)
+void File::WriteDataSetIndependent(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-std::vector<unsigned> File::GetDataDimensions(std::string Path) const
+std::vector<unsigned> File::GetDataDimensions(const std::string& rPath) const
 {
     KRATOS_TRY;
     constexpr int max_ndims = 5;
     int ndims;
     hsize_t dims[max_ndims];
     hid_t dset_id, dspace_id;
-    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT)) < 0)
+    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
         << "H5Dopen failed." << std::endl;
     KRATOS_ERROR_IF((dspace_id = H5Dget_space(dset_id)) < 0)
         << "H5Dget_space failed." << std::endl;
@@ -314,11 +378,11 @@ std::vector<unsigned> File::GetDataDimensions(std::string Path) const
     KRATOS_CATCH("");
 }
 
-bool File::HasIntDataType(std::string Path) const
+bool File::HasIntDataType(const std::string& rPath) const
 {
     KRATOS_TRY;
     hid_t dset_id, dtype_id;
-    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT)) < 0)
+    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
         << "H5Dopen failed." << std::endl;
     KRATOS_ERROR_IF((dtype_id = H5Dget_type(dset_id)) < 0)
         << "H5Dget_type failed." << std::endl;
@@ -331,11 +395,11 @@ bool File::HasIntDataType(std::string Path) const
     KRATOS_CATCH("");
 }
 
-bool File::HasFloatDataType(std::string Path) const
+bool File::HasFloatDataType(const std::string& rPath) const
 {
     KRATOS_TRY;
     hid_t dset_id, dtype_id;
-    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, Path.c_str(), H5P_DEFAULT)) < 0)
+    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
         << "H5Dopen failed." << std::endl;
     KRATOS_ERROR_IF((dtype_id = H5Dget_type(dset_id)) < 0)
         << "H5Dget_type failed." << std::endl;
@@ -388,70 +452,123 @@ unsigned File::GetTotalProcesses() const
     return 1;
 }
 
-void File::ReadDataSet(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::string& rValue)
+{
+    KRATOS_TRY;
+    BuiltinTimer timer;
+    hid_t mem_type_id, attr_type_id, space_id, attr_id;
+    int ndims;
+    hsize_t dims[2];
+    const unsigned max_ssize = 100;
+    char buffer[max_ssize];
+
+    mem_type_id = H5T_NATIVE_CHAR;
+    attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
+                                    H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
+
+    // Check data type.
+    attr_type_id = H5Aget_type(attr_id);
+    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
+    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
+    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Attribute \"" << rName << "\" is not a string." << std::endl;
+
+    // Check dimensions.
+    space_id = H5Aget_space(attr_id);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
+    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
+        << "H5Sget_simple_extent_ndims failed." << std::endl;
+    KRATOS_ERROR_IF(ndims != 1) << "Attribute \"" << rName << "\" is not string." << std::endl;
+    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, dims, nullptr) < 0)
+        << "H5Sget_simple_extent_dims failed" << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(max_ssize < dims[0]) << "String size is greater than " << max_ssize << '.' << std::endl;
+    // Read attribute.
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, buffer) < 0) << "H5Aread failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    rValue = std::string(buffer, dims[0]);
+    if (GetEchoLevel() == 2 && GetPID() == 0)
+        std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
+void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, array_1d<double, 3>& rValue)
+{
+    KRATOS_TRY;
+    Vector<double> vector_value;
+    ReadAttribute(rObjectPath, rName, vector_value);
+    KRATOS_ERROR_IF(vector_value.size() > 3)
+        << "Invalid size (" << vector_value.size() << ") for array_1d!" << std::endl;
+    rValue = vector_value;
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
+void File::ReadDataSet(const std::string& rPath, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSet(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(const std::string& rPath, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSet(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(const std::string& rPath, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSet(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(const std::string& rPath, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSet(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSet(const std::string& rPath, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSetIndependent(std::string Path, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(const std::string& rPath, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSetIndependent(std::string Path, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(const std::string& rPath, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSetIndependent(std::string Path, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(const std::string& rPath, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSetIndependent(std::string Path, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(const std::string& rPath, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::ReadDataSetIndependent(std::string Path, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
+void File::ReadDataSetIndependent(const std::string& rPath, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
@@ -515,22 +632,21 @@ void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
 
 namespace Internals
 {
-bool IsPath(std::string Path)
+bool IsPath(const std::string& rPath)
 {
-    return regex_match(Path, std::regex("(/[\\w\\(\\)]+)+"));
+    return regex_match(rPath, std::regex("(/[\\w\\(\\)]+)+"));
 }
 
-std::vector<std::string> Split(std::string Path, char Delimiter)
+std::vector<std::string> Split(const std::string& rPath, char Delimiter)
 {
-    std::vector<std::string> result;
-    result.reserve(10);
-    std::stringstream ss(Path);
+    std::vector<std::string> splitted;
+    splitted.reserve(10);
+    std::stringstream ss(rPath);
     std::string sub_string;
     while (std::getline(ss, sub_string, Delimiter))
         if (sub_string.size() > 0)
-            result.push_back(sub_string);
-
-    return result;
+            splitted.push_back(sub_string);
+    return splitted;
 }
 } // namespace Internals.
 

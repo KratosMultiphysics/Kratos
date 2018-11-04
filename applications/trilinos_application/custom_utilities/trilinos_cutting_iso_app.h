@@ -82,9 +82,9 @@ public:
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;
-    typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
+    typedef vector<Matrix> Matrix_Order_Tensor;
+    typedef vector<Vector> Vector_Order_Tensor;
+    typedef vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
     typedef Node < 3 > PointType;
     typedef Node < 3 > ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
@@ -395,10 +395,10 @@ public:
 
         Kratos::shared_ptr<Epetra_FECrsMatrix> p_edge_ids; //helper matrix to assign ids to the edges to be  refined
         Kratos::shared_ptr<Epetra_FECrsMatrix> p_partition_ids; //helper matrix to assign a partition to the edges
-        boost::numeric::ublas::vector<int> List_New_Nodes; ///* the news nodes
-        boost::numeric::ublas::vector<int> partition_new_nodes; ///* the news nodes
-        boost::numeric::ublas::vector<array_1d<int, 2 > > father_node_ids; ///* edges where are the news nodes
-        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node; ///* the coordinate of the new nodes
+        vector<int> List_New_Nodes; ///* the news nodes
+        vector<int> partition_new_nodes; ///* the news nodes
+        vector<array_1d<int, 2 > > father_node_ids; ///* edges where are the news nodes
+        vector< array_1d<double, 3 > > Coordinate_New_Node; ///* the coordinate of the new nodes
         Kratos::shared_ptr<Epetra_FECrsMatrix> used_nodes_matrix;
 
         PointerVector< Element > New_Elements;
@@ -695,9 +695,9 @@ public:
     void Create_List_Of_New_Nodes(ModelPart& this_model_part, ModelPart& new_model_part,
                                   Kratos::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids,
                                   Kratos::shared_ptr<Epetra_FECrsMatrix>& p_partition_ids,
-                                  boost::numeric::ublas::vector<int> &List_New_Nodes,
-                                  boost::numeric::ublas::vector<int> &partition_new_nodes,
-                                  boost::numeric::ublas::vector<array_1d<int, 2 > >& father_node_ids,
+                                  vector<int> &List_New_Nodes,
+                                  vector<int> &partition_new_nodes,
+                                  vector<array_1d<int, 2 > >& father_node_ids,
                                   Kratos::shared_ptr<Epetra_FECrsMatrix>& used_nodes_matrix)
     {
         KRATOS_TRY
@@ -865,9 +865,9 @@ public:
     // insert the new nodes in the model part and interopolate the variables
 
     void Calculate_Coordinate_And_Insert_New_Nodes(ModelPart& this_model_part, ModelPart& new_model_part,
-            const boost::numeric::ublas::vector<array_1d<int, 2 > >& father_node_ids,
-            const boost::numeric::ublas::vector<int> &List_New_Nodes,
-            const boost::numeric::ublas::vector<int> &partition_new_nodes,
+            const vector<array_1d<int, 2 > >& father_node_ids,
+            const vector<int> &List_New_Nodes,
+            const vector<int> &partition_new_nodes,
             Variable<double>& variable, double isovalue, float tolerance)
     {
         KRATOS_TRY
@@ -886,7 +886,7 @@ public:
         //double dist_node_neigh;
         //double dist_node_intersect;
         double weight;
-        boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
+        vector< array_1d<double, 3 > > Coordinate_New_Node;
         Coordinate_New_Node.resize(father_node_ids.size());
 
         new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
@@ -1006,7 +1006,7 @@ public:
         double control;
         unsigned int temp_int;
 
-        boost::numeric::ublas::matrix<int> new_conectivity;
+        DenseMatrix<int> new_conectivity;
 
         int total_existing_elements = -1; //warning, they're conditions, not elements!
         int local_existing_elements = new_model_part.Conditions().size();
@@ -1059,7 +1059,7 @@ public:
                 for (int j = 0; j < 3; j++) //we reset the value to zero
                     gradient(j) = 0.0;
                 double Volume;
-                boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+                BoundedMatrix<double, 4, 3> DN_DX;
                 array_1d<double, 4 > N;
                 Geometry< Node < 3 > >& geom = it->GetGeometry();
                 GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);

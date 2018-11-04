@@ -8,12 +8,15 @@
 	"solver_type" : "solid_mechanics_static_solver",
 	"Parameters"  : {
             "time_integration_settings" : {
-                "solution_type"      : "Static",
-                "integration_method" : "Non-Linear"
+                "solution_type"      : "Quasi-static",
+                "analysis_type"      : "Non-linear",
+		"integration_method" : "Static"
             },
 	    "solving_strategy_settings" : {
-		"convergence_criterion" : "And_criterion",
-		"max_iteration"         : 15		
+		"max_iteration"         : 15
+	    },
+	    "convergence_criterion_settings" : {
+		"convergence_criterion" : "And_criterion"
 	    },
             "linear_solver_settings"    : {
 		"solver_type" : "SuperLUSolver",
@@ -25,16 +28,16 @@
         "model_part_name" : "DISPLACEMENT_Displacement_Auto1"
     },{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-        "value"           : [null,0.0,0.0]        
+        "value"           : [null,0.0,0.0]
     }],
     "loads_process_list"       : [{
         "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : "15000.0*t",
-        "direction"       : [0.0,-1.0,0.0]     
+        "direction"       : [0.0,-1.0,0.0]
     },{
         "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
-        "variable_name"   : "LINE_LOAD",
+        "variable_name"   : "FORCE_LOAD",
         "modulus"         : "1500.0*t",
         "direction"       : [0.0,-1.0,0.0]
     }],

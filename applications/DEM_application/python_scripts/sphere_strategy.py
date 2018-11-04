@@ -122,7 +122,7 @@ class ExplicitStrategy(object):
 
         if not "GlobalDamping" in DEM_parameters.keys():
             self.global_damping = 0.0
-            print("\nGlobal Damping parameter not found! No damping will be applied...\n")
+            Logger.PrintWarning("DEM", "\nGlobal Damping parameter not found! No damping will be applied...\n")
         else:
             self.global_damping = DEM_parameters["GlobalDamping"].GetDouble()
 
@@ -197,7 +197,7 @@ class ExplicitStrategy(object):
         if "PeriodicDomainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PeriodicDomainOption"].GetBool():
                 self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 1) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
-                
+
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
@@ -208,7 +208,7 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
 
         # SEARCH-RELATED
-        self.search_increment_for_walls = self.search_increment # for the moment, until all bugs have been removed        
+        self.search_increment_for_walls = self.search_increment # for the moment, until all bugs have been removed
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
@@ -220,18 +220,18 @@ class ExplicitStrategy(object):
 
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-        
-        os.chdir('..')
-        
+
+        #-----os.chdir('..')   # check functionality
+
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
-        
+
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
 
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
-        
+
         for properties in self.fem_model_part.Properties:
             self.ModifyProperties(properties, 1)
 
@@ -272,14 +272,16 @@ class ExplicitStrategy(object):
 
         self.SetVariablesAndOptions()
 
+        strategy_parameters = self.DEM_parameters["strategy_parameters"]
+
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.search_strategy, self.do_search_neighbours)
+                                                              self.search_strategy, strategy_parameters, self.do_search_neighbours)
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.search_strategy, self.do_search_neighbours)
+                                                             self.search_strategy, strategy_parameters, self.do_search_neighbours)
 
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
@@ -330,14 +332,14 @@ class ExplicitStrategy(object):
     def AddDofs(self, spheres_model_part):
 
         for node in spheres_model_part.Nodes:
-            node.AddDof(VELOCITY_X, REACTION_X)
-            node.AddDof(VELOCITY_Y, REACTION_Y)
-            node.AddDof(VELOCITY_Z, REACTION_Z)
-            node.AddDof(ANGULAR_VELOCITY_X, REACTION_X)
-            node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y)
-            node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
+            node.AddDof(VELOCITY_X)
+            node.AddDof(VELOCITY_Y)
+            node.AddDof(VELOCITY_Z)
+            node.AddDof(ANGULAR_VELOCITY_X)
+            node.AddDof(ANGULAR_VELOCITY_Y)
+            node.AddDof(ANGULAR_VELOCITY_Z)
 
-        print("DOFs for the DEM solution added correctly")
+        Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
@@ -417,7 +419,7 @@ class ExplicitStrategy(object):
             class_name = 'VelocityVerletScheme'
 
         return class_name
-    
+
     def RotationalIntegrationSchemeTranslator(self, name_translational, name_rotational):
         class_name = None
 
@@ -439,7 +441,7 @@ class ExplicitStrategy(object):
 
     def GetTranslationalSchemeInstance(self, class_name):
              return globals().get(class_name)()
-    
+
     def GetRotationalSchemeInstance(self, class_name):
              return globals().get(class_name)()
 
@@ -461,7 +463,7 @@ class ExplicitStrategy(object):
             summary = 'The translational integration scheme name ' + name + ' does not designate any available scheme. Please, select a different one'
 
         return translational_scheme, error_status, summary
-    
+
     def GetRotationalScheme(self, name_translational, name_rotational):
         class_name = self.RotationalIntegrationSchemeTranslator(name_translational, name_rotational)
         rotational_scheme = None
@@ -516,24 +518,39 @@ class ExplicitStrategy(object):
                 self.Procedures.KRATOSprint(properties)
                 if not properties.Has(BREAKABLE_CLUSTER):
                     properties.SetValue(BREAKABLE_CLUSTER, False)
-        
+
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
 
+        if properties.Has(PARTICLE_FRICTION):
+            self.Procedures.KRATOSprint("---------------------------------------------------")
+            self.Procedures.KRATOSprint("  WARNING: Property PARTICLE_FRICTION is deprecated ")
+            self.Procedures.KRATOSprint("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KRATOSprint("  Automatic replacement is done now.")
+            self.Procedures.KRATOSprint("---------------------------------------------------")
+            properties[FRICTION] = properties[PARTICLE_FRICTION]
+        if properties.Has(WALL_FRICTION):
+            self.Procedures.KRATOSprint("-------------------------------------------------")
+            self.Procedures.KRATOSprint("  WARNING: Property WALL_FRICTION is deprecated")
+            self.Procedures.KRATOSprint("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KRATOSprint("  Automatic replacement is done now.")
+            self.Procedures.KRATOSprint("-------------------------------------------------")
+            properties[FRICTION] = properties[WALL_FRICTION]
+
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
-        
+
         translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)
-            
+
         if properties.Has(DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME):
             rotational_scheme_name = properties[DEM_ROTATIONAL_INTEGRATION_SCHEME_NAME]
         else:
             rotational_scheme_name = self.DEM_parameters["RotationalIntegrationScheme"].GetString()
-            
+
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
-        
+
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 

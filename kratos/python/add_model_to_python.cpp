@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -14,34 +14,31 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "containers/model.h"
 #include "python/add_model_to_python.h"
 
-namespace Kratos
-{
+namespace Kratos {
+namespace Python {
 
-namespace Python
+void  AddModelToPython(pybind11::module& m)
 {
-
-using namespace boost::python;
-
-void  AddModelToPython()
-{
-    class_<Model, Model::Pointer, boost::noncopyable >("Model", init<>())
-    .def("AddModelPart", &Model::AddModelPart)
-    .def("GetModelPart", &Model::GetModelPart, return_internal_reference<>())
-//     .def("__setitem__", &Model::AddModelPart)
-    .def("__getitem__", &Model::GetModelPart, return_internal_reference<>())
-    .def(self_ns::str(self))
+    namespace py = pybind11;
+    py::class_<Model >(m,"Model")
+    .def(py::init<>())
+    .def("Reset", &Model::Reset)
+    .def("CreateModelPart", [&](Model& self, const std::string& Name){return &self.CreateModelPart(Name);}, py::return_value_policy::reference_internal )
+    .def("CreateModelPart", [&](Model& self, const std::string& Name, unsigned int BufferSize){return &self.CreateModelPart(Name, BufferSize);}, py::return_value_policy::reference_internal )
+    .def("DeleteModelPart", &Model::DeleteModelPart)
+    .def("GetModelPart", &Model::GetModelPart, py::return_value_policy::reference_internal)
+    .def("HasModelPart", &Model::HasModelPart)
+    .def("__getitem__", &Model::GetModelPart, py::return_value_policy::reference_internal)
+    .def("__str__", PrintObject<Model>)
     ;
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos
 

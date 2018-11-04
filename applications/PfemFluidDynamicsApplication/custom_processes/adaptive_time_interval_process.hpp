@@ -21,7 +21,6 @@
 #include "spatial_containers/spatial_containers.h"
 
 #include "custom_processes/adaptive_time_interval_process.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "geometries/triangle_2d_3.h"
@@ -105,7 +104,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
 
       KRATOS_TRY
@@ -140,7 +139,7 @@ namespace Kratos
       if(updatedTimeInterval<2.0*minimumTimeInterval && mEchoLevel > 0 && mrModelPart.GetCommunicator().MyPID() == 0){
 	std::cout<<"ATTENTION! time step much smaller than initial time step, I'll not reduce it"<<std::endl;
       }
-      if(badVelocityConvergence==true && updatedTimeInterval>(2.0*minimumTimeInterval)){
+      if((badPressureConvergence==true || badVelocityConvergence==true) && updatedTimeInterval>(2.0*minimumTimeInterval)){
 	updatedTimeInterval *=0.5;
 	/* std::cout<<"reducing time step (bad convergence at the previous step)"<<updatedTimeInterval<<std::endl; */
 	rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
@@ -165,14 +164,15 @@ namespace Kratos
 
 	  const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	  if(dimension==2){
-	    CheckNodalConditionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
+	    CheckNodalCriterionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
 	    if(timeIntervalReduced==false){
-	      CheckElementalConditionForTimeStepReduction(increaseTimeInterval);
+	      CheckElementalCriterionForTimeStepReduction(increaseTimeInterval);
 	    }
 	}
 	}
 
-	if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
+	// if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
+	if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badVelocityConvergence==false ){
 	  IncreaseTimeInterval(updatedTimeInterval,deltaTimeToNewMilestone,tolerance,increaseTimeInterval);
 	}
 	else{
@@ -213,7 +213,7 @@ namespace Kratos
     };
 
 
-    void CheckNodalConditionForTimeStepReduction(double updatedTimeInterval,
+    void CheckNodalCriterionForTimeStepReduction(double updatedTimeInterval,
 						 bool &increaseTimeInterval,
 						 bool &timeIntervalReduced)
     {
@@ -271,7 +271,7 @@ namespace Kratos
     }
 
 
-    void CheckElementalConditionForTimeStepReduction(bool &increaseTimeInterval)
+    void CheckElementalCriterionForTimeStepReduction(bool &increaseTimeInterval)
     {
 
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -467,22 +467,22 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "AdaptiveTimeIntervalProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "AdaptiveTimeIntervalProcess";
     }
 
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
     }
 
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 

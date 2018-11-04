@@ -20,8 +20,8 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -36,11 +36,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    #if !defined(ENTITY_TRANSFERED)
-    #define ENTITY_TRANSFERED
-        enum EntityString {Nodes = 0, Elements = 1, NodesAndElements = 2, Conditions = 3, All = 4};
-    #endif
-
 ///@}
 ///@name  Functions
 ///@{
@@ -48,35 +43,80 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
-/** This function assigns a value to a variable belonging to all of the nodes in a given mesh
+/**
+ * @class FastTransferBetweenModelPartsProcess
+ * @ingroup KratosCore
+ * @brief The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
+ * @details This function assigns a value to a variable belonging to all of the nodes in a given mesh
+ * @note If the MODIFIED flag is set it will create new entities, copying the geometry and data, instead of just transfering
+ * @author Vicente Mataix Ferrandiz
 */
-class FastTransferBetweenModelPartsProcess : public Process
+class KRATOS_API(KRATOS_CORE) FastTransferBetweenModelPartsProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// The type used for the node
+    typedef Node<3> NodeType;
+
+    // General containers type definitions
+    typedef ModelPart::NodesContainerType                                 NodesArrayType;
+    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
+    typedef ModelPart::ElementsContainerType                           ElementsArrayType;
+    typedef ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintArrayType;
+
+    // General containers iterators type definitions
+    typedef NodesArrayType::iterator                                  IteratorNodesArrayType;
+    typedef ConditionsArrayType::iterator                        IteratorConditionsArrayType;
+    typedef ElementsArrayType::iterator                            IteratorElementsArrayType;
+    typedef MasterSlaveConstraintArrayType::iterator IteratorMasterSlaveConstraintsArrayType;
+
+    /// The type used to identify the size
+    typedef std::size_t SizeType;
+
     /// Pointer definition of FastTransferBetweenModelPartsProcess
     KRATOS_CLASS_POINTER_DEFINITION(FastTransferBetweenModelPartsProcess);
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief This enum helps us to identify the elements to transfer between the modelparts
+     * @todo Add intermediate combinations of constraints, conditions and elements
+     */
+    enum class EntityTransfered {
+        NODES = 0,
+        ELEMENTS = 1,
+        NODESANDELEMENTS = 2,
+        CONDITIONS = 3,
+        NODESANDCONDITIONS = 4,
+        CONSTRAINTS = 5,
+        NODESANDCONSTRAINTS = 6,
+        ALL = 7
+    };
 
     ///@}
     ///@name Life Cycle
     ///@{
     
+    /**
+     * @brief Default constructor. Without flag
+     * @param rDestinationModelPart The destination model part
+     * @param rOriginModelPart The origin model part
+     * @param Entity The elements to transfer
+     * @param Flag The flag used to differentiate between elements to transfer
+     * @param ReplicateEntities  If the entities are replicated or transfered
+     */
     FastTransferBetweenModelPartsProcess(
         ModelPart& rDestinationModelPart,
         ModelPart& rOriginModelPart,
-        const std::string EntityString
-        ) : Process(),
-            mrDestinationModelPart(rDestinationModelPart), 
-            mrOriginModelPart(rOriginModelPart),
-            mEntity(ConvertEntity(EntityString))
-    {
-        KRATOS_TRY
-                
-        KRATOS_CATCH("")
-    }
+        const EntityTransfered Entity = EntityTransfered::ALL,
+        const Flags Flag = Flags(),
+        const bool ReplicateEntities = false
+        );
 
     /// Destructor.
     ~FastTransferBetweenModelPartsProcess() override {}
@@ -86,39 +126,15 @@ public:
     ///@{
 
     /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
+    void operator()();
 
 
     ///@}
     ///@name Operations
     ///@{
 
-
     /// Execute method is used to execute the FastTransferBetweenModelPartsProcess algorithms.
-    void Execute() override
-    {
-        KRATOS_TRY;
-        
-        const int num_nodes = mrOriginModelPart.Nodes().size();
-
-        if (num_nodes != 0 && (mEntity == All || mEntity == Nodes || mEntity == NodesAndElements))
-            mrDestinationModelPart.AddNodes(mrOriginModelPart.NodesBegin(),mrOriginModelPart.NodesEnd());
-
-        const int num_elements = mrOriginModelPart.Elements().size();
-
-        if (num_elements != 0 && (mEntity == All || mEntity == Elements || mEntity == NodesAndElements))
-            mrDestinationModelPart.AddElements(mrOriginModelPart.ElementsBegin(),mrOriginModelPart.ElementsEnd());
-
-        const int num_conditions = mrOriginModelPart.Conditions().size();
-
-        if (num_conditions != 0 && (mEntity == All || mEntity == Conditions))
-             mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
-
-        KRATOS_CATCH("");
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -192,11 +208,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrDestinationModelPart; // The destination model part
+    ModelPart& mrDestinationModelPart; /// The destination model part
     
-    ModelPart& mrOriginModelPart;      // The origin model part
+    ModelPart& mrOriginModelPart;      /// The origin model part
     
-    const EntityString mEntity;        // The entity to transfer
+    const EntityTransfered mEntity;    /// The entity to transfer
+
+    const Flags mFlag;                 /// A flag in order to tranfer only components with that flag
     
     ///@}
     ///@name Private Operators
@@ -207,27 +225,31 @@ private:
     ///@{
     
     /**
-     * This converts the entity string to an enum
-     * @param str The string that you want to convert in the equivalent enum
-     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
+     * @brief This method transfer the entities without considering the flags
+     */
+    void TransferWithoutFlags();
+
+    /**
+     * @brief This method transfer the entities considering the flags
+     */
+    void TransferWithFlags();
+
+    /**
+     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
      */
 
-    EntityString ConvertEntity(const std::string& str)
-    {
-        if(str == "Nodes")
-            return Nodes;
-        else if(str == "Elements")
-            return Elements;
-        else if(str == "NodesAndElements")
-            return NodesAndElements;
-        else if(str == "Conditions")
-            return Conditions;
-        else if(str == "All")
-            return All;
-        else
-            return All;
-    }
-    
+    void ReorderAllIds(ModelPart& rThhisModelPart);
+
+    /**
+     * @brief This method replicates the entities without considering the flags
+     */
+    void ReplicateWithoutFlags();
+
+    /**
+     * @brief This method replicates the entities considering the flags
+     */
+    void ReplicateWithFlags();
+
     ///@}
     ///@name Private  Access
     ///@{

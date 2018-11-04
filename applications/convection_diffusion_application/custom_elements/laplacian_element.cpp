@@ -1,57 +1,18 @@
-/*
-==============================================================================
-KratosConvectionDiffusionApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:32 $
-//   Revision:            $Revision: 1.2 $
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:  Riccardo Rossi
 //
-
 
 // System includes
 
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -80,7 +41,12 @@ LaplacianElement::LaplacianElement(IndexType NewId, GeometryType::Pointer pGeome
 
 Element::Pointer LaplacianElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new LaplacianElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<LaplacianElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Element::Pointer LaplacianElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<LaplacianElement>(NewId, pGeom, pProperties);
 }
 
 LaplacianElement::~LaplacianElement()
@@ -109,28 +75,41 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients();
-    
+    const Matrix& N_gausspoint = GetGeometry().ShapeFunctionsValues();
+
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_points,dim);
     Matrix InvJ0(dim,dim);
     Vector temp(number_of_points);
 
+    Vector heat_flux_local(number_of_points);
+    for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
+    {
+        heat_flux_local[node_element] = GetGeometry()[node_element].FastGetSolutionStepValue(HEAT_FLUX);
+    }
+
     GetGeometry().Jacobian(J0);
     double DetJ0;
+    double qgauss;
+    
     for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
     {
         //calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(J0[PointNumber],InvJ0,DetJ0);
         
-
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[PointNumber],InvJ0);
-
-        double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
+        
+        const double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
+
+        // Calculating the local RHS
+        auto N = row(N_gausspoint,PointNumber); //these are the N which correspond to the gauss point "PointNumber"
+        qgauss = inner_prod(N, heat_flux_local);
+        
+        noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
     }
-    //calculating external forces
-    noalias(rRightHandSideVector) = ZeroVector(number_of_points); //case of zero ext forces
+
 
     // RHS = ExtForces - K*temp;
     for (unsigned int i=0; i<number_of_points; i++)

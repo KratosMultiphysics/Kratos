@@ -15,6 +15,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "contact_structural_mechanics_application_variables.h"
 
 /* Processes */
@@ -33,16 +34,16 @@ namespace Kratos
         * Checks the correct work of the AALM  dynamic penalty process
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestAALMProcess1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(AALMProcess1, KratosContactStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(3);
-            this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
-            this_model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
+            r_model_part.AddNodalSolutionStepVariable(NODAL_H);
+            r_model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
             
-            auto& process_info = this_model_part.GetProcessInfo();
+            auto& process_info = r_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
             double& penalty_parameter = process_info[INITIAL_PENALTY];
@@ -51,13 +52,13 @@ namespace Kratos
             max_gap_factor = 1.0;
             
             // First we create the nodes 
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(0,0.0,0.0,0.0);
+            NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(0,0.0,0.0,0.0);
             p_node_1->SetValue(NODAL_AREA, 1.0);
             p_node_1->FastGetSolutionStepValue(NODAL_H) = 0.1;
             p_node_1->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.05;
             p_node_1->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = -0.1;
             
-            AALMAdaptPenaltyValueProcess process = AALMAdaptPenaltyValueProcess(this_model_part);
+            AALMAdaptPenaltyValueProcess process = AALMAdaptPenaltyValueProcess(r_model_part);
             process.Execute();
             
 //             // DEBUG

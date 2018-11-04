@@ -1,0 +1,107 @@
+{
+    "input_settings" : {
+	"materials_file_name" : "element_tests/shell_elements/thick_shell_materials.json"
+    },
+    "problem_data" : {
+        "problem_name" : "thin_triangular_shell_drilling",
+        "echo_level"   : 0
+    },
+    "time_settings" : {
+        "time_step"  : 0.1,
+        "start_time" : 0.0,
+        "end_time"   : 0.2
+    },
+    "model_settings"           : {
+        "model_name"           : "thin_triangular_shell_drilling",
+        "dimension"            : 3,
+        "domain_parts_list"    : ["Parts_Parts_Auto1"],
+        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","ROTATION_Rotation_Auto1","PointMoment3D_Moment_on_points_Auto1"],
+        "input_file_settings"  : {
+            "name" : "thin_triangular_shell_drilling"
+        }
+    },
+    "solver_settings"          : {
+        "solver_type" : "solid_mechanics_static_solver",
+        "Parameters"  : {
+            "time_integration_settings" : {
+  		"solution_type"      : "Quasi-static",
+                "analysis_type"      : "Non-linear",
+		"integration_method" : "Static"
+            },
+            "solving_strategy_settings" : {
+                "line_search"                 : false,
+		"max_iteration"               : 30
+	    },
+	    "convergence_criterion_settings" : {
+                "convergence_criterion"       : "Residual_criterion",
+                "residual_relative_tolerance" : 1e-6,
+                "residual_absolute_tolerance" : 1e-9,
+		"separate_dofs"               : false
+            },
+	    "dofs" : ["DISPLACEMENT","ROTATION"]
+        }
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "Parameters"    : {
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [null,null,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "Parameters"    : {
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_components_to_nodes_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "Parameters"    : {
+            "model_part_name" : "ROTATION_Rotation_Auto1",
+            "variable_name"   : "ROTATION",
+            "value"           : [0.0,0.0,null],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_modulus_and_direction_to_conditions_process",
+        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "Parameters"    : {
+            "model_part_name" : "PointMoment3D_Moment_on_points_Auto1",
+            "variable_name"   : "MOMENT_LOAD",
+            "modulus"         : "40906000*t",
+            "direction"       : [0.0,0.0,1.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "_output_process_list" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "Parameters"      : {
+            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_REACTION_X"],
+            "output_file_name" : "element_tests/shell_elements/thin_triangular_shell_drilling_results.json",
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "time_frequency"   : 0.1
+        }
+    }
+    ],
+    "check_process_list" : [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "Parameters"      : {
+            "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_REACTION_X"],
+            "input_file_name"  : "element_tests/shell_elements/thin_triangular_shell_drilling_results.json",
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "time_frequency"   : 0.1
+        }
+    }
+    ]
+}

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -79,8 +79,6 @@ struct bcrs {
     {
 #pragma omp parallel
         {
-            typedef typename backend::row_iterator<Matrix>::type row_iterator;
-
             std::vector<ptrdiff_t> marker(bcols, -1);
 
             // Count number of nonzeros in block matrix.
@@ -89,7 +87,7 @@ struct bcrs {
                 ptr_type ia = ib * block_size;
 
                 for(size_t k = 0; k < block_size && ia < static_cast<ptr_type>(nrows); ++k, ++ia) {
-                    for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
+                    for(auto a = backend::row_begin(A, ia); a; ++a) {
                         col_type cb = a.col() / block_size;
 
                         if (marker[cb] != static_cast<col_type>(ib)) {
@@ -117,7 +115,7 @@ struct bcrs {
                 ptr_type row_end = row_beg;
 
                 for(size_t k = 0; k < block_size && ia < static_cast<ptr_type>(nrows); ++k, ++ia) {
-                    for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
+                    for(auto a = backend::row_begin(A, ia); a; ++a) {
                         col_type cb = a.col() / block_size;
                         col_type cc = a.col() % block_size;
                         val_type va = a.value();
@@ -152,7 +150,7 @@ struct block_crs {
     typedef typename builtin<real>::vector     matrix_diagonal;
     typedef solver::skyline_lu<value_type>     direct_solver;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
     /// Backend parameters.
     struct params {
@@ -160,59 +158,62 @@ struct block_crs {
         size_t block_size;
 
         params(size_t block_size = 4) : block_size(block_size) {}
+
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, block_size)
         {
-            AMGCL_PARAMS_CHECK(p, (block_size));
+            check_params(p, {"block_size"});
         }
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, block_size);
         }
+#endif
     };
 
     static std::string name() { return "block_crs"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename backend::builtin<real>::matrix > A,
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename backend::builtin<real>::matrix > A,
             const params &prm)
     {
-        return boost::make_shared<matrix>(*A, prm.block_size);
+        return std::make_shared<matrix>(*A, prm.block_size);
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(const vector &x, const params&)
     {
-        return boost::make_shared<vector>(x);
+        return std::make_shared<vector>(x);
     }
 
-    static boost::shared_ptr< vector >
+    static std::shared_ptr< vector >
     copy_vector(const std::vector<value_type> &x, const params&)
     {
-        return boost::make_shared<vector>(x);
+        return std::make_shared<vector>(x);
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
-    copy_vector(boost::shared_ptr< vector > x, const params&)
+    static std::shared_ptr<vector>
+    copy_vector(std::shared_ptr< vector > x, const params&)
     {
         return x;
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
-    static boost::shared_ptr<direct_solver>
+    static std::shared_ptr<direct_solver>
     create_solver(
-            boost::shared_ptr< typename backend::builtin<real>::matrix > A,
+            std::shared_ptr< typename backend::builtin<real>::matrix > A,
             const params&)
     {
-        return boost::make_shared<direct_solver>(*A);
+        return std::make_shared<direct_solver>(*A);
     }
 };
 

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hencky_hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/hencky_hyper_elastic_model.hpp"
 
 namespace Kratos
 {
@@ -47,10 +47,10 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) BorjaModel : public HenckyHyperElasticModel
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of BorjaModel
     KRATOS_CLASS_POINTER_DEFINITION( BorjaModel );
 
@@ -58,8 +58,8 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.    
-    BorjaModel(); 
+    /// Default constructor.
+    BorjaModel();
 
     /// Copy constructor.
     BorjaModel(BorjaModel const& rOther);
@@ -68,28 +68,28 @@ namespace Kratos
     BorjaModel& operator=(BorjaModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override;
+    ConstitutiveModel::Pointer Clone() const override;
 
 
     /// Destructor.
-    virtual ~BorjaModel();
+    ~BorjaModel() override;
 
 
     ///@}
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
-    
+
+
     ///@}
     ///@name Access
     ///@{
-        
-    
+
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -100,7 +100,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "BorjaModel";
@@ -108,13 +108,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "BorjaModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "BorjaModel Data";
     }
@@ -140,8 +140,8 @@ namespace Kratos
     ///@}
     ///@name Protected Operators
     ///@{
-    
-   
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -149,12 +149,12 @@ namespace Kratos
     /**
      * Calculate Stresses
      */
-    virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
+    void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override;
 
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
+    void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
 
     /**
       * Calculate some strain invariants
@@ -179,7 +179,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -187,7 +187,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -203,21 +203,21 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyHyperElasticModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyHyperElasticModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyHyperElasticModel )
     }
 
     ///@}
@@ -250,6 +250,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPERELASTIC_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_BORJA_MODEL_H_INCLUDED  defined
 
 

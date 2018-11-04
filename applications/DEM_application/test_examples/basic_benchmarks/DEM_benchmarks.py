@@ -26,7 +26,7 @@ listDISclRK   = [31,33]
 
 class Solution(main_script.Solution):
 
-    def LoadParametersFile(self):
+    def GetInputParameters(self):
         file_name = None
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
@@ -47,14 +47,18 @@ class Solution(main_script.Solution):
         elif benchmark_number in listDISclRK:
             file_name = "ProjectParametersDISclRK.json"
         else:
-            print('Benchmark number does not exist')
+            Logger.PrintInfo("DEM",'Benchmark number does not exist')
             sys.exit()
 
-        with open(file_name, 'r') as parameters_file:
-            self.DEM_parameters = Parameters(parameters_file.read())
 
-    def __init__(self):
-        super(Solution, self).__init__()
+        with open(file_name, 'r') as parameters_file:
+            parameters = Parameters(parameters_file.read())
+
+        return parameters
+
+
+    def __init__(self, model):
+        super(Solution, self).__init__(model)
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()
@@ -105,7 +109,7 @@ class Solution(main_script.Solution):
         #self.graph_print_interval = slt.graph_print_interval
         super(Solution, self).Initialize()
 
-        print("Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
+        Logger.PrintInfo("DEM","Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
         list_of_nodes_ids = [1]
         if self.nodeplotter:
             os.chdir(self.main_path)
@@ -149,6 +153,8 @@ class Solution(main_script.Solution):
             self.plotter.close_files()
             self.tang_plotter.close_files()
 
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+
     def FinalizeTimeStep(self, time):
         super(Solution, self).FinalizeTimeStep(time)
         if self.nodeplotter:
@@ -157,7 +163,7 @@ class Solution(main_script.Solution):
             self.tang_plotter.plot_tangential_force(time)
 
     def CleanUpOperations(self):
-        print("running CleanUpOperations")
+        Logger.PrintInfo("DEM","running CleanUpOperations")
         #DBC.delete_archives() #.......Removing some unuseful files
         super(Solution, self).CleanUpOperations()
 
@@ -165,7 +171,8 @@ class Solution(main_script.Solution):
 final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
     for iteration in range(1, number_of_points_in_the_graphic + 1):
-        slt = Solution()
+        model = Model()
+        slt = Solution(model)
         slt.iteration = iteration
         slt.dt = dt
         slt.final_time = final_time
@@ -173,6 +180,7 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
         slt.Run()
+        del slt
     end = timer.time()
     benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
 #DBC.delete_archives() #.......Removing some unuseful files

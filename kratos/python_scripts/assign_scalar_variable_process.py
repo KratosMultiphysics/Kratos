@@ -12,8 +12,10 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
+        #The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"            : "This process sets a given scalar value for a certain variable in all the nodes of a submodelpart",
                 "mesh_id"         : 0,
                 "model_part_name" : "please_specify_model_part_name",
                 "variable_name"   : "SPECIFY_VARIABLE_NAME",
@@ -45,7 +47,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         self.is_fixed = settings["constrained"].GetBool()
 
         self.value_is_numeric = False
-
         if settings["value"].IsNumber():
             self.value_is_numeric = True
             self.value = settings["value"].GetDouble()
@@ -81,7 +82,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                     self.variable_utils.SetScalarVar(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
-
 
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]

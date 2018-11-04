@@ -1017,7 +1017,7 @@ Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Inlet3D // Group Inlet // Subtree Inlet3D
+Begin SubModelPart Inlet // Group Inlet // Subtree Inlet
     Begin SubModelPartNodes
          1
          2
@@ -1049,7 +1049,7 @@ Begin SubModelPart Inlet3D // Group Inlet // Subtree Inlet3D
         12
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Outlet3D // Group Outlet // Subtree Outlet3D
+Begin SubModelPart Outlet // Group Outlet // Subtree Outlet
     Begin SubModelPartNodes
         97
         98
@@ -1081,7 +1081,7 @@ Begin SubModelPart Outlet3D // Group Outlet // Subtree Outlet3D
         24
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Top3D // Group Top // Subtree Slip3D
+Begin SubModelPart Top // Group Top // Subtree Slip3D
     Begin SubModelPartNodes
          1
          2
@@ -1148,7 +1148,7 @@ Begin SubModelPart Top3D // Group Top // Subtree Slip3D
         56
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart Sides3D // Group Sides // Subtree Slip3D
+Begin SubModelPart Sides // Group Sides // Subtree Slip3D
     Begin SubModelPartNodes
          1
          3

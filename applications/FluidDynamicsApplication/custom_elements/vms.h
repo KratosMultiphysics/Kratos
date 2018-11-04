@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -145,7 +145,7 @@ public:
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
-    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
+    typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
 
     ///@}
     ///@name Life Cycle
@@ -216,7 +216,7 @@ public:
     {
         return Kratos::make_shared< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
-    
+
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
@@ -290,7 +290,7 @@ public:
         // Calculate this element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -301,7 +301,8 @@ public:
         this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
 
         // For OSS: Add projection of residuals to RHS
-        if (rCurrentProcessInfo[OSS_SWITCH] == 1)
+        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
+        if (r_const_process_info[OSS_SWITCH] == 1)
         {
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
@@ -338,7 +339,7 @@ public:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -353,7 +354,8 @@ public:
          These terms are not used in OSS, as they belong to the finite element
          space and cancel out with their projections.
          */
-        if (rCurrentProcessInfo[OSS_SWITCH] != 1)
+        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
+        if (r_const_process_info[OSS_SWITCH] != 1)
         {
             double ElemSize = this->ElementSize(Area);
             double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
@@ -396,7 +398,7 @@ public:
         // Get this element's geometric properties
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -466,7 +468,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Carefully write results to nodal variables, to avoid parallelism problems
@@ -500,7 +502,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -512,7 +514,7 @@ public:
             this->GetAdvectiveVel(AdvVel, N);
 
             // Output containers
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0);
 
             this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
@@ -541,7 +543,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -553,7 +555,7 @@ public:
             this->GetAdvectiveVel(AdvVel, N);
 
             // Output containers
-            array_1d< double, 3 > ElementalMomRes(3,0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0.0);
 
             this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
@@ -667,7 +669,7 @@ public:
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -707,7 +709,7 @@ public:
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             rValues.resize(1, false);
@@ -717,7 +719,7 @@ public:
         {
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -1013,7 +1015,7 @@ protected:
     {
         double Coef = Density * Weight;
 
-        array_1d<double, 3 > BodyForce(3, 0.0);
+        array_1d<double, 3 > BodyForce = ZeroVector(3);
         this->EvaluateInPoint(BodyForce, BODY_FORCE, rShapeFunc);
 
         // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
@@ -1036,7 +1038,7 @@ protected:
                                     const double TauOne,
                                     const double TauTwo,
                                     const array_1d<double, TNumNodes>& rShapeFunc,
-                                    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                                    const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                                     const double Weight,
                                     const double DeltaTime = 1.0)
     {
@@ -1045,7 +1047,7 @@ protected:
         array_1d<double, TNumNodes> AGradN;
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
-        array_1d<double,3> MomProj(3,0.0);
+        array_1d<double,3> MomProj = ZeroVector(3);
         double DivProj = 0.0;
         this->EvaluateInPoint(MomProj,ADVPROJ,rShapeFunc);
         this->EvaluateInPoint(DivProj,DIVPROJ,rShapeFunc);
@@ -1140,7 +1142,7 @@ protected:
                           const array_1d<double, 3 > & rAdvVel,
                           const double TauOne,
                           const array_1d<double, TNumNodes>& rShapeFunc,
-                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                          const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                           const double Weight)
     {
         const unsigned int BlockSize = TDim + 1;
@@ -1186,7 +1188,7 @@ protected:
             const double TauOne,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+            const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
             const double Weight)
     {
         const unsigned int BlockSize = TDim + 1;
@@ -1199,7 +1201,7 @@ protected:
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
         double K, G, PDivV, L, qF; // Temporary results
 
-        array_1d<double,3> BodyForce(3,0.0);
+        array_1d<double,3> BodyForce = ZeroVector(3);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 
@@ -1284,7 +1286,7 @@ protected:
                                            array_1d< double, 3 > & rElementalMomRes,
                                            double& rElementalMassRes,
                                            const array_1d< double, TNumNodes >& rShapeFunc,
-                                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                           const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1323,7 +1325,7 @@ protected:
                          const double Density,
                          array_1d< double, 3 > & rElementalMomRes,
                          const array_1d< double, TNumNodes >& rShapeFunc,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                         const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                          const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1362,7 +1364,7 @@ protected:
                         const double Density,
                         array_1d< double, 3 > & rElementalMomRes,
                         const array_1d< double, TNumNodes >& rShapeFunc,
-                        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                        const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                         const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1406,7 +1408,7 @@ protected:
      */
     virtual double EffectiveViscosity(double Density,
                                       const array_1d< double, TNumNodes > &rN,
-                                      const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX,
+                                      const BoundedMatrix<double, TNumNodes, TDim > &rDN_DX,
                                       double ElemSize,
                                       const ProcessInfo &rProcessInfo)
     {
@@ -1436,7 +1438,7 @@ protected:
      * @param rDN_DX Shape function derivatives at the integration point.
      * @return GammaDot = (2SijSij)^0.5.
      */
-    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX) const;
+    double EquivalentStrainRate(const BoundedMatrix<double, TNumNodes, TDim > &rDN_DX) const;
 
 
     /// Write the advective velocity evaluated at this point to an array
@@ -1485,7 +1487,7 @@ protected:
      */
     void GetConvectionOperator(array_1d< double, TNumNodes >& rResult,
                                const array_1d< double, 3 > & rVelocity,
-                               const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+                               const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
         // Evaluate (and weight) the a * Grad(Ni) operator in the integration point, for each node i
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) // Loop over nodes
@@ -1558,7 +1560,7 @@ protected:
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
     virtual void AddViscousTerm(MatrixType& rDampingMatrix,
-                                const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                 const double Weight);
 
     /// Adds the contribution of the viscous term to the momentum equation (alternate).
@@ -1573,18 +1575,18 @@ protected:
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
     void AddBTransCB(MatrixType& rDampingMatrix,
-                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                      const double Weight)
     {
-        boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
-        boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
+        BoundedMatrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
+        BoundedMatrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
         this->CalculateB(B,rShapeDeriv);
         this->CalculateC(C,Weight);
 
         const unsigned int BlockSize = TDim + 1;
         const unsigned int StrainSize = (TDim*TNumNodes)/2;
 
-        vector<unsigned int> aux(TDim*TNumNodes);
+        DenseVector<unsigned int> aux(TDim*TNumNodes);
         for(unsigned int i=0; i<TNumNodes; i++)
         {
             int base_index = TDim*i;
@@ -1615,7 +1617,7 @@ protected:
     }
 
     void ModulatedGradientDiffusion(MatrixType& rDampingMatrix,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rDN_DX,
+            const BoundedMatrix<double, TNumNodes, TDim >& rDN_DX,
             const double Weight)
     {
         const GeometryType& rGeom = this->GetGeometry();
@@ -1631,7 +1633,7 @@ protected:
         }
 
         // Element lengths
-        array_1d<double,3> Delta(3,0.0);
+        array_1d<double,3> Delta;
         Delta[0] = std::fabs(rGeom[TNumNodes-1].X()-rGeom[0].X());
         Delta[1] = std::fabs(rGeom[TNumNodes-1].Y()-rGeom[0].Y());
         Delta[2] = std::fabs(rGeom[TNumNodes-1].Z()-rGeom[0].Z());
@@ -1704,7 +1706,7 @@ protected:
             }
         }
 
-    } 
+    }
 
     /// Calculate the strain rate matrix
     /**
@@ -1712,8 +1714,8 @@ protected:
      * @param rB Strain rate matrix
      * @param rShapeDeriv Nodal shape funcion derivatives
      */
-    void CalculateB( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
-                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv);
+    void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
+                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);
 
     /// Calculate a matrix that provides the stress given the strain rate
     /**
@@ -1723,7 +1725,7 @@ protected:
      * @param rC Matrix representation of the stress tensor (output)
      * @param Viscosity Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    virtual void CalculateC( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
+    virtual void CalculateC( BoundedMatrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
                              const double Viscosity);
 
     double ConsistentMassCoef(const double Area);
@@ -1734,7 +1736,7 @@ protected:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -1749,7 +1751,7 @@ protected:
         this->GetAdvectiveVel(AdvVel, N);
 
         // Output container
-        array_1d< double, 3 > ElementalMomRes(3, 0.0);
+        array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
 
         // Calculate stabilization parameter. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
         double TauOne;
@@ -1768,7 +1770,7 @@ protected:
 
         // Error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
         double ErrorRatio(0.0);//, UNorm(0.0);
-        //array_1d< double, 3 > UGauss(3, 0.0);
+        //array_1d< double, 3 > UGauss = ZeroVector(3);
         //this->EvaluateInPoint(UGauss,VELOCITY,N);
 
         for (unsigned int i = 0; i < TDim; ++i)

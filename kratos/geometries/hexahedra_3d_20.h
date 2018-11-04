@@ -28,9 +28,25 @@
 namespace Kratos
 {
 /**
- * A twenty node hexahedra geometry with serendipity shape functions
+ * @class Hexahedra3D20
+ * @ingroup KratosCore
+ * @brief A twenty node hexahedra geometry with serendipity shape functions
+ * @details The node ordering corresponds with:
+ *      3----10----2     
+ *      |\         |\          
+ *      | 15       | 14         
+ *      9  \       11 \     
+ *      |   7----18+---6      
+ *      |   |      |   |      
+ *      0---+-8----1   | 
+ *       \  17      \  19   
+ *       12 |        13|  
+ *         \|         \|
+ *          4----16----5 
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Hexahedra3D20 : public Geometry<TPointType>
 {
 public:
@@ -460,14 +476,14 @@ public:
     }
    
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon() 

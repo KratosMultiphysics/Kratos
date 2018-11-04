@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ISOTROPIC_DAMAGE_FLOW_RULE_H_INCLUDED )
+#if !defined(KRATOS_ISOTROPIC_DAMAGE_FLOW_RULE_H_INCLUDED)
 #define  KRATOS_ISOTROPIC_DAMAGE_FLOW_RULE_H_INCLUDED
 
 
@@ -71,9 +71,9 @@ namespace Kratos
 
     /// Assignment operator.
     IsotropicDamageFlowRule& operator=(IsotropicDamageFlowRule const& rOther);
-	
+
     /// Destructor.
-    virtual ~IsotropicDamageFlowRule();
+    ~IsotropicDamageFlowRule() override;
 
 
     ///@}
@@ -84,22 +84,21 @@ namespace Kratos
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this flow rule
      */
-    FlowRule::Pointer Clone() const;
-   
+    FlowRule::Pointer Clone() const override;
+
     ///@}
     ///@name Operations
     ///@{
 
-    void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties); 
+    void InitializeMaterial(YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties) override;
 
-    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, 
-                                Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
-    
-    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix );
+    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
 
-    void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix);
+    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix ) override;
 
-    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
+    void ComputeElastoPlasticTangentMatrix( const RadialReturnVariables& rReturnMappingVariables, const Matrix& rElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticMatrix) override;
+
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
 
     ///@}
     ///@name Access
@@ -131,7 +130,7 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -143,8 +142,7 @@ namespace Kratos
 
     virtual bool CalculateInternalVariables(RadialReturnVariables& rReturnMappingVariables);
 
-    virtual void CalculateEquivalentStrainDerivative(Vector& rEquivalentStrainDerivative, const RadialReturnVariables& ReturnMappingVariables, 
-                                                        const Matrix& LinearElasticMatrix);
+    virtual void CalculateEquivalentStrainDerivative(Vector& rEquivalentStrainDerivative, const RadialReturnVariables& ReturnMappingVariables, const Matrix& LinearElasticMatrix);
 
     ///@}
     ///@name Protected  Access
@@ -166,13 +164,13 @@ namespace Kratos
   private:
     ///@name Static Member Variables
     ///@{
-    
+
 
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -195,9 +193,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry
@@ -240,4 +238,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ISOTROPIC_DAMAGE_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_ISOTROPIC_DAMAGE_FLOW_RULE_H_INCLUDED  defined

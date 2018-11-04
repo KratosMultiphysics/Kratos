@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED )
 #define  KRATOS_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED
@@ -13,7 +19,6 @@
 
 // Application includes
 #include "custom_elements/U_Pw_element.hpp"
-#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
@@ -25,7 +30,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainInterfaceElement : pub
 {
 
 public:
-    
+
     KRATOS_CLASS_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
 
     typedef std::size_t IndexType;
@@ -37,56 +42,56 @@ public:
     typedef Matrix MatrixType;
     using UPwElement<TDim,TNumNodes>::mThisIntegrationMethod;
     using UPwElement<TDim,TNumNodes>::mConstitutiveLawVector;
-    
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
     UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwElement<TDim,TNumNodes>( NewId ) {}
-    
+
     /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType NewId, const NodesArrayType& ThisNodes) : UPwElement<TDim,TNumNodes>(NewId, ThisNodes) {}
-    
+
     /// Constructor using Geometry
     UPwSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry) : UPwElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
-    UPwSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) 
+    UPwSmallStrainInterfaceElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : UPwElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
     }
 
     /// Destructor
-    virtual ~UPwSmallStrainInterfaceElement() {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
-    
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
-        
-    int Check(const ProcessInfo& rCurrentProcessInfo);
-    
-    void Initialize();
-    
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-    
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    ~UPwSmallStrainInterfaceElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-    
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo);
-    
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-    
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-    
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-    
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Initialize() override;
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
@@ -95,26 +100,26 @@ protected:
     {
         array_1d<double,TDim> GlobalCoordinatesGradients;
         array_1d<double,TDim> LocalCoordinatesGradients;
-        
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim-1> ShapeFunctionsNaturalGradientsMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsInvMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim-1> ShapeFunctionsGradientsMatrix;
+
+        BoundedMatrix<double,TNumNodes,TDim-1> ShapeFunctionsNaturalGradientsMatrix;
+        BoundedMatrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsMatrix;
+        BoundedMatrix<double,TDim-1,TDim-1> LocalCoordinatesGradientsInvMatrix;
+        BoundedMatrix<double,TNumNodes,TDim-1> ShapeFunctionsGradientsMatrix;
     };
-        
+
     struct InterfaceElementVariables
-    {        
+    {
         ///Properties variables
         double DynamicViscosityInverse;
         double FluidDensity;
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
-        
+
         ///ProcessInfo variables
         double VelocityCoefficient;
         double DtPressureCoefficient;
-    
+
         ///Nodal variables
         array_1d<double,TNumNodes> PressureVector;
         array_1d<double,TNumNodes> DtPressureVector;
@@ -123,11 +128,11 @@ protected:
         array_1d<double,TNumNodes*TDim> VolumeAcceleration;
 
         ///General elemental variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         array_1d<double,TDim> VoigtVector;
-        
+
         ///Variables computed at each GP
-        
+
         ///Constitutive Law parameters
         Vector StrainVector;
         Vector StressVector;
@@ -137,86 +142,89 @@ protected:
         Matrix F;
         double detF;
         ///Auxiliary Variables
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu;
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> LocalPermeabilityMatrix;
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
+        BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix;
         array_1d<double,TDim> BodyAcceleration;
         double IntegrationCoefficient;
         double JointWidth;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> PMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> DimMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes*TDim,TDim> UDimMatrix;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> PDimMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
+        BoundedMatrix<double,TDim,TDim> DimMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TDim> UDimMatrix;
+        BoundedMatrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
     };
-    
+
     /// Member Variables
-    
+
     std::vector<double> mInitialGap;
     std::vector<bool> mIsOpen;
-    
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateInitialGap(const GeometryType& Geom);
-    
-    
-    void CaculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo );
-    
-    
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+
+    void ExtrapolateGPValues (const std::vector<double>& JointWidthContainer);
+
+
+    void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
+
+
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
+
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
     void InitializeElementVariables(InterfaceElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
-                                    
-    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
-    
+
+    void CalculateRotationMatrix(BoundedMatrix<double,TDim,TDim>& rRotationMatrix, const GeometryType& Geom);
+
     void CalculateJointWidth(double& rJointWidth,const double& NormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
-    
+
     void CheckAndCalculateJointWidth(double& rJointWidth,ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     double& rNormalRelDisp,const double& MinimumJointWidth,const unsigned int& GPoint);
 
     template< class TMatrixType >
-    void CalculateShapeFunctionsGradients(TMatrixType& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian, 
-                                            const boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& RotationMatrix,
+    void CalculateShapeFunctionsGradients(TMatrixType& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
+                                            const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                             const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint);
-                                            
-                                    
+
+
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
 
-    
+
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
-    
+
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables);
 
 
     void InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues );
-    
+
     template< class TValueType >
     void InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues );
-    
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -224,17 +232,17 @@ private:
     /// Member Variables
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     /// Serialization
-    
+
     friend class Serializer;
-    
-    virtual void save(Serializer& rSerializer) const
+
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
@@ -249,4 +257,4 @@ private:
 
 } // namespace Kratos
 
-#endif // KRATOS_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED  defined

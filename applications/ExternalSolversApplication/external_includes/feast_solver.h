@@ -13,6 +13,8 @@
 //   Revision:            $Revision:                0.0 $
 //
 //
+#if !defined(KRATOS_FEAST_SOLVER)
+#define  KRATOS_FEAST_SOLVER
 
 // System includes
 #include <iostream>
@@ -22,7 +24,6 @@
 #include <algorithm>
 
 // External includes
-#include <boost/smart_ptr.hpp>
 extern "C" {
 #include "feast.h"
 }
@@ -36,8 +37,6 @@ extern "C" {
 #include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
 
-#if !defined(KRATOS_FEAST_SOLVER)
-#define  KRATOS_FEAST_SOLVER
 
 namespace Kratos {
 
@@ -75,7 +74,7 @@ public:
     typedef ComplexLinearSolverType::SparseMatrixType ComplexSparseMatrixType;
 
     typedef ComplexLinearSolverType::VectorType ComplexVectorType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -84,7 +83,7 @@ public:
     /**
      * Parameters let the user control the settings of the FEAST library.
      */
-    FEASTSolver(Parameters::Pointer pParam) : mpParam(pParam)
+    FEASTSolver(Parameters settings) : mParam(settings)
     {
         Parameters default_params(R"(
         {
@@ -101,24 +100,24 @@ public:
             }
         })");
 
-        mpParam->RecursivelyValidateAndAssignDefaults(default_params);
+        mParam.RecursivelyValidateAndAssignDefaults(default_params);
 
-        if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
+        if (mParam.GetValue("linear_solver_settings")["solver_type"].GetString() != "skyline_lu")
             KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
             
-        mpLinearSolver = boost::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
+        mpLinearSolver = Kratos::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
     }
 
     /// Constructor for externally provided linear solver.
     /**
      * Parameters let the user control the settings of the FEAST library.
      * Warning: For iterative solvers, very small tolerances (~1e-15)
-     *          may be needed for FEAST to work properly. Common iterative 
-     *          solvers normally don't perform efficiently with FEAST 
+     *          may be needed for FEAST to work properly. Common iterative
+     *          solvers normally don't perform efficiently with FEAST
      *          (M. Galgon et al., Parallel Computing (49) 2015 153-163).
      */
-    FEASTSolver(Parameters::Pointer pParam, ComplexLinearSolverType::Pointer pLinearSolver)
-        : mpParam(pParam), mpLinearSolver(pLinearSolver)
+    FEASTSolver(Parameters settings, ComplexLinearSolverType::Pointer pLinearSolver)
+        : mParam(settings), mpLinearSolver(pLinearSolver)
     {
         Parameters default_params(R"(
         {
@@ -134,7 +133,7 @@ public:
         })");
 
         // don't validate linear_solver_settings here
-        mpParam->ValidateAndAssignDefaults(default_params);
+        mParam.ValidateAndAssignDefaults(default_params);
     }
 
     /// Deleted copy constructor.
@@ -166,7 +165,7 @@ public:
     {
         const auto SystemSize = K.size1();
 
-        Parameters& FEAST_Settings = *mpParam;
+        Parameters FEAST_Settings = mParam;
         const double EigenvalueRangeMin = FEAST_Settings["lambda_min"].GetDouble();
         const double EigenvalueRangeMax = FEAST_Settings["lambda_max"].GetDouble();
 
@@ -222,7 +221,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Parameters::Pointer mpParam;
+    Parameters mParam;
 
     ComplexLinearSolverType::Pointer mpLinearSolver;
 
@@ -261,7 +260,7 @@ private:
 
         this->InitializeFEASTSystemMatrix(rMassMatrix, rStiffnessMatrix, Az);
 
-        Parameters& FEAST_Settings = *mpParam;
+        Parameters FEAST_Settings = mParam;
 
         // initialize FEAST eigenvalue solver (see FEAST documentation for details)
         feastinit(FEAST_Params);
@@ -319,7 +318,13 @@ private:
                     {
                         for (int i=0; i < SystemSize; i++)
                             b[i] = zwork(i,j);
-                        mpLinearSolver->Solve(Az,x,b);
+                        try {
+                            mpLinearSolver->PerformSolutionStep(Az,x,b);
+                        } catch (Exception& e) {
+                            KRATOS_WARNING("FEAST WARNING") << "The used linear solver does not implement the 'PerformSolutionStep' function, 'Solve' is used as a fallback. "  << std::endl;
+                            mpLinearSolver->Solve(Az,x,b);
+                        }
+
                         for (int i=0; i < SystemSize; i++)
                             zwork(i,j) = x[i];
                     }

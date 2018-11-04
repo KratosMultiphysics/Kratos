@@ -13,14 +13,13 @@
 // System includes 
 
 #if defined(KRATOS_PYTHON)
-
 // External includes 
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+
 
 // Project includes 
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "shallow_water_application.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
  
@@ -30,37 +29,37 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+  using namespace pybind11;
 
   
-  BOOST_PYTHON_MODULE(KratosShallowWaterApplication)
+  PYBIND11_MODULE(KratosShallowWaterApplication, m)
   {
     class_<KratosShallowWaterApplication, 
         KratosShallowWaterApplication::Pointer, 
-        bases<KratosApplication>, boost::noncopyable >("KratosShallowWaterApplication")
+        KratosApplication>(m, "KratosShallowWaterApplication")
+        .def(init<>())
         ;
 
-    AddCustomStrategiesToPython();
-    AddCustomUtilitiesToPython();
+    AddCustomUtilitiesToPython(m);
 
     // Registering variables in python
     // Shallow water variables
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(HEIGHT);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(BATHYMETRY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(RAIN);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(FREE_SURFACE_ELEVATION);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MANNING);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,HEIGHT);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,BATHYMETRY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RAIN);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,FREE_SURFACE_ELEVATION);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MANNING);
 
     // Specific variables for PFEM2
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MEAN_SIZE);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DELTA_SCALAR1)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(PROJECTED_SCALAR1)
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(DELTA_VECTOR1)
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(PROJECTED_VECTOR1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MEAN_SIZE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,DELTA_SCALAR1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PROJECTED_SCALAR1)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,DELTA_VECTOR1)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,PROJECTED_VECTOR1)
 
     // Units conversion
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(TIME_UNIT_CONVERTER)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(WATER_HEIGHT_UNIT_CONVERTER)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TIME_UNIT_CONVERTER)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,WATER_HEIGHT_UNIT_CONVERTER)
   }
   
 }  // namespace Python.

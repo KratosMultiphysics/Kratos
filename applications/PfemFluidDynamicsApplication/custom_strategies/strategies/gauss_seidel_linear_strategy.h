@@ -141,7 +141,7 @@ public:
     {
         KRATOS_TRY
 
-	std::cout<<" GaussSeidelLinearStrategy"<<std::endl;
+	/* std::cout<<" GaussSeidelLinearStrategy"<<std::endl; */
 
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
         mCalculateNormDxFlag = CalculateNormDxFlag;
@@ -229,7 +229,7 @@ public:
     // 3 -> Print of debug informations:
     //		Echo of stiffness matrix, Dx, b...
 
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -278,7 +278,7 @@ public:
     //**********************************************************************
 
 
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
 
@@ -314,6 +314,7 @@ public:
             std::cout << "solution obtained = " << mDx << std::endl;
             std::cout << "RHS  = " << mb << std::endl;
         }
+
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
             std::stringstream matrix_market_name;
@@ -363,7 +364,7 @@ public:
     }
     //*********************************************************************************
 
-    double GetResidualNorm()
+    double GetResidualNorm() override
     {
         if (TSparseSpace::Size(*mpb) != 0)
             return TSparseSpace::TwoNorm(*mpb);
@@ -380,7 +381,7 @@ public:
 
       This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
-    void CalculateOutputData()
+    void CalculateOutputData() override
     {
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -507,7 +508,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -540,7 +541,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -548,7 +549,7 @@ private:
         typename TSchemeType::Pointer pScheme = GetScheme();
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-    	ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+    	/* ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo(); */
 
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
@@ -558,7 +559,7 @@ private:
             mInitializeWasPerformed = true;
     	  }
 
-	std::cout << "Gauss-Seidel VP Strategy,  CurrentTime: " << pCurrentProcessInfo[TIME] << std::endl;
+	/* std::cout << "Gauss-Seidel VP Strategy,  CurrentTime: " << pCurrentProcessInfo[TIME] << std::endl; */
 
         //loop to reform the dofset
         boost::timer system_construction_time;
@@ -570,7 +571,7 @@ private:
     	pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
 
     	//setting up the Vectors involved to the correct size
-    	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+    	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
         if (BaseType::GetEchoLevel() > 1 && rank == 0)
     	  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 
@@ -604,7 +605,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY;
         // if the preconditioner is saved between solves, it
@@ -630,7 +631,7 @@ private:
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    int Check()
+    int Check() override
     {
         KRATOS_TRY
 

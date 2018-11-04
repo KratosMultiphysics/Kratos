@@ -75,7 +75,7 @@ int ComputeLaplacianSimplex<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeLaplacianSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContribution(VectorType& F,
-                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                             const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                              const double Weight)
 {
     double Coef = Weight;

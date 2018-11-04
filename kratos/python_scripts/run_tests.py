@@ -10,7 +10,7 @@ import threading
 
 from KratosMultiphysics import Tester
 from KratosMultiphysics import KratosLoader
-from KratosMultiphysics.KratosUnittest import CaptureStdout, ReleaseStdout
+from KratosMultiphysics.KratosUnittest import SupressConsoleOutput, SupressConsoleError, SupressAllConsole
 
 
 def Usage():
@@ -117,6 +117,7 @@ class Commander(object):
 
         '''
 
+        self.exitCode = 0
         appNormalizedPath = applicationPath.lower().replace('_', '')
 
         possiblePaths = [
@@ -142,7 +143,7 @@ class Commander(object):
                     print('\t', p, file=sys.stderr)
         else:
             script = path+'/'+possiblePaths[0]['Found']+'/tests/'+'test_'+application+'.py'
-            print(script)
+            print(script, file=sys.stderr)
 
             if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
                 print(
@@ -157,13 +158,19 @@ class Commander(object):
                     script,
                     '-l'+level,
                     '-v'+str(verbose)
-                ])
+                ], stdout=subprocess.PIPE)
 
                 # Used instead of wait to "soft-block" the process and prevent deadlocks
                 # and capture the first exit code different from OK
-                self.process.communicate()
-                if(not self.exitCode):
-                    self.process.returncode
+                process_stdout, process_stderr = self.process.communicate()
+                if process_stdout:
+                    print(process_stdout.decode('ascii'), file=sys.stdout)
+                if process_stderr:
+                    print(process_stderr.decode('ascii'), file=sys.stderr)
+
+                # Running out of time in the tests will send the error code -15. We may want to skip
+                # that one in a future. Right now will throw everything different from 0.
+                self.exitCode = int(self.process.returncode != 0)
             else:
                 if verbose > 0:
                     print(
@@ -178,6 +185,23 @@ class Commander(object):
                         file=sys.stderr)
                     sys.stderr.flush()
 
+    def RunCppTests(self, applications):
+        ''' Calls the cpp tests directly
+        '''
+
+        self.exitCode = 0
+
+        # importing the apps such that they get registered for the cpp-tests
+        for application in applications:
+            __import__("KratosMultiphysics." + application)
+
+        try:
+            Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
+            self.exitCode = Tester.RunAllTestCases()
+        except Exception as e:
+            print('[Warning]:', e, file=sys.stderr)
+            self.exitCode = 1
+
 
 def main():
 
@@ -191,6 +215,9 @@ def main():
     applications = GetAvailableApplication()
     verbosity = 1
     level = 'all'
+
+    # Keep the worst exit code
+    exit_code = 0
 
     # Parse Commandline
     try:
@@ -255,9 +282,6 @@ def main():
         else:
             assert False, 'unhandled option'
 
-    # Capture stdout from KratosUnittest
-    sysstdout = CaptureStdout()
-
     # Set timeout of the different levels
     signalTime = int(-1)
     if level == 'small':
@@ -271,47 +295,45 @@ def main():
     # KratosCore must always be runned
     print('Running tests for KratosCore', file=sys.stderr)
 
-    commander.RunTestSuitInTime(
-        'KratosCore',
-        'kratos',
-        os.path.dirname(GetModulePath('KratosMultiphysics')),
-        level,
-        verbosity,
-        cmd,
-        signalTime
-    )
-
-    sys.stderr.flush()
-
-    # Run the tests for the rest of the Applications
-    for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
-        sys.stderr.flush()
-
+    with SupressConsoleOutput():
         commander.RunTestSuitInTime(
-            application,
-            application,
-            KratosLoader.kratos_applications+'/',
+            'KratosCore',
+            'kratos',
+            os.path.dirname(GetModulePath('KratosMultiphysics')),
             level,
             verbosity,
             cmd,
             signalTime
         )
 
-    sys.stderr.flush()
+    exit_code = max(exit_code, commander.exitCode)
 
-    # Releases stdout
-    ReleaseStdout(sysstdout)
+    # Run the tests for the rest of the Applications
+    for application in applications:
+        print('Running tests for {}'.format(application), file=sys.stderr)
+        sys.stderr.flush()
+
+        with SupressConsoleOutput():
+            commander.RunTestSuitInTime(
+                application,
+                application,
+                KratosLoader.kratos_applications+'/',
+                level,
+                verbosity,
+                cmd,
+                signalTime
+            )
+
+        exit_code = max(exit_code, commander.exitCode)
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print('Running cpp tests', file=sys.stderr)
-    try:
-        Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
-        Tester.RunAllTestCases()
-    except Exception as e:
-        print('[Warning]:', e, file=sys.stderr)
+    with SupressConsoleOutput():
+        commander.RunCppTests(applications)
 
-    sys.exit(commander.exitCode)
+    exit_code = max(exit_code, commander.exitCode)
+
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

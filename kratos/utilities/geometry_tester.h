@@ -26,6 +26,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/element.h"
 #include "geometries/geometry_data.h"
 #include "utilities/geometry_utilities.h"
@@ -46,7 +47,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -68,8 +69,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/**
+ * @class GeometryTesterUtility
+ * @ingroup KratosCore
+ * @brief This utility tests the geometries
+ * @todo Migrate to the new cpp test interface
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
 */
 class GeometryTesterUtility
 {
@@ -86,11 +92,10 @@ public:
 
     GeometryTesterUtility()
     {
-        mModelPart = ModelPart( "aux_testing_modelpart" );
     }
 
     /// Default constructor.
-    bool RunTest() //std::string& out_error_msg)
+    bool RunTest(Model& rModel) //std::string& out_error_msg)
     {
         //create a cloud of 27 nodes, to be used in testing the geometries, so that 1 10 19 are on the same vertical
         //side has a lenght 0f 2.0/3.0
@@ -103,22 +108,23 @@ public:
         //| 7---8---9
         //|4   5   6
         //1---2---3
-        GenerateNodes();
+        ModelPart& model_part = rModel.CreateModelPart("aux_model_part");
+        GenerateNodes(model_part);
 
         bool succesful = true;
 
-        if(TestTriangle2D3N(  ) == false) succesful=false;
-        if(TestTriangle2D6N(  ) == false) succesful=false;
-        if(TestQuadrilateral2D4N(  ) == false) succesful=false;
-        if(TestQuadrilateral2D9N(  ) == false) succesful=false;
+        if(TestTriangle2D3N(model_part) == false) succesful=false;
+        if(TestTriangle2D6N(model_part) == false) succesful=false;
+        if(TestQuadrilateral2D4N(model_part) == false) succesful=false;
+        if(TestQuadrilateral2D9N(model_part) == false) succesful=false;
 
-        if(TestTetrahedra3D4N(  ) == false) succesful=false;
-        if(TestTetrahedra3D10N(  ) == false) succesful=false;
-        if(TestHexahedra3D8N(  ) == false) succesful=false;
-        if(TestHexahedra3D20N(  ) == false) succesful=false;
-        if(TestHexahedra3D27N(  ) == false) succesful=false;
+        if(TestTetrahedra3D4N(model_part) == false) succesful=false;
+        if(TestTetrahedra3D10N(model_part) == false) succesful=false;
+        if(TestHexahedra3D8N(model_part) == false) succesful=false;
+        if(TestHexahedra3D20N(model_part) == false) succesful=false;
+        if(TestHexahedra3D27N(model_part) == false) succesful=false;
 
-        if(TestPrism3D6N(  ) == false) succesful=false;
+        if(TestPrism3D6N(model_part) == false) succesful=false;
 //        if(TestPrism3D15N( error_msg ) == false) succesful=false;
 
         if(succesful == false)
@@ -140,93 +146,17 @@ public:
     ///@name Operations
     ///@{
 
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
+    bool TestTetrahedra3D4N(ModelPart& rModelPart)
     {
-        std::stringstream buffer;
-        buffer << "GeometryTesterUtility" ;
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "GeometryTesterUtility";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-
-    ///@name Protected static Member Variables
-    ///@{
-    ModelPart mModelPart;
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-    void GenerateNodes()
-    {
-        const double dx = 0.333333333333333333333;
-        const double dy = 0.333333333333333333333;
-        const double dz = 0.333333333333333333333;
-        std::size_t counter = 1;
-        for(unsigned int k=0; k<3; k++)
-        {
-            for(unsigned int j=0; j<3; j++)
-            {
-                for(unsigned int i=0; i<3; i++)
-                {
-                    mModelPart.CreateNewNode(counter++, i*dx, j*dy,k*dz);
-                }
-            }
-        }
-    }
-
-    bool TestTetrahedra3D4N(  )
-    {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Tetrahedra3D4<Node<3> > geom( mModelPart.pGetNode(4), mModelPart.pGetNode(3), mModelPart.pGetNode(17), mModelPart.pGetNode(19) );
+        Tetrahedra3D4<Node<3> > geom( rModelPart.pGetNode(4), rModelPart.pGetNode(3), rModelPart.pGetNode(17), rModelPart.pGetNode(19) );
 
         bool succesful = true;
 
         //this fast function only exists for simplices. Do not use it in other tests
-        boost::numeric::ublas::bounded_matrix<double, 4,3 > DN_DX;
+        BoundedMatrix<double, 4,3 > DN_DX;
         array_1d<double, 4 > N;
         double Area;
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
@@ -259,15 +189,15 @@ public:
 
     }
 
-    bool TestTetrahedra3D10N(  )
+    bool TestTetrahedra3D10N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
 
-        Tetrahedra3D10<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(7), mModelPart.pGetNode(19),
-                                        mModelPart.pGetNode(2), mModelPart.pGetNode(5), mModelPart.pGetNode(4), mModelPart.pGetNode(10),
-                                        mModelPart.pGetNode(11), mModelPart.pGetNode(13)
+        Tetrahedra3D10<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(3), rModelPart.pGetNode(7), rModelPart.pGetNode(19),
+                                        rModelPart.pGetNode(2), rModelPart.pGetNode(5), rModelPart.pGetNode(4), rModelPart.pGetNode(10),
+                                        rModelPart.pGetNode(11), rModelPart.pGetNode(13)
                                     );
 
         bool succesful = true;
@@ -301,17 +231,17 @@ public:
 
     }
 
-    bool TestTriangle2D3N(  )
+    bool TestTriangle2D3N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Triangle2D3<Node<3> > geom( mModelPart.pGetNode(4), mModelPart.pGetNode(3), mModelPart.pGetNode(8) );
+        Triangle2D3<Node<3> > geom( rModelPart.pGetNode(4), rModelPart.pGetNode(3), rModelPart.pGetNode(8) );
 
         bool succesful = true;
 
         //this fast function only exists for simplices. Do not use it in other tests
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        BoundedMatrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
         double Area;
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
@@ -344,13 +274,13 @@ public:
 
     }
 
-    bool TestTriangle2D6N(  )
+    bool TestTriangle2D6N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Triangle2D6<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(7),
-                                    mModelPart.pGetNode(2), mModelPart.pGetNode(5), mModelPart.pGetNode(4) );
+        Triangle2D6<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(3), rModelPart.pGetNode(7),
+                                    rModelPart.pGetNode(2), rModelPart.pGetNode(5), rModelPart.pGetNode(4) );
 
         bool succesful = true;
 
@@ -382,12 +312,12 @@ public:
 
     }
 
-    bool TestQuadrilateral2D4N(  )
+    bool TestQuadrilateral2D4N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Quadrilateral2D4<Node<3> > geom( mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(7), mModelPart.pGetNode(4));
+        Quadrilateral2D4<Node<3> > geom( rModelPart.pGetNode(2), rModelPart.pGetNode(6), rModelPart.pGetNode(7), rModelPart.pGetNode(4));
 
         bool succesful = true;
 
@@ -419,14 +349,14 @@ public:
 
     }
 
-    bool TestQuadrilateral2D9N(  )
+    bool TestQuadrilateral2D9N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Quadrilateral2D9<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(9), mModelPart.pGetNode(7),
-                                         mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(8), mModelPart.pGetNode(4),
-                                         mModelPart.pGetNode(9));
+        Quadrilateral2D9<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(3), rModelPart.pGetNode(9), rModelPart.pGetNode(7),
+                                         rModelPart.pGetNode(2), rModelPart.pGetNode(6), rModelPart.pGetNode(8), rModelPart.pGetNode(4),
+                                         rModelPart.pGetNode(9));
 
         bool succesful = true;
 
@@ -458,13 +388,13 @@ public:
 
     }
 
-    bool TestHexahedra3D8N(  )
+    bool TestHexahedra3D8N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Hexahedra3D8<Node<3> > geom( mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(7), mModelPart.pGetNode(4),
-                                     mModelPart.pGetNode(11), mModelPart.pGetNode(15), mModelPart.pGetNode(16), mModelPart.pGetNode(13));
+        Hexahedra3D8<Node<3> > geom( rModelPart.pGetNode(2), rModelPart.pGetNode(6), rModelPart.pGetNode(7), rModelPart.pGetNode(4),
+                                     rModelPart.pGetNode(11), rModelPart.pGetNode(15), rModelPart.pGetNode(16), rModelPart.pGetNode(13));
 
         bool succesful = true;
 
@@ -501,16 +431,16 @@ public:
 
     }
 
-    bool TestHexahedra3D20N(  )
+    bool TestHexahedra3D20N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Hexahedra3D20<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(9), mModelPart.pGetNode(7),
-                                      mModelPart.pGetNode(19), mModelPart.pGetNode(21), mModelPart.pGetNode(27), mModelPart.pGetNode(25),
-                                      mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(8), mModelPart.pGetNode(4),
-                                      mModelPart.pGetNode(10), mModelPart.pGetNode(12), mModelPart.pGetNode(18), mModelPart.pGetNode(16),
-                                      mModelPart.pGetNode(20), mModelPart.pGetNode(24), mModelPart.pGetNode(26), mModelPart.pGetNode(22)
+        Hexahedra3D20<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(3), rModelPart.pGetNode(9), rModelPart.pGetNode(7),
+                                      rModelPart.pGetNode(19), rModelPart.pGetNode(21), rModelPart.pGetNode(27), rModelPart.pGetNode(25),
+                                      rModelPart.pGetNode(2), rModelPart.pGetNode(6), rModelPart.pGetNode(8), rModelPart.pGetNode(4),
+                                      rModelPart.pGetNode(10), rModelPart.pGetNode(12), rModelPart.pGetNode(18), rModelPart.pGetNode(16),
+                                      rModelPart.pGetNode(20), rModelPart.pGetNode(24), rModelPart.pGetNode(26), rModelPart.pGetNode(22)
                                     );
 
         bool succesful = true;
@@ -545,18 +475,18 @@ public:
     }
 
 
-    bool TestHexahedra3D27N(   )
+    bool TestHexahedra3D27N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Hexahedra3D27<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(3), mModelPart.pGetNode(9), mModelPart.pGetNode(7),
-                                      mModelPart.pGetNode(19), mModelPart.pGetNode(21), mModelPart.pGetNode(27), mModelPart.pGetNode(25),
-                                      mModelPart.pGetNode(2), mModelPart.pGetNode(6), mModelPart.pGetNode(8), mModelPart.pGetNode(4),
-                                      mModelPart.pGetNode(10), mModelPart.pGetNode(12), mModelPart.pGetNode(18), mModelPart.pGetNode(16),
-                                      mModelPart.pGetNode(20), mModelPart.pGetNode(24), mModelPart.pGetNode(26), mModelPart.pGetNode(22),
-                                      mModelPart.pGetNode(5), mModelPart.pGetNode(11), mModelPart.pGetNode(15), mModelPart.pGetNode(17),
-                                      mModelPart.pGetNode(13), mModelPart.pGetNode(23), mModelPart.pGetNode(14)
+        Hexahedra3D27<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(3), rModelPart.pGetNode(9), rModelPart.pGetNode(7),
+                                      rModelPart.pGetNode(19), rModelPart.pGetNode(21), rModelPart.pGetNode(27), rModelPart.pGetNode(25),
+                                      rModelPart.pGetNode(2), rModelPart.pGetNode(6), rModelPart.pGetNode(8), rModelPart.pGetNode(4),
+                                      rModelPart.pGetNode(10), rModelPart.pGetNode(12), rModelPart.pGetNode(18), rModelPart.pGetNode(16),
+                                      rModelPart.pGetNode(20), rModelPart.pGetNode(24), rModelPart.pGetNode(26), rModelPart.pGetNode(22),
+                                      rModelPart.pGetNode(5), rModelPart.pGetNode(11), rModelPart.pGetNode(15), rModelPart.pGetNode(17),
+                                      rModelPart.pGetNode(13), rModelPart.pGetNode(23), rModelPart.pGetNode(14)
                                     );
 
         bool succesful = true;
@@ -602,13 +532,13 @@ public:
 
     }
 
-    bool TestPrism3D6N(  )
+    bool TestPrism3D6N(ModelPart& rModelPart)
     {
-        GenerateNodes();
+        GenerateNodes(rModelPart);
 
         std::stringstream error_msg;
-        Prism3D6<Node<3> > geom( mModelPart.pGetNode(1), mModelPart.pGetNode(2), mModelPart.pGetNode(4),
-                                 mModelPart.pGetNode(10),mModelPart.pGetNode(11), mModelPart.pGetNode(13)
+        Prism3D6<Node<3> > geom( rModelPart.pGetNode(1), rModelPart.pGetNode(2), rModelPart.pGetNode(4),
+                                 rModelPart.pGetNode(10),rModelPart.pGetNode(11), rModelPart.pGetNode(13)
                                     );
 
         bool succesful = true;
@@ -642,14 +572,14 @@ public:
 
     }
 
-//    bool TestPrism3D15N(  )
+//    bool TestPrism3D15N(ModelPart& rModelPart)
 //     {
 //         std::stringstream error_msg;
-//          Prism3D15<Node<3> > geom( mModelPart.pGetNode(1),  mModelPart.pGetNode(2),  mModelPart.pGetNode(3),
-//                                    mModelPart.pGetNode(5),  mModelPart.pGetNode(7),  mModelPart.pGetNode(4),
-//                                    mModelPart.pGetNode(10), mModelPart.pGetNode(12), mModelPart.pGetNode(16),
-//                                    mModelPart.pGetNode(19), mModelPart.pGetNode(20), mModelPart.pGetNode(21),
-//                                    mModelPart.pGetNode(23), mModelPart.pGetNode(25), mModelPart.pGetNode(22)
+//          Prism3D15<Node<3> > geom( rModelPart.pGetNode(1),  rModelPart.pGetNode(2),  rModelPart.pGetNode(3),
+//                                    rModelPart.pGetNode(5),  rModelPart.pGetNode(7),  rModelPart.pGetNode(4),
+//                                    rModelPart.pGetNode(10), rModelPart.pGetNode(12), rModelPart.pGetNode(16),
+//                                    rModelPart.pGetNode(19), rModelPart.pGetNode(20), rModelPart.pGetNode(21),
+//                                    rModelPart.pGetNode(23), rModelPart.pGetNode(25), rModelPart.pGetNode(22)
 //                                    );
 
 //          bool succesful = true;
@@ -679,7 +609,79 @@ public:
 //          return succesful;
 //    }
 
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GeometryTesterUtility" ;
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "GeometryTesterUtility";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+    ///@}
+
 protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    void GenerateNodes(ModelPart& rModelPart)
+    {
+        const double dx = 0.333333333333333333333;
+        const double dy = 0.333333333333333333333;
+        const double dz = 0.333333333333333333333;
+        std::size_t counter = 1;
+        for(unsigned int k=0; k<3; k++)
+        {
+            for(unsigned int j=0; j<3; j++)
+            {
+                for(unsigned int i=0; i<3; i++)
+                {
+                    rModelPart.CreateNewNode(counter++, i*dx, j*dy,k*dz);
+                }
+            }
+        }
+    }
 
     ///@}
     ///@name Protected  Access

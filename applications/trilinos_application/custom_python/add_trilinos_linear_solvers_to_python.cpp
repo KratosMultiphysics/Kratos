@@ -1,16 +1,24 @@
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-12-09 20:20:55 $
-//   Revision:            $Revision: 1.5 $
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+#include <string>
+
+// Project includes
+#include "includes/define_python.h"
 
 #include "custom_python/add_trilinos_strategies_to_python.h"
 
@@ -26,20 +34,14 @@
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 
-
 // Project includes
-#include "includes/define.h"
 #include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
 #include "includes/model_part.h"
 
-
 //linear solvers
 #include "linear_solvers/linear_solver.h"
-
-//utilities
-#include "python/pointer_vector_set_python_interface.h"
 
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
@@ -50,6 +52,7 @@
 #include "external_includes/ml_solver.h"
 
 #include "external_includes/amgcl_mpi_solver.h"
+//#include "external_includes/amgcl_deflation_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
 namespace Kratos
@@ -58,7 +61,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+namespace py = pybind11;
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
@@ -74,56 +77,63 @@ void Solve(TrilinosLinearSolverType& solver,
     solver.Solve(rA,rX,rB);
 }
 
-void  AddLinearSolvers()
+void  AddLinearSolvers(pybind11::module& m)
 {
-    
-    class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer, boost::noncopyable > ("TrilinosLinearSolver", init<>())
+    py::class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer > (m,"TrilinosLinearSolver")
+    .def(py::init<>())
     .def("Solve", Solve);
 
-    class_<EpetraDefaultSetter, boost::noncopyable>("EpetraDefaultSetter",init<>())
+    py::class_<EpetraDefaultSetter>(m,"EpetraDefaultSetter").def( py::init<>())
     .def("SetDefaults", &EpetraDefaultSetter::SetDefaults);
 
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
-    class_<AztecSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AztecSolver", init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
-    .def(init<Parameters>())
+    py::class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AztecSolver")
+    .def( py::init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
+    .def(py::init<Parameters>())
     .def("SetScalingType", &AztecSolverType::SetScalingType)
     ;
 
     typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
-    class_<AmesosSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AmesosSolver", init<const std::string&, Teuchos::ParameterList& >())
-    .def(init<Parameters>())
-    .def(init<Parameters>())
+    py::class_<AmesosSolverType, typename AmesosSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AmesosSolver").def( py::init<const std::string&, Teuchos::ParameterList& >())
+    .def(py::init<Parameters>())
+    .def(py::init<Parameters>())
+    .def_static("HasSolver", &AmesosSolverType::HasSolver)
     ;
 
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
-    class_<MLSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("MultiLevelSolver", init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
-    .def(init<Parameters>())
+    py::class_<MLSolverType, typename MLSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"MultiLevelSolver").def( py::init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
+    .def(py::init<Parameters>())
     .def("SetScalingType", &MLSolverType::SetScalingType)
     .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
     ;
 
     typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
-    class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AmgclMPISolver",init<Parameters>()) //init<double, int,int,bool >())
-    .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
-    .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
+    py::class_<AmgclMPISolverType, typename AmgclMPISolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AmgclMPISolver").def( py::init<Parameters>())
     ;
     
+#if 0
+    typedef AmgclDeflationSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclDeflationSolverType;
+    py::class_<AmgclDeflationSolverType, typename AmgclDeflationSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AmgclDeflationSolver").def( py::init<Parameters>())
+    ;
+#endif
+
     typedef AmgclMPISchurComplementSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISchurComplementSolverType;
-    class_<AmgclMPISchurComplementSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AmgclMPISchurComplementSolver",init<Parameters>()) 
+    py::class_<AmgclMPISchurComplementSolverType, typename AmgclMPISchurComplementSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AmgclMPISchurComplementSolver").def( py::init<Parameters>())
     ;
     
-    enum_<AztecScalingType>("AztecScalingType")
+    py::enum_<AztecScalingType>(m,"AztecScalingType")
     .value("NoScaling", NoScaling)
     .value("LeftScaling", LeftScaling)
     .value("SymmetricScaling", SymmetricScaling)
     ;
 
-    enum_<MLSolverType::ScalingType>("MLSolverScalingType")
+    py::enum_<MLSolverType::ScalingType>(m,"MLSolverScalingType")
     .value("NoScaling", MLSolverType::NoScaling)
     .value("LeftScaling", MLSolverType::LeftScaling)
     ;

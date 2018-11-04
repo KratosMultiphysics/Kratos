@@ -8,7 +8,7 @@
 
 namespace Kratos {
 
-    class DEM_Dempack2D_dev : public DEM_Dempack_dev {
+    class KRATOS_API(DEM_APPLICATION) DEM_Dempack2D_dev : public DEM_Dempack_dev {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack2D_dev);

@@ -28,8 +28,10 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/buffer.h"
+#include "includes/ublas_interface.h"
+#include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
+//#include "containers/model.h"
 // #include "containers/variable.h"
 
 #define KRATOS_SERIALIZATION_DIRECT_LOAD(type)                           \
@@ -250,6 +252,49 @@ public:
     }
 
     template<class TDataType>
+    void load(std::string const & rTag, Kratos::unique_ptr<TDataType>& pValue)
+    {
+        PointerType pointer_type = SP_INVALID_POINTER;
+        void* p_pointer;
+        read(pointer_type);
+
+        if(pointer_type != SP_INVALID_POINTER)
+        {
+            read(p_pointer);
+            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+            if(i_pointer == mLoadedPointers.end())
+            {
+                if(pointer_type == SP_BASE_CLASS_POINTER)
+                {
+                    if(!pValue)
+                        pValue = Kratos::unique_ptr<TDataType>(new TDataType);
+                    load(rTag, *pValue);
+                }
+                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                {
+                    std::string object_name;
+                    read(object_name);
+                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+
+                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                        << "There is no object registered in Kratos with name : "
+                        << object_name << std::endl;
+
+                    if(!pValue)
+                        pValue = Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+
+                    load(rTag, *pValue);
+
+                }
+                mLoadedPointers[p_pointer]=&pValue;
+            }
+            else
+                pValue = *static_cast<Kratos::unique_ptr<TDataType>*>((i_pointer->second));
+        }
+    }
+
+
+    template<class TDataType>
     void load(std::string const & rTag, TDataType*& pValue)
     {
         PointerType pointer_type = SP_INVALID_POINTER;
@@ -294,6 +339,13 @@ public:
         }
     }
 
+    void load(std::string const & rTag, ModelPart*& pValue);
+
+    void load(std::string const & rTag, Kratos::unique_ptr<ModelPart>& pValue);
+
+    void load(std::string const & rTag, Kratos::shared_ptr<ModelPart>& pValue);
+
+
     template<class TDataType>
     void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
     {
@@ -311,22 +363,20 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, const Variable<TDataType>* pVariable)
+    void load(std::string const & rTag, const Variable<TDataType>* /*pVariable*/)
     {
         load_trace_point(rTag);
         std::string name;
         read(name);
-
-        pVariable = static_cast<const Variable<TDataType>*>(GetVariableData(name));
     }
 
-	template<class TDataType, std::size_t TDataSize>
-	void load(std::string const & rTag, std::array<TDataType, TDataSize>& rObject)
-	{
-		load_trace_point(rTag);
-		for (SizeType i = 0; i < TDataSize; i++)
-			load("E", rObject[i]);
-	}
+    template<class TDataType, std::size_t TDataSize>
+    void load(std::string const & rTag, std::array<TDataType, TDataSize>& rObject)
+    {
+        load_trace_point(rTag);
+        for (SizeType i = 0; i < TDataSize; i++)
+            load("E", rObject[i]);
+    }
 
     template<class TDataType>
     void load(std::string const & rTag, std::vector<TDataType>& rObject)
@@ -344,7 +394,7 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, boost::numeric::ublas::vector<TDataType>& rObject)
+    void load(std::string const & rTag, DenseVector<TDataType>& rObject)
     {
         load_trace_point(rTag);
         SizeType size;
@@ -371,6 +421,7 @@ public:
         load_map(rTag, rObject);
     }
 
+#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 
     template<class TDataType, std::size_t TDimension>
     void load(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
@@ -381,6 +432,7 @@ public:
             load("E", rObject[i]);
 //    read(rObject);
     }
+#endif // ifndef KRATOS_USE_AMATRIX
 
     template<class TFirstType, class TSecondType>
     void load(std::string const & rTag, std::pair<TFirstType, TSecondType>& rObject)
@@ -391,7 +443,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension>
-    void load(std::string const & rTag, bounded_vector<TDataType, TDimension>& rObject)
+    void load(std::string const & rTag, BoundedVector<TDataType, TDimension>& rObject)
     {
         load_trace_point(rTag);
 
@@ -401,7 +453,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
-    void load(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2>& rObject)
+    void load(std::string const & rTag, BoundedMatrix<TDataType, TDimension1, TDimension2>& rObject)
     {
         load_trace_point(rTag);
 
@@ -426,6 +478,7 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
+	KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<double>)
 
 	template<class TDataType, std::size_t TDataSize>
 	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
@@ -449,7 +502,7 @@ public:
     }
 
     template<class TDataType>
-    void save(std::string const & rTag, boost::numeric::ublas::vector<TDataType> const& rObject)
+    void save(std::string const & rTag, DenseVector<TDataType> const& rObject)
     {
         save_trace_point(rTag);
         SizeType size = rObject.size();
@@ -461,6 +514,8 @@ public:
 //    write(rObject);
     }
 
+#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+
     template<class TDataType, std::size_t TDimension>
     void save(std::string const & rTag, array_1d<TDataType, TDimension> const& rObject)
     {
@@ -471,6 +526,7 @@ public:
 //    write(rObject);
     }
 
+#endif // ifndef KRATOS_USE_AMATRIX
 
     template<class TKeyType, class TDataType>
     void save(std::string const & rTag, std::map<TKeyType, TDataType> const& rObject)
@@ -502,6 +558,12 @@ public:
 
     template<class TDataType>
     void save(std::string const & rTag, Kratos::shared_ptr<TDataType> pValue)
+    {
+        save(rTag, pValue.get());
+    }
+
+    template<class TDataType>
+    void save(std::string const & rTag, Kratos::unique_ptr<TDataType> pValue)
     {
         save(rTag, pValue.get());
     }
@@ -602,7 +664,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension>
-    void save(std::string const & rTag, bounded_vector<TDataType, TDimension> const& rObject)
+    void save(std::string const & rTag, BoundedVector<TDataType, TDimension> const& rObject)
     {
         save_trace_point(rTag);
 
@@ -612,7 +674,7 @@ public:
     }
 
     template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
-    void save(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2> const& rObject)
+    void save(std::string const & rTag, BoundedMatrix<TDataType, TDimension1, TDimension2> const& rObject)
     {
         save_trace_point(rTag);
 
@@ -637,6 +699,7 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::size_t)
 #endif
+	KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<double>)
 
 
     template<class TDataType>
@@ -655,7 +718,7 @@ public:
     }
 
     template<class TDataType>
-    void load_base(std::string const & rTag, boost::numeric::ublas::vector<TDataType>& rObject)
+    void load_base(std::string const & rTag, DenseVector<TDataType>& rObject)
     {
         load_trace_point(rTag);
         load(rTag, rObject);
@@ -676,7 +739,7 @@ public:
     }
 
     template<class TDataType>
-    void save_base(std::string const & rTag, boost::numeric::ublas::vector<TDataType> const& rObject)
+    void save_base(std::string const & rTag, DenseVector<TDataType> const& rObject)
     {
         save_trace_point(rTag);
         save(rTag, rObject);
@@ -1108,7 +1171,7 @@ private:
 //        }
 //
 //        template<class TDataType>
-//        void read(boost::numeric::ublas::vector<TDataType>& rData)
+//        void read(DenseVector<TDataType>& rData)
 //        {
 //            std::size_t size;
 //            *mpBuffer >> size;
@@ -1118,14 +1181,14 @@ private:
 //        }
 //
 //        template<class TDataType>
-//        void write(boost::numeric::ublas::vector<TDataType> const& rData)
+//        void write(DenseVector<TDataType> const& rData)
 //        {
 //            *mpBuffer << rData.size() << std::endl;
 //            write(rData.begin(), rData.end());
 //        }
 
     template<class TDataType>
-    void read(boost::numeric::ublas::matrix<TDataType>& rData)
+    void read(DenseMatrix<TDataType>& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
 
@@ -1137,7 +1200,12 @@ private:
 
         rData.resize(size1,size2);
 
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        read(rData.data(), rData.data() + rData.size(), sizeof(TDataType));
+#else
         read(rData.data().begin(), rData.data().end(), sizeof(TDataType));
+#endif // ifdef KRATOS_USE_AMATRIX
 
         KRATOS_SERIALIZER_MODE_ASCII
 
@@ -1151,13 +1219,17 @@ private:
 
         rData.resize(size1,size2);
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        read(rData.data(), rData.data() + rData.size(),0);
+#else
         read(rData.data().begin(), rData.data().end(),0);
+#endif // ifdef KRATOS_USE_AMATRIX
 
         KRATOS_SERIALIZER_MODE_END
     }
 
     template<class TDataType>
-    void write(boost::numeric::ublas::matrix<TDataType> const& rData)
+    void write(DenseMatrix<TDataType> const& rData)
     {
         KRATOS_SERIALIZER_MODE_BINARY
 
@@ -1170,14 +1242,22 @@ private:
         mpBuffer->write(data1,sizeof(SizeType));
         mpBuffer->write(data2,sizeof(SizeType));
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        write(rData.data(), rData.data() + rData.size(), sizeof(TDataType));
+#else
         write(rData.data().begin(), rData.data().end(), sizeof(TDataType));
+#endif // ifdef KRATOS_USE_AMATRIX
 
         KRATOS_SERIALIZER_MODE_ASCII
 
         *mpBuffer << rData.size1() << std::endl;
         *mpBuffer << rData.size2() << std::endl;
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        write(rData.data(), rData.data() + rData.size(),0);
+#else
         write(rData.data().begin(), rData.data().end(),0);
+#endif // ifdef KRATOS_USE_AMATRIX
 
         KRATOS_SERIALIZER_MODE_END
     }

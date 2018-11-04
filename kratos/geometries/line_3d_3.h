@@ -49,7 +49,15 @@ namespace Kratos
 ///@{
 
 /**
-*/
+ * @class Line3D3
+ * @ingroup KratosCore
+ * @brief An three node 3D line geometry with quadratic shape functions
+ * @details The node ordering corresponds with: 
+ *      0-----2----1 
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
+ */
 template<class TPointType>
 
 class Line3D3 : public Geometry<TPointType>
@@ -280,9 +288,9 @@ public:
     {
 	if(rResult.size() != 3)
            rResult.resize( 3, false );
-        rResult[0] = 0.25;
-        rResult[2] = 0.5;
-        rResult[1] = 0.25;
+        rResult[0] = 1.0/6.0;
+        rResult[2] = 2.0/3.0;
+        rResult[1] = 1.0/6.0;
         return rResult;
     }
 
@@ -352,18 +360,18 @@ public:
 
         const double length = lx * lx + ly * ly + lz * lz;
 
-        return sqrt( length );
+        return std::sqrt( length );
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon() 
@@ -509,7 +517,7 @@ public:
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        boost::numeric::ublas::vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 3 );
+        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 3 );
         ShapeFunctionsValuesInIntegrationPoint = row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ),
                                                 IntegrationPointIndex );
 
@@ -826,7 +834,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
     {
-        rResult.resize( 3, 1 );
+        rResult.resize( 3, 1, false);
         noalias( rResult ) = ZeroMatrix( 3, 1 );
 
         rResult( 0, 0 ) = rPoint[0] - 0.5;

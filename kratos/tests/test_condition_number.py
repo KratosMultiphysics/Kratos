@@ -4,14 +4,19 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestConditionNumber(KratosUnittest.TestCase):
-    
+
     def test_condition_number(self):
+        try:
+            import KratosMultiphysics.ExternalSolversApplication
+        except:
+            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+
         space = KratosMultiphysics.UblasSparseSpace()
-        
+
         # Read the matrices
         K = KratosMultiphysics.CompressedMatrix()
         KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("A.mm"),K)
@@ -52,12 +57,12 @@ class TestConditionNumber(KratosUnittest.TestCase):
         }
         """)
         eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)
-        
+
         # Solve
         condition_number_utility = KratosMultiphysics.ConditionNumberUtility()
         condition_number = condition_number_utility.GetConditionNumber(K, eigen_solver_max, eigen_solver_min)
 
         self.assertLessEqual(abs(condition_number-194.5739)/194.5739, 1e-3)
-  
+
 if __name__ == '__main__':
     KratosUnittest.main()

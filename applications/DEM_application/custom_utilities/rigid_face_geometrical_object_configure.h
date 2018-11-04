@@ -217,8 +217,8 @@ public:
       bool ContactExists = false;
 
       unsigned int FE_size = FE_Geom.size();
-      std::vector< array_1d<double,3> > Coord;
-      Coord.resize(FE_size, array_1d<double,3>(3,0.0) );
+      std::vector< array_1d<double,3> > Coord(FE_size);
+      //Coord.resize(FE_size); //, array_1d<double,3>(3,0.0) );
 
       for (unsigned int i = 0; i<FE_size; i++) {
         for (unsigned int j = 0; j<3; j++) {
@@ -254,7 +254,7 @@ public:
         SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObj_2);
         const double Radius = p_particle->GetSearchRadius();
 
-        int facet_size = FE_Geom.size();
+        int facet_size = FE_Geom.WorkingSpaceDimension();
 
         if (facet_size==2) {
            return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
@@ -265,11 +265,11 @@ public:
       }
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius)
-    { 
+    {
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 
-      int facet_size = FE_Geom.size();
+      int facet_size = FE_Geom.WorkingSpaceDimension();
 
       if (facet_size==2) {
          return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
@@ -282,7 +282,7 @@ public:
     //Copy of the Intersection function accessible with geometry
     static inline bool FastIntersection(const GeometryType& DE_Geom, const GeometryType& FE_Geom,  const double& Radius) { //rObj_1 is sphere, rObj_2 is FE
 
-      int facet_size = FE_Geom.size();
+      int facet_size = FE_Geom.WorkingSpaceDimension();
 
       if (facet_size==2) {
          return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
@@ -341,7 +341,7 @@ public:
            double New_projected_on_old = DEM_INNER_PRODUCT_3(LocalCoordSystem[2], Old_Normal_Vector);
            double New_projected_distance = New_projected_on_old * New_Dist;
            double Old_projected_distance = New_projected_on_old * Old_dist;
-           
+
            if (New_projected_distance - Old_dist > -1.0e-15 * std::abs(Old_dist)) {//old has hierarchy over new  //DO NOT SAVE NEW NEIGH
              return false;
            }
@@ -458,7 +458,7 @@ public:
 
        ///Particle-edge contact and Particle-point
        if ( (ContactExists == false) && (distance_point_to_plane < Radius ) ) {
-         
+
           bool local_contact_exists = false;
           for (unsigned int e = current_edge_index; e < FE_size; e++ ) {
             double eta = 0.5; // dummy initialize
@@ -482,7 +482,7 @@ public:
               else {continue;}
               double distance_point_to_vertex = 0.0;
               local_contact_exists = GeometryFunctions::VertexCheck(FE_Geom[vertex_to_check], DE_Geom[0].Coordinates(), Radius, local_coord_system, distance_point_to_vertex);
-              
+
               if(local_contact_exists) {
                 ContactType             = 3;
                 Weight[vertex_to_check] = 1.0; //the rest weights stay 0.0;

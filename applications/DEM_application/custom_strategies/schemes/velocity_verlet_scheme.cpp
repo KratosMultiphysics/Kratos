@@ -4,12 +4,12 @@
 namespace Kratos {
 
     void VelocityVerletScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) std::cout << "\nAssigning VelocityVerletScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) KRATOS_INFO("DEM") << "Assigning VelocityVerletScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
-    
+
     void VelocityVerletScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) std::cout << "\nAssigning VelocityVerletScheme to properties " << pProp->Id() << std::endl;
+//         if(verbose) KRATOS_INFO("DEM") << "Assigning VelocityVerletScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
@@ -41,7 +41,7 @@ namespace Kratos {
                     displ[k] += delta_displ[k];
                     coor[k] = initial_coor[k] + displ[k];
                 }
-            }  
+            }
         }
         else if(StepFlag == 2) //CORRECT
         {
@@ -67,7 +67,7 @@ namespace Kratos {
 
         array_1d<double, 3 > angular_acceleration;
         CalculateLocalAngularAcceleration(moment_of_inertia, torque, moment_reduction_factor, angular_acceleration);
- 
+
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
     }
 
@@ -87,19 +87,22 @@ namespace Kratos {
         array_1d<double, 3 >& local_angular_velocity = i.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY);
 
         array_1d<double, 3 > local_angular_acceleration, local_torque, angular_acceleration;
-        
+
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, torque, local_torque);
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-        CalculateLocalAngularAccelerationByEulerEquations(local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);                        
+        CalculateLocalAngularAccelerationByEulerEquations(local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);
         GeometryFunctions::QuaternionVectorLocal2Global(Orientation, local_angular_acceleration, angular_acceleration);
-                    
+
         UpdateRotationalVariables(StepFlag, i, rotated_angle, delta_rotation, angular_velocity, angular_acceleration, delta_t, Fix_Ang_vel);
 
-        double ang = DEM_INNER_PRODUCT_3(delta_rotation, delta_rotation);
-              
-        if (ang) {
-            GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
-        } //if ang
+        if (StepFlag == 1) //PREDICT
+        {
+            double ang = DEM_INNER_PRODUCT_3(delta_rotation, delta_rotation);
+
+            if (ang) {
+                GeometryFunctions::UpdateOrientation(Orientation, delta_rotation);
+            } //if ang
+        }
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
     }
 
@@ -112,7 +115,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_acceleration,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) {
-        
+
         if (StepFlag == 1) //PREDICT
         {
              for (int k = 0; k < 3; k++) {

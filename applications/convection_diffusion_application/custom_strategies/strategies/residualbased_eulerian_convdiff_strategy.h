@@ -1,11 +1,13 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2007-03-06 10:30:32 $
-*   Revision:            $Revision: 1.2 $
-*
-* ***********************************************************/
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Riccardo Rossi
+//
 
 #if !defined(KRATOS_RESIDUALBASED_EULERIAN_CONVECTION_DIFFUSION_STRATEGY )
 #define  KRATOS_RESIDUALBASED_EULERIAN_CONVECTION_DIFFUSION_STRATEGY
@@ -15,11 +17,10 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -134,12 +135,13 @@ public:
         bool ReformDofAtEachIteration = false,
         int dimension = 3
     )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
+        : 
+        mrModelPart(model_part),
+        SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
     {
         KRATOS_TRY
 
 		GenerateMeshPart(dimension);
-        KRATOS_WATCH(*mpConvectionModelPart);
 		mdimension = dimension;
         mOldDt = 0.00;
 
@@ -183,14 +185,18 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedEulerianConvectionDiffusionStrategy() {}
+    virtual ~ResidualBasedEulerianConvectionDiffusionStrategy() 
+    {
+        Model& current_model = mrModelPart.GetModel();
+        current_model.DeleteModelPart("ConvDiffPart");
+    }
 
     /** Destructor.
     */
 
     //*********************************************************************************
     //**********************************************************************
-    double Solve()
+    double Solve() override
     {
       KRATOS_TRY
 
@@ -209,17 +215,17 @@ public:
 
 
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         mstep1->SetEchoLevel(Level);
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mstep1->Clear();
     }
 
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
@@ -392,7 +398,13 @@ protected:
 
   virtual void GenerateMeshPart(int dimension)
   {
-    mpConvectionModelPart = ModelPart::Pointer( new ModelPart("ConvectionPart",1) );
+    Model& current_model = mrModelPart.GetModel();
+    if(current_model.HasModelPart("ConvDiffPart"))
+        current_model.DeleteModelPart("ConvDiffPart");
+        
+    // Generate
+    mpConvectionModelPart = &(current_model.CreateModelPart("ConvDiffPart"));
+
 
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
@@ -482,7 +494,8 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpConvectionModelPart;
+    ModelPart& mrModelPart;
+    ModelPart* mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
     int mdimension;

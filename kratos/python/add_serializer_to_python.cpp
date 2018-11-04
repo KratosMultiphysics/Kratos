@@ -13,32 +13,21 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/serializer.h"
 #include "python/add_serializer_to_python.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
+#include "containers/model.h"
 
 namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
-
-template< class TObjectType >
-void BufferPushBack(Buffer& rBuffer, TObjectType& rObject)
-{
-    return rBuffer.push_back(rObject);
-}
-
-template< class TObjectType >
-void BufferPopFront(Buffer& rBuffer, TObjectType& rObject)
-{
-    return rBuffer.pop_front(rObject);
-}
+namespace py = pybind11;
 
 template< class TObjectType >
 void SerializerSave(Serializer& rSerializer, std::string const & rName, TObjectType& rObject)
@@ -58,31 +47,23 @@ void SerializerPrint(Serializer& rSerializer)
     std::cout << ((std::stringstream*)(rSerializer.pGetBuffer()))->str();
 }
 
-void  AddSerializerToPython()
+void  AddSerializerToPython(pybind11::module& m)
 {
-    class_<Buffer, Buffer::Pointer >("Buffer")
-    .def(init<>())
-    .def(init<Buffer::SizeType>())
-    .def("Size",&Buffer::size)
-    .def("Swap",&Buffer::swap)
-    .def("Clear",&Buffer::clear)
-//                  .def("Resize"&Buffer::resize)
-    .def(self_ns::str(self))
-    ;
-
-    class_<Serializer, Serializer::Pointer, boost::noncopyable >("Serializer")
-    .def(init<>())
-    .def(init<std::string const&>())
-    .def(init<Serializer::TraceType>())
-    .def(init<std::string const&, Serializer::TraceType>())
+    py::class_<Serializer, Serializer::Pointer >(m,"Serializer")
+    .def(py::init<>())
+    .def(py::init<std::string const&>())
+    .def(py::init<Serializer::TraceType>())
+    .def(py::init<std::string const&, Serializer::TraceType>())
     .def("Load",SerializerLoad<ModelPart>)
     .def("Save",SerializerSave<ModelPart>)
+    .def("Load",SerializerLoad<Parameters>)
+    .def("Save",SerializerSave<Parameters>)
+    .def("Load",SerializerLoad<Model>)
+    .def("Save",SerializerSave<Model>)
     .def("Print", SerializerPrint)
-    //.def("",&Kernel::Initialize)
-//	      .def(self_ns::str(self))
     ;
 
-    enum_<Serializer::TraceType>("SerializerTraceType")
+    py::enum_<Serializer::TraceType>(m,"SerializerTraceType")
     .value("SERIALIZER_NO_TRACE", Serializer::SERIALIZER_NO_TRACE)
     .value("SERIALIZER_TRACE_ERROR", Serializer::SERIALIZER_TRACE_ERROR)
     .value("SERIALIZER_TRACE_ALL", Serializer::SERIALIZER_TRACE_ALL)

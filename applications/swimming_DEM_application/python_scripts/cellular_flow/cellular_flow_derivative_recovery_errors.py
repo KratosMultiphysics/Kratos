@@ -2,144 +2,300 @@ import math
 import matplotlib.pyplot as plt
 import h5py
 
-regular_mesh = False
-show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
-mat_deriv_recovery_types = [1, 3, 4, 5, 6, 7]
-laplacian_recovery_types = [1, 4, 3, 6]
+do_print_max_error = True
+mat_deriv_recovery_types = [1, 3, 4, 6, 7]
+laplacian_recovery_types = [1, 3, 4, 6, 7]
+field_identifiers = ['ethier', 'sines']
+mesh_regularities = [True, False]
+mesh_tags = ['Altair', 'Kratos']
 
-marker_size = 10
-line_width = 1
+meshes = []
+recovery_cases = []
+fields = []
 
-def CalculateLastSlopes(sizes, results):
-    Delta_result = math.log(results[-1]/results[-2])
-    Delta_size   = math.log(sizes[-1]/sizes[-2])
-    slope = abs(Delta_result/Delta_size)
-    return slope
+class Field:
+    def __init__(self, identifier):
+        self.identifier = identifier
+        if identifier == 'ethier':
+            self.characteristic_length = 4
+        else:
+            self.characteristic_length = 2
 
-def FillVectors(recovery_type, sizes, average_errors, max_errors, laplacian_or_mat_deriv):
-    del sizes[:]
-    del average_errors[:]
-    del max_errors[:]
-    if laplacian_or_mat_deriv == 'M':
-        recovery_tag = 'material derivative/method = ' + str(recovery_type)
+class Mesh:
+    def __init__(self, is_regular, tag):
+        self.is_regular = is_regular
+        self.tag = tag
+
+class RecoveryCase:
+    def __init__(self, m_or_l, method):
+        self.m_or_l = m_or_l
+        self.method = method
+
+for identifier in field_identifiers:
+    fields.append(Field(identifier))
+
+for is_regular in mesh_regularities:
+    if is_regular:
+        for tag in mesh_tags:
+            meshes.append(Mesh(is_regular, tag))
     else:
-        recovery_tag = 'laplacian/method = ' + str(recovery_type)
-    if regular_mesh:
-        mesh_tag = 'regular mesh'
-    else:
-        mesh_tag = 'irregular mesh'
-    recovery_tag += '/' + mesh_tag
+        meshes.append(Mesh(is_regular,''))
 
-    with h5py.File('errors_recorded/recovery_errors.hdf5', 'r') as f:
-        for i, size_dset in enumerate(f[recovery_tag].values()):
-            size = float(size_dset.name.split()[-1])
-            if regular_mesh:
-                size = 1. / size
-            sizes.append(size)
-            average_errors.append(size_dset[0])
-            max_errors.append(size_dset[1])
+for method in mat_deriv_recovery_types:
+    recovery_cases.append(RecoveryCase('M', method))
 
-min_error = float("inf")
-max_error = - float("inf")
-average_errors = []
-max_errors = []
-sizes = []
-fig = plt.figure(figsize = (12,10))
-ax = fig.add_subplot(1,1,1)
+for method in laplacian_recovery_types:
+    recovery_cases.append(RecoveryCase('L', method))
 
-if show_math_deriv_or_laplacian == 'M':
-    marker_type = 'v'
-    for method in mat_deriv_recovery_types:
-        FillVectors(method, sizes, average_errors, max_errors, 'M')
+def GetCurveCharacteristics(mat_deriv_or_laplacian, method):
+    if mat_deriv_or_laplacian == 'M':
         if method == 1:
-            mat_deriv_type = 'standard'
+            type_name = 'standard'
             color = 'r'
         elif method == 2:
-            mat_deriv_type = 'Zhang and Naga 2005'
+            type_name = 'Zhang and Naga'
             color = 'k'
         elif method == 3:
-            mat_deriv_type = 'L2-lumped'
+            type_name = 'L2-lumped'
             color = 'b'
         elif method == 4:
-            mat_deriv_type = 'L2'
+            type_name = 'L2'
             color = 'g'
         elif method == 5:
-            mat_deriv_type = 'L2 only gradient'
+            type_name = 'L2 only gradient'
             color = 'c'
         elif method == 6:
-            mat_deriv_type = 'Pouliot et al. 2012'
+            type_name = 'Pouliot et al.'
             color = 'brown'
         elif method == 7:
-            mat_deriv_type = 'Zhang and Naga 2005'
+            type_name = 'Zhang and Naga'
             color = 'm'
-        try:
-            mat_deriv_final_slope = CalculateLastSlopes(sizes, average_errors)
-            mat_deriv_slope_msg = ' (m = ' + str(round(mat_deriv_final_slope, 2)) + ')'
-        except:
-            mat_deriv_slope_msg = ''
-
-        expected_order = 2
-        min_error = min(min_error, average_errors[-1])
-        max_error = max(max_error, average_errors[0])
-        plt.plot(sizes, average_errors, marker = marker_type, ms = marker_size, color=color, label= mat_deriv_type + mat_deriv_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
-        #plt.plot(sizes, mat_deriv_max_errors,'-*', color=color, label= mat_deriv_type + ' material derivative (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
-
-elif show_math_deriv_or_laplacian == 'L':
-    marker_type = '^'
-    for method in laplacian_recovery_types:
-        FillVectors(method, sizes, average_errors, max_errors, 'L')
+    elif mat_deriv_or_laplacian == 'L':
         if method == 1:
-            laplacian_type = 'standard'
+            type_name = 'standard'
             color = 'r'
         elif method == 2:
-            laplacian_type = 'Zhang and Naga 2005'
-            color = 'k'
+            type_name = 'Zhang and Naga'
+            color = 'm'
         elif method == 3:
-            laplacian_type = 'L2 divergence of gradient from L2-lumped'
+            type_name = 'L2-lumped' # L2-div. of gradient from L2-lumped
             color = 'b'
         elif method == 4:
-            laplacian_type = 'L2 divergence of gradient from L2'
+            type_name = 'L2' # L2-div. of gradient from L2
             color = 'g'
         elif method == 6:
-            laplacian_type = 'L2 divergence of gradient from Pouliot et al. 2012'
-            color = 'c'
+            type_name = 'L2 + Pouliot et al.' # L2-div. of gradient from L2
+            color = 'brown'
         elif method == 7:
-            laplacian_type = 'Guo et al. 2016'
+            type_name = 'Guo et al.'
             color = 'm'
-        try:
-            laplacian_final_slope = CalculateLastSlopes(sizes, average_errors)
-            laplacian_slope_msg = ' (m = ' + str(round(laplacian_final_slope, 2)) + ')'
-        except:
-            laplacian_slope_msg = ''
+    return color, type_name
 
-        expected_order = 1
-        min_error = min(min_error, average_errors[-1])
-        max_error = max(max_error, average_errors[0])
-        ax.plot(sizes, average_errors, marker = marker_type, color=color, label= laplacian_type + laplacian_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
-    #plt.plot(sizes, laplacian_max_errors,'-^', color=color, label= laplacian_type + ' laplacian (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
+class Plotter:
+    def __init__(self):
+        self.marker_size = 10
+        self.line_width = 1
+        self.curves = []
+        self.figures = []
 
-plt.semilogx()
-plt.semilogy()
-plt.axis('equal')
-plt.xlim([10 ** -4, 1])
+    @staticmethod
+    def PlotSlope(figure):
+            plt.semilogx()
+            plt.semilogy()
+            x_min, x_max = figure.GetMinMax('sizes')
+            error_avg_min, error_avg_max = figure.GetMinMax('average_errors')
+            error_max_min, error_max_max = figure.GetMinMax('max_errors')
+            error_min = min(error_avg_min, error_max_min), max(error_avg_max, error_max_max)[0]
+            plt.xlim([0.5 * x_min, 2 * x_max])
+            sizes = [x_min * 2 ** i for i in range(3)]
+            expected_order = figure.GetExpectedOrder()
+            slope = [0.5 * error_min * (size / sizes[0]) ** expected_order for size in sizes]
 
-min_error /= 2
-if regular_mesh:
-    slope = [min_error * (size / sizes[-1]) ** expected_order for size in sizes]
-    plot_name = 'derivative_recovery_errors_regular.pdf'
-else:
-    slope = [min_error * (size / sizes[-1]) ** expected_order for size in sizes]
-    plot_name = 'derivative_recovery_errors_irregular.pdf'
+            plt.plot(sizes, slope, color='k', linestyle='dashed', label='slope = ' + str(expected_order))
 
-ax.plot(sizes, slope, linestyle='dashed',  label='slope = ' + str(expected_order))
-plt.ylim((min(slope) / 10, max_error * 10))
-plt.xlabel('$h$', fontsize = 20)
+    def ReadCurveData(self, curve):
+        if curve.m_or_l == 'M':
+            recovery_tag = 'material derivative/method = ' + str(curve.method)
+        else:
+            recovery_tag = 'laplacian/method = ' + str(curve.method)
+        if curve.is_regular_mesh:
+            mesh_identifier = 'regular mesh (' + curve.mesh_tag + ')'
+        else:
+            mesh_identifier = 'irregular mesh'
 
-if show_math_deriv_or_laplacian == 'M':
-    plt.ylabel('$E_1$', fontsize = 20)
-else:
-    plt.ylabel('$E_2$', fontsize = 20)
+        data_path = curve.field_id + '/' + recovery_tag + '/' + mesh_identifier
 
-plt.legend(loc = 'upper left')
-plt.savefig(plot_name, format='eps', bbox_inches = 'tight')
-plt.show()
+        with h5py.File('errors_recorded/recovery_errors.hdf5', 'r') as f:
+            for dset in f[data_path].values():
+                size = float(dset.attrs['mesh size'])
+                curve.sizes.append(size / curve.field_length_scale)
+                curve.average_errors.append(dset[0])
+                curve.max_errors.append(dset[1])
+
+        self.curves.append(curve)
+
+    def MakePlots(self):
+        self.ClassifyCurvesIntoDifferentFigures()
+
+        for figure in self.figures:
+            figure.fig = plt.figure(figure.number, figsize=(12,10))
+
+            for curve in figure.curves:
+                figure.CalculateSlopes()
+                color, derivative_type = GetCurveCharacteristics(curve.m_or_l, curve.method)
+                curve.sizes, curve.average_errors, curve.max_errors = \
+                zip(*sorted(zip(curve.sizes, curve.average_errors, curve.max_errors)))
+                plt.plot(curve.sizes,
+                         curve.average_errors,
+                         marker=curve.average_marker_type,
+                         ms=self.marker_size,
+                         color=color,
+                         label=derivative_type + curve.slope_msg,
+                         linewidth=self.line_width,
+                         linestyle='solid',
+                         markersize=20)
+
+                if do_print_max_error:
+                    color, derivative_type = GetCurveCharacteristics(curve.m_or_l, curve.method)
+                    plt.plot(curve.sizes,
+                             curve.max_errors,
+                             marker=curve.average_marker_type,
+                             markeredgecolor=color,
+                             markerfacecolor='None',
+                             ms=self.marker_size,
+                             color=color,
+                             label= '” ' + curve.max_slope_msg,
+                             linewidth=self.line_width,
+                             linestyle='solid',
+                             markersize=20)
+
+            Plotter.PlotSlope(figure)
+            plt.xlabel('$h$', fontsize=30)
+            plt.ylabel('$E_2$', fontsize=30)
+            plt.xticks(fontsize=20)
+            plt.yticks(fontsize=20)
+            legend = plt.legend(loc='lower right', prop={'size': 15})
+            for handle in legend.legendHandles:
+                handle._legmarker.set_markersize(6)
+
+            plt.savefig(figure.title, format='pdf', bbox_inches='tight')
+
+    def ClassifyCurvesIntoDifferentFigures(self):
+        figure_correspondences = dict()
+        i_new_figure = 0
+        for curve in self.curves:
+            combination = [curve.field_id, curve.m_or_l, curve.mesh_tag]
+            if str(combination) not in figure_correspondences.keys():
+                new_figure = Figure(combination)
+                new_figure.Add(curve)
+                self.figures.append(new_figure)
+                figure_correspondences[str(combination)] = i_new_figure
+                i_new_figure += 1
+            else:
+                i_figure = figure_correspondences[str(combination)]
+                self.figures[i_figure].Add(curve)
+
+class Figure:
+    total_number_of_figures = 0
+
+    @classmethod
+    def CalculateLastSlopes(self, sizes, results):
+        delta_result = math.log(results[-1] / results[-2])
+        delta_size   = math.log(sizes[-1] / sizes[-2])
+        slope = abs(delta_result/delta_size)
+        return slope
+
+    def __init__(self, combination):
+        Figure.total_number_of_figures += 1
+        self.combination = combination
+        self.number = Figure.total_number_of_figures
+        self.curves = []
+        self.SetTitle()
+        self.SetOrder()
+
+    def Add(self, curve):
+        self.curves.append(curve)
+
+    def SetTitle(self):
+        field_id, m_or_l, mesh_tag = self.combination
+
+        if m_or_l == 'M':
+            self.title = 'M_'
+        else:
+            self.title = 'L_'
+
+        self.title += field_id
+
+        if mesh_tag == '':
+            self.title += '_irregular'
+        else:
+            self.title += '_regular_' + mesh_tag
+
+        self.title += '.pdf'
+
+    def SetOrder(self):
+        m_or_l = self.combination[1]
+        if m_or_l == 'M':
+            self.expected_order = 2
+        else:
+            self.expected_order = 1
+
+    def GetExpectedOrder(self):
+        return self.expected_order
+
+    def GetMinMax(self, what='sizes'):
+        minimum = min(curve.GetMinMax(what)[0] for curve in self.curves)
+        maximum = max(curve.GetMinMax(what)[1] for curve in self.curves)
+        return minimum, maximum
+
+    def CalculateSlopes(self):
+        for curve in self.curves:
+            try:
+                curve.slope = Figure.CalculateLastSlopes(curve.sizes, curve.average_errors)
+                curve.slope_msg = ' (' + str(round(curve.slope, 2)) + ')'
+            except:
+                curve.slope_msg = ''
+            if do_print_max_error:
+                try:
+                    curve.max_slope = Figure.CalculateLastSlopes(curve.sizes, curve.max_errors)
+                    curve.max_slope_msg = ' (' + str(round(curve.max_slope, 2)) + ')'
+                except:
+                    curve.max_slope_msg = ''
+
+class Curve:
+    def __init__(self, field, mesh, case):
+        self.field_id = field.identifier
+        self.field_length_scale = field.characteristic_length
+        self.mesh_tag = mesh.tag
+        self.is_regular_mesh = mesh.is_regular
+        self.m_or_l = case.m_or_l
+        self.method = case.method
+
+        if self.m_or_l == 'M':
+            self.average_marker_type = 'v'
+            self.expected_order = 2
+        else:
+            self.average_marker_type = '^'
+            self.expected_order = 1
+
+        self.sizes = []
+        self.average_errors = []
+        self.max_errors = []
+        self.values = dict()
+        self.values['sizes'] = self.sizes
+        self.values['average_errors'] = self.average_errors
+        self.values['max_errors'] = self.max_errors
+
+    def GetMinMax(self, what='sizes'):
+        values = self.values[what]
+        return min(values), max(values)
+
+plotter = Plotter()
+
+for field in fields:
+    for mesh in meshes:
+        for case in recovery_cases:
+            curve = Curve(field, mesh, case)
+            plotter.ReadCurveData(curve)
+
+plotter.MakePlots()

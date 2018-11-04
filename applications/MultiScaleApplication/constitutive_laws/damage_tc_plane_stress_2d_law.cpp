@@ -138,12 +138,12 @@ namespace Kratos
 		double a11 = C(2, 2);
 		double a12 = a2*a2;
 		double a13 = a1*a1;
-		double detQ = 
-				(a1*a4*a8*cosA + a2*a3*a8*cosA - a1*a3*a10*cosA + 
-				a1*a6*a7*cosA + a2*a5*a7*cosA - a2*a4*a9*cosA - 
-				a1*a5*a10*cosA - a2*a6*a9*cosA)*sinA + 
-				a9*a11*a12 - a4*a6*a13 - a3*a5*a12 + a10*a11*a13 + 
-				a1*a2*a3*a4 + a1*a2*a5*a6 - a1*a2*a7*a8 - 
+		double detQ =
+				(a1*a4*a8*cosA + a2*a3*a8*cosA - a1*a3*a10*cosA +
+				a1*a6*a7*cosA + a2*a5*a7*cosA - a2*a4*a9*cosA -
+				a1*a5*a10*cosA - a2*a6*a9*cosA)*sinA +
+				a9*a11*a12 - a4*a6*a13 - a3*a5*a12 + a10*a11*a13 +
+				a1*a2*a3*a4 + a1*a2*a5*a6 - a1*a2*a7*a8 -
 				a1*a2*a7*a11 - a1*a2*a8*a11 + a1*a2*a9*a10;
 		return detQ;
 	}
@@ -209,7 +209,7 @@ namespace Kratos
 	}
 
 	inline void bz_int(double x0,double x1,double x2,
-		               double y0,double y1,double y2, 
+		               double y0,double y1,double y2,
 					   double Sx,double Sy,
 					   double& xb, double& yb)
 	{
@@ -344,7 +344,7 @@ namespace Kratos
 		double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
 		double G1      = sp*ep/2.0;
 		double stretch = (Gc-G1)/(G_bar-G1)-1.0;
-		if(stretch <= -1.0) 
+		if(stretch <= -1.0)
 		{
 			std::stringstream ss;
 			ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
@@ -591,7 +591,7 @@ namespace Kratos
 	  }
 	  V(n-1,n-1) = 1.0;
 	  e(0) = 0.0;
-	} 
+	}
 
 	// Symmetric tridiagonal QL algorithm.
 	template<class TMatrix, class TVector>
@@ -690,7 +690,7 @@ namespace Kratos
 		d(l) = d(l) + f;
 		e(l) = 0.0;
 	  }
-  
+
 	  // Sort eigenvalues and corresponding vectors.
 
 	  for (int i = 0; i < n-1; i++) {
@@ -729,7 +729,7 @@ namespace Kratos
 
 
 
-	DamageTCPlaneStress2DLaw::DamageTCPlaneStress2DLaw() 
+	DamageTCPlaneStress2DLaw::DamageTCPlaneStress2DLaw()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_rt(0.0)
@@ -800,7 +800,7 @@ namespace Kratos
 			return true;
 		if(rThisVariable == DISCONTINUITY_DIRECTION)
 			return true;
-		return false;	
+		return false;
 	}
 
 	bool DamageTCPlaneStress2DLaw::Has(const Variable<Matrix>& rThisVariable)
@@ -819,7 +819,7 @@ namespace Kratos
 	}
 
 	double& DamageTCPlaneStress2DLaw::GetValue(
-		const Variable<double>& rThisVariable, 
+		const Variable<double>& rThisVariable,
 		double& rValue)
 	{
 		rValue = 0.0;
@@ -841,7 +841,7 @@ namespace Kratos
 	}
 
 	Vector& DamageTCPlaneStress2DLaw::GetValue(
-		const Variable<Vector>& rThisVariable, 
+		const Variable<Vector>& rThisVariable,
 		Vector& rValue)
 	{
 		if(rThisVariable == INITIAL_STRAIN) {
@@ -861,21 +861,21 @@ namespace Kratos
 	}
 
 	Matrix& DamageTCPlaneStress2DLaw::GetValue(
-		const Variable<Matrix>& rThisVariable, 
+		const Variable<Matrix>& rThisVariable,
 		Matrix& rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 3 > & DamageTCPlaneStress2DLaw::GetValue(
-		const Variable<array_1d<double, 3 > >& rVariable, 
+		const Variable<array_1d<double, 3 > >& rVariable,
 		array_1d<double, 3 > & rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 6 > & DamageTCPlaneStress2DLaw::GetValue(
-		const Variable<array_1d<double, 6 > >& rVariable, 
+		const Variable<array_1d<double, 6 > >& rVariable,
 		array_1d<double, 6 > & rValue)
 	{
 		return rValue;
@@ -911,7 +911,7 @@ namespace Kratos
 
 	void DamageTCPlaneStress2DLaw::SetValue(
 		const Variable<Vector >& rVariable,
-		const Vector& rValue, 
+		const Vector& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rVariable == INITIAL_STRAIN) {
@@ -922,7 +922,7 @@ namespace Kratos
 
 	void DamageTCPlaneStress2DLaw::SetValue(
 		const Variable<Matrix >& rVariable,
-		const Matrix& rValue, 
+		const Matrix& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
@@ -1267,7 +1267,7 @@ namespace Kratos
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_C) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_C", "");
-		
+
 		if( !rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
 
@@ -1307,7 +1307,7 @@ namespace Kratos
 		this->CalculateMaterialResponseCauchy(parameters);
 	}
 
-	void DamageTCPlaneStress2DLaw::InitializeCalculationData(const Properties& props, 
+	void DamageTCPlaneStress2DLaw::InitializeCalculationData(const Properties& props,
 															 const GeometryType& geom,
 															 const Vector& N,
 															 const ProcessInfo& pinfo,
@@ -1367,7 +1367,7 @@ namespace Kratos
 		// tensile model:
 		/*
 		0 = lubliner (default)
-		1 = rankine 
+		1 = rankine
 		2 = generalized rankine
 		*/
 		data.tensile_damage_model = props.Has(DAMAGE_TENSILE_MODEL) ? props[DAMAGE_TENSILE_MODEL] : 0;
@@ -1663,17 +1663,17 @@ namespace Kratos
 			double r0  = ft;
 			double lt  = 2.0*E*G/ft/ft;
 
-			if(lch >= lt) 
+			if(lch >= lt)
 			{
 				std::stringstream ss;
-				ss << "FRACTURE_ENERGY_T is to low:  2*E*Gt/(ft*ft) = " << lt 
+				ss << "FRACTURE_ENERGY_T is to low:  2*E*Gt/(ft*ft) = " << lt
 					<< ",   Characteristic Length = " << lch << std::endl;
 				std::cout << ss.str();
 				exit(-1);
 			}
 
 			double Hs  = lch/(lt-lch);
-			double A   = 2.0*Hs; 
+			double A   = 2.0*Hs;
 			dt         = 1.0-r0/rt*std::exp(A*(1.0-rt/r0));
 			double rmin=1.0e-2*ft;
 			if((1.0-dt)*rt<rmin)
@@ -1762,7 +1762,7 @@ namespace Kratos
 			double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
 			double G1      = sp*ep/2.0;
 			double stretch = (Gc-G1)/(G_bar-G1)-1.0;
-			if(stretch <= -1.0) 
+			if(stretch <= -1.0)
 			{
 				std::stringstream ss;
 				ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
@@ -1813,7 +1813,7 @@ namespace Kratos
 		m_rc = m_rc_converged;
 
 		noalias(data.S) = prod(data.C0, strain_vector - m_initial_strain);
-			
+
 		if(std::abs(data.S(0)) < DAM_TC_PREC) data.S(0) = 0.0;
 		if(std::abs(data.S(1)) < DAM_TC_PREC) data.S(1) = 0.0;
 		if(std::abs(data.S(2)) < DAM_TC_PREC) data.S(2) = 0.0;

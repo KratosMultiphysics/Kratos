@@ -15,13 +15,12 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/ublas_interface.h"
 #include "includes/table.h"
+#include "add_table_to_python.h"
 
 
 namespace Kratos
@@ -30,7 +29,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+namespace py = pybind11;
 
 typedef Table<double,double> DoubleTableType;
 
@@ -40,16 +39,18 @@ double TableGetNearestValue(DoubleTableType& ThisTable, double X)
 }
 
 
-void  AddTableToPython()
+void  AddTableToPython(pybind11::module& m)
 {
-    class_<DoubleTableType, DoubleTableType::Pointer>("PiecewiseLinearTable")
-    .def(init<Matrix const&>())
-//    .def(init<Variable<double> const&, Variable<double> const&>())
+    namespace py = pybind11;
+
+    py::class_<DoubleTableType, DoubleTableType::Pointer>(m,"PiecewiseLinearTable")
+    .def(py::init<>())
+    .def(py::init<Matrix const&>())
     .def("GetValue", &DoubleTableType::GetValue)
     .def("GetDerivative",&DoubleTableType::GetDerivative)
     .def("GetNearestValue", TableGetNearestValue)
     .def("AddRow", &DoubleTableType::PushBack)
-    .def(self_ns::str(self))
+    .def("__str__", PrintObject<DoubleTableType>)
     ;
 }
 

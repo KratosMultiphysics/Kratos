@@ -22,6 +22,7 @@
 // External includes
 
 // Project includes
+#include "geometries/plane_3d.h"
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
@@ -48,11 +49,25 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Triangle3D3
+ * @ingroup KratosCore
+ * @brief A three node 3D triangle geometry with linear shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *      v                                                              
+ *      ^                                                               
+ *      |                                                              
+ *      2                                   
+ *      |`\                   
+ *      |  `\                   
+ *      |    `\                 
+ *      |      `\                
+ *      |        `\                 
+ *      0----------1 --> u  
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Triangle3D3
     : public Geometry<TPointType>
 {
@@ -827,9 +842,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     bool IsInside(
@@ -838,7 +853,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
-        PointLocalCoordinates( rResult, rPoint );
+        PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
         if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
         {
@@ -856,82 +871,16 @@ public:
 
     /**
      * Returns the local coordinates of a given arbitrary point
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const override
     {
-        boost::numeric::ublas::bounded_matrix<double,3,3> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
-            X(0,i ) = this->GetPoint( i ).X();
-            X(1,i ) = this->GetPoint( i ).Y();
-            X(2,i ) = this->GetPoint( i ).Z();
-        }
-
-        double tol = 1.0e-8;
-        int maxiter = 1000;
-
-        Matrix J = ZeroMatrix( 2, 2 );
-        Matrix invJ = ZeroMatrix( 2, 2 );
-
-        //starting with xi = 0
-        rResult = ZeroVector( 3 );
-        Vector DeltaXi = ZeroVector( 2 );
-        array_1d<double,3> CurrentGlobalCoords;
-
-
-        //Newton iteration:
-        for ( int k = 0; k < maxiter; k++ )
-        {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
-            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
-
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-
-
-            //derivatives of shape functions
-            Matrix shape_functions_gradients;
-            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
-            noalias(DN) = prod(X,shape_functions_gradients);
-
-            noalias(J) = prod(trans(DN),DN);
-            Vector res = prod(trans(DN),CurrentGlobalCoords);
-
-            //deteminant of Jacobian
-            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
-
-            //filling matrix
-            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
-            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
-            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
-            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
-
-
-            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
-            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
-
-            rResult[0] += DeltaXi[0];
-            rResult[1] += DeltaXi[1];
-            rResult[2] = 0.0;
-
-            if ( k>0 && norm_2( DeltaXi ) > 30 )
-            {
-                KRATOS_ERROR << "Computation of local coordinates failed at iteration " << k << std::endl;
-            }
-
-            if ( norm_2( DeltaXi ) < tol )
-            {
-                break;
-            }
-        }
-
-        return( rResult );
+        return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
 
     ///@}
@@ -1276,7 +1225,7 @@ public:
 
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 3 )
             NumberNodesInFaces.resize(3,false);
@@ -1287,20 +1236,22 @@ public:
 
     }
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(3,3,false);
 
-        NodesInFaces(0,0)=0;//face or other node
+        //face 1
+        NodesInFaces(0,0)=0;//contrary node to the face
         NodesInFaces(1,0)=1;
         NodesInFaces(2,0)=2;
-
-        NodesInFaces(0,1)=1;//face or other node
+        //face 2
+        NodesInFaces(0,1)=1;//contrary node to the face
         NodesInFaces(1,1)=2;
         NodesInFaces(2,1)=0;
-
-        NodesInFaces(0,2)=2;//face or other node
+        //face 3
+        NodesInFaces(0,2)=2;//contrary node to the face
         NodesInFaces(1,2)=0;
         NodesInFaces(2,2)=1;
 
@@ -1325,9 +1276,6 @@ public:
     ///@name Shape Function
     ///@{
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -1381,9 +1329,6 @@ public:
         return rResult;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the Gradients of the shape functions.
      * Calculates the gradients of the shape functions with regard to
@@ -1637,7 +1582,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1714,8 +1659,84 @@ private:
     ///@{
 
     /**
-     * TODO: implemented but not yet tested
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
+     * @return The vector containing the local coordinates of the point
      */
+    CoordinatesArrayType& PointLocalCoordinatesImplementation(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint,
+        const bool IsInside = false
+        ) const
+    {
+        BoundedMatrix<double, 3, 3> X;
+        BoundedMatrix<double, 3, 2> DN;
+        for(unsigned int i=0; i<this->size();i++)
+        {
+            X(0,i ) = this->GetPoint( i ).X();
+            X(1,i ) = this->GetPoint( i ).Y();
+            X(2,i ) = this->GetPoint( i ).Z();
+        }
+
+        static constexpr double MaxNormPointLocalCoordinates = 30.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
+
+        BoundedMatrix<double, 2, 2> J = ZeroMatrix( 2, 2 );
+        BoundedMatrix<double, 2, 2> invJ = ZeroMatrix( 2, 2 );
+
+        //starting with xi = 0
+        noalias(rResult) = ZeroVector( 3 );
+        Vector delta_xi = ZeroVector( 2 );
+        array_1d<double,3> current_global_coords;
+
+        //Newton iteration:
+        for ( std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ )
+        {
+            noalias(current_global_coords) = ZeroVector( 3 );
+            this->GlobalCoordinates( current_global_coords, rResult );
+
+            noalias( current_global_coords ) = rPoint - current_global_coords;
+
+            //derivatives of shape functions
+            Matrix shape_functions_gradients;
+            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
+            noalias(DN) = prod(X,shape_functions_gradients);
+
+            noalias(J) = prod(trans(DN),DN);
+            Vector res = prod(trans(DN),current_global_coords);
+
+            //deteminant of Jacobian
+            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
+
+            //filling matrix
+            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
+            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
+            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
+            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
+
+            delta_xi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
+            delta_xi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
+
+            rResult[0] += delta_xi[0];
+            rResult[1] += delta_xi[1];
+            rResult[2] = 0.0;
+
+            if ( k>0 && norm_2( delta_xi ) > MaxNormPointLocalCoordinates ) {
+                KRATOS_WARNING_IF("Triangle3D3", IsInside == false) << "detJ =\t" << det_j << " DeltaX =\t" << delta_xi << " stopping calculation. Iteration:\t" << k << std::endl;
+                break;
+            }
+
+            if ( norm_2( delta_xi ) < MaxTolerancePointLocalCoordinates ) {
+                break;
+            }
+        }
+
+        return( rResult );
+    }
+
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1750,9 +1771,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the local gradients of all shape functions
      * in all integration points.
@@ -2159,7 +2177,7 @@ private:
         noalias(edge2) = vert0 - vert2;
 
         // Bullet 3:
-        // test the 12 tests first (this was faster)
+        // test the 9 tests first (this was faster)
         abs_ex = std::abs(edge0[0]);
         abs_ey = std::abs(edge0[1]);
         abs_ez = std::abs(edge0[2]);
@@ -2192,11 +2210,11 @@ private:
         if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
 
         // test in Y-direction
-        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+        min_max = std::minmax({vert0[1], vert1[1], vert2[1]});
         if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
 
         // test in Z-direction
-        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+        min_max = std::minmax({vert0[2], vert1[2], vert2[2]});
         if(min_max.first>rBoxHalfSize[2] || min_max.second<-rBoxHalfSize[2]) return false;
 
         // Bullet 2:
@@ -2244,7 +2262,7 @@ private:
 
     /** AxisTestX
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeY, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
      * @param rVertA: i   vertex
@@ -2271,7 +2289,7 @@ private:
 
     /** AxisTestY
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeX, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
      * @param rVertA: i   vertex
@@ -2298,7 +2316,7 @@ private:
 
     /** AxisTestZ
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
      * @param rVertA: i   vertex
@@ -2322,33 +2340,6 @@ private:
         if(min_max.first>rad || min_max.second<-rad) return true;
         else return false;
     }
-
-
-	// TODO: I should move this class to a separate file but is out of scope of this branch
-	class Plane3D {
-	public:
-		using VectorType = array_1d<double, 3>;
-		using PointType = Point;
-
-		Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
-		Plane3D() = delete;
-		Plane3D(PointType const& Point1, PointType const& Point2, PointType const& Point3) {
-			VectorType v1 = Point2 - Point1;
-			VectorType v2 = Point3 - Point1;
-			MathUtils<double>::CrossProduct(mNormal, v1, v2);
-			mD = -inner_prod(mNormal, Point1);
-		}
-		VectorType const& GetNormal() { return mNormal; }
-		double GetDistance() { return mD; }
-		double CalculateSignedDistance(PointType const& ThePoint) {
-			return inner_prod(mNormal, ThePoint) + mD;
-		}
-
-	private:
-		VectorType mNormal;
-		double mD;
-	};
-
 
     ///@}
     ///@name Private  Access

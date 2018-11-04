@@ -26,7 +26,7 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
+
     SurfaceLoadCondition3D::SurfaceLoadCondition3D()
     {
     }
@@ -35,7 +35,7 @@ namespace Kratos
     //***********************************************************************************
 
     SurfaceLoadCondition3D::SurfaceLoadCondition3D(
-        IndexType NewId, 
+        IndexType NewId,
         GeometryType::Pointer pGeometry
         )
         : BaseLoadCondition(NewId, pGeometry)
@@ -46,8 +46,8 @@ namespace Kratos
     //***********************************************************************************
 
     SurfaceLoadCondition3D::SurfaceLoadCondition3D(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         )
         : BaseLoadCondition(NewId, pGeometry, pProperties)
@@ -68,7 +68,7 @@ namespace Kratos
 
     //***********************************************************************************
     //***********************************************************************************
-    
+
     Condition::Pointer SurfaceLoadCondition3D::Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
@@ -100,8 +100,8 @@ namespace Kratos
         KRATOS_TRY
 
         Matrix Kij(3, 3);
-        bounded_matrix<double, 3, 3 > Cross_ge;
-        bounded_matrix<double, 3, 3 > Cross_gn;
+        BoundedMatrix<double, 3, 3 > Cross_ge;
+        BoundedMatrix<double, 3, 3 > Cross_gn;
         double coeff;
         const unsigned int number_of_nodes = GetGeometry().size();
 
@@ -134,7 +134,7 @@ namespace Kratos
     //***********************************************************************************
 
     void SurfaceLoadCondition3D::MakeCrossMatrix(
-        bounded_matrix<double, 3, 3 > & M,
+        BoundedMatrix<double, 3, 3 > & M,
         const array_1d<double, 3 > & U)
     {
         M(0, 0) = 0.0;
@@ -180,18 +180,18 @@ namespace Kratos
     //***********************************************************************************
 
     void SurfaceLoadCondition3D::CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-        ) 
+        )
     {
         KRATOS_TRY;
 
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int mat_size = number_of_nodes * 3;
-        
+
         //Resizing as needed the LHS
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
         {
@@ -199,7 +199,7 @@ namespace Kratos
             {
                 rLeftHandSideMatrix.resize(mat_size, mat_size, false);
             }
-            
+
             noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
         }
 
@@ -210,7 +210,7 @@ namespace Kratos
             {
                 rRightHandSideVector.resize(mat_size, false);
             }
-            
+
             rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
         }
 
@@ -262,11 +262,11 @@ namespace Kratos
         }
 
         array_1d<double, 3 > ge, gn;
-        
+
         for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
         {
             const double det_j = MathUtils<double>::GeneralizedDet(J[point_number]);
-            const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j); 
+            const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
             auto& N = row(Ncontainer, point_number);
 
             ge[0] = J[point_number](0, 0);
@@ -278,7 +278,7 @@ namespace Kratos
 
             array_1d<double, 3 > normal;
             MathUtils<double>::UnitCrossProduct(normal, gn, ge);
-            
+
             // Calculating the pressure on the gauss point
             double pressure = 0.0;
             for (unsigned int ii = 0; ii < number_of_nodes; ii++)

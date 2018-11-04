@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ THE SOFTWARE.
 #include <vector>
 #include <algorithm>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
@@ -44,13 +44,11 @@ namespace preconditioner {
 
 template <class PPrecond, class SPrecond>
 class cpr_drs {
-    BOOST_STATIC_ASSERT_MSG(
-            (
-             boost::is_same<
-                 typename PPrecond::backend_type,
-                 typename SPrecond::backend_type
-                 >::value
-            ),
+    static_assert(
+            std::is_same<
+                typename PPrecond::backend_type,
+                typename SPrecond::backend_type
+                >::value,
             "Backends for pressure and flow preconditioners should coinside!"
             );
     public:
@@ -79,6 +77,7 @@ class cpr_drs {
 
             params() : block_size(2), active_rows(0), eps_dd(0.2), eps_ps(0.02) {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, pprecond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, sprecond),
@@ -104,7 +103,7 @@ class cpr_drs {
                             static_cast<double*>(ptr) + n);
                 }
 
-                AMGCL_PARAMS_CHECK(p, (pprecond)(sprecond)(block_size)(active_rows)(eps_dd)(eps_ps)(weights)(weights_size));
+                check_params(p, {"pprecond", "sprecond", "block_size", "active_rows", "eps_dd", "eps_ps", "weights", "weights_size"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
@@ -116,6 +115,7 @@ class cpr_drs {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, eps_dd);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, eps_ps);
             }
+#endif
         } prm;
 
         template <class Matrix>
@@ -125,11 +125,11 @@ class cpr_drs {
                 const backend_params &bprm = backend_params()
                ) : prm(prm), n(backend::rows(K))
         {
-            init(boost::make_shared<build_matrix>(K), bprm);
+            init(std::make_shared<build_matrix>(K), bprm);
         }
 
         cpr_drs(
-                boost::shared_ptr<build_matrix> K,
+                std::shared_ptr<build_matrix> K,
                 const params &prm = params(),
                 const backend_params bprm = backend_params()
                ) : prm(prm), n(backend::rows(*K))
@@ -138,15 +138,7 @@ class cpr_drs {
         }
 
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             S->apply(rhs, x);
             backend::residual(rhs, S->system_matrix(), x, *rs);
 
@@ -156,6 +148,10 @@ class cpr_drs {
             backend::spmv(1, *Scatter, *xp, 1, x);
         }
 
+        std::shared_ptr<matrix> system_matrix_ptr() const {
+            return S->system_matrix_ptr();
+        }
+
         const matrix& system_matrix() const {
             return S->system_matrix();
         }
@@ -163,13 +159,13 @@ class cpr_drs {
     private:
         size_t n, np;
 
-        boost::shared_ptr<PPrecond> P;
-        boost::shared_ptr<SPrecond> S;
+        std::shared_ptr<PPrecond> P;
+        std::shared_ptr<SPrecond> S;
 
-        boost::shared_ptr<matrix> Fpp, Scatter;
-        boost::shared_ptr<vector> rp, xp, rs;
+        std::shared_ptr<matrix> Fpp, Scatter;
+        std::shared_ptr<vector> rp, xp, rs;
 
-        void init(boost::shared_ptr<build_matrix> K, const backend_params bprm)
+        void init(std::shared_ptr<build_matrix> K, const backend_params bprm)
         {
             typedef typename backend::row_iterator<build_matrix>::type row_iterator;
             const int       B = prm.block_size;
@@ -181,12 +177,12 @@ class cpr_drs {
 
             np = N / B;
 
-            boost::shared_ptr<build_matrix> fpp = boost::make_shared<build_matrix>();
+            auto fpp = std::make_shared<build_matrix>();
             fpp->set_size(np, n);
             fpp->set_nonzeros(n);
             fpp->ptr[0] = 0;
 
-            boost::shared_ptr<build_matrix> App = boost::make_shared<build_matrix>();
+            auto App = std::make_shared<build_matrix>();
             App->set_size(np, np, true);
 
 #pragma omp parallel
@@ -280,10 +276,9 @@ class cpr_drs {
                 }
             }
 
-            std::partial_sum(App->ptr, App->ptr + np + 1, App->ptr);
-            App->set_nonzeros(App->ptr[np]);
+            App->set_nonzeros(App->scan_row_sizes());
 
-            boost::shared_ptr<build_matrix> scatter = boost::make_shared<build_matrix>();
+            auto scatter = std::make_shared<build_matrix>();
             scatter->set_size(n, np);
             scatter->set_nonzeros(np);
             scatter->ptr[0] = 0;
@@ -361,8 +356,8 @@ class cpr_drs {
             for(size_t i = N; i < n; ++i)
                 scatter->ptr[i+1] = scatter->ptr[i];
 
-            P = boost::make_shared<PPrecond>(App, prm.pprecond, bprm);
-            S = boost::make_shared<SPrecond>(K,   prm.sprecond, bprm);
+            P = std::make_shared<PPrecond>(App, prm.pprecond, bprm);
+            S = std::make_shared<SPrecond>(K,   prm.sprecond, bprm);
 
             Fpp     = backend_type::copy_matrix(fpp, bprm);
             Scatter = backend_type::copy_matrix(scatter, bprm);

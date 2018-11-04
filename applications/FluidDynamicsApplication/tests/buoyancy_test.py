@@ -89,8 +89,8 @@ class BuoyancyTest(UnitTest.TestCase):
                 self.printOutput()
 
     def setUpModel(self):
-
-        self.fluid_model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
         thermal_settings = ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(TEMPERATURE)
@@ -135,6 +135,7 @@ class BuoyancyTest(UnitTest.TestCase):
         rel_pres_tol = 1e-5
         abs_pres_tol = 1e-7
         self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
+        self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         alpha = -0.3
         move_mesh = 0
@@ -168,9 +169,12 @@ class BuoyancyTest(UnitTest.TestCase):
 
         if self.convection_diffusion_solver == 'eulerian':
             # Duplicate model part
-            thermal_model_part = ModelPart("Thermal")
+            
+            thermal_model_part = self.model.CreateModelPart("Thermal")
             conv_diff_element = "EulerianConvDiff2D"
             conv_diff_condition = "Condition2D2N"
+
+            MergeVariableListsUtility().Merge(self.fluid_model_part, thermal_model_part)
 
             modeler = ConnectivityPreserveModeler()
             modeler.GenerateModelPart(self.fluid_model_part,thermal_model_part,conv_diff_element,conv_diff_condition)

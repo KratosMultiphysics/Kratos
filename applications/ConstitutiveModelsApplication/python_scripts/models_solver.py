@@ -37,6 +37,7 @@ class MaterialsSolver(object):
 		"description": "shear strain time dependent field",
 		"deformation_gradient" : [ [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ]
 	    },
+            "stress_measure": "Kirchhoff",
             "print_output": false
         }
         """)
@@ -81,10 +82,17 @@ class MaterialsSolver(object):
 
         self.process_info.SetValue(KratosMultiphysics.INTEGRATION_COORDINATES, position)
 
-
-         # Set basic parameters
+        # Set basic parameters
         self.parameters = KratosMultiphysics.ConstitutiveLawParameters()
         self._set_basic_parameters()
+
+        # Set stress measures
+        self.PK2       = False
+        self.Kirchhoff = False
+        self.Cauchy    = False
+
+        measure = self.settings["stress_measure"].GetString()
+        self._set_stress_measure(measure)
 
         # Print output
         self.print_output = self.settings["print_output"].GetBool()
@@ -103,7 +111,7 @@ class MaterialsSolver(object):
         if( self.print_output ):
             self._file_open()
 
-        print("::[Material_Solver]:: Solver Ready")
+        print("::[Material_Solver]:: Solver Ready -"+self.settings["strain_settings"]["description"].GetString()+"-")
 
 
     #### Solve loop methods ####
@@ -148,6 +156,22 @@ class MaterialsSolver(object):
     #### Solver internal methods ####
 
     #
+    def _set_stress_measure(self, measure):
+
+        if( measure == "All" ):
+            self.PK2       = True
+            self.Kirchhoff = True
+            self.Cauchy    = True
+        elif( measure == "PK2" ):
+            self.PK2       = True
+        elif( measure == "Kirchhoff" ):
+            self.Kirchhoff = True
+        elif( measure == "Cauchy" ):
+            self.Cauchy    = True
+        else:
+            raise Exception("Not valid stress measure:",measure)
+
+    #
     def _set_calculation_options(self):
 
         #set calculation options to parameters
@@ -176,35 +200,41 @@ class MaterialsSolver(object):
         geometry = self.parameters.GetElementGeometry()
         shape_N  = self.parameters.GetShapeFunctionsValues()
 
-        self.material_law.CalculateMaterialResponsePK2( self.parameters )
-        if( self.echo_level > 0 ):
-            print("PK2 Material Response")
-            print( "stress = ", self.parameters.GetStressVector() )
-            print( "strain = ", self.parameters.GetStrainVector() )
-            print( "C      = ", self.parameters.GetConstitutiveMatrix() )
+        if( self.PK2 ):
+            self.initialize_calculation_variables()
+            self.material_law.CalculateMaterialResponsePK2( self.parameters )
+            if( self.echo_level > 0 ):
+                print("PK2 Material Response")
+                print( "stress = ", self.parameters.GetStressVector() )
+                print( "strain = ", self.parameters.GetStrainVector() )
+                print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
-        #self.material_law.FinalizeMaterialResponsePK2( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
+            self.material_law.FinalizeMaterialResponsePK2( self.parameters )
+            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
 
-        self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
-        if( self.echo_level > 0 ):
-            print("\n Kirchhoff Material Response")
-            print( "stress = ", self.parameters.GetStressVector() )
-            print( "strain = ", self.parameters.GetStrainVector() )
-            print( "C      = ", self.parameters.GetConstitutiveMatrix() )
+        if( self.Kirchhoff ):
+            self.initialize_calculation_variables()
+            self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
+            if( self.echo_level > 0 ):
+                print("\n Kirchhoff Material Response")
+                print( "stress = ", self.parameters.GetStressVector() )
+                print( "strain = ", self.parameters.GetStrainVector() )
+                print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
-        self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
+            self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
+            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
 
-        self.material_law.CalculateMaterialResponseCauchy( self.parameters )
-        if( self.echo_level > 0 ):
-            print("\n Cauchy Material Response")
-            print( "stress = ", self.parameters.GetStressVector() )
-            print( "strain = ", self.parameters.GetStrainVector() )
-            print( "C      = ", self.parameters.GetConstitutiveMatrix() )
+        if( self.Cauchy ):
+            self.initialize_calculation_variables()
+            self.material_law.CalculateMaterialResponseCauchy( self.parameters )
+            if( self.echo_level > 0 ):
+                print("\n Cauchy Material Response")
+                print( "stress = ", self.parameters.GetStressVector() )
+                print( "strain = ", self.parameters.GetStrainVector() )
+                print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
-        self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
+            self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
+            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
 
     #
     def _set_basic_parameters(self):
@@ -228,9 +258,24 @@ class MaterialsSolver(object):
         self.parameters.SetElementGeometry( self.geometry )
 
         #set calculation variables to parameters
-        self.stress_vector       = KratosMultiphysics.Vector(self.material_law.GetStrainSize())
-        self.strain_vector       = KratosMultiphysics.Vector(self.material_law.GetStrainSize())
-        self.constitutive_matrix = KratosMultiphysics.Matrix(self.material_law.GetStrainSize(),self.material_law.GetStrainSize())
+        strain_size = self.material_law.GetStrainSize()
+        self.stress_vector       = KratosMultiphysics.Vector(strain_size)
+        self.strain_vector       = KratosMultiphysics.Vector(strain_size)
+        self.constitutive_matrix = KratosMultiphysics.Matrix(strain_size,strain_size)
+
+        self.initialize_calculation_variables()
+
+    #
+    def initialize_calculation_variables(self):
+
+        strain_size = self.material_law.GetStrainSize()
+
+        #set to zero
+        for i in range(0,strain_size):
+            self.stress_vector[i] = 0.0;
+            self.strain_vector[i] = 0.0;
+            for j in range(0,strain_size):
+                self.constitutive_matrix[i,j] = 0.0;
 
         self.parameters.SetStrainVector( self.strain_vector )
         self.parameters.SetStressVector( self.stress_vector )
@@ -238,6 +283,11 @@ class MaterialsSolver(object):
 
     #
     def _build_dummy_geometry(self):
+
+        #tables depent on this nodal variables (TODO: get them from assign_materials_process.py)
+        nodal_variables = {"TEMPERATURE":293.15 , "PRESSURE":0.0}
+        for variable in nodal_variables:
+            self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
 
         #build a dummy geometry
         self.dimension = self.material_law.WorkingSpaceDimension()
@@ -256,6 +306,10 @@ class MaterialsSolver(object):
             self.nodes.append(self.model_part.CreateNewNode(2,0.0,1.0,0.0))
             self.geometry = KratosMultiphysics.Triangle2D3(self.nodes[0],self.nodes[1],self.nodes[2])
 
+
+        for node in self.nodes:
+            for variable, value in nodal_variables.items():
+                node.SetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(variable), value)
 
     #
     def _set_strain_parameters(self):

@@ -10,6 +10,10 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
+/** @file hdf5_data_value_container_io.h
+ *  @brief Methods for storing and retrieving a data value container in an HDF5 file.
+ */
+
 #if !defined(KRATOS_HDF5_DATA_VALUE_CONTAINER_IO_H_INCLUDED)
 #define KRATOS_HDF5_DATA_VALUE_CONTAINER_IO_H_INCLUDED
 
@@ -19,11 +23,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "containers/data_value_container.h"
 
 // Application includes
-#include "hdf5_application_define.h"
 #include "custom_io/hdf5_file.h"
 
 namespace Kratos
@@ -34,43 +36,11 @@ namespace Internals
 {
 ///@addtogroup HDF5Application
 ///@{
-///@name Kratos Classes
-///@{
 
-/// A class for IO of a data value container in HDF5.
-class DataValueContainerIO
-{
-public:
-    ///@name Type Definitions
-    ///@{
+void ReadDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer& rData);
 
-    /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(DataValueContainerIO);
+void WriteDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer const& rData);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Constructor.
-    DataValueContainerIO(std::string Prefix, File::Pointer pFile);
-
-    ///@}
-    ///@name Operations
-    ///@{
-    void ReadDataValueContainer(DataValueContainer& rData);
-
-    void WriteDataValueContainer(DataValueContainer const& rData);
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-    std::string mPrefix;
-    File::Pointer mpFile;
-    ///@}
-};
-
-///@} // Kratos Classes
 ///@} addtogroup
 } // namespace Internals.
 } // namespace HDF5.

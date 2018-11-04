@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "patch_test_2D_tension_qua",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,11 +9,15 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "patch_test/updated_lagrangian/patch_test_2D_tension_qua",
-            "input_file_label" : 0
+            "input_filename"   : "patch_test/updated_lagrangian/patch_test_2D_tension_qua"
         },
         "material_import_settings" :{
             "materials_filename": "patch_test/materials_2D.json"
@@ -34,6 +35,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","LineLoad2D_Load_on_lines_Auto1"]
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -87,7 +89,7 @@
                 "tolerance_rank"  : 3
         }
     }
-    ],
+    ]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -107,15 +109,5 @@
             "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     }
 }

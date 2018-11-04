@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
 #define  KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
@@ -57,6 +57,10 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of AxisymmetricUpdatedLagrangianElement
     KRATOS_CLASS_POINTER_DEFINITION( AxisymmetricUpdatedLagrangianElement );
@@ -74,7 +78,7 @@ public:
     AxisymmetricUpdatedLagrangianElement(AxisymmetricUpdatedLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymmetricUpdatedLagrangianElement();
+    ~AxisymmetricUpdatedLagrangianElement() override;
 
     ///@}
     ///@name Operators
@@ -189,16 +193,16 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    ElementDataType& rVariables,
                                     double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight) override;
 
@@ -211,8 +215,8 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     ElementVariables & rVariables,
+    void CalculateAndAddKuug(MatrixType& rK,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     ) override;
 
@@ -221,19 +225,19 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementVariables & rVariables, const double& rPointNumber ) override;
+    void FinalizeStepVariables(ElementDataType & rVariables, const double& rPointNumber ) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const double& rPointNumber) override;
 
 
@@ -247,24 +251,24 @@ protected:
     /**
      * Calculation of the Deformation Gradient F
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition,
-                                      double & rCurrentRadius,
-                                      double & rReferenceRadius);
+    void CalculateDeformationGradient(Matrix& rF,
+                                      const Matrix& rDN_DX,
+                                      const Matrix& rDeltaPosition,
+                                      const double & rCurrentRadius,
+                                      const double & rReferenceRadius);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     void CalculateDeformationMatrix(Matrix& rB,
-				    Matrix& rDN_DX,
-				    Vector& rN,
-				    double & rCurrentRadius);
+				    const Matrix& rDN_DX,
+				    const Vector& rN,
+				    const double & rCurrentRadius);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementVariables& rVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables,
 				 const double& rPointNumber ) override;
 
 
@@ -284,7 +288,7 @@ protected:
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables) override;
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access
@@ -328,9 +332,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -351,4 +355,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYMMETRIC_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined

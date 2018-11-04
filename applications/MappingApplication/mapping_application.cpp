@@ -21,6 +21,8 @@
 
 
 // Project includes
+#include "containers/model.h"
+
 #include "mapping_application.h"
 #include "mapping_application_variables.h"
 
@@ -40,7 +42,7 @@
 namespace Kratos
 {
 
-KratosMappingApplication::KratosMappingApplication() : 
+KratosMappingApplication::KratosMappingApplication() :
     KratosApplication("MappingApplication"),
     mInterfaceObject(0.0, 0.0, 0.0),
     mInterfaceNode(),
@@ -72,8 +74,9 @@ void KratosMappingApplication::Register()
 
     if (rank == 0) std::cout << banner.str();
 
-    ModelPart dummy_model_part;
-    dummy_model_part = ModelPart();
+    Model dummy_model;
+
+    ModelPart& dummy_model_part = dummy_model.CreateModelPart("dummy");
 
     MapperFactory::Register("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper>(dummy_model_part, dummy_model_part));
     MapperFactory::Register("nearest_element",  Kratos::make_shared<NearestElementMapper>(dummy_model_part, dummy_model_part));

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ THE SOFTWARE.
 #include <queue>
 #include <cmath>
 
-#include <boost/foreach.hpp>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
@@ -80,13 +79,14 @@ struct ilut {
 
         params() : p(2), tau(1e-2f), damping(1) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, p)
             , AMGCL_PARAMS_IMPORT_VALUE(p, tau)
             , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
             , AMGCL_PARAMS_IMPORT_CHILD(p, solve)
         {
-            AMGCL_PARAMS_CHECK(p, (p)(tau)(damping)(solve));
+            check_params(p, {"p", "tau", "damping", "solve"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -95,13 +95,14 @@ struct ilut {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
             AMGCL_PARAMS_EXPORT_CHILD(p, path, solve);
         }
-    };
+#endif
+    } prm;
 
     /// \copydoc amgcl::relaxation::damped_jacobi::damped_jacobi
     template <class Matrix>
     ilut( const Matrix &A, const params &prm, const typename Backend::params &bprm)
+      : prm(prm)
     {
-        typedef typename backend::row_iterator<Matrix>::type row_iterator;
         const size_t n = backend::rows(A);
 
         size_t Lnz = 0, Unz = 0;
@@ -123,14 +124,13 @@ struct ilut {
             Unz += static_cast<size_t>(lenU * prm.p);
         }
 
-        boost::shared_ptr<build_matrix> L = boost::make_shared<build_matrix>();
-        boost::shared_ptr<build_matrix> U = boost::make_shared<build_matrix>();
+        auto L = std::make_shared<build_matrix>();
+        auto U = std::make_shared<build_matrix>();
 
         L->set_size(n, n); L->set_nonzeros(Lnz); L->ptr[0] = 0;
         U->set_size(n, n); U->set_nonzeros(Unz); U->ptr[0] = 0;
 
-        boost::shared_ptr<backend::numa_vector<value_type> > D =
-            boost::make_shared<backend::numa_vector<value_type> >(n, false);
+        auto D = std::make_shared<backend::numa_vector<value_type> >(n, false);
 
         sparse_vector w(n);
 
@@ -142,7 +142,7 @@ struct ilut {
 
             scalar_type tol = math::zero<scalar_type>();
 
-            for(row_iterator a = backend::row_begin(A, i); a; ++a) {
+            for(auto a = backend::row_begin(A, i); a; ++a) {
                 w[a.col()] = a.value();
                 tol += math::norm(a.value());
 
@@ -175,14 +175,13 @@ struct ilut {
         L->nnz = L->ptr[n];
         U->nnz = U->ptr[n];
 
-        ilu = boost::make_shared<ilu_solve>(L, U, D, prm.solve, bprm);
+        ilu = std::make_shared<ilu_solve>(L, U, D, prm.solve, bprm);
     }
 
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_pre(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-            const params &prm
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
             ) const
     {
         backend::residual(rhs, A, x, tmp);
@@ -193,8 +192,7 @@ struct ilut {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_post(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-            const params &prm
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
             ) const
     {
         backend::residual(rhs, A, x, tmp);
@@ -203,15 +201,19 @@ struct ilut {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x) const
     {
         backend::copy(rhs, x);
         ilu->solve(x);
     }
 
+    size_t bytes() const {
+        return ilu->bytes();
+    }
+
     private:
         typedef typename backend::builtin<value_type>::matrix build_matrix;
-        boost::shared_ptr<ilu_solve> ilu;
+        std::shared_ptr<ilu_solve> ilu;
 
         struct sparse_vector {
             struct nonzero {
@@ -370,7 +372,7 @@ struct ilut {
                     }
                 }
 
-                BOOST_FOREACH(const nonzero &e, nz) idx[e.col] = -1;
+                for(const nonzero &e : nz) idx[e.col] = -1;
                 nz.clear();
             }
         };

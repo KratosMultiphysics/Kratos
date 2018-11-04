@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/condition.h"
 
-namespace Kratos 
+namespace Kratos
 {
 
 ///@name Kratos Globals
@@ -28,37 +28,42 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
     typedef Point                                                PointType;
     typedef Node<3>                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-  
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** \brief PairedCondition
- * This is a base class for the conditions paired, it is basically equal to the base condition, with a 
+
+/**
+ * @ingroup ContactStructuralMechanicsApplication
+ * @class PairedCondition
+ * @brief This is a base class for the conditions paired
+ * @details This is a base class for the conditions paired, it is basically equal to the base condition, with a pointer to the paired geoemtry
+ * @author Vicente Mataix Ferrandiz
  */
-class PairedCondition: public Condition 
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PairedCondition
+    : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
-        
+
     /// Counted pointer of PairedCondition
     KRATOS_CLASS_POINTER_DEFINITION( PairedCondition );
-    
+
     typedef Condition                                                           BaseType;
-    
+
     typedef BaseType::VectorType                                              VectorType;
 
     typedef BaseType::MatrixType                                              MatrixType;
@@ -70,7 +75,7 @@ public:
     typedef BaseType::NodesArrayType                                      NodesArrayType;
 
     typedef BaseType::PropertiesType::Pointer                      PropertiesPointerType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -80,29 +85,29 @@ public:
         : Condition(),
           mpPairedGeometry(nullptr)
     {}
-    
+
     // Constructor 1
     PairedCondition(
-        IndexType NewId, 
+        IndexType NewId,
         GeometryType::Pointer pGeometry
         ) :Condition(NewId, pGeometry),
            mpPairedGeometry(nullptr)
     {}
-    
+
     // Constructor 2
     PairedCondition(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) :Condition( NewId, pGeometry, pProperties ),
            mpPairedGeometry(nullptr)
     {}
-    
+
     // Constructor 3
     PairedCondition(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
-        PropertiesType::Pointer pProperties, 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties,
         GeometryType::Pointer pPairedGeometry
         )
         :Condition( NewId, pGeometry, pProperties ),
@@ -123,12 +128,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
     * Called at the beginning of each solution step
     */
     void Initialize() override;
-    
+
     /**
      * Creates a new element pointer from an arry of nodes
      * @param NewId the ID of the new element
@@ -136,12 +141,12 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create( 
+    Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& rThisNodes,
-        PropertiesType::Pointer pProperties 
+        PropertiesType::Pointer pProperties
         ) const override;
-    
+
     /**
      * Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
@@ -154,7 +159,7 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-        
+
     /**
      * Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
@@ -173,7 +178,7 @@ public:
     ///@}
     ///@name Access
     ///@{
-        
+
     GeometryType::Pointer pGetPairedGeometry()
     {
         return mpPairedGeometry;
@@ -193,7 +198,7 @@ public:
     {
         return *mpPairedGeometry;
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -211,13 +216,13 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
 
     GeometryType::Pointer mpPairedGeometry; // The geometry of the pair "condition"
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -225,7 +230,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -246,7 +251,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -267,10 +272,10 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    // Serialization 
-    
+    // Serialization
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
@@ -300,4 +305,4 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_PAIRED_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_PAIRED_CONDITION_H_INCLUDED  defined

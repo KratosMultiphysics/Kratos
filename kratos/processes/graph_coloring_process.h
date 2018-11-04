@@ -52,7 +52,7 @@ public:
 
     /** Defining a dense matrix of integer as graph type
     */
-    typedef matrix<int> GraphType;
+    typedef DenseMatrix<int> GraphType;
 
     ///@}
     ///@name Life Cycle
@@ -96,7 +96,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
 		//// Applying the Misra and Gries edge coloring algorithm.
   //      // Start coloring...
@@ -133,19 +133,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "GraphColoringProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "GraphColoringProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

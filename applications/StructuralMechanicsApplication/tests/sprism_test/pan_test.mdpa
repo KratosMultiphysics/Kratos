@@ -9,13 +9,6 @@ Begin Properties  1
 End Properties
 
 Begin Properties  2
-CONSTITUTIVE_LAW_NAME  Elastic3DLaw
-YOUNG_MODULUS                3102750000.0
-POISSON_RATIO                0.3
-DENSITY                      1000.0
-NINT_TRANS                   3
-EAS_IMP                      1
-QUAD_ON                      1
 End Properties
 
 Begin Nodes
@@ -265,7 +258,7 @@ Begin Nodes
 243	2.5421E-01	2.5400E-01	2.5336E+00
 End Nodes
 
-Begin Elements SprismElement3D6N
+Begin Elements SolidShellElementSprism3D6N
 1	2	1	2	10	82	83	91
 2	2	2	11	10	83	92	91
 3	2	2	3	11	83	84	92

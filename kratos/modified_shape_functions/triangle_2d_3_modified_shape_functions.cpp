@@ -51,8 +51,10 @@ void Triangle2D3ModifiedShapeFunctions::PrintData(std::ostream& rOStream) const 
     rOStream << "Triangle2D3N modified shape functions computation class:\n";
     rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
     std::stringstream distances_buffer;
+    std::ostringstream stm;
     for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
-        distances_buffer << std::to_string(nodal_distances(i)) << " ";
+        stm << nodal_distances(i);
+        distances_buffer << stm.str() << " ";
     }
     rOStream << "\tDistance values: " << distances_buffer.str();
 };

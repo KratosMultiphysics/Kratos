@@ -28,7 +28,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(
         ShearStress.resize(StrainSize);
     }
     if (C.size1() != StrainSize || C.size2() != StrainSize) {
-        C.resize(StrainSize,StrainSize);
+        C.resize(StrainSize,StrainSize,false);
     }
 
     // Set constitutive law flags:
@@ -49,10 +49,13 @@ int FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Check(
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
-void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::UpdateGeometryValues(double NewWeight,
-    const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX)
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::UpdateGeometryValues(
+    unsigned int IntegrationPointIndex,
+    double NewWeight,
+    const MatrixRowType& rN,
+    const ShapeDerivativesType& rDN_DX)
 {
+    this->IntegrationPointIndex = IntegrationPointIndex;
     this->Weight = NewWeight;
     noalias(this->N) = rN;
     noalias(this->DN_DX) = rDN_DX;
@@ -63,7 +66,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalD
     NodalScalarData& rData, const Variable<double>& rVariable,
     const Geometry<Node<3>>& rGeometry)
 {
-    noalias(rData) = array_1d<double,TNumNodes>(TNumNodes,0.0);
+    noalias(rData) = ZeroVector(TNumNodes);
     for (size_t i = 0; i < TNumNodes; i++) {
         rData[i] = rGeometry[i].FastGetSolutionStepValue(rVariable);
     }
@@ -72,7 +75,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalD
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalData(NodalVectorData& rData,
     const Variable<array_1d<double, 3>>& rVariable,
-    const Geometry<Node<3>>& rGeometry) 
+    const Geometry<Node<3>>& rGeometry)
 {
     for (size_t i = 0; i < TNumNodes; i++) {
         const array_1d<double, 3>& r_nodal_values =
@@ -88,7 +91,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistor
     NodalScalarData& rData, const Variable<double>& rVariable,
     const Geometry<Node<3>>& rGeometry, const unsigned int Step)
 {
-    noalias(rData) = array_1d<double,TNumNodes>(TNumNodes,0.0);
+    noalias(rData) = ZeroVector(TNumNodes);
     for (size_t i = 0; i < TNumNodes; i++) {
         rData[i] = rGeometry[i].FastGetSolutionStepValue(rVariable,Step);
     }
@@ -125,6 +128,15 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProces
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElementData(double& rData,
     const Variable<double>& rVariable, const Element& rElement)
+{
+    rData = rElement.GetValue(rVariable);
+}
+
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElementData(
+    NodalScalarData& rData,
+    const Variable<Vector>& rVariable,
+    const Element& rElement)
 {
     rData = rElement.GetValue(rVariable);
 }

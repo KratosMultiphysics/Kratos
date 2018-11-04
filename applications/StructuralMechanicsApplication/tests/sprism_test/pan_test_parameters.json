@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "pan_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.001,
         "start_time"      : 0.000,
         "end_time"        : 1.000,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.001
+        },
         "buffer_size"                        : 3,
         "analysis_type"                      : "arc_length",
         "model_import_settings"              : {
@@ -48,6 +50,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1", "DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3","POINTLOAD_PointLoad_Auto4"]
     },
+    "processes" : {
     "constraints_process_list" : [
     {
         "python_module" : "assign_vector_variable_process",
@@ -102,20 +105,6 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "json_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
-            "output_file_name" : "sprism_test/pan_test_results.json",
-            "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
     "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
@@ -131,22 +120,26 @@
     }
     ],
     "list_other_processes" : [{
-        "python_module"  :"sprism_process", 
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication", 
-        "help"                 : "", 
+        "python_module"  :"sprism_process",
+        "kratos_module":"StructuralMechanicsApplication",
+        "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
             "model_part_name"  : "Parts_Parts_Auto1"
             }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    }]},
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT_Z","POINT_LOAD_Z"],
+            "output_file_name" : "sprism_test/pan_test_results.json",
+            "model_part_name"  : "POINTLOAD_PointLoad_Auto4",
+            "time_frequency"   : 0.01
+        }
     }
+    ]
 }

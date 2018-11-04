@@ -19,41 +19,21 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
 
     def ExecuteInitialize(self):
 
-
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set processes
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", self.settings["model_part_name"])
+        params.AddValue("compound_assignment", self.settings["compound_assignment"])
 
-        if( self.value_is_numeric ):
-            params.AddValue("variable_name", self.settings["variable_name"])
-            params.AddValue("value", self.settings["value"])
+        self.CreateAssignmentProcess(params)
 
-            self.AssignValueProcess = KratosSolid.AssignScalarToConditionsProcess(self.model_part, params)
-        else:
-            #function values are assigned to a vector variable :: transformation is needed
-            if( isinstance(self.var,KratosMultiphysics.DoubleVariable) ):
-                variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
-                print(" variable name modified:", variable_name)
-                params.AddEmptyValue("variable_name")
-                params["variable_name"].SetString(variable_name)
-            else:
-                params.AddValue("variable_name", self.settings["variable_name"])
-
-            self.AssignValueProcess = KratosSolid.AssignScalarFieldToConditionsProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
-
+        self.SetCurrentTime()
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
-            self.AssignValueProcess.Execute()
-
-
-    def ExecuteInitializeSolutionStep(self):
-
-        if self.IsInsideInterval():
             self.AssignValueProcess.Execute()
 
 
@@ -71,3 +51,41 @@ class AssignScalarToConditionsProcess(BaseProcess.AssignScalarToNodesProcess):
                 if not self.finalized :
                     self.AssignValueProcess.ExecuteFinalize()
                     self.finalized = True
+
+    def ExecuteAssignment(self):
+        if self.IsInsideInterval():
+            self.AssignValueProcess.Execute()
+
+    def ExecuteUnAssignment(self):
+        if self.IsInsideInterval():
+            self.UnAssignValueProcess.Execute()
+
+    def CreateAssignmentProcess(self, params):
+        if( self.value_is_numeric ):
+            params.AddValue("variable_name", self.settings["variable_name"])
+            params.AddValue("value", self.settings["value"])
+            params.AddEmptyValue("entity_type").SetString("CONDITIONS")
+            self.AssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+        else:
+            #function values are assigned to a vector variable :: transformation is needed
+            if( isinstance(self.var,KratosMultiphysics.DoubleVariable) ):
+                variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
+                #print("::[--Assign_Variable--]:: "+variable_name)
+                params.AddEmptyValue("variable_name")
+                params["variable_name"].SetString(variable_name)
+            else:
+                params.AddValue("variable_name", self.settings["variable_name"])
+
+            params.AddEmptyValue("entity_type").SetString("CONDITIONS")
+            self.AssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
+
+        # in case of going to previous time step for time step reduction
+        self.CreateUnAssignmentProcess(params)
+
+
+    def CreateUnAssignmentProcess(self, params):
+        params["compound_assignment"].SetString(self.GetInverseAssigment(self.settings["compound_assignment"].GetString()))
+        if( self.value_is_numeric ):
+            self.UnAssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+        else:
+            self.UnAssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)

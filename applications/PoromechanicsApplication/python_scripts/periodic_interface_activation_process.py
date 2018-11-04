@@ -6,7 +6,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return PeriodicInterfaceActivationProcess(Model, settings["Parameters"])
 
-## All the python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 
 class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
@@ -16,10 +16,9 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
 
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
-        params.AddValue("mesh_id",settings["mesh_id"])
         params.AddValue("dimension",settings["dimension"])
-        params.AddValue("von_mises_limit",settings["von_mises_limit"])
-        
+        params.AddValue("stress_limit",settings["stress_limit"])
+
         self.process = KratosPoro.PeriodicInterfaceProcess(model_part, params)
 
         if(settings["dimension"].GetInt() == 2):
@@ -28,7 +27,7 @@ class PeriodicInterfaceActivationProcess(KratosMultiphysics.Process):
             self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10)
 
     def ExecuteInitialize(self):
-        
+
         self.FindNodalNeigh.Execute()
 
         self.process.ExecuteInitialize()

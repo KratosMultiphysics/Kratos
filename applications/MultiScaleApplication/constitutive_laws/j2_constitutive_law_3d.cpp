@@ -50,7 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	J2ConstitutiveLaw3D::J2ConstitutiveLaw3D() 
+	J2ConstitutiveLaw3D::J2ConstitutiveLaw3D()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_error_code(0.0)
@@ -108,7 +108,7 @@ namespace Kratos
 		rValue = 0.0;
 		if (rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
 			rValue = m_error_code;
-		if(rThisVariable == EQUIVALENT_PLASTIC_STRAIN) 
+		if(rThisVariable == EQUIVALENT_PLASTIC_STRAIN)
 			rValue = m_xi;
 		return rValue;
 	}
@@ -341,11 +341,11 @@ namespace Kratos
 		array_1d<double, 6> sig_rel;
 		noalias( sig_rel ) = sig_dev - 2.0/3.0*Hk * m_eps_pl;
 		double norm_sig_rel = std::sqrt(
-			sig_rel(0)*sig_rel(0) + 
-			sig_rel(1)*sig_rel(1) + 
-			sig_rel(2)*sig_rel(2) + 
-			2.0*sig_rel(3)*sig_rel(3) + 
-			2.0*sig_rel(4)*sig_rel(4) + 
+			sig_rel(0)*sig_rel(0) +
+			sig_rel(1)*sig_rel(1) +
+			sig_rel(2)*sig_rel(2) +
+			2.0*sig_rel(3)*sig_rel(3) +
+			2.0*sig_rel(4)*sig_rel(4) +
 			2.0*sig_rel(5)*sig_rel(5)
 			);
 
@@ -556,7 +556,7 @@ namespace Kratos
                                     const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        
+
 		if(!rMaterialProperties.Has(YOUNG_MODULUS)) {
 			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing YOUNG_MODULUS", "");
 		}

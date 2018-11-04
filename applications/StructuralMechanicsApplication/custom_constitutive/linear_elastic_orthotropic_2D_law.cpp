@@ -61,13 +61,14 @@ namespace Kratos
 	//*****************************MATERIAL RESPONSES***************************
 	//**************************************************************************
 
-	void  LinearElasticOrthotropic2DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
+	void  LinearElasticOrthotropic2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 	{
-		//1.- Lame constants
-		//const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
-		//const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+        KRATOS_TRY;
+        // 1.- Lame constants
+        // const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+        // const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
 
-		//a.-Check if the constitutive parameters are passed correctly to the law calculation
+        //a.-Check if the constitutive parameters are passed correctly to the law calculation
 		//CheckParameters(rValues);
 
 		//b.- Get Values to compute the constitutive law:
@@ -76,11 +77,10 @@ namespace Kratos
 		const Properties& MaterialProperties = rValues.GetMaterialProperties();
 
 		Vector& StrainVector = rValues.GetStrainVector();
-		Vector& StressVector = rValues.GetStressVector();
 
 		//-----------------------------//
 
-		if (Options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
+		if (Options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN))
 		{
 			//only needed
 			const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
@@ -98,6 +98,7 @@ namespace Kratos
 
 		if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
 		{
+			Vector& StressVector = rValues.GetStressVector();
 			if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
 			{
 				Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
@@ -117,9 +118,10 @@ namespace Kratos
 			Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 			this->CalculateLinearElasticMatrix(ConstitutiveMatrix, MaterialProperties);
 		}
-	}
+        KRATOS_CATCH("");
+    }
 
-	//************************************************************************************
+    //************************************************************************************
 	//************************************************************************************
 
 	bool& LinearElasticOrthotropic2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
@@ -195,7 +197,7 @@ namespace Kratos
 		//double Q44 = G23;
 		//double Q55 = G13;
 
-		const double theta = 0.0;	// rotation currently handled through 
+		const double theta = 0.0;	// rotation currently handled through
 		// "shell_cross_section.cpp" variable iPlyAngle. Left in for clarity.
 
 		const double c = std::cos(theta);
@@ -245,7 +247,7 @@ namespace Kratos
 	//******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 	//************************************************************************************
 
-	bool LinearElasticOrthotropic2DLaw::CheckParameters(Parameters& rValues)
+	bool LinearElasticOrthotropic2DLaw::CheckParameters(ConstitutiveLaw::Parameters& rValues)
 	{
 		return rValues.CheckAllParameters();
 	}

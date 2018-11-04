@@ -20,8 +20,7 @@
 extern "C" {
 #include "hdf5.h"
 }
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include "includes/ublas_interface.h"
 
 // Project includes
 #include "includes/io.h"
@@ -34,10 +33,10 @@ namespace HDF5
 ///@{
 
 template <class T>
-using Vector = boost::numeric::ublas::vector<T>;
+using Vector = DenseVector<T>;
 
 template <class T>
-using Matrix = boost::numeric::ublas::matrix<T>;
+using Matrix = DenseMatrix<T>;
 
 typedef IO::MeshType::NodeType NodeType;
 
@@ -53,11 +52,7 @@ typedef IO::MeshType::ElementsContainerType ElementsContainerType;
 
 typedef IO::MeshType::PropertiesContainerType PropertiesContainerType;
 
-typedef std::vector<ElementType const*> ConstElementsContainerType;
-
 typedef IO::MeshType::ConditionsContainerType ConditionsContainerType;
-
-typedef std::vector<ConditionType const*> ConstConditionsContainerType;
 
 } // namespace HDF5.
 } // namespace Kratos.

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_KMat_DB version="1.2.31">
+<Kratos_KMat_DB version="1.2.32">
     <Materials>
         <MaterialGroup id="Metal" pid="Solid" state="hidden" icon="grey.gif" help="Helptext" open="1">
             <Material id="Steel_AISI1059" pid="Steel_AISI1059" state="hidden" icon="grey.gif" help="Helptext" open="0">

@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 
@@ -21,18 +21,22 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <array>
 
 
 // External	includes
-#include <boost/array.hpp>
 
 // Project includes
 #include "includes/define.h"
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+#include "includes/amatrix_interface.h"
+#else
 #include "includes/ublas_interface.h"
 
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/storage.hpp>
 #include <boost/numeric/ublas/detail/vector_assign.hpp>
+#endif // ifdef KRATOS_USE_AMATRIX
 
 namespace Kratos
 {
@@ -56,6 +60,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+template <typename TDataType, std::size_t TSize> using array_1d = Internals::Matrix<TDataType,TSize, 1>;
+#else
 /// Short	class definition.
 /** Detail class definition.
 */
@@ -78,7 +85,7 @@ public:
     typedef	T value_type;
     typedef	typename boost::numeric::ublas::type_traits<T>::const_reference const_reference;
     typedef	T &reference;
-    typedef	boost::array<T,N> array_type;
+    typedef	std::array<T,N> array_type;
     typedef	T *pointer;
     typedef	array_1d<T, N> self_type;
     typedef	const boost::numeric::ublas::vector_reference<const self_type>	const_closure_type;
@@ -743,6 +750,7 @@ private:
     ///@}
 
 }; // Class	array_1d
+#endif // ifndef KRATOS_USE_AMATRIX
 
 ///@}
 
@@ -759,4 +767,4 @@ private:
 
 }  // namespace	Kratos.
 
-#endif // KRATOS_ARRAY_1D_H_INCLUDED  defined 
+#endif // KRATOS_ARRAY_1D_H_INCLUDED  defined

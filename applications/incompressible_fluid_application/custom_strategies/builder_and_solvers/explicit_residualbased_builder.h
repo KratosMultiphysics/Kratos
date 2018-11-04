@@ -488,12 +488,11 @@ public:
     //**************************************************************************
     //**************************************************************************
     void ResizeAndInitializeVectors( typename TSchemeType::Pointer pScheme,
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& r_model_part
     )
     {
         KRATOS_TRY

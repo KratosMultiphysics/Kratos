@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author1 Fullname
-//                   Author2 Fullname 
+//                   Author2 Fullname
 //
 
 
@@ -16,7 +16,7 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
@@ -27,37 +27,29 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(Kratos@{APP_NAME_CAMEL}Application,m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
+    py::class_<Kratos@{APP_NAME_CAMEL}Application,
+        Kratos@{APP_NAME_CAMEL}Application::Pointer,
+        KratosApplication>(m, "Kratos@{APP_NAME_CAMEL}Application")
+        .def(py::init<>())
+        ;
 
-  using namespace boost::python;
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
+    //registering variables in python
+    @{KRATOS_APP_REGISTER_PYTHON_VARIABLE_LIST}
+    //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
+}
 
-  BOOST_PYTHON_MODULE(Kratos@{APP_NAME_CAMEL}Application)
-  {
-
-	  class_<Kratos@{APP_NAME_CAMEL}Application,
-			  Kratos@{APP_NAME_CAMEL}Application::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("Kratos@{APP_NAME_CAMEL}Application")
-			;
-
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-
-	//registering variables in python
-@{KRATOS_APP_REGISTER_PYTHON_VARIABLE_LIST}
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
-
-
-  }
-
-
-}  // namespace Python.
-
-}  // namespace Kratos.
+} // namespace Python.
+} // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

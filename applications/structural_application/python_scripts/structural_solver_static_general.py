@@ -57,8 +57,8 @@ class StaticStructuralSolver:
         self.norm = 1.0E-6
 
         # definition of the solvers
-        # self.structure_linear_solver  =  SkylineLUFactorizationSolver()
-        self.structure_linear_solver = MKLPardisoSolver()  # SuperLUSolver()
+        self.structure_linear_solver  =  SkylineLUFactorizationSolver()
+        # self.structure_linear_solver = MKLPardisoSolver()  # SuperLUSolver()
 
         # definition of the convergence criteria
 

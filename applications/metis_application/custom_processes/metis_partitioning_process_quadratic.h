@@ -1,50 +1,15 @@
-/*
-==============================================================================
-KratosPFEMApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2009-01-15 11:11:35 $
-//   Revision:            $Revision: 1.6 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                   Jordi Cotela
+//                   Carlos Roig
 //
 
 
@@ -171,7 +136,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY;
 
@@ -215,7 +180,7 @@ public:
         int* coloring_send_buffer = NULL;
 
         // Adding interface meshes
-        mrModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>());
+        mrModelPart.GetMeshes().push_back(Kratos::make_shared<ModelPart::MeshType>());
 
         int colors_number;
 
@@ -284,7 +249,7 @@ public:
         int number_of_meshes =  ModelPart::Kratos_Ownership_Size + colors_number; // (all + local + ghost) + (colors_number for interfaces)
         if(mrModelPart.GetMeshes().size() < static_cast<unsigned int>(number_of_meshes))
             for(int i = mrModelPart.GetMeshes().size() ; i < number_of_meshes ; i++)
-	      mrModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>());
+	      mrModelPart.GetMeshes().push_back(Kratos::make_shared<ModelPart::MeshType>());
 
         for(ModelPart::NodeIterator i_node = temp_nodes.begin() ;
                 i_node != temp_nodes.end() ; i_node++)
@@ -382,19 +347,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MetisPartitioningProcessQuadratic";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MetisPartitioningProcessQuadratic";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -675,7 +640,7 @@ protected:
         mLogFile << rank << " : Elements added" << std::endl;
     }
 
-    virtual void AddingConditions(ModelPart::NodesContainerType& AllNodes, idxtype* NPart, idxtype* EPart, ModelPart::ConditionsContainerType& AllConditions)
+    void AddingConditions(ModelPart::NodesContainerType& AllNodes, idxtype* NPart, idxtype* EPart, ModelPart::ConditionsContainerType& AllConditions) override
     {
         int rank = GetRank();
 
@@ -688,7 +653,7 @@ protected:
         {
             bool is_local = 1;
             // See if all of the condition nodes are in this partition as a local or even as a ghost
-            // TODO: THIS IS DANGEROUSE AND MAY FAILE DUE TO THE MESH!!! MUST BE CHANGED!!
+            // TODO: THIS IS DANGEROUS AND MAY FAILE DUE TO THE MESH!!! MUST BE CHANGED!!
             for(ModelPart::ConditionType::GeometryType::iterator i_node = i_condition->GetGeometry().begin() ;
                     i_node != i_condition->GetGeometry().end() ; i_node++)
                 if(mrModelPart.Nodes().find(i_node->Id()) == mrModelPart.Nodes().end())
@@ -794,6 +759,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_METIS_PARTITIONING_PROCESS_QUADRATIC_INCLUDED defined 
+#endif // KRATOS_METIS_PARTITIONING_PROCESS_QUADRATIC_INCLUDED defined
 
 

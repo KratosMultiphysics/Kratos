@@ -8,19 +8,16 @@
 //
 
 // System includes
-
 #if defined(KRATOS_PYTHON)
-// External includes
-#include <boost/python.hpp>
 
+// External includes
 
 // Project includes
-#include "includes/define.h"
-#include "constitutive_models_application.h"
-#include "constitutive_models_application_variables.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_processes_to_python.h"
+
+#include "constitutive_models_application.h"
+
 
 namespace Kratos
 {
@@ -28,23 +25,24 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace pybind11;
 
 
+PYBIND11_MODULE(KratosConstitutiveModelsApplication,m)
+{
 
-  BOOST_PYTHON_MODULE(KratosConstitutiveModelsApplication)
-  {
-
-    class_<KratosConstitutiveModelsApplication,
-	   KratosConstitutiveModelsApplication::Pointer,
-	   bases<KratosApplication>, boost::noncopyable >("KratosConstitutiveModelsApplication")
+  class_<KratosConstitutiveModelsApplication,
+         KratosConstitutiveModelsApplication::Pointer,
+         KratosApplication>(m,"KratosConstitutiveModelsApplication")
+      .def(init<>())
       ;
 
-    AddCustomConstitutiveLawsToPython(); 
-    AddCustomUtilitiesToPython();
-    AddCustomProcessesToPython();
+  AddCustomConstitutiveLawsToPython(m);
+  AddCustomUtilitiesToPython(m);
 
-  }
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_LAYOUT )
+
+}
 
 
 }  // namespace Python.

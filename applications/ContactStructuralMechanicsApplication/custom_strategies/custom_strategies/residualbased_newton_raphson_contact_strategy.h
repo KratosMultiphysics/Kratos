@@ -15,7 +15,6 @@
 /* System Includes */
 
 /* External Includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "contact_structural_mechanics_application_variables.h"
@@ -30,9 +29,8 @@
 // Utilities
 #include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
+#include "utilities/math_utils.h"
 #include "custom_utilities/process_factory_utility.h"
-
-// TODO: Extend the descriptions
 
 namespace Kratos {
 
@@ -55,10 +53,13 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
     
-/** \brief  Short class definition.
-This class 
+/** 
+ * @class ResidualBasedNewtonRaphsonContactStrategy
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief  Contact Newton Raphson class
+ * @details This class is a specialization of the Newton Raphson strategy with some custom modifications for contact problems
+ * @author Vicente Mataix Ferrandiz
 */
-
 template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
@@ -68,7 +69,8 @@ class ResidualBasedNewtonRaphsonContactStrategy :
     public ResidualBasedNewtonRaphsonStrategy< TSparseSpace, TDenseSpace, TLinearSolver >
 {
 public:
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
+    ///@name Type Definitions
+    ///@{
     
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonContactStrategy );
@@ -76,6 +78,8 @@ public:
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>            StrategyBaseType;
     
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    
+    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
     
     typedef typename BaseType::TBuilderAndSolverType                        TBuilderAndSolverType;
 
@@ -101,20 +105,24 @@ public:
     
     typedef ModelPart::NodesContainerType                                          NodesArrayType;
     
+    typedef ModelPart::ElementsContainerType                                    ElementsArrayType;
+    
     typedef ModelPart::ConditionsContainerType                                ConditionsArrayType;
     
     typedef ProcessFactoryUtility::Pointer                                      ProcessesListType;
     
+    typedef std::size_t                                                                 IndexType;
+    
     /**
-     * Default constructor 
-     * @param rModelPart: The model part of the problem
-     * @param pScheme: The integration scheme
-     * @param pNewLinearSolver: The linear solver employed
-     * @param pNewConvergenceCriteria: The convergence criteria employed
-     * @param MaxIterationNumber: The maximum number of iterations
-     * @param CalculateReactions: The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
-     * @param MoveMeshFlag: The flag that allows to move the mesh
+     * @brief Default constructor 
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of iterations
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
      */
     
     ResidualBasedNewtonRaphsonContactStrategy(
@@ -122,46 +130,39 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})"),
-        ProcessesListType pMyProcesses = nullptr
+        ProcessesListType pMyProcesses = nullptr,
+        ProcessesListType pPostProcesses = nullptr
     )
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
-        mpMyProcesses(pMyProcesses)
+        mThisParameters(ThisParameters),
+        mpMyProcesses(pMyProcesses),
+        mpPostProcesses(pPostProcesses)
     {
         KRATOS_TRY;
 
         mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
         
-        Parameters DefaultParameters = Parameters(R"(
-        {
-            "adaptative_strategy"              : false,
-            "split_factor"                     : 10.0,
-            "max_number_splits"                : 3
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        
-        mAdaptativeStrategy = ThisParameters["adaptative_strategy"].GetBool();
-        mSplitFactor = ThisParameters["split_factor"].GetDouble();
-        mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
+        Parameters default_parameters = GetDefaultParameters(); 
+        mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
 
     /**
-     * Default constructor 
-     * @param rModelPart: The model part of the problem
-     * @param pScheme: The integration scheme
-     * @param pNewLinearSolver: The linear solver employed
-     * @param pNewConvergenceCriteria: The convergence criteria employed
-     * @param MaxIterationNumber: The maximum number of iterations
-     * @param CalculateReactions: The flag for the reaction calculation
-     * @param ReformDofSetAtEachStep: The flag that allows to compute the modification of the DOF
-     * @param MoveMeshFlag: The flag that allows to move the mesh
+     * @brief Default constructor 
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of iterations
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
      */
     
     ResidualBasedNewtonRaphsonContactStrategy(
@@ -170,32 +171,25 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})"),
-        ProcessesListType pMyProcesses = nullptr                                      
+        ProcessesListType pMyProcesses = nullptr,
+        ProcessesListType pPostProcesses = nullptr                                     
         )
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
-        mpMyProcesses(pMyProcesses)
+        mThisParameters(ThisParameters),
+        mpMyProcesses(pMyProcesses),
+        mpPostProcesses(pPostProcesses)
     {
         KRATOS_TRY;
 
         mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
-        
-        Parameters DefaultParameters = Parameters(R"(
-        {
-            "adaptative_strategy"              : false,
-            "split_factor"                     : 10.0,
-            "max_number_splits"                : 3
-        })" );
 
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-        
-        mAdaptativeStrategy = ThisParameters["adaptative_strategy"].GetBool();
-        mSplitFactor = ThisParameters["split_factor"].GetDouble();
-        mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
+        Parameters default_parameters = GetDefaultParameters(); 
+        mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
@@ -211,7 +205,108 @@ public:
     //***********************************************************************************//
     
     /**
-     * Initialization of member variables and prior operations
+     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
+     * values of the solution step of interest are assumed equal to the old values 
+     */   
+    void Predict() override
+    {
+        KRATOS_TRY
+        
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
+        // Set to zero the weighted gap
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
+        const bool frictional = r_model_part.Is(SLIP);
+
+        // We predict contact pressure in case of contact problem
+        if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+            if (frictional) {
+                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+            }
+
+            ConditionsArrayType& conditions_array = r_model_part.GetSubModelPart("ComputingContact").Conditions();
+
+            KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+                (conditions_array.begin() + i)->AddExplicitContribution(r_model_part.GetProcessInfo());
+
+            // We predict a contact pressure
+            ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+            const std::size_t step = r_process_info[STEP];
+
+            if (step == 1) {
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+                }
+            } else {
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) += (it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1));
+
+                }
+            }
+        }
+
+//         BaseType::Predict();  // NOTE: May cause problems in dynamics!!! 
+// 
+//         // Set to zero the weighted gap // NOTE: This can be done during the search if the predict is deactivated
+//         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+//         NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
+//         
+//         // We predict contact pressure in case of contact problem
+//         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
+//             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+//             
+//             ConditionsArrayType& conditions_array = r_model_part.GetSubModelPart("ComputingContact").Conditions();
+//         
+//             if (conditions_array.size() == 0) 
+//                 KRATOS_TRACE("Empty model part") << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+//             
+//             #pragma omp parallel for
+//             for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+//                 (conditions_array.begin() + i)->AddExplicitContribution(r_model_part.GetProcessInfo());
+//             
+//             // We predict a contact pressure
+//             ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+//             const double initial_penalty_parameter = r_process_info[INITIAL_PENALTY];
+//             
+//             // We iterate over the nodes
+//             bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
+// 
+//             #pragma omp parallel for 
+//             for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+//                 auto it_node = nodes_array.begin() + i;
+//                 
+//                 const double current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
+//                 
+//                 const double penalty = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : initial_penalty_parameter;
+//                 
+//                 if (current_gap < 0.0) {
+//                     it_node->Set(ACTIVE, true);
+//                     if (is_components) {
+//                         it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
+//                     } else {
+//                         const array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
+//                         it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;
+//                     }
+//                 }
+//             }
+//         }
+            
+        KRATOS_CATCH("")
+    }
+    
+    /**
+     * @brief Initialization of member variables and prior operations
      */
      
     void Initialize() override
@@ -221,11 +316,48 @@ public:
         BaseType::Initialize();
         mFinalizeWasPerformed = false;
 
+        // Initializing NL_ITERATION_NUMBER
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        r_process_info[NL_ITERATION_NUMBER] = 1;
+
         KRATOS_CATCH("");
     }
     
     /**
-     * Performs all the required operations that should be done (for each step) 
+     * @brief The problem of interest is solved.
+     * @details This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(),
+     * SolveSolutionStep() and FinalizeSolutionStep().
+     * All those functions can otherwise be called separately.
+     */    
+    double Solve() override
+    {
+        this->Initialize();
+        this->InitializeSolutionStep();
+        this->Predict();
+        this->SolveSolutionStep();
+        this->FinalizeSolutionStep();
+        
+        // TODO: Add something if necessary
+        
+        return 0.0;
+    }
+        
+    /**
+     * @brief Performs all the required operations that should be done (for each step) 
+     * before solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+        
+    void InitializeSolutionStep() override
+    {
+        BaseType::InitializeSolutionStep();
+        
+        mFinalizeWasPerformed = false;
+    }
+    
+    /**
+     * @brief Performs all the required operations that should be done (for each step) 
      * after solving the solution step.
      */
     
@@ -233,8 +365,7 @@ public:
     {
         KRATOS_TRY;
 
-        if (mFinalizeWasPerformed == false)
-        {
+        if (mFinalizeWasPerformed == false) {
             BaseType::FinalizeSolutionStep();
             
             // To avoid compute twice the FinalizeSolutionStep
@@ -245,129 +376,66 @@ public:
     }
 
     /**
-     * Solves the current step. This function returns true if a solution has been found, false otherwise.
+     * @brief Solves the current step. 
+     * @details This function returns true if a solution has been found, false otherwise.
      */
     
     bool SolveSolutionStep() override
     {
+        KRATOS_TRY;
+        
 //         bool is_converged = BaseType::SolveSolutionStep(); // FIXME: Requires to separate the non linear iterations 
-        bool is_converged = BaseSolveSolutionStep();
         
-        // Plots a warning if the maximum number of iterations is exceeded
-        if ((mAdaptativeStrategy == true) && (is_converged == false))
-        {
-            if (mpMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
-            {
-                std::cout << "WARNING:: If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
-            }
-        
-            ProcessInfo& this_process_info = StrategyBaseType::GetModelPart().GetProcessInfo();
+//         bool is_converged = BaseSolveSolutionStep(); // Direct solution
+        bool is_converged = false;
 
-            const double original_delta_time = this_process_info[DELTA_TIME]; // We save the delta time to restore later
-            
-            unsigned int split_number = 0;
-            
-            // We iterate until we reach the convergence or we split more than desired
-            while (is_converged == false && split_number <= mMaxNumberSplits)
-            {                   
-                // Expliting time step as a way to try improve the convergence
-                split_number += 1;
-                double aux_delta_time;
-                double current_time; 
-                const double aux_time = SplitTimeStep(aux_delta_time, current_time);
-                
-                bool inside_the_split_is_converged = true;
-                unsigned int inner_iteration = 0;
-                while (inside_the_split_is_converged == true && this_process_info[TIME] <= aux_time)
-                {      
-                    current_time += aux_delta_time;
-                    inner_iteration += 1;
-                    this_process_info[STEP] += 1;
-                    
-                    if (inner_iteration == 1)
-                    {
-                        if (StrategyBaseType::MoveMeshFlag() == true)
-                        {
-                            UnMoveMesh();
-                        }
-                        
-                        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-                        
-                        #pragma omp parallel for
-                        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
-                        {
-                            auto it_node = nodes_array.begin() + i;
-                            
-                            it_node->OverwriteSolutionStepData(1, 0);
-//                             it_node->OverwriteSolutionStepData(2, 1);
-                        }
-                        
-                        this_process_info.SetCurrentTime(current_time); // Reduces the time step
-                        
-                        FinalizeSolutionStep();
-                    }
-                    else
-                    {
-                        NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-                        
-                        #pragma omp parallel for
-                        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
-                        {
-                            auto it_node = nodes_array.begin() + i;
-                            
-                            it_node->CloneSolutionStepData();
-                        }
-                        
-                        this_process_info.CloneSolutionStepInfo();
-                        this_process_info.ClearHistory(StrategyBaseType::GetModelPart().GetBufferSize());
-                        this_process_info.SetAsTimeStepInfo(current_time); // Sets the new time step
-                    }
-                    
-                    // We execute the processes before the non-linear iteration
-                    if (mpMyProcesses != nullptr)
-                    {
-                        // TODO: Think about to add the postprocess processes
-                        mpMyProcesses->ExecuteInitializeSolutionStep();
-                    }
-                    
-                    // In order to initialize again everything
-                    BaseType::mInitializeWasPerformed = false;
-                    mFinalizeWasPerformed = false;
-                    
-                    // We repeat the solve with the new DELTA_TIME
-                    Initialize();
-                    InitializeSolutionStep();
-                    BaseType::Predict();
-                    inside_the_split_is_converged = BaseType::SolveSolutionStep();
-                    FinalizeSolutionStep();
-                    
-                    // We execute the processes after the non-linear iteration
-                    if (mpMyProcesses != nullptr)
-                    {
-                        // TODO: Think about to add the postprocess processes
-                        mpMyProcesses->ExecuteFinalizeSolutionStep();
-//                         mpMyProcesses->ExecuteBeforeOutputStep();
-//                         mpMyProcesses->ExecuteAfterOutputStep();
-                    }
+        // Getting model part
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+
+        if (r_model_part.Is(INTERACTION) == false) {
+            // We get the system
+            TSystemMatrixType& A = *BaseType::mpA;
+            TSystemVectorType& Dx = *BaseType::mpDx;
+            TSystemVectorType& b = *BaseType::mpb;
+
+            // We get the process info
+            ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+
+            int inner_iteration = 0;
+            while (!is_converged && inner_iteration < mThisParameters["inner_loop_iterations"].GetInt()) {
+                ++inner_iteration;
+
+                if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
+                    std::cout << std::endl << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << inner_iteration;;
                 }
-                
-                if (inside_the_split_is_converged == true)
-                {
-                    is_converged = true;
+
+                // We solve one loop
+                r_process_info[NL_ITERATION_NUMBER] = 1;
+                is_converged = BaseSolveSolutionStep();
+
+                // We check the convergence
+                BaseType::mpConvergenceCriteria->SetEchoLevel(0);
+                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, BaseType::GetBuilderAndSolver()->GetDofSet(), A, Dx, b);
+                BaseType::mpConvergenceCriteria->SetEchoLevel(mConvergenceCriteriaEchoLevel);
+
+                if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
+                    if (is_converged) std::cout << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << BOLDFONT(FGRN("CONVERGED")) << std::endl;
+                    else std::cout << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << BOLDFONT(FRED("NOT CONVERGED")) << std::endl;
                 }
             }
-            
-            // Plots a warning if the maximum number of iterations and splits are exceeded
-            if (is_converged == false)
-            {
-                MaxIterationsAndSplitsExceeded();
+        } else {
+            is_converged = BaseSolveSolutionStep();
+        }
+        
+        if (mThisParameters["adaptative_strategy"].GetBool()) {
+            if (is_converged == false) {
+                is_converged = AdaptativeStep();
             }
-            
-            // Restoring original DELTA_TIME
-            this_process_info[DELTA_TIME] = original_delta_time;
         }
 
         return is_converged;
+        
+        KRATOS_CATCH("");
     }
         
     ///@}
@@ -395,27 +463,32 @@ protected:
     ///@name Protected member Variables
     ///@{
     
+    Parameters mThisParameters;        /// The configuration parameters
+
     // ADAPTATIVE STRATEGY PARAMETERS
-    bool mAdaptativeStrategy;         // If consider time split
-    bool mFinalizeWasPerformed;       // If the FinalizeSolutionStep has been already performed
-    double mSplitFactor;              // Number by one the delta time is split
-    ProcessesListType mpMyProcesses;  // The processes list
-    unsigned int mMaxNumberSplits;    // Maximum number of splits
+    bool mFinalizeWasPerformed;        /// If the FinalizeSolutionStep has been already permformed
+    ProcessesListType mpMyProcesses;   /// The processes list
+    ProcessesListType mpPostProcesses; /// The post processes list
     
     // OTHER PARAMETERS
-    int mConvergenceCriteriaEchoLevel; // The echo level of the convergence criteria
+    int mConvergenceCriteriaEchoLevel; /// The echo level of the convergence criteria
 
     ///@}
     ///@name Protected Operators
     ///@{
     
     /**
-     * Solves the current step. This function returns true if a solution has been found, false otherwise.
+     * @brief Solves the current step. 
+     * @details This function returns true if a solution has been found, false otherwise.
      */
     
     bool BaseSolveSolutionStep()
     {
+        KRATOS_TRY;
+        
         // Pointers needed in the solution
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         typename TSchemeType::Pointer pScheme = BaseType::GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = BaseType::GetBuilderAndSolver();
 
@@ -424,29 +497,35 @@ protected:
         TSystemVectorType& b = *BaseType::mpb;
 
         //initializing the parameters of the Newton-Raphson cicle
-        unsigned int iteration_number = 1;
-        StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        IndexType iteration_number = 1;
+        r_process_info[NL_ITERATION_NUMBER] = iteration_number;
 
         bool is_converged = false;
         bool residual_is_updated = false;
-        pScheme->InitializeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
-        is_converged = BaseType::mpConvergenceCriteria->PreCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+        pScheme->InitializeNonLinIteration(r_model_part, A, Dx, b);
+        is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
 
-        //function to perform the building and the solving phase.
-        if (StrategyBaseType::mRebuildLevel > 1 || StrategyBaseType::mStiffnessMatrixIsBuilt == false)
-        {
+        // We do a geometry check before solve the system for first time
+        if (mThisParameters["adaptative_strategy"].GetBool()) {
+            if (CheckGeometryInverted()) {
+                KRATOS_WARNING("Element inverted") << "INVERTED ELEMENT BEFORE FIRST SOLVE"  << std::endl;
+                r_process_info[STEP] -= 1; // We revert one step in the case that the geometry is already broken before start the computing 
+                return false;
+            }
+        }
+        
+        // Function to perform the building and the solving phase.
+        if (StrategyBaseType::mRebuildLevel > 1 || StrategyBaseType::mStiffnessMatrixIsBuilt == false) {
             TSparseSpace::SetToZero(A);
             TSparseSpace::SetToZero(Dx);
             TSparseSpace::SetToZero(b);
 
-            pBuilderAndSolver->BuildAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
-        }
-        else
-        {
+            pBuilderAndSolver->BuildAndSolve(pScheme, r_model_part, A, Dx, b);
+        } else {
             TSparseSpace::SetToZero(Dx); //Dx=0.00;
             TSparseSpace::SetToZero(b);
 
-            pBuilderAndSolver->BuildRHSAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+            pBuilderAndSolver->BuildRHSAndSolve(pScheme, r_model_part, A, Dx, b);
         }
         
         // Debugging info
@@ -454,116 +533,109 @@ protected:
         
         // Updating the results stored in the database
         UpdateDatabase(A, Dx, b, StrategyBaseType::MoveMeshFlag());
-
-        pScheme->FinalizeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
-
-        if (is_converged == true)
-        {
-            //initialisation of the convergence criteria
-            BaseType::mpConvergenceCriteria->InitializeSolutionStep(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
-
-            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
-            {
-                TSparseSpace::SetToZero(b);
-
-                pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+        
+        // We now check the geometry
+        if (mThisParameters["adaptative_strategy"].GetBool()) {
+            if (CheckGeometryInverted()) {
+                KRATOS_WARNING("Element inverted") << "INVERTED ELEMENT DURING DATABASE UPDATE" << std::endl;
+                r_process_info[STEP] -= 1; // We revert one step in the case that the geometry is already broken before start the computing 
+                return false;
             }
-
-            is_converged = BaseType::mpConvergenceCriteria->PostCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
         }
+        
+        pScheme->FinalizeNonLinIteration(r_model_part, A, Dx, b);
 
+        if (is_converged) {
+            //initialisation of the convergence criteria
+            BaseType::mpConvergenceCriteria->InitializeSolutionStep(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
 
-        //Iteration Cicle... performed only for NonLinearProblems
-        while (is_converged == false &&
-                iteration_number++<BaseType::mMaxIterationNumber)
-        {
-            //setting the number of iteration
-            StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-
-            pScheme->InitializeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
-
-            // To be able to calculate the current gap and recalulate the penalty
-            if (StrategyBaseType::GetModelPart().GetProcessInfo()[ADAPT_PENALTY] == true)
-            {
+            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(b);
-                pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+
+                pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
             }
+
+            is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
+        }
+        
+        // Iteration Cicle... performed only for NonLinearProblems
+        while (is_converged == false && iteration_number++<BaseType::mMaxIterationNumber) {
+            //setting the number of iteration
+            r_process_info[NL_ITERATION_NUMBER] = iteration_number;
+
+            pScheme->InitializeNonLinIteration(r_model_part, A, Dx, b);
                     
-            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+            is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
 
             //call the linear system solver to find the correction mDx for the
             //it is not called if there is no system to solve
-            if (SparseSpaceType::Size(Dx) != 0)
-            {
-                if (StrategyBaseType::mRebuildLevel > 1 || StrategyBaseType::mStiffnessMatrixIsBuilt == false )
-                {
-                    if( BaseType::GetKeepSystemConstantDuringIterations() == false)
-                    {
+            if (SparseSpaceType::Size(Dx) != 0) {
+                if (StrategyBaseType::mRebuildLevel > 1 || StrategyBaseType::mStiffnessMatrixIsBuilt == false ) {
+                    if( BaseType::GetKeepSystemConstantDuringIterations() == false) {
                         //A = 0.00;
                         TSparseSpace::SetToZero(A);
                         TSparseSpace::SetToZero(Dx);
                         TSparseSpace::SetToZero(b);
 
-                        pBuilderAndSolver->BuildAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+                        pBuilderAndSolver->BuildAndSolve(pScheme, r_model_part, A, Dx, b);
                     }
-                    else
-                    {
+                    else {
                         TSparseSpace::SetToZero(Dx);
                         TSparseSpace::SetToZero(b);
 
-                        pBuilderAndSolver->BuildRHSAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+                        pBuilderAndSolver->BuildRHSAndSolve(pScheme, r_model_part, A, Dx, b);
                     }
                 }
-                else
-                {
+                else {
                     TSparseSpace::SetToZero(Dx);
                     TSparseSpace::SetToZero(b);
 
-                    pBuilderAndSolver->BuildRHSAndSolve(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
+                    pBuilderAndSolver->BuildRHSAndSolve(pScheme, r_model_part, A, Dx, b);
                 }
+            } else {
+                KRATOS_WARNING("No DoFs") << "ATTENTION: no free DOFs!! " << std::endl;
             }
-            else
-            {
-                std::cout << "ATTENTION: no free DOFs!! " << std::endl;
-            }
-
+            
             // Debugging info
             BaseType::EchoInfo(iteration_number);
         
             // Updating the results stored in the database
             UpdateDatabase(A, Dx, b, StrategyBaseType::MoveMeshFlag());
+            
+            // We now check the geometry
+            if (mThisParameters["adaptative_strategy"].GetBool()) {
+                if (CheckGeometryInverted()) {
+                    KRATOS_WARNING("Element inverted") << "INVERTED ELEMENT DURING DATABASE UPDATE" << std::endl;
+                    r_process_info[STEP] -= 1; // We revert one step in the case that the geometry is already broken before start the computing 
+                    return false;
+                }
+            }
 
-            pScheme->FinalizeNonLinIteration(StrategyBaseType::GetModelPart(), A, Dx, b);
+            pScheme->FinalizeNonLinIteration(r_model_part, A, Dx, b);
 
             residual_is_updated = false;
 
-            if (is_converged == true)
-            {
+            if (is_converged) {
 
-                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true)
-                {
+                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(b);
 
-                    pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), b);
+                    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
                     residual_is_updated = true;
                     //std::cout << "mb is calculated" << std::endl;
                 }
 
-                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(StrategyBaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
+                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
             }
         }
 
-
-        //plots a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= BaseType::mMaxIterationNumber && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-        {
+        // Plots a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= BaseType::mMaxIterationNumber && r_model_part.GetCommunicator().MyPID() == 0)
             MaxIterationsExceeded();
-        }
 
-        //recalculate residual if needed
-        //(note that some convergence criteria need it to be recalculated)
-        if (residual_is_updated == false)
-        {
+        // Recalculate residual if needed
+        // (note that some convergence criteria need it to be recalculated)
+        if (residual_is_updated == false) {
             // NOTE:
             // The following part will be commented because it is time consuming
             // and there is no obvious reason to be here. If someone need this
@@ -571,33 +643,142 @@ protected:
             // Pooyan.
 
             //    TSparseSpace::SetToZero(mb);
-            //    pBuilderAndSolver->BuildRHS(pScheme, StrategyBaseType::GetModelPart(), mb);
+            //    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, mb);
         }
 
-        //calculate reactions if required
-        if (BaseType::mCalculateReactionsFlag == true)
-        {
-            pBuilderAndSolver->CalculateReactions(pScheme, StrategyBaseType::GetModelPart(), A, Dx, b);
-        }
+        // Calculate reactions if required
+        if (BaseType::mCalculateReactionsFlag)
+            pBuilderAndSolver->CalculateReactions(pScheme, r_model_part, A, Dx, b);
 
         return is_converged;
+        
+        KRATOS_CATCH("");
     }
     
     /**
-     * Performs all the required operations that should be done (for each step) 
-     * before solving the solution step.
-     * A member variable should be used as a flag to make sure this function is called only once per step.
+     * @brief This method performs the adaptative step
      */
-        
-    void InitializeSolutionStep() override
+    bool AdaptativeStep()
     {
-        BaseType::InitializeSolutionStep();
+        KRATOS_TRY;
         
-        // TODO: Add something if necessary
+        bool is_converged = false;
+        // Plots a warning if the maximum number of iterations is exceeded
+        if (mpMyProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
+            KRATOS_WARNING("No python processes") << "If you have not implemented any method to recalculate BC or loads in function of time, this strategy will be USELESS" << std::endl;
+    
+        if (mpPostProcesses == nullptr && StrategyBaseType::mEchoLevel > 0)
+            KRATOS_WARNING("No python post processes") << "If you don't add the postprocesses and the time step if splitted you won't postprocess that steps" << std::endl;
+    
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+
+        const double original_delta_time = r_process_info[DELTA_TIME]; // We save the delta time to restore later
+        
+        int split_number = 0;
+        
+        // We iterate until we reach the convergence or we split more than desired
+        while (is_converged == false && split_number <= mThisParameters["max_number_splits"].GetInt()) {
+            // Expliting time step as a way to try improve the convergence
+            split_number += 1;
+            double aux_delta_time, current_time; 
+            const double aux_time = SplitTimeStep(aux_delta_time, current_time);
+            current_time += aux_delta_time;
+            
+            bool inside_the_split_is_converged = false;
+            IndexType inner_iteration = 0;
+            while (current_time <= aux_time) {      
+                inner_iteration += 1;
+                r_process_info[STEP] += 1;
+                
+                if (inner_iteration == 1) {
+                    if (StrategyBaseType::MoveMeshFlag())
+                        UnMoveMesh();
+                    
+                    NodesArrayType& nodes_array = r_model_part.Nodes();
+                    
+                    #pragma omp parallel for
+                    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                        auto it_node = nodes_array.begin() + i;
+                        
+                        it_node->OverwriteSolutionStepData(1, 0);
+//                         it_node->OverwriteSolutionStepData(2, 1);
+                    }
+                    
+                    r_process_info.SetCurrentTime(current_time); // Reduces the time step
+                    
+                    FinalizeSolutionStep();
+                } else {
+                    NodesArrayType& nodes_array = r_model_part.Nodes();
+                    
+                    #pragma omp parallel for
+                    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
+                        (nodes_array.begin() + i)->CloneSolutionStepData();
+                    
+                    r_process_info.CloneSolutionStepInfo();
+                    r_process_info.ClearHistory(r_model_part.GetBufferSize());
+                    r_process_info.SetAsTimeStepInfo(current_time); // Sets the new time step
+                }
+                
+                // We execute the processes before the non-linear iteration
+                if (mpMyProcesses != nullptr)
+                    mpMyProcesses->ExecuteInitializeSolutionStep();
+                
+                if (mpPostProcesses != nullptr)
+                    mpPostProcesses->ExecuteInitializeSolutionStep();
+                
+                // In order to initialize again everything
+                BaseType::mInitializeWasPerformed = false;
+                mFinalizeWasPerformed = false;
+                
+                // We repeat the solve with the new DELTA_TIME
+                this->Initialize();
+                this->InitializeSolutionStep();
+                this->Predict();
+                inside_the_split_is_converged = BaseType::SolveSolutionStep();
+                this->FinalizeSolutionStep();
+                
+                // We execute the processes after the non-linear iteration
+                if (mpMyProcesses != nullptr)
+                    mpMyProcesses->ExecuteFinalizeSolutionStep();
+                
+                if (mpPostProcesses != nullptr)
+                    mpPostProcesses->ExecuteFinalizeSolutionStep();
+                
+                if (mpMyProcesses != nullptr)
+                    mpMyProcesses->ExecuteBeforeOutputStep();
+                
+                if (mpPostProcesses != nullptr)
+                    mpPostProcesses->PrintOutput();
+                
+                if (mpMyProcesses != nullptr)
+                    mpMyProcesses->ExecuteAfterOutputStep();
+                
+                current_time += aux_delta_time;
+            }
+            
+            if (inside_the_split_is_converged)
+                is_converged = true;
+        }
+        
+        // Plots a warning if the maximum number of iterations and splits are exceeded
+        if (is_converged == false)
+            MaxIterationsAndSplitsExceeded();
+        
+        // Restoring original DELTA_TIME
+        r_process_info[DELTA_TIME] = original_delta_time;
+        
+        return is_converged;
+        
+        KRATOS_CATCH("");
     }
     
     /**
-     * Here the database is updated
+     * @brief Here the database is updated
+     * @param A The LHS matrix
+     * @param Dx The increment of solution after solving system
+     * @param b The RHS vector
+     * @param MoveMesh The flag that tells if the mesh should be moved
      */
      
     void UpdateDatabase(
@@ -606,14 +787,59 @@ protected:
         TSystemVectorType& b,
         const bool MoveMesh
         ) override
-    {
+    {        
         BaseType::UpdateDatabase(A,Dx,b,MoveMesh);
         
         // TODO: Add something if necessary
     }
     
     /**
-     * Here the time step is splitted
+     * @brief his method checks if there is no element inverted
+     */
+    bool CheckGeometryInverted()
+    {
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        bool inverted_element = false;
+        
+        ElementsArrayType& elements_array = r_model_part.Elements();
+        
+        // NOT OMP
+        for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) { 
+            auto it_elem = elements_array.begin() + i;
+            auto& geom = it_elem->GetGeometry();
+            if (geom.DeterminantOfJacobian(0) < 0.0) {
+                if (mConvergenceCriteriaEchoLevel > 0) {
+                    KRATOS_WATCH(it_elem->Id())
+                    KRATOS_WATCH(geom.DeterminantOfJacobian(0))
+                }
+                return true;
+            }
+            
+            // We check now the deformation gradient
+            std::vector<Matrix> deformation_gradient_matrices;
+            it_elem->GetValueOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
+            
+            for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
+                const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);
+                if (det_f < 0.0) {
+                    if (mConvergenceCriteriaEchoLevel > 0) {
+                        KRATOS_WATCH(it_elem->Id())
+                        KRATOS_WATCH(det_f)
+                    }
+                    return true;
+                }
+            }
+        }
+        
+        return inverted_element;
+    }
+    
+    /**
+     * @brief Here the time step is splitted
+     * @param AuxDeltaTime The new delta time to be considered
+     * @param CurrentTime The current time 
+     * @return The destination time
      */
     
     double SplitTimeStep(
@@ -627,11 +853,11 @@ protected:
         AuxDeltaTime = StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
         CurrentTime = aux_time - AuxDeltaTime;
         
-        StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] =   CurrentTime; // Restore time to the previous one
-        AuxDeltaTime /= mSplitFactor;
+        StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = CurrentTime; // Restore time to the previous one
+        AuxDeltaTime /= mThisParameters["split_factor"].GetDouble();
         StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = AuxDeltaTime; // Change delta time
         
-        CoutSplittingTime(AuxDeltaTime);
+        CoutSplittingTime(AuxDeltaTime, aux_time);
         
         return aux_time;
         
@@ -647,15 +873,12 @@ protected:
         KRATOS_TRY;
 
         if (StrategyBaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-        {
             KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
-        }
 
         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
 
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
-        {
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
 
             noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
@@ -666,43 +889,64 @@ protected:
     }
     
     /**
-     * This method prints information after solving the problem
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    
+    Parameters GetDefaultParameters()
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "adaptative_strategy"              : false,
+            "split_factor"                     : 10.0,
+            "max_number_splits"                : 3,
+            "inner_loop_iterations"            : 5
+        })" );
+        
+        return default_parameters;
+    }
+    
+    /**
+     * @brief This method prints information after solving the problem
      */
     
     void CoutSolvingProblem()
     {
-        if (mConvergenceCriteriaEchoLevel != 0)
-        {
+        if (mConvergenceCriteriaEchoLevel != 0) {
             std::cout << "STEP: " << StrategyBaseType::GetModelPart().GetProcessInfo()[STEP] << "\t NON LINEAR ITERATION: " << StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
         }
     }
     
     /**
-     * This method prints information after split the increment of time
+     * @brief This method prints information after split the increment of time
+     * @param AuxDeltaTime The new time step to be considered
+     * @param AuxTime The destination time
      */
         
-    void CoutSplittingTime(const double AuxDeltaTime)
+    void CoutSplittingTime(
+        const double AuxDeltaTime, 
+        const double AuxTime
+        )
     {
-        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
-        {
+        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
             const double Time = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
             std::cout.precision(4);
             std::cout << "|----------------------------------------------------|" << std::endl;
-            std::cout << "|     " << BOLDFONT("Max. iter. exceeded: SPLITTING TIME STEP") << "       |" << std::endl;
+            std::cout << "|     " << BOLDFONT("SPLITTING TIME STEP") << "                            |" << std::endl;
             std::cout << "| " << BOLDFONT("COMING BACK TO TIME: ") << std::scientific << Time << "                    |" << std::endl;
             std::cout << "| " << BOLDFONT("      NEW TIME STEP: ") << std::scientific << AuxDeltaTime << "                    |" << std::endl;
+            std::cout << "| " << BOLDFONT("         UNTIL TIME: ") << std::scientific << AuxTime << "                    |" << std::endl;
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
     
     /**
-     * This method prints information after reach the max number of interations
+     * @brief This method prints information after reach the max number of interations
      */
     
     void MaxIterationsExceeded() override
     {
-        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
-        {
+        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
             std::cout << "|----------------------------------------------------|" << std::endl;
             std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
             std::cout << "|----------------------------------------------------|" << std::endl;
@@ -710,13 +954,12 @@ protected:
     }
     
     /**
-     * This method prints information after reach the max number of interations and splits
+     * @brief This method prints information after reach the max number of interations and splits
      */
         
     void MaxIterationsAndSplitsExceeded()
     {
-        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
-        {
+        if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
             std::cout << "|----------------------------------------------------|" << std::endl;
             std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
             std::cout << "|        " << BOLDFONT(FRED("   Max number of splits exceeded  ")) << "          |" << std::endl;

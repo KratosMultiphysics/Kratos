@@ -115,7 +115,7 @@ namespace Kratos
 	}
 
 
-    PlasticDamageInterface2DLaw::PlasticDamageInterface2DLaw() 
+    PlasticDamageInterface2DLaw::PlasticDamageInterface2DLaw()
         : ConstitutiveLaw()
 		, m_initialized(false)
 		, m_error_code(0.0)
@@ -125,7 +125,7 @@ namespace Kratos
 #endif // PDI_USE_SUBINCR
 	{
     }
- 
+
     ConstitutiveLaw::Pointer PlasticDamageInterface2DLaw::Clone() const
     {
         return ConstitutiveLaw::Pointer( new PlasticDamageInterface2DLaw() );
@@ -151,7 +151,7 @@ namespace Kratos
 		if(rThisVariable == EQUIVALENT_PLASTIC_DISPLACEMENT_JUMP_MODE_III) return true;
         return false;
     }
-    
+
     bool PlasticDamageInterface2DLaw::Has(const Variable<Vector>& rThisVariable)
     {
 		if(rThisVariable == INTERFACE_PLASTIC_DISPLACEMENT_JUMP) return true;
@@ -167,7 +167,7 @@ namespace Kratos
     {
         return false;
     }
-    
+
     bool PlasticDamageInterface2DLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
     {
         return false;
@@ -176,17 +176,17 @@ namespace Kratos
     double& PlasticDamageInterface2DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
     {
 		rValue = 0.0;
-		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE) 
+		if(rThisVariable == CONSTITUTIVE_INTEGRATION_ERROR_CODE)
 			rValue = m_error_code;
-		else if(rThisVariable == DAMAGE_T) 
+		else if(rThisVariable == DAMAGE_T)
 			rValue = m_damage_T;
-		else if(rThisVariable == DAMAGE_C) 
+		else if(rThisVariable == DAMAGE_C)
 			rValue = m_damage_C;
-		else if(rThisVariable == EQUIVALENT_PLASTIC_DISPLACEMENT_JUMP_MODE_I) 
+		else if(rThisVariable == EQUIVALENT_PLASTIC_DISPLACEMENT_JUMP_MODE_I)
 			rValue = (m_lambda(0) + m_alpha*m_lambda(1));
-		else if(rThisVariable == EQUIVALENT_PLASTIC_DISPLACEMENT_JUMP_MODE_II) 
+		else if(rThisVariable == EQUIVALENT_PLASTIC_DISPLACEMENT_JUMP_MODE_II)
 			rValue = (m_lambda(0)/m_alpha + m_lambda(1));
-		else if(rThisVariable == EQUIVALENT_PLASTIC_DISPLACEMENT_JUMP_MODE_III) 
+		else if(rThisVariable == EQUIVALENT_PLASTIC_DISPLACEMENT_JUMP_MODE_III)
 			rValue = m_lambda(2);
 		return rValue;
     }
@@ -208,13 +208,13 @@ namespace Kratos
         return rValue;
     }
 
-    array_1d<double, 3 > & PlasticDamageInterface2DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable, 
+    array_1d<double, 3 > & PlasticDamageInterface2DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable,
 																 array_1d<double, 3 > & rValue)
     {
         return rValue;
     }
 
-    array_1d<double, 6 > & PlasticDamageInterface2DLaw::GetValue(const Variable<array_1d<double, 6 > >& rVariable, 
+    array_1d<double, 6 > & PlasticDamageInterface2DLaw::GetValue(const Variable<array_1d<double, 6 > >& rVariable,
 																 array_1d<double, 6 > & rValue)
     {
         return rValue;
@@ -264,7 +264,7 @@ namespace Kratos
 		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_S0) ) return false;
 		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_SP) ) return false;
 		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_EP) ) return false;
-		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_III) ) return false;  
+		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_III) ) return false;
 #endif // !PDINTERF_2D_TEST_ELASTIC
 		return true;
     }
@@ -273,7 +273,7 @@ namespace Kratos
     {
         return ConstitutiveLaw::StrainMeasure_Infinitesimal;
     }
-    
+
     PlasticDamageInterface2DLaw::StressMeasure PlasticDamageInterface2DLaw::GetStressMeasure()
     {
         return ConstitutiveLaw::StressMeasure_Cauchy;
@@ -384,7 +384,7 @@ namespace Kratos
 		{
 			rValues.GetStrainVector() += dEsub;
 			CalculateAll(rValues);
-			if(m_error_code != 0.0) 
+			if(m_error_code != 0.0)
 			{
 				m_lambda_converged   = m_lambda_converged__save;
 				m_up_converged       = m_up_converged__save;
@@ -436,7 +436,7 @@ namespace Kratos
 			{
 				rValues.GetStrainVector() += dEsub;
 				CalculateAll(rValues);
-				if(m_error_code != 0.0) 
+				if(m_error_code != 0.0)
 				{
 					m_lambda_converged   = m_lambda_converged__save;
 					m_up_converged       = m_up_converged__save;
@@ -467,7 +467,7 @@ namespace Kratos
 		noalias(rValues.GetStressVector()) = S;
 		noalias(rValues.GetStrainVector()) = E;
 #else
-		
+
 		CalculateAll(rValues);
 		if(m_error_code != 0.0) return;
 
@@ -475,14 +475,14 @@ namespace Kratos
 
 		Vector E = rValues.GetStrainVector();
 		Vector S = rValues.GetStressVector();
-		
+
 		array_1d<double, 3> copy_lambda	= m_lambda;
 		array_1d<double, 2> copy_up		= m_up;
 		array_1d<double, 2> copy_up_aux	= m_up_aux;
 		double copy_alpha	 = m_alpha;
 		double copy_damage_T = m_damage_T;
 		double copy_damage_C = m_damage_C;
-		
+
 		Vector S2(2);
 		Vector S1(2);
 
@@ -542,7 +542,7 @@ namespace Kratos
 		m_initialized = false;
 		m_lch_multiplier = 1.0;
 		m_error_code = 0.0;
-	
+
 		m_lambda.clear();
 		m_up.clear();
 		m_up_aux.clear();
@@ -574,36 +574,36 @@ namespace Kratos
                                           const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-		
-		if( !rMaterialProperties.Has(NORMAL_STIFFNESS) ) 
+
+		if( !rMaterialProperties.Has(NORMAL_STIFFNESS) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: NORMAL_STIFFNESS", "");
-		if( !rMaterialProperties.Has(TANGENTIAL_STIFFNESS) ) 
+		if( !rMaterialProperties.Has(TANGENTIAL_STIFFNESS) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TANGENTIAL_STIFFNESS", "");
 #ifndef PDINTERF_2D_TEST_ELASTIC
-		if( !rMaterialProperties.Has(INTERFACE_TENSILE_LAW_S0) ) 
+		if( !rMaterialProperties.Has(INTERFACE_TENSILE_LAW_S0) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERFACE_TENSILE_LAW_S0", "");
-		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_I) ) 
+		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_I) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_I", "");
-		if( !rMaterialProperties.Has(INITIAL_COHESION) ) 
+		if( !rMaterialProperties.Has(INITIAL_COHESION) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INITIAL_COHESION", "");
-		if( !rMaterialProperties.Has(INITIAL_FRICTION_ANGLE) ) 
+		if( !rMaterialProperties.Has(INITIAL_FRICTION_ANGLE) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INITIAL_FRICTION_ANGLE", "");
-		if( !rMaterialProperties.Has(INITIAL_DILATANCY_ANGLE) ) 
+		if( !rMaterialProperties.Has(INITIAL_DILATANCY_ANGLE) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INITIAL_DILATANCY_ANGLE", "");
-		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_II) ) 
+		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_II) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_II", "");
-		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_S0) ) 
+		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_S0) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERFACE_COMPRESSIVE_LAW_S0", "");
-		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_SP) ) 
+		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_SP) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERFACE_COMPRESSIVE_LAW_SP", "");
-		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_EP) ) 
+		if( !rMaterialProperties.Has(INTERFACE_COMPRESSIVE_LAW_EP) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERFACE_COMPRESSIVE_LAW_EP", "");
-		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_III) ) 
-			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_III", "");  
+		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_III) )
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_III", "");
 #endif // !PDINTERF_2D_TEST_ELASTIC
-			
+
 		return 0;
-		
+
 		KRATOS_CATCH("");
 	}
 
@@ -679,7 +679,7 @@ namespace Kratos
 	void PlasticDamageInterface2DLaw::HardeningModeI(CalculationData& d, double lambdaI, double& q, double& dq)
 	{
 		double A = std::exp(-d.ft/d.GfI*lambdaI);
-		q = d.ft*A; 
+		q = d.ft*A;
 		dq = -d.ft*d.ft/d.GfI*A;
 	}
 	void PlasticDamageInterface2DLaw::HardeningModeII(CalculationData& d, double lambdaII, double& q, double& dq, double& tanphi)
@@ -852,7 +852,7 @@ namespace Kratos
 		if(Hpc==1.0)
 			qeff = kn*et;
 		else if(Hpc == 0.0)
-			qeff = q;   
+			qeff = q;
 		else
 			qeff = PDIUtils::b3_hardening_function(
 				et,e0,si/kn,ep,ej,ek,er,eu,s0,si,spp,sj,sk,sr,su);
@@ -881,9 +881,9 @@ namespace Kratos
 		dc = 1.0-kdc/d.kn;
 	}
 
-	bool PlasticDamageInterface2DLaw::RMapModeI(CalculationData& d, const Matrix& tule, const Vector& trat, 
+	bool PlasticDamageInterface2DLaw::RMapModeI(CalculationData& d, const Matrix& tule, const Vector& trat,
 												double tolerance, double sign_tau,
-												Vector& tra, Matrix& tunl, double& ft, 
+												Vector& tra, Matrix& tunl, double& ft,
 												double& upeq, array_1d<double,2>& dup, double& dup1, double& dl, double& ovs1)
 	{
 		// constant parameters
@@ -951,7 +951,7 @@ namespace Kratos
 		return converged;
 	}
 
-	bool PlasticDamageInterface2DLaw::RMapModeII(CalculationData& d, const Matrix& tule, const Vector& trat, 
+	bool PlasticDamageInterface2DLaw::RMapModeII(CalculationData& d, const Matrix& tule, const Vector& trat,
 												 double tolerance, double sign_tau,
 												 Vector& tra, Matrix& tunl, double& c, double& tanphi,
 												 double& upeq, array_1d<double,2>& dup, double& dl, double& ovs2)
@@ -997,20 +997,20 @@ namespace Kratos
 			f      = f -d.eta_over_dt*dl;
 			ovs2   = d.eta_over_dt*dl;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
 			if(std::abs(f) < tolerance) {
 				converged = true;
 				break;
 			}
 
-			double dfdl = - tule(1,1) + (tra(0)/unconf-1.0) * 
-							tule(0,0) * (tanpsi-dl*(tanpsiu-tanpsi0)/c0*dyiedk ) * 
-							rdum * tanphi - 
+			double dfdl = - tule(1,1) + (tra(0)/unconf-1.0) *
+							tule(0,0) * (tanpsi-dl*(tanpsiu-tanpsi0)/c0*dyiedk ) *
+							rdum * tanphi -
 							tra(0) * (tanphiu-tanphi0)/c0*dyiedk - dyiedk;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 			dfdl = dfdl -d.eta_over_dt;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
 			dl = dl - f/dfdl;
 
 		}
@@ -1068,9 +1068,9 @@ namespace Kratos
 		return converged;
 	}
 
-	bool PlasticDamageInterface2DLaw::RMapModeIII(CalculationData& d, const Matrix& tule, const Vector& trat, 
+	bool PlasticDamageInterface2DLaw::RMapModeIII(CalculationData& d, const Matrix& tule, const Vector& trat,
 												  double tolerance, double sign_tau,
-												  Vector& tra, Matrix& tunl, double& fc, 
+												  Vector& tra, Matrix& tunl, double& fc,
 												  double& upeq, array_1d<double,2>& dup, double& dup3, double& dl, double& ovs3)
 	{
 		// constant parameters
@@ -1113,12 +1113,12 @@ namespace Kratos
 			a(0,0) = 1.0/(invd(0,0)+dl*p(0,0));
 			a(1,1) = 1.0/(invd(1,1)+dl*p(1,1));
 			noalias(tra) = prod(a,uela);
-    
+
 			// Calculate equivalent plastic strain
 			noalias(gradf) = prod(p,tra);
 			norm_gradf = norm_2(gradf);
 			dupeq = dl*norm_gradf;
-    
+
 			// hardening function
 			HardeningModeIII(d, upeq+dupeq, fc, dyiedk);
 
@@ -1128,25 +1128,25 @@ namespace Kratos
 			f = f -d.eta_over_dt*dupeq;
 			ovs3 = d.eta_over_dt*dupeq;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
 			if(std::abs(f) < tolerance) {
 				converged = true;
 				break;
 			}
-    
+
 			dfdk   = -2.0 * fc * dyiedk;
 			noalias(dkdsig) = dl/norm_gradf * prod(p,gradf);
 			noalias(dsigdl) = -prod(a,gradf);
 			dkdl   = norm_gradf;
-    
-			double dfdl = inner_prod(gradf,dsigdl) + 
+
+			double dfdl = inner_prod(gradf,dsigdl) +
 						  dfdk*inner_prod(dkdsig,dsigdl) + dfdk*dkdl;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 			dfdl = dfdl -d.eta_over_dt*norm_gradf;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
 			dl = dl-f/dfdl;
-    
+
 		}
 
 		// check convergence
@@ -1161,7 +1161,7 @@ namespace Kratos
 
 		//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 		// dup = dl*gradf; // or dupeq*gradf/norm(gradf)
-		// Note: gradf3 is the normal to the cap surface defined on the positive 
+		// Note: gradf3 is the normal to the cap surface defined on the positive
 		// part of tau. so the second component of gradf3 should be
 		// modified with the sign of tau!
 		dup(0) = dl*gradf(0); dup(1)=dl*gradf(1)*sign_tau;
@@ -1199,10 +1199,10 @@ namespace Kratos
 		return converged;
 	}
 
-	bool PlasticDamageInterface2DLaw::RMapCorner_I_II(CalculationData& d, const Matrix& tule, const Vector& trat, 
+	bool PlasticDamageInterface2DLaw::RMapCorner_I_II(CalculationData& d, const Matrix& tule, const Vector& trat,
 													  double tolerance, double sign_tau,
 													  Vector& tra, Matrix& tunl, double& ft, double& c, double& tanphi,
-													  double& upeq1, double& upeq2, array_1d<double,2>& dup, double& dup1, 
+													  double& upeq1, double& upeq2, array_1d<double,2>& dup, double& dup1,
 													  double& dl1, double& dl2, double& ovs1, double& ovs2)
 	{
 		// constant parameters
@@ -1242,10 +1242,10 @@ namespace Kratos
 		{
 			dl1 = x(0);
 			dl2 = x(1);
-    
+
 			dk1 = std::sqrt( dl1 * dl1 + dl2 * dl2 * alpha * alpha );
 			dk2 = std::sqrt( dl1 * dl1 / alpha / alpha + dl2 * dl2 );
-    
+
 			double rdum1 = upeq1 + alpha * upeq2 + dk1;
 			double rdum2 = upeq1 / alpha + upeq2 + dk2;
 			HardeningModeI(d, rdum1, ft, dyi1dk);
@@ -1271,7 +1271,7 @@ namespace Kratos
 
 			func(0)=f1;
 			func(1)=f2;
-    
+
 			if (dk1 > 1.0e-14) {
 				dk1dl1 = dl1 / dk1;
 				dk1dl2 = alpha * alpha * dl2 / dk1;
@@ -1288,26 +1288,26 @@ namespace Kratos
 				dk2dl1 = 0.0;
 				dk2dl2 = 1.0;
 			}
-    
+
 			double psidk2 = - ( tanpsiu - tanpsi0 ) / c0 * dyi2dk;
 			double phidk2 = - ( tanphiu - tanphi0 ) / c0 * dyi2dk ;
 			double sigdl1 = - tule(0,0) - dl2 * tule(0,0) * psidk2 * dk2dl1;
 			double sigdl2 = - tule(0,0) * tanpsi - dl2 * tule(0,0) * psidk2 * dk2dl2;
 			double taudl2 = - tule(1,1);
-    
+
 			jacob(0,0) = sigdl1 - dyi1dk * dk1dl1;
 			jacob(0,1) = sigdl2 - dyi1dk * dk1dl2;
 			jacob(1,0) =          sigdl1 * tanphi + tra(0) * phidk2 * dk2dl1 - dyi2dk * dk2dl1;
 			jacob(1,1) = taudl2 + sigdl2 * tanphi + tra(0) * phidk2 * dk2dl2 - dyi2dk * dk2dl2;
-    
+
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 			jacob(0,0) -= d.eta_over_dt;
 			jacob(1,1) -= d.eta_over_dt;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
 			MathUtils<double>::InvertMatrix2(jacob,invmat,dummy_det);
 			x -= prod(invmat,func);
-    
+
 		}
 
 		// check convergence
@@ -1382,7 +1382,7 @@ namespace Kratos
 		return converged;
 	}
 
-	bool PlasticDamageInterface2DLaw::RMapCorner_II_III(CalculationData& d, const Matrix& tule, const Vector& trat, 
+	bool PlasticDamageInterface2DLaw::RMapCorner_II_III(CalculationData& d, const Matrix& tule, const Vector& trat,
 														double tolerance, double sign_tau,
 														Vector& tra, Matrix& tunl, double& fc, double& c, double& tanphi,
 														double& upeq2, double& upeq3, array_1d<double,2>& dup, double& dup3,
@@ -1429,9 +1429,9 @@ namespace Kratos
 		for (int iter = 1; iter <= miter; iter++)
 		{
 			dl2 = x(0);
-			dl3 = x(1); 
+			dl3 = x(1);
 			dl3 = std::max(dl3,0.0);
-    
+
 			// equivalent plastic strain for shear
 			rdum2 = upeq2 + dl2;
 			HardeningModeII(d,rdum2,c,dyi2dk,tanphi);
@@ -1439,7 +1439,7 @@ namespace Kratos
 			double rdum   = 1.0/(1.0 - dl2*tule(0,0)*tanpsi/unconf + 2.0*dl3*tule(0,0));
 			double rdum1  = 1.0/(1.0 + 2.0*Css*dl3*tule(1,1));
 			tra(0) = rdum * (trat(0)-dl2*tule(0,0)*tanpsi);
-    
+
 			// adjust the dilatancy angle to zero for tra(1) higher than unconf
 			if (tra(0) <= unconf) {
 				tanpsi0 = 0.0;
@@ -1449,13 +1449,13 @@ namespace Kratos
 				tra(0) = rdum * trat(0);
 			}
 			tra(1) = rdum1 * (trat(1)-dl2*tule(1,1));
-   
+
 			// calculate equivalent plastic strain for cap
 			noalias(gradf3) = prod(p,tra);
 			norm_gradf3 = norm_2(gradf3);
 			rdum3 = upeq3 + dl3*norm_gradf3;
 			HardeningModeIII(d,rdum3,fc,dyi3dk);
-    
+
 			double f2 = tra(1) + tra(0) * tanphi - c;
 			double f3 = 0.5 * inner_prod(tra,gradf3) - fc*fc;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1473,7 +1473,7 @@ namespace Kratos
 
 			func(0)=f2;
 			func(1)=f3;
-    
+
 			double sigma2 = std::sqrt( tra(0)*tra(0) + (Css*tra(1))*(Css*tra(1)) );
 			double taudl2 = - tule(1,1) * rdum1;
 			double psidk2 = - (tanpsiu-tanpsi0)/c0 * dyi2dk;
@@ -1484,19 +1484,19 @@ namespace Kratos
 			double k3dsig = 2.0 * dl3 * tra(0) / sigma2;
 			double k3dtau = 2.0 * dl3 * tra(1) * Css*Css / sigma2;
 			dk3dl3 = 2.0 * sigma2;
-    
+
 			jacob(0,0) = taudl2 + sigdl2 * tanphi + tra(0) * phidk2 - dyi2dk;
 			jacob(0,1) = taudl3 + sigdl3 * tanphi;
 			jacob(1,0) = 2.0*tra(0)*sigdl2 + 2.0*Css*tra(1)*taudl2 -
 						 2.0*fc*dyi3dk * (k3dsig*sigdl2 + k3dtau*taudl2);
  			jacob(1,1) = 2.0*tra(0)*sigdl3 + 2.0*Css*tra(1)*taudl3 -
 						 2.0*fc*dyi3dk * (dk3dl3 + k3dsig*sigdl3 + k3dtau*taudl3);
-    
+
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 			jacob(0,0) -= d.eta_over_dt;
 			jacob(1,1) -= d.eta_over_dt*norm_gradf3;
 			//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
 			MathUtils<double>::InvertMatrix2(jacob,invmat,dummy_det);
 			x -= prod(invmat,func);
 			if(x(1) <= 0.0) {
@@ -1522,7 +1522,7 @@ namespace Kratos
 
 		//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 		// dup = dl2*[tanpsi;sign_tau] + dl3*gradf3;
-		// Note: gradf3 is the normal to the cap surface defined on the positive 
+		// Note: gradf3 is the normal to the cap surface defined on the positive
 		// part of tau. so the second component of gradf3 should be
 		// modified with the sign of tau!
 		dup(0) = dl2*tanpsi + dl3*gradf3(0);
@@ -1558,7 +1558,7 @@ namespace Kratos
 		Matrix h(2,2,0.0);
 		h(0,0) = 1.0 / (1.0/tule(0,0) + dl2*tanps1/unconf + dl3*p(0,0));
 		h(1,1) = 1.0 / (1.0/tule(1,1) + dl3*p(0,0));
-      
+
 		// fill matrices [u], [v], [e]
 		Matrix u(2,2);
 		u(0,0) = gradg2(0);
@@ -1704,7 +1704,7 @@ namespace Kratos
 		double tolarance_0 = RMAP_TOL;
 		double abs_tolerance = RMAP_ABS_TOL;
 		double favg        = std::sqrt( std::pow(std::max(f1,0.0),2) +
-										std::pow(std::max(f2,0.0),2) + 
+										std::pow(std::max(f2,0.0),2) +
 										std::pow(std::max(f3,0.0),2) );
 		double tolerance   = std::max(tolarance_0*favg, abs_tolerance);
 		double tolerance3  = tolerance;
@@ -1909,7 +1909,7 @@ namespace Kratos
 			tra(1)         = tra(1)*sign_tau;
 			noalias(tunl)  = tule;
 		}
-		 
+
 		// apply damage
 		if(data.use_damage) {
 			if(yield_mode==0) {
@@ -1971,5 +1971,5 @@ namespace Kratos
 		CC(0,0) = tunl(1,1); CC(0,1) = tunl(1,0);
 		CC(1,0) = tunl(0,1); CC(1,1) = tunl(0,0);
 	}
-	
+
 } /* namespace Kratos.*/

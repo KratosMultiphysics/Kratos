@@ -74,17 +74,17 @@ class PlaneStressFrom3DConstitutiveLawAdapter : public ConstitutiveLawAdapter< T
 public:
 
 	KRATOS_CLASS_POINTER_DEFINITION(PlaneStressFrom3DConstitutiveLawAdapter);
-	
+
 	typedef typename TAdapter::Pointer TAdapterPointer;
-	
+
 	typedef ConstitutiveLawAdapter<TAdapter> MyBase;
 
 	typedef ConstitutiveLaw::Parameters Parameters;
-	
+
 	typedef ConstitutiveLaw::SizeType SizeType;
-	
+
 	typedef ConstitutiveLaw::GeometryType GeometryType;
-	
+
 public:
 
     /**
@@ -96,7 +96,7 @@ public:
 		, m_init_strain()
 	{
 	}
-	
+
     /**
      * Destructor.
      */
@@ -229,7 +229,7 @@ public:
 		MyBase::FinalizeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
 		mEz_converged = mEz;
 	}
- 
+
     /**
      * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see ConstitutiveLaw::Parameters
@@ -238,7 +238,7 @@ public:
 	{
 		CalculateAdaptedMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_PK1);
 	}
-    
+
     /**
      * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see ConstitutiveLaw::Parameters
@@ -247,7 +247,7 @@ public:
 	{
 		CalculateAdaptedMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_PK2);
 	}
-    
+
     /**
      * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see ConstitutiveLaw::Parameters
@@ -256,7 +256,7 @@ public:
 	{
 		CalculateAdaptedMaterialResponse(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
 	}
-    
+
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see ConstitutiveLaw::Parameters
@@ -311,10 +311,10 @@ public:
 	{
 		KRATOS_TRY
 		MyBase::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-		
+
         if(MyBase::mpAdaptee->GetStrainSize() != 6)
 			KRATOS_THROW_ERROR( std::logic_error, "PlaneStressFrom3DConstitutiveLawAdapter - the strain size of the Adaptee material should be 6", "");
-		
+
 		return 0;
 		KRATOS_CATCH("")
 	}
@@ -324,15 +324,15 @@ protected:
     ///@name Protected static Member Variables
     ///@{
     ///@}
-    
+
     ///@name Protected member Variables
     ///@{
     ///@}
-    
+
     ///@name Protected Operators
     ///@{
     ///@}
-    
+
     ///@name Protected Operations
     ///@{
     ///@}
@@ -343,7 +343,7 @@ private:
     ///@name Static Member Variables
     ///@{
     ///@}
-    
+
     ///@name Member Variables
     ///@{
 	bool mInitialized;
@@ -353,18 +353,18 @@ private:
 	Vector m_init_strain;
 
     ///@}
-    
+
     ///@name Private Operators
     ///@{
     ///@}
-    
+
     ///@name Private Operations
     ///@{
 
 	void CalculateAdaptedMaterialResponse(ConstitutiveLaw::Parameters& rValues, ConstitutiveLaw::StressMeasure rStressMeasure)
 	{
 		CHECK_STRAIN_CALCULATION;
-		
+
 		m_error_code = 0.0;
 
 		// some parameters
@@ -393,7 +393,7 @@ private:
 		Vector strain_3d(6);
 		Matrix tangent_3d(6,6,0.0);
 		Vector stress_3d(6, 0.0);
-		
+
 		strain_3d(0) = StrainVector(0);
 		strain_3d(1) = StrainVector(1);
 		strain_3d(2) = mEz(0);
@@ -404,7 +404,7 @@ private:
 		rValues3D.SetStrainVector(strain_3d);
 		rValues3D.SetStressVector(stress_3d);
 		rValues3D.SetConstitutiveMatrix(tangent_3d);
-		
+
 		Flags& options3D = rValues3D.GetOptions();
 		options3D.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 		options3D.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
@@ -498,7 +498,7 @@ private:
 	}
 
     ///@}
-    
+
     ///@name Private  Access
     ///@{
     ///@}

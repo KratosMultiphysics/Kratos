@@ -1,0 +1,172 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "cavity5",
+        "model_part_name" : "Cavity",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                 : "Monolithic",
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "square5"
+        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : false,
+        "maximum_iterations"          : 1000,
+        "dynamic_tau"                 : 0.0,
+        "oss_switch"                  : 0,
+        "relative_velocity_tolerance" : 1e-6,
+        "absolute_velocity_tolerance" : 1e-6,
+        "relative_pressure_tolerance" : 1e-6,
+        "absolute_pressure_tolerance" : 1e-6,
+        "linear_solver_settings"      : {
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 200,
+            "tolerance"           : 1e-9,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "gmres",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false
+        },
+        "volume_model_part_name"      : "Parts_Fluid",
+        "skin_parts"                  : ["NoSlip2D_left_wall","NoSlip2D_right_wall","NoSlip2D_bottom_wall","NoSlip2D_top_wall"],
+        "no_skin_parts"               : ["Pressure_lower_left_corner"],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 1.0
+        },
+        "time_scheme"                 : "steady",
+        "velocity_relaxation"         : 0.9,
+        "pressure_relaxation"         : 0.9
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_left_wall",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_right_wall",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_bottom_wall",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_top_wall",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,true,true],
+            "value"           : [1.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Pressure_lower_left_corner",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0,
+            "constrained"     : true
+        }
+    }],
+    "gravity"                          : [],
+    "auxiliar_process_list"            : [{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.6, 0.6, 0.0],
+            "model_part_name"  : "Cavity",
+            "output_file_settings": {
+                "file_name"  : "steady_cavity5_probe_1.dat"
+            },
+            "output_variables" : [
+                "VELOCITY_X",
+                "VELOCITY_Y",
+                "PRESSURE"]
+        }
+     },{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [0.6, 0.4, 0.0],
+            "model_part_name"  : "Cavity",
+            "output_file_settings": {
+                "file_name"  : "steady_cavity5_probe_2.dat"
+            },
+            "output_variables" : [
+                "VELOCITY_X",
+                "VELOCITY_Y",
+                "PRESSURE"]
+        }
+     },{
+        "python_module"   : "compare_two_files_check_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoFilesCheckProcess",
+        "Parameters" :{
+            "output_file_name"    : "steady_cavity5_probe_1.dat",
+            "reference_file_name" : "steady_cavity5_probe_ref_1.dat",
+            "comparison_type"     : "dat_file",
+            "remove_output_file"    : true,
+            "decimal_places"      : 5
+        }
+    },{
+        "python_module"   : "compare_two_files_check_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoFilesCheckProcess",
+        "Parameters" :{
+            "output_file_name"    : "steady_cavity5_probe_2.dat",
+            "reference_file_name" : "steady_cavity5_probe_ref_2.dat",
+            "comparison_type"     : "dat_file",
+            "remove_output_file"    : true,
+            "decimal_places"      : 5
+        }
+    }]
+}

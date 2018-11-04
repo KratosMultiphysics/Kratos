@@ -1,0 +1,340 @@
+proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+        upvar $TableId MyTableId
+        upvar $TableDict MyTableDict
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            set AuxList [list]
+            if {[lindex [lindex $Groups $i] 6] eq "Table_Interpolation"} {
+                incr MyTableId
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
+                lappend AuxList $MyTableId
+                puts $MyFileVar "Begin Table $MyTableId TIME ${VarName}_X"
+                set Table [lindex [lindex $Groups $i] 7]
+                for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
+                    puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
+                }
+                puts $MyFileVar "End Table"
+                puts $MyFileVar ""
+            } else {
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 0
+            }
+            if {[lindex [lindex $Groups $i] 11] eq "Table_Interpolation"} {
+                incr MyTableId
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 $MyTableId
+                lappend AuxList $MyTableId
+                puts $MyFileVar "Begin Table $MyTableId TIME ${VarName}_Y"
+                set Table [lindex [lindex $Groups $i] 12]
+                for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
+                    puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
+                }
+                puts $MyFileVar "End Table"
+                puts $MyFileVar ""
+            } else {
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table1 0
+            }
+            if {[lindex [lindex $Groups $i] 16] eq "Table_Interpolation"} {
+                incr MyTableId
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table2 $MyTableId
+                lappend AuxList $MyTableId
+                puts $MyFileVar "Begin Table $MyTableId TIME ${VarName}_Z"
+                set Table [lindex [lindex $Groups $i] 17]
+                for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
+                    puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
+                }
+                puts $MyFileVar "End Table"
+                puts $MyFileVar ""
+            } else {
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table2 0
+            }
+            dict set MyTableDict [lindex [lindex $Groups $i] 1] TableList $AuxList
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+
+proc PressureTable {FileVar TableId TableDict CondName VarName} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+        upvar $TableId MyTableId
+        upvar $TableDict MyTableDict
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            set AuxList [list]
+            if {[lindex [lindex $Groups $i] 9] eq "Table_Interpolation"} {
+                incr MyTableId
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
+                lappend AuxList $MyTableId
+                puts $MyFileVar "Begin Table $MyTableId TIME $VarName"
+                set Table [lindex [lindex $Groups $i] 10]
+                for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
+                    puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
+                }
+                puts $MyFileVar "End Table"
+                puts $MyFileVar ""
+            } else {
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 0
+            }
+            dict set MyTableDict [lindex [lindex $Groups $i] 1] TableList $AuxList
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+
+proc ScalarTable {FileVar TableId TableDict CondName VarName} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+        upvar $TableId MyTableId
+        upvar $TableDict MyTableDict
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            set AuxList [list]
+            if {[lindex [lindex $Groups $i] 4] eq "Table_Interpolation"} {
+                incr MyTableId
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 $MyTableId
+                lappend AuxList $MyTableId
+                puts $MyFileVar "Begin Table $MyTableId TIME $VarName"
+                set Table [lindex [lindex $Groups $i] 5]
+                for {set j 2} {$j <= [lindex $Table 1]} {incr j 2} {
+                    puts $MyFileVar "  [lindex $Table $j] [lindex $Table [expr { $j+1 }]]"
+                }
+                puts $MyFileVar "End Table"
+                puts $MyFileVar ""
+            } else {
+                dict set MyTableDict [lindex [lindex $Groups $i] 1] Table0 0
+            }
+            dict set MyTableDict [lindex [lindex $Groups $i] 1] TableList $AuxList
+        }
+    }
+}
+
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
+    if {[llength $Entities] > 0} {
+        upvar $FileVar MyFileVar
+
+        puts $MyFileVar "Begin Elements $ElemName"
+        for {set j 0} {$j < [llength $Entities]} {incr j} {
+            puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType [lindex $Entities $j]]"
+        }
+        puts $MyFileVar "End Elements"
+        puts $MyFileVar ""
+    }
+}
+
+#-------------------------------------------------------------------------------
+
+proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName PropertyDict} {
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+        upvar $ConditionId MyConditionId
+        upvar $ConditionDict MyConditionDict
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            set MyConditionList [list]
+            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] faces]
+            puts $MyFileVar "Begin Conditions $CondName"
+            for {set j 0} {$j < [llength [lindex $Entities 1]]} {incr j} {
+                incr MyConditionId
+                lappend MyConditionList $MyConditionId
+                set ElementGroup [GiD_EntitiesGroups entity_groups element [lindex [lindex $Entities 0] $j]]
+                for {set k 0} {$k < [llength $ElementGroup]} {incr k} {
+                    if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
+                        set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
+                        break
+                    }
+                }
+                set Connectivities [GiD_Mesh get element [lindex [lindex $Entities 0] $j] face [lindex [lindex $Entities 1] $j]]
+                puts $MyFileVar "  $MyConditionId  $PropertyId  $Connectivities"
+            }
+            puts $MyFileVar "End Conditions"
+            puts $MyFileVar ""
+            dict set MyConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+
+proc WriteTypeFaceConditions {FileVar ConditionId ConditionList Group ElemType CondName PropertyDict} {
+    set Entities [GiD_EntitiesGroups get [lindex $Group 1] faces -element_type $ElemType]
+    if {[llength [lindex $Entities 1]] > 0} {
+        upvar $FileVar MyFileVar
+        upvar $ConditionId MyConditionId
+        upvar $ConditionList MyConditionList
+
+        puts $MyFileVar "Begin Conditions $CondName"
+        for {set j 0} {$j < [llength [lindex $Entities 1]]} {incr j} {
+            incr MyConditionId
+            lappend MyConditionList $MyConditionId
+            set ElementGroup [GiD_EntitiesGroups entity_groups element [lindex [lindex $Entities 0] $j]]
+            for {set k 0} {$k < [llength $ElementGroup]} {incr k} {
+                if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
+                    set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
+                    break
+                }
+            }
+            set Connectivities [GiD_Mesh get element [lindex [lindex $Entities 0] $j] face [lindex [lindex $Entities 1] $j]]
+            puts $MyFileVar "  $MyConditionId  $PropertyId  $Connectivities"
+        }
+        puts $MyFileVar "End Conditions"
+        puts $MyFileVar ""
+    }
+}
+
+#-------------------------------------------------------------------------------
+
+proc Triangle2D3Connectivities { ElemId } {
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]"
+}
+
+#-------------------------------------------------------------------------------
+
+proc Quadrilateral2D4Connectivities { ElemId } {
+
+    #Note: It is the same for the Tethrahedron3D4
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+    [lindex $ElementInfo 6]"
+}
+
+#-------------------------------------------------------------------------------
+
+proc Hexahedron3D8Connectivities { ElemId } {
+
+    #It is the same for Quadrilateral2D8
+
+    set ElementInfo [GiD_Mesh get element $ElemId]
+    #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
+    return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
+    [lindex $ElementInfo 6] [lindex $ElementInfo 7] [lindex $ElementInfo 8]\
+    [lindex $ElementInfo 9] [lindex $ElementInfo 10]"
+}
+
+#-------------------------------------------------------------------------------
+
+
+proc WriteElementSubmodelPart {FileVar CondName} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
+            # Tables
+            puts $MyFileVar "  Begin SubModelPartTables"
+            puts $MyFileVar "  End SubModelPartTables"
+            # Nodes
+            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
+            puts $MyFileVar "  Begin SubModelPartNodes"
+            for {set j 0} {$j < [llength $Entities]} {incr j} {
+                puts $MyFileVar "    [lindex $Entities $j]"
+            }
+            puts $MyFileVar "  End SubModelPartNodes"
+            # Elements
+            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] elements]
+            puts $MyFileVar "  Begin SubModelPartElements"
+            for {set j 0} {$j < [llength $Entities]} {incr j} {
+                puts $MyFileVar "    [lindex $Entities $j]"
+            }
+            puts $MyFileVar "  End SubModelPartElements"
+            # Conditions
+            puts $MyFileVar "  Begin SubModelPartConditions"
+            puts $MyFileVar "  End SubModelPartConditions"
+            puts $MyFileVar "End SubModelPart"
+            puts $MyFileVar ""
+        }
+    }
+}
+
+
+#-------------------------------------------------------------------------------
+
+proc WriteConstraintSubmodelPart {FileVar CondName TableDict} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
+            # Tables
+            set TableList [dict get $TableDict [lindex [lindex $Groups $i] 1] TableList]
+            puts $MyFileVar "  Begin SubModelPartTables"
+            for {set j 0} {$j < [llength $TableList]} {incr j} {
+                puts $MyFileVar "    [lindex $TableList $j]"
+            }
+            puts $MyFileVar "  End SubModelPartTables"
+            # Nodes
+            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
+            puts $MyFileVar "  Begin SubModelPartNodes"
+            for {set j 0} {$j < [llength $Entities]} {incr j} {
+                puts $MyFileVar "    [lindex $Entities $j]"
+            }
+            puts $MyFileVar "  End SubModelPartNodes"
+            # Elements
+            puts $MyFileVar "  Begin SubModelPartElements"
+            puts $MyFileVar "  End SubModelPartElements"
+            # Conditions
+            puts $MyFileVar "  Begin SubModelPartConditions"
+            puts $MyFileVar "  End SubModelPartConditions"
+            puts $MyFileVar "End SubModelPart"
+            puts $MyFileVar ""
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+
+proc WriteLoadSubmodelPart {FileVar CondName TableDict ConditionDict} {
+    set Groups [GiD_Info conditions $CondName groups]
+    if {[llength $Groups]>0} {
+        upvar $FileVar MyFileVar
+
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
+            # Tables
+            set TableList [dict get $TableDict [lindex [lindex $Groups $i] 1] TableList]
+            puts $MyFileVar "  Begin SubModelPartTables"
+            for {set j 0} {$j < [llength $TableList]} {incr j} {
+                puts $MyFileVar "    [lindex $TableList $j]"
+            }
+            puts $MyFileVar "  End SubModelPartTables"
+            # Nodes
+            set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] nodes]
+            puts $MyFileVar "  Begin SubModelPartNodes"
+            for {set j 0} {$j < [llength $Entities]} {incr j} {
+                puts $MyFileVar "    [lindex $Entities $j]"
+            }
+            puts $MyFileVar "  End SubModelPartNodes"
+            # Elements
+            puts $MyFileVar "  Begin SubModelPartElements"
+            puts $MyFileVar "  End SubModelPartElements"
+            # Conditions
+            set ConditionList [dict get $ConditionDict [lindex [lindex $Groups $i] 1]]
+            puts $MyFileVar "  Begin SubModelPartConditions"
+            for {set j 0} {$j < [llength $ConditionList]} {incr j} {
+                puts $MyFileVar "    [lindex $ConditionList $j]"
+            }
+            puts $MyFileVar "  End SubModelPartConditions"
+            puts $MyFileVar "End SubModelPart"
+            puts $MyFileVar ""
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------

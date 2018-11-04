@@ -47,7 +47,6 @@ class DamTemperaturebyDeviceProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed"          : false,
                 "value"             : 0.0,
@@ -64,15 +63,17 @@ class DamTemperaturebyDeviceProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mIsFixed = rParameters["is_fixed"].GetBool();
         mValue = rParameters["value"].GetDouble();
+
+        unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
         // Getting the values of the device coordinates
-        mDeviceCoordinates.resize(3, false);
+        mDeviceCoordinates.resize(Dim, false);
         mDeviceCoordinates[0] = rParameters["position"][0].GetDouble();
         mDeviceCoordinates[1] = rParameters["position"][1].GetDouble();
-        mDeviceCoordinates[2] = rParameters["position"][2].GetDouble();
+        if (Dim ==3) mDeviceCoordinates[2] = rParameters["position"][2].GetDouble();
 
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableId = rParameters["table"].GetInt();
@@ -90,12 +91,12 @@ class DamTemperaturebyDeviceProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
 
-        const int nelements = mrModelPart.GetMesh(mMeshId).Elements().size();
+        const int nelements = mrModelPart.GetMesh(0).Elements().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         bool IsInside = false;
         array_1d<double, 3> LocalCoordinates;
@@ -153,19 +154,19 @@ class DamTemperaturebyDeviceProcess : public Process
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamTemperaturebyDeviceProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamTemperaturebyDeviceProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 
@@ -175,7 +176,6 @@ class DamTemperaturebyDeviceProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     bool mIsFixed;
     double mValue;

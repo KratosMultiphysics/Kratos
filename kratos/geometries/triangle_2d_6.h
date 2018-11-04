@@ -48,11 +48,22 @@ namespace Kratos
 ///@{
 
 /**
- * A six node triangular geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Triangle2D6
+ * @ingroup KratosCore
+ * @brief A six node 2D triangular geometry with quadratic shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with:       
+ *          2                    
+ *          |`\              
+ *          |  `\           
+ *          5    `4           
+ *          |      `\          
+ *          |        `\          
+ *          0-----3----1           
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Triangle2D6
     : public Geometry<TPointType>
 {
@@ -343,7 +354,7 @@ public:
 
     //     return p_clone;
     // }
-    
+
     /**
      * returns the local coordinates of all nodes of the current geometry
      * @param rResult a Matrix object that will be overwritten by the result
@@ -457,16 +468,16 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
@@ -491,8 +502,25 @@ public:
     ///@{
 
     /**
-     * TODO: implemented but not yet tested
+     * @brief Returns vector of shape function values at local coordinate.
+     *
+     * For a definition of the shape functions see, e.g.,
+     * https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch18.d/IFEM.Ch18.pdf.
      */
+    Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        if (rResult.size() != 6)
+            rResult.resize(6, false);
+        const double thirdCoord = 1.0 - rCoordinates[0] - rCoordinates[1];
+        rResult[0] = thirdCoord * (2.0 * thirdCoord - 1.0);
+        rResult[1] = rCoordinates[0] * (2.0 * rCoordinates[0] - 1.0);
+        rResult[2] = rCoordinates[1] * (2.0 * rCoordinates[1] - 1.0);
+        rResult[3] = 4.0 * thirdCoord * rCoordinates[0];
+        rResult[4] = 4.0 * rCoordinates[0] * rCoordinates[1];
+        rResult[5] = 4.0 * rCoordinates[1] * thirdCoord;
+        return rResult;
+    }
+
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -626,7 +654,7 @@ public:
 
 
    //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 3 )
             NumberNodesInFaces.resize(3,false);
@@ -638,8 +666,9 @@ public:
     }
 
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
         if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(4,3,false);
 
@@ -648,7 +677,7 @@ public:
         NodesInFaces(1,0)=1;
         NodesInFaces(2,0)=4;
         NodesInFaces(3,0)=2;
- 
+
         NodesInFaces(0,1)=1;//face or master node
         NodesInFaces(1,1)=2;
         NodesInFaces(2,1)=5;
@@ -841,7 +870,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -925,9 +954,6 @@ private:
     ///@{
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
      * @param ThisMethod the current integration method
@@ -965,9 +991,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the local gradients of all shape functions
      * in all integration points.
@@ -1036,9 +1059,6 @@ private:
         return integration_points;
     }
 
-    /**
-     * TODO: testing
-     */
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values =
@@ -1057,9 +1077,6 @@ private:
         return shape_functions_values;
     }
 
-    /**
-     * TODO: testing
-     */
     static const ShapeFunctionsLocalGradientsContainerType
     AllShapeFunctionsLocalGradients()
     {
@@ -1138,5 +1155,4 @@ GeometryData Triangle2D6<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined 
-
+#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined

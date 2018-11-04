@@ -11,7 +11,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Hertz_confined : public DEM_D_Hertz_viscous_Coulomb { 
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_confined : public DEM_D_Hertz_viscous_Coulomb { 
     
     public:
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_confined);

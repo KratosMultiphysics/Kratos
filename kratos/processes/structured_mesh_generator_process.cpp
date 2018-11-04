@@ -124,10 +124,15 @@ namespace Kratos
 				local_coordinates[0] = rMinPoint[0] + (i * local_element_size[0]);
 				local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 				mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
-				if ((i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions))  // Is on skin
-					mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+				if (mCreateSkinSubModelPart && (
+                    (i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions)))  // Is on skin
+					mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
+                                                                                       global_coordinates[1],
+                                                                                       global_coordinates[2]);
 				else
-					mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+					mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0],
+                                                               global_coordinates[1],
+                                                               global_coordinates[2]);
 			}
 		}
 	}
@@ -146,10 +151,16 @@ namespace Kratos
 					local_coordinates[1] = rMinPoint[1] + (j * local_element_size[1]);
 					local_coordinates[2] = rMinPoint[2] + (k * local_element_size[2]);
 					mrGeometry.GlobalCoordinates(global_coordinates, local_coordinates);
-					if ((i == 0) || (i == mNumberOfDivisions) || (j == 0) || (j == mNumberOfDivisions) || (k == 0) || (k == mNumberOfDivisions))  // Is on skin
-						mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+					if (mCreateSkinSubModelPart && (
+                        (i == 0) || (i == mNumberOfDivisions) || (j == 0) ||
+                        (j == mNumberOfDivisions) || (k == 0) || (k == mNumberOfDivisions)))  // Is on skin
+						mrOutputModelPart.GetSubModelPart("Skin").CreateNewNode(node_id++, global_coordinates[0],
+                                                                                           global_coordinates[1],
+                                                                                           global_coordinates[2]);
 					else
-						mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0], global_coordinates[1], global_coordinates[2]);
+						mrOutputModelPart.CreateNewNode(node_id++, global_coordinates[0],
+                                                                   global_coordinates[1],
+                                                                   global_coordinates[2]);
 				}
 			}
 		}

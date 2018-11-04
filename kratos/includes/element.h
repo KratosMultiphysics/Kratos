@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -207,7 +207,7 @@ public:
 	@return SizeType, working space dimension of this geometry.
     */
 
-    SizeType WorkingSpaceDimension() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
     {
          return pGetGeometry()->WorkingSpaceDimension();
     }
@@ -222,7 +222,7 @@ public:
      */
 
     /**
-     * creates a new element pointer
+     * @brief It creates a new element pointer
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -232,12 +232,13 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
+        KRATOS_ERROR << "Please implement the First Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     /**
-     * creates a new element pointer
+     * @brief It creates a new element pointer
      * @param NewId the ID of the new element
      * @param pGeom the geometry to be employed
      * @param pProperties the properties assigned to the new element
@@ -248,12 +249,13 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
+        KRATOS_ERROR << "Please implement the Second Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
     /**
-     * creates a new element pointer and clones the previous element data
+     * @brief It creates a new element pointer and clones the previous element data
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -262,8 +264,11 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	std::cout<<" Call base class element Clone "<<std::endl;
-        return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+        KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
+        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        p_new_elem->SetData(this->GetData());
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
         KRATOS_CATCH("");
     }
 
@@ -741,6 +746,18 @@ public:
      * these methods are: OPTIONAL
      */
 
+    virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+					      std::vector<bool>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+					      std::vector<int>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
@@ -749,6 +766,12 @@ public:
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+					      std::vector< array_1d<double, 6 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -777,12 +800,17 @@ public:
      */
 
     //SET ON INTEGRATION POINTS - METHODS
+    virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
     virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
@@ -821,12 +849,18 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
+    virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
@@ -886,17 +920,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    //METHODS TO BE CLEANED: DEPRECATED start
-
-    //NOTE: They will be deleted in December, 2015
-
-
-    /**
-     * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions
-     * MassMatrix, AddMassMatrix, DampMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */
 
     /**
      * this is called during the assembling process in order
@@ -963,6 +986,8 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
+        if (rOutput.size1() != 0)
+            rOutput.resize(0, 0, false);
     }
 
     /**
@@ -972,6 +997,8 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
+        if (rOutput.size1() != 0)
+            rOutput.resize(0, 0, false);
     }
 
 
@@ -1034,12 +1061,12 @@ public:
     {
       return mData;
     }
-    
+
     void SetData(DataValueContainer const& rThisData)
     {
       mData = rThisData;
     }
-    
+
     /**
      * Check if the Data exists with Has(..) methods:
      */
@@ -1087,27 +1114,27 @@ public:
       {
 	return *this;
       }
-    
+
     Flags const& GetFlags() const
     {
       return *this;
     }
-    
+
     void SetFlags(Flags const& rThisFlags)
     {
       Flags::operator=(rThisFlags);
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
-        
+
     /// Check that the Element has a correctly initialized pointer to a Properties instance.
     bool HasProperties() const
     {
         return mpProperties != nullptr;
     }
-    
+
     ///@}
     ///@name Input and output
     ///@{
@@ -1262,4 +1289,3 @@ KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
 
 } // namespace Kratos.
 #endif // KRATOS_ELEMENT_H_INCLUDED  defined
-

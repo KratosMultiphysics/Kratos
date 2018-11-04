@@ -15,7 +15,7 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 
 // Project includes
@@ -39,20 +39,22 @@ namespace Python
 {
 
 
-void  AddCustomUtilitiesToPython()
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    namespace py = pybind11;
 
 
 //     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 //     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 //     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    
-    class_<AssignEnvironmentCondition > ("AssignEnvironmentCondition", init<>())
+
+    py::class_<AssignEnvironmentCondition > (m, "AssignEnvironmentCondition")
+    .def(py::init<>())
     .def("AssignCondition", &AssignEnvironmentCondition::AssignCondition)
-    ;    
-    class_<EstimateTimeStep < 3 > > ("EstimateTimeStep3D", init<>())
+    ;
+    py::class_<EstimateTimeStep < 3 >, typename EstimateTimeStep < 3 >::Pointer > (m, "EstimateTimeStep3D")
+    .def(py::init<>())
     .def("ComputeDt", &EstimateTimeStep < 3 >::ComputeDt)
     .def("ComputeSolidificationCoolingDt", &EstimateTimeStep < 3 >::ComputeSolidificationCoolingDt)
     .def("EstimateSolidificationTime", &EstimateTimeStep < 3 >::EstimateSolidificationTime)
@@ -63,51 +65,54 @@ void  AddCustomUtilitiesToPython()
 	.def("EstimateCoolingTime", &EstimateTimeStep < 3 >::EstimateCoolingTime)
 	.def("CheckMinTemperature", &EstimateTimeStep < 3 >::CheckMinTemperature)
     ;
-    
-    class_<ParticleLevelSetUtils < 2 > >("ParticleLevelSetUtils2D", init<>())
+
+    py::class_<ParticleLevelSetUtils < 2 >, typename ParticleLevelSetUtils < 2 >::Pointer >(m, "ParticleLevelSetUtils2D")
+    .def(py::init<>())
     .def("Seed", &ParticleLevelSetUtils < 2 > ::Seed)
     .def("StreamlineMove", &ParticleLevelSetUtils < 2 > ::StreamlineMove)
     .def("VisualizationModelPart", &ParticleLevelSetUtils < 2 > ::VisualizationModelPart)
-    .def("FindMaxMinEdgeSize", &ParticleLevelSetUtils < 2 > ::FindMaxMinEdgeSize)    
+    .def("FindMaxMinEdgeSize", &ParticleLevelSetUtils < 2 > ::FindMaxMinEdgeSize)
     .def("ResetParticleRadius", &ParticleLevelSetUtils < 2 > ::ResetParticleRadius)
-    .def("ParticleLevelSetCorrection", &ParticleLevelSetUtils < 2 > ::ParticleLevelSetCorrection) 
+    .def("ParticleLevelSetCorrection", &ParticleLevelSetUtils < 2 > ::ParticleLevelSetCorrection)
     .def("ParticleReseeding", &ParticleLevelSetUtils < 2 > ::ParticleReseeding)
-    ; 
-    
-    class_<ParticleLevelSetUtils < 3 > >("ParticleLevelSetUtils3D", init<>())
+    ;
+
+    py::class_<ParticleLevelSetUtils < 3 >, typename ParticleLevelSetUtils < 3 >::Pointer >(m, "ParticleLevelSetUtils3D")
+    .def(py::init<>())
     .def("Seed", &ParticleLevelSetUtils < 3 > ::Seed)
     .def("StreamlineMove", &ParticleLevelSetUtils < 3 > ::StreamlineMove)
     .def("VisualizationModelPart", &ParticleLevelSetUtils < 3 > ::VisualizationModelPart)
-    .def("FindMaxMinEdgeSize", &ParticleLevelSetUtils < 3 > ::FindMaxMinEdgeSize)      
+    .def("FindMaxMinEdgeSize", &ParticleLevelSetUtils < 3 > ::FindMaxMinEdgeSize)
     .def("ResetParticleRadius", &ParticleLevelSetUtils < 3 > ::ResetParticleRadius)
-    .def("ParticleLevelSetCorrection", &ParticleLevelSetUtils < 3 > ::ParticleLevelSetCorrection) 
+    .def("ParticleLevelSetCorrection", &ParticleLevelSetUtils < 3 > ::ParticleLevelSetCorrection)
     .def("ParticleReseeding", &ParticleLevelSetUtils < 3 > ::ParticleReseeding)
-    ;    
-    class_<BiphasicFillingUtilities > ("BiphasicFillingUtilities", init<>())
+    ;
+    py::class_<BiphasicFillingUtilities, BiphasicFillingUtilities::Pointer > (m, "BiphasicFillingUtilities")
+    .def(py::init<>())
     .def("CreateAutoExitAssignAirSmagorinsky", &BiphasicFillingUtilities::CreateAutoExitAssignAirSmagorinsky)
 	.def("AssignSmoothBoundaryAirExit", &BiphasicFillingUtilities::AssignSmoothBoundaryAirExit)
 	.def("ApplyFluidProperties", &BiphasicFillingUtilities::ApplyFluidProperties)
 	.def("DistanceFarRegionCorrection", &BiphasicFillingUtilities::DistanceFarRegionCorrection)
 	.def("VolumeCorrection", &BiphasicFillingUtilities::VolumeCorrection)
-    .def("ComputeFillPercentage", &BiphasicFillingUtilities::ComputeFillPercentage) 
+    .def("ComputeFillPercentage", &BiphasicFillingUtilities::ComputeFillPercentage)
 	.def("ComputeNetInletVolume", &BiphasicFillingUtilities::ComputeNetInletVolume)
-	.def("ComputeNodalVolume", &BiphasicFillingUtilities::ComputeNodalVolume)	
-    .def("ApplyVelocityLimitation", &BiphasicFillingUtilities::ApplyVelocityLimitation) 
-	.def("LastStepExtrapolations", &BiphasicFillingUtilities::LastStepExtrapolations)  
-	.def("SolidificationDuringFilling", &BiphasicFillingUtilities::SolidificationDuringFilling)  
+	.def("ComputeNodalVolume", &BiphasicFillingUtilities::ComputeNodalVolume)
+    .def("ApplyVelocityLimitation", &BiphasicFillingUtilities::ApplyVelocityLimitation)
+	.def("LastStepExtrapolations", &BiphasicFillingUtilities::LastStepExtrapolations)
+	.def("SolidificationDuringFilling", &BiphasicFillingUtilities::SolidificationDuringFilling)
 	.def("ViscosityBasedSolidification", &BiphasicFillingUtilities::ViscosityBasedSolidification)
-	//.def("MacroPorosityToShrinkageComputation", &BiphasicFillingUtilities::MacroPorosityToShrinkageComputation) 
+	//.def("MacroPorosityToShrinkageComputation", &BiphasicFillingUtilities::MacroPorosityToShrinkageComputation)
 	.def("ComputePosetiveVolume", &BiphasicFillingUtilities::ComputePosetiveVolume)
 	.def("PosetiveVolumeCorrection", &BiphasicFillingUtilities::PosetiveVolumeCorrection)
-	.def("ApplyTemperatureLimitation", &BiphasicFillingUtilities::ApplyTemperatureLimitation) 
-	.def("CheckIfAllNodesAreWet", &BiphasicFillingUtilities::CheckIfAllNodesAreWet) 
+	.def("ApplyTemperatureLimitation", &BiphasicFillingUtilities::ApplyTemperatureLimitation)
+	.def("CheckIfAllNodesAreWet", &BiphasicFillingUtilities::CheckIfAllNodesAreWet)
 	.def("ComputeWetVolume", &BiphasicFillingUtilities::ComputeWetVolume)
 	.def("ComputePartVolume", &BiphasicFillingUtilities::ComputePartVolume)
 	.def("ComputePartArea", &BiphasicFillingUtilities::ComputePartArea)
 	.def("ComputePartInletArea", &BiphasicFillingUtilities::ComputePartInletArea)
 	.def("ComputePartMaxh", &BiphasicFillingUtilities::ComputePartMaxh)
 	.def("ComputePartAvgh", &BiphasicFillingUtilities::ComputePartAvgh)
-    ; 
+    ;
 
 
 }

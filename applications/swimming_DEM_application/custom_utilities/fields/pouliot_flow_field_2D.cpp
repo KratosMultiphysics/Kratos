@@ -20,7 +20,7 @@ void PouliotFlowField2D::UpdateCoordinates(const double time, const array_1d<dou
     }
 }
 
-void PouliotFlowField2D::UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread)
+void PouliotFlowField2D::UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread)
 {
     if (!mCoordinatesAreUpToDate[i_thread]){
         mX[i_thread] = coor[0];

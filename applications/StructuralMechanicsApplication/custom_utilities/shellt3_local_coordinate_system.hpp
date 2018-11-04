@@ -193,46 +193,46 @@ public:
         return mCenter;
     }
 
-    inline const RealType X1()const
+    inline RealType X1()const
     {
         return mP[0][0];
     }
-    inline const RealType X2()const
+    inline RealType X2()const
     {
         return mP[1][0];
     }
-    inline const RealType X3()const
+    inline RealType X3()const
     {
         return mP[2][0];
     }
 
-    inline const RealType Y1()const
+    inline RealType Y1()const
     {
         return mP[0][1];
     }
-    inline const RealType Y2()const
+    inline RealType Y2()const
     {
         return mP[1][1];
     }
-    inline const RealType Y3()const
+    inline RealType Y3()const
     {
         return mP[2][1];
     }
 
-    inline const RealType Z1()const
+    inline RealType Z1()const
     {
         return mP[0][2];
     }
-    inline const RealType Z2()const
+    inline RealType Z2()const
     {
         return mP[1][2];
     }
-    inline const RealType Z3()const
+    inline RealType Z3()const
     {
         return mP[2][2];
     }
 
-    inline const RealType Area()const
+    inline RealType Area()const
     {
         return mArea;
     }

@@ -46,7 +46,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class J2YieldCriterion
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) J2YieldCriterion
 	: public YieldCriterion 
 {
     public:
@@ -86,9 +86,9 @@ class J2YieldCriterion
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha);
+        double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha) override;
 
-	void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha);
+	void CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha) override;
         ///@}
         ///@name Access
         ///@{
@@ -104,13 +104,13 @@ class J2YieldCriterion
         ///@{
 
         // /// Turn back information as a string.
-        // virtual std::string Info() const;
+        // std::string Info() const override;
 
         // /// Print information about this object.
-        // virtual void PrintInfo(std::ostream& rOStream) const;
+        // void PrintInfo(std::ostream& rOStream) const override;
 
         // /// Print object's data.
-        // virtual void PrintData(std::ostream& rOStream) const;
+        // void PrintData(std::ostream& rOStream) const override;
 
 
         ///@}
@@ -188,9 +188,9 @@ class J2YieldCriterion
 
 	// A private default constructor necessary for serialization
 
-	virtual void save(Serializer& rSerializer) const;
+	void save(Serializer& rSerializer) const override;
 
-	virtual void load(Serializer& rSerializer);
+	void load(Serializer& rSerializer) override;
 
         ///@}
         ///@name Private Inquiry

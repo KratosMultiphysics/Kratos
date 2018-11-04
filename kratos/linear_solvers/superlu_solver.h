@@ -2,11 +2,11 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
-//                    
+//
 //
 
 /*
@@ -59,7 +59,6 @@
 // #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
 
 // External includes
-#include "boost/smart_ptr.hpp"
 // #include "utilities/superlu_interface.h"
 #include "includes/ublas_interface.h"
 //#include "boost/numeric/bindings/superlu/superlu.hpp"
@@ -136,7 +135,7 @@ public:
 
         typedef ublas::compressed_matrix<double, ublas::row_major, 0,
                 ublas::unbounded_array<int>, ublas::unbounded_array<double> > cm_t;
-        typedef ublas::matrix<double, ublas::row_major> m_t;
+        typedef DenseMatrix<double, ublas::row_major> m_t;
 
         if(IsNotConsistent(rA, rX, rB))
             return false;
@@ -284,6 +283,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SUPERLU_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_SUPERLU_SOLVER_H_INCLUDED  defined
 
 

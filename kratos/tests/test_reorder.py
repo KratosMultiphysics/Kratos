@@ -8,7 +8,7 @@ import sys
 
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestReorder(KratosUnittest.TestCase):
@@ -18,9 +18,11 @@ class TestReorder(KratosUnittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def test_reorder(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.CreateNewNode(1,0,0,0)
-        model_part.CreateNewNode(2,1,0,0)                
+        model_part.CreateNewNode(2,1,0,0)
         model_part.CreateNewNode(3,2,0,0)
         model_part.CreateNewNode(4,3,0,0)
         model_part.CreateNewNode(5,0,1,0)
@@ -30,7 +32,7 @@ class TestReorder(KratosUnittest.TestCase):
         model_part.CreateNewNode(9,0,2,0)
         model_part.CreateNewNode(10,1,2,0)
         model_part.CreateNewNode(11,2,2,0)
-        model_part.CreateNewNode(12,3,2,0)        
+        model_part.CreateNewNode(12,3,2,0)
         #nodes are numbered as
         #9 10 11 12
         #5 6  7  8
@@ -41,10 +43,10 @@ class TestReorder(KratosUnittest.TestCase):
         model_part.CreateNewElement("Element2D4N",4,[5,6,10,9], model_part.GetProperties()[1])
         model_part.CreateNewElement("Element2D4N",5,[6,7,11,10], model_part.GetProperties()[1])
         model_part.CreateNewElement("Element2D4N",6,[7,8,12,11], model_part.GetProperties()[1])
-        
+
         tmp = KratosMultiphysics.Parameters("{}")
         KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part,tmp).Execute()
-        
+
         #output is
         #7   8 11 12
         #4   5  6 10
@@ -61,10 +63,10 @@ class TestReorder(KratosUnittest.TestCase):
         self.assertEqual(model_part.Nodes[8].X, 1.0);  self.assertEqual(model_part.Nodes[8].Y, 2.0)
         self.assertEqual(model_part.Nodes[11].X, 2.0);  self.assertEqual(model_part.Nodes[11].Y, 2.0)
         self.assertEqual(model_part.Nodes[12].X, 3.0);  self.assertEqual(model_part.Nodes[12].Y, 2.0)
-        
+
         #for node in model_part.Nodes:
             #print(node.Id, node.X,node.Y)
-            
+
         #for elem in model_part.Elements:
             #tmp = []
             #for node in elem.GetNodes():

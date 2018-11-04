@@ -39,8 +39,9 @@ namespace Kratos
                              ParticleCreatorDestructor::Pointer p_creator_destructor,
                              DEM_FEM_Search::Pointer p_dem_fem_search,
                              SpatialSearch::Pointer pSpSearch,
+                             Parameters strategy_parameters,
                              const bool do_search_balls = true)
-      :ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch, do_search_balls)
+      :ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch, strategy_parameters, do_search_balls)
       {
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
       }
@@ -48,8 +49,8 @@ namespace Kratos
       /// Destructor.
       virtual ~IterativeSolverStrategy()
       {
-         Timer::SetOuputFile("TimesPartialRelease");
-         Timer::PrintTimingInformation();
+         //Timer::SetOuputFile("TimesPartialRelease");
+         //Timer::PrintTimingInformation();
       }
 
 

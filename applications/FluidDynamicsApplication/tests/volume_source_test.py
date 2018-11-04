@@ -37,6 +37,7 @@ class VolumeSourceTest(UnitTest.TestCase):
         self.print_reference_values = False
 
     def tearDown(self):
+       
         import os
         with WorkFolderScope("BuoyancyTest"):
             try:
@@ -78,8 +79,8 @@ class VolumeSourceTest(UnitTest.TestCase):
                 self.FinalizeOutput()
 
     def setUpModel(self):
-
-        self.model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.model_part = self.model.CreateModelPart("Fluid")
 
         thermal_settings = ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(TEMPERATURE)
@@ -126,6 +127,7 @@ class VolumeSourceTest(UnitTest.TestCase):
         rel_pres_tol = 1e-5
         abs_pres_tol = 1e-7
         self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
+        self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         alpha = -0.3
         move_mesh = 0

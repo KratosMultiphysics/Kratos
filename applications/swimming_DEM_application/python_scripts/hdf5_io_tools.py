@@ -64,25 +64,17 @@ class FluidHDF5Loader:
             number_of_variables += 9
 
         self.extended_shape = self.shape + (number_of_variables, )
-        self.file_name = self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
+        self.file_name = self.GetFileName()
         self.file_path = main_path + self.file_name
 
         if pp.CFD_DEM["fluid_already_calculated"].GetBool():
 
             with h5py.File(self.file_path, 'r') as f:
-                self.times_str = list([str(key) for key in f.keys() if 'time' in f['/' + key].attrs])
                 nodes_ids = np.array([node_id for node_id in f['nodes'][:, 0]])
                 self.permutations = np.array(range(len(nodes_ids)))
                 # obtaining the vector of permutations by ordering [0, 1, ..., n_nodes] as nodes_ids, by increasing order of id.
                 self.permutations = np.array([x for (y, x) in sorted(zip(nodes_ids, self.permutations))])
-                self.times = np.array([float(f[key].attrs['time']) for key in self.times_str])
-
-                if len(self.times) < 2:
-                    raise ValueError("\nThere are only " + str(len(self.times)) + ' time steps stored in the hdf5 file. At least two are needed.\n')
-
-                self.times_str = np.array([x for (y, x) in sorted(zip(self.times, self.times_str))])
-                self.times = sorted(self.times)
-                self.dt = self.times[-1] - self.times[-2]
+                self.CheckTimes(f)
 
             self.data_array_past = np.zeros(self.extended_shape)
             self.data_array_future = np.zeros(self.extended_shape)
@@ -118,18 +110,32 @@ class FluidHDF5Loader:
 
         self.current_data_array = np.zeros(self.extended_shape)
 
-    def GetTimeIndicesAndWeights(self, current_time, times_array, fluid_dt):
-        index_future = bi.bisect(times_array, current_time)
-        index_past = max(0, index_future - 1)
-        time_past = times_array[index_past]
+    def GetFileName(self):
+        return self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
 
-        if index_future == len(times_array): # we are beyond the last time
+    def CheckTimes(self, hdf5_file):
+        self.times_str = list([str(key) for key in hdf5_file.keys() if 'time' in hdf5_file['/' + key].attrs])
+        self.times = np.array([float(hdf5_file[key].attrs['time']) for key in self.times_str])
+
+        if len(self.times) < 2:
+            raise ValueError("\nThere are only " + str(len(self.times)) + ' time steps stored in the hdf5 file. At least two are needed.\n')
+
+        self.times_str = np.array([x for (y, x) in sorted(zip(self.times, self.times_str))])
+        self.times = sorted(self.times)
+        self.dt = self.times[-1] - self.times[-2]
+
+    def GetTimeIndicesAndWeights(self, current_time):
+        index_future = bi.bisect(self.times, current_time)
+        index_past = max(0, index_future - 1)
+        time_past = self.times[index_past]
+
+        if index_future == len(self.times): # we are beyond the last time
             alpha_past = 0
             alpha_future = 1
             index_future = index_past
             self.there_are_more_steps_to_load = False
         else:
-            alpha_future = max(0, (current_time - time_past) / fluid_dt)
+            alpha_future = max(0, (current_time - time_past) / self.dt)
             alpha_past = 1.0 - alpha_future
 
         return index_past, alpha_past, index_future, alpha_future
@@ -209,7 +215,7 @@ class FluidHDF5Loader:
     def LoadFluid(self, fluid_time):
         Say('\nLoading fluid from hdf5 file...')
         # getting time indices and weights (identifying the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
-        time_index_past, alpha_past, time_index_future, alpha_future = self.GetTimeIndicesAndWeights(fluid_time, self.times, self.dt)
+        time_index_past, alpha_past, time_index_future, alpha_future = self.GetTimeIndicesAndWeights(fluid_time)
         future_step_dataset_name = self.GetDatasetName(time_index_future)
         must_load_from_database = self.time_index_past != time_index_past or self.time_index_future != time_index_future# old and future time steps must be updated
 

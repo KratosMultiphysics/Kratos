@@ -42,7 +42,7 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class TotalUpdatedLagrangianElement
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) TotalUpdatedLagrangianElement
     : public UpdatedLagrangianElement
 {
 public:
@@ -55,7 +55,11 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef UpdatedLagrangianElement::ElementDataType ElementDataType;
+  
     /// Counted pointer of TotalUpdatedLagrangianElement
     KRATOS_CLASS_POINTER_DEFINITION( TotalUpdatedLagrangianElement );
     ///@}
@@ -94,7 +98,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -104,7 +108,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************************************************************************************
     //************************************************************************************
@@ -150,28 +154,28 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementData(ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Transform Element General Variables
      */
-    void TransformElementVariables(ElementVariables & rVariables,
-				   const double& rPointNumber);
+    void TransformElementData(ElementDataType & rVariables,
+				   const double& rPointNumber) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementVariables& rVariables,
-                             const double& rPointNumber);
+    void CalculateKinematics(ElementDataType& rVariables,
+                             const double& rPointNumber) override;
 
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementVariables& rVariables, 
-				 const double& rPointNumber );
+    void GetHistoricalVariables( ElementDataType& rVariables, 
+				 const double& rPointNumber ) override;
 
     /**
      * Calculation of the Deformation Matrix  BL
@@ -183,7 +187,7 @@ protected:
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access
@@ -221,9 +225,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

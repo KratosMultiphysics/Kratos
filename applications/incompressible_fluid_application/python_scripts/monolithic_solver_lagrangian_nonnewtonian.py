@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplication import *
-##from KratosMultiphysics.MKLSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 
@@ -86,7 +85,6 @@ class MonolithicSolver:
         self.linear_solver = SuperLUSolver()
 # self.linear_solver = SuperLUIterativeSolver()
 
-        # self.linear_solver = MKLPardisoSolver()
 
 # pPrecond = DiagonalPreconditioner()
 # pPrecond = ILU0Preconditioner()

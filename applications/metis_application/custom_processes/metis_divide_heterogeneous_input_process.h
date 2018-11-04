@@ -60,10 +60,10 @@ class MetisDivideHeterogeneousInputProcess : public MetisDivideInputToPartitions
 public:
     ///@name Type Definitions
     ///@{
-      
+
     #ifdef KRATOS_USE_METIS_5
       typedef idx_t idxtype;
-    #else 
+    #else
       typedef int idxtype;
     #endif
 
@@ -119,10 +119,10 @@ public:
     /// Generate a partition using Metis.
     /** Partitioned input is written as <problem name>_<mpi rank>.mdpa
      */
-    virtual void Execute()
+    void Execute() override
     {
         // Read nodal graph from input
-        
+
         IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
 
         SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
@@ -136,9 +136,9 @@ public:
         // Write connectivity data in CSR format
         idxtype* NodeIndices = 0;
         idxtype* NodeConnectivities = 0;
-        
-        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);                       
-        
+
+        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
+
         std::vector<idxtype> NodePartition;
         PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
 
@@ -258,19 +258,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MetisDivideHeterogeneousInputProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MetisDivideHeterogeneousInputProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -319,7 +319,7 @@ protected:
 
     ///@}
 
-private:
+protected:
     ///@name Static Member Variables
     ///@{
 
@@ -359,7 +359,7 @@ private:
         idxtype nparts = static_cast<idxtype>(BaseType::mNumberOfPartitions);
         idxtype edgecut;
         rNodePartition.resize(NumNodes);
-        
+
 
 #ifndef KRATOS_USE_METIS_5
         idxtype wgtflag = 0; // Graph is not weighted
@@ -380,18 +380,18 @@ private:
         if(metis_return != METIS_OK)
             std::cout << "metis returns the following error code :" << metis_return << std::endl;
         /*         int METIS PartGraphKway(
-         * idx_t *nvtxs, 
-         * idx_t *ncon, 
-         * idx_t *xadj, 
-         * idx_t *adjncy, 
+         * idx_t *nvtxs,
+         * idx_t *ncon,
+         * idx_t *xadj,
+         * idx_t *adjncy,
          * idx_t *vwgt,   NULL
          * idx_t *vsize,  NULL
          * idx_t *adjwgt,  NULL
-         * idx_t *nparts, 
+         * idx_t *nparts,
          * real_t *tpwgts, NULL
          * real_t ubvec, NULL
-         * idx_t *options, 
-         * idx_t *objval, idx t *part)          
+         * idx_t *options,
+         * idx_t *objval, idx t *part)
          */
 #endif
 

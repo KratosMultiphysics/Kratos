@@ -1,6 +1,10 @@
 {
-    "input_settings":{
+    "input_settings" : {
 	"materials_file_name": "dynamic_tests/solid_elements/dynamic_bossak_TL3D_materials.json"
+    },
+    "time_settings" : {
+        "time_step"  : 0.01,
+        "end_time"   : 0.05
     },
     "model_settings"           : {
         "dimension"            : 3,
@@ -10,10 +14,6 @@
     "solver_settings"          : {
         "solver_type" : "solid_mechanics_implicit_dynamic_solver",
         "Parameters"  : {
-            "time_settings"             : {
-                "time_step"  : 0.01,
-                "end_time"   : 10.0
-            },
             "time_integration_settings" : {
                 "solution_type"      : "Dynamic",
                 "time_integration"   : "Implicit",
@@ -29,21 +29,25 @@
     "constraints_process_list" : [{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
         "value"           : [0.0,0.0,0.0],
-        "interval"        : [0.0,2.49]        
+        "interval"        : [0.0,2.49]
     },{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
-        "value"           : ["current","current","current"],
-        "interval"        : [2.5,5.0]
+        "value"           : [0.0,0.0,0.0],
+	"compound_assignment": "addition",
+	"interval"        : [2.5,5.0]
     },{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto4",
-        "value"           : ["current","current","current"],
+	"value"           : [0.0,0.0,0.0],
+	"compound_assignment": "addition",
         "interval"        : [5.01,7.5]
     },{
         "model_part_name" : "DISPLACEMENT_Displacement_Auto5",
-	"value"           : ["current","current","current"],
+	"value"           : [0.0,0.0,0.0],
+	"compound_assignment": "addition",
         "interval"        : [7.51,10]
     }],
     "loads_process_list"       : [{
+        "python_module"   : "assign_modulus_and_direction_to_nodes_process",
         "model_part_name" : "SelfWeight3D_Self_weight_Auto1",
         "variable_name"   : "VOLUME_ACCELERATION",
         "modulus"         : 9.81,
@@ -56,8 +60,8 @@
         "Parameters"      : {
             "output_variables" : ["DISPLACEMENT_Y"],
             "output_file_name" : "dynamic_tests/solid_elements/dynamic_bossak_TL3D_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto2",
-            "time_frequency"   : 0.5
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "time_frequency"   : 0.01
         }
     }
     ],
@@ -68,8 +72,8 @@
         "Parameters"      : {
             "check_variables" : ["DISPLACEMENT_Y"],
             "input_file_name" : "dynamic_tests/solid_elements/dynamic_bossak_TL3D_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto2",
-            "time_frequency"   : 0.5
+            "model_part_name"  : "Parts_Parts_Auto1",
+            "time_frequency"   : 0.01
         }
     }
     ]

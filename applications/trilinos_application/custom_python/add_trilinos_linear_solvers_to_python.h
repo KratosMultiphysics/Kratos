@@ -20,18 +20,17 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
+#include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 
 namespace Kratos
 {
 namespace Python
 {
-void  AddLinearSolvers();
+void  AddLinearSolvers(pybind11::module& m);
 }  // namespace Python.
 
 }  // namespace Kratos.

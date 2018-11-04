@@ -17,7 +17,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"

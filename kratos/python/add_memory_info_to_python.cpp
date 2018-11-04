@@ -12,11 +12,10 @@
 //
 
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/memory_info.h"
-using namespace boost::python;
 
 namespace Kratos
 {
@@ -25,17 +24,14 @@ namespace Python
 {
 
 //
-void  AddMemoryInfoToPython()
+void  AddMemoryInfoToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    namespace py = pybind11;
 
-    class_<MemoryInfo, MemoryInfo::Pointer, boost::noncopyable>("MemoryInfo")
-    .def(init<>())
-    .def("GetPeakMemoryUsage", &MemoryInfo::GetPeakMemoryUsage)
-    .staticmethod("GetPeakMemoryUsage")
-	.def("GetCurrentMemoryUsage", &MemoryInfo::GetCurrentMemoryUsage)
-    .staticmethod("GetCurrentMemoryUsage")
-    .def(self_ns::str(self))
+    py::class_<MemoryInfo, MemoryInfo::Pointer>(m, "MemoryInfo")
+    .def(py::init<>())
+    .def_static("GetPeakMemoryUsage", &MemoryInfo::GetPeakMemoryUsage)
+	.def_static("GetCurrentMemoryUsage", &MemoryInfo::GetCurrentMemoryUsage)
     ;
 }
 

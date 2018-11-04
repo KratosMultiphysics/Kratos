@@ -10,7 +10,7 @@
 
 namespace Kratos {
 
-    class ContinuumExplicitSolverStrategy : public ExplicitSolverStrategy {
+    class KRATOS_API(DEM_APPLICATION) ContinuumExplicitSolverStrategy : public ExplicitSolverStrategy {
     public:
 
         typedef ExplicitSolverStrategy BaseType;
@@ -49,16 +49,17 @@ namespace Kratos {
                 const int delta_option,
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
-                SpatialSearch::Pointer pSpSearch)
-        : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch) {
+                SpatialSearch::Pointer pSpSearch,
+                Parameters strategy_parameters)
+        : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch, strategy_parameters) {
             BaseType::GetParticleCreatorDestructor() = p_creator_destructor;
         }
 
         /// Destructor.
 
         virtual ~ContinuumExplicitSolverStrategy() {
-            Timer::SetOuputFile("TimesPartialRelease");
-            Timer::PrintTimingInformation();
+            //Timer::SetOuputFile("TimesPartialRelease");
+            //Timer::PrintTimingInformation();
         }
 
         virtual void Initialize() override;

@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Eigen_TL_3D8N_Cube_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "eigen_value",
         "scheme_type"                        : "dynamic",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "echo_level"                         : 0,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -21,7 +23,7 @@
             "materials_filename": "eigen_test/Eigen_TL_3D8N_Cube_test_materials.json"
         },
 	"eigensolver_settings":{
-        "solver_type": "FEAST",
+        "solver_type": "feast",
         "print_feast_output": false,
         "perform_stochastic_estimate": false,
         "solve_eigenvalue_problem": true,
@@ -29,13 +31,14 @@
         "lambda_max": 2.5e3,
         "search_dimension": 6,
         "linear_solver_settings":{
-            "solver_type": "complex_skyline_lu_solver"
+            "solver_type": "SkylineLUComplexSolver"
         }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_Solid"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -50,24 +53,14 @@
     }],
     "loads_process_list"       : [],
     "list_other_processes" :[{
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module" : "StructuralMechanicsApplication",
         "python_module" : "check_eigenvalues_process",
         "help"          : "",
         "process_name"  : "CheckEigenvaluesProcess",
         "Parameters"    : {
             "model_part_name"  : "Structure",
-	        "variable_name"    : "EIGENVALUE_VECTOR",                                              
+	        "variable_name"    : "EIGENVALUE_VECTOR",
             "reference_values" : "[907.790376, 907.790376, 1765.137798, 2254.538816]"
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    }]}
 }

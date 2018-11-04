@@ -58,9 +58,10 @@ class TestCase(KratosUnittest.TestCase):
         node_ids = local_node_ids + ghost_node_ids
         # Create nodes.
         for i in node_ids:
+            radius = 0.5 + 0.5 * ((i - 1) % 3) / 2.0
             phase = 2.0 * math.pi * ((i - 1) // 3) / float(my_num_quad * num_proc)
-            x = math.cos(phase)
-            y = math.sin(phase)
+            x = radius * math.cos(phase)
+            y = radius * math.sin(phase)
             model_part.CreateNewNode(i, x, y, 0.0)
         # Create elements and conditions.
         for i in range(0, num_local_nodes, 3):
@@ -81,6 +82,11 @@ class TestCase(KratosUnittest.TestCase):
             nids = [node_ids[i + 1], node_ids[i + 2], node_ids[i + 5], node_ids[i + 4]]
             model_part.CreateNewElement("Element2D4N", eid, nids, prop)
             model_part.CreateNewCondition("SurfaceCondition3D4N", eid, nids, prop)
+        if my_pid == 0:
+            # Here we create a special condition that only exists on the first
+            # process. This is to test the collective write when at least one
+            # process has an empty set.
+            model_part.CreateNewCondition("LineCondition2D2N", eid + 1, [node_ids[i + 1], node_ids[i + 2]], prop)
         model_part.SetBufferSize(2)
         # Write some data to the nodal solution steps variables.
         for node in model_part.Nodes:
@@ -124,18 +130,11 @@ class TestCase(KratosUnittest.TestCase):
         return HDF5FileParallel(params)
 
     def _get_model_part_io(self, hdf5_file):
-        params = Parameters("""
-        {
-            "prefix" : "/ModelData",
-            "list_of_elements" : ["Element2D3N", "Element2D4N"],
-            "list_of_conditions" : ["SurfaceCondition3D3N", "SurfaceCondition3D4N"]
-        }""")
-        return HDF5PartitionedModelPartIO(params, hdf5_file)
+        return HDF5PartitionedModelPartIO(hdf5_file, "/ModelData")
 
     def _get_nodal_solution_step_data_io(self, hdf5_file):
         params = Parameters("""
         {
-            "partitioned" : true,
             "prefix" : "/ResultsData",
             "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
         }""")

@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Guillermo Casas gcasas@gmail.com
@@ -243,7 +243,7 @@ public:
 
 //        double Area;
 //        array_1d<double, TNumNodes> N;
-//        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+//        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
 //        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
 //        array_1d<double,3> Normal;s

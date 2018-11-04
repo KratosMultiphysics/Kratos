@@ -9,7 +9,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // External includes
 
@@ -22,17 +22,20 @@
 
 
 //......................
-//std::cout<<print...<<std::endl;
+//KRATOS_INFO("DEM") <<print...<<std::endl;
 
 namespace Kratos
-{      
-    
+{
+    template< class TBaseElement >
+    ThermalSphericParticle<TBaseElement>::~ThermalSphericParticle() {}
+
+
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info){
         TBaseElement::Initialize(r_process_info);
          // We can put here UpdateTemperatureDependentRadius()
         mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
-        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];         
+        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];
         //mPreviousTemperature = 250;	// initial temperature in the first time step
         //SetTemperature(mPreviousTemperature);// initial temperature in the first time step
         if (GetGeometry()[0].Coordinates()[1] > 2){ GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)    = 200.0; }
@@ -45,28 +48,28 @@ namespace Kratos
             TBaseElement::InitializeSolutionStep(r_process_info);
             //UpdateTemperatureDependentRadius(r_process_info);
     }
-    
+
     template< class TBaseElement >
     const double& ThermalSphericParticle<TBaseElement>::GetTemperature(){return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);}
-    
+
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::SetTemperature(const double temperature){GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)=temperature;}
-    
-    
+
+
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
             calculation_area = Globals::Pi*rmin*rmin;
     }
-                
+
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info) {                                                                                                                             
-        KRATOS_TRY                           
+    void ThermalSphericParticle<TBaseElement>::ComputeConductiveHeatFlux(const ProcessInfo& r_process_info) {
+        KRATOS_TRY
         mConductiveHeatFlux = 0.0 ;
 
 //        if (GetGeometry()[0].Coordinates()[1] < 0.02){   //0.15
 //        mTemperature    = 0.0;
 //            }
-              
+
         for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             if(mNeighbourElements[i] == NULL) continue;
 
@@ -88,67 +91,67 @@ namespace Kratos
             mConductiveHeatFlux += -mThermalConductivity * inv_distance * calculation_area * (GetTemperature() - other_temperature);
         }       //for each neighbor
 
-        KRATOS_CATCH("")                
-      }         //ComputeHeatFluxes  
-    
-    
-   template< class TBaseElement > 
+        KRATOS_CATCH("")
+      }         //ComputeHeatFluxes
+
+
+   template< class TBaseElement >
    void ThermalSphericParticle<TBaseElement>::ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info)
-                                                       
-        {                                                                                                                             
+
+        {
 //        KRATOS_TRY
-//                    
+//
 //        /* Initializations */
-//        
+//
 //        double ConvectiveHeatFlux                         = 0.0;
 //        double ambient_temperature                        = 0.0;
 //        double convective_heat_transfer_coefficient       = 5000;   // for water 5000 W/m2.K
-//       
-//        if particle_is_boundary{      
+//
+//        if particle_is_boundary{
 //        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-//            
-//            ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]); 
-//            
+//
+//            ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
+//
 //            array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-//            
+//
 //            double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
 //                    other_to_me_vect[1] * other_to_me_vect[1] +
 //                    other_to_me_vect[2] * other_to_me_vect[2]);
-//            
+//
 //            double ThermalConductivity = 50;
 //            double inv_distance = 1/distance;
 //            //double inv_distance = 1/(GetRadius()+other_radius);
-//            
+//
 //            mConvectiveHeatFlux = - convective_heat_transfer_coefficient * boundary_particle_surface_area * (mTemperature - ambient_temperature);
-//                                  
+//
 //        }       //for each neighbor
 //        }
-//        KRATOS_CATCH("")         
-       
-      }         //ComputeHeatFluxes      
-    
+//        KRATOS_CATCH("")
+
+      }         //ComputeHeatFluxes
+
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::CalculateRightHandSide(ProcessInfo& r_current_process_info,
-                                                        double dt, 
+                                                        double dt,
                                                         const array_1d<double,3>& gravity, int search_control) {
         TBaseElement::CalculateRightHandSide(r_current_process_info, dt,  gravity, search_control);
         ComputeConductiveHeatFlux(r_current_process_info);
     }
-        
-    
+
+
     template< class TBaseElement >
     void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(ProcessInfo& r_process_info) {
             TBaseElement::FinalizeSolutionStep(r_process_info);
             UpdateTemperature(r_process_info);
             mPreviousTemperature = GetTemperature();
     }
-    
+
     template< class TBaseElement >
-    void ThermalSphericParticle<TBaseElement>::UpdateTemperature(const ProcessInfo& r_process_info) { 
+    void ThermalSphericParticle<TBaseElement>::UpdateTemperature(const ProcessInfo& r_process_info) {
         double thermal_inertia = GetMass() * mSpecificHeat;
         double dt = r_process_info[DELTA_TIME];
-        if (mSpecificHeat>0) {// putting this condition to avoid issue, when mSpecificHeat is equal zero, which cause the wrong temperature_increment calculation        
-            double temperature_increment = mConductiveHeatFlux / thermal_inertia * dt;            
+        if (mSpecificHeat>0) {// putting this condition to avoid issue, when mSpecificHeat is equal zero, which cause the wrong temperature_increment calculation
+            double temperature_increment = mConductiveHeatFlux / thermal_inertia * dt;
             SetTemperature(GetTemperature() + temperature_increment);
             GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mConductiveHeatFlux;
         }
@@ -192,7 +195,7 @@ namespace Kratos
                                                                                                             double DeltDisp[3], //IN GLOBAL AXES
                                                                                                             double RelVel[3], //IN GLOBAL AXES
                                                                                                             double OldLocalCoordSystem[3][3],
-                                                                                                            double LocalCoordSystem[3][3], 
+                                                                                                            double LocalCoordSystem[3][3],
                                                                                                             SphericParticle* neighbour_iterator) {
 //        double thermalDeltDisp = 0;
 //        double thermalRelVel = 0;

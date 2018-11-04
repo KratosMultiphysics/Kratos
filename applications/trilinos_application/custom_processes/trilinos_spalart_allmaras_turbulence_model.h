@@ -30,8 +30,6 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/schemes/scheme.h"
 
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-
 // Application includes
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incremental_aitken_static_scheme.h"
@@ -131,12 +129,12 @@ public:
 
         //************************************************************************************************
         //construct a new auxiliary model part
-        BaseSpAlType::mspalart_model_part.SetBufferSize(3);
-        BaseSpAlType::mspalart_model_part.GetNodalSolutionStepVariablesList() = BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList();
-        BaseSpAlType::mspalart_model_part.SetBufferSize(BaseSpAlType::mr_model_part.GetBufferSize());
-        BaseSpAlType::mspalart_model_part.SetNodes(BaseSpAlType::mr_model_part.pNodes());
-        BaseSpAlType::mspalart_model_part.SetProcessInfo(BaseSpAlType::mr_model_part.pGetProcessInfo());
-        BaseSpAlType::mspalart_model_part.SetProperties(BaseSpAlType::mr_model_part.pProperties());
+        BaseSpAlType::mrSpalartModelPart.SetBufferSize(3);
+        BaseSpAlType::mrSpalartModelPart.GetNodalSolutionStepVariablesList() = BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList();
+        BaseSpAlType::mrSpalartModelPart.SetBufferSize(BaseSpAlType::mr_model_part.GetBufferSize());
+        BaseSpAlType::mrSpalartModelPart.SetNodes(BaseSpAlType::mr_model_part.pNodes());
+        BaseSpAlType::mrSpalartModelPart.SetProcessInfo(BaseSpAlType::mr_model_part.pGetProcessInfo());
+        BaseSpAlType::mrSpalartModelPart.SetProperties(BaseSpAlType::mr_model_part.pProperties());
 
         // Create a communicator for the new model part and copy the partition information about nodes.
         Communicator& rReferenceComm = BaseSpAlType::mr_model_part.GetCommunicator();
@@ -152,7 +150,7 @@ public:
             pSpalartMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
             pSpalartMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
         }
-        BaseSpAlType::mspalart_model_part.SetCommunicator( pSpalartMPIComm );
+        BaseSpAlType::mrSpalartModelPart.SetCommunicator( pSpalartMPIComm );
 
         std::string ElementName;
         if (BaseSpAlType::mdomain_size == 2)
@@ -167,7 +165,7 @@ public:
         {
             Properties::Pointer properties = iii->pGetProperties();
             Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
-            BaseSpAlType::mspalart_model_part.Elements().push_back(p_element);
+            BaseSpAlType::mrSpalartModelPart.Elements().push_back(p_element);
         }
 
         std::string ConditionName;
@@ -181,11 +179,11 @@ public:
         {
             Properties::Pointer properties = iii->pGetProperties();
             Condition::Pointer p_condition = rReferenceCondition.Create(iii->Id(), iii->GetGeometry(), properties);
-            BaseSpAlType::mspalart_model_part.Conditions().push_back(p_condition);
+            BaseSpAlType::mrSpalartModelPart.Conditions().push_back(p_condition);
         }
 
         // Create a communicator for the new model part
-        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mspalart_model_part);
+        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mrSpalartModelPart);
         CommunicatorGeneration.Execute();
         //CommunicatorGeneration.PrintDebugInfo()
 
@@ -215,7 +213,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mspalart_model_part,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         BaseSpAlType::mpSolutionStrategy->SetEchoLevel(0);
         BaseSpAlType::mpSolutionStrategy->Check();
 
@@ -251,7 +249,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "TrilinosSpalartAllmarasTurbulenceModel";
@@ -259,13 +257,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "TrilinosSpalartAllmarasTurbulenceModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

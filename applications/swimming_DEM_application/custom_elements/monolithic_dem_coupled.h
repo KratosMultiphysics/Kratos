@@ -133,7 +133,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class MonolithicDEMCoupled : public Element
+class KRATOS_API(SWIMMING_DEM_APPLICATION) MonolithicDEMCoupled : public Element
 {
 public:
     ///@name Type Definitions
@@ -250,7 +250,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
+                            PropertiesType::Pointer pProperties) const override
     {
 
         return Element::Pointer(new MonolithicDEMCoupled(NewId, GetGeometry().Create(ThisNodes), pProperties));
@@ -269,7 +269,7 @@ public:
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
             const unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -303,10 +303,10 @@ public:
      * @param rCurrentProcessInfo Process info instance
      */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       ProcessInfo& rCurrentProcessInfo) override
     {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) {
-            
+
             const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize) rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
@@ -335,12 +335,12 @@ public:
      * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         // Calculate this element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -466,7 +466,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
 //        rMassMatrix.resize(0,0,false);
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -480,7 +480,7 @@ public:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -554,7 +554,7 @@ public:
         // Get the element's geometric parameters
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -577,7 +577,7 @@ public:
      */
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
@@ -591,7 +591,7 @@ public:
         // Get this element's geometric properties
         double Area;
         array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
@@ -661,14 +661,14 @@ public:
         noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
 //             if(this->GetValue(TRACK_SUBSCALES) == 1)
 //             {
 //                 // Get this element's geometric properties
 //                 double Area;
 //                 array_1d<double, TNumNodes> N;
-//                 boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+//                 BoundedMatrix<double, TNumNodes, TDim> DN_DX;
 //                 GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 //
 //                 // Calculate this element's fluid properties
@@ -706,6 +706,16 @@ public:
 //             }
     }
 
+    void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override
+    {
+        for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+        {
+            this->GetGeometry()[iNode].SetLock();
+            this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION_OLD) =  this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION);
+            this->GetGeometry()[iNode].UnSetLock();
+        }
+    }
+
     /// Implementation of Calculate to compute an error estimate.
     /**
      * If rVariable == ERROR_RATIO, this function will provide an a posteriori
@@ -721,14 +731,14 @@ public:
      */
     virtual void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ERROR_RATIO)
         {
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -800,7 +810,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Carefully write results to nodal variables, to avoid parallelism problems
@@ -827,14 +837,14 @@ public:
      */
     virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == ADVPROJ) // Compute residual projections for OSS
         {
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -875,7 +885,7 @@ public:
             // Get the element's geometric parameters
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
@@ -943,7 +953,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -951,21 +961,21 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+                            ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
     /**
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0);
+    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
 
     /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
     /**
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
+    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**
@@ -979,7 +989,7 @@ public:
      */
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Obtain a double elemental variable, evaluated on gauss points.
     /**
@@ -995,14 +1005,14 @@ public:
      */
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {
         if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU)
         {
             double TauOne, TauTwo;
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -1036,7 +1046,7 @@ public:
             double TauOne, TauTwo;
             double Area;
             array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double, 3 > AdvVel;
@@ -1111,19 +1121,19 @@ public:
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo) override
     {}
 
     ///@}
@@ -1143,7 +1153,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -1230,7 +1240,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MonolithicDEMCoupled #" << Id();
@@ -1238,7 +1248,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MonolithicDEMCoupled" << TDim << "D";
     }
@@ -1370,7 +1380,7 @@ protected:
     }
 
     virtual void AddRHSLaplacian(VectorType& F,
-                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                                 const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                                  const double Weight)
     {
         double Coef = Weight;
@@ -1418,7 +1428,7 @@ protected:
                                     const double TauOne,
                                     const double TauTwo,
                                     const array_1d<double, TNumNodes>& rShapeFunc,
-                                    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                                    const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                                     const double Weight,
                                     const double DeltaTime = 1.0)
     {
@@ -1548,7 +1558,7 @@ protected:
                           const array_1d<double, 3 > & rAdvVel,
                           const double TauOne,
                           const array_1d<double, TNumNodes>& rShapeFunc,
-                          const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                          const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                           const double Weight)
     {
         const unsigned int BlockSize = TDim + 1;
@@ -1607,7 +1617,7 @@ protected:
             const double TauOne,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+            const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
             const double Weight)
     {
         const unsigned int BlockSize = TDim + 1;
@@ -1749,7 +1759,7 @@ protected:
 //                                                      const double TauOne,
 //                                                      const double TauTwo,
 //                                                      const array_1d< double, TNumNodes >& rShapeFunc,
-//                                                      const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+//                                                      const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
 //                                                      const double Weight,
 //                                                      const double DeltaTime)
 //         {
@@ -1857,7 +1867,7 @@ protected:
                                            array_1d< double, 3 > & rElementalMomRes,
                                            double& rElementalMassRes,
                                            const array_1d< double, TNumNodes >& rShapeFunc,
-                                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                           const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1865,7 +1875,7 @@ protected:
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 //G
         double FluidFraction, FluidFractionRate;
-        array_1d<double,3> FluidFractionGradient(3,0.0);       
+        array_1d<double,3> FluidFractionGradient(3,0.0);
         this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
         this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, FLUID_FRACTION, rShapeDeriv);
         this->EvaluateInPoint(FluidFractionRate,FLUID_FRACTION_RATE,rShapeFunc);
@@ -1887,7 +1897,7 @@ protected:
 //G
     //          rElementalMassRes -= Weight * rShapeDeriv(i, d) * rVelocity[d];
                 rElementalMassRes -= Weight * (FluidFraction * rShapeDeriv(i, d) * rVelocity[d] + FluidFractionGradient[d] * rShapeFunc[i] * rVelocity[d]);
-            }            
+            }
 
         }
 
@@ -1909,7 +1919,7 @@ protected:
                          const double Density,
                          array_1d< double, 3 > & rElementalMomRes,
                          const array_1d< double, TNumNodes >& rShapeFunc,
-                         const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                         const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                          const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1947,7 +1957,7 @@ protected:
                         const double Density,
                         array_1d< double, 3 > & rElementalMomRes,
                         const array_1d< double, TNumNodes >& rShapeFunc,
-                        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                        const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                         const double Weight)
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
@@ -1986,7 +1996,7 @@ protected:
     virtual void GetEffectiveViscosity(const double Density,
                                        const double MolecularViscosity,
                                        const array_1d<double, TNumNodes>& rShapeFunc,
-                                       const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                       const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                        double& TotalViscosity,
                                        const ProcessInfo& rCurrentProcessInfo)
     {
@@ -2049,7 +2059,7 @@ protected:
      * @param Step: The time Step
      */
     virtual void GetAdvectiveVelDivergence(double & rAdvVelDiv,
-                                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+                                           const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
         rAdvVelDiv = 0.0;
 
@@ -2066,7 +2076,7 @@ protected:
     }
 
     virtual void GetAdvectiveVelDivergence(double & rAdvVelDiv,
-                                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                           const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            const std::size_t Step)
     {
         rAdvVelDiv = 0.0;
@@ -2094,7 +2104,7 @@ protected:
      */
     void GetConvectionOperator(array_1d< double, TNumNodes >& rResult,
                                const array_1d< double, 3 > & rVelocity,
-                               const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+                               const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
         // Evaluate (and weight) the a * Grad(Ni) operator in the integration point, for each node i
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) // Loop over nodes
@@ -2131,7 +2141,7 @@ protected:
                                        const array_1d< double, 3 > & rVelocity,
                                        const double & rVelocityDiv,
                                        const array_1d< double, TNumNodes >& rShapeFunc,
-                                       const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+                                       const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
         // Evaluate (and weight) the a * Grad(Ni) + div(a) * Ni operator in the integration point, for each node i
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){ // Loop over nodes{
@@ -2180,7 +2190,7 @@ protected:
 
     virtual void EvaluateGradientOfScalarInPoint(array_1d< double, 3 >& rResult,
                                                  const Variable< double >& rVariable,
-                                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+                                                 const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
 
         for (unsigned int i = 0; i < TNumNodes; ++i) {
@@ -2192,9 +2202,9 @@ protected:
         }
     }
 
-    virtual void EvaluateGradientOfVectorInPoint(boost::numeric::ublas::bounded_matrix<double, TDim, TDim>&  rResult,
+    virtual void EvaluateGradientOfVectorInPoint(BoundedMatrix<double, TDim, TDim>&  rResult,
                                                  const Variable< array_1d<double, 3 > >& rVariable,
-                                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+                                                 const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
         for (unsigned int d1 = 0; d1 < TDim; ++d1) {
 
@@ -2233,8 +2243,10 @@ protected:
 
 
            for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-              double rate = delta_time_inv * (this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION) - this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION, 1));
+              double rate = delta_time_inv * (this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION) - this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION_OLD));
+                this->GetGeometry()[iNode].SetLock();
               this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION_RATE) = rate;
+                this->GetGeometry()[iNode].UnSetLock();
               rResult += rShapeFunc[iNode] * rate;
              }
 
@@ -2297,14 +2309,14 @@ protected:
     double FilterWidth();
 
     /// Return the filter width for the smagorinsky model (Delta squared)
-    double FilterWidth(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& DN_DX);
+    double FilterWidth(const BoundedMatrix<double, TNumNodes, TDim >& DN_DX);
 
     /// Compute the norm of the symmetric gradient of velocity
     /**
      * @param rShapeDeriv derivatives of the shape functions
      * @return Norm of the symmetric gradient
      */
-    double SymmetricGradientNorm(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+    double SymmetricGradientNorm(const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv)
     {
         const unsigned int GradientSize = (TDim*(TDim+1))/2; // Number of different terms in the symmetric gradient matrix
         array_1d<double,GradientSize> GradientVector( GradientSize, 0.0 );
@@ -2349,7 +2361,7 @@ protected:
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
     virtual void AddViscousTerm(MatrixType& rDampingMatrix,
-                                const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                                 const double Weight);
 
     /// Adds the contribution of the viscous term to the momentum equation (alternate).
@@ -2364,18 +2376,18 @@ protected:
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
     void AddBTransCB(MatrixType& rDampingMatrix,
-                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
                      const double Weight)
     {
-        boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
-        boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
+        BoundedMatrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
+        BoundedMatrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
         this->CalculateB(B,rShapeDeriv);
         this->CalculateC(C,Weight);
 
         const unsigned int BlockSize = TDim + 1;
         const unsigned int StrainSize = (TDim*TNumNodes)/2;
 
-        vector<unsigned int> aux(TDim*TNumNodes);
+        DenseVector<unsigned int> aux(TDim*TNumNodes);
         for(unsigned int i=0; i<TNumNodes; i++)
         {
             int base_index = TDim*i;
@@ -2406,7 +2418,7 @@ protected:
     }
 
     void ModulatedGradientDiffusion(MatrixType& rDampingMatrix,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rDN_DX,
+            const BoundedMatrix<double, TNumNodes, TDim >& rDN_DX,
             const double Weight)
     {
         const GeometryType& rGeom = this->GetGeometry();
@@ -2503,8 +2515,8 @@ protected:
      * @param rB Strain rate matrix
      * @param rShapeDeriv Nodal shape funcion derivatives
      */
-    void CalculateB( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
-                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv);
+    void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
+                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);
 
     /// Calculate a matrix that provides the stress given the strain rate
     /**
@@ -2514,7 +2526,7 @@ protected:
      * @param rC Matrix representation of the stress tensor (output)
      * @param Viscosity Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    virtual void CalculateC( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
+    virtual void CalculateC( BoundedMatrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
                              const double Viscosity);
 
     double ConsistentMassCoef(const double Area);
@@ -2551,12 +2563,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

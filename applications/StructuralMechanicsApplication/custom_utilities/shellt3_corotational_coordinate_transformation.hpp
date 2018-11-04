@@ -53,7 +53,7 @@ public:
 
     typedef double RealType;
 
-    typedef bounded_matrix<RealType, 3, 3> TransformationMatrixType;
+    typedef BoundedMatrix<RealType, 3, 3> TransformationMatrixType;
 
     typedef array_1d<RealType, 3> Vector3Type;
 

@@ -19,14 +19,14 @@ namespace Kratos
 
 	namespace Utilities
 	{
-		
+
 		template<class TVec>
 		inline void ShapeFunc(double xi, double eta, TVec & N)
 		{
-			N(0) = 0.25 * (1.0 - xi) * (1.0 - eta); 
-			N(1) = 0.25 * (1.0 + xi) * (1.0 - eta); 
-			N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); 
-			N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); 
+			N(0) = 0.25 * (1.0 - xi) * (1.0 - eta);
+			N(1) = 0.25 * (1.0 + xi) * (1.0 - eta);
+			N(2) = 0.25 * (1.0 + xi) * (1.0 + eta);
+			N(3) = 0.25 * (1.0 - xi) * (1.0 + eta);
 		}
 
 		template<class TMat>
@@ -44,7 +44,7 @@ namespace Kratos
 		}
 
 		template<class TMat>
-		inline void Jacobian(const Element::GeometryType& geom, 
+		inline void Jacobian(const Element::GeometryType& geom,
 							 double xi, double eta, const TMat& dN,
 							 TMat& J, double& detJ)
 		{
@@ -62,7 +62,7 @@ namespace Kratos
 		}
 
 		template<class TMat>
-		inline void Jacobian(const Element::GeometryType& geom, 
+		inline void Jacobian(const Element::GeometryType& geom,
 							 double xi, double eta, const TMat& dN,
 							 TMat& J, double& detJ, TMat& Jinv)
 		{
@@ -112,12 +112,12 @@ namespace Kratos
 			double a11 = C(2, 2);
 			double a12 = a2*a2;
 			double a13 = a1*a1;
-			double detQ = 
-					(a1*a4*a8*cosA + a2*a3*a8*cosA - a1*a3*a10*cosA + 
-					a1*a6*a7*cosA + a2*a5*a7*cosA - a2*a4*a9*cosA - 
-					a1*a5*a10*cosA - a2*a6*a9*cosA)*sinA + 
-					a9*a11*a12 - a4*a6*a13 - a3*a5*a12 + a10*a11*a13 + 
-					a1*a2*a3*a4 + a1*a2*a5*a6 - a1*a2*a7*a8 - 
+			double detQ =
+					(a1*a4*a8*cosA + a2*a3*a8*cosA - a1*a3*a10*cosA +
+					a1*a6*a7*cosA + a2*a5*a7*cosA - a2*a4*a9*cosA -
+					a1*a5*a10*cosA - a2*a6*a9*cosA)*sinA +
+					a9*a11*a12 - a4*a6*a13 - a3*a5*a12 + a10*a11*a13 +
+					a1*a2*a3*a4 + a1*a2*a5*a6 - a1*a2*a7*a8 -
 					a1*a2*a7*a11 - a1*a2*a8*a11 + a1*a2*a9*a10;
 			return detQ;
 		}
@@ -141,16 +141,16 @@ namespace Kratos
     //
     // =====================================================================================
 
-    Q4RIStabElement::Q4RIStabElement(IndexType NewId, 
+    Q4RIStabElement::Q4RIStabElement(IndexType NewId,
 									 GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
 		m_H = ZeroMatrix(2,2);
 		m_H_calculated = false;
     }
-    
-    Q4RIStabElement::Q4RIStabElement(IndexType NewId, 
-									 GeometryType::Pointer pGeometry, 
+
+    Q4RIStabElement::Q4RIStabElement(IndexType NewId,
+									 GeometryType::Pointer pGeometry,
 									 PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
@@ -167,16 +167,16 @@ namespace Kratos
         GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
         return Element::Pointer( new Q4RIStabElement(NewId, newGeom, pProperties) );
     }
-    
+
     Q4RIStabElement::IntegrationMethod Q4RIStabElement::GetIntegrationMethod() const
     {
         return GeometryData::GI_GAUSS_1;
     }
-    
+
     void Q4RIStabElement::Initialize()
     {
 		KRATOS_TRY
-		
+
 		const GeometryType& geom = this->GetGeometry();
 		const PropertiesType& props = this->GetProperties();
 
@@ -253,7 +253,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& geom = GetGeometry(); 
+        GeometryType& geom = GetGeometry();
 
         // verify that the variables are correctly initialized
         if(DISPLACEMENT.Key() == 0)
@@ -320,7 +320,7 @@ namespace Kratos
 
     void Q4RIStabElement::GetFirstDerivativesVector(Vector& values, int Step)
     {
-        if(values.size() != 8)   
+        if(values.size() != 8)
             values.resize(8,false);
 
         const GeometryType & geom = GetGeometry();
@@ -336,7 +336,7 @@ namespace Kratos
 
     void Q4RIStabElement::GetSecondDerivativesVector(Vector& values, int Step)
     {
-        if(values.size() != 8)   
+        if(values.size() != 8)
             values.resize(8,false);
 
         const GeometryType & geom = GetGeometry();
@@ -413,7 +413,7 @@ namespace Kratos
                                                     VectorType& rRightHandSideVector,
                                                     ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true); 
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
     }
 
     void Q4RIStabElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -429,24 +429,24 @@ namespace Kratos
     //
     // =====================================================================================
 
-	void Q4RIStabElement::SetValueOnIntegrationPoints(const Variable<double>& rVariable, 
-													  std::vector<double>& rValues, 
+	void Q4RIStabElement::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+													  std::vector<double>& rValues,
 													  const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rValues.size() == 1)
 			mConstitutiveLaw->SetValue(rVariable, rValues[0], rCurrentProcessInfo);
 	}
 
-    void Q4RIStabElement::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, 
-													  std::vector<Vector>& rValues, 
+    void Q4RIStabElement::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+													  std::vector<Vector>& rValues,
 													  const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rValues.size() == 1)
 			mConstitutiveLaw->SetValue(rVariable, rValues[0], rCurrentProcessInfo);
 	}
 
-    void Q4RIStabElement::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
-													  std::vector<Matrix>& rValues, 
+    void Q4RIStabElement::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+													  std::vector<Matrix>& rValues,
 													  const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rValues.size() == 1)
@@ -505,7 +505,7 @@ namespace Kratos
 		   rVariable == PK2_STRESS_TENSOR ||
 		   rVariable == CAUCHY_STRESS_TENSOR)
 		{
-			
+
 			Matrix& output = rValues[0];
 			if(output.size1() != 2 || output.size2() != 2)
 				output.resize(2,2,false);
@@ -523,7 +523,7 @@ namespace Kratos
 			double y2 = geom[1].Y0();
 			double y3 = geom[2].Y0();
 			double y4 = geom[3].Y0();
-			
+
 			double J0 = ((x1-x3)*(y2-y4) - (x2-x4)*(y1-y3))/ 8.0;
 
 			// strain displacement matrices
@@ -536,7 +536,7 @@ namespace Kratos
 			dNxy /= (8.0*J0);
 
 			Matrix B(3,8,0.0);
-			for (unsigned int i = 0; i < 4; i++) 
+			for (unsigned int i = 0; i < 4; i++)
 			{
 				B(0,2*i)    = dNxy(i,0);
 				B(1,2*i+1)  = dNxy(i,1);
@@ -557,10 +557,10 @@ namespace Kratos
 			else
 			{
 				// compute material response
-			
+
 				Vector S(3, 0.0);  // stress vector
 				Matrix C(3,3,0.0); // material tangent
-				
+
 				ConstitutiveLaw::Parameters matpar;
 				matpar.SetElementGeometry( geom );
 				matpar.SetMaterialProperties( props );
@@ -580,7 +580,7 @@ namespace Kratos
 				Flags& options = matpar.GetOptions();
 				options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 				options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-				
+
 				mConstitutiveLaw->CalculateMaterialResponseCauchy( matpar );
 
 				noalias(output) = MathUtils<double>::StressVectorToTensor(S);
@@ -599,7 +599,7 @@ namespace Kratos
 		if(rValues.size() != 1) rValues.resize(1);
 		rValues[0] = mConstitutiveLaw;
 	}
-    
+
 	void Q4RIStabElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 													   std::vector<double>& rOutput,
 													   const ProcessInfo& rCurrentProcessInfo)
@@ -733,7 +733,7 @@ namespace Kratos
 	}
 
 	void Q4RIStabElement::AddBodyForces(double V, VectorType& rRightHandSideVector)
-	{	
+	{
 		const GeometryType& geom = GetGeometry();
 
 		// Get shape functions
@@ -768,10 +768,10 @@ namespace Kratos
                                        const bool LHSrequired,
                                        const bool RHSrequired)
     {
-		
+
 		const GeometryType&   geom  = GetGeometry();
 		const PropertiesType& props = GetProperties();
-		
+
         // Resize the Left Hand Side if necessary,
         // and initialize it to Zero
 
@@ -800,7 +800,7 @@ namespace Kratos
 		double J0 = ((x1-x3)*(y2-y4) - (x2-x4)*(y1-y3))/ 8.0;
 		double th = props[THICKNESS];
 		double V  = 4.0*J0*th;
-		
+
 		// strain displacement matrices
 
 		Matrix dNxy(4,2);
@@ -822,7 +822,7 @@ namespace Kratos
 		Matrix B(3,8,0.0);
 		Matrix Bh(2,8,0.0);
 
-		for (unsigned int i = 0; i < 4; i++) 
+		for (unsigned int i = 0; i < 4; i++)
 		{
 			B(0,2*i)    = dNxy(i,0);
 			B(1,2*i+1)  = dNxy(i,1);
@@ -838,12 +838,12 @@ namespace Kratos
 		Vector U(8);
 		this->GetValuesVector(U);
 		Vector E( prod( B, U ) );
-		
+
 		// compute material response
-		
+
 		Vector S(3, 0.0);  // stress vector
 		Matrix C(3,3,0.0); // material constitutive tensor
-		
+
 		ConstitutiveLaw::Parameters matpar;
 		matpar.SetElementGeometry( geom );
 		matpar.SetMaterialProperties( props );
@@ -890,19 +890,19 @@ namespace Kratos
 			alpha *= props[RI_STABILIZATION_RESIDUAL];
 
 		// internal forces and tangent
-		
+
 		Matrix BhTH( prod(trans(Bh), m_H*alpha) );
 		noalias( rLeftHandSideMatrix ) = prod( BhTH, Bh ); // now LHS contains Kh(stabilization)
 
 		noalias( rRightHandSideVector ) = -prod( rLeftHandSideMatrix, U ); // stabilizing hourglass forces
 		noalias( rRightHandSideVector ) -= prod( trans( B ), S * V ); // physical force vector
 
-		if(LHSrequired) 
+		if(LHSrequired)
 		{
 			Matrix BTD( prod( trans( B ), C * V ) );
 			noalias( rLeftHandSideMatrix ) += prod( BTD, B );
 		}
-		
+
         // Add body forces contributions.
 
         AddBodyForces(V, rRightHandSideVector);

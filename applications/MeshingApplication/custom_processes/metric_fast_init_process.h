@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_METRIC_FAST_INIT_PROCESS)
@@ -31,6 +31,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The size type definition
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -39,12 +42,15 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-/// Short class definition.
-// This process initializes the variables related with the ALM
-/** Detail class definition.
-*/
-template<unsigned int TDim>
-class MetricFastInit
+/**
+ * @class MetricFastInit
+ * @ingroup MeshingApplication
+ * @brief This process initializes the variables related with the ALM
+ * @author Vicente Mataix Ferrandiz
+ * @todo Replace with VariableUtils() when updated for nonhistorical
+ */
+template<SizeType TDim>
+class KRATOS_API(MESHING_APPLICATION) MetricFastInit
     : public Process
 {
 public:
@@ -59,6 +65,9 @@ public:
     typedef Geometry<NodeType>                           GeometryType;
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+
+    /// The type of array considered for the tensor
+    typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -184,7 +193,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart;
 
     ///@}

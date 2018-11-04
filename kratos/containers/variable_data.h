@@ -144,6 +144,16 @@ public:
     virtual void Print(const void* pSource, std::ostream& rOStream) const;
 
     /**
+     * PrintData is an auxiliary method to produce output only the value of given variable 
+     * knowing its address. For example writing an heterogenous container 
+     * in an output stream can be done using this method. Point assumes 
+     * that the streaming operator is defined for the variable type.
+     * @param pSource The pointer of the variable to be printed
+     * @param rOStream The stream used to print the information
+     */
+    virtual void PrintData(const void* pSource, std::ostream& rOStream) const;
+
+    /**
      * This method allocates the data of the variable
      * @param pData A pointer to the data to be allocated
      */
@@ -186,12 +196,12 @@ public:
         return mSize;
     }
 
-    bool IsComponent()
+    bool IsComponent() const
     {
         return mIsComponent;
     }
 
-    bool IsNotComponent()
+    bool IsNotComponent() const
     {
         return !mIsComponent;
     }
@@ -230,7 +240,7 @@ public:
     64           size         32-bit hash                comp. index 0
         |-----------|----|---------------------------------------------|-|
     */
-    static KeyType GenerateKey(const std::string& Name, std::size_t Size, std::size_t ComponentIndex);
+    static KeyType GenerateKey(const std::string& Name, std::size_t Size, bool IsComponent, char ComponentIndex);
 
     ///@}
     ///@name Friends
@@ -267,7 +277,7 @@ protected:
     ///@{
 
     /// Constructor.
-    VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false);
+    VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false, char ComponentIndex = 0);
 
 
     /** default constructor is to be used only with serialization due to the fact that

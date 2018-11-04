@@ -63,7 +63,8 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         self.testCavity()
 
     def setUpModel(self):
-        self.fluid_model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
 
@@ -91,6 +92,7 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         rel_pres_tol = 1e-5
         abs_pres_tol = 1e-7
         self.fluid_solver.conv_criteria = VelPrCriteria(rel_vel_tol,abs_vel_tol,rel_pres_tol,abs_pres_tol)
+        self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         self.fluid_solver.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
         precond = DiagonalPreconditioner()
@@ -225,8 +227,6 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         label = self.fluid_model_part.ProcessInfo[TIME]
         gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
         gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(DENSITY,self.fluid_model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(DYNAMIC_VISCOSITY,self.fluid_model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
 

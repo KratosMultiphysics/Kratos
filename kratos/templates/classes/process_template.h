@@ -63,7 +63,7 @@ namespace Kratos {
 
 /// Short class definition.
 @{KRATOS_CLASS_TEMPLATE}
-class @{KRATOS_NAME_CAMEL} @{KRATOS_CLASS_BASE} {
+class @{KRATOS_NAME_CAMEL} : public @{KRATOS_CLASS_BASE} {
 public:
 
   ///@name Type Definitions

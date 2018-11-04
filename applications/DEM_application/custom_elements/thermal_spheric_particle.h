@@ -69,7 +69,7 @@ namespace Kratos
         };
 
         /// Destructor.
-        virtual ~ThermalSphericParticle(){};
+        virtual ~ThermalSphericParticle();
         
         void Initialize(const ProcessInfo& r_process_info) override;
         void InitializeSolutionStep(ProcessInfo& r_process_info) override;

@@ -21,11 +21,11 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law in plane strain 2D 
+ * Defines a hyperelastic-plastic isotropic constitutive law in plane strain 2D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlasticAxisym2DLaw : public HyperElasticPlastic3DLaw
@@ -59,7 +59,7 @@ public:
     HyperElasticPlasticAxisym2DLaw();
 
 
-    HyperElasticPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HyperElasticPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -77,12 +77,12 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlasticAxisym2DLaw();
+    ~HyperElasticPlasticAxisym2DLaw() override;
 
     /**
      * Operators
@@ -95,7 +95,7 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() override
     {
         return 2;
     };
@@ -103,7 +103,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 4;
     };
@@ -113,7 +113,7 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -134,15 +134,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -163,8 +163,8 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector );
+    void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+            Vector& rStrainVector ) override;
 
 
     /**
@@ -172,10 +172,10 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector );
+    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+                                         Vector& rStrainVector ) override;
 
-							      
+
     /**
      * Calculates the isochoric constitutive matrix
      * @param rElasticVariables
@@ -183,9 +183,9 @@ protected:
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+    void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
             const Matrix & rIsoStressMatrix,
-            Matrix& rConstitutiveMatrix);
+            Matrix& rConstitutiveMatrix) override;
 
 
 
@@ -195,8 +195,8 @@ protected:
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-             Matrix& rConstitutiveMatrix);
+    void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+             Matrix& rConstitutiveMatrix) override;
 
 
 
@@ -207,9 +207,9 @@ protected:
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
-    virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     FlowRule::RadialReturnVariables & rReturnMappingVariables,			     
-						     Matrix& rConstitutiveMatrix);
+    void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+						     FlowRule::RadialReturnVariables & rReturnMappingVariables,
+						     Matrix& rConstitutiveMatrix) override;
 
 
 private:
@@ -244,12 +244,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
     }

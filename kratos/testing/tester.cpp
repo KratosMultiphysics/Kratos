@@ -50,44 +50,45 @@ namespace Kratos
 				i_test->second->ResetResult();
 		}
 
-		void Tester::RunAllTestCases()
+		int Tester::RunAllTestCases()
 		{
 			// TODO: Including the initialization time in the timing.
 			ResetAllTestCasesResults();
 			SelectOnlyEnabledTestCases();
-			RunSelectedTestCases();
+			return RunSelectedTestCases();
 		}
 
-		void Tester::ProfileAllTestCases()
+		int Tester::ProfileAllTestCases()
 		{
 			ResetAllTestCasesResults();
 			SelectOnlyEnabledTestCases();
-			ProfileSelectedTestCases();
+			return ProfileSelectedTestCases();
 		}
 
-		void Tester::RunTestSuite(std::string const& TestSuiteName)
+		int Tester::RunTestSuite(std::string const& TestSuiteName)
 		{
 			// TODO: Including the initialization time in the timing.
 			ResetAllTestCasesResults();
 			UnSelectAllTestCases();
 			GetTestSuite(TestSuiteName).Select();
-			RunSelectedTestCases();
+			return RunSelectedTestCases();
 		}
 
-		void Tester::RunTestCases(std::string const& TestCasesNamePattern)
+		int Tester::RunTestCases(std::string const& TestCasesNamePattern)
 		{
 			ResetAllTestCasesResults();
 			UnSelectAllTestCases();
 			SelectTestCasesByPattern(TestCasesNamePattern);
-			RunSelectedTestCases();
+			return RunSelectedTestCases();
 
 			//KRATOS_CHECK(std::regex_match(s, std::regex(buffer.str())));
 
 		}
 
-		void Tester::ProfileTestSuite(std::string const& TestSuiteName)
+		int Tester::ProfileTestSuite(std::string const& TestSuiteName)
 		{
-			KRATOS_ERROR << "Profile test suite is not implmented yet" << std::endl;
+            KRATOS_ERROR << "Profile test suite is not implmented yet" << std::endl;
+            return 0;
 		}
 
 		std::size_t Tester::NumberOfFailedTestCases()
@@ -227,9 +228,9 @@ namespace Kratos
 		void Tester::SelectTestCasesByPattern(std::string const& TestCasesNamePattern)
 		{
 			// creating the regex pattern replacing * with ".*"
-#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))) 
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9)))
 			KRATOS_ERROR << "This method is not compiled well. You should use a GCC 4.9 or higher" << std::endl;
-#else  
+#else
 			std::regex replace_star("\\*");
 			std::stringstream regex_pattern_string;
 			std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
@@ -243,10 +244,10 @@ namespace Kratos
                         i_test->second->UnSelect();
                     }
                 }
-#endif  
+#endif
 		}
 
-		void Tester::RunSelectedTestCases()
+		int Tester::RunSelectedTestCases()
 		{
 			auto start = std::chrono::steady_clock::now();
 			auto number_of_run_tests = NumberOfSelectedTestCases();
@@ -273,12 +274,12 @@ namespace Kratos
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
-			ReportResults(std::cout, number_of_run_tests, elapsed.count());
+			return ReportResults(std::cout, number_of_run_tests, elapsed.count());
 		}
 
 
 
-		void Tester::ProfileSelectedTestCases()
+		int Tester::ProfileSelectedTestCases()
 		{
 			KRATOS_ERROR << "Profile test cases is not implemented yet" << std::endl;
 			auto start = std::chrono::steady_clock::now();
@@ -298,7 +299,7 @@ namespace Kratos
 			auto end = std::chrono::steady_clock::now();
 			std::chrono::duration<double> elapsed = end - start;
 
-			ReportResults(std::cout, number_of_run_tests, elapsed.count());
+			return ReportResults(std::cout, number_of_run_tests, elapsed.count());
 		}
 
 		std::size_t Tester::NumberOfSelectedTestCases()
@@ -349,8 +350,10 @@ namespace Kratos
 			}
 		}
 
-		void Tester::ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests,double ElapsedTime)
+		int Tester::ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests,double ElapsedTime)
 		{
+            int exit_code = 0;
+
 			if (GetInstance().mVerbosity == Verbosity::PROGRESS)
 				rOStream << std::endl;
 
@@ -366,9 +369,11 @@ namespace Kratos
 			else
 			{
 				rOStream << "Ran " << NumberOfRunTests << " of " << total_test_cases_size << total_test_cases << " in " << ElapsedTime << "s. " << number_of_failed_tests << " failed:" << std::endl;
-				ReportFailures(rOStream);
+                ReportFailures(rOStream);
+                exit_code = 1;
 			}
 
+            return exit_code;
 		}
 
 

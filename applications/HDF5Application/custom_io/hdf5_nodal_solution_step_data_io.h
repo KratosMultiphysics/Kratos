@@ -16,14 +16,11 @@
 // System includes
 #include <string>
 #include <vector>
-#include <tuple>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
-#include "includes/communicator.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -31,6 +28,10 @@
 
 namespace Kratos
 {
+
+class Parameters;
+class Communicator;
+
 namespace HDF5
 {
 ///@addtogroup HDF5Application
@@ -54,15 +55,11 @@ public:
     ///@{
 
     /// Constructor.
-    NodalSolutionStepDataIO(Parameters& rParams, File::Pointer pFile);
+    NodalSolutionStepDataIO(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations
     ///@{
-
-    std::string GetPrefix() const;
-
-    void SetPrefix(std::string const& rPrefix);
 
     void WriteNodalResults(NodesContainerType const& rNodes, unsigned Step=0);
 
@@ -70,25 +67,37 @@ public:
     
     ///@}
 
+protected:
+    ///@name Protected Operations
+    ///@{
+
+    std::string const& GetPrefix() const noexcept
+    {
+        return mPrefix;
+    }
+
+    std::vector<std::string> const& VariableNames() const noexcept
+    {
+        return mVariableNames;
+    }
+
+    File& GetFile()
+    {
+        return *mpFile;
+    }
+
+    ///@}
+
 private:
     ///@name Member Variables
     ///@{
     File::Pointer mpFile;
-    bool mDoPartitionedIO;
     std::string mPrefix;
     std::vector<std::string> mVariableNames;
     ///@}
     ///@name Private Operations
     ///@{
-    std::tuple<unsigned, unsigned> GetStartIndexAndBlockSize() const;
 
-    /// Divide nodes into local and ghost.
-    void DivideNodes(NodesContainerType const& rNodes,
-                     std::vector<NodeType*>& rLocalNodes,
-                     std::vector<NodeType*>& rGhostNodes);
-
-    void GetLocalNodes(NodesContainerType const& rNodes,
-                       std::vector<NodeType*>& rLocalNodes);
     ///@}
 
 }; // class NodalSolutionStepDataIO.

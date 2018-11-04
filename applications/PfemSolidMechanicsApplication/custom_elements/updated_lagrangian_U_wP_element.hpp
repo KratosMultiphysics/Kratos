@@ -37,7 +37,7 @@ namespace Kratos
 /// Updated Lagrangian Large Displacement Lagrangian U-wP Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-class UpdatedLagrangianUwPElement
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUwPElement
     : public UpdatedLagrangianElement
 {
 public:
@@ -52,6 +52,10 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef UpdatedLagrangianElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementUPElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUwPElement );
@@ -97,7 +101,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -106,7 +110,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************* GETTING METHODS
 
@@ -115,11 +119,11 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
     //************* STARTING - ENDING  METHODS
 
@@ -127,27 +131,27 @@ public:
     /**
     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
     //************************************************************************************
@@ -159,7 +163,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -202,23 +206,23 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    double& rIntegrationWeight);
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    ElementDataType& rVariables,
+                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+                                    double& rIntegrationWeight) override;
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -227,17 +231,17 @@ protected:
      */
     void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  Flags& rCalculationFlags);
+                                  Flags& rCalculationFlags) override;
 
     //on integration points:
     /**
      * Calculate a double Variable on the Element Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access
@@ -281,9 +285,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,7 +35,8 @@ THE SOFTWARE.
 #include <vector>
 #include <numeric>
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
+#include <amgcl/value_type/interface.hpp>
 
 #include <mpi.h>
 
@@ -44,7 +45,21 @@ namespace mpi {
 
 /// Converts C type to MPI datatype.
 template <class T, class Enable = void>
-struct datatype_impl;
+struct datatype_impl {
+    static MPI_Datatype get() {
+        static const MPI_Datatype t = create();
+        return t;
+    }
+
+    static MPI_Datatype create() {
+        typedef typename math::scalar_of<T>::type S;
+        MPI_Datatype t;
+        int n = sizeof(T) / sizeof(S);
+        MPI_Type_contiguous(n, datatype_impl<S>::get(), &t);
+        MPI_Type_commit(&t);
+        return t;
+    }
+};
 
 template <>
 struct datatype_impl<float> {
@@ -67,14 +82,31 @@ struct datatype_impl<int> {
 };
 
 template <>
+struct datatype_impl<unsigned> {
+    static MPI_Datatype get() { return MPI_UNSIGNED; }
+};
+
+template <>
 struct datatype_impl<long long> {
     static MPI_Datatype get() { return MPI_LONG_LONG_INT; }
 };
 
 template <>
+struct datatype_impl<unsigned long long> {
+    static MPI_Datatype get() { return MPI_UNSIGNED_LONG_LONG; }
+};
+
+template <>
 struct datatype_impl<ptrdiff_t>
-    : boost::conditional<
+    : std::conditional<
         sizeof(ptrdiff_t) == sizeof(int), datatype_impl<int>, datatype_impl<long long>
+        >::type
+{};
+
+template <>
+struct datatype_impl<size_t>
+    : std::conditional<
+        sizeof(size_t) == sizeof(unsigned), datatype_impl<unsigned>, datatype_impl<unsigned long long>
         >::type
 {};
 
@@ -94,6 +126,8 @@ struct communicator {
     int      rank;
     int      size;
 
+    communicator() {}
+
     communicator(MPI_Comm comm) : comm(comm) {
         MPI_Comm_rank(comm, &rank);
         MPI_Comm_size(comm, &size);
@@ -102,45 +136,56 @@ struct communicator {
     operator MPI_Comm() const {
         return comm;
     }
-};
 
-/// Exclusive sum over mpi communicator
-template <typename T>
-std::vector<T> exclusive_sum(communicator comm, T n) {
-    std::vector<T> v(comm.size + 1); v[0] = 0;
-    MPI_Allgather(&n, 1, datatype<T>(), &v[1], 1, datatype<T>(), comm);
-    std::partial_sum(v.begin(), v.end(), v.begin());
-    return v;
-}
-
-/// Communicator-wise condition checking.
-/**
- * Checks conditions at each process in the communicator;
- *
- * If the condition is false on any of the participating processes, outputs the
- * provided message together with the ranks of the offending process.
- * After that each process in the communicator throws.
- */
-template <class Condition, class Message>
-void precondition(communicator comm, const Condition &cond, const Message &message)
-{
-    int gc, lc = static_cast<int>(cond);
-    MPI_Allreduce(&lc, &gc, 1, MPI_INT, MPI_PROD, comm);
-
-    if (!gc) {
-        std::vector<int> c(comm.size);
-        MPI_Gather(&lc, 1, MPI_INT, &c[0], comm.size, MPI_INT, 0, comm);
-        if (comm.rank == 0) {
-            std::cerr << "Failed assumption: " << message << std::endl;
-            std::cerr << "Offending processes:";
-            for (int i = 0; i < comm.size; ++i)
-                if (!c[i]) std::cerr << " " << i;
-            std::cerr << std::endl;
-        }
-        MPI_Barrier(comm);
-        throw std::runtime_error(message);
+    /// Exclusive sum over mpi communicator
+    template <typename T>
+    std::vector<T> exclusive_sum(T n) const {
+        std::vector<T> v(size + 1); v[0] = 0;
+        MPI_Allgather(&n, 1, datatype<T>(), &v[1], 1, datatype<T>(), comm);
+        std::partial_sum(v.begin(), v.end(), v.begin());
+        return v;
     }
-}
+
+    template <typename T>
+    T reduce(MPI_Op op, const T &lval) const {
+        typedef typename math::scalar_of<T>::type S;
+
+        const int elems = sizeof(T) / sizeof(S);
+        T gval;
+
+        MPI_Allreduce((void*)&lval, &gval, elems, datatype<T>(), op, comm);
+        return gval;
+    }
+
+    /// Communicator-wise condition checking.
+    /**
+     * Checks conditions at each process in the communicator;
+     *
+     * If the condition is false on any of the participating processes, outputs the
+     * provided message together with the ranks of the offending process.
+     * After that each process in the communicator throws.
+     */
+    template <class Condition, class Message>
+    void check(const Condition &cond, const Message &message) {
+        int lc = static_cast<int>(cond);
+        int gc = reduce(MPI_PROD, lc);
+
+        if (!gc) {
+            std::vector<int> c(size);
+            MPI_Gather(&lc, 1, MPI_INT, &c[0], size, MPI_INT, 0, comm);
+            if (rank == 0) {
+                std::cerr << "Failed assumption: " << message << std::endl;
+                std::cerr << "Offending processes:";
+                for (int i = 0; i < size; ++i)
+                    if (!c[i]) std::cerr << " " << i;
+                std::cerr << std::endl;
+            }
+            MPI_Barrier(comm);
+            throw std::runtime_error(message);
+        }
+    }
+
+};
 
 } // namespace mpi
 } // namespace amgcl

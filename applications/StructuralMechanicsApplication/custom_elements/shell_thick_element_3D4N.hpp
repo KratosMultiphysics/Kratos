@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Massimo Petracca
 //
@@ -19,9 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
-#include "utilities/quaternion.h"
+#include "custom_elements/base_shell_element.h"
 
 namespace Kratos
 {
@@ -62,7 +60,7 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class ShellThickElement3D4N : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D4N : public BaseShellElement
 {
 public:
 
@@ -70,8 +68,6 @@ public:
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D4N);
-
-    typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
@@ -116,7 +112,7 @@ public:
             return mXYDeriv;
         }
 
-        inline const double Determinant()const
+        inline double Determinant()const
         {
             return mDet;
         }
@@ -197,8 +193,8 @@ public:
         array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the displacement vector */
 
         array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
-        bounded_matrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
-        bounded_matrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
+        BoundedMatrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
+        BoundedMatrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
 
         bool mInitialized;                      /*!< Initialization flag */
 
@@ -304,25 +300,33 @@ public:
 
     // Basic
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     void Initialize() override;
-
-    void ResetConstitutiveLaw() override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CleanMemory() override;
-
-    void GetValuesVector(Vector& values, int Step = 0) override;
-
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
-
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
@@ -334,57 +338,27 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    // More results calculation on integration points to interface with python
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
+        3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    // Results calculation on integration points
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-	// More results calculation on integration points to interface with python
-	void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-		std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-		std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-		std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-		3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
-		const ProcessInfo& rCurrentProcessInfo);
-
-	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-		6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
-        const ProcessInfo& rCurrentProcessInfo);
-        
     // Calculate functions
     void Calculate(const Variable<Matrix >& rVariable,
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
-    
+
 
     ///@}
 
     ///@name Public specialized Access - Temporary
     ///@{
-
-    void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
 
     ///@}
 
@@ -396,7 +370,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThickElement3D4N() : Element()
+    ShellThickElement3D4N() : BaseShellElement()
     {
     }
 
@@ -407,26 +381,26 @@ private:
     ///@name Private Operations
     ///@{
 
-	void CalculateStressesFromForceResultants(VectorType& rstresses,
-		const double& rthickness);
+    void CalculateStressesFromForceResultants(VectorType& rstresses,
+        const double& rthickness);
 
-	void CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector& generalizedStrains, std::vector<VectorType> & rlaminateStrains);
+    void CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector& generalizedStrains, std::vector<VectorType> & rlaminateStrains);
 
-	void CalculateLaminaStresses(ShellCrossSection::Pointer & section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType> & rlaminateStrains, std::vector<VectorType> & rlaminateStresses);
+    void CalculateLaminaStresses(ShellCrossSection::Pointer & section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType> & rlaminateStrains, std::vector<VectorType> & rlaminateStresses);
 
-	double CalculateTsaiWuPlaneStress(const std::vector<VectorType> & rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
+    double CalculateTsaiWuPlaneStress(const std::vector<VectorType> & rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
-	void CalculateVonMisesStress(const Vector& generalizedStresses, 
-		const Variable<double>& rVariable, double& rVon_Mises_Result);
+    void CalculateVonMisesStress(const Vector& generalizedStresses,
+        const Variable<double>& rVariable, double& rVon_Mises_Result);
 
-	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, 
-		int& iJob, bool& bGlobal);
+    void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
+        int& iJob, bool& bGlobal);
 
-	double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
+    double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
 
     void DecimalCorrection(Vector& a);
 
-    void SetupOrientationAngles();
+    void SetupOrientationAngles() override;
 
     void CalculateBMatrix(double xi, double eta,
                           const JacobianOperator& Jac, const MITC4Params& params,
@@ -434,20 +408,22 @@ private:
                           Matrix& B, Vector& Bdrill);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
-                      VectorType& rRightHandSideVector,
-                      ProcessInfo& rCurrentProcessInfo,
-                      const bool LHSrequired,
-                      const bool RHSrequired);
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag) override;
 
     void AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector);
 
-    bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
-            std::vector<array_1d<double,3> >& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
-
-    bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+    bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+    * Returns the behavior of this shell (thin/thick)
+    * @return the shell behavior
+    */
+    ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
 
     ///@}
 
@@ -459,8 +435,6 @@ private:
     ///@{
 
     CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
-
-    CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
     EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 

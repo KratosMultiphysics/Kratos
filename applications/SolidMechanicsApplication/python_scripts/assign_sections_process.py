@@ -83,7 +83,7 @@ class AssignSectionsProcess(KratosMultiphysics.Process):
     def Execute(self):
 
         self._AssignMaterialProperties()
-        print("::[Section_Assigned]::", self.settings["section_type"].GetString())
+        print("::[--Section_Assigned-]::", self.settings["section_type"].GetString())
 
     #
     def ExecuteFinalize(self):

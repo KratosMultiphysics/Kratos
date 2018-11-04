@@ -59,6 +59,7 @@ class TrilinosGiDOutput(gid_output.GiDOutput):
             self.comm = CreateCommunicator()
             self.cut_app = TrilinosCuttingApplication(self.comm)
             self.cut_app.FindSmallestEdge(model_part)
+            self.cut_app.AddVariablesToCutModelPart(model_part,self.cut_model_part)
 
         for cut_data in cut_list:
             self.cut_number += 1

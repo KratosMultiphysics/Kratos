@@ -45,7 +45,6 @@ class DamChemoMechanicalAgingYoungProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "initial_elastic_modulus"                          : 30.0e9,
                 "initial_porosity"                                 : 0.2,
@@ -64,7 +63,6 @@ class DamChemoMechanicalAgingYoungProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mInitialElasticModulus = rParameters["initial_elastic_modulus"].GetDouble();
         mInitialPorosity = rParameters["initial_porosity"].GetDouble();
@@ -86,12 +84,19 @@ class DamChemoMechanicalAgingYoungProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void Execute() override
+    {
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
 
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         // This model works in years so it is necessary to convert time in this unit
         double time = mrModelPart.GetProcessInfo()[TIME] / 31536000.0;
@@ -104,7 +109,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -119,12 +124,12 @@ class DamChemoMechanicalAgingYoungProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
 
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         // This model works in years so it is necessary to convert time in this unit
         double time = mrModelPart.GetProcessInfo()[TIME] / 31536000.0;
@@ -137,7 +142,7 @@ class DamChemoMechanicalAgingYoungProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -153,19 +158,19 @@ class DamChemoMechanicalAgingYoungProcess : public Process
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamChemoMechanicalAgingYoungProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamChemoMechanicalAgingYoungProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 
@@ -174,7 +179,6 @@ class DamChemoMechanicalAgingYoungProcess : public Process
   protected:
     /// Member Variables
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     double mInitialElasticModulus;
     double mInitialPorosity;

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,7 @@ THE SOFTWARE.
  * \brief  Galerkin operator.
  */
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
 #include <amgcl/backend/builtin.hpp>
 
 namespace amgcl {
@@ -40,7 +39,7 @@ namespace coarsening {
 namespace detail {
 
 template <class Matrix>
-boost::shared_ptr<Matrix> galerkin(
+std::shared_ptr<Matrix> galerkin(
         const Matrix &A, const Matrix &P, const Matrix &R
         )
 {

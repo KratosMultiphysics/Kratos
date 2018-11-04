@@ -9,18 +9,18 @@ import continuum_sphere_strategy as SolverStrategy
 
 BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
-class ExplicitStrategy(BaseExplicitStrategy):   
-   
+class ExplicitStrategy(BaseExplicitStrategy):
+
     def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures):
 
         BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
     def AddAdditionalVariables(self, model_part, DEM_parameters):
-        
+
         BaseExplicitStrategy.AddAdditionalVariables(self, model_part, DEM_parameters)
 
     def CreateCPlusPlusStrategy(self):
-        
+
         #BaseExplicitStrategy.Initialize  (revisar si es pot cridar desde el basetype)
         #self.cplusplus_strategy = IterativeExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
 
@@ -32,7 +32,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option) #TODO: check that this is finding the function in base classes        
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option) #TODO: check that this is finding the function in base classes
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
@@ -69,15 +69,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 1) #TODO: convert this variable to BOOL in Kratos
         else:
             self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
-            
+
         #self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
 
         if ( (self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
-
-        self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
-        self.model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
-
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -89,7 +85,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.settings.cluster_model_part = self.cluster_model_part
 
         self.cplusplus_strategy = VelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor, self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy)
-    
+
     def Initialize(self):
 
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating)

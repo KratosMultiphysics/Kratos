@@ -137,7 +137,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
@@ -162,7 +162,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
@@ -217,13 +217,18 @@ public:
                 const double pr_ratio = pr_diff_norm / pr_norm;
                 const double pr_abs = pr_diff_norm / global_nnode;
 
-                std::cout << "VELOCITY error (tolerance) -- Ratio: " << vel_ratio << " (" << mVelRatioTolerance << "); Absolute: " <<  vel_abs << " (" << mVelAbsTolerance << ")." << std::endl;
-                std::cout << "PRESSURE error (tolerance) -- Ratio: " <<  pr_ratio << " (" << mPrsRatioTolerance << "); Absolute: " <<   pr_abs << " (" << mPrsAbsTolerance << ")." << std::endl;
+                if (this->GetEchoLevel() > 0){
+                    std::cout << "CONVERGENCE CHECK:" << std::endl;
+                    std::cout << " VELOC.: ratio = " << vel_ratio <<"; exp.ratio = " << mVelRatioTolerance << " abs = " << vel_abs << " exp.abs = " << mVelAbsTolerance << std::endl;
+                    std::cout << " PRESS.: ratio = " << pr_ratio <<"; exp.ratio = " << mPrsRatioTolerance << " abs = " << pr_abs << " exp.abs = " << mPrsAbsTolerance << std::endl;
+                }
 
                 if( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance) && (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance) )
                 {
                     converged = 1;
-                    std::cout << "Convergence is achieved" << std::endl;
+                    if (this->GetEchoLevel() > 0){
+                        std::cout << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
+                    }
                 }
             }
 
@@ -241,7 +246,7 @@ public:
 
     void Initialize(
         ModelPart& r_model_part
-    )
+    ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
@@ -252,7 +257,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
     }
 
@@ -262,7 +267,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) {}
+    ) override {}
 
 
 
@@ -334,7 +339,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     TDataType mVelRatioTolerance;
     TDataType mVelAbsTolerance;
 

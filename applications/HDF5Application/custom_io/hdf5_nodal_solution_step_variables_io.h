@@ -10,6 +10,10 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
+/** @file hdf5_nodal_solution_step_variables_io.h
+ *  @brief Methods for storing and retrieving the storage layout for nodal variables in an HDF5 file.
+ */
+
 #if !defined(KRATOS_HDF5_NODAL_SOLUTION_STEP_VARIABLES_IO_H_INCLUDED)
 #define KRATOS_HDF5_NODAL_SOLUTION_STEP_VARIABLES_IO_H_INCLUDED
 
@@ -25,60 +29,27 @@
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
+
+class File;
+
 namespace Internals
 {
 ///@addtogroup HDF5Application
 ///@{
-///@name Kratos Classes
-///@{
 
-/// A class for IO of nodal solution step variables in HDF5.
-class NodalSolutionStepVariablesIO
-{
-public:
-    ///@name Type Definitions
-    ///@{
+void WriteVariablesList(File& rFile, std::string const& rPrefix, ModelPart const& rModelPart);
 
-    /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(NodalSolutionStepVariablesIO);
+void ReadAndAssignVariablesList(File& rFile, std::string const& rPrefix, ModelPart& rModelPart);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+void WriteBufferSize(File& rFile, std::string const& rPrefix, int BufferSize);
 
-    /// Constructor.
-    NodalSolutionStepVariablesIO(std::string Prefix, File::Pointer pFile);
+void ReadAndAssignBufferSize(File& rFile, std::string const& rPrefix, ModelPart& rModelPart);
 
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void WriteVariablesList(ModelPart const& rModelPart);
-
-    void ReadAndAssignVariablesList(ModelPart& rModelPart) const;
-
-    void WriteBufferSize(int BufferSize);
-
-    void ReadAndAssignBufferSize(ModelPart& rModelPart) const;
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-    std::string mPrefix;
-    File::Pointer mpFile;
-    ///@}
-
-}; // class NodalSolutionStepVariablesIO.
-
-///@} // Kratos Classes
 ///@} addtogroup
 } // namespace Internals.
 } // namespace HDF5.

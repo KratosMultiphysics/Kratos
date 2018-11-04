@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "simple_mesh_moving_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.005,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -13,7 +10,13 @@
         "solver_type"                        : "Dynamic",
         "time_integration_method"            : "implicit",
         "analysis_type"                      : "linear",
+        "block_builder"                      : false,
+        "model_part_name" : "Structure",
         "echo_level"                         : 0,
+        "domain_size"     : 2,
+        "time_stepping"                      : {
+            "time_step" : 0.005
+        },
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
@@ -31,45 +34,48 @@
         "processes_sub_model_part_list"      : ["Parts_All","DISPLACEMENT_support","DISPLACEMENT_movement"],
         "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_support",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0]
-        }
-    },
+    "processes" :
     {
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_movement",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,false,false],
-            "value"           : ["0.01*t",0.0,0.0]
-        }
-    }],
-    "check_analytic_results_process" : [
-    {
-        "python_module" : "check_scalar_to_nodes_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignValueProcess",
-        "Parameters"    : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_support",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0]
+            }
+        },
+        {
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
                 "model_part_name" : "DISPLACEMENT_movement",
-                "variable_name"   : "DISPLACEMENT_X",
-                "interval"        : [0.0, "End"],
-                "value"           : "0.01*(t+0.005)",
-                "tolerance_rank"  : 16
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,false,false],
+                "value"           : ["0.01*t",0.0,0.0]
+            }
+        }],
+        "check_analytic_results_process" : [
+        {
+            "python_module" : "check_scalar_to_nodes_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignValueProcess",
+            "Parameters"    : {
+                    "model_part_name" : "DISPLACEMENT_movement",
+                    "variable_name"   : "DISPLACEMENT_X",
+                    "interval"        : [0.0, "End"],
+                    "value"           : "0.01*(t+0.005)",
+                    "tolerance_rank"  : 16
+            }
         }
-    }
-    ],
+        ]
+    },
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -89,17 +95,5 @@
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
-    },
-    "loads_process_list"   : [],
-    "list_other_processes" :[],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     }
 }

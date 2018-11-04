@@ -19,7 +19,7 @@ def Factory(settings, Model):
     return CheckScalarOnNodesProcess(Model, settings["Parameters"])
 
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckScalarOnNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -114,7 +114,7 @@ class CheckScalarOnNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME] #- self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
         if(current_time >= self.interval[0] and  current_time<self.interval[1]):
 

@@ -20,16 +20,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.delta_option > 0):
             self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
 
-        if not "LoadingVelocityTop" in DEM_parameters.keys():
-            self.fixed_vel_top = 0
-        else:
-            self.fixed_vel_top = DEM_parameters["LoadingVelocityTop"].GetDouble()
-
-        if not "LoadingVelocityBot" in DEM_parameters.keys():
-            self.fixed_vel_bot = 0
-        else:
-            self.fixed_vel_bot = DEM_parameters["LoadingVelocityBot"].GetDouble()
-
         if "DontSearchUntilFailure" in DEM_parameters.keys(): #TODO: important Todo. When Json gets divided in encapsulated parts, all these checks should be done in one functions, comparing with defaults!
             if DEM_parameters["DontSearchUntilFailure"].GetBool():
                 print ("Search is not active until a bond is broken.")
@@ -40,20 +30,20 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if not "TestType" in DEM_parameters.keys():
             self.test_type = "None"
         else:
-            self.test_type = DEM_parameters["TestType"].GetString() 
+            self.test_type = DEM_parameters["TestType"].GetString()
 
         self.amplified_continuum_search_radius_extension = DEM_parameters["AmplifiedSearchRadiusExtension"].GetDouble()
-        
-        if 'MaxAmplificationRatioOfSearchRadius' in DEM_parameters.keys():            
+
+        if 'MaxAmplificationRatioOfSearchRadius' in DEM_parameters.keys():
             self.max_amplification_ratio_of_search_radius = DEM_parameters["MaxAmplificationRatioOfSearchRadius"].GetDouble()
         else:
-            self.max_amplification_ratio_of_search_radius = 0.0                    
-            
+            self.max_amplification_ratio_of_search_radius = 0.0
+
         if not "PostPoissonRatio" in DEM_parameters.keys():
             self.poisson_ratio_option = 0
         else:
             self.poisson_ratio_option = DEM_parameters["PostPoissonRatio"].GetBool()
-            
+
         if not "PoissonEffectOption" in DEM_parameters.keys():
             self.poisson_effect_option = False
         else:
@@ -66,10 +56,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         if (self.poisson_effect_option or self.shear_strain_parallel_to_bond_option):
             self.compute_stress_tensor_option = 1
-            
-        
+
+
     def CreateCPlusPlusStrategy(self):
-        
+
         self.SetVariablesAndOptions()
 
         # ADDITIONAL VARIABLES AND OPTIONS
@@ -85,9 +75,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 0)
 
-        self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
-        self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
-        
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POISSON_EFFECT_OPTION, self.poisson_effect_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
 
@@ -98,19 +85,21 @@ class ExplicitStrategy(BaseExplicitStrategy):
                 self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
                 break
 
+        strategy_parameters = self.DEM_parameters["strategy_parameters"]
+
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = ContinuumVelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                                            self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy)
+                                                                            self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, strategy_parameters)
         else:
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                  self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy)
-    
-    def Initialize(self):        
+                                                  self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, strategy_parameters)
+
+    def Initialize(self):
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before starting the time loop) (C++)
 
     def SetContinuumType(self):
         self.continuum_type = True
-    
+
     def Initial_Critical_Time(self):        # Calls deprecated function
         (self.cplusplus_strategy).InitialTimeStepCalculation()
 
@@ -123,7 +112,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
     def ModifyProperties(self, properties, param = 0):
         BaseExplicitStrategy.ModifyProperties(self, properties, param)
-        
+
         if not param:
             ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
             ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()

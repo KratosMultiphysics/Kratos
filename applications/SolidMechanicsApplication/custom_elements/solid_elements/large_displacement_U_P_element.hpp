@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED)
 #define  KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED
 
 // System includes
@@ -57,6 +57,10 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementUPElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementUPElement );
@@ -78,7 +82,7 @@ public:
 
 
     /// Destructor.
-    virtual ~LargeDisplacementUPElement();
+    ~LargeDisplacementUPElement() override;
 
     ///@}
     ///@name Operators
@@ -206,58 +210,58 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    double& rIntegrationWeight) override;
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                            ElementDataType& rVariables,
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    double& rIntegrationWeight) override;
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                            ElementDataType& rVariables,
+                            Vector& rVolumeForce,
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
-					   ElementVariables& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo, 
-					   double& rIntegrationWeight) override;
+    void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
+                                   ElementDataType& rVariables,
+                                   ProcessInfo& rCurrentProcessInfo,
+                                   double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
-					   ElementVariables& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo, 
-					   double& rIntegrationWeight) override;
-    
+    void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+                                   ElementDataType& rVariables,
+                                   ProcessInfo& rCurrentProcessInfo,
+                                   double& rIntegrationWeight) override;
+
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
+    void CalculateAndAddKuum(MatrixType& rK,
+                             ElementDataType & rVariables,
+                             double& rIntegrationWeight
+                             ) override;
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
+    void CalculateAndAddKuug(MatrixType& rK,
+                             ElementDataType & rVariables,
+                             double& rIntegrationWeight
+                             ) override;
 
     /**
      * Calculation of the Kup matrix
      */
     virtual void CalculateAndAddKup (MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     );
 
@@ -265,7 +269,7 @@ protected:
      * Calculation of the Kpu matrix
      */
     virtual void CalculateAndAddKpu(MatrixType& rK,
-                                    ElementVariables & rVariables,
+                                    ElementDataType & rVariables,
                                     double& rIntegrationWeight
                                    );
 
@@ -274,7 +278,7 @@ protected:
      * Calculation of the Kpp matrix
      */
     virtual void CalculateAndAddKpp(MatrixType& rK,
-                                    ElementVariables & rVariables,
+                                    ElementDataType & rVariables,
                                     double& rIntegrationWeight
                                    );
 
@@ -283,7 +287,7 @@ protected:
      * Calculation of the Kpp Stabilization Term matrix
      */
     virtual void CalculateAndAddKppStab(MatrixType& rK,
-                                        ElementVariables & rVariables,
+                                        ElementDataType & rVariables,
                                         double& rIntegrationWeight
                                        );
 
@@ -293,7 +297,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-                                       ElementVariables& rVariables,
+                                       ElementDataType& rVariables,
                                        Vector& rVolumeForce,
                                        double& rIntegrationWeight
                                       ) override;
@@ -303,7 +307,7 @@ protected:
       * Calculation of the Internal Forces due to sigma. Fi = B * sigma
       */
     void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                       ElementVariables & rVariables,
+                                       ElementDataType & rVariables,
                                        double& rIntegrationWeight
                                       ) override;
 
@@ -312,7 +316,7 @@ protected:
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-            ElementVariables & rVariables,
+            ElementDataType & rVariables,
             double& rIntegrationWeight
                                               );
 
@@ -321,34 +325,24 @@ protected:
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            ElementVariables & rVariables,
-            double& rIntegrationWeight
-                                                  );
-
+            ElementDataType & rVariables,
+            double& rIntegrationWeight);
 
     /**
-     * Initialize System Matrices
+     * Get element size from the dofs
      */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                  VectorType& rRightHandSideVector,
-                                  Flags& rCalculationFlags) override;
-
-
-    /**
-     * Initialize Element General Variables
-     */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    SizeType GetDofsSize() override;
 
 
     /**
      * Calculation of the constitutive coefficient for pressure of the Element
      */
-    virtual double& CalculatePUCoefficient(double& rCoefficient, ElementVariables & rVariables);
+    virtual double& CalculatePUCoefficient(double& rCoefficient, ElementDataType & rVariables);
 
     /**
      * Calculation of the constitutive coefficient derivative for pressure  of the Element
      */
-    virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, ElementVariables & rVariables);
+    virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, ElementDataType & rVariables);
 
     ///@}
     ///@name Protected  Access
@@ -392,9 +386,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -415,4 +409,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED  defined

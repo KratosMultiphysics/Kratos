@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_KMat_DB version="1.2.31">
+<Kratos_KMat_DB version="1.2.39">
     <Materials>
         <MaterialGroup id="Metal" pid="Solid" state="hidden" icon="grey.gif" help="Helptext" open="1">
             <Material id="Steel_AISI1059" pid="Steel_AISI1059" state="hidden" icon="grey.gif" help="Helptext" open="0">
@@ -100,15 +100,15 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
-                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="hidden" help="Non-Newtonian fluid option" />
                     <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
-                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+                    <Property id="BulkModulus" pid="Bulk Modulus" value="1000" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                    <Property id="BinghamSmoother" pid="Bingham smoother" value="0.0035" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
                     <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
                     <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
-                    <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
-                    <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
+                    <Property id="PowerLawK" pid="Power law K" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
+                    <Property id="GelStrength" pid="Gel strength" value="5.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
                 </Container>
                 <Container id="Electromagnetic" pid="Electromagnetic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
                     <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -213,12 +213,12 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="hidden" help="Non-Newtonian fluid option" />
                     <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
                     <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
-                    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/> 
+                    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
                     <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
                     <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
                     <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
@@ -328,7 +328,7 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="hidden" help="Non-Newtonian fluid option" />
                     <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="15e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
                     <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -441,14 +441,12 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="1">
-                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
-                    <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="1e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
-                    <Property id="BulkModulus" pid="Bulk Modulus" value="2.2e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="hidden" help="Non-Newtonian fluid option" />
+                    <Property id="Viscosity" pid="Viscosity" value="1e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                    <Property id="BinghamSmoother" pid="Bingham smoother m" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
                     <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
-                    <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
-                    <Property id="PowerLawK" pid="Power law K" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
+                    <Property id="PowerLawN" pid="Power Law n" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
+                    <Property id="PowerLawK" pid="Power Law k" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law K value"/>
                     <Property id="GelStrength" pid="Gel strength" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the gel strength"/>
                 </Container>
                 <Container id="Electromagnetic" pid="Electromagnetic" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
@@ -557,7 +555,7 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="hidden" help="Non-Newtonian fluid option" />
                     <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
                     <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -583,14 +581,15 @@
                 <Property id="ParticleFrictionAngle" pid="Friction angle (deg)" value="45.0" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle (for Coulomb's friction)" open="0"/>
                 <Property id="CoefficientOfRestitution" pid="Coefficient of restitution" value="0.2" unit=" " icon="prop.gif" state="normal" help="Coefficient of restitution" open="0"/>
                 <Property id="RollingFriction" pid="Rolling friction" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction" open="0"/>
+                <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction with walls" open="0"/>
                 <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
                 <Property id="Color" pid="Color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
-                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>                
+                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
                 <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
+                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>
                 <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
                 <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
             </Material>
@@ -603,14 +602,15 @@
                 <Property id="ParticleFrictionAngle" pid="Friction angle" value="26.35" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle (for Coulomb's friction)" open="0"/>
                 <Property id="CoefficientOfRestitution" pid="Coefficient of restitution" value="0.5" unit=" " icon="prop.gif" state="normal" help="Coefficient of restitution" open="0"/>
                 <Property id="RollingFriction" pid="Rolling friction" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction" open="0"/>
+                <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction with walls" open="0"/>
                 <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.1" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
                 <Property id="Color" pid="Color" value="2" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
-                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>                
+                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
                 <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
+                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>
                 <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
                 <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
             </Material>
@@ -623,6 +623,7 @@
                 <Property id="ParticleFrictionAngle" pid="Friction angle" value="25.30" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle (for Coulomb's friction)" open="0"/>
                 <Property id="CoefficientOfRestitution" pid="Coefficient of restitution" value="0.5" unit=" " icon="prop.gif" state="normal" help="Coefficient of restitution" open="0"/>
                 <Property id="RollingFriction" pid="Rolling friction" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction" open="0"/>
+                <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction with walls" open="0"/>
                 <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.1" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
                 <Property id="Color" pid="Color" value="3" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
@@ -630,7 +631,7 @@
                 <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
                 <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
+                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>
                 <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
                 <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
             </Material>
@@ -643,6 +644,7 @@
                 <Property id="ParticleFrictionAngle" pid="Friction angle" value="20.0" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle (for Coulomb's friction)" open="0"/>
                 <Property id="CoefficientOfRestitution" pid="Coefficient of restitution" value="0.25" unit=" " icon="prop.gif" state="normal" help="Coefficient of restitution" open="0"/>
                 <Property id="RollingFriction" pid="Rolling friction" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction" open="0"/>
+                <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction with walls" open="0"/>
                 <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.1" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
                 <Property id="Color" pid="Color" value="4" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
@@ -650,7 +652,7 @@
                 <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
                 <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
+                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>
                 <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
                 <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
             </Material>
@@ -663,6 +665,7 @@
                 <Property id="ParticleFrictionAngle" pid="Friction angle" value="30.0" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle (for Coulomb's friction)" open="0"/>
                 <Property id="CoefficientOfRestitution" pid="Coefficient of restitution" value="0.1" unit=" " icon="prop.gif" state="normal" help="Coefficient of restitution" open="0"/>
                 <Property id="RollingFriction" pid="Rolling friction" value="0.1" unit=" " icon="prop.gif" state="hidden" help="Rolling friction" open="0"/>
+                <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction with walls" open="0"/>
                 <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
                 <Property id="Color" pid="Color" value="5" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
@@ -670,7 +673,7 @@
                 <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
                 <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
+                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>
                 <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
                 <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
             </Material>
@@ -683,14 +686,15 @@
                 <Property id="ParticleFrictionAngle" pid="Friction angle" value="30.0" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle (for Coulomb's friction)" open="0"/>
                 <Property id="CoefficientOfRestitution" pid="Coefficient of restitution" value="0.1" unit=" " icon="prop.gif" state="normal" help="Coefficient of restitution" open="0"/>
                 <Property id="RollingFriction" pid="Rolling friction" value="0.1" unit=" " icon="prop.gif" state="hidden" help="Rolling friction" open="0"/>
+                <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction with walls" open="0"/>
                 <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
                 <Property id="Color" pid="Color" value="6" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
                 <Property id="KNormal" pid="KNormal" DEMContactLaw="LinearCustomized" value="1e5" unit="" icon="prop.gif" state="normal" help="KNormal" open="0"/>
-                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>                
+                <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
                 <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
+                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>
                 <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
                 <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
             </Material>
@@ -703,6 +707,7 @@
                 <Property id="ParticleFrictionAngle" pid="Friction angle" value="31.0" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle (for Coulomb's friction)" open="0"/>
                 <Property id="CoefficientOfRestitution" pid="Coefficient of restitution" value="0.4" unit=" " icon="prop.gif" state="normal" help="Coefficient of restitution" open="0"/>
                 <Property id="RollingFriction" pid="Rolling friction" value="0.0" unit=" " icon="prop.gif" state="hidden" help="Rolling friction" open="0"/>
+                <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction with walls" open="0"/>
                 <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.0" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
                 <Property id="Color" pid="Color" value="0" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
                 <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized,ConicalDamage" values="Linear,Hertz,LinearCustomized,ConicalDamage" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>
@@ -710,13 +715,13 @@
                 <Property id="KTangential" pid="KTangential" DEMContactLaw="LinearCustomized" value="5e4" unit="" icon="prop.gif" state="normal" help="KTangential" open="0"/>
                 <Property id="DEM_CohesionLaw" pid="Cohesion Law" class="DEMCohesionLaw" value="None" ivalues="None,JKR,DMT" values="None,JKR,DMT" delvalues="" unit="" icon="prop.gif" help="JKR: larger, flexible spheres. DMT: smaller, rigid ones." open="0"/>
                 <Property id="ContactRadius" pid="Contact Radius" DEMContactLaw="ConicalDamage" value="4e-3" unit="m" icon="prop.gif" state="normal" help="Contact Radius" open="0"/>
-                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>                
+                <Property id="MaxStress" pid="Maximum Stress" DEMContactLaw="ConicalDamage" value="2e8" unit="Pa" icon="prop.gif" state="normal" help="Maximum Stress" open="0"/>
                 <Property id="Alpha" pid="Alpha" DEMContactLaw="ConicalDamage" value="81.0" unit="Degrees" icon="prop.gif" help="Alpha" open="0"/>
                 <Property id="Gamma" pid="Gamma" DEMContactLaw="ConicalDamage" value="-0.16" unit="" icon="prop.gif" help="Gamma" open="0"/>
             </Material>
         </MaterialGroup>
         <ClassConfiguration>
-            <Class>DEMContactLaw</Class>
+            <Class>DEMContactLaw,NonNewtonianFluid</Class>
         </ClassConfiguration>
     </Materials>
     <Units>
@@ -726,7 +731,7 @@
         <Template id="NewMaterial" help="Helptext" open="1">
             <Container id="General" pid="General" icon="prop.gif" class="normal" help="General" open="1">
                 <Property id="Description" pid="Description" value="material description" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                <Property id="Density" pid="Density" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                <Property id="Density" pid="Density" value="1000" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
             </Container>
             <Container id="Structural" pid="Structural" icon="prop.gif" class="normal" state="hiddenAll" help="General" open="0">
                 <Container id="Elastic" pid="Elasticity" icon="prop.gif" class="normal" state="hidden" help="General" open="0">
@@ -821,10 +826,10 @@
                 </Container>
             </Container>
             <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
-                <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="hidden" help="Non-Newtonian fluid option" />
+                <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="1.0e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                 <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
-                <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Helptext" open="0"/>
                 <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
                 <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
                 <Property id="PowerLawN" pid="Power law N" value="1.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the power law n value"/>
@@ -845,6 +850,7 @@
             <Property id="ParticleFrictionAngle" pid="Friction angle (deg)" value="45.0" unit="deg" icon="prop.gif" state="normal" help="Particle friction angle (for Coulomb's friction)" open="0"/>
             <Property id="CoefficientOfRestitution" pid="Coefficient of restitution" value="0.2" unit=" " icon="prop.gif" state="normal" help="Coefficient of restitution" open="0"/>
             <Property id="RollingFriction" pid="Rolling friction" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction" open="0"/>
+            <Property id="RollingFrictionWithWalls" pid="Rolling friction with walls" value="0.01" unit=" " icon="prop.gif" state="hidden" help="Rolling friction with walls" open="0"/>
             <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="hidden" help="Rotational damping ratio" open="0"/>
             <Property id="Color" pid="Color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
             <Property id="DEM_ContactLaw" pid="Discontinuous Contact Law" class="DEMContactLaw" value="Hertz" ivalues="Linear,Hertz,LinearCustomized" values="Linear,Hertz,LinearCustomized" delvalues="" unit="" icon="prop.gif" help="Contact Laws based on Thornton, Cummins, Cleary, 2013: LSD and HMD" open="0"/>

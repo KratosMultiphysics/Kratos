@@ -3,6 +3,8 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 
+import KratosMultiphysics.kratos_utilities as kratos_utils
+
 try:
     from KratosMultiphysics.FluidDynamicsApplication import *
     have_fluid_dynamics = True
@@ -35,13 +37,12 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
     def tearDown(self):
         with WorkFolderScope(self.workFolder):
             for suffix in ['_0.post.res', '_0.post.msh']:
-                try:
-                    os.remove(self.output_file_name+suffix)
-                except FileNotFoundError:
-                    pass
+                kratos_utils.DeleteFileIfExisting(self.output_file_name+suffix)
+
 
     def setModelPart(self):
-        modelPart = ModelPart("Test ModelPart")
+        self.model = Model()
+        modelPart = self.model.CreateModelPart("Test ModelPart")
 
         modelPart.AddNodalSolutionStepVariable(DISTANCE)
         modelPart.AddNodalSolutionStepVariable(VELOCITY)
@@ -105,6 +106,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         self.gid_io.WriteNodalResults(VELOCITY, self.modelPart.Nodes, label, 0)
         self.gid_io.PrintOnGaussPoints(VORTICITY, self.modelPart, label)
         self.gid_io.PrintOnGaussPoints(NORMAL, self.modelPart, label)
+        self.gid_io.PrintFlagsOnGaussPoints(ACTIVE, "ACTIVE", self.modelPart, label)
 
 
     def finalizeOutputFile(self):
@@ -152,6 +154,8 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 if __name__ == '__main__':
     test = TestGiDIOGaussPoints()
     test.setUp()
-    #test.test_write_active_only()
+    test.test_write_active_only()
+    test.tearDown()
+    test.setUp()
     test.test_write_dynamic_deactivation()
     test.tearDown()

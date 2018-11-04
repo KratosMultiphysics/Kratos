@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_T3andQ4_linear_static_struct_scordelis_lo_roof",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 1
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -31,6 +33,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet","DISPLACEMENT_XZ_sym","DISPLACEMENT_YZ_sym","ROTATION_XZ_sym","ROTATION_YZ_sym","SurfaceLoad3D_Surface_Q4_thick","SurfaceLoad3D_Surface_Q4_thin","SurfaceLoad3D_Surface_T3_thick","SurfaceLoad3D_Surface_T3_thin"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -155,6 +158,19 @@
             "interval"        : [0.0,"End"]
         }
     }],
+    "json_check_process": [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["DISPLACEMENT_Z"],
+            "input_file_name"  : "shell_test/Shell_T3andQ4_linear_static_struct_scordelis_lo_roof_results.json",
+            "model_part_name"  : "GENERIC_ref_node",
+            "time_frequency"   : 0.01
+        }
+    }]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -170,34 +186,11 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","TORQUE"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","REACTION_MOMENT"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
     },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-	"json_check_process": [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_Z"],
-            "input_file_name"  : "shell_test/Shell_T3andQ4_linear_static_struct_scordelis_lo_roof_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
-            "time_frequency"   : 0.01
-        }
-    }],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

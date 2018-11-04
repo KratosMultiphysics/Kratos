@@ -19,7 +19,7 @@
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -33,8 +33,8 @@ namespace Kratos
 namespace Python
 {
 
-void AddQuadraturesToPython();
-void AddIntegrationPointsToPython();
+void AddQuadraturesToPython(pybind11::module& m);
+void AddIntegrationPointsToPython(pybind11::module& m);
 }  // namespace Python.
 
 }  // namespace Kratos.

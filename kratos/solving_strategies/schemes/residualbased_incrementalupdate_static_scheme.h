@@ -10,463 +10,443 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
-#if !defined(KRATOS_NEW_STANDARD_STATIC_SCHEME )
-#define  KRATOS_NEW_STANDARD_STATIC_SCHEME
-
+#if !defined(KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SCHEME_H )
+#define  KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SCHEME_H
 
 /* System includes */
 
-
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+///@}
+///@name  Functions
+///@{
+///@}
+///@name Kratos Classes
+///@{
 
-/**@name Kratos Globals */
-/*@{ */
-
-
-/*@} */
-/**@name Type Definitions */
-/*@{ */
-
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-
-/** Short class definition.
-
-This class provides the implementation of the basic tasks that are needed by the solution strategy.
-It is intended to be the place for tailoring the solution strategies to problem specific tasks.
-
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
-*/
+/**
+ * @class ResidualBasedIncrementalUpdateStaticScheme
+ * @ingroup KratosCore
+ * @brief This class provides the implementation of a static scheme
+ * @details The only operation done in this  scheme is the update of the database, no predict is done
+ * @tparam TSparseSpace The sparse space considered
+ * @tparam TDenseSpace The dense space considered
+ * @see Scheme
+ * @author Riccardo Rossi
+ */
 template<class TSparseSpace,
          class TDenseSpace //= DenseSpace<double>
          >
-class ResidualBasedIncrementalUpdateStaticScheme : public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedIncrementalUpdateStaticScheme
+    : public Scheme<TSparseSpace,TDenseSpace>
 {
 
 public:
-    /**@name Type Definitions */
-    /*@{ */
+    ///@name Type Definitions
+    ///@{
 
+    /// Pointer definition of ResidualBasedIncrementalUpdateStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticScheme);
 
-    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
+    /// Base class definition
+    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
 
-    typedef typename BaseType::TDataType TDataType;
+    /// DoF array type definition
+    typedef typename BaseType::DofsArrayType                 DofsArrayType;
 
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
+    /// Data type definition
+    typedef typename BaseType::TDataType                         TDataType;
+    /// Matrix type definition
+    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
+    /// Vector type definition
+    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
+    /// Local system matrix type definition
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
+    /// Local system vector type definition
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
+    /// Elements containers definition
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
-
+    /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
 
+    /// The definition of the vector containing the equation ids
+    typedef Element::EquationIdVectorType             EquationIdVectorType;
 
-    /*@} */
-    /**@name Life Cycle
-    */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /** Constructor.
     */
-    ResidualBasedIncrementalUpdateStaticScheme()
+    explicit ResidualBasedIncrementalUpdateStaticScheme()
         : Scheme<TSparseSpace,TDenseSpace>()
     {}
+
+    /** Copy Constructor.
+     */
+    explicit ResidualBasedIncrementalUpdateStaticScheme(ResidualBasedIncrementalUpdateStaticScheme& rOther)
+        :BaseType(rOther)
+    {
+    }
 
     /** Destructor.
     */
     ~ResidualBasedIncrementalUpdateStaticScheme() override {}
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-    /*@} */
-    /**@name Operators
-    */
-    /*@{ */
-
-    /**
-    Performing the update of the solution.
-    */
-    //***************************************************************************
-    void Update(
-        ModelPart& r_model_part,
-        DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-    ) override
-    {
-        KRATOS_TRY
-
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
-        {
-            if(i_dof->IsFree())
-            {
-                i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
-            }
-        }
-        KRATOS_CATCH("")
-    }
-
-
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
-    Performing the update of the solution.
-    */
-    //***************************************************************************
-    void Predict(
-        ModelPart& r_model_part,
-        DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-    ) override
-    {
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
-    }
-
-    
-    /**
-     * It initializes a non-linear iteration (for the element)
-     * @param rModelPart The model of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @brief Performing the update of the solution.
+     * @param rModelPart The model part of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
 
+        mpDofUpdater->UpdateDofs(rDofSet, rDx);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Performing the prediction of the solution.
+     * @param rModelPart The model part of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief It initializes a non-linear iteration (for the element)
+     * @param rModelPart The model of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
     void InitializeNonLinIteration(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-    ) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
     {
         KRATOS_TRY;
 
-        // Initializes the non-linear iteration for all the elements
-        ElementsArrayType& rElements = rModelPart.Elements();
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(rElements.size(), NumThreads, ElementPartition);
-
-        #pragma omp parallel
-        {
-            const unsigned int k = OpenMPUtils::ThisThread();
-
-            typename ElementsArrayType::iterator ElementsBegin = rElements.begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator ElementsEnd   = rElements.begin() + ElementPartition[k + 1];
-
-            for (typename ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
-            {
-                itElem->InitializeNonLinearIteration(CurrentProcessInfo);
-            }
+        // Initialize solution step for all of the elements
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
+            auto it_elem = rModelPart.ElementsBegin() + i;
+            it_elem->InitializeNonLinearIteration(r_current_process_info);
         }
-        
-        // Initializes the non-linear iteration for all the conditions
-        ConditionsArrayType& rConditions = rModelPart.Conditions();
-        
-        OpenMPUtils::PartitionVector ConditionPartition;
-        OpenMPUtils::DivideInPartitions(rConditions.size(), NumThreads, ConditionPartition);
-        
-        #pragma omp parallel
-        {
-            const unsigned int k = OpenMPUtils::ThisThread();
 
-            typename ConditionsArrayType::iterator ConditionsBegin = rConditions.begin() + ConditionPartition[k];
-            typename ConditionsArrayType::iterator ConditionsEnd   = rConditions.begin() + ConditionPartition[k + 1];
-
-            for (typename ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
-            {
-                itCond->InitializeNonLinearIteration(CurrentProcessInfo);
-            }
+        // Initialize solution step for all of the conditions
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
+            auto it_cond = rModelPart.ConditionsBegin() + i;
+            it_cond->InitializeNonLinearIteration(r_current_process_info);
         }
 
         KRATOS_CATCH( "" );
     }
 
     /**
-     * It initializes a non-linear iteration (for an individual condition)
+     * @brief It initializes a non-linear iteration (for an individual condition)
      * @param rCurrentConditiont The condition to compute
-     * @param CurrentProcessInfo The current process info instance
+     * @param rCurrentProcessInfo The current process info instance
      */
-
     void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
-        ProcessInfo& CurrentProcessInfo
-    ) override
+        ProcessInfo& rCurrentProcessInfo
+        ) override
     {
-        (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
+        (rCurrentCondition)->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
     /**
-     * It initializes a non-linear iteration (for an individual element)
-     * @param rCurrentElement The element to compute
-     * @param CurrentProcessInfo The current process info instance
+     * @brief It initializes a non-linear iteration (for an individual element)
+     * @param pCurrentElement The element to compute
+     * @param rCurrentProcessInfo The current process info instance
      */
-
     void InitializeNonLinearIteration(
-        Element::Pointer rCurrentElement,
-        ProcessInfo& CurrentProcessInfo
-    ) override
+        Element::Pointer pCurrentElement,
+        ProcessInfo& rCurrentProcessInfo
+        ) override
     {
-        (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
+        (pCurrentElement)->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
-
-    /** this function is designed to be called in the builder and solver to introduce
-    the selected time integration scheme. It "asks" the matrix needed to the element and
-    performs the operations needed to introduce the seected time integration scheme.
-
-    this function calculates at the same time the contribution to the LHS and to the RHS
-    of the system
-    */
+    /**
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
+     * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
+     * @param pCurrentElement The element to compute
+     * @param rLHSContribution The LHS matrix contribution
+     * @param rRHSContribution The RHS vector contribution
+     * @param EquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo
-    ) override
+        Element::Pointer pCurrentElement,
+        LocalSystemMatrixType& rLHSContribution,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
+        ProcessInfo& rCurrentProcessInfo
+        ) override
     {
         KRATOS_TRY
 
-        (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        (pCurrentElement)->CalculateLocalSystem(rLHSContribution,rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
-
-    //***************************************************************************
-    //***************************************************************************
-    void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
-
-        KRATOS_CATCH("")
-    }
-
-    //***************************************************************************
-    //***************************************************************************
-    void Calculate_LHS_Contribution(
-        Element::Pointer rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        (rCurrentElement) -> CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
-
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
-
-        KRATOS_CATCH("")
-    }
-
-
-    /** functions totally analogous to the precedent but applied to
-    the "condition" objects
-    */
+    /**
+     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
+     * @param pCurrentCondition The condition to compute
+     * @param rLHSContribution The LHS matrix contribution
+     * @param rRHSContribution The RHS vector contribution
+     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        LocalSystemMatrixType& rLHSContribution,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
+        ProcessInfo& rCurrentProcessInfo
+        ) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        (rCurrentCondition)->CalculateLocalSystem(rLHSContribution, rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        (rCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This function is designed to calculate just the RHS contribution
+     * @param pCurrentElement The element to compute
+     * @param rRHSContribution The RHS vector contribution
+     * @param EquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void Calculate_RHS_Contribution(
+        Element::Pointer pCurrentElement,
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
+        ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        KRATOS_TRY
+
+        (pCurrentElement)->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
+
+        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
+     * @param pCurrentCondition The condition to compute
+     * @param rRHSContribution The RHS vector contribution
+     * @param EquationId The ID's of the condition degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        LocalSystemVectorType& rRHSContribution,
+        EquationIdVectorType& rEquationId,
+        ProcessInfo& rCurrentProcessInfo
+        ) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        (rCurrentCondition)->CalculateRightHandSide(rRHSContribution, rCurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        (rCurrentCondition)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This function is designed to calculate just the LHS contribution
+     * @param pCurrentElement The element to compute
+     * @param rLHSContribution The RHS vector contribution
+     * @param EquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void Calculate_LHS_Contribution(
+        Element::Pointer pCurrentElement,
+        LocalSystemMatrixType& rLHSContribution,
+        EquationIdVectorType& rEquationId,
+        ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        KRATOS_TRY
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+        (pCurrentElement)->CalculateLeftHandSide(rLHSContribution, rCurrentProcessInfo);
 
+        (pCurrentElement)->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-    /*@} */
-    /**@name Access */
-    /*@{ */
+        KRATOS_CATCH("")
+    }
 
+    /**
+     * @brief Liberate internal storage.
+     */
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
+    }
 
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
+    ///@}
+    ///@name Access
+    ///@{
 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-    /*@} */
-    /**@name Friends */
-    /*@{ */
+    ///@}
+    ///@name Input and output
+    ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedIncrementalUpdateStaticScheme";
+    }
 
-    /*@} */
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
 
 protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
+    ///@name Protected static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
+    ///@}
 
 private:
-    /**@name Static Member Variables */
-    /*@{ */
+    ///@name Static Member Variables
+    ///@{
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater(); /// The DoF updater, which will update the values
 
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
+    ///@}
+    ///@name Private Operators
+    ///@{
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
+    ///@}
+    ///@name Private  Access
+    ///@{
 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
+    ///@}
 
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
+}; // Class ResidualBasedIncrementalUpdateStaticScheme
+}  // namespace Kratos
 
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-
-    /*@} */
-
-}; /* Class Scheme */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
-
-}  /* namespace Kratos.*/
-
-#endif /* KRATOS_NEW_STANDARD_STATIC_SCHEME  defined */
-
+#endif /* KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SCHEME_H  defined */

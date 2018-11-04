@@ -54,11 +54,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "thermo_mechanical_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -71,21 +71,20 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
-
-
-
-BOOST_PYTHON_MODULE(KratosThermoMechanicalApplication)
+PYBIND11_MODULE(KratosThermoMechanicalApplication, m)
 {
 
-    class_<KratosThermoMechanicalApplication,
+    namespace py = pybind11;
+
+    py::class_<KratosThermoMechanicalApplication,
            KratosThermoMechanicalApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosThermoMechanicalApplication")
+           KratosApplication >(m,"KratosThermoMechanicalApplication")
+           .def(py::init<>())
            ;
 
-    AddCustomStrategiesToPython();
-    AddCustomUtilitiesToPython();
-    AddCustomProcessesToPython();
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
+    AddCustomProcessesToPython(m);
 }
 
 

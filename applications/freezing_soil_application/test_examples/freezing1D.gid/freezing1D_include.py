@@ -22,14 +22,14 @@ kratos_root_path=os.environ['KRATOS_ROOT_PATH']
 ##################################################################
 ##################################################################
 #importing Kratos modules
-from KratosMultiphysics import * 
+from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.EkateAuxiliaryApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ExternalConstitutiveLawsApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+# from KratosMultiphysics.MKLSolversApplication import *
 from KratosMultiphysics.FreezingSoilApplication import *
 kernel = Kernel()   #defining kernel
 
@@ -50,7 +50,7 @@ class Model:
         ## DEFINE SOLVER #################################################
         ##################################################################
         # reading simulation parameters
-        number_of_time_steps = 1 
+        number_of_time_steps = 1
         self.analysis_parameters = []
         # content of analysis_parameters:
         # perform_contact_analysis_flag
@@ -94,11 +94,11 @@ class Model:
         self.analysis_parameters.append(fricrampfactor)
         #PrintSparsityInfoFlag
         self.analysis_parameters.append(False)
-        
+
         abs_tol =        1e-08
         rel_tol =        1e-06
         #rel_tol = 1e-10
-        
+
         ## generating solver
         import structural_solver_mengmeng
         self.solver = structural_solver_mengmeng.MengmengSolver(self.model_part, self.domain_size, abs_tol, rel_tol)
@@ -130,13 +130,13 @@ class Model:
         #for node in self.model_part.Nodes:
         #    print node
         #print "+++++++++++++++++++++++++++++++++++++++"
-        
+
         #the buffer size should be set up here after the mesh is read for the first time
         self.model_part.SetBufferSize(2)
 
         ##################################################################
         ## ADD DOFS ######################################################
-        ##################################################################       
+        ##################################################################
         #ekate_solver_parallel.AddDofs( self.model_part )
         #structural_solver_advanced.AddDofs( self.model_part )
         structural_solver_mengmeng.AddDofs( self.model_part )
@@ -155,7 +155,7 @@ class Model:
         ## INITIALISE RESTART UTILITY ####################################
         ##################################################################
         #restart_utility= RestartUtility( self.problem_name )
-        
+
     def SetUpActivationLevels( self, model_part, activation_list, cond_activation_list ):
         for element in self.model_part.Elements:
             element.SetValue(ACTIVATION_LEVEL, activation_list[element.Id])
@@ -198,33 +198,33 @@ class Model:
 #            if i in self.model_part.Nodes:
 #                i_node = self.model_part.Nodes[i]
 #                if i_node.HasDofFor(WATER_PRESSURE):
-#                    if (i_node.IsFixed(WATER_PRESSURE)==0):        
+#                    if (i_node.IsFixed(WATER_PRESSURE)==0):
 #                        i_node.Fix(WATER_PRESSURE)
 #                        free_node_list_water.append(i)
 #                if i_node.HasDofFor(AIR_PRESSURE):
 #                    if (i_node.IsFixed(AIR_PRESSURE)==0):
 #                        i_node.Fix(AIR_PRESSURE)
-#                        free_node_list_air.append(i)                
+#                        free_node_list_air.append(i)
 
     def FixPressureNodes( self, free_node_list_water, free_node_list_air):
         for node in self.model_part.Nodes:
-            if (node.IsFixed(WATER_PRESSURE)==0):                
+            if (node.IsFixed(WATER_PRESSURE)==0):
                 node.Fix(WATER_PRESSURE)
                 free_node_list_water.append(node)
             if (node.IsFixed(AIR_PRESSURE)==0):
                 node.Fix(AIR_PRESSURE)
-                free_node_list_air.append(node)                                
+                free_node_list_air.append(node)
 
     def ApplyInsituWaterPressure( self, free_node_list_water, free_node_list_air, z_zero, gravity_z):
         water_density=1000.0;
-        for node in self.model_part.Nodes:                              
+        for node in self.model_part.Nodes:
             water_pressure= water_density*gravity_z*(z_zero-(node.Z-node.GetSolutionStepValue(DISPLACEMENT_Z,0)))
             if( water_pressure < 1.0 ):
                 water_pressure = 1.0
             node.SetSolutionStepValue(WATER_PRESSURE, water_pressure)
             node.SetSolutionStepValue(WATER_PRESSURE_EINS, water_pressure)
             node.SetSolutionStepValue(WATER_PRESSURE_NULL, water_pressure)
-        for node in self.model_part.Nodes:              
+        for node in self.model_part.Nodes:
             node.SetSolutionStepValue(AIR_PRESSURE, 0.0)
             node.SetSolutionStepValue(AIR_PRESSURE_EINS, 0.0)
             node.SetSolutionStepValue(AIR_PRESSURE_NULL, 0.0)
@@ -253,7 +253,7 @@ class Model:
         for item in free_node_list_air:
             #self.model_part.Nodes[item].Free(AIR_PRESSURE)
             item.Free(AIR_PRESSURE)
-            
+
     def WriteMaterialParameters( self, time, indices ):
         self.gid_io.OpenResultFile( self.path+self.problem_name, GiDPostMode.GiD_PostBinary)
         #self.gid_io.ChangeOutputName( self.path+self.problem_name +str(time), GiDPostMode.GiD_PostBinary )
@@ -265,7 +265,7 @@ class Model:
         outfile = open("step_"+str(time)+".dat",'w')
         outfile.write("ekate result file for step "+str(time)+"\n")
         outfile.close()
-        
+
     def WriteOutput( self, time ):
         self.gid_io.InitializeMesh( time )
         mesh = self.model_part.GetMesh()
@@ -283,13 +283,13 @@ class Model:
         #self.gid_io.PrintOnGaussPoints(MATERIAL_PARAMETERS, self.model_part, time, 6)
         print("write nodal displacements")
         self.gid_io.WriteNodalResults(DISPLACEMENT, self.model_part.Nodes, time, 0)
-        #self.gid_io.PrintOnGaussPoints(DISPLACEMENT, self.model_part, time) 
-        self.gid_io.PrintOnGaussPoints(EQUIVALENT_VOLUMETRIC_STRAIN, self.model_part, time) 
-        self.gid_io.PrintOnGaussPoints(EQUIVALENT_DEVIATORIC_STRAIN, self.model_part, time) 
-        self.gid_io.PrintOnGaussPoints(EQUIVALENT_VOLUMETRIC_STRESS, self.model_part, time) 
-        self.gid_io.PrintOnGaussPoints(EQUIVALENT_DEVIATORIC_STRESS, self.model_part, time) 
-        self.gid_io.PrintOnGaussPoints(PRECONSOLIDATION, self.model_part, time) 
-        self.gid_io.PrintOnGaussPoints(PRESTRESS, self.model_part, time) 
+        #self.gid_io.PrintOnGaussPoints(DISPLACEMENT, self.model_part, time)
+        self.gid_io.PrintOnGaussPoints(EQUIVALENT_VOLUMETRIC_STRAIN, self.model_part, time)
+        self.gid_io.PrintOnGaussPoints(EQUIVALENT_DEVIATORIC_STRAIN, self.model_part, time)
+        self.gid_io.PrintOnGaussPoints(EQUIVALENT_VOLUMETRIC_STRESS, self.model_part, time)
+        self.gid_io.PrintOnGaussPoints(EQUIVALENT_DEVIATORIC_STRESS, self.model_part, time)
+        self.gid_io.PrintOnGaussPoints(PRECONSOLIDATION, self.model_part, time)
+        self.gid_io.PrintOnGaussPoints(PRESTRESS, self.model_part, time)
         self.gid_io.WriteNodalResults(WATER_PRESSURE, self.model_part.Nodes, time, 0)
         #self.gid_io.PrintOnGaussPoints(WATER_PRESSURE, self.model_part, time)
         self.gid_io.WriteNodalResults(ICE_PRESSURE, self.model_part.Nodes, time, 0)
@@ -309,57 +309,57 @@ class Model:
         self.gid_io.WriteNodalResults(HEAT_FLOW, self.model_part.Nodes, time, 0)
         #self.gid_io.PrintOnGaussPoints(HEAT_FLOW, self.model_part, time)
         self.gid_io.FinalizeResults()
-                
+
     def InitializeModel( self ):
         ##################################################################
         ## INITIALISE CONSTITUTIVE LAWS ##################################
         ##################################################################
         #set material parameters
         append_manual_data = False
-        elempar1 = Vector(20)  
-        elempar1[0] =         2650 
-        elempar1[1] =         1000  
-        elempar1[2] =          917 
+        elempar1 = Vector(20)
+        elempar1[0] =         2650
+        elempar1[1] =         1000
+        elempar1[2] =          917
         elempar1[3] =        5e+10
-        elempar1[4] =      2.2e+09 
-        elempar1[5] =      8.6e+09 
+        elempar1[4] =      2.2e+09
+        elempar1[5] =      8.6e+09
         elempar1[6] =     3.75e+10
-        elempar1[7] =        1e+08 
-        elempar1[8] =      3.4e+09 
-        elempar1[9] =          900 
-        elempar1[10] =         4180 
-        elempar1[11] =         2100 
+        elempar1[7] =        1e+08
+        elempar1[8] =      3.4e+09
+        elempar1[9] =          900
+        elempar1[10] =         4180
+        elempar1[11] =         2100
         elempar1[12] =          1.8
-        elempar1[13] =         0.56 
-        elempar1[14] =         2.24 
+        elempar1[13] =         0.56
+        elempar1[14] =         2.24
         elempar1[15] =            0
-        elempar1[16] =   -9.543e-05 
-        elempar1[17] =    5.167e-05     
-        elempar1[18] =          273 
-        elempar1[19] =      1.2e+06 
-        self.model_part.Properties[1].SetValue(ELEMENT_PARAMETERS, elempar1 )   
-        self.model_part.Properties[1].SetValue(POROSITY,         0.35 )     
-        self.model_part.Properties[1].SetValue(PERMEABILITY_WATER,        1e-08 )     
-        self.model_part.Properties[1].SetValue(FIRST_SATURATION_PARAM,            1 )     
-        self.model_part.Properties[1].SetValue(SECOND_SATURATION_PARAM,          0.7 )        
-        self.model_part.Properties[1].SetValue(SCALE,         1000 )     
-        self.model_part.Properties[1].SetValue(SCALE_U,            1 )   
-        self.model_part.Properties[1].SetValue(SCALE_O,            1 )    
-        self.model_part.Properties[1].SetValue(DP_EPSILON,        1e-10 )     
-        self.model_part.Properties[1].SetValue(YOUNG_MODULUS,        5e+07 )    
-        self.model_part.Properties[1].SetValue(DENSITY,            1 )     
-        matpar1 = Vector(9) 
-        matpar1[0] =          1.2 
-        matpar1[1] =          0.2 
-        matpar1[2] =          0.1 
-        matpar1[3] =           22 
-        matpar1[4] =            2 
-        matpar1[5] =            2 
-        matpar1[6] =        1e+07 
-        matpar1[7] =        5e+06 
-        matpar1[8] =          1.2 
-        self.model_part.Properties[1].SetValue(MATERIAL_PARAMETERS, matpar1 )   
-        self.model_part.Properties[1].SetValue(POISSON_RATIO,          0.3 )     
+        elempar1[16] =   -9.543e-05
+        elempar1[17] =    5.167e-05
+        elempar1[18] =          273
+        elempar1[19] =      1.2e+06
+        self.model_part.Properties[1].SetValue(ELEMENT_PARAMETERS, elempar1 )
+        self.model_part.Properties[1].SetValue(POROSITY,         0.35 )
+        self.model_part.Properties[1].SetValue(PERMEABILITY_WATER,        1e-08 )
+        self.model_part.Properties[1].SetValue(FIRST_SATURATION_PARAM,            1 )
+        self.model_part.Properties[1].SetValue(SECOND_SATURATION_PARAM,          0.7 )
+        self.model_part.Properties[1].SetValue(SCALE,         1000 )
+        self.model_part.Properties[1].SetValue(SCALE_U,            1 )
+        self.model_part.Properties[1].SetValue(SCALE_O,            1 )
+        self.model_part.Properties[1].SetValue(DP_EPSILON,        1e-10 )
+        self.model_part.Properties[1].SetValue(YOUNG_MODULUS,        5e+07 )
+        self.model_part.Properties[1].SetValue(DENSITY,            1 )
+        matpar1 = Vector(9)
+        matpar1[0] =          1.2
+        matpar1[1] =          0.2
+        matpar1[2] =          0.1
+        matpar1[3] =           22
+        matpar1[4] =            2
+        matpar1[5] =            2
+        matpar1[6] =        1e+07
+        matpar1[7] =        5e+06
+        matpar1[8] =          1.2
+        self.model_part.Properties[1].SetValue(MATERIAL_PARAMETERS, matpar1 )
+        self.model_part.Properties[1].SetValue(POISSON_RATIO,          0.3 )
         self.model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, FreezingSoilElastoplasticModel() )
         print "Constitutive Law: Zhou's FreezingSoilElastoplasticModel selected (unit converted to mm)"
 
@@ -905,7 +905,7 @@ class Model:
         self.inner_boundary_nodes = [
         ]
         ##################################################################
-        print "layer sets stored"        
+        print "layer sets stored"
         ##################################################################
         ## STORE NODES ON GROUND SURFACE #################################
         ##################################################################
@@ -932,10 +932,10 @@ class Model:
         #self.model_part.Check( self.model_part.ProcessInfo )
         print "model successfully initialized"
 
-        
+
     def FinalizeModel( self ):
         self.gid_io.CloseResultFile()
-        
+
     #def Solve( self, time, from_deac, to_deac, from_reac, to_reac ):
         #self.deac.Reactivate( self.model_part, from_reac, to_reac )
         #self.deac.Deactivate( self.model_part, from_deac, to_deac )

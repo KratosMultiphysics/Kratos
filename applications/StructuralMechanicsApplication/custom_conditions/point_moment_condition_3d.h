@@ -41,7 +41,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  PointMomentCondition3D
     : public BaseLoadCondition
 {
@@ -49,7 +49,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
+
     // Counted pointer of PointMomentCondition3D
     KRATOS_CLASS_POINTER_DEFINITION( PointMomentCondition3D );
 
@@ -58,15 +58,15 @@ public:
     ///@{
 
     /// Default constructor.
-    PointMomentCondition3D( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry 
+    PointMomentCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
         );
-    
-    PointMomentCondition3D( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry,  
-        PropertiesType::Pointer pProperties 
+
+    PointMomentCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
@@ -80,17 +80,17 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-    
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& rThisNodes,  
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& rThisNodes,
+        PropertiesType::Pointer pProperties
         ) const override;
 
     /**
@@ -100,9 +100,9 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      * @param rElementalDofList: The vector containing the dof of the element
@@ -120,7 +120,7 @@ public:
      */
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
 
     /**
@@ -130,9 +130,9 @@ public:
      */
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
-    
+
     /**
      * Sets on rValues the nodal accelerations
      * @param rValues: The values of accelerations
@@ -140,7 +140,7 @@ public:
      */
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
 
 
@@ -153,7 +153,7 @@ public:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -171,9 +171,9 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -188,7 +188,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
@@ -197,19 +197,19 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    virtual void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-        
+
     /**
-     * It calcules the integration weight for the point moment 
+     * It calcules the integration weight for the point moment
      */
     virtual double GetPointMomentIntegrationWeight();
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -221,7 +221,7 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     // A protected default constructor necessary for serialization
     PointMomentCondition3D() {};
 
@@ -239,7 +239,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -283,4 +283,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED  defined 
+#endif // KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED  defined

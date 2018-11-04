@@ -19,7 +19,7 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
-
+#include <sstream>
 
 // External includes
 
@@ -40,10 +40,13 @@
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 #include "EpetraExt_CrsMatrixIn.h"
+#include <EpetraExt_RowMatrixOut.h>
+#include <EpetraExt_MultiVectorOut.h>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "custom_utilities/trilinos_dof_updater.h"
 
 
 namespace Kratos
@@ -94,6 +97,9 @@ public:
 
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+
+    typedef TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
+    typedef typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType> >::UniquePointer DofUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -472,9 +478,6 @@ public:
                 }
             }
 
-            /*KRATOS_WATCH(indices);
-            KRATOS_WATCH(values);*/
-
             int ierr = b.SumIntoGlobalValues(indices, values);
             if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
@@ -484,7 +487,7 @@ public:
 
     //***********************************************************************
 
-    inline static bool IsDistributed()
+    inline static constexpr bool IsDistributed()
     {
         return true;
     }
@@ -528,17 +531,19 @@ public:
 
     }
 
-    void ReadMatrixMarket(const std::string FileName, MatrixPointerType& pA)
+    MatrixPointerType ReadMatrixMarket(const std::string FileName,Epetra_MpiComm& Comm)
     {
         KRATOS_TRY
 
         Epetra_CrsMatrix* pp = nullptr;
 
-        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), pA->Comm(), pp);
+
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
 
         if(error_code != 0)
             KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
 
+        Comm.Barrier();
 
         const Epetra_CrsGraph& rGraph = pp->Graph();
         MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
@@ -547,7 +552,6 @@ public:
 
         int* MyGlobalElements = new int[NumMyRows];
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
-
 
         for(IndexType i = 0; i < NumMyRows; ++i)
         {
@@ -575,11 +579,11 @@ public:
         }
 
         paux->GlobalAssemble();
-        pA.swap(paux);
+
         delete [] MyGlobalElements;
-//         std::cout << pp << std::endl;
         delete pp;
 
+        return paux;
         KRATOS_CATCH("");
     }
 
@@ -619,21 +623,28 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char *FileName, TOtherMatrixType &M, bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
     {
+        // the argument "Symmetric" does not have an effect for Trilinos => needed for compatibility with other Spaces
         KRATOS_TRY;
-        KRATOS_THROW_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
+        return EpetraExt::RowMatrixToMatrixMarketFile(pFileName, rM); // Returns 0 if no error, -1 if any problems with file system.
         KRATOS_CATCH("");
     }
 
-            template< class VectorType >
-    static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
+    template< class VectorType >
+    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
     {
         KRATOS_TRY;
-        KRATOS_THROW_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
+        return EpetraExt::MultiVectorToMatrixMarketFile(pFileName, rV);
         KRATOS_CATCH("");
     }
 
+
+    static DofUpdaterPointerType CreateDofUpdater()
+    {
+        DofUpdaterType tmp;
+        return tmp.Create();
+    }
 
     ///@}
     ///@name Friends

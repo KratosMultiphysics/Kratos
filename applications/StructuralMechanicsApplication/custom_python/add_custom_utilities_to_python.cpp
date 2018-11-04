@@ -12,36 +12,28 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 //Utilities
-#include "custom_utilities/sprism_neighbours.hpp"
+#include "custom_utilities/formfinding_io_utility.h"
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-namespace Python
-{
+    namespace py = pybind11;
 
-void  AddCustomUtilitiesToPython()
-{
-    using namespace boost::python;
-
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
-    class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
-    .def("Execute",&SprismNeighbours::Execute)
-    .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
-    ;
-
+    py::class_<FormfindingIOUtility>(m,"FormfindingIOUtility")
+        .def(py::init<ModelPart&, const Parameters>())
+        .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
+        .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
+        .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
+        ;
 }
 
-}  // namespace Python.  
-
+}  // namespace Python.
 } // Namespace Kratos
 

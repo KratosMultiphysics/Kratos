@@ -187,7 +187,7 @@ namespace Kratos
 		S(3)+=x*n(0)*n(1);
 		S(4)+=x*n(1)*n(2);
 		S(5)+=x*n(0)*n(2);
-	}	
+	}
 	inline void dam_tc_pii(const array_1d<double,3>& ni, Matrix& pii)
 	{
 		double A1 = ni(2)*ni(2);
@@ -336,7 +336,7 @@ namespace Kratos
 				break;
 			}
 		}
-		
+
 		for(unsigned int i=id; i<n; i++) {
 			if(x[i]>=xstop) {
 				id = i;
@@ -398,7 +398,7 @@ namespace Kratos
 		double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
 		double G1      = sp*ep/2.0;
 		double stretch = (Gc-G1)/(G_bar-G1)-1.0;
-		if(stretch <= -1.0) 
+		if(stretch <= -1.0)
 		{
 			std::stringstream ss;
 			ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
@@ -648,7 +648,7 @@ namespace Kratos
 	  }
 	  V(n-1,n-1) = 1.0;
 	  e(0) = 0.0;
-	} 
+	}
 
 	// Symmetric tridiagonal QL algorithm.
 	template<class TMatrix, class TVector>
@@ -747,7 +747,7 @@ namespace Kratos
 		d(l) = d(l) + f;
 		e(l) = 0.0;
 	  }
-  
+
 	  // Sort eigenvalues and corresponding vectors.
 
 	  for (int i = 0; i < n-1; i++) {
@@ -789,7 +789,7 @@ namespace Kratos
 	//
 	// =====================================================================================================
 
-	DamageTC3DLaw::DamageTC3DLaw() 
+	DamageTC3DLaw::DamageTC3DLaw()
 		: ConstitutiveLaw()
 		, m_initialized(false)
 		, m_rt(0.0)
@@ -879,7 +879,7 @@ namespace Kratos
 	}
 
 	double& DamageTC3DLaw::GetValue(
-		const Variable<double>& rThisVariable, 
+		const Variable<double>& rThisVariable,
 		double& rValue)
 	{
 		rValue = 0.0;
@@ -895,7 +895,7 @@ namespace Kratos
 	}
 
 	Vector& DamageTC3DLaw::GetValue(
-		const Variable<Vector>& rThisVariable, 
+		const Variable<Vector>& rThisVariable,
 		Vector& rValue)
 	{
 		if(rThisVariable == INITIAL_STRAIN) {
@@ -907,21 +907,21 @@ namespace Kratos
 	}
 
 	Matrix& DamageTC3DLaw::GetValue(
-		const Variable<Matrix>& rThisVariable, 
+		const Variable<Matrix>& rThisVariable,
 		Matrix& rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 3 > & DamageTC3DLaw::GetValue(
-		const Variable<array_1d<double, 3 > >& rVariable, 
+		const Variable<array_1d<double, 3 > >& rVariable,
 		array_1d<double, 3 > & rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 6 > & DamageTC3DLaw::GetValue(
-		const Variable<array_1d<double, 6 > >& rVariable, 
+		const Variable<array_1d<double, 6 > >& rVariable,
 		array_1d<double, 6 > & rValue)
 	{
 		return rValue;
@@ -964,7 +964,7 @@ namespace Kratos
 
 	void DamageTC3DLaw::SetValue(
 		const Variable<Vector >& rVariable,
-		const Vector& rValue, 
+		const Vector& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(rVariable == INITIAL_STRAIN) {
@@ -975,7 +975,7 @@ namespace Kratos
 
 	void DamageTC3DLaw::SetValue(
 		const Variable<Matrix >& rVariable,
-		const Matrix& rValue, 
+		const Matrix& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
@@ -1247,7 +1247,7 @@ namespace Kratos
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_C) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_C", "");
-		
+
 		if( !rMaterialProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
 
@@ -1287,7 +1287,7 @@ namespace Kratos
 		this->CalculateMaterialResponseCauchy(parameters);
 	}
 
-	void DamageTC3DLaw::InitializeCalculationData(const Properties& props, 
+	void DamageTC3DLaw::InitializeCalculationData(const Properties& props,
 												  const GeometryType& geom,
 												  const Vector& N,
 												  const ProcessInfo& pinfo,
@@ -1322,7 +1322,7 @@ namespace Kratos
 
 		// lubliner parameter for compressive states
 		data.Kc  = props.Has(LUBLINER_SURFACE_PARAM_KC) ? props[LUBLINER_SURFACE_PARAM_KC] : 2.0/3.0;
-		
+
 		// effective stress data
 		data.S.resize(6,false);
 		data.Si.resize(3,false);
@@ -1352,7 +1352,7 @@ namespace Kratos
 		// tensile model:
 		/*
 		0 = lubliner (default)
-		1 = rankine 
+		1 = rankine
 		*/
 		data.tensile_damage_model = props.Has(DAMAGE_TENSILE_MODEL) ? props[DAMAGE_TENSILE_MODEL] : 0;
 	}
@@ -1362,7 +1362,7 @@ namespace Kratos
 		if(data.C0.size1() != 6 || data.C0.size2() != 6)
 			data.C0.resize(6,6,false);
 		data.C0.clear();
-		
+
 		double c1 = data.E / (1.0 - data.nu * data.nu);
 		double c2 = c1 * data.nu;
 		double c3 = c1 * (1.0 - data.nu) / 2.0;
@@ -1407,7 +1407,7 @@ namespace Kratos
 		array_1d<double,3>& v1 = data.v1;
 		array_1d<double,3>& v2 = data.v2;
 		array_1d<double,3> vtemp;
-		
+
 		// compute eigenvalues and eigenvectors
 		double p1 = S(3)*S(3) + S(4)*S(4) + S(5)*S(5);
 		if(p1 == 0.0)
@@ -1509,7 +1509,7 @@ namespace Kratos
 		// QC
 		noalias(QC) = IdentityMatrix(6,6) - QT;
 	}
-	
+
 	void DamageTC3DLaw::TrialEquivalentStressTension(CalculationData& data, double& rt_trial, Vector& d_rt_trial_d_sigma)
 	{
 		rt_trial = 0.0;
@@ -1708,17 +1708,17 @@ namespace Kratos
 			double r0  = ft;
 			double lt  = 2.0*E*G/ft/ft;
 
-			if(lch >= lt) 
+			if(lch >= lt)
 			{
 				std::stringstream ss;
-				ss << "FRACTURE_ENERGY_T is to low:  2*E*Gt/(ft*ft) = " << lt 
+				ss << "FRACTURE_ENERGY_T is to low:  2*E*Gt/(ft*ft) = " << lt
 					<< ",   Characteristic Length = " << lch << std::endl;
 				std::cout << ss.str();
 				exit(-1);
 			}
 
 			double Hs  = lch/(lt-lch);
-			double A   = 2.0*Hs; 
+			double A   = 2.0*Hs;
 			dt         = 1.0-r0/rt*std::exp(A*(1.0-rt/r0));
 			d_dt_d_rt  = (r0 + A*rt)/(rt*rt*std::exp(A*(rt/r0 - 1.0)));
 			double rmin=1.0e-2*ft;
@@ -1904,7 +1904,7 @@ namespace Kratos
 			double G_bar   = b3_calc_G( sp,sk,sr,ep,ej,ek,er,eu );
 			double G1      = sp*ep/2.0;
 			double stretch = (Gc-G1)/(G_bar-G1)-1.0;
-			if(stretch <= -1.0) 
+			if(stretch <= -1.0)
 			{
 				std::stringstream ss;
 				ss << "Damage TC Error: Compressive fracture energy is too low" << std::endl;
@@ -1998,7 +1998,7 @@ namespace Kratos
 
 		// time factor
 		double time_factor = 0.0;
-		if(m_dTime_n_converged>0.0) 
+		if(m_dTime_n_converged>0.0)
 			time_factor = data.dTime/m_dTime_n_converged;
 		m_dTime_n = data.dTime;
 
@@ -2040,7 +2040,7 @@ namespace Kratos
 			noalias(m_PC_n_converged) = m_PC_n;
 			m_has_n_converged_data = true;
 		}
-		
+
 #ifndef DAM_TC_3D_IMPLEX
 
 		this->CalculateDamageTension(data, m_rt_converged, m_damage_t, d_dt_d_rt);
@@ -2080,14 +2080,14 @@ namespace Kratos
 		// calculation of tangent matrix
 		Matrix W( IdentityMatrix(6,6) );
 #ifdef DAM_TC_3D_SEQLIN
-		if(m_damage_t > 0.0) 
+		if(m_damage_t > 0.0)
 			noalias(W) -= m_damage_t*m_PT_n_converged;
-		if(m_damage_c > 0.0) 
+		if(m_damage_c > 0.0)
 			noalias(W) -= m_damage_c*m_PC_n_converged;
 #else
-		if(m_damage_t > 0.0) 
+		if(m_damage_t > 0.0)
 			noalias(W) -= m_damage_t*data.QT;
-		if(m_damage_c > 0.0) 
+		if(m_damage_c > 0.0)
 			noalias(W) -= m_damage_c*data.QC;
 #ifndef DAM_TC_3D_IMPLEX
 		if(d_dt_d_rt != 0.0)

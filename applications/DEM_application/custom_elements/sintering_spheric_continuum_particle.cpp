@@ -4,7 +4,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // External includes
 
@@ -19,7 +19,7 @@
 
 
 //......................
-//std::cout<<print...<<std::endl;
+//KRATOS_INFO("DEM") <<print...<<std::endl;
 
 namespace Kratos
 {
@@ -29,48 +29,48 @@ namespace Kratos
             mSinteringDisplacement = 0;
             mSinteringDrivingForce = 0;
             KRATOS_CATCH("")
-	}                
+	}
 
         void SinteringSphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
-            KRATOS_TRY            
+            KRATOS_TRY
 			ThermalSphericParticle<SphericContinuumParticle>::InitializeSolutionStep(r_process_info);
             const double temperature = GetTemperature();
             const double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
 
             if (temperature > sintering_start_temp) { this->Set(DEMFlags::IS_SINTERING, true);  }
-            else                                    { this->Set(DEMFlags::IS_SINTERING, false); }            
+            else                                    { this->Set(DEMFlags::IS_SINTERING, false); }
             KRATOS_CATCH("")
         }
 
 	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {
             KRATOS_TRY
             if(mNeighbourElements.size() == mContinuumInitialNeighborsSize) return;
-            
+
             const unsigned int initial_number_of_cont_neighbours = mContinuumInitialNeighborsSize;
-            
+
             std::vector<SphericParticle*> cont_ini_neighbour_elems;
             std::vector<int> cont_ini_ids;
             std::vector<double> cont_ini_deltas;
-            std::vector<int> cont_ini_failure_ids;  
-            std::vector<SphericParticle*> discont_ini_neighbour_elems; 
+            std::vector<int> cont_ini_failure_ids;
+            std::vector<SphericParticle*> discont_ini_neighbour_elems;
             std::vector<int> discont_ini_ids;
             std::vector<double> discont_ini_deltas;
             std::vector<SphericParticle*> discont_neighbour_elems;
-                        
+
             //Assuming that the neighbours are ordered (first initial continuum, then initial discontinuum, then other discontinuum)
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
                 cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
                 cont_ini_ids.push_back(mIniNeighbourIds[i]);
                 cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
-                cont_ini_failure_ids.push_back(mIniNeighbourFailureId[i]);  
-            }            
+                cont_ini_failure_ids.push_back(mIniNeighbourFailureId[i]);
+            }
 
             //// Discontinuum and initial
             for (unsigned int i = mContinuumInitialNeighborsSize; i < mInitialNeighborsSize; i++) {
                 if(mNeighbourElements[i] == NULL) {
                     discont_ini_ids.push_back(mIniNeighbourIds[i]);
                     discont_ini_deltas.push_back(mIniNeighbourDelta[i]);
-                    discont_ini_neighbour_elems.push_back(mNeighbourElements[i]);   
+                    discont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
                     continue;
                 }
                 array_1d<double, 3> other_to_me_vect;
@@ -79,19 +79,19 @@ namespace Kratos
                 double radius_sum = GetRadius() + mNeighbourElements[i]->GetRadius();
                 double initial_dist = radius_sum - mIniNeighbourDelta[i];
                 double indentation = initial_dist - distance;
-                
+
                 if(indentation>0.0 && mNeighbourElements[i]->Is(DEMFlags::IS_SINTERING)){
                     cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
                     cont_ini_ids.push_back(mIniNeighbourIds[i]);
                     cont_ini_deltas.push_back(mIniNeighbourDelta[i]);
-                    cont_ini_failure_ids.push_back(0);                        
+                    cont_ini_failure_ids.push_back(0);
                 } else {
                     discont_ini_ids.push_back(mIniNeighbourIds[i]);
                     discont_ini_deltas.push_back(mIniNeighbourDelta[i]);
-                    discont_ini_neighbour_elems.push_back(mNeighbourElements[i]);                    
-                }            
-            }            
-            
+                    discont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
+                }
+            }
+
             //The rest (discontinuum not initial)
             for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
                 array_1d<double, 3> other_to_me_vect;
@@ -99,32 +99,32 @@ namespace Kratos
                 double distance = DEM_MODULUS_3(other_to_me_vect);
                 double radius_sum = GetRadius() + mNeighbourElements[i]->GetRadius();
                 double indentation = radius_sum - distance;
-                
+
                 if(indentation>0.0 && mNeighbourElements[i]->Is(DEMFlags::IS_SINTERING)){
                     cont_ini_neighbour_elems.push_back(mNeighbourElements[i]);
                     cont_ini_ids.push_back(mNeighbourElements[i]->Id());
                     cont_ini_deltas.push_back(0.0);
-                    cont_ini_failure_ids.push_back(0);                        
+                    cont_ini_failure_ids.push_back(0);
                 } else {
-                    discont_neighbour_elems.push_back(mNeighbourElements[i]);                    
-                }            
+                    discont_neighbour_elems.push_back(mNeighbourElements[i]);
+                }
             }
 
-            //Adding everything up in single vectors mNeighbourElements, mIniNeighbourIds, mIniNeighbourDelta  
+            //Adding everything up in single vectors mNeighbourElements, mIniNeighbourIds, mIniNeighbourDelta
             mContinuumInitialNeighborsSize = cont_ini_neighbour_elems.size();
             mInitialNeighborsSize = mContinuumInitialNeighborsSize + discont_ini_neighbour_elems.size();
-            
+
             mIniNeighbourIds.resize(mInitialNeighborsSize);
             mIniNeighbourDelta.resize(mInitialNeighborsSize);
             mIniNeighbourFailureId.resize(mContinuumInitialNeighborsSize);
             mActualNeighbourSinteringDisplacement.resize(mContinuumInitialNeighborsSize);
             mOldNeighbourSinteringDisplacement.resize(mContinuumInitialNeighborsSize);
-            
-            //Continuum 
+
+            //Continuum
             for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
                 mNeighbourElements[i] = cont_ini_neighbour_elems[i];
                 mIniNeighbourIds[i]   = cont_ini_ids[i];
-                mIniNeighbourDelta[i] = cont_ini_deltas[i]; 
+                mIniNeighbourDelta[i] = cont_ini_deltas[i];
                 mIniNeighbourFailureId[i] = cont_ini_failure_ids[i];
             }
 
@@ -134,12 +134,12 @@ namespace Kratos
                 DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
                 mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
                 mContinuumConstitutiveLawArray[i]->Initialize();
-                
+
                 mBondElements.push_back(NULL);
                 //std::string ElementName;
                 //ElementName = std::string("ParticleContactElement");
-                //const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);                
-                
+                //const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
+
                 mActualNeighbourSinteringDisplacement[i] = 0.0;
                 mOldNeighbourSinteringDisplacement[i] = 0.0;
             }
@@ -147,14 +147,14 @@ namespace Kratos
             for (unsigned int i = mContinuumInitialNeighborsSize; i < mInitialNeighborsSize; i++) {
                 mNeighbourElements[i] = discont_ini_neighbour_elems[i-mContinuumInitialNeighborsSize];
                 mIniNeighbourIds[i]   = discont_ini_ids[i-mContinuumInitialNeighborsSize];
-                mIniNeighbourDelta[i] = discont_ini_deltas[i-mContinuumInitialNeighborsSize];  
+                mIniNeighbourDelta[i] = discont_ini_deltas[i-mContinuumInitialNeighborsSize];
 		if(discont_ini_neighbour_elems.size() != mInitialNeighborsSize - mContinuumInitialNeighborsSize) {
 		  KRATOS_WATCH("ERROR 1 IN SINTERING PARTICLE WHEN CONVERTING DISCONTINUUM INTO CONTINUUM")
 		}
             }
-            
+
             for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
-                mNeighbourElements[i] = discont_neighbour_elems[i-mInitialNeighborsSize];   
+                mNeighbourElements[i] = discont_neighbour_elems[i-mInitialNeighborsSize];
 		if(discont_neighbour_elems.size() != mNeighbourElements.size() - mInitialNeighborsSize) {
 		  KRATOS_WATCH("ERROR 1 IN SINTERING PARTICLE WHEN CONVERTING DISCONTINUUM INTO CONTINUUM")
 		}
@@ -162,15 +162,15 @@ namespace Kratos
 
             KRATOS_CATCH("")
 	};
-        
-               
+
+
 	void SinteringSphericContinuumParticle::SetInitialSinteringSphereContacts(ProcessInfo& r_process_info)
 	{
 		std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
 		std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
 		std::vector<int> DiscontinuumInitialNeighborsIds;
 		std::vector<double> DiscontinuumInitialNeighborsDeltas;
-		mIniNeighbourFailureId.clear(); 
+		mIniNeighbourFailureId.clear();
 		size_t continuum_ini_size = 0;
 		size_t discontinuum_ini_size = 0;
 		unsigned int neighbours_size = mNeighbourElements.size();
@@ -223,7 +223,7 @@ namespace Kratos
 		}
 
 	CreateContinuumConstitutiveLaws(); //// Reorder????
-	}//SetInitialSinteringSphereContacts    
+	}//SetInitialSinteringSphereContacts
 
 	void SinteringSphericContinuumParticle::InitializeForceComputation(ProcessInfo& r_process_info)
 	{
@@ -232,15 +232,15 @@ namespace Kratos
                         UpdateContinuumNeighboursVector(r_process_info);
                         mOldNeighbourSinteringDisplacement = mActualNeighbourSinteringDisplacement;
                         mActualNeighbourSinteringDisplacement.clear();
-                }                
+                }
 	}
-        
+
         void SinteringSphericContinuumParticle::ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces) {
             other_ball_to_ball_forces[2] = -this->mSinteringDrivingForce;
         }
-	
+
         /*double SinteringSphericContinuumParticle::GetInitialDelta(int index) {
-            return 0.0;                 
+            return 0.0;
         }*/
 
         void SinteringSphericContinuumParticle::ComputeContactArea(const double rmin, double indentation, double& calculation_area) { //TODO: add "thermal" word to this function
@@ -258,5 +258,5 @@ namespace Kratos
                 }
 
                 calculation_area = Globals::Pi * actual_neck_radius * actual_neck_radius;
-        }	
+        }
 }  // namespace Kratos.

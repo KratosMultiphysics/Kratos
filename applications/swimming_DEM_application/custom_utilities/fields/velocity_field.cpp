@@ -2,7 +2,10 @@
 
 namespace Kratos
 {
-void VelocityField::Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector, const int i_thread)
+void VelocityField::Evaluate(const double time,
+                             const array_1d<double, 3>& coor,
+                             array_1d<double, 3>& vector,
+                             const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     vector[0] = U0(i_thread);
@@ -10,7 +13,10 @@ void VelocityField::Evaluate(const double time, const array_1d<double, 3>& coor,
     vector[2] = U2(i_thread);
 }
 
-void VelocityField::Evaluate(const double time, const vector<double>& coor, vector<double>& result, const int i_thread)
+void VelocityField::Evaluate(const double time,
+                             const DenseVector<double>& coor,
+                             DenseVector<double>& result,
+                             const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     result[0] = U0(i_thread);
@@ -18,7 +24,10 @@ void VelocityField::Evaluate(const double time, const vector<double>& coor, vect
     result[2] = U2(i_thread);
 }
 
-void VelocityField::CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv, const int i_thread)
+void VelocityField::CalculateTimeDerivative(const double time,
+                                            const array_1d<double, 3>& coor,
+                                            array_1d<double, 3>& deriv,
+                                            const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     deriv[0] = U0DT(i_thread);
@@ -26,7 +35,10 @@ void VelocityField::CalculateTimeDerivative(const double time, const array_1d<do
     deriv[2] = U2DT(i_thread);
 }
 
-void VelocityField::CalculateTimeDerivative(const double time, const vector<double>& coor, vector<double>& deriv, const int i_thread)
+void VelocityField::CalculateTimeDerivative(const double time,
+                                            const DenseVector<double>& coor,
+                                            DenseVector<double>& deriv,
+                                            const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     deriv[0] = U0DT(i_thread);
@@ -34,7 +46,10 @@ void VelocityField::CalculateTimeDerivative(const double time, const vector<doub
     deriv[2] = U2DT(i_thread);
 }
 
-void VelocityField::CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient, const int i_thread)
+void VelocityField::CalculateGradient(const double time,
+                                      const array_1d<double, 3>& coor,
+                                      array_1d< array_1d<double, 3>, 3>& gradient,
+                                      const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     gradient[0][0] = U0D0(i_thread);
@@ -48,6 +63,25 @@ void VelocityField::CalculateGradient(const double time, const array_1d<double, 
     gradient[2][2] = U2D2(i_thread);
 }
 
+void VelocityField::CalculateGradient(const double time,
+                                      const array_1d<double, 3>& coor,
+                                      DenseVector< double>& gradient_x,
+                                      DenseVector< double>& gradient_y,
+                                      DenseVector< double>& gradient_z,
+                                      const int i_thread)
+{
+    UpdateCoordinates(time, coor, i_thread);
+    gradient_x[0] = U0D0(i_thread);
+    gradient_x[1] = U0D1(i_thread);
+    gradient_x[2] = U0D2(i_thread);
+    gradient_y[0] = U1D0(i_thread);
+    gradient_y[1] = U1D1(i_thread);
+    gradient_y[2] = U1D2(i_thread);
+    gradient_z[0] = U2D0(i_thread);
+    gradient_z[1] = U2D1(i_thread);
+    gradient_z[2] = U2D2(i_thread);
+}
+
 double VelocityField::CalculateDivergence(const double time, const array_1d<double, 3>& coor, const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
@@ -55,14 +89,17 @@ double VelocityField::CalculateDivergence(const double time, const array_1d<doub
     return div;
 }
 
-double VelocityField::CalculateDivergence(const double time, const vector<double>& coor, const int i_thread)
+double VelocityField::CalculateDivergence(const double time, const DenseVector<double>& coor, const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     double div = U0D0(i_thread) + U1D1(i_thread) + U2D2(i_thread);
     return div;
 }
 
-void VelocityField::CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot, const int i_thread)
+void VelocityField::CalculateRotational(const double time,
+                                        const array_1d<double, 3>& coor,
+                                        array_1d<double, 3>& rot,
+                                        const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     rot[0] = U2D1(i_thread) - U1D2(i_thread);
@@ -70,7 +107,10 @@ void VelocityField::CalculateRotational(const double time, const array_1d<double
     rot[2] = U1D0(i_thread) - U0D1(i_thread);
 }
 
-void VelocityField::CalculateRotational(const double time, const vector<double>& coor, vector<double>& rot, const int i_thread)
+void VelocityField::CalculateRotational(const double time,
+                                        const DenseVector<double>& coor,
+                                        DenseVector<double>& rot,
+                                        const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     rot[0] = U2D1(i_thread) - U1D2(i_thread);
@@ -78,7 +118,11 @@ void VelocityField::CalculateRotational(const double time, const vector<double>&
     rot[2] = U1D0(i_thread) - U0D1(i_thread);
 }
 
-void VelocityField::CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& lapl, const int i_thread)
+void VelocityField::CalculateLaplacian(const double time,
+                                       const array_1d<double, 3>& coor,
+                                       array_1d<double, 3>& lapl,
+                                       const int i_thread)
+
 {
     UpdateCoordinates(time, coor, i_thread);
     lapl[0] = U0D0D0(i_thread) + U0D1D1(i_thread) + U0D2D2(i_thread);
@@ -86,7 +130,10 @@ void VelocityField::CalculateLaplacian(const double time, const array_1d<double,
     lapl[2] = U2D0D0(i_thread) + U2D1D1(i_thread) + U2D2D2(i_thread);
 }
 
-void VelocityField::CalculateLaplacian(const double time, const vector<double>& coor, vector<double>& lapl, const int i_thread)
+void VelocityField::CalculateLaplacian(const double time,
+                                       const DenseVector<double>& coor,
+                                       DenseVector<double>& lapl,
+                                       const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     lapl[0] = U0D0D0(i_thread) + U0D1D1(i_thread) + U0D2D2(i_thread);
@@ -94,7 +141,10 @@ void VelocityField::CalculateLaplacian(const double time, const vector<double>& 
     lapl[2] = U2D0D0(i_thread) + U2D1D1(i_thread) + U2D2D2(i_thread);
 }
 
-void VelocityField::CalculateMaterialAcceleration(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const int i_thread)
+void VelocityField::CalculateMaterialAcceleration(const double time,
+                                                  const array_1d<double, 3>& coor,
+                                                  array_1d<double, 3>& accel,
+                                                  const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     double u0 = U0(i_thread);
@@ -110,7 +160,10 @@ void VelocityField::CalculateMaterialAcceleration(const double time, const array
     accel[2] = vel_rate[2] + u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
 }
 
-void VelocityField::CalculateMaterialAcceleration(const double time, const vector<double>& coor, vector<double>& accel, const int i_thread)
+void VelocityField::CalculateMaterialAcceleration(const double time,
+                                                  const DenseVector<double>& coor,
+                                                  DenseVector<double>& accel,
+                                                  const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     double u0 = U0(i_thread);
@@ -126,7 +179,45 @@ void VelocityField::CalculateMaterialAcceleration(const double time, const vecto
     accel[2] = vel_rate[2] + u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
 }
 
-void VelocityField::CalculateAccelerationFollowingTheParticle(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& accel, const array_1d<double, 3>& particle_vel, const int i_thread)
+void VelocityField::CalculateConvectiveDerivative(const double time,
+                                                  const array_1d<double, 3>& coor,
+                                                  array_1d<double, 3>& accel,
+                                                  const int i_thread)
+{
+    UpdateCoordinates(time, coor, i_thread);
+    double u0 = U0(i_thread);
+    double u1 = U1(i_thread);
+    double u2 = U2(i_thread);
+    array_1d< array_1d<double, 3>, 3> grad;
+    CalculateGradient(time, coor, grad, i_thread);
+
+    accel[0] = u0 * grad[0][0] + u1 * grad[0][1] + u2 * grad[0][2];
+    accel[1] = u0 * grad[1][0] + u1 * grad[1][1] + u2 * grad[1][2];
+    accel[2] = u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
+}
+
+void VelocityField::CalculateConvectiveDerivative(const double time,
+                                                  const DenseVector<double>& coor,
+                                                  DenseVector<double>& accel,
+                                                  const int i_thread)
+{
+    UpdateCoordinates(time, coor, i_thread);
+    double u0 = U0(i_thread);
+    double u1 = U1(i_thread);
+    double u2 = U2(i_thread);
+    array_1d< array_1d<double, 3>, 3> grad;
+    CalculateGradient(time, coor, grad, i_thread);
+
+    accel[0] = u0 * grad[0][0] + u1 * grad[0][1] + u2 * grad[0][2];
+    accel[1] = u0 * grad[1][0] + u1 * grad[1][1] + u2 * grad[1][2];
+    accel[2] = u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
+}
+
+void VelocityField::CalculateAccelerationFollowingTheParticle(const double time,
+                                                              const array_1d<double, 3>& coor,
+                                                              array_1d<double, 3>& accel,
+                                                              const array_1d<double, 3>& particle_vel,
+                                                              const int i_thread)
 {
     UpdateCoordinates(time, coor, i_thread);
     double u0 = particle_vel[0];

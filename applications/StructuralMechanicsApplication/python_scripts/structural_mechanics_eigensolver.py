@@ -34,7 +34,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
         structural_settings = custom_settings.Clone()
         structural_settings.RemoveValue("eigensolver_settings")
-        
+
         self.structural_eigensolver_settings = KratosMultiphysics.Parameters("""
         {
             "scheme_type"   : "dynamic"
@@ -42,10 +42,10 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         """)
         self.validate_and_transfer_matching_settings(structural_settings, self.structural_eigensolver_settings)
         # Validate the remaining settings in the base class.
-        
+
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, structural_settings)
-        print("::[EigenSolver]:: Construction finished")
+        self.print_on_rank_zero("::[EigenSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
@@ -53,7 +53,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         """Create the scheme for the eigenvalue problem.
 
         The scheme determines the left- and right-hand side matrices in the
-        generalized eigenvalue problem. 
+        generalized eigenvalue problem.
         """
         scheme_type = self.structural_eigensolver_settings["scheme_type"].GetString()
         if scheme_type == "dynamic":
@@ -62,19 +62,19 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
             err_msg += "Available options are: \"dynamic\""
             raise Exception(err_msg)
-            
+
         return solution_scheme
 
     def _create_linear_solver(self):
         """Create the eigensolver.
-        
+
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
         """
         import eigen_solver_factory
         return eigen_solver_factory.ConstructSolver(self.eigensolver_settings)
 
-    def _create_mechanical_solver(self):
+    def _create_mechanical_solution_strategy(self):
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
         builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()

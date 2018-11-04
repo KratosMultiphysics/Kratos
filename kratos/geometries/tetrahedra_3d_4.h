@@ -30,7 +30,31 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D4
+ * @ingroup KratosCore
+ * @brief A four node tetrahedra geometry with linear shape functions
+ * @details The node ordering corresponds with:       
+ *                             v
+ *                            .
+ *                          ,/
+ *                         /
+ *                      2                                                            
+ *                    ,/|`\                                                       
+ *                  ,/  |  `\                         
+ *                ,/    '.   `\                      
+ *              ,/       |     `\                 
+ *            ,/         |       `\                
+ *           0-----------'.--------1 --> u        
+ *            `\.         |      ,/               
+ *               `\.      |    ,/                     
+ *                  `\.   '. ,/                      
+ *                     `\. |/                                
+ *                        `3                                   
+ *                           `\.
+ *                              ` w       
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
 template<class TPointType> class Tetrahedra3D4 : public Geometry<TPointType>
 {
@@ -332,7 +356,7 @@ public:
     double Length() const override
     {
         constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
-        return  factor * pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
+        return  factor * std::pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
@@ -685,7 +709,7 @@ public:
 
       double vol = Volume();
 
-      return std::copysign(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf), vol);
+      return std::abs(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf)) * (vol < 0 ? -1 : 1);
     }
 
     /** Calculates the volume to average edge lenght quality metric.
@@ -761,21 +785,118 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @details Based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch09.d/AFEM.Ch09.pdf. Section 9.1.6
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        // Compute RHS
+        array_1d<double,4> X;
+        X[0] = 1.0;
+        X[1] = rPoint[0];
+        X[2] = rPoint[1];
+        X[3] = rPoint[2];
+
+        // Auxiliar coordinates
+        const double x1 = this->GetPoint( 0 ).X();
+        const double x2 = this->GetPoint( 1 ).X();
+        const double x3 = this->GetPoint( 2 ).X();
+        const double x4 = this->GetPoint( 3 ).X();
+        const double y1 = this->GetPoint( 0 ).Y();
+        const double y2 = this->GetPoint( 1 ).Y();
+        const double y3 = this->GetPoint( 2 ).Y();
+        const double y4 = this->GetPoint( 3 ).Y();
+        const double z1 = this->GetPoint( 0 ).Z();
+        const double z2 = this->GetPoint( 1 ).Z();
+        const double z3 = this->GetPoint( 2 ).Z();
+        const double z4 = this->GetPoint( 3 ).Z();
+
+        // Auxiliar diff
+        const double x12 = x1 - x2;
+        const double x13 = x1 - x3;
+        const double x14 = x1 - x4;
+        const double x21 = x2 - x1;
+        const double x24 = x2 - x4;
+        const double x31 = x3 - x1;
+        const double x32 = x3 - x2;
+        const double x34 = x3 - x4;
+        const double x42 = x4 - x2;
+        const double x43 = x4 - x3;
+        const double y12 = y1 - y2;
+        const double y13 = y1 - y3;
+        const double y14 = y1 - y4;
+        const double y21 = y2 - y1;
+        const double y24 = y2 - y4;
+        const double y31 = y3 - y1;
+        const double y32 = y3 - y2;
+        const double y34 = y3 - y4;
+        const double y42 = y4 - y2;
+        const double y43 = y4 - y3;
+        const double z12 = z1 - z2;
+        const double z13 = z1 - z3;
+        const double z14 = z1 - z4;
+        const double z21 = z2 - z1;
+        const double z24 = z2 - z4;
+        const double z31 = z3 - z1;
+        const double z32 = z3 - z2;
+        const double z34 = z3 - z4;
+        const double z42 = z4 - z2;
+        const double z43 = z4 - z3;
+
+        // Compute LHS
+        BoundedMatrix<double, 4,4> invJ;
+        const double aux_volume = 1.0/(6.0*this->Volume());
+        invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
+        invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
+        invJ(2,0) = aux_volume * (x1*(y2*z4-y4*z2)+x2*(y4*z1-y1*z4)+x4*(y1*z2-y2*z1));
+        invJ(3,0) = aux_volume * (x1*(y3*z2-y2*z3)+x2*(y1*z3-y3*z1)+x3*(y2*z1-y1*z2));
+        invJ(0,1) = aux_volume * (y42*z32 - y32*z42);
+        invJ(1,1) = aux_volume * (y31*z43 - y34*z13);
+        invJ(2,1) = aux_volume * (y24*z14 - y14*z24);
+        invJ(3,1) = aux_volume * (y13*z21 - y12*z31);
+        invJ(0,2) = aux_volume * (x32*z42 - x42*z32);
+        invJ(1,2) = aux_volume * (x43*z31 - x13*z34);
+        invJ(2,2) = aux_volume * (x14*z24 - x24*z14);
+        invJ(3,2) = aux_volume * (x21*z13 - x31*z12);
+        invJ(0,3) = aux_volume * (x42*y32 - x32*y42);
+        invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
+        invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
+        invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
+
+        const array_1d<double,4> result = prod(invJ, X);
+
+        if (rResult.size() != 3)
+            rResult.resize(3, false);
+
+        rResult[0] = result[1];
+        rResult[1] = result[2];
+        rResult[2] = result[3];
+
+        return rResult;
+    }
+
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
-        
+
         if( rResult[0] >= 0.0-Tolerance )
         {
             if( rResult[1] >= 0.0-Tolerance )
@@ -789,7 +910,7 @@ public:
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -866,7 +987,7 @@ public:
     }
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         NumberNodesInFaces.resize(4, false);
         // Linear Tetrahedra have elements of 3 nodes as faces
@@ -878,28 +999,32 @@ public:
     }
 
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
+      if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 4)
         NodesInFaces.resize(4, 4, false);
-        NodesInFaces(0,0)=0;//face or other node
-        NodesInFaces(1,0)=1;
-        NodesInFaces(2,0)=2;
-        NodesInFaces(3,0)=3;
 
-        NodesInFaces(0,1)=1;//face or other node
-        NodesInFaces(1,1)=2;
-        NodesInFaces(2,1)=0;
-        NodesInFaces(3,1)=3;
-
-        NodesInFaces(0,2)=2;//face or other node
-        NodesInFaces(1,2)=0;
-        NodesInFaces(2,2)=1;
-        NodesInFaces(3,2)=3;
-
-        NodesInFaces(0,3)=3;//face or other node
-        NodesInFaces(1,3)=0;
-        NodesInFaces(2,3)=2;
-        NodesInFaces(3,3)=1;
+      //face 1
+      NodesInFaces(0,0)=0;//contrary node to the face
+      NodesInFaces(1,0)=1;
+      NodesInFaces(2,0)=2;
+      NodesInFaces(3,0)=3;
+      //face 2
+      NodesInFaces(0,1)=1;//contrary node to the face
+      NodesInFaces(1,1)=2;
+      NodesInFaces(2,1)=0;
+      NodesInFaces(3,1)=3;
+      //face 3
+      NodesInFaces(0,2)=2;//contrary node to the face
+      NodesInFaces(1,2)=0;
+      NodesInFaces(2,2)=1;
+      NodesInFaces(3,2)=3;
+      //face 4
+      NodesInFaces(0,3)=3;//contrary node to the face
+      NodesInFaces(1,3)=0;
+      NodesInFaces(2,3)=2;
+      NodesInFaces(3,3)=1;
 
     }
 
@@ -915,7 +1040,6 @@ public:
      * value of the shape function is calculated
      *
      * @return the value of the shape function at the given point
-     * TODO: TO BE VERIFIED
      */
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint) const override
@@ -1002,7 +1126,7 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
         const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
         const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
@@ -1054,7 +1178,7 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        BoundedMatrix<double,4,3> DN_DX;
         const double x10 = this->Points()[1].X() - this->Points()[0].X();
         const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
         const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
@@ -1143,7 +1267,7 @@ public:
             return true;
         if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        
+
         CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
         if(IsInside(rLowPoint,local_coordinates))
@@ -1422,9 +1546,6 @@ private:
      */
 
     /**
-     * TODO: TO BE VERIFIED
-     */
-    /**
      * Calculates the gradients in terms of local coordinateds
      * of all shape functions in a given point.
      *
@@ -1450,9 +1571,6 @@ private:
         return rResult;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1488,9 +1606,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the local gradients of all shape functions in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1573,9 +1688,6 @@ private:
         return shape_functions_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     static const ShapeFunctionsLocalGradientsContainerType
     AllShapeFunctionsLocalGradients()
     {

@@ -1,0 +1,98 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Properties 1
+End Properties
+
+Begin Properties 2
+End Properties
+
+Begin Nodes
+    1        0.50000        0.00000        0.00000
+    2        1.00000        1.00000        0.00000
+    3        0.00000        1.00000        0.00000
+    4        0.00000        1.00100        0.00000
+    5        1.00000        1.00100        0.00000
+    6        0.50000        2.00000        0.00000
+End Nodes
+
+
+Begin Elements SmallDisplacementElement2D3N// GUI group identifier: Parts Auto2
+         1          1         1         2         3
+End Elements
+
+Begin Elements SmallDisplacementElement2D3N// GUI group identifier: Parts Auto3
+         2          2         4         5         6 
+End Elements
+
+Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Parts_Parts_Auto3 // Group Parts Auto3 // Subtree Parts
+    Begin SubModelPartNodes
+        4
+        5
+        6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Contact_Part
+    Begin SubModelPartNodes
+        2
+        3
+        4
+        5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         2
+         3
+         4
+         5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart IMPOSE_DISP_Auto1 // Group Load on lines Auto1 
+    Begin SubModelPartNodes
+        6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

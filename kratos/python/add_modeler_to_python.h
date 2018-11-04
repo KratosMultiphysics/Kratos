@@ -18,7 +18,7 @@
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -32,7 +32,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddModelerToPython();
+void  AddModelerToPython(pybind11::module& m);
 
 }  // namespace Python.
 

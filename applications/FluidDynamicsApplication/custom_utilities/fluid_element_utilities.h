@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
@@ -14,7 +14,7 @@
 #if !defined(KRATOS_FLUID_ELEMENT_UTILITIES_H )
 #define  KRATOS_FLUID_ELEMENT_UTILITIES_H
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -29,20 +29,20 @@ namespace Kratos
 ///@{
 
 ///@name Kratos Globals
-///@{ 
+///@{
 
-///@} 
+///@}
 ///@name Type Definitions
-///@{ 
+///@{
 
-///@} 
+///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
-///@name  Functions 
+///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -69,7 +69,7 @@ public:
 
     // Deleted default constructor
     FluidElementUtilities() = delete;
-    
+
     /// Deleted copy constructor.
     FluidElementUtilities(FluidElementUtilities const& rOther) = delete;
 
@@ -86,7 +86,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
     * Auxiliary function that writes the strain matrix (B) relating nodal degrees of freedom and the symmetric gradient of velocity.
     * Note that pressure Dofs are considered included in the array of nodal Dofs (and the corresponding rows set to zero).
@@ -96,7 +96,7 @@ public:
     */
     static void GetStrainMatrix(
         const ShapeDerivatives2DType& rDNDX,
-        boost::numeric::ublas::bounded_matrix<double, VoigtVector2DSize, 3 * TNumNodes>& rStrainMatrix);
+        BoundedMatrix<double, VoigtVector2DSize, 3 * TNumNodes>& rStrainMatrix);
 
     /**
     * Auxiliary function that writes the strain matrix (B) relating nodal degrees of freedom and the symmetric gradient of velocity.
@@ -107,18 +107,18 @@ public:
     */
     static void GetStrainMatrix(
         const ShapeDerivatives3DType& rDNDX,
-        boost::numeric::ublas::bounded_matrix<double, VoigtVector3DSize, 4 * TNumNodes>& rStrainMatrix);
+        BoundedMatrix<double, VoigtVector3DSize, 4 * TNumNodes>& rStrainMatrix);
 
     /**
     * Auxiliary function that writes the constitutive matrix (C) for a Newtonian fluid using the given dynamic viscosity (mu).
     * 2D variant.
     * @param DynamicViscosity Dynamic viscosity (mu) for the fluid.
     * @param rConstitutiveMatrix computed constitutive matrix for the fluid (output).
-    */  
+    */
     static void GetNewtonianConstitutiveMatrix(
         const double DynamicViscosity,
-        boost::numeric::ublas::bounded_matrix<double, VoigtVector2DSize, VoigtVector2DSize>& rConstitutiveMatrix);
-  
+        BoundedMatrix<double, VoigtVector2DSize, VoigtVector2DSize>& rConstitutiveMatrix);
+
     /**
     * Auxiliary function that writes the constitutive matrix (C) for a Newtonian fluid using the given dynamic viscosity (mu).
     * 3D variant.
@@ -127,7 +127,7 @@ public:
     */
     static void GetNewtonianConstitutiveMatrix(
         const double DynamicViscosity,
-        boost::numeric::ublas::bounded_matrix<double, VoigtVector3DSize, VoigtVector3DSize>& rConstitutiveMatrix);
+        BoundedMatrix<double, VoigtVector3DSize, VoigtVector3DSize>& rConstitutiveMatrix);
 
     /**
      * This function transforms a vector n into a matrix P that can be used to compute
@@ -139,7 +139,7 @@ public:
      */
     static void VoigtTransformForProduct(
         const array_1d<double,3>& rVector,
-        boost::numeric::ublas::bounded_matrix<double, 2, VoigtVector2DSize>& rVoigtMatrix);
+        BoundedMatrix<double, 2, VoigtVector2DSize>& rVoigtMatrix);
 
     /**
      * This function transforms a vector n into a matrix P that can be used to compute
@@ -151,7 +151,7 @@ public:
      */
     static void VoigtTransformForProduct(
         const array_1d<double,3>& rVector,
-        boost::numeric::ublas::bounded_matrix<double, 3, VoigtVector3DSize>& rVoigtMatrix);
+        BoundedMatrix<double, 3, VoigtVector3DSize>& rVoigtMatrix);
 
     /**
      * This function sets the normal projection matrix as the given unit normal outer product.
@@ -160,7 +160,7 @@ public:
      */
     static void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        boost::numeric::ublas::bounded_matrix<double, 2, 2>& rNormalProjMatrix);
+        BoundedMatrix<double, 2, 2>& rNormalProjMatrix);
 
     /**
      * This function sets the normal projection matrix as the given unit normal outer product.
@@ -169,7 +169,7 @@ public:
      */
     static void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& rNormalProjMatrix);
+        BoundedMatrix<double, 3, 3>& rNormalProjMatrix);
 
     /**
      * This function sets the tangential projection matrix as the identity matrix minus the given unit normal outer product.
@@ -178,7 +178,7 @@ public:
      */
     static void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        boost::numeric::ublas::bounded_matrix<double, 2, 2>& rTangProjMatrix);
+        BoundedMatrix<double, 2, 2>& rTangProjMatrix);
 
     /**
      * This function sets the tangential projection matrix as the identity matrix minus the given unit normal outer product.
@@ -187,7 +187,29 @@ public:
      */
     static void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& rTangProjMatrix);
+        BoundedMatrix<double, 3, 3>& rTangProjMatrix);
+
+    /**
+     * Invert a system with 2 unknowns, defined using bounded matrix types.
+     * @param[in] rA the 2x2 system matrix.
+     * @param[in] rB the right hand side vector.
+     * @param[out] rX the solution of the system.
+     */
+    static void DenseSystemSolve(
+        const BoundedMatrix<double,2,2> &rA,
+        const array_1d<double,2> &rB,
+        array_1d<double,2> &rX);
+
+    /**
+     * Invert a system with 3 unknowns, defined using bounded matrix types.
+     * @param[in] rA the 3x3 system matrix.
+     * @param[in] rB the right hand side vector.
+     * @param[out] rX the solution of the system.
+     */
+    static void DenseSystemSolve(
+        const BoundedMatrix<double,3,3> &rA,
+        const array_1d<double,3> &rB,
+        array_1d<double,3> &rX);
 
     ///@}
 
@@ -196,9 +218,9 @@ public:
 ///@}
 
 ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_FLUID_ELEMENT_UTILITIES_H  defined 
+#endif // KRATOS_FLUID_ELEMENT_UTILITIES_H  defined
 
 

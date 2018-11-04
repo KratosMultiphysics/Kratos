@@ -22,14 +22,6 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
@@ -108,7 +100,7 @@ class DampingFunction
 
         // Type 3: Quartic function
         else if (damping_function_type.compare(quartic) == 0)
-            m_damping_function_type = 3;            
+            m_damping_function_type = 3;
 
         // Throw error message in case of wrong specification
         else
@@ -168,7 +160,7 @@ class DampingFunction
             // Compute damping factor
             damping_factor = std::min(1.0, (1-pow(numerator,4.0)/pow(m_damping_radius,4.0)));
             break;
-        }        
+        }
         }
 
         return damping_factor;

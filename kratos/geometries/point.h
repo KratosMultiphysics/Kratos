@@ -89,13 +89,13 @@ public:
     ///@{
 
     /// Default constructor.
-    Point() : BaseType(mDimension)
+    Point() : BaseType()
     {
         SetAllCoordinates();
     }
 
     /// 3d constructor.
-    Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType(mDimension)
+    Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType()
     {
         this->operator()(0) = NewX;
         this->operator()(1) = NewY;
@@ -120,7 +120,7 @@ public:
 
     /** Constructor using coordinates stored in given std::vector. Initialize
     this point with the coordinates in the array. */
-    Point(std::vector<double> const &rOtherCoordinates) : BaseType(mDimension)
+    Point(std::vector<double> const &rOtherCoordinates) : BaseType()
     {
         SizeType size = rOtherCoordinates.size();
         size = (mDimension < size) ? mDimension : size;
@@ -224,9 +224,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const
     {
-        rOStream << "(" << this->operator[](0)
-                        << this->operator[](1)  
-                        << this->operator[](2) 
+        rOStream << "("  << this->operator[](0)
+                 << ", " << this->operator[](1)
+                 << ", " << this->operator[](2)
                  << ")";
     }
 

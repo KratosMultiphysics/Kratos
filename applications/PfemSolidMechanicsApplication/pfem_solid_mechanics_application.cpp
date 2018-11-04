@@ -9,7 +9,7 @@
 
 // System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -36,8 +36,6 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
 
-#include "geometries/line_2d.h"
-
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 
@@ -54,7 +52,7 @@ namespace Kratos
   //Application Constructor:
 
   KratosPfemSolidMechanicsApplication::KratosPfemSolidMechanicsApplication():
-    KratosApplication("PfemSolidMechanicsApplication"), 
+    KratosApplication("PfemSolidMechanicsApplication"),
     mTotalUpdatedLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mTotalUpdatedLagrangianElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mTotalUpdatedLagrangianElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
@@ -77,8 +75,12 @@ namespace Kratos
 
     mUpdatedLagrangianUWElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mUpdatedLagrangianUWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUWwPDMEElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mUpdatedLagrangianUJWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-    mUpdatedLagrangianUJWwPStabElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJWwPHOElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJWwPDMEElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mUpdatedLagrangianUJWwPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+    mUpdatedLagrangianUJWwPDMEElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mSmallDisplacementUWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
 
     mAxisymUpdatedLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -98,11 +100,13 @@ namespace Kratos
 
     mAxisymUpdatedLagrangianUJElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUJwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymUpdatedLagrangianUJWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymUpdatedLagrangianUJWwPDMEElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUPressureElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUPwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
-   
+
   {}
-  
+
   void KratosPfemSolidMechanicsApplication::Register()
   {
     // calling base class register to register Kratos components
@@ -114,30 +118,26 @@ namespace Kratos
     std::cout << "           |  _/  _/ -_) '  \\\\__ \\/ _ \\ | / _` |         " << std::endl;
     std::cout << "           |_| |_| \\___|_|_|_|___/\\___/_|_\\__,_|MECHANICS" << std::endl;
     std::cout << "Initializing KratosPfemSolidMechanicsApplication...      " << std::endl;
-    
+
     //Register Variables (variables created in pfem_solid_mechanics_application_variables.cpp)
 
+    //scheme
+
     //solution
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_VELOCITY )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_ACCELERATION )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT_REACTION )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_VELOCITY_REACTION )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_ACCELERATION_REACTION )
     KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_VELOCITY )
-    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_VELOCITY_REACTION )
-    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_ACCELERATION_REACTION )
 
 
     KRATOS_REGISTER_VARIABLE( JACOBIAN )
     KRATOS_REGISTER_VARIABLE( REACTION_JACOBIAN )
-    
+
     //material
     KRATOS_REGISTER_VARIABLE( WATER_BULK_MODULUS )
     KRATOS_REGISTER_VARIABLE( PERMEABILITY )
     KRATOS_REGISTER_VARIABLE( KOZENY_CARMAN )
     KRATOS_REGISTER_VARIABLE( INITIAL_POROSITY )
     KRATOS_REGISTER_VARIABLE( VOID_RATIO )
+    KRATOS_REGISTER_VARIABLE( PENALTY_PARAMETER )
 
     //element
     KRATOS_REGISTER_VARIABLE( TOTAL_CAUCHY_STRESS )
@@ -160,7 +160,7 @@ namespace Kratos
 
     //geometrical
 
-    //domain definition    
+    //domain definition
     KRATOS_REGISTER_VARIABLE( RIGID_WALL )
     KRATOS_REGISTER_VARIABLE( WALL_TIP_RADIUS )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WALL_REFERENCE_POINT )
@@ -206,8 +206,12 @@ namespace Kratos
 
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWElement2D3N", mUpdatedLagrangianUWElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWwPElement2D3N", mUpdatedLagrangianUWwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUWwPDMEElement2D3N", mUpdatedLagrangianUWwPDMEElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPElement2D3N", mUpdatedLagrangianUJWwPElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPStabElement2D3N", mUpdatedLagrangianUJWwPStabElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPHOElement2D3N", mUpdatedLagrangianUJWwPHOElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPDMEElement2D3N", mUpdatedLagrangianUJWwPDMEElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPElement3D4N", mUpdatedLagrangianUJWwPElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUJWwPDMEElement3D4N", mUpdatedLagrangianUJWwPDMEElement3D4N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementUWwPElement2D3N", mSmallDisplacementUWwPElement2D3N )
 
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUwPElement2D3N", mAxisymUpdatedLagrangianUwPElement2D3N )
@@ -231,6 +235,8 @@ namespace Kratos
 
     //New Mixed elements. Two-phase. Ax
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUJwPElement2D3N", mAxisymUpdatedLagrangianUJwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUJWwPElement2D3N", mAxisymUpdatedLagrangianUJWwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUJWwPDMEElement2D3N", mAxisymUpdatedLagrangianUJWwPDMEElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUPwPElement2D3N", mAxisymUpdatedLagrangianUPwPElement2D3N )
 
 
@@ -244,7 +250,9 @@ namespace Kratos
     Serializer::Register("HenckyJ2PlasticPlaneStrain2DLaw", mHenckyJ2PlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticAxisym2DLaw", mHenckyJ2PlasticAxisym2DLaw);
     Serializer::Register("HenckyTrescaPlasticAxisym2DLaw", mHenckyTrescaPlasticAxisym2DLaw);
+    Serializer::Register("NewHenckyTrescaPlasticAxisym2DLaw", mNewHenckyTrescaPlasticAxisym2DLaw);
     Serializer::Register("HenckyTrescaPlasticPlaneStrain2DLaw", mHenckyTrescaPlasticPlaneStrain2DLaw);
+    Serializer::Register("NewHenckyTrescaPlasticAxisym2DLaw", mNewHenckyTrescaPlasticAxisym2DLaw);
     Serializer::Register("HenckyTresca3DLaw", mHenckyTresca3DLaw);
 
     Serializer::Register("HenckyPlasticUPJ2Axisym2DLaw", mHenckyPlasticUPJ2Axisym2DLaw);
@@ -259,6 +267,7 @@ namespace Kratos
 
     //Register Yield Criterion
     Serializer::Register("J2YieldCriterion", mJ2YieldCriterion);
+    Serializer::Register("NewTrescaYieldCriterion", mNewTrescaYieldCriterion);
     Serializer::Register("TrescaYieldCriterion", mTrescaYieldCriterion);
     Serializer::Register("CamClayYieldCriterion", mCamClayYieldCriterion);
 
@@ -266,7 +275,5 @@ namespace Kratos
     Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
   }
-  
+
 }  // namespace Kratos.
-
-

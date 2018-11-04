@@ -18,8 +18,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -29,7 +27,7 @@
 
 namespace Kratos
 {
-class ConstantVelocityField : public VelocityField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ConstantVelocityField : public VelocityField
 {
 public:
 

@@ -130,7 +130,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
@@ -169,7 +169,7 @@ public:
 
     void Initialize(
         ModelPart& r_model_part
-    )
+    ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
@@ -180,7 +180,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
     }
 
@@ -190,7 +190,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) {}
+    )  override {}
 
 
 
@@ -276,14 +276,16 @@ private:
     TDataType CalculateReferenceNorm(DofsArrayType& rDofSet, ModelPart& rModelPart)
     {
         TDataType local_ReferenceDispNorm = TDataType();
-        TDataType temp;
+        TDataType value;
 
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        const double rank = rModelPart.GetCommunicator().MyPID(); // double because I want to compare with PARTITION_INDEX
+
+        for(auto it_dof = rDofSet.begin() ; it_dof != rDofSet.end() ; ++it_dof)
         {
-            if(i_dof->IsFree())
+            if(it_dof->IsFree() && (it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank))
             {
-                temp = i_dof->GetSolutionStepValue();
-                local_ReferenceDispNorm += temp*temp;
+                value = it_dof->GetSolutionStepValue();
+                local_ReferenceDispNorm += value*value;
             }
         }
 

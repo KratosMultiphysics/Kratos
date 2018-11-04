@@ -11,7 +11,7 @@
 //
 
 // External includes 
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
@@ -28,25 +28,16 @@ namespace Kratos
 	
 namespace Python
 {
-/*void GenerateModelPart(RadFaceUtilities& RadFaceUtilities,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    if(domain_size == 2)
-    {
-        RadFaceUtilities.GenerateModelPart(origin_model_part, destination_model_part, KratosComponents<Element>::Get("ConvDiffr2D"),KratosComponents<Condition>::Get("RadFace2D")	);
-    }
-    else if(domain_size == 3)
-    {
-        RadFaceUtilities.GenerateModelPart(origin_model_part, destination_model_part,KratosComponents<Element>::Get("ConvDiffr3D"),KratosComponents<Condition>::Get("RadFace3D")	);
-    }
-}*/
-void  AddCustomUtilitiesToPython()
-{
-    using namespace boost::python;
+    using namespace pybind11;
 
 
-    class_<RadFaceUtilities>("RadFaceUtilities", init<>())
+    class_<RadFaceUtilities>(m,"RadFaceUtilities").def(init<>())
     .def("ConditionModelPart",&RadFaceUtilities::ConditionModelPart)
     ;
+
+
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

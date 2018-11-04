@@ -16,10 +16,10 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
+#include "includes/define_python.h"
 #include "add_modeler_to_python.h"
 #include "modeler/modeler.h"
 #include "modeler/edge_swapping_2d_modeler.h"
@@ -32,7 +32,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+namespace py = pybind11;
 
 void GenerateModelPart(Modeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
 {
@@ -51,21 +51,23 @@ void GenerateMesh(Modeler& GM, ModelPart& model_part, const char* ElementName, c
 }
 
 
-void  AddModelerToPython()
+void  AddModelerToPython(pybind11::module& m)
 {
-    class_<Modeler, Modeler::Pointer, boost::noncopyable>("Modeler")
-            .def(init<>())
-            .def("GenerateModelPart",&GenerateModelPart)
-            .def("GenerateMesh",&GenerateMesh)
-            .def("GenerateNodes",&Modeler::GenerateNodes)
-    .def(self_ns::str(self))
+    py::class_<Modeler, Modeler::Pointer>(m,"Modeler")
+    .def(py::init<>())
+    .def("GenerateModelPart",&GenerateModelPart)
+    .def("GenerateMesh",&GenerateMesh)
+    .def("GenerateNodes",&Modeler::GenerateNodes)
+    .def("__str__", PrintObject<Modeler>)
     ;
 
-    class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,bases<Modeler>,boost::noncopyable>("ConnectivityPreserveModeler")
+    py::class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")
+    .def(py::init< >())
             ;
 
 
-    class_< EdgeSwapping2DModeler, EdgeSwapping2DModeler::Pointer, bases<Modeler>, boost::noncopyable  >("EdgeSwapping2DModeler",init< >())
+    py::class_< EdgeSwapping2DModeler, EdgeSwapping2DModeler::Pointer, Modeler >(m,"EdgeSwapping2DModeler")
+            .def(py::init< >())
             .def("ReGenerateMesh",&EdgeSwapping2DModeler::Remesh)
     ;
 }

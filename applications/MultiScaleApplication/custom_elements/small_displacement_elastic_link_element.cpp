@@ -15,14 +15,14 @@
 namespace Kratos
 {
 
-    SmallDisplacementElasticLinkElement::SmallDisplacementElasticLinkElement(IndexType NewId, 
+    SmallDisplacementElasticLinkElement::SmallDisplacementElasticLinkElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
     {
     }
-    
-    SmallDisplacementElasticLinkElement::SmallDisplacementElasticLinkElement(IndexType NewId, 
-                                   GeometryType::Pointer pGeometry, 
+
+    SmallDisplacementElasticLinkElement::SmallDisplacementElasticLinkElement(IndexType NewId,
+                                   GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
     {
@@ -80,7 +80,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& geom = GetGeometry(); 
+        GeometryType& geom = GetGeometry();
 
         // verify that the variables are correctly initialized
         if(DISPLACEMENT.Key() == 0)
@@ -122,7 +122,7 @@ namespace Kratos
     void SmallDisplacementElasticLinkElement::GetValuesVector(Vector& values, int Step)
     {
         const GeometryType & geom = GetGeometry();
-        if(values.size() != 6)   
+        if(values.size() != 6)
             values.resize(6,false);
         for (SizeType i = 0; i < 2; i++)
         {
@@ -138,7 +138,7 @@ namespace Kratos
     void SmallDisplacementElasticLinkElement::GetFirstDerivativesVector(Vector& values, int Step)
     {
         const GeometryType & geom = GetGeometry();
-        if(values.size() != 6)   
+        if(values.size() != 6)
             values.resize(6,false);
         for (SizeType i = 0; i < 2; i++)
         {
@@ -154,7 +154,7 @@ namespace Kratos
     void SmallDisplacementElasticLinkElement::GetSecondDerivativesVector(Vector& values, int Step)
     {
         const GeometryType & geom = GetGeometry();
-        if(values.size() != 6)   
+        if(values.size() != 6)
             values.resize(6,false);
         for (SizeType i = 0; i < 2; i++)
         {
@@ -203,10 +203,10 @@ namespace Kratos
     {
 		if((rLeftHandSideMatrix.size1() != 6) || (rLeftHandSideMatrix.size2() != 6))
 			rLeftHandSideMatrix.resize(6, 6, false);
-		
+
 		if( rRightHandSideVector.size() != 6 )
 			rRightHandSideVector.resize(6, false);
-		
+
 		double K = GetProperties()[YOUNG_MODULUS];
 		rLeftHandSideMatrix.clear();
 		rLeftHandSideMatrix(0,0) =  K;
@@ -250,21 +250,21 @@ namespace Kratos
     // Class SmallDisplacementElasticLinkElement - Results on Gauss Points
     //
     // =====================================================================================
-    
-	void SmallDisplacementElasticLinkElement::SetValueOnIntegrationPoints(const Variable<double>& rVariable, 
-													   std::vector<double>& rValues, 
+
+	void SmallDisplacementElasticLinkElement::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+													   std::vector<double>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
 
-    void SmallDisplacementElasticLinkElement::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, 
-													   std::vector<Vector>& rValues, 
+    void SmallDisplacementElasticLinkElement::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+													   std::vector<Vector>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
 
-    void SmallDisplacementElasticLinkElement::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
-													   std::vector<Matrix>& rValues, 
+    void SmallDisplacementElasticLinkElement::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+													   std::vector<Matrix>& rValues,
 													   const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
@@ -298,7 +298,7 @@ namespace Kratos
 													 const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
-    
+
 	void SmallDisplacementElasticLinkElement::CalculateLocalAxes(array_1d<double,3>& vx, array_1d<double,3>& vy, array_1d<double,3>& vz, double& L)
 	{
 		GeometryType& geom = GetGeometry();
@@ -344,7 +344,7 @@ namespace Kratos
 			L = 1.0;
 		}
 	}
-	
+
 	// =====================================================================================
     //
     // Class SmallDisplacementElasticLinkElement - Serialization

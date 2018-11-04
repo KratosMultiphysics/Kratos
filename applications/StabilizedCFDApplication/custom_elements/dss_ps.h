@@ -149,7 +149,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -158,9 +158,9 @@ public:
      * @param rRightHandSideVector Local finite element residual vector (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType &rDampMatrix,
-                                                    VectorType &rRightHandSideVector,
-                                                    ProcessInfo &rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType &rDampMatrix,
+                                            VectorType &rRightHandSideVector,
+                                            ProcessInfo &rCurrentProcessInfo) override;
 
 //    virtual void CalculateMassMatrix(MatrixType &rMassMatrix,
 //                                     ProcessInfo &rCurrentProcessInfo);
@@ -181,11 +181,11 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
 
     ///@}
@@ -216,13 +216,13 @@ protected:
     ///@{
 
 
-    virtual void CalculateStaticTau(double Density,
-                                    double KinematicVisc,
-                                    const array_1d<double,3> &Velocity,
-                                    double ElemSize,
-                                    const ProcessInfo& rProcessInfo,
-                                    double &TauOne,
-                                    double &TauTwo);
+    void CalculateStaticTau(double Density,
+                            double KinematicVisc,
+                            const array_1d<double,3> &Velocity,
+                            double ElemSize,
+                            const ProcessInfo& rProcessInfo,
+                            double &TauOne,
+                            double &TauTwo) override;
 
 
     virtual void AddPressureSubscale(MatrixType& rLHS,
@@ -232,27 +232,6 @@ protected:
 
     virtual void AddPressureSubscaleMass(MatrixType& rLHS,
                                          ProcessInfo& rProcessInfo);
-
-
-    template<class T>
-    bool InvertMatrix (const boost::numeric::ublas::matrix<T>& input,
-                       boost::numeric::ublas::matrix<T>& inverse)
-    {
-        typedef permutation_matrix<std::size_t> pmatrix;
-        // create a working copy of the input
-        matrix<T> A(input);
-        // create a permutation matrix for the LU-factorization
-        pmatrix pm(A.size1());
-        // perform LU-factorization
-        int res = lu_factorize(A,pm);
-        if( res != 0 )
-            return false;
-        // create identity matrix of "inverse"
-        inverse.assign(boost::numeric::ublas::identity_matrix<T>(A.size1()));
-        // backsubstitute to get the inverse
-        lu_substitute(A, pm, inverse);
-        return true;
-    }
 
 
     ///@}
@@ -287,9 +266,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

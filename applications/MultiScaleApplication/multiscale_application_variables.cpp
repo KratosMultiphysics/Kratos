@@ -1,5 +1,5 @@
-//  KRATOS  \   |  |   |  |  __  __| _ _|      
-//         |\ / |  |   |  |      |     |       
+//  KRATOS  \   |  |   |  |  __  __| _ _|
+//         |\ / |  |   |  |      |     |
 //        _|  _|  \___/  _____| _|   ___| SCALE
 //
 #include "multiscale_application_variables.h"
@@ -11,7 +11,7 @@ namespace Kratos
 KRATOS_CREATE_VARIABLE(double, LCH_REF_RVE)
 
 KRATOS_CREATE_VARIABLE(Vector, INITIAL_TEMP_GRAD)
-	
+
 KRATOS_CREATE_VARIABLE(std::string, RVE_CLAW_MAP_NAME)
 //KRATOS_CREATE_VARIABLE(TagStrainVectorMap, RVE_CLAW_MAP)
 KRATOS_CREATE_VARIABLE(Vector, HEAT_FLUX_RVE)

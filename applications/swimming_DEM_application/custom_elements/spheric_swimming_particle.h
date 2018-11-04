@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "../../applications/DEM_application/custom_elements/spheric_particle.h" 
+#include "../../applications/DEM_application/custom_elements/spheric_particle.h"
 #include "../../applications/DEM_application/custom_elements/nanoparticle.h"
 
 namespace Kratos
@@ -30,7 +30,7 @@ namespace Kratos
       typedef Geometry<NodeType> GeometryType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef Properties PropertiesType;
-      
+
       using TBaseElement::GetGeometry;
       using TBaseElement::GetDensity;
       using TBaseElement::mRealMass;
@@ -39,7 +39,7 @@ namespace Kratos
       using TBaseElement::GetMass;
       using TBaseElement::GetForce;
 
-      
+
       ///@name Type Definitions
       ///@{
 
@@ -56,21 +56,22 @@ namespace Kratos
       SphericSwimmingParticle(IndexType NewId, NodesArrayType const& ThisNodes):TBaseElement(NewId, ThisNodes){}
       SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties):TBaseElement(NewId, pGeometry, pProperties){}
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {          
+      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override{
         return Element::Pointer(new SphericSwimmingParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
       };
 
       /// Destructor.
       virtual ~SphericSwimmingParticle(){}
 
-      
-      void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
+      SphericSwimmingParticle<TBaseElement>& operator=(const SphericSwimmingParticle<TBaseElement>& rOther);
+
+      void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity) override;
 
       std::vector<Node<3>::Pointer> mNeighbourNodes;
       std::vector<double> mNeighbourNodesDistances;
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      virtual std::string Info() const override
       {
         std::stringstream buffer;
         buffer << "Swimming version of " << TBaseElement::Info();
@@ -78,10 +79,10 @@ namespace Kratos
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "Swimming version of " << TBaseElement::Info();}
+      virtual void PrintInfo(std::ostream& rOStream) const  override{rOStream << "Swimming version of " << TBaseElement::Info();}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+      virtual void PrintData(std::ostream& rOStream) const  override{}
       // variables for Daitche's method
       static std::vector<double> mAjs;
       static std::vector<double> mBns;
@@ -96,11 +97,11 @@ namespace Kratos
       static std::vector<double> mAlphas;
       static std::vector<double> mBetas;
 
-      void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info);
+      void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info) override;
 
 
     protected:
-        
+
         void ComputeBuoyancy(NodeType& node, array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, const ProcessInfo& r_current_process_info);
         void ComputeDragForce(NodeType& node, array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info);
         void ComputeVirtualMassPlusUndisturbedFlowForce(NodeType& node, array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force, const ProcessInfo& r_current_process_info);
@@ -117,9 +118,9 @@ namespace Kratos
         void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
         void ComputeParticleRotationReynoldsNumberOverNormOfSlipRot(double& r_reynolds);
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
-        void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
-        void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
-        array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
+        void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info) override;
+        void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info) override;
+        array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info) override;
         void AddCentrifugalForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
         void AddCoriolisForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
         void AddRelativeAccelerationForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
@@ -184,13 +185,13 @@ namespace Kratos
         double ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear);
         double GetDaitcheCoefficient(int order, unsigned int n, unsigned int j, const double last_h_over_h, const int n_steps_per_quad_step);
         void CalculateExplicitFractionalDerivative(NodeType& node, array_1d<double, 3>& fractional_derivative, double& present_coefficient, Vector& historic_integrands, const double last_h_over_h, const int n_steps_per_quad_step);
-        void AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double delta_time, const double last_h_over_h, vector<double>& historic_integrands);
-        void AddHinsbergTailContributionStrict(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double delta_time, const double last_h_over_h, vector<double>& historic_integrands);
+        void AddHinsbergTailContribution(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double delta_time, const double last_h_over_h, DenseVector<double>& historic_integrands);
+        void AddHinsbergTailContributionStrict(NodeType& node, array_1d<double, 3>& fractional_derivative_of_slip_vel, const int order, const int n_steps_per_quad_step, const double time, const double delta_time, const double last_h_over_h, DenseVector<double>& historic_integrands);
         double Phi(const double x);
         double Ki(const double alpha, const double beta, const double time);
-        void AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double alpha, const double beta, const double last_h_over_h, const double delta_time, const vector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand);
+        void AddFdi(const int order, array_1d<double, 3>& F, const double t_win, const double alpha, const double beta, const double last_h_over_h, const double delta_time, const DenseVector<double>& historic_integrands, const array_1d<double, 3>& oldest_integrand);
         void AddFre(array_1d<double, 3>& old_Fi, const double beta, const double delta_time);
-        void Initialize(const ProcessInfo& r_process_info);
+        void Initialize(const ProcessInfo& r_process_info) override;
         ///@name Static Member Variables
       ///@{
 
@@ -198,7 +199,7 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-      
+
       bool mHasHydroMomentNodalVar;
       bool mHasDragForceNodalVar;
       bool mHasVirtualMassForceNodalVar;
@@ -263,12 +264,12 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
+      virtual void save(Serializer& rSerializer) const override
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
       }
 
-      virtual void load(Serializer& rSerializer)
+      virtual void load(Serializer& rSerializer) override
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
       }

@@ -170,7 +170,7 @@ public:
     */
     void Initialize(
         ModelPart& r_model_part
-    )
+    ) override
     {
         //Initialize variables
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -274,7 +274,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 
@@ -370,7 +370,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
 

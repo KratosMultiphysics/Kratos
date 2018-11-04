@@ -23,7 +23,7 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include <pybind11/pybind11.h>
 
 
 namespace Kratos
@@ -32,7 +32,7 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddCustomUtilitiesToPython();
+  void  AddCustomUtilitiesToPython(pybind11::module& m);
 
 }  // namespace Python.
   

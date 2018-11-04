@@ -1,0 +1,27 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "rectangular_plate_structure",
+        "model_part_name" : "rectangular_plate_structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "kratos_response_settings":{
+        "response_type"            : "mass",
+        "material_import_settings" :{
+            "materials_filename"   : "StructuralMaterials.json"
+        },
+        "model_part_name"          : "rectangular_plate_structure",
+        "domain_size"              : 3,
+        "model_import_settings"    : {
+            "input_type"           : "mdpa",
+            "input_filename"       : "rectangular_plate_structure"
+        },
+        "gradient_mode"            : "finite_differencing",
+        "step_size"                : 1e-5,
+        "consider_discretization"  : false
+    }
+}

@@ -22,7 +22,7 @@
 
 
 // External includes
-
+#include <pybind11/pybind11.h>
 
 // Project includes
 
@@ -33,7 +33,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddSearchStrategiesToPython();
+void  AddSearchStrategiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

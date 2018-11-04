@@ -1,16 +1,23 @@
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-12-09 20:20:55 $
-//   Revision:            $Revision: 1.5 $
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+
+// Project includes
+#include "includes/define_python.h"
 
 //Trilinos includes
 #include "mpi.h"
@@ -21,21 +28,17 @@
 
 namespace Kratos
 {
-
 namespace Python
 {
+namespace py = pybind11;
 
-using namespace boost::python;
-
-void AddZoltanProcessesToPython()
+void AddZoltanProcessesToPython(pybind11::module& m)
 {
-    class_<ZoltanPartitionUtility, boost::noncopyable >
-    ("ZoltanPartitionUtility",
-     init< >() )
+    py::class_<ZoltanPartitionUtility >(m,"ZoltanPartitionUtility")
+    .def(py::init< >() )
     .def("CalculatePartition", &ZoltanPartitionUtility::CalculatePartition )
     ;
 }
-
 
 } // namespace Python.
 

@@ -14,16 +14,12 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "geometries/point.h"
 #include "python/add_points_to_python.h"
-#include "python/bounded_vector_python_interface.h"
-#include "python/vector_scalar_operator_python.h"
-#include "python/vector_vector_operator_python.h"
+
 
 namespace Kratos
 {
@@ -66,21 +62,16 @@ double PointGetZ(TPointType& ThisPoint)
     return ThisPoint.Z();
 }
 
-void  AddPointsToPython()
+void  AddPointsToPython(pybind11::module& m)
 {
-    BoundedVectorPythonInterface<Point, 3>::CreateInterface("Point3D")
-    .def(init<double>())
-    .def(init<double, double>())
-    .def(init<double, double, double>())
-    .def(init<vector_expression<vector<double> > >())
-    .add_property("X", PointGetX<Point >, PointSetX<Point >)
-    .add_property("Y", PointGetY<Point >, PointSetY<Point >)
-    .add_property("Z", PointGetZ<Point >, PointSetZ<Point >)
-    .def(VectorScalarOperatorPython<Point, double, Point >())
-    .def(VectorVectorOperatorPython<Point, zero_vector<double>, Point >())
-    .def(VectorVectorOperatorPython<Point, unit_vector<double>, Point >())
-    .def(VectorVectorOperatorPython<Point, scalar_vector<double>, Point >())
-    .def(VectorVectorOperatorPython<Point, vector<double>, Point >())
+    namespace py = pybind11;
+
+    py::class_<Point, Point::Pointer, array_1d<double,3> >(m,"Point") //WARNING: this was previously called Point3D
+    .def(py::init<double, double, double>())
+    .def(py::init<vector_expression<Vector> >())
+    .def_property("X", PointGetX<Point >, PointSetX<Point >)
+    .def_property("Y", PointGetY<Point >, PointSetY<Point >)
+    .def_property("Z", PointGetZ<Point >, PointSetZ<Point >)
     ;
 }
 

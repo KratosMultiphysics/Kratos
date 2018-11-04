@@ -3,10 +3,10 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined (KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED)
@@ -154,11 +154,7 @@ private:
      * @param E: The Young Modulus
      * @param NU: The poisson coefficient
      */
-    void CalculateElasticMatrix(
-        Matrix& C,
-        const double E,
-        const double NU
-    ) override;
+    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * It calculates the strain vector
@@ -166,7 +162,7 @@ private:
      * @param rStrainVector: The strain vector in Voigt notation
      */
     void CalculateCauchyGreenStrain(
-        Parameters& rValues,
+        ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
     ) override;
 
@@ -188,7 +184,7 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }
 
     void load(Serializer& rSerializer) override
@@ -199,4 +195,4 @@ private:
 
 }; // Class AxisymElasticIsotropic
 }  // namespace Kratos.
-#endif // KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED  defined

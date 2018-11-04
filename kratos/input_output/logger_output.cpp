@@ -43,9 +43,17 @@ namespace Kratos
 		auto message_severity = TheMessage.GetSeverity();
         if (message_severity <= mSeverity)
         {
-            mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+            if(TheMessage.GetLabel().size())
+                mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+            else
+                mrStream << TheMessage.GetMessage();
         }
     }
+
+	void LoggerOutput::Flush()
+	{
+		mrStream << std::flush;
+	}
 
 	/// Print information about this object.
 	void LoggerOutput::PrintInfo(std::ostream& rOStream) const

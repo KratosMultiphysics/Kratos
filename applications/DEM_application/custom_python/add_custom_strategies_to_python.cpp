@@ -2,12 +2,6 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-// External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
-#include "spaces/ublas_space.h"
-
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 
@@ -44,99 +38,100 @@
 // Create and Destroy
 #include "custom_utilities/create_and_destroy.h"
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+using namespace pybind11;
+
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
-    namespace Python
-    {
-        using namespace boost::python;
+    typedef OMP_DEMSearch                                                         OmpDemSearchType;
+    typedef DEMSearch<OmpDemSearchType >                                          DemSearchType;
 
-        void  AddCustomStrategiesToPython()
-        {
-          //typedef UblasSpace<double, CompressedMatrix, Vector>                          SparseSpaceType;
-          //typedef UblasSpace<double, Matrix, Vector>                                    LocalSpaceType;
-          //typedef LinearSolver<SparseSpaceType, LocalSpaceType >                        LinearSolverType;
-          typedef OMP_DEMSearch                                                         OmpDemSearchType;
-          typedef DEMSearch<OmpDemSearchType >                                          DemSearchType;
+    class_<DEMIntegrationScheme, DEMIntegrationScheme::Pointer>(m, "DEMIntegrationScheme")
+        .def(init<>())
+        .def("SetTranslationalIntegrationSchemeInProperties", &DEMIntegrationScheme::SetTranslationalIntegrationSchemeInProperties)
+        .def("SetRotationalIntegrationSchemeInProperties", &DEMIntegrationScheme::SetRotationalIntegrationSchemeInProperties)
+        ;
 
-          class_<DEMIntegrationScheme, boost::noncopyable >
-                    ("DEMIntegrationScheme", init< >())
-            .def("SetTranslationalIntegrationSchemeInProperties", &DEMIntegrationScheme::SetTranslationalIntegrationSchemeInProperties)
-            .def("SetRotationalIntegrationSchemeInProperties", &DEMIntegrationScheme::SetRotationalIntegrationSchemeInProperties)
-                  ;
-          
-          class_<Variable<DEMIntegrationScheme::Pointer>, boost::noncopyable >("DEMIntegrationSchemePointerVariable", no_init)
-                    .def(self_ns::str(self)
-          );
-          
-          class_<Variable<DEMIntegrationScheme*>, boost::noncopyable >("DEMIntegrationSchemeRawPointerVariable", no_init)
-                    .def(self_ns::str(self)
-          );
+    class_<Variable<DEMIntegrationScheme::Pointer>, Variable<DEMIntegrationScheme::Pointer>::Pointer >(m, "DEMIntegrationSchemePointerVariable")
+        .def("__str__", &Variable<DEMIntegrationScheme::Pointer>::Info)
+        ;
 
-          class_< ForwardEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("ForwardEulerScheme", init<>());
+    class_<Variable<DEMIntegrationScheme*>, Variable<DEMIntegrationScheme*>::Pointer>(m, "DEMIntegrationSchemeRawPointerVariable")
+        .def("__str__", &Variable<DEMIntegrationScheme*>::Info)
+        ;
 
-          class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("SymplecticEulerScheme", init<>());
-          
-          class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("TaylorScheme", init<>());
+    class_<ForwardEulerScheme, ForwardEulerScheme::Pointer, DEMIntegrationScheme>(m, "ForwardEulerScheme")
+        .def(init<>())
+        ;
 
-          class_< VelocityVerletScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("VelocityVerletScheme", init<>());
+    class_<SymplecticEulerScheme, SymplecticEulerScheme::Pointer, DEMIntegrationScheme>(m, "SymplecticEulerScheme")
+        .def(init<>())
+        ;
 
-          class_< RungeKuttaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("RungeKuttaScheme", init<>());
+    class_<TaylorScheme, TaylorScheme::Pointer, DEMIntegrationScheme>(m, "TaylorScheme")
+        .def(init<>())
+        ;
 
-          class_< QuaternionIntegrationScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("QuaternionIntegrationScheme", init<>());
+    class_<VelocityVerletScheme, VelocityVerletScheme::Pointer, DEMIntegrationScheme>(m, "VelocityVerletScheme")
+        .def(init<>())
+        ;
 
-          class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>("OMP_DEMSearch")
-                  .def(init<>())
-                  .def(init<const double, const double, const double, const double, const double, const double>(args("min_x", "min_y", "min_z", "max_x", "max_y", "max_z")))
-                  ;
+    class_<RungeKuttaScheme, RungeKuttaScheme::Pointer, DEMIntegrationScheme>(m, "RungeKuttaScheme")
+        .def(init<>())
+        ;
 
-          class_< ExplicitSolverSettings, boost::noncopyable >("ExplicitSolverSettings", init<>() )
-          .def_readwrite("r_model_part",&ExplicitSolverSettings::r_model_part)
-          .def_readwrite("contact_model_part",&ExplicitSolverSettings::contact_model_part)
-          .def_readwrite("fem_model_part",&ExplicitSolverSettings::fem_model_part)
-          .def_readwrite("cluster_model_part",&ExplicitSolverSettings::cluster_model_part)
-          .def_readwrite("inlet_model_part",&ExplicitSolverSettings::inlet_model_part)
-          ;
+    class_<QuaternionIntegrationScheme, QuaternionIntegrationScheme::Pointer, DEMIntegrationScheme>(m, "QuaternionIntegrationScheme")
+        .def(init<>())
+        ;
 
-          class_< ExplicitSolverStrategy,  boost::noncopyable>
-          ("ExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, const bool>())
-                  .def("Solve", &ExplicitSolverStrategy::Solve)
-                  .def("Initialize", &ExplicitSolverStrategy::Initialize)
-                  .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
-                  .def("SetNormalRadiiOnAllParticles", &ExplicitSolverStrategy::SetNormalRadiiOnAllParticles)
-                  .def("SetSearchRadiiWithFemOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiWithFemOnAllParticles)
-                  .def("RebuildListOfDiscontinuumSphericParticles", &ExplicitSolverStrategy::RebuildListOfDiscontinuumSphericParticles)          
-                  .def("InitialTimeStepCalculation", &ExplicitSolverStrategy::InitialTimeStepCalculation)
-                  .def("PrepareElementsForPrinting", &ExplicitSolverStrategy::PrepareElementsForPrinting)
-                  .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs)
-          ;
+    class_<DemSearchType, DemSearchType::Pointer, SpatialSearch>(m, "OMP_DEMSearch")
+        .def(init<>())
+        .def(init<const double, const double, const double, const double, const double, const double>(), arg("min_x"), arg("min_y"), arg("min_z"), arg("max_x"), arg("max_y"), arg("max_z"))
+        ;
 
-          class_< ContinuumExplicitSolverStrategy, bases< ExplicitSolverStrategy >,  boost::noncopyable>
-          (
-          "ContinuumExplicitSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer,  SpatialSearch::Pointer>())
-                  .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategy::PrepareContactElementsForPrinting)
-          ;
+    class_<ExplicitSolverSettings, ExplicitSolverSettings::Pointer>(m, "ExplicitSolverSettings")
+        .def(init<>())
+        .def_readwrite("r_model_part",&ExplicitSolverSettings::r_model_part)
+        .def_readwrite("contact_model_part",&ExplicitSolverSettings::contact_model_part)
+        .def_readwrite("fem_model_part",&ExplicitSolverSettings::fem_model_part)
+        .def_readwrite("cluster_model_part",&ExplicitSolverSettings::cluster_model_part)
+        .def_readwrite("inlet_model_part",&ExplicitSolverSettings::inlet_model_part)
+        ;
 
-          class_< IterativeSolverStrategy, bases< ExplicitSolverStrategy >,  boost::noncopyable>
-          (
-          "IterativeSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, const bool>())
+    class_<ExplicitSolverStrategy, ExplicitSolverStrategy::Pointer>(m, "ExplicitSolverStrategy")
+        .def(init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters, const bool>())
+        .def("Solve", &ExplicitSolverStrategy::Solve)
+        .def("Initialize", &ExplicitSolverStrategy::Initialize)
+        .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
+        .def("SetNormalRadiiOnAllParticles", &ExplicitSolverStrategy::SetNormalRadiiOnAllParticles)
+        .def("SetSearchRadiiWithFemOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiWithFemOnAllParticles)
+        .def("RebuildListOfDiscontinuumSphericParticles", &ExplicitSolverStrategy::RebuildListOfDiscontinuumSphericParticles)
+        .def("InitialTimeStepCalculation", &ExplicitSolverStrategy::InitialTimeStepCalculation)
+        .def("PrepareElementsForPrinting", &ExplicitSolverStrategy::PrepareElementsForPrinting)
+        .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs)
+        ;
 
-          ;
+    class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
+        .def(init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
+        .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategy::PrepareContactElementsForPrinting)
+        ;
 
-          class_< VelocityVerletSolverStrategy<ExplicitSolverStrategy>, bases< ExplicitSolverStrategy >,  boost::noncopyable>
-          (
-          "VelocityVerletSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer>())
+    class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")
+        .def(init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters, const bool>())
+        ;
 
-          ;
+    class_<VelocityVerletSolverStrategy<ExplicitSolverStrategy>, VelocityVerletSolverStrategy<ExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "VelocityVerletSolverStrategy")
+        .def(init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
+        ;
 
-          class_< VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, bases< ContinuumExplicitSolverStrategy >,  boost::noncopyable>
-          (
-          "ContinuumVelocityVerletSolverStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer>())
+    class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
+        .def(init<ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
+        ;
 
-          ;
+}
 
-
-        }
-
-    }  // namespace Python.
+}  // namespace Python.
 
 } // Namespace Kratos

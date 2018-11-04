@@ -23,7 +23,7 @@ namespace Kratos
 PythonOutfittedConstitutiveLaw::PythonOutfittedConstitutiveLaw()
     : ConstitutiveLaw()
 {
-	
+
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -37,7 +37,7 @@ PythonOutfittedConstitutiveLaw::PythonOutfittedConstitutiveLaw(PyObject* pPyCons
 
 }
 
-  
+
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
@@ -56,9 +56,8 @@ PythonOutfittedConstitutiveLaw::PythonOutfittedConstitutiveLaw(const PythonOutfi
 //************************************************************************************
 
 ConstitutiveLaw::Pointer PythonOutfittedConstitutiveLaw::Clone() const
-{    
-    PythonOutfittedConstitutiveLaw::Pointer p_clone(new PythonOutfittedConstitutiveLaw(*this));
-    return p_clone;
+{
+    return Kratos::make_shared<PythonOutfittedConstitutiveLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -98,10 +97,10 @@ double& PythonOutfittedConstitutiveLaw::GetValue( const Variable<double>& rThisV
 {
   if (rThisVariable == STRAIN_ENERGY)
   {
-      
+
     rValue = mStrainEnergy;
   }
-    
+
     return( rValue );
 }
 
@@ -149,7 +148,7 @@ void PythonOutfittedConstitutiveLaw::SetValue( const Variable<Matrix>& rThisVari
 //************************************************************************************
 
 
-void PythonOutfittedConstitutiveLaw::InitializeMaterial( const Properties& rMaterialProperties,
+void PythonOutfittedConstitutiveLaw::InitializeMaterial( const Properties& rProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues )
 {
@@ -163,7 +162,7 @@ void PythonOutfittedConstitutiveLaw::InitializeMaterial( const Properties& rMate
 //************************************************************************************
 
 
-void PythonOutfittedConstitutiveLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
+void PythonOutfittedConstitutiveLaw::InitializeSolutionStep( const Properties& rProperties,
         const GeometryType& rElementGeometry, //this is just to give the array of nodes
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -175,7 +174,7 @@ void PythonOutfittedConstitutiveLaw::InitializeSolutionStep( const Properties& r
 //************************************************************************************
 
 
-void PythonOutfittedConstitutiveLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
+void PythonOutfittedConstitutiveLaw::FinalizeSolutionStep( const Properties& rProperties,
         const GeometryType& rElementGeometry, //this is just to give the array of nodes
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -202,15 +201,15 @@ void  PythonOutfittedConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& 
   {
     Vector& StressVector                = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix          = rValues.GetConstitutiveMatrix();
-    
+
     //it is important to have the correct size, any resize from python will make a local copy
     //any local copy from python will be lost out of the python local scope
     unsigned int size = this->GetStrainSize();
-    if( StressVector.size() != size ) 
+    if( StressVector.size() != size )
       StressVector.resize(size,false);
     if( ConstitutiveMatrix.size1() != size || ConstitutiveMatrix.size2() != size )
       ConstitutiveMatrix.resize(size,size,false);
-	
+
     boost::python::call_method<void>(mpPyConstitutiveLaw->ptr(), "CalculateMaterialResponsePK2",  boost::ref(rValues));
 
   }
@@ -238,7 +237,7 @@ void PythonOutfittedConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& r
 
 void PythonOutfittedConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
-  
+
 //python is not thread safe
 #pragma omp critical
   {
@@ -248,13 +247,13 @@ void PythonOutfittedConstitutiveLaw::CalculateMaterialResponseKirchhoff (Paramet
     //it is important to have the correct size, any resize from python will make a local copy
     //any local copy from python will be lost out of the python local scope
     unsigned int size = this->GetStrainSize();
-    if( StressVector.size() != size ) 
+    if( StressVector.size() != size )
       StressVector.resize(size,false);
     if( ConstitutiveMatrix.size1() != size || ConstitutiveMatrix.size2() != size )
       ConstitutiveMatrix.resize(size,size,false);
-    
+
     boost::python::call_method<void>(mpPyConstitutiveLaw->ptr(), "CalculateMaterialResponseKirchhoff", boost::ref(rValues));
-  
+
   }
 }
 
@@ -344,7 +343,7 @@ void PythonOutfittedConstitutiveLaw::UpdateInternalVariables(Parameters& rValues
     Matrix TotalDeformationMatrix          = DeltaDeformationMatrix;
     TotalDeformationMatrix = Transform2DTo3D(TotalDeformationMatrix);
     MathUtils<double>::InvertMatrix( TotalDeformationMatrix, this->mInverseTotalDeformationMatrix, mTotalDeformationDet);
-    mTotalDeformationDet = DeltaDeformationDet; //special treatment of the determinant 
+    mTotalDeformationDet = DeltaDeformationDet; //special treatment of the determinant
 }
 
 
@@ -385,7 +384,7 @@ Matrix& PythonOutfittedConstitutiveLaw::Transform2DTo3D (Matrix& rMatrix)
     return rMatrix;
 }
 
-  
+
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
@@ -395,11 +394,11 @@ void PythonOutfittedConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 }
 
 
-int PythonOutfittedConstitutiveLaw::Check(const Properties& rMaterialProperties,
+int PythonOutfittedConstitutiveLaw::Check(const Properties& rProperties,
 					  const GeometryType& rElementGeometry,
 					  const ProcessInfo& rCurrentProcessInfo)
 {
-  return boost::python::call_method<int>(mpPyConstitutiveLaw->ptr(),"Check", boost::ref<const Properties>(rMaterialProperties),boost::ref<const GeometryType>(rElementGeometry),boost::ref<const ProcessInfo>(rCurrentProcessInfo));
+  return boost::python::call_method<int>(mpPyConstitutiveLaw->ptr(),"Check", boost::ref<const Properties>(rProperties),boost::ref<const GeometryType>(rElementGeometry),boost::ref<const ProcessInfo>(rCurrentProcessInfo));
 }
 
 } // Namespace Kratos

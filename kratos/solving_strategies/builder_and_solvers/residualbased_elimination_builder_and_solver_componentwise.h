@@ -23,7 +23,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -180,11 +179,12 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
-//create a partition of the element array
+        //create a partition of the element array
         int number_of_threads = OpenMPUtils::GetNumThreads();
-        int A_size = A.size1();
 
 #ifdef _OPENMP
+        int A_size = A.size1();
+
         //creating an array of lock variables of the size of the system matrix
         std::vector< omp_lock_t > lock_array(A.size1());
 
@@ -192,7 +192,7 @@ public:
             omp_init_lock(&lock_array[i]);
 #endif
 
-        vector<unsigned int> element_partition;
+        DenseVector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
         if (this->GetEchoLevel()>0)
         {
@@ -243,7 +243,7 @@ public:
             }
         }
 
-        vector<unsigned int> condition_partition;
+        DenseVector<unsigned int> condition_partition;
         CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
 
         #pragma omp parallel for firstprivate(number_of_threads) schedule(static,1)
@@ -308,7 +308,7 @@ public:
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part
-    ) override 
+    ) override
     {
         KRATOS_TRY
 
@@ -340,6 +340,24 @@ public:
 
         BaseType::mDofSetIsInitialized = true;
 
+
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        {
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
+
+
         KRATOS_CATCH("")
     }
 
@@ -351,14 +369,10 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     ) override
     {
-#ifndef __SUNPRO_CC
         KRATOS_TRY
-#endif
 
         if(pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
         {
@@ -399,7 +413,8 @@ public:
         {
             if(A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
-                KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                //KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
 #ifdef _OPENMP
                 ParallelConstructGraph(A);
@@ -419,7 +434,7 @@ public:
         //if needed resize the vector for the calculation of reactions
         if(BaseType::mCalculateReactionsFlag == true)
         {
-            unsigned int ReactionsVectorSize = BaseType::mDofSet.size()-BaseType::mEquationSystemSize;
+            unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
             if(BaseType::mpReactionsVector->size() != ReactionsVectorSize)
                 BaseType::mpReactionsVector->resize(ReactionsVectorSize,false);
         }
@@ -465,6 +480,27 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedEliminationBuilderAndSolverComponentwise";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     /*@} */
     /**@name Friends */
@@ -569,8 +605,8 @@ protected:
         unsigned int pos = (mActiveNodes.begin())->GetDofPosition(rVar);
         //constructing the system matrix row by row
 
-        vector<unsigned int> partition;
-        vector<unsigned int> local_sizes(number_of_threads);
+        DenseVector<unsigned int> partition;
+        DenseVector<unsigned int> local_sizes(number_of_threads);
         for(int i=0; i<number_of_threads; i++)
             local_sizes[i] = 0;
 
@@ -681,7 +717,7 @@ private:
     /*@{ */
     //******************************************************************************************
     //******************************************************************************************
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads+1);
         int partition_size = number_of_rows / number_of_threads;

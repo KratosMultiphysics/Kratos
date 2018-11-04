@@ -1,17 +1,19 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_Q4_Thin_nonlinear_dynamic_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.04,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
+        "model_part_name" : "Structure",
         "echo_level"                         : 0,
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.04
+        },
         "analysis_type"                      : "non_linear",
         "time_integration_method"            : "implicit",
         "scheme_type"                        : "bossak",
@@ -30,12 +32,14 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 100,
         "linear_solver_settings"             : {
-            "solver_type" : "AMGCL"
+            "solver_type" : "AMGCL",
+            "provide_coordinates" : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_surface"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_edge","DISPLACEMENT_sample","ROTATION_edge","SelfWeight3D_surface"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -86,16 +90,20 @@
             "direction"       : [0.0,0.0,-1.0]
         }
     }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
+	"list_other_processes": [
+    {
+        "python_module" : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "",
+        "process_name"  : "FromJsonCheckResultProcess",
+        "Parameters"    : {
+            "check_variables"  : ["DISPLACEMENT_Z"],
+            "input_file_name"  : "shell_test/Shell_Q4_Thin_nonlinear_dynamic_test_results.json",
+            "model_part_name"  : "DISPLACEMENT_sample",
+            "time_frequency"   : 0.001
+        }
+    }
+    ]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -111,25 +119,11 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","ROTATION","TORQUE","ANGULAR_VELOCITY","ANGULAR_ACCELERATION"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","ROTATION","REACTION_MOMENT","ANGULAR_VELOCITY","ANGULAR_ACCELERATION"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
     },
-	"list_other_processes": [
-    {
-        "python_module" : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "",
-        "process_name"  : "FromJsonCheckResultProcess",
-        "Parameters"    : {
-            "check_variables"  : ["DISPLACEMENT_Z"],
-            "input_file_name"  : "shell_test/Shell_Q4_Thin_nonlinear_dynamic_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_sample",
-            "time_frequency"   : 0.001
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module" : "json_output_process",

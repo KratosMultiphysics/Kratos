@@ -2,25 +2,21 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 #if !defined(KRATOS_BUILDER_AND_SOLVER )
 #define  KRATOS_BUILDER_AND_SOLVER
 
-
 /* System includes */
 #include <set>
 
-
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -29,7 +25,6 @@
 
 //default linear solver
 //#include "linear_solvers/linear_solver.h"
-
 
 namespace Kratos
 {
@@ -139,16 +134,16 @@ public:
 
       std::vector<TSystemVectorType> *mpRHS_Element_Components;
       const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-      
+
       //conditions
       std::vector<TSystemMatrixType> *mpLHS_Condition_Components;
       const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
 
       std::vector<TSystemVectorType> *mpRHS_Condition_Components;
       const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Condition_Variables;
-      
+
     public:
-      
+
       void Initialize()
       {
 	mpLHS_Element_Components = NULL;
@@ -222,6 +217,7 @@ public:
 
         mReshapeMatrixFlag = false; //by default the matrix is shaped just once
         //		mVectorsAreInitialized = false;
+
     }
 
     /** Destructor.
@@ -466,9 +462,7 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     )
     {
     }
@@ -504,16 +498,12 @@ public:
      */
     virtual void Clear()
     {
-        this->mDofSet.clear(); // = DofsArrayType();
+        this->mDofSet = DofsArrayType();
+        if (this->mpReactionsVector != nullptr) TSparseSpace::Clear(this->mpReactionsVector);
+        if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
-        TSparseSpace::Clear(this->mpReactionsVector);
-        // 			this->mReactionsVector = TSystemVectorType();
-
-        if (this->GetEchoLevel() > 0)
-        {
-
-            std::cout << "BuilderAndSolver Clear Function called" << std::endl;
-        }
+        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)
+            << "Clear Function called" << std::endl;
     }
 
     /**
@@ -562,6 +552,27 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "BuilderAndSolver";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
 
     /*@} */
     /**@name Friends */
@@ -600,7 +611,7 @@ protected:
     /**@name Protected Operators*/
     /*@{ */
 
-    int mEchoLevel;
+    int mEchoLevel = 0;
 
     TSystemVectorPointerType mpReactionsVector;
 

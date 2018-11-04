@@ -18,7 +18,6 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <vector>
 
 // External includes
 
@@ -92,7 +91,8 @@ public:
     /// Default constructor.
     GearScheme()
         :
-        Scheme<TSparseSpace, TDenseSpace>()
+        Scheme<TSparseSpace, TDenseSpace>(),
+        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
 
     /// Constructor to use the formulation combined with a turbulence model.
@@ -105,8 +105,20 @@ public:
     GearScheme(Process::Pointer pTurbulenceModel)
         :
         Scheme<TSparseSpace, TDenseSpace>(),
-        mpTurbulenceModel(pTurbulenceModel)
+        mpTurbulenceModel(pTurbulenceModel),
+        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
+
+    /// Constructor for periodic boundary conditions.
+    /**
+     * @param rPeriodicVar the variable used to store periodic pair indices.
+     */
+    GearScheme(const Kratos::Variable<int>& rPeriodicVar)
+        :
+        Scheme<TSparseSpace, TDenseSpace>(),
+        mrPeriodicIdVar(rPeriodicVar)
+    {}
+
 
     /// Destructor.
     ~GearScheme() override
@@ -300,7 +312,7 @@ public:
     {
         KRATOS_TRY
 
-        this->UpdateDofs(rDofSet,Dx);
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
         const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
 
@@ -423,6 +435,12 @@ public:
         KRATOS_CATCH("")
     }
 
+    /// Free memory allocated by this object.
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -438,7 +456,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "GearScheme";
@@ -446,13 +464,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "GearScheme";
+        rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {}
 
     ///@}
@@ -631,7 +649,7 @@ protected:
 
         // iteration variables
         unsigned int iter = 0;
-        array_1d<double,3> dMomProj(3,0.0);
+        array_1d<double,3> dMomProj = ZeroVector(3);
         double dMassProj = 0.0;
 
         double RelMomErr = 1000.0 * RelTol;
@@ -727,6 +745,11 @@ protected:
         rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
         rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
 
+        // Correction for periodic conditions
+        if (mrPeriodicIdVar.Key() != 0) {
+            this->PeriodicConditionProjectionCorrection(rModelPart);
+        }
+
         for (typename ModelPart::NodesContainerType::iterator iNode = rModelPart.NodesBegin(); iNode != rModelPart.NodesEnd(); iNode++)
         {
             if (iNode->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
@@ -740,6 +763,88 @@ protected:
 
         if (rModelPart.GetCommunicator().MyPID() == 0)
             std::cout << "Performed OSS Projection" << std::endl;
+    }
+
+    /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
+     * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
+     * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
+     * 2- The non-historical containers are added across processes, communicating the right value from the condition owner to all partitions.\n
+     * 3- The value on all periodic nodes is replaced by the one received in step 2.
+     */
+    void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
+    {
+        const int num_nodes = rModelPart.NumberOfNodes();
+        const int num_conditions = rModelPart.NumberOfConditions();
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes; i++) {
+            auto it_node = rModelPart.NodesBegin() + i;
+
+            it_node->SetValue(NODAL_AREA,0.0);
+            it_node->SetValue(ADVPROJ,ZeroVector(3));
+            it_node->SetValue(DIVPROJ,0.0);
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_conditions; i++) {
+            auto it_cond = rModelPart.ConditionsBegin() + i;
+
+            if(it_cond->Is(PERIODIC)) {
+                this->AssemblePeriodicContributionToProjections(it_cond->GetGeometry());
+            }
+        }
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes; i++) {
+            auto it_node = rModelPart.NodesBegin() + i;
+            this->CorrectContributionsOnPeriodicNode(*it_node);
+        }
+    }
+
+    void AssemblePeriodicContributionToProjections(Geometry< Node<3> >& rGeometry)
+    {
+        unsigned int nodes_in_cond = rGeometry.PointsNumber();
+
+        double nodal_area = 0.0;
+        array_1d<double,3> momentum_projection = ZeroVector(3);
+        double mass_projection = 0.0;
+        for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+        {
+            auto& r_node = rGeometry[i];
+            nodal_area += r_node.FastGetSolutionStepValue(NODAL_AREA);
+            noalias(momentum_projection) += r_node.FastGetSolutionStepValue(ADVPROJ);
+            mass_projection += r_node.FastGetSolutionStepValue(DIVPROJ);
+        }
+
+        for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+        {
+            auto& r_node = rGeometry[i];
+            /* Note that this loop is expected to be threadsafe in normal conditions,
+             * since each node should belong to a single periodic link. However, I am
+             * setting the locks for openmp in case that we try more complicated things
+             * in the future (like having different periodic conditions for different
+             * coordinate directions).
+             */
+            r_node.SetLock();
+            r_node.GetValue(NODAL_AREA) = nodal_area;
+            noalias(r_node.GetValue(ADVPROJ)) = momentum_projection;
+            r_node.GetValue(DIVPROJ) = mass_projection;
+            r_node.UnSetLock();
+        }
+    }
+
+    void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
+    {
+        if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.
+        {
+            rNode.FastGetSolutionStepValue(NODAL_AREA) = rNode.GetValue(NODAL_AREA);
+            noalias(rNode.FastGetSolutionStepValue(ADVPROJ)) = rNode.GetValue(ADVPROJ);
+            rNode.FastGetSolutionStepValue(DIVPROJ) = rNode.GetValue(DIVPROJ);
+        }
     }
 
 
@@ -770,7 +875,11 @@ private:
     ///@{
 
     /// Poiner to a turbulence model
-    Process::Pointer mpTurbulenceModel;
+    Process::Pointer mpTurbulenceModel = nullptr;
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
+    const Kratos::Variable<int>& mrPeriodicIdVar;
 
 //        ///@}
 //        ///@name Serialization

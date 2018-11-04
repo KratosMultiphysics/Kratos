@@ -35,6 +35,8 @@
     },
     "solver_settings"                  : {
         "solver_type"                  : "Embedded",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 3,
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "reservoir_3D"
@@ -54,7 +56,9 @@
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 0.1
-        }
+        },
+        "is_slip" : false,
+        "penalty_coefficient" : 10.0
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{

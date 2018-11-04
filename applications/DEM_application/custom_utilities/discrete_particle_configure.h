@@ -95,7 +95,7 @@ public:
         mDomainMax[2] = domain_max_z;
         SetPeriods(domain_max_x - domain_min_x, domain_max_y - domain_min_y, domain_max_z - domain_min_z);
         mDomainIsPeriodic = (mDomainPeriods[0] >= 0 && mDomainPeriods[1] >= 0 && mDomainPeriods[2] >= 0);
-        //KRATOS_WATCH(mDomainIsPeriodic)
+
     }
 
     static void SetPeriods(double domain_period_x, double domain_period_y, double domain_period_z)

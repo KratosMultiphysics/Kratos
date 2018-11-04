@@ -45,8 +45,10 @@ namespace Kratos
         rOStream << "Modified shape functions computation base class:\n";
         rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
         std::stringstream distances_buffer;
+        std::stringstream stm;
         for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
-            distances_buffer << std::to_string(nodal_distances(i)) << " ";
+            stm << nodal_distances(i);
+            distances_buffer << stm.str() << " ";
         }
         rOStream << "\tDistance values: " << distances_buffer.str();
     };
@@ -76,7 +78,7 @@ namespace Kratos
 
         const unsigned int nedges = mpInputGeometry->EdgesNumber();
         const unsigned int nnodes = mpInputGeometry->PointsNumber();
-            
+
         // Initialize intersection points condensation matrix
         rIntPointCondMatrix = ZeroMatrix(nnodes + nedges, nnodes);
 
@@ -173,7 +175,7 @@ namespace Kratos
                     sh_func_vect(r_subdivision_geom[i].Id()) = subdivision_sh_func_values(i_gauss, i);
                 }
 
-                const Vector condensed_sh_func_values = prod(sh_func_vect, rPmatrix);
+                const Vector condensed_sh_func_values = prod(trans(rPmatrix),sh_func_vect);
 
                 for (unsigned int i = 0; i < n_nodes; ++i) {
                     rShapeFunctionsValues(i_subdivision*n_int_pts + i_gauss, i) = condensed_sh_func_values(i);
@@ -210,7 +212,7 @@ namespace Kratos
         const unsigned int split_edges_size = n_edges + n_nodes;                                             // Split edges vector size
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
         const unsigned int n_dim = (*rParentGeometriesVector[0]).Dimension();                                // Number of dimensions
-        const unsigned int n_int_pts = 
+        const unsigned int n_int_pts =
             n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
@@ -277,7 +279,7 @@ namespace Kratos
                 for (unsigned int i = 0; i < n_nodes; ++i) {
                     aux_sh_func_exp(r_parent_geom[i].Id()) = aux_sh_func(i);
                 }
-                aux_sh_func_cond = prod(aux_sh_func_exp, rPmatrix);
+                aux_sh_func_cond = prod(trans(rPmatrix),aux_sh_func_exp);
                 for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
                     rInterfaceShapeFunctionsValues(i_interface*n_int_pts + i_gauss, i_node) = aux_sh_func_cond(i_node);
                 }
@@ -291,7 +293,7 @@ namespace Kratos
                 aux_grad_sh_func_local = r_parent_geom.ShapeFunctionsLocalGradients(aux_grad_sh_func_local, loc_coords);
                 jac_mat = r_parent_geom.Jacobian(jac_mat, loc_coords);
                 MathUtils<double>::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
-                aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat); 
+                aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat);
 
                 Matrix aux_grad_sh_func_exp = ZeroMatrix(n_dim, split_edges_size);
                 for (unsigned int dim = 0; dim < n_dim; ++dim ) {
@@ -314,7 +316,7 @@ namespace Kratos
 
         // Set some auxiliar variables
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
-        const unsigned int n_int_pts = 
+        const unsigned int n_int_pts =
             n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
@@ -351,7 +353,7 @@ namespace Kratos
 
         // Initialize the output matrix. Note that the non-split edges values must be equal to zero
         rEdgeShapeFunctionValues = ZeroMatrix(n_edges, n_nodes);
-        
+
         // Take the shape function values from the condensation matrix
         for (unsigned int i_edge = 0; i_edge < n_edges; ++i_edge){
             const unsigned int p_mat_row = n_nodes + i_edge;

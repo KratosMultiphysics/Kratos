@@ -10,34 +10,35 @@
 #if !defined(PROPERTIES_EXTENSIONS_H_INCLUDED)
 #define PROPERTIES_EXTENSIONS_H_INCLUDED
 
-#define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES \
-template<class TVariableType> \
-static void AddToProperties(TVariableType const& rV, typename TVariableType::Type const& rValue, Properties::Pointer& p) \
-{ \
-	p->SetValue(rV, rValue); \
-}
+#if !defined(DECLARE_ADD_THIS_TYPE_TO_PROPERTIES)
+#define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES                             \
+  template<class TVariable>                                         \
+  static void AddToProperties(TVariable const& rV, typename TVariable::Type const& rValue, Properties::Pointer& p) \
+  {                                                                     \
+    p->SetValue(rV, rValue);                                            \
+  }
 
-#define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON(TClassName) \
-.def("AddToProperties", &TClassName::AddToProperties< Variable< TClassName > >).staticmethod("AddToProperties")
+#define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON(TClassName)          \
+  .def_static("AddToProperties", &TClassName::AddToProperties< Variable< TClassName > >)
 
 #define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(TClassName) \
-.def("AddToProperties", &TClassName::AddToProperties< Variable< TClassName::Pointer > >).staticmethod("AddToProperties")
+  .def_static("AddToProperties", &TClassName::AddToProperties< Variable< TClassName::Pointer > >)
+#endif
 
+#if !defined(DECLARE_GET_THIS_TYPE_FROM_PROPERTIES)
+#define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES                           \
+  template<class TVariable>                                         \
+  static typename TVariable::Type GetFromProperties(TVariable const& rV, Properties::Pointer& p) \
+  {                                                                     \
+    return p->GetValue(rV);                                             \
+  }
 
-
-#define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES \
-template<class TVariableType> \
-static typename TVariableType::Type GetFromProperties(TVariableType const& rV, Properties::Pointer& p) \
-{ \
-	return p->GetValue(rV); \
-}
-
-#define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON(TClassName) \
-.def("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName > >).staticmethod("GetFromProperties")
+#define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON(TClassName)        \
+  .def_static("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName > >)
 
 #define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(TClassName) \
-.def("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName::Pointer > >).staticmethod("GetFromProperties")
-
+  .def_static("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName::Pointer > >)
+#endif
 
 
 #endif // PROPERTIES_EXTENSIONS_H_INCLUDED

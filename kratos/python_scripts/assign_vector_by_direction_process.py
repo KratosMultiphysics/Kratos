@@ -7,13 +7,14 @@ def Factory(settings, Model):
     return AssignVectorByDirectionProcess(Model, settings["Parameters"])
 
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the nodes belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",

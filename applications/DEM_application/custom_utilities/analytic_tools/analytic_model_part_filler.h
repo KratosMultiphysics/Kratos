@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-class AnalyticModelPartFiller
+class KRATOS_API(DEM_APPLICATION) AnalyticModelPartFiller
 {
 
 public:   

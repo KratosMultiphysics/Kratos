@@ -8,7 +8,6 @@
 //
 
 // System includes
-#include <boost/python.hpp>
 
 // External includes
 
@@ -25,52 +24,43 @@
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    using namespace boost::python;
+using namespace pybind11;
 
-    typedef Properties::Pointer                    PropertiesPointer;
-    typedef FrictionLaw                          FrictionLawBaseType;
-    typedef FrictionLaw::Pointer                  FrictionLawPointer;
-    typedef std::vector<FrictionLaw::Pointer>   FrictionLawContainer;
+typedef typename FrictionLaw::Pointer         FrictionLawPointerType;
+//typedef std::vector<FrictionLawPointerType>     FrictionLawContainer;
 
-    typedef CoulombAdhesionFrictionLaw           CoulombFrictionLawBaseType;
-    typedef CoulombAdhesionFrictionLaw::Pointer   CoulombFrictionLawPointer;
 
-    void Push_Back_Friction_Laws( FrictionLawContainer& ThisFrictionLawContainer,
-    				  FrictionLawPointer ThisFrictionLaw )
-    {
-      ThisFrictionLawContainer.push_back( ThisFrictionLaw );
-    }
+void  AddCustomFrictionLawsToPython(pybind11::module& m)
+{
 
-    void  AddCustomFrictionLawsToPython()
-    {
+  //Friction laws
+  class_<FrictionLaw, FrictionLawPointerType>(m,"FrictionLaw")
+      .def(init<>())
+      .def("Clone", &FrictionLaw::Clone)
+      .def("__repr__", &FrictionLaw::Info)
+      DECLARE_HAS_THIS_TYPE_PROPERTIES_PYTHON_AS_POINTER(FrictionLaw)
+      DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(FrictionLaw)
+      DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(FrictionLaw)
+      ;
 
-       class_< FrictionLawContainer >( "FrictionLawContainer", init<>() )
-      	.def( "PushBack", Push_Back_Friction_Laws )
-      	;
+  //to define it as a variable
+  class_<Variable<FrictionLawPointerType>, VariableData>(m,"FrictionLawVariable")
+      .def( "__repr__", &Variable<FrictionLawPointerType>::Info )
+      ;
 
-       class_<Variable<FrictionLaw::Pointer>, bases<VariableData>, boost::noncopyable >( "FrictionLawVariable", no_init )
-	 .def( self_ns::str( self ) )
-	 ;
-       
-       //Friction laws
-       class_< FrictionLaw, FrictionLaw::Pointer, boost::noncopyable >
-      	( "FrictionLaw",  init<>() )
-	 .def("Clone",&FrictionLaw::Clone)
-	 ;
+  class_<CoulombAdhesionFrictionLaw, typename CoulombAdhesionFrictionLaw::Pointer, FrictionLaw>(m,"CoulombAdhesionFrictionLaw")
+      .def(init<>())
+      ;
 
-       class_< CoulombAdhesionFrictionLaw, bases< FrictionLawBaseType >, boost::noncopyable >
-      	( "CoulombAdhesionFrictionLaw",  init<>() )
-      	;
+  class_<HardeningCoulombFrictionLaw, typename HardeningCoulombFrictionLaw::Pointer, CoulombAdhesionFrictionLaw>(m,"HardeningCoulombFrictionLaw")
+      .def(init<>())
+      ;
 
-       class_< HardeningCoulombFrictionLaw, bases< CoulombFrictionLawBaseType >, boost::noncopyable >
-       	( "HardeningCoulombFrictionLaw",  init<>() )
-       	;
+}
 
-    }
-
-  }  // namespace Python.
+}  // namespace Python.
 
 }  // namespace Kratos.

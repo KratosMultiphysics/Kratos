@@ -150,7 +150,7 @@ public:
         DenseVectorType eigen_values;
         
         // Create the FEAST solver
-        FEASTSolverType FEASTSolver(boost::make_shared<Parameters>(this_params), pLinearSolver);
+        FEASTSolverType FEASTSolver(Kratos::make_shared<Parameters>(this_params), pLinearSolver);
         
         // Solve the problem
         FEASTSolver.Solve(copy_matrix, identity_matrix, eigen_values, eigen_vectors);

@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -17,30 +17,65 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
 
+///@}
+///@name Type Definitions
+///@{
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStress : public ConstitutiveLaw
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+/**
+ * @class LinearPlaneStress
+ * @ingroup StructuralMechanicsApplication
+ * @brief This class defines a small deformation linear elastic constitutive model for plane stress cases
+ * @details This class derives from the linear elastic case on 3D
+ * @author Riccardo Rossi
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStress 
+    : public ElasticIsotropic3D
 {
 public:
-    /**
-     * Type Definitions
-     */
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
-    typedef std::size_t             SizeType;
-    /**
-     * Counted pointer of LinearPlaneStress
-     */
+    ///@name Type Definitions
+    ///@{
 
+    /// The process info definition
+    typedef ProcessInfo      ProcessInfoType;
+    
+    /// The base class ConstitutiveLaw type definition
+    typedef ConstitutiveLaw       CLBaseType;
+    
+    /// The base class ElasticIsotropic3D type definition
+    typedef ElasticIsotropic3D      BaseType;
+    
+    /// The size type definition
+    typedef std::size_t             SizeType;
+    
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
+    
+    /// Counted pointer of LinearPlaneStress
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStress );
 
-    /**
-     * Life Cycle
-     */
+    ///@name Life Cycle
+    ///@{
 
     /**
      * Default constructor.
@@ -60,92 +95,51 @@ public:
      */
     ~LinearPlaneStress() override;
 
-    /**
-     * Operators
-     */
+    ///@}
+    ///@name Operators
+    ///@{
 
-    /**
-     * Operations needed by the base class:
-     */
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
+     * @param rFeatures: The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
+
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override
+    {
+        return Dimension;
+    };
 
     /**
      * Voigt tensor size:
      */
     SizeType GetStrainSize() override
     {
-        return 3;
-
+        return VoigtSize;
     }
 
-    /**
-     * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+    ///@}
+    ///@name Access
+    ///@{
 
-    /**
-     * Computes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
-    
-    /**
-     * Computes the material response:
-     * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
-    
-    /**
-     * Computes the material response:
-     * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-    
-    /**
-     * Finalizes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-    /**
-     * Finalizes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues) override;
-    
-    /**
-     * Finalizes the material response:
-     * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
-    
-    /**
-     * Finalizes the material response:
-     * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
 
     /**
      * returns the value of a specified variable
@@ -155,53 +149,61 @@ public:
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
-    /**
-     * calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */ 
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rMaterialProperties: The properties of the material
-     * @param rElementGeometry: The geometry of the element
-     * @param rCurrentProcessInfo: The current process info instance
-     */
-    int Check(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
+    ///@}
 
 protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+    * It calculates the constitutive matrix C
+    * @param C: The constitutive matrix
+    * @param rValues Parameters of the constitutive law
+    */
+    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+    * It calculates the stress vector
+    * @param rStrainVector The strain vector in Voigt notation
+    * @param rStressVector The stress vector in Voigt notation
+    * @param rValues Parameters of the constitutive law
+    */
+    void CalculatePK2Stress(
+        const Vector& rStrainVector,
+        Vector& rStressVector,
+        ConstitutiveLaw::Parameters& rValues
+        ) override;
+
+    /**
+    * It calculates the strain vector
+    * @param rValues The internal values of the law
+    * @param rStrainVector The strain vector in Voigt notation
+    */
+    void CalculateCauchyGreenStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        ) override;
+
     ///@}
 
 private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -209,54 +211,11 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    void CalculateElasticMatrix(Matrix& C, const double E, const double NU)
-    {
-        double c1 = E / (1.00 - NU*NU);
-        double c2 = c1 * NU;
-        double c3 = 0.5*E / (1 + NU);
-
-        C(0,0) = c1;
-        C(0,1) = c2;
-        C(0,2) = 0.0;
-        C(1,0) = c2;
-        C(1,1) = c1;
-        C(1,2) = 0.0;
-        C(2,0) = 0.0;
-        C(2,1) = 0.0;
-        C(2,2) = c3;
-    }
-
-    void CalculatePK2Stress(const Vector& StrainVector, Vector& StressVector, const double E, const double NU)
-    {
-        double c1 = E / (1.00 - NU*NU);
-        double c2 = c1 * NU;
-        double c3 = 0.5* E / (1 + NU);
-
-        StressVector[0] = c1*StrainVector[0] + c2 * (StrainVector[1])	;
-        StressVector[1] = c1*StrainVector[1] + c2 * (StrainVector[0])	;
-        StressVector[2] = c3*StrainVector[2];
-    }
-
-    void CalculateCauchyGreenStrain(
-        Parameters& rValues,
-        Vector& StrainVector
-    )
-    {
-        //1.-Compute total deformation gradient
-        const Matrix& F = rValues.GetDeformationGradientF();
-
-        Matrix Etensor = prod(trans(F),F);
-        Etensor -= IdentityMatrix(2,2);
-        Etensor *= 0.5;
-
-        noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
-    }
 
     ///@}
     ///@name Private Operations
     ///@{
     ///@}
-
 
     ///@}
     ///@name Private  Access
@@ -270,15 +229,15 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropic3D)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropic3D)
     }
 
 
 }; // Class LinearPlaneStress
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED  defined

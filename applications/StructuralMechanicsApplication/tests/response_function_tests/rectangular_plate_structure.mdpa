@@ -1,0 +1,98 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1	0.000000	1.500000	0.000000
+    2	0.500000	1.500000	0.000000
+    3	1.000000	1.500000	0.000000
+    4	0.000000	1.000000	0.000000
+    5	0.500000	1.000000	0.000000
+    6	1.000000	1.000000	0.000000
+    7	0.000000	0.000000	0.000000
+    8	0.500000	0.000000	0.000000
+    9	1.000000	0.000000	0.000000
+End Nodes
+
+
+Begin Elements ShellThinElement3D3N// GUI group identifier: AREAS
+         1          0        1      2       4
+         2          0        2      5       4
+         3          0        2      6       5
+         4          0        2      3       6
+         5          0        4      8       7
+         6          0        4      5       8
+         7          0        5      6       8
+         8          0        6      9       8
+End Elements
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: AREAS
+    1   0  5
+End Conditions
+
+Begin SubModelPart Parts_AREAS // Group AREAS // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+    End SubModelPartElements
+    Begin SubModelPartConditions
+        1
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_DIR_BC // Group DIR_BC // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        1
+        2
+        3
+        4
+        6
+        7
+        8
+        9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart PointLoad3D_NODES // Group AREAS // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+         5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         1
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart  test_model_part
+    Begin SubModelPartNodes
+         2
+         5
+         9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

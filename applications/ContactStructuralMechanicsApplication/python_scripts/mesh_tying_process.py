@@ -1,189 +1,269 @@
- 
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# Importing the Kratos Library 
-import KratosMultiphysics 
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
+# Importing the Kratos Library
+import KratosMultiphysics as KM
 
-KratosMultiphysics.CheckForPreviousImport()
+# Check that applications were imported in the main script
+KM.CheckRegisteredApplications("StructuralMechanicsApplication")
+KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
+
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
+import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(type(settings) != KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return MeshTyingProcess(Model, settings["Parameters"])
 
-import python_process
-##all the processes python processes should be derived from "python_process"
-class MeshTyingProcess(python_process.PythonProcess):
-  
-    def __init__(self,model_part,params):
-        
-        ## Settings string in json format
-        default_parameters = KratosMultiphysics.Parameters("""
+import search_base_process
+
+class MeshTyingProcess(search_base_process.SearchBaseProcess):
+    """This class is used in order to compute the a mortar mesh tying formulation
+
+    This class constructs the model parts containing the mesh tying conditions and
+    initializes parameters and variables related with the mesh tying. The class creates
+    search utilities to be used to create the tying pairs
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    Model -- the model used to construct the process.
+    settings -- Kratos parameters containing solver settings.
+    """
+
+    def __init__(self, Model, settings):
+        """ The default constructor of the class
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the model part used to construct the process.
+        settings -- Kratos parameters containing solver settings.
+        """
+
+        # NOTE: Due to recursive check "search_model_part" and "assume_master_slave" requires to pre-define configurations, if more that 10 pairs of contact are required, just add. I assume nobody needs that much
+        # Settings string in json format
+        default_parameters = KM.Parameters("""
         {
+            "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
-            "mesh_tying_model_part"       : "Tying_Part",
-            "assume_master_slave"         : "",
-            "type_variable"               : "Components",
-            "geometry_element"            : "Quadrilateral",
-            "search_factor"               : 1.5,
-            "active_check_factor"         : 0.01,
-            "max_number_results"          : 1000,
-            "bucket_size"                 : 4,
-            "type_search"                 : "InRadius",
-            "check_gap"                   : "CheckMapping",
+            "mesh_tying_model_part"       : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "mesh_tying_property_ids"     : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "interval"                    : [0.0,"End"],
+            "variable_name"               : "DISPLACEMENT",
+            "search_parameters" : {
+                "type_search"                 : "in_radius",
+                "search_factor"               : 3.5,
+                "active_check_factor"         : 0.01,
+                "max_number_results"          : 1000,
+                "bucket_size"                 : 4,
+                "dynamic_search"              : false,
+                "database_step_update"        : 999999999,
+                "debug_mode"                  : false,
+                "check_gap"                   : "check_mapping"
+            },
             "integration_order"           : 2
         }
         """)
 
-        ## Overwrite the default settings with user-provided parameters
-        self.params = params
-        self.params.ValidateAndAssignDefaults(default_parameters)
-   
-        self.main_model_part = model_part[self.params["model_part_name"].GetString()]
-        self.computing_model_part_name = self.params["computing_model_part_name"].GetString()
+        # Overwrite the default settings with user-provided parameters
+        self.mesh_tying_settings = settings
+        self.mesh_tying_settings.ValidateAndAssignDefaults(default_parameters)
 
-        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # We transfer the parameters to the base class
+        base_process_settings = KM.Parameters("""{}""")
+        base_process_settings.AddValue("mesh_id", self.mesh_tying_settings["mesh_id"])
+        base_process_settings.AddValue("model_part_name", self.mesh_tying_settings["model_part_name"])
+        base_process_settings.AddValue("computing_model_part_name", self.mesh_tying_settings["computing_model_part_name"])
+        base_process_settings.AddValue("search_model_part", self.mesh_tying_settings["mesh_tying_model_part"])
+        base_process_settings.AddValue("assume_master_slave", self.mesh_tying_settings["assume_master_slave"])
+        base_process_settings.AddValue("search_property_ids", self.mesh_tying_settings["mesh_tying_property_ids"])
+        base_process_settings.AddValue("interval", self.mesh_tying_settings["interval"])
+        base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
+        base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
 
-        self.mesh_tying_model_part = model_part[self.params["mesh_tying_model_part"].GetString()]
-        
-        if (self.params["assume_master_slave"].GetString() != ""):
-            for node in self.main_model_part.Nodes:
-                node.Set(KratosMultiphysics.SLAVE, False)
-                node.Set(KratosMultiphysics.MASTER, True)
-            del(node)
-            for node in model_part[self.params["assume_master_slave"].GetString()].Nodes:
-                node.Set(KratosMultiphysics.SLAVE, True)
-                node.Set(KratosMultiphysics.MASTER, False)
-            del(node)
+        # Construct the base process.
+        super(MeshTyingProcess, self).__init__(Model, base_process_settings)
 
-        self.type_variable     = self.params["type_variable"].GetString() 
-        self.geometry_element  = self.params["geometry_element"].GetString() 
-        
+        # Mesh tying configurations
+        # Determine if the variable is components or scalar
+        self.variable_name = self.mesh_tying_settings["variable_name"].GetString()
+        if (KM.KratosGlobals.HasVariable(self.variable_name)):
+            var_type = KM.KratosGlobals.GetVariableType(self.variable_name)
+            if (var_type == "Array"):
+                self.type_variable = "Components"
+            elif (var_type == "Double"):
+                self.type_variable = "Scalar"
+            else:
+                raise Exception("Variable " + self.variable_name + " not compatible")
+        else:
+            raise Exception("Variable " + self.variable_name + " not registered")
+
     def ExecuteInitialize(self):
-        # The computing model part
-        computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-        
-        # We compute NODAL_H that can be used in the search and some values computation
-        self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(computing_model_part)
-        self.find_nodal_h.Execute()
-        
-        # Appending the conditions created to the self.main_model_part
-        if (computing_model_part.HasSubModelPart("Contact")):
-            interface_model_part = computing_model_part.GetSubModelPart("Contact")
-        else:
-            interface_model_part = computing_model_part.CreateSubModelPart("Contact")
-            
-        # Setting the integration order and active check factor
-        for prop in computing_model_part.GetProperties():
-            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.params["integration_order"].GetInt() 
-        
-        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = self.params["active_check_factor"].GetDouble()
-            
-        for node in self.mesh_tying_model_part.Nodes:
-            node.Set(KratosMultiphysics.INTERFACE, True)
-        del(node)
-        
-        self.Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
-        
-        #print("MODEL PART BEFORE CREATING INTERFACE")
-        #print(self.main_model_part) 
-        
-        # It should create the conditions automatically
-        interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
-        if (self.dimension == 2):
-            self.Preprocess.GenerateInterfacePart2D(computing_model_part, self.mesh_tying_model_part, interface_parameters) 
-        else:
-            self.Preprocess.GenerateInterfacePart3D(computing_model_part, self.mesh_tying_model_part, interface_parameters) 
+        """ This method is executed at the begining to initialize the process
 
-        # When all conditions are simultaneously master and slave
-        if (self.params["assume_master_slave"].GetString() == ""):
-            for cond in self.mesh_tying_model_part.Conditions:
-                cond.Set(KratosMultiphysics.SLAVE, True)
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
 
-        #print("MODEL PART AFTER CREATING INTERFACE")
-        #print(self.main_model_part)
-        
-        # We copy the conditions to the ContactSubModelPart
-        for cond in self.mesh_tying_model_part.Conditions:
-            interface_model_part.AddCondition(cond)    
-        del(cond)
-        for node in self.mesh_tying_model_part.Nodes:
-            interface_model_part.AddNode(node, 0)    
-        del(node)
-        
-        # Creating the search
-        condition_name = "MeshTyingMortar"
-        search_parameters = KratosMultiphysics.Parameters("""{"condition_name": "", "final_string": ""}""")
-        search_parameters.AddValue("type_search",self.params["type_search"])
-        search_parameters.AddValue("check_gap",self.params["check_gap"])
-        search_parameters.AddValue("allocation_size",self.params["max_number_results"])
-        search_parameters.AddValue("bucket_size",self.params["bucket_size"])
-        search_parameters.AddValue("search_factor",self.params["search_factor"])
-        search_parameters["condition_name"].SetString(condition_name)
-        search_parameters["final_string"].SetString(self.geometry_element + self.type_variable)
-        for cond in computing_model_part.Conditions:
-            number_nodes = len(cond.GetNodes())
-            break
-        del(cond)
-        if (self.dimension == 2):
-            self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch2D2N(computing_model_part, search_parameters)
-        else:
-            if (number_nodes == 3):
-                self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D3N(computing_model_part, search_parameters)
-            else:
-                self.contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D4N(computing_model_part, search_parameters)
-        
-        ZeroVector = KratosMultiphysics.Vector(3) 
-        ZeroVector[0] = 0.0
-        ZeroVector[1] = 0.0
-        ZeroVector[2] = 0.0
-        
-        # Initilialize weighted variables and LM # TODO: Move this an independent process
-        for node in self.mesh_tying_model_part.Nodes:
-            if (self.type_variable == "Scalar"):
-                node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_SCALAR_RESIDUAL, 0.0)
-            else:
-                node.SetSolutionStepValue(ContactStructuralMechanicsApplication.WEIGHTED_VECTOR_RESIDUAL, ZeroVector)
-            node.SetSolutionStepValue(KratosMultiphysics.NORMAL, ZeroVector)
-        del node
-        
-        # Setting the conditions 
-        for cond in self.mesh_tying_model_part.Conditions:
-            cond.SetValue(KratosMultiphysics.NORMAL, ZeroVector) 
-        del cond
-        
-        self.contact_search.CreatePointListMortar()
-        self.contact_search.InitializeMortarConditions()
-        
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteInitialize()
+
     def ExecuteBeforeSolutionLoop(self):
-        if (self.type_variable == "Scalar"):
-            self.contact_search.ClearScalarMortarConditions()
-        else:
-            self.contact_search.ClearComponentsMortarConditions()
-            
-        self.contact_search.UpdateMortarConditions()
-        #self.contact_search.CheckMortarConditions()
-        
-        # We initialize the conditions (just in case, technically already done)
-        for cond in self.mesh_tying_model_part.Conditions:
-            cond.Initialize()
-        del cond
-    
+        """ This method is executed before starting the time loop
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteBeforeSolutionLoop()
+
     def ExecuteInitializeSolutionStep(self):
-        #self.contact_search.CheckMortarConditions()
-        pass
-        
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteInitializeSolutionStep()
+
     def ExecuteFinalizeSolutionStep(self):
-        pass
+        """ This method is executed in order to finalize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
-        pass
+        """ This method is executed right before the ouput process computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
-        pass
-            
+        """ This method is executed right after the ouput process computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteAfterOutputStep()
+
     def ExecuteFinalize(self):
-        pass
+        """ This method is executed in order to finalize the current computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteFinalize()
+
+    def _get_condition_name(self):
+        """ This method returns the condition name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        # We define the condition name to be used
+        return "MeshTyingMortar"
+
+    def _get_final_string(self, key = "0"):
+        """ This method returns the final string of the condition name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        key -- The key to identify the current pair
+        """
+        # Determine the geometry of the element
+        super(MeshTyingProcess, self)._get_final_string(key)
+        number_nodes, number_nodes_master = self._compute_number_nodes_elements()
+        geometry_element = self.__type_element(number_nodes)
+        geometry_element_master = self.__type_element(number_nodes_master)
+        # We compute the number of nodes of the conditions
+        number_nodes, number_nodes_master = super(MeshTyingProcess, self)._compute_number_nodes()
+        if (number_nodes != number_nodes_master):
+            return geometry_element + str(number_nodes_master) + "N" + geometry_element_master
+        else:
+            return geometry_element
+
+    def _initialize_search_conditions(self):
+        """ This method initializes some conditions values
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        # We call to the base process
+        super(MeshTyingProcess, self)._initialize_search_conditions()
+
+        # Setting tying variable
+        for prop in self._get_process_model_part().GetProperties():
+            prop[CSMA.TYING_VARIABLE] = self.variable_name
+
+        # Initializing some values
+        zero_vector = KM.Vector(3)
+        zero_vector[0] = 0.0
+        zero_vector[1] = 0.0
+        zero_vector[2] = 0.0
+
+        # Initilialize weighted variables and LM
+        if (self.type_variable == "Scalar"):
+            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL, 0.0, self._get_process_model_part().Nodes)
+        else:
+            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL, zero_vector, self._get_process_model_part().Nodes)
+
+        # Setting the conditions
+        KM.VariableUtils().SetNonHistoricalVariable(KM.NORMAL, zero_vector, self._get_process_model_part().Conditions)
+
+    def _compute_number_nodes_elements(self):
+        """ This method computes the  number of nodes per element
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We compute the number of nodes of the geometry
+        if (self.predefined_master_slave is True and self.dimension == 3):
+            slave_defined = False
+            master_defined = False
+            for elem in self.computing_model_part.Elements:
+                nodes = elem.GetNodes()
+                for node in nodes:
+                    if (node.Is(KM.SLAVE)):
+                        number_nodes = len(elem.GetNodes())
+                        slave_defined = True
+                    if (node.Is(KM.MASTER)):
+                        number_nodes_master = len(elem.GetNodes())
+                        master_defined = True
+                if (slave_defined and master_defined):
+                    break
+        else:
+            number_nodes = len(self.computing_model_part.Elements[1].GetNodes())
+            number_nodes_master = number_nodes
+
+        return number_nodes, number_nodes_master
+
+    def __type_element(self, number_nodes):
+        """ This method computes the type of element considered
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        number_nodes -- The number of nodes of the element
+        """
+
+        if (self.dimension == 2):
+            if (number_nodes == 3):
+                return "Triangle"
+            elif (number_nodes == 4):
+                return "Quadrilateral"
+        else:
+            if (number_nodes == 4):
+                return "Tetrahedron"
+            elif (number_nodes == 8):
+                return "Hexahedron"

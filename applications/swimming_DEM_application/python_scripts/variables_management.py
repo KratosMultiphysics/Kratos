@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
+#from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
@@ -132,13 +132,12 @@ def ConstructListsOfVariables(pp):
 
     if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt():
         pp.fluid_vars += [MATERIAL_ACCELERATION]
+        pp.fluid_vars += [VELOCITY_COMPONENT_GRADIENT]
 
         if pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 5 or pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 6:
             if pp.CFD_DEM["store_full_gradient_option"].GetBool():
                 pp.fluid_vars += [VELOCITY_X_GRADIENT]
                 pp.fluid_vars += [VELOCITY_Y_GRADIENT]
-                pp.fluid_vars += [VELOCITY_Z_GRADIENT]
-            else:
                 pp.fluid_vars += [VELOCITY_Z_GRADIENT]
 
     if pp.CFD_DEM["vorticity_calculation_type"].GetInt() == 1 or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
@@ -188,12 +187,14 @@ def ConstructListsOfVariables(pp):
     pp.clusters_vars = []
 
     # rigid faces variables
-    pp.rigid_faces_vars = [VELOCITY, DISPLACEMENT, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA]
+    pp.rigid_faces_vars = [VELOCITY, ANGULAR_VELOCITY, DISPLACEMENT, DELTA_DISPLACEMENT, DELTA_ROTATION, CONTACT_FORCES, DEM_PRESSURE, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA]
 
     if pp.CFD_DEM["embedded_option"].GetBool():
         pp.rigid_faces_vars += [FORCE]
         pp.rigid_faces_vars += [POSITIVE_FACE_PRESSURE]
         pp.rigid_faces_vars += [NEGATIVE_FACE_PRESSURE]
+
+    pp.fluid_vars += pp.rigid_faces_vars
 
     # inlet variables
     pp.inlet_vars = pp.dem_vars
@@ -340,13 +341,14 @@ def ConstructListsOfVariablesForCoupling(pp):
     pp.coupling_fluid_vars = []
     pp.coupling_fluid_vars += [MATERIAL_ACCELERATION]
 
-    pp.coupling_fluid_vars += [BODY_FORCE]
+    pp.coupling_fluid_vars += [KratosGlobals.GetVariable( pp.CFD_DEM["body_force_per_unit_mass_variable_name"].GetString() )]
 
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 0:
         pp.coupling_fluid_vars += [AVERAGED_FLUID_VELOCITY]
 
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 0 or pp.CFD_DEM["coupling_level_type"].GetInt() > 1 or pp.CFD_DEM["drag_force_type"].GetInt() == 4:
         pp.coupling_fluid_vars += [FLUID_FRACTION]
+        pp.coupling_fluid_vars += [FLUID_FRACTION_OLD]
 
         if pp.CFD_DEM["print_DISPERSE_FRACTION_option"].GetBool():
             pp.coupling_fluid_vars += [DISPERSE_FRACTION]
@@ -356,7 +358,7 @@ def ConstructListsOfVariablesForCoupling(pp):
             pp.coupling_fluid_vars += [TIME_AVERAGED_ARRAY_3]
             pp.coupling_fluid_vars += [PHASE_FRACTION]
 
-    if pp.CFD_DEM["fluid_model_type"].GetInt() > 1:
+    if pp.CFD_DEM["fluid_model_type"].GetInt() >= 1:
         pp.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
         pp.coupling_fluid_vars += [FLUID_FRACTION_RATE]
 
@@ -376,6 +378,9 @@ def ConstructListsOfVariablesForCoupling(pp):
 
     if pp.viscosity_modification_type:
         pp.coupling_fluid_vars += [VISCOSITY]
+
+    if pp.CFD_DEM["embedded_option"].GetBool():
+        pp.coupling_fluid_vars += [DISTANCE]
 
     # dem coupling variables
     pp.coupling_dem_vars = []
@@ -406,6 +411,11 @@ def ConstructListsOfVariablesForCoupling(pp):
 
     if pp.CFD_DEM["coupling_level_type"].GetInt() >= 1 and pp.CFD_DEM["print_FLUID_FRACTION_GRADIENT_PROJECTED_option"].GetBool():
         pp.coupling_dem_vars += [FLUID_FRACTION_GRADIENT_PROJECTED]
+
+    if pp.CFD_DEM["drag_force_type"].GetInt() in {2} or pp.CFD_DEM["lift_force_type"].GetInt() == 1:
+        pp.coupling_dem_vars += [POWER_LAW_N]
+        pp.coupling_dem_vars += [POWER_LAW_K]
+        pp.coupling_dem_vars += [YIELD_STRESS]
 
     if pp.CFD_DEM["lift_force_type"].GetInt() == 1:
         pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
@@ -486,6 +496,10 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM["print_CONDUCTIVITY_option"].GetBool():
         pp.nodal_results += ["CONDUCTIVITY"]
 
+    if pp.CFD_DEM["print_VECTORIAL_ERROR_option"].GetBool():
+        pp.nodal_results += ["VECTORIAL_ERROR"]
+        pp.nodal_results += ["VECTORIAL_ERROR_1"]
+
 def ChangeInputDataForConsistency(pp):
     if pp.CFD_DEM["coupling_level_type"].GetInt() == 0:
         pp.CFD_DEM["project_at_every_substep_option"].SetBool(False)
@@ -499,7 +513,7 @@ def ChangeInputDataForConsistency(pp):
     if pp.CFD_DEM["flow_in_porous_medium_option"].GetBool():
         pp.coupling_weighing_type = - 1 # the fluid fraction is not projected from DEM (there may not be a DEM part) but is externally imposed
 
-    pp.CFD_DEM.time_steps_per_stationarity_step = max( 1, int(pp.CFD_DEM["time_steps_per_stationarity_step"].GetInt()) ) # it should never be smaller than 1!
+    pp.CFD_DEM["time_steps_per_stationarity_step"].SetInt(max(1, int(pp.CFD_DEM["time_steps_per_stationarity_step"].GetInt())))
 
     if pp.CFD_DEM["coupling_level_type"].GetInt() > 1:
         pp.CFD_DEM["stationary_problem_option"].SetBool(False)

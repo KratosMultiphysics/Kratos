@@ -8,9 +8,11 @@
 #include "../../../DEM_application/custom_elements/nanoparticle.h"
 
 namespace Kratos {
-    class Bentonite_Force_Based_Inlet: public DEM_Force_Based_Inlet
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) Bentonite_Force_Based_Inlet: public DEM_Force_Based_Inlet
     {
     public:
+
+        KRATOS_CLASS_POINTER_DEFINITION(Bentonite_Force_Based_Inlet);
 
         typedef NanoParticle* NanoParticlePointerType;
         typedef DEM_Force_Based_Inlet BaseClass;

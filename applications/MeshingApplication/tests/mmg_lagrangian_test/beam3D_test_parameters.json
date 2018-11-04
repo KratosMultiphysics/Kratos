@@ -36,7 +36,8 @@
             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"]
+        "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","SelfWeight3D_Self_weight_Auto1"],
+        "auxiliary_variables_list" : ["NODAL_H", "NODAL_AREA"]
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
@@ -138,11 +139,10 @@
         "help"                  : "This process compares two files and executes an Unittest Assert",
         "process_name"          : "CompareTwoFilesCheckProcess",
         "Parameters"            : {
-            "file_name_1"            : "mmg_lagrangian_test/beam3D_test_step=3.sol",
-            "file_name_2"            : "mmg_lagrangian_test/beam3D_test_result.sol",
-            "deterministic"          : false,
-            "error_assumed"          : 5.0e-2,
-            "non_deterministic_comp" : "sol_file"
+            "reference_file_name"   : "mmg_lagrangian_test/beam3D_test_result.sol",
+            "output_file_name"      : "mmg_lagrangian_test/beam3D_test_step=3.sol",
+            "decimal_places"        : 3,
+            "comparison_type"       : "sol_file"
         }
     }
     ]

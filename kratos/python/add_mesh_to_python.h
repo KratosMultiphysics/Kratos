@@ -18,6 +18,7 @@
 
 
 // System includes
+#include <pybind11/pybind11.h>
 
 
 // External includes
@@ -32,9 +33,9 @@ namespace Kratos
 namespace Python
 {
 
-void  AddNodeToPython();
-void  AddPropertiesToPython();
-void  AddMeshToPython();
+void  AddNodeToPython(pybind11::module& m);
+void  AddPropertiesToPython(pybind11::module& m);
+void  AddMeshToPython(pybind11::module& m);
 
 }  // namespace Python.
 

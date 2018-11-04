@@ -459,8 +459,8 @@ namespace Kratos
          if ( rOutput.size() != mConstitutiveLawVector.size() )
             rOutput.resize( mConstitutiveLawVector.size() );
 
-         ElementVariables Variables;
-         this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+         ElementDataType Variables;
+         this->InitializeElementData(Variables,rCurrentProcessInfo);
          const unsigned int PointNumber = 0;
          this->CalculateKinematics( Variables, PointNumber );
 
@@ -565,9 +565,9 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUWElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+      UpdatedLagrangianElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -636,7 +636,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUWElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -660,7 +660,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Material stiffness matrix
-   void UpdatedLagrangianUWElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementDataType& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -690,7 +690,7 @@ namespace Kratos
 
    //************************************************************************************
    //      Water material Matrix
-   void UpdatedLagrangianUWElement::CalculateAndAddKww( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWElement::CalculateAndAddKww( MatrixType & rLeftHandSide, ElementDataType& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -761,7 +761,7 @@ namespace Kratos
 
    // ***********************************************************************************
    // ***********************************************************************************
-   void UpdatedLagrangianUWElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUWElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -794,7 +794,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void UpdatedLagrangianUWElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+   void UpdatedLagrangianUWElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementDataType & rVariables, 
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -837,7 +837,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void UpdatedLagrangianUWElement::CalculateAndAddExternalWaterForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+   void UpdatedLagrangianUWElement::CalculateAndAddExternalWaterForces( VectorType & rRightHandSideVector, ElementDataType & rVariables, 
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -875,7 +875,7 @@ namespace Kratos
    // **********************************************************************************
    //         CalculateAndAddInternalForces
    void UpdatedLagrangianUWElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight
          )
    {
@@ -907,7 +907,7 @@ namespace Kratos
 
    // **********************************************************************************
    //         CalculateAndAddWater-like-InternalForces
-   void UpdatedLagrangianUWElement::CalculateAndAddWaterPressureForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWElement::CalculateAndAddWaterPressureForces( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -941,7 +941,7 @@ namespace Kratos
 
    // *********************************************************************************
    //        Calculate the Water Pressure at integration point
-   double & UpdatedLagrangianUWElement::CalculateGaussPointWaterPressure( ElementVariables & rVariables, double & rWaterPressure)
+   double & UpdatedLagrangianUWElement::CalculateGaussPointWaterPressure( ElementDataType & rVariables, double & rWaterPressure)
    {
       KRATOS_TRY
 
@@ -996,8 +996,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -1063,8 +1063,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
 
 

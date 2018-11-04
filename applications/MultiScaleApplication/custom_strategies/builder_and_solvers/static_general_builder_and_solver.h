@@ -190,7 +190,7 @@ public:
             //contributions to the system
             LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
             LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-			
+
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
@@ -469,7 +469,7 @@ public:
 
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-		
+
          //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
@@ -515,7 +515,7 @@ public:
 	    if (BaseType::mCalculateReactionsFlag)
 			total_size += (*BaseType::mpReactionsVector).size();
 	    std::vector< omp_lock_t > lock_array(total_size);
-	
+
         //int b_size = b.size();
         for (int i = 0; i < total_size; i++)
             omp_init_lock(&lock_array[i]);
@@ -532,7 +532,7 @@ public:
             KRATOS_WATCH( number_of_threads )
             KRATOS_WATCH( element_partition )
         }
-		
+
         double start_prod = omp_get_wtime();
 
         #pragma omp parallel for
@@ -609,10 +609,10 @@ public:
         }
 
 #endif
-		
+
 		mTotalBuildTime += Timer::GetTime() - time_begin;
     }
-    
+
     void SetUpDofSet(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part)
     {
         KRATOS_TRY;
@@ -681,9 +681,7 @@ public:
     void ResizeAndInitializeVectors( typename TSchemeType::Pointer pScheme,TSystemMatrixPointerType& pA,
                                     TSystemVectorPointerType& pDx,
                                     TSystemVectorPointerType& pb,
-                                    ElementsArrayType& rElements,
-                                    ConditionsArrayType& rConditions,
-                                    ProcessInfo& CurrentProcessInfo)
+                                    ModelPart& rModelPart)
     {
         KRATOS_TRY
         if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -715,7 +713,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, A, rModelPart.Elements(), rModelPart.Conditions(), rModelPart.GetProcessInfo());
         }
         else
         {
@@ -723,7 +721,7 @@ public:
             {
                 KRATOS_WATCH( "it should not come here!!!!!!!! ... this is SLOW" )
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(pScheme, A, rElements, rConditions, CurrentProcessInfo);
+                ConstructMatrixStructure(pScheme, A, rModelPart.Elements(), rModelPart.Conditions(), rModelPart.GetProcessInfo());
             }
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
@@ -799,17 +797,15 @@ public:
 protected:
 
     virtual void ConstructMatrixStructure( typename TSchemeType::Pointer pScheme,TSystemMatrixType& A,
-                                          ElementsContainerType& rElements,
-                                          ConditionsArrayType& rConditions,
-                                          ProcessInfo& CurrentProcessInfo)
+                                          ModelPart& rModelPart)
     {
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
 
         Element::EquationIdVectorType ids(3, 0);
-        for (typename ElementsContainerType::iterator i_element = rElements.begin(); i_element != rElements.end(); i_element++)
+        for (typename ElementsContainerType::iterator i_element = rModelPart.ElementsBegin(); i_element != rModelPart.ElementsEnd(); i_element++)
         {
-            
+
             pScheme->EquationId( *(i_element.base()) , ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
                 if (ids[i] < equation_size)
@@ -824,9 +820,9 @@ protected:
 
         }
 
-        for (typename ConditionsArrayType::iterator i_condition = rConditions.begin(); i_condition != rConditions.end(); i_condition++)
+        for (typename ConditionsArrayType::iterator i_condition = rModelPart.ConditionsBegin(); i_condition != rModelPart.ConditionsEnd(); i_condition++)
         {
-            
+
             pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
             for (std::size_t i = 0; i < ids.size(); i++)
                 if (ids[i] < equation_size)
@@ -1087,7 +1083,7 @@ private:
             }
         }
     }
-	
+
 	void AssembleRHS(TSystemVectorType& b,
                      const LocalSystemVectorType& RHS_Contribution,
                      Element::EquationIdVectorType& EquationId,
@@ -1125,7 +1121,7 @@ private:
 				}
                 else   //on "fixed" DOFs
 				{
-					// bug fixed: lock_array now has dimension(=num_free + num_fixed) if 
+					// bug fixed: lock_array now has dimension(=num_free + num_fixed) if
 					// calculate reaction is needed
 					omp_set_lock(&lock_array[i_global/* - BaseType::mEquationSystemSize*/]);
                     ReactionsVector[i_global - BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];

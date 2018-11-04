@@ -51,13 +51,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    ScalarDamageInterface3DLaw::ScalarDamageInterface3DLaw() 
+    ScalarDamageInterface3DLaw::ScalarDamageInterface3DLaw()
         : ConstitutiveLaw()
 		, mInitialized(false)
 		, m_initial_strain()
     {
     }
- 
+
     ConstitutiveLaw::Pointer ScalarDamageInterface3DLaw::Clone() const
     {
         return ConstitutiveLaw::Pointer( new ScalarDamageInterface3DLaw() );
@@ -83,7 +83,7 @@ namespace Kratos
 			return true;
         return false;
     }
-    
+
     bool ScalarDamageInterface3DLaw::Has(const Variable<Vector>& rThisVariable)
     {
 		if(rThisVariable == YIELD_SURFACE_DATA_3D_X || rThisVariable == YIELD_SURFACE_DATA_3D_Y || rThisVariable == YIELD_SURFACE_DATA_3D_Z)
@@ -102,7 +102,7 @@ namespace Kratos
     {
         return false;
     }
-    
+
     bool ScalarDamageInterface3DLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
     {
         return false;
@@ -224,7 +224,7 @@ namespace Kratos
     {
         return ConstitutiveLaw::StrainMeasure_Infinitesimal;
     }
-    
+
     ScalarDamageInterface3DLaw::StressMeasure ScalarDamageInterface3DLaw::GetStressMeasure()
     {
         return ConstitutiveLaw::StressMeasure_Cauchy;
@@ -324,7 +324,7 @@ namespace Kratos
 		bool compute_stress = Options.Is(COMPUTE_STRESS) || compute_constitutive_tensor;
 
 		SizeType size = GetStrainSize();
-		if(compute_stress) 
+		if(compute_stress)
 			if(stressVector.size() != size)
 				stressVector.resize(size, false);
 		if(compute_constitutive_tensor)
@@ -332,9 +332,9 @@ namespace Kratos
 				constitutiveMatrix.resize(size, size, false);
 
 		CalculationData data;
-		
+
 		InitializeCalculationData( props, rValues.GetElementGeometry(), strainVector, data );
-		
+
 		CalculateElasticStressVector( data, strainVector );
 
 		stressVector = data.ElasticStressVector;
@@ -357,7 +357,7 @@ namespace Kratos
 		mD1 = data.D1;
 		mD2 = data.D2;
 		mD3 = data.D3;
-		
+
 		if( compute_stress )
 		{
 			CalculateStress( data, stressVector );
@@ -369,7 +369,7 @@ namespace Kratos
 		double C0_d = (1.0 - mD2)*data.C0;
 		mYieldValue = sig_n*data.Fs + normtau - C0_d;
 		//**********************************************
-		
+
 		if( compute_constitutive_tensor )
 		{
 			CalculateConstitutiveMatrix( data, strainVector, stressVector, constitutiveMatrix );
@@ -393,7 +393,7 @@ namespace Kratos
 
     void ScalarDamageInterface3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     {
-        
+
     }
 
     void ScalarDamageInterface3DLaw::ResetMaterial(const Properties& rMaterialProperties,
@@ -449,7 +449,7 @@ namespace Kratos
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_II) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_II", "");
-		
+
 		if( !rMaterialProperties.Has(INITIAL_COHESION) )
 			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INITIAL_COHESION", "");
 
@@ -461,8 +461,8 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-	void ScalarDamageInterface3DLaw::InitializeCalculationData(const Properties& props, 
-		                                                       const GeometryType& geom, 
+	void ScalarDamageInterface3DLaw::InitializeCalculationData(const Properties& props,
+		                                                       const GeometryType& geom,
 															   const Vector& strainVector,
 															   CalculationData& data)
 	{
@@ -610,16 +610,16 @@ namespace Kratos
 		mD2_bar = mD2_bar_converged;
 		mD3_bar = mD3_bar_converged;
 
-		if(data.K1 > mK1) 
+		if(data.K1 > mK1)
 		{
 			mK1 = data.K1;
 		}
-		if(data.K2 > mK2) 
+		if(data.K2 > mK2)
 		{
 			mK2 = data.K2;
 			update_equ_shear_damage = true;
 		}
-		if(data.K3 > mK3) 
+		if(data.K3 > mK3)
 		{
 			mK3 = data.K3;
 			update_equ_shear_damage = true;
@@ -675,7 +675,7 @@ namespace Kratos
 		}
 	}
 
-	void ScalarDamageInterface3DLaw::CalculateStress(CalculationData& data, 
+	void ScalarDamageInterface3DLaw::CalculateStress(CalculationData& data,
 		                                             Vector& stressVector)
 	{
 		double sigma_n = data.ElasticStressVector(2);
@@ -691,9 +691,9 @@ namespace Kratos
 		stressVector(1) = (1.0 - mD3_bar) * sigma_t2;
 	}
 
-	void ScalarDamageInterface3DLaw::CalculateConstitutiveMatrix(CalculationData& data, 
+	void ScalarDamageInterface3DLaw::CalculateConstitutiveMatrix(CalculationData& data,
 		                                                         const Vector& strainVector,
-		                                                         const Vector& stressVector, 
+		                                                         const Vector& stressVector,
 																 Matrix& constitutiveMatrix)
 	{
 		// elastic case
@@ -711,9 +711,9 @@ namespace Kratos
 		for(int j = 0; j < 3; j++)
 		{
 			// save internal variables
-			double save_k1 = mK1; 
+			double save_k1 = mK1;
 			double save_k2 = mK2;
-			double save_k3 = mK3; 
+			double save_k3 = mK3;
 			double save_d2_bar = mD2_bar;
 			double save_d3_bar = mD3_bar;
 
@@ -736,7 +736,7 @@ namespace Kratos
 			constitutiveMatrix(2, j) = stressPerturbation(2) / perturbation;
 
 			// restore internal variables
-			mK1 = save_k1; 
+			mK1 = save_k1;
 			mK2 = save_k2;
 			mK3 = save_k3;
 			mD2_bar = save_d2_bar;

@@ -18,7 +18,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
   def Initialize(self):
       super(MaterialTest,self).Initialize()
-      
+
   def Flush(self,a):
       pass
 
@@ -61,11 +61,11 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
         (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
 
-        xtop_area_gath        = mpi.allgather(mpi.world, xtop_area)
-        xbot_area_gath        = mpi.allgather(mpi.world, xbot_area)
-        xlat_area_gath        = mpi.allgather(mpi.world, xlat_area)
-        xtopcorner_area_gath  = mpi.allgather(mpi.world, xtopcorner_area)
-        xbotcorner_area_gath  = mpi.allgather(mpi.world, xbotcorner_area)
+        xtop_area_gath        = mpi.allgather_double(mpi.world, xtop_area)
+        xbot_area_gath        = mpi.allgather_double(mpi.world, xbot_area)
+        xlat_area_gath        = mpi.allgather_double(mpi.world, xlat_area)
+        xtopcorner_area_gath  = mpi.allgather_double(mpi.world, xtopcorner_area)
+        xbotcorner_area_gath  = mpi.allgather_double(mpi.world, xbotcorner_area)
 
         xtop_area = reduce(lambda x, y: x + y, xtop_area_gath)
         xbot_area = reduce(lambda x, y: x + y, xbot_area_gath)
@@ -73,10 +73,10 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
         xtopcorner_area = reduce(lambda x, y: x + y, xtopcorner_area_gath)
         xbotcorner_area = reduce(lambda x, y: x + y, xbotcorner_area_gath)
 
-        weight_top_gath = mpi.allgather(mpi.world, weight_top)
-        weight_bot_gath = mpi.allgather(mpi.world, weight_bot)
-        y_top_total_gath = mpi.allgather(mpi.world, y_top_total)
-        y_bot_total_gath = mpi.allgather(mpi.world, y_bot_total)
+        weight_top_gath = mpi.allgather_double(mpi.world, weight_top)
+        weight_bot_gath = mpi.allgather_double(mpi.world, weight_bot)
+        y_top_total_gath = mpi.allgather_double(mpi.world, y_top_total)
+        y_bot_total_gath = mpi.allgather_double(mpi.world, y_bot_total)
 
         weight_top = reduce(lambda x, y: x + y, weight_top_gath)
         weight_bot = reduce(lambda x, y: x + y, weight_bot_gath)
@@ -99,27 +99,27 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
     prepare_check_gath = [0,0,0,0]
     self.total_check = 0
 
-    for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()): 
-        if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, TOP)):
-            self.top_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
+    for smp in self.RigidFace_model_part.SubModelParts:
+        if smp[TOP]:
+            self.top_mesh_nodes = smp.Nodes
             prepare_check[0] = 1
-        if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, BOTTOM)):
-            self.bot_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
+        if smp[BOTTOM]:
+            self.bot_mesh_nodes = smp.Nodes
             prepare_check[1] = 1
 
-    for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()): 
-        if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, TOP)):
-            self.top_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
+    for smp in self.spheres_model_part.SubModelParts:
+        if smp[TOP]:
+            self.top_mesh_nodes = smp.Nodes
             prepare_check[2] = -1
-            
-        if (self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, BOTTOM)):
-            self.bot_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
+
+        if smp[BOTTOM]:
+            self.bot_mesh_nodes = smp.Nodes
             prepare_check[3] = -1
 
-    prepare_check_gath[0] = mpi.gather(mpi.world,prepare_check[0],0)
-    prepare_check_gath[1] = mpi.gather(mpi.world,prepare_check[1],0)
-    prepare_check_gath[2] = mpi.gather(mpi.world,prepare_check[2],0)
-    prepare_check_gath[3] = mpi.gather(mpi.world,prepare_check[3],0)
+    prepare_check_gath[0] = mpi.gather_int(mpi.world,prepare_check[0],0)
+    prepare_check_gath[1] = mpi.gather_int(mpi.world,prepare_check[1],0)
+    prepare_check_gath[2] = mpi.gather_int(mpi.world,prepare_check[2],0)
+    prepare_check_gath[3] = mpi.gather_int(mpi.world,prepare_check[3],0)
 
     if(mpi.rank == 0 ):
       prepare_check[0] = reduce(lambda x,y: max(x,y), prepare_check_gath[0])
@@ -152,7 +152,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
         total_force_bts += force_node_y
 
       if(mpi.rank == 0 ):
-        total_force_bts_gather = mpi.gather(mpi.world, total_force_bts, 0)
+        total_force_bts_gather = mpi.gather_double(mpi.world, total_force_bts, 0)
         total_force_bts = reduce(lambda x, y: x + y, total_force_bts_gather)
 
         self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
@@ -175,7 +175,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
         total_force_top += force_node_y
 
-      total_force_top_gath = mpi.allgather(mpi.world, total_force_top)
+      total_force_top_gath = mpi.allgather_double(mpi.world, total_force_top)
       total_force_top = reduce(lambda x, y: x + y, total_force_top_gath)
 
       self.total_stress_top = total_force_top/(self.parameters.MeasuringSurface*1000000)
@@ -186,7 +186,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
         total_force_bot += force_node_y
 
-      total_force_bot_gath = mpi.allgather(mpi.world, total_force_bot)
+      total_force_bot_gath = mpi.allgather_double(mpi.world, total_force_bot)
       total_force_bot = reduce(lambda x, y: x + y, total_force_bot_gath)
 
       self.total_stress_bot = total_force_bot/(self.parameters.MeasuringSurface*1000000)
@@ -238,8 +238,8 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
       weight += r*r
 
-    mean_radial_strain_gath = mpi.allgather(mpi.world,mean_radial_strain)
-    weight_gath = mpi.allgather(mpi.world,weight)
+    mean_radial_strain_gath = mpi.allgather_double(mpi.world,mean_radial_strain)
+    weight_gath = mpi.allgather_double(mpi.world,weight)
 
     mean_radial_strain = reduce(lambda x, y: x + y, mean_radial_strain_gath)
     weight = reduce(lambda x, y: x + y, weight_gath)

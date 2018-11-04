@@ -1,9 +1,16 @@
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:               July 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_PROPAGATE_FRACTURES_2D_UTILITIES )
 #define  KRATOS_PROPAGATE_FRACTURES_2D_UTILITIES
@@ -85,7 +92,7 @@ protected:
 
     struct PropagationLocalVariables
     {
-        boost::numeric::ublas::bounded_matrix<double,2,2> RotationMatrix;
+        BoundedMatrix<double,2,2> RotationMatrix;
         array_1d<double,2> TipCoordinates;
         array_1d<double,2> TipLocalCoordinates;
         std::vector<FracturePoint*> TopFrontFracturePoints;
@@ -1495,7 +1502,7 @@ private:
 
     void CalculateTipRotationMatrix(
         const unsigned int& itFracture,
-        boost::numeric::ublas::bounded_matrix<double,2,2>& rRotationMatrix,
+        BoundedMatrix<double,2,2>& rRotationMatrix,
         Parameters& rParameters)
     {
         array_1d<double,3> TipPointCoordinates;

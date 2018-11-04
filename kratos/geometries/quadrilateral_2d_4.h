@@ -50,11 +50,25 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Quadrilateral2D4
+ * @ingroup KratosCore
+ * @brief A four node 2D quadrilateral geometry with bi-linear shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *            v
+ *            ^
+ *            |
+ *      3-----------2 
+ *      |     |     |         
+ *      |     |     |          
+ *      |     +---- | --> u    
+ *      |           |          
+ *      |           |          
+ *      0-----------1      
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Quadrilateral2D4
     : public Geometry<TPointType>
 {
@@ -450,14 +464,14 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon() 
@@ -540,9 +554,6 @@ public:
     ///@name Shape Function
     ///@{
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -700,7 +711,7 @@ public:
     Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2 , false);
         noalias( rResult ) = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint[1] );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint[0] );
@@ -726,7 +737,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, PointType& rPoint )
     {
-        rResult.resize( 4, 2 );
+        rResult.resize( 4, 2 , false);
         rResult( 0, 0 ) = -0.25 * ( 1.0 - rPoint.Y() );
         rResult( 0, 1 ) = -0.25 * ( 1.0 - rPoint.X() );
         rResult( 1, 0 ) =  0.25 * ( 1.0 - rPoint.Y() );
@@ -754,10 +765,10 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
-        rResult[3].resize( 2, 2 );
+        rResult[0].resize( 2, 2 , false);
+        rResult[1].resize( 2, 2 , false);
+        rResult[2].resize( 2, 2 , false);
+        rResult[3].resize( 2, 2 , false);
 
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.25;
@@ -801,7 +812,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -809,7 +820,7 @@ public:
         {
             for ( unsigned int j = 0; j < 2; j++ )
             {
-                rResult[i][j].resize( 2, 2 );
+                rResult[i][j].resize( 2, 2 , false);
                 noalias( rResult[i][j] ) = ZeroMatrix( 2, 2 );
             }
         }
@@ -888,9 +899,6 @@ private:
     ///@{
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
      * @param ThisMethod the current integration method
@@ -931,9 +939,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the local gradients of all shape functions
      * in all integration points.

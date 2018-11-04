@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_GEOMETRICALLY_EXACT_ROD_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_GEOMETRICALLY_EXACT_ROD_ELEMENT_H_INCLUDED)
 #define  KRATOS_GEOMETRICALLY_EXACT_ROD_ELEMENT_H_INCLUDED
 
 // System includes
@@ -43,7 +43,7 @@ namespace Kratos
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 
-class GeometricallyExactRodElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) GeometricallyExactRodElement
     :public LargeDisplacementBeamEMCElement
 {
 public:
@@ -60,8 +60,12 @@ public:
     typedef GeometryData::IntegrationMethod           IntegrationMethod;
     ///Type definition for beam utilities
     typedef BeamMathUtils<double>                     BeamMathUtilsType;
-    ///Type definition for quaternion 
+    ///Type definition for quaternion
     typedef Quaternion<double>                           QuaternionType;
+    ///Type for size
+    typedef GeometryData::SizeType                             SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementBeamEMCElement::ElementDataType ElementDataType;
 
     /// Counted pointer of GeometricallyExactRodElement
     KRATOS_CLASS_POINTER_DEFINITION( GeometricallyExactRodElement );
@@ -79,7 +83,7 @@ public:
     GeometricallyExactRodElement(GeometricallyExactRodElement const& rOther);
 
     /// Destructor.
-    virtual ~GeometricallyExactRodElement();
+    ~GeometricallyExactRodElement() override;
 
 
     ///@}
@@ -104,7 +108,7 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize() override;
-  
+
       /**
      * Called at the beginning of each solution step
      */
@@ -121,7 +125,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-  
+
     ///@}
     ///@name Access
     ///@{
@@ -133,7 +137,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "Large Displacement Beam Element #" << Id();
@@ -141,13 +145,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "Large Displacement Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -194,7 +198,7 @@ protected:
     */
     std::vector<Matrix> mPreviousLocalDirectorsVelocities;
 
- 
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -209,7 +213,7 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-  
+
     void CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
 				   ProcessInfo& rCurrentProcessInfo ) override;
 
@@ -225,62 +229,62 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
-    /**   
+    /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
-    /**   
+    /**
      * Calculate Element Constitutive Matrix
-     */ 
-    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables) override;
+     */
+    void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
-    /**   
+    /**
      * Calculate Element Frame
      */
-    virtual void CalculateFrameMapping(ElementVariables& rVariables,
+    void CalculateFrameMapping(ElementDataType& rVariables,
 				       const unsigned int& rPointNumber) override;
 
 
     /**
      * Update rotation current member variables
-     */    
-    void UpdateRotationVariables(ElementVariables& rVariables, 
+     */
+    void UpdateRotationVariables(ElementDataType& rVariables,
 				 const unsigned int& rPointNumber);
 
-    /**   
+    /**
      * Calculate Directors to Rotations Mapping
      */
     virtual void CalculateDirectorsMappingTensor(Matrix& rMappingTensor,
-						 ElementVariables& rVariables,
-						 const int& rNode, 
+						 ElementDataType& rVariables,
+						 const int& rNode,
 						 double alpha);
 
- 
-    /**   
+
+    /**
      * Calculate current strain resultants vector
      */
-    virtual void CalculateCurrentStrainResultantsVector(ElementVariables& rVariables, 
+    void CalculateCurrentStrainResultantsVector(ElementDataType& rVariables,
 							Vector& rCurrentStrainResultantsVector,
 							double Alpha) override;
 
-    /**   
+    /**
      * Calculate current curvature vector
      */
-    virtual void CalculateCurrentCurvatureVector(ElementVariables& rVariables, 
+    void CalculateCurrentCurvatureVector(ElementDataType& rVariables,
 						 Vector& rCurrentCurvatureVector,
 						 double Alpha) override;
 
 
-    /**   
+    /**
      * Calculate Element Stress Resultants and Couples
-     */ 
-    void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
+     */
+    void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
 
     /**
@@ -288,7 +292,7 @@ protected:
      */
 
     void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-			     ElementVariables& rVariables,
+			     ElementDataType& rVariables,
 			     double& rIntegrationWeight) override;
 
 
@@ -297,7 +301,7 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-			     ElementVariables& rVariables,
+			     ElementDataType& rVariables,
 			     double& rIntegrationWeight) override;
 
 
@@ -305,7 +309,7 @@ protected:
      * Calculation of the Follower Load Stiffness Matrix. Kuuf
      */
     void CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
-			     ElementVariables& rVariables,
+			     ElementDataType& rVariables,
 			     double& rIntegrationWeight) override;
 
 
@@ -314,7 +318,7 @@ protected:
      * Calculation of the Followr Forces Vector.
      */
     void CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
-				       ElementVariables& rVariables,
+				       ElementDataType& rVariables,
 				       double& rIntegrationWeight) override;
 
 
@@ -322,7 +326,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-				       ElementVariables& rVariables,
+				       ElementDataType& rVariables,
 				       Vector& rVolumeForce,
 				       double& rIntegrationWeight) override;
 
@@ -330,7 +334,7 @@ protected:
       * Calculation of the Tangent Intertia Matrix
       */
     void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-				   ElementVariables& rVariables,
+				   ElementDataType& rVariables,
 				   ProcessInfo& rCurrentProcessInfo,
 				   double& rIntegrationWeight) override;
 
@@ -339,7 +343,7 @@ protected:
       * Calculation of the Inertial Forces Vector
       */
     void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-				   ElementVariables& rVariables,
+				   ElementDataType& rVariables,
 				   ProcessInfo& rCurrentProcessInfo,
 				   double& rIntegrationWeight) override;
 
@@ -348,7 +352,7 @@ protected:
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-				       ElementVariables & rVariables,
+				       ElementDataType & rVariables,
 				       double& rIntegrationWeight) override;
 
 
@@ -356,13 +360,13 @@ protected:
      * Calculation Complementary Method : Discrete Operator for the Geometric StiffnessMatrix
      */
     void CalculateDiscreteOperatorN(MatrixType& rDiscreteOperator,
-				    ElementVariables& rVariables,
+				    ElementDataType& rVariables,
 				    const int& rNodeI,
 				    const int& rNodeJ,
 				    const int& rComponent);
 
     void CalculateDiscreteOperatorM(MatrixType& rDiscreteOperator,
-				    ElementVariables& rVariables,
+				    ElementDataType& rVariables,
 				    const int& rNodeI,
 				    const int& rNodeJ,
 				    const int& rComponent);
@@ -371,7 +375,7 @@ protected:
      * Calculation Complementary Method : Derivative Shape Function Matrix Operator
      */
     void CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
-				       ElementVariables& rVariables,
+				       ElementDataType& rVariables,
 				       const int& rNode,
 				       double alpha) override;
 
@@ -380,36 +384,36 @@ protected:
      * Calculation Complementary Methods:
      */
 
-     void CalculateAlphaDirectors(Matrix& rDirectors, ElementVariables& rVariables, const int& rNode, double alpha);
+     void CalculateAlphaDirectors(Matrix& rDirectors, ElementDataType& rVariables, const int& rNode, double alpha);
 
 
-     void CalculateAlphaDirectorVector(Vector& rDirectorVector, ElementVariables& rVariables, const int& rNode, const int& rDirection, double alpha);
+     void CalculateAlphaDirectorVector(Vector& rDirectorVector, ElementDataType& rVariables, const int& rNode, const int& rDirection, double alpha);
 
-     void CalculateAlphaDirectorSkewSymTensor(Matrix& rDirectorSkewSymTensor, ElementVariables& rVariables, const int& rNode, const int& rDirection, double alpha);
+     void CalculateAlphaDirectorSkewSymTensor(Matrix& rDirectorSkewSymTensor, ElementDataType& rVariables, const int& rNode, const int& rDirection, double alpha);
 
 
     /**
      * Calculation Complementary Methods:
      */
-    void CalculateAlphaDirectorVector(Vector& rDirectorVector, ElementVariables& rVariables, const int& rDirection, double alpha);
+    void CalculateAlphaDirectorVector(Vector& rDirectorVector, ElementDataType& rVariables, const int& rDirection, double alpha);
 
-    void CalculateAlphaDirectorSkewSymTensor(Matrix& rDirectorSkewSymTensor, ElementVariables& rVariables, const int& rDirection, double alpha);
+    void CalculateAlphaDirectorSkewSymTensor(Matrix& rDirectorSkewSymTensor, ElementDataType& rVariables, const int& rDirection, double alpha);
 
     /**
      * Calculation Complementary Methods:
      */
-    void CalculateDirectorDerivativesVector(Vector& rDirectorDerivativesVector, ElementVariables& rVariables, const int& rDirection, double alpha);
+    void CalculateDirectorDerivativesVector(Vector& rDirectorDerivativesVector, ElementDataType& rVariables, const int& rDirection, double alpha);
 
-    void CalculateDirectorDerivativesSkewSymTensor(Matrix& rDirectorDerivativesSkewSymTensor, ElementVariables& rVariables, const int& rDirection, double alpha);
+    void CalculateDirectorDerivativesSkewSymTensor(Matrix& rDirectorDerivativesSkewSymTensor, ElementDataType& rVariables, const int& rDirection, double alpha);
 
 
     /**
      * Calculation Complementary Method : Algorithmic Inertia
      */
-    void CalculateAlgorithmicInertia(Matrix & rAlgorithmicInertia, 
-				     const Matrix& rInertiaDyadic, 
-				     ElementVariables & rVariables,
-				     const int& NodeJ, 
+    void CalculateAlgorithmicInertia(Matrix & rAlgorithmicInertia,
+				     const Matrix& rInertiaDyadic,
+				     ElementDataType & rVariables,
+				     const int& NodeJ,
 				     const int& NodeI,
 				     double alpha);
 
@@ -450,9 +454,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

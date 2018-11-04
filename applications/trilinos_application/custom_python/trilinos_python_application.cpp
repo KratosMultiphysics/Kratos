@@ -1,16 +1,23 @@
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-12-09 20:20:55 $
-//   Revision:            $Revision: 1.5 $
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+
+// Project includes
+#include "includes/define_python.h"
 
 #include "custom_python/add_trilinos_space_to_python.h"
 #include "custom_python/add_trilinos_convergence_criterias_to_python.h"
@@ -22,46 +29,35 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_trilinos_communicator_to_python.h"
 #include "custom_python/add_zoltan_processes_to_python.h"
-// #include "custom_python/add_first.h"
-
-////utilities
-#include "python/pointer_vector_set_python_interface.h"
 
 // Project includes
-#include "includes/define.h"
 #include "trilinos_application.h"
-//#include "trilinos_space.h"
-//#include "spaces/ublas_space.h"
-//// #include "add_trilinos_linear_solvers_to_python.h"
-//#include "includes/model_part.h"
-
 
 namespace Kratos
 {
-
 namespace Python
 {
+namespace py = pybind11;
 
-
-BOOST_PYTHON_MODULE(KratosTrilinosApplication)
+PYBIND11_MODULE(KratosTrilinosApplication,m)
 {
+    
+    py::class_<KratosTrilinosApplication,
+        KratosTrilinosApplication::Pointer,
+        KratosApplication > (m,"KratosTrilinosApplication")
+        .def(py::init<>())
+        ;
 
-    class_<KratosTrilinosApplication,
-           KratosTrilinosApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable > ("KratosTrilinosApplication")
-           ;
-
-    AddBasicOperations();
-    AddConvergenceCriterias();
-    AddSchemes();
-    AddLinearSolvers();
-    AddProcesses();
-    AddStrategies();
-    AddCustomIOToPython();
-    AddCustomUtilitiesToPython();
-    AddTrilinosCommunicatorToPython();
-    AddZoltanProcessesToPython();
-// 	AddFirst();
+    AddBasicOperations(m);
+    AddConvergenceCriterias(m);
+    AddSchemes(m);
+    AddLinearSolvers(m);
+    AddProcesses(m);
+    AddStrategies(m);
+    AddCustomIOToPython(m);
+    AddCustomUtilitiesToPython(m);
+    AddTrilinosCommunicatorToPython(m);
+    AddZoltanProcessesToPython(m);
 
     //registering variables in python
 

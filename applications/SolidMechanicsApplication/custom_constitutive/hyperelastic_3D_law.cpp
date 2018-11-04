@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -28,7 +25,7 @@ namespace Kratos
 HyperElastic3DLaw::HyperElastic3DLaw()
     : ConstitutiveLaw()
 {
-	
+
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -47,8 +44,7 @@ HyperElastic3DLaw::HyperElastic3DLaw(const HyperElastic3DLaw& rOther)
 
 ConstitutiveLaw::Pointer HyperElastic3DLaw::Clone() const
 {
-    HyperElastic3DLaw::Pointer p_clone(new HyperElastic3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElastic3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -90,7 +86,7 @@ double& HyperElastic3DLaw::CalculateValue(Parameters& rParameterValues, const Va
   return (this->GetValue(rThisVariable,rValue ));
 
 }
-  
+
 
 //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
 //************************************************************************************
@@ -98,14 +94,14 @@ double& HyperElastic3DLaw::CalculateValue(Parameters& rParameterValues, const Va
 double& HyperElastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
   if (rThisVariable == STRAIN_ENERGY)
-  {      
+  {
     rValue = mStrainEnergy;
   }
   else{
     rValue = 0;
   }
-    
-    
+
+
     return( rValue );
 }
 
@@ -252,12 +248,12 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
   //5.-Right Cauchy Green tensor C
   Matrix RightCauchyGreen = prod(trans( ElasticVariables.DeformationGradientF),  ElasticVariables.DeformationGradientF);
-    
+
   //6.-Inverse of the Right Cauchy-Green tensor C: (stored in the CauchyGreenMatrix)
   ElasticVariables.traceCG = 0;
-  ElasticVariables.CauchyGreenMatrix( 3, 3 );
+  ElasticVariables.CauchyGreenMatrix.resize(3,3,false);
   MathUtils<double>::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
-    
+
   //7.-Green-Lagrange Strain:
   if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
@@ -267,19 +263,19 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
   //8.-Calculate Total PK2 stress
   if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
-	
+
       this->CalculateStress( ElasticVariables, StressMeasure_PK2, StressVector );
     }
-    
+
   //9.-Calculate Constitutive Matrix related to Total PK2 stress
   if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
       this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
     }
-       
+
   if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
     {
-     
+
       double ln_J = std::log(ElasticVariables.DeterminantF);
       double trace_C = 0.0;
 
@@ -289,10 +285,10 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 	}
 
       mStrainEnergy =  0.5*ElasticVariables.LameLambda*ln_J*ln_J - ElasticVariables.LameMu*ln_J + 0.5*ElasticVariables.LameMu*(trace_C-3); //see Belytschko page 239
-      
-     
-    }  
-    
+
+
+    }
+
   // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
   // std::cout<<" Stress "<<StressVector<<std::endl;
 
@@ -405,7 +401,7 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     // std::cout<<" StrainVector "<<StrainVector<<std::endl;
     // std::cout<<" StressVector "<<StressVector<<std::endl;
     // std::cout<<" ConstitutiveMatrix "<<ConstitutiveMatrix<<std::endl;
-    
+
 
     //-----------------------------//
 
@@ -497,7 +493,7 @@ void HyperElastic3DLaw::UpdateInternalVariables(Parameters& rValues)
     Matrix DeformationGradientF0          = DeformationGradientF;
     DeformationGradientF0 = Transform2DTo3D(DeformationGradientF0);
     MathUtils<double>::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
-    mDeterminantF0 = DeterminantF; //special treatment of the determinant 
+    mDeterminantF0 = DeterminantF; //special treatment of the determinant
 }
 
 
@@ -528,7 +524,7 @@ void HyperElastic3DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauch
 //************************************************************************************
 
 // void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rRightCauchyGreen,
-// 						Matrix& rStrainMatrix ) 
+// 						Matrix& rStrainMatrix )
 // {
 
 //     //E= 0.5*(FT*F-1)
@@ -558,12 +554,12 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
     rStrainVector[4] = - InverseLeftCauchyGreen( 1, 2 ); // yz
     rStrainVector[5] = - InverseLeftCauchyGreen( 0, 2 ); // xz
 
-  
+
     // Matrix StrainMatrix(3,3);
     // noalias(StrainMatrix) = ZeroMatrix(3,3);
     // CalculateAlmansiStrain( rLeftCauchyGreen, rStrainMatrix );
     // rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
-             
+
 }
 
 
@@ -571,7 +567,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 //************************************************************************************
 
 // void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-// 						Matrix& rStrainMatrix ) 
+// 						Matrix& rStrainMatrix )
 // {
 
 //     // e = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
@@ -594,14 +590,14 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 double &  HyperElastic3DLaw::CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
 								double & rTemperature)
 {
-  
+
     //1.-Temperature from nodes
     const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
     const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
     const unsigned int number_of_nodes = DomainGeometry.size();
-    
+
     rTemperature=0;
-     
+
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
       {
 	if( DomainGeometry[j].SolutionStepsDataHas(TEMPERATURE) )
@@ -624,9 +620,9 @@ double & HyperElastic3DLaw::CalculateVolumetricFactor (const MaterialResponseVar
 {
   //(J²-1)/2
   //rFactor = 0.5*(rElasticVariables.DeterminantF*rElasticVariables.DeterminantF-1);
-  
+
   //(ln(J))
-  rFactor = std::log(rElasticVariables.DeterminantF); 
+  rFactor = std::log(rElasticVariables.DeterminantF);
 
   return rFactor;
 
@@ -647,17 +643,17 @@ double & HyperElastic3DLaw::CalculateVolumetricPressure (const MaterialResponseV
     double Factor = 0;
     Factor = this->CalculateVolumetricFactor( rElasticVariables, Factor );
 
-    
+
     //Thermal volumetric factor:
     double DeltaTemperature     = 0;
-    double CurrentTemperature   = 0;  
-    
+    double CurrentTemperature   = 0;
+
     CurrentTemperature = this->CalculateDomainTemperature(rElasticVariables, CurrentTemperature);
     DeltaTemperature   = CurrentTemperature - rElasticVariables.ReferenceTemperature;
-        
+
     Factor            += 3.0 * rElasticVariables.ThermalExpansionCoefficient * ( (1.0 - std::log(rElasticVariables.DeterminantF)) / (rElasticVariables.DeterminantF) ) * DeltaTemperature;
 
-    
+
     rPressure = BulkModulus * Factor;
 
     return rPressure;
@@ -669,7 +665,7 @@ double & HyperElastic3DLaw::CalculateVolumetricPressure (const MaterialResponseV
 
 Vector&  HyperElastic3DLaw::CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
 							       Vector & rFactors)
-							      
+
 {
 
     double BulkModulus = rElasticVariables.LameLambda + (2.0/3.0) * rElasticVariables.LameMu;
@@ -703,12 +699,12 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
 
     double Factor = 0;
     Factor = this->CalculateVolumetricFactor( rElasticVariables, Factor );
-    
+
     //(J²-1)/2
-    //double Factor = 0.5*(rElasticVariables.DeterminantF*rElasticVariables.DeterminantF-1); 
+    //double Factor = 0.5*(rElasticVariables.DeterminantF*rElasticVariables.DeterminantF-1);
 
     //(ln(J))
-    //double Factor = (std::log(rElasticVariables.DeterminantF)); 
+    //double Factor = (std::log(rElasticVariables.DeterminantF));
 
 
     if(rStressMeasure == StressMeasure_PK2)  // the description corresponds to the neohookean material in Belytschko nonlinear finite elements, pag 239
@@ -797,7 +793,7 @@ void HyperElastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariable
     //2.- Volumetric part of the Kirchhoff StressMatrix from nodal pressures
     VolStressMatrix = rElasticVariables.DeterminantF * Pressure * rElasticVariables.CauchyGreenMatrix;
 
-    
+
     rVolStressVector = MathUtils<double>::StressTensorToVector(VolStressMatrix,rVolStressVector.size());
 
 }
@@ -927,16 +923,16 @@ double& HyperElastic3DLaw::IsochoricConstitutiveComponent(double & rCabcd,
     //note.- rElasticVariables.traceCG is "traceCG_bar"
 
     rCabcd  = (1.0/3.0)*(rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
-    
+
     rCabcd -= (0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
-    
+
     rCabcd *= rElasticVariables.traceCG * rElasticVariables.LameMu;
-    
+
     rCabcd += (rElasticVariables.CauchyGreenMatrix(c,d)*rIsoStressMatrix(a,b) + rIsoStressMatrix(c,d)*rElasticVariables.CauchyGreenMatrix(a,b));
 
     rCabcd *= (-2.0/3.0);
 
-    
+
     return rCabcd;
 }
 
@@ -958,7 +954,7 @@ double& HyperElastic3DLaw::VolumetricConstitutiveComponent(double & rCabcd,
     rCabcd  = rFactors[0]*(rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
     rCabcd -= rFactors[1]*(0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
     rCabcd *= rFactors[2];
-    
+
 
     return rCabcd;
 }
@@ -1013,7 +1009,7 @@ void HyperElastic3DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

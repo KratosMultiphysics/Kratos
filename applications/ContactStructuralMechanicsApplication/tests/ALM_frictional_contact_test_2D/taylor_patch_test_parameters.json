@@ -1,0 +1,184 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "taylor_patch_test",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0e-0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
+        "solver_type"                        : "Static",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "ALM_frictional_contact_test_2D/taylor_patch_test"
+        },
+        "material_import_settings" :{
+            "materials_filename": "ALM_frictional_contact_test_2D/taylor_patch_test_materials.json"
+        },
+        "contact_settings":
+        {
+            "mortar_type"                    : "ALMContactFrictional"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1e-0
+        },
+        "convergence_criterion"              : "contact_residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 20,
+        "buffer_size"                        : 3,
+        "linear_solver_settings"             : {
+            "solver_type" : "SkylineLUFactorizationSolver"
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_foundation","Parts_punch"],
+        "processes_sub_model_part_list"      : ["Contact_Part",
+                                                "Parts_foundation",
+                                                "Parts_punch",
+                                                "DISPLACEMENT_fixed_support",
+                                                "DISPLACEMENT_rolling_support_y",
+                                                "DISPLACEMENT_rolling_support_x",
+                                                "LineLoad2D_line_load"
+                                                ]
+    },
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_fixed_support",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_rolling_support_y",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_rolling_support_x",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module"   : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process sets a vector variable value over a condition",
+            "check"                 : "DirectorVectorNonZero direction",
+            "process_name"          : "ApplyVectorOnConditionsProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "LineLoad2D_line_load",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 20.0,
+                "direction"       : [5.0e-2,-1.0e0,0.0]
+            }
+        }],
+        "contact_process_list" :[{
+            "python_module"   : "alm_contact_process",
+            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_type"                : "Frictional",
+                "assume_master_slave"         : { "0" : ["Parts_punch"]}
+            }
+        }
+        ],
+
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
+                "input_file_name"     : "ALM_frictional_contact_test_2D/taylor_patch_test_results.json",
+                "model_part_name"      : "Contact_Part",
+                "time_frequency"       : 1.0
+            }
+        }
+        ]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_GAP","WEIGHTED_SLIP"],
+            "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE","AUGMENTED_TANGENT_CONTACT_PRESSURE"],
+            "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
+            "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
+        },
+        "point_data_configuration"  : []}}}]
+    },
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "ALM_frictional_contact_test_2D/taylor_patch_test_results.json",
+            "model_part_name"      : "Contact_Part",
+            "time_frequency"       : 1.00
+        }
+    }
+    ],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}

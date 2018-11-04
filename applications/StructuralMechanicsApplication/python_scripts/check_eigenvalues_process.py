@@ -5,13 +5,6 @@ import KratosMultiphysics
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
-# Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
@@ -23,6 +16,7 @@ class CheckEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.TestCas
         default_settings = KratosMultiphysics.Parameters(
             """
             {
+                "help"            :"This process checks the solution obtained in a eigenvalue problem. Can be used to create tests",
                 "model_part_name" : "Structure",
                 "variable_name"   : "EIGENVALUE_VECTOR",
                 "reference_values": "[1.,2.,3.]"
@@ -34,7 +28,7 @@ class CheckEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.TestCas
 
         KratosMultiphysics.Process.__init__(self)
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.variable = getattr(StructuralMechanicsApplication, settings["variable_name"].GetString())
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         self.reference_values = []
         reference_values = settings["reference_values"].GetString()
         for ev in reference_values.strip('[]').split(','):

@@ -47,7 +47,7 @@ namespace Kratos
 */
 
 template<std::size_t TDim>
-class DerivativeRecoveryMeshingTools
+class KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecoveryMeshingTools
 {
 public:
 ///@name Type Definitions

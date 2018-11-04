@@ -97,7 +97,7 @@ namespace Kratos
 		* @param rValues
 		* @see   Parameters
 		*/
-		void CalculateMaterialResponsePK2(Parameters & rValues) override;
+		void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues) override;
 
 		/**
 		 * returns the value of a specified variable
@@ -167,7 +167,7 @@ namespace Kratos
 		* @param Parameters
 		* @return
 		*/
-		bool CheckParameters(Parameters& rValues);
+		bool CheckParameters(ConstitutiveLaw::Parameters& rValues);
 
 	private:
 

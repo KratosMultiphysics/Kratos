@@ -7,12 +7,12 @@
 
 #if defined(KRATOS_PYTHON)
 
-// External includes
-#include <boost/python.hpp>
-#include "boost/python/detail/wrap_python.hpp"
+// System includes
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_mpi_strategies_to_python.h"
@@ -29,50 +29,51 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-BOOST_PYTHON_MODULE(KratosDamApplication)
+PYBIND11_MODULE(KratosDamApplication, m)
 {
-    class_<KratosDamApplication, KratosDamApplication::Pointer, bases<KratosApplication>, boost::noncopyable >("KratosDamApplication");
+    class_<KratosDamApplication,
+    KratosDamApplication::Pointer,
+    KratosApplication>(m, "KratosDamApplication")
+    .def(init<>());
 
-    AddCustomStrategiesToPython();
-    AddCustomMPIStrategiesToPython();
-    AddCustomConstitutiveLawsToPython();
-    AddCustomProcessesToPython();
-    AddCustomUtilitiesToPython();
+    AddCustomStrategiesToPython(m);
+    AddCustomMPIStrategiesToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
+    AddCustomProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //Registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_EXPANSION )    
-     
-    // Thermal Variables
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_STRESS_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( MECHANICAL_STRESS_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_STRAIN_TENSOR )
-    
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_STRESS_VECTOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( MECHANICAL_STRESS_VECTOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_STRAIN_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, THERMAL_EXPANSION )
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ALPHA_HEAT_SOURCE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_ACTIVATION )
-    
+    // Thermal Variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, THERMAL_STRESS_TENSOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, MECHANICAL_STRESS_TENSOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, THERMAL_STRAIN_TENSOR )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, THERMAL_STRESS_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, MECHANICAL_STRESS_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, THERMAL_STRAIN_VECTOR )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, ALPHA_HEAT_SOURCE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, TIME_ACTIVATION )
+
     // Output Variables
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( Vi_POSITIVE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( Viii_POSITIVE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_JOINT_WIDTH )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_JOINT_AREA )
-    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, Vi_POSITIVE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, Viii_POSITIVE )
+
     // Wave Eqaution
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( Dt_PRESSURE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( Dt2_PRESSURE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( VELOCITY_PRESSURE_COEFFICIENT )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACCELERATION_PRESSURE_COEFFICIENT )   
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, Dt_PRESSURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, Dt2_PRESSURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, VELOCITY_PRESSURE_COEFFICIENT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, ACCELERATION_PRESSURE_COEFFICIENT )
 
     // Others
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_YOUNG_MODULUS )   
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ADDED_MASS )   
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_YOUNG_MODULUS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, ADDED_MASS )
 
-    
+
 }
 
 }  // namespace Python.

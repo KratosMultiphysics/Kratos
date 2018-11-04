@@ -5,15 +5,12 @@ A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
-
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
 pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
-
-
 Permission is hereby granted, free  of charge, to any person obtaining
 a  copy  of this  software  and  associated  documentation files  (the
 "Software"), to  deal in  the Software without  restriction, including
@@ -21,13 +18,10 @@ without limitation  the rights to  use, copy, modify,  merge, publish,
 distribute,  sublicense and/or  sell copies  of the  Software,  and to
 permit persons to whom the Software  is furnished to do so, subject to
 the following condition:
-
 Distribution of this code for  any  commercial purpose  is permissible
 ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
 The  above  copyright  notice  and  this permission  notice  shall  be
 included in all copies or substantial portions of the Software.
-
 THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
 EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -35,7 +29,6 @@ IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
 CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
 TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 ==============================================================================
 */
 
@@ -52,22 +45,27 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
 
 
 // Project includes
+#include <pybind11/pybind11.h>
 #include "includes/define.h"
-#include "custom_python/add_custom_strategies_to_python.h"
+#include "includes/define_python.h"
 
+#include "custom_python/add_custom_strategies_to_python.h"
+#include "processes/process.h"
 #include "spaces/ublas_space.h"
+#include <boost/timer.hpp>
 
 
 //builder_and_solvers
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_quasiincompresible_builder_and_solver.h"
 #include "custom_strategies/strategies/modified_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
+//schemes
+#include "solving_strategies/schemes/scheme.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -77,21 +75,24 @@ namespace Kratos
 
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+ 
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 //			typedef ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
 
+    //typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType >   ResidualBasedPredictorCorrectorBossakSchemeType;
     //********************************************************************
     //********************************************************************
     //typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 2> //ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D;
@@ -103,10 +104,20 @@ void  AddCustomStrategiesToPython()
     //class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D, boost::noncopyable>
 //("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver2D", init< LinearSolverType::Pointer>() )
 //
-//
+//    //********************************************************************
+    //********************************************************************
 
-    class_< ResidualBasedIncompressibleBuilderType2D, bases< BuilderAndSolverType >, boost::noncopyable>
-    ("ResidualBasedIncompressibleBuilder2D", init< LinearSolverType::Pointer>() )
+
+class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType>,
+                    typename ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType>::Pointer,
+                    BaseSchemeType >
+                    (m, "ResidualBasedPredictorCorrectorBossakScheme")
+                    .def(init< double >()
+                    );
+
+
+    class_< ResidualBasedIncompressibleBuilderType2D, ResidualBasedIncompressibleBuilderType2D::Pointer, BuilderAndSolverType > (m, "ResidualBasedIncompressibleBuilder2D")
+    .def(init< LinearSolverType::Pointer>() )
     .def("AssembleLHS", &ResidualBasedIncompressibleBuilderType2D::AssembleLHS )
     .def("AssembleRHS", &ResidualBasedIncompressibleBuilderType2D::AssembleRHS )
     .def("BuildAndSolve", &ResidualBasedIncompressibleBuilderType2D::BuildAndSolve)
@@ -141,7 +152,8 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 3> ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D;
 
 
-    class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, bases< BuilderAndSolverType >, boost::noncopyable> ("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D", init< LinearSolverType::Pointer>() )
+    class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::Pointer, BuilderAndSolverType > (m,"ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D")
+    .def(init< LinearSolverType::Pointer>() )
     .def("AssembleLHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleLHS )
     .def("AssembleRHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleRHS )
     .def("BuildAndSolve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAndSolve)
@@ -168,11 +180,35 @@ void  AddCustomStrategiesToPython()
     .def("ComputePressureAtFreeSurface", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ComputePressureAtFreeSurface)
     .def("SavePressureIteration", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SavePressureIteration)
     ;
+
+
+    class_< RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >, RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, BaseSolvingStrategyType > (m,"RungeKuttaFracStepStrategy2D")
+     .def(init < ModelPart&, LinearSolverType::Pointer, bool, bool, bool >())
+     //.def("SolveStep1", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+     .def("SolveStep2", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+     .def("SolveStep3", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+     //.def("SolveStep_ForwardEuler", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep_ForwardEuler)
+     .def("SolveStep1", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)	
+     .def("Clear", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+     ;
+
+
+//    class_< ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+//            ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
+//            BaseSolvingStrategyType >
+//            (m,"ResidualBasedSemiEulerianConvectionDiffusionStrategy")
+//            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
+//            .def("Clear",&ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+//            ;   
+
+
+
     //********************************************************************
     //********************************************************************
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //strategy base class
-    class_< BaseSolvingStrategyType, boost::noncopyable >("SolvingStrategy", init< ModelPart&, bool >() )
+    class_< BaseSolvingStrategyType, BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy", module_local())
+    .def(init< ModelPart&, bool >() )
     .def("Predict", &BaseSolvingStrategyType::Predict )
     .def("Solve", &BaseSolvingStrategyType::Solve )
     .def("IsConverged", &BaseSolvingStrategyType::IsConverged )
@@ -189,16 +225,16 @@ void  AddCustomStrategiesToPython()
     ;
     typedef LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy2D;
 
-    class_< LapModifiedLinearStrategy2D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("LapModifiedLinearStrategy2D",
-     init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+    class_< LapModifiedLinearStrategy2D, LapModifiedLinearStrategy2D::Pointer, BaseSolvingStrategyType >
+    (m,"LapModifiedLinearStrategy2D")
+     .def(init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
     .def("Solve", &LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
     ;
     typedef LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy3D;
 
-    class_< LapModifiedLinearStrategy3D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("LapModifiedLinearStrategy3D",
-     init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+    class_< LapModifiedLinearStrategy3D, LapModifiedLinearStrategy3D::Pointer, BaseSolvingStrategyType >
+    (m,"LapModifiedLinearStrategy3D")
+     .def(init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
     .def("Solve", &LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
     ;
 
@@ -207,5 +243,3 @@ void  AddCustomStrategiesToPython()
 }  // namespace Python.
 
 } // Namespace Kratos
-
-

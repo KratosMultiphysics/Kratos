@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "harmonic_analysis_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,11 +9,15 @@
     "solver_settings"          : {
         "solver_type"                        : "eigen_value",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "harmonic_analysis_test/harmonic_analysis_test",
-            "input_file_label" : 0
+            "input_filename"   : "harmonic_analysis_test/harmonic_analysis_test"
         },
         "material_import_settings"           : {
             "materials_filename" : "harmonic_analysis_test/harmonic_analysis_test_materials.json"
@@ -37,13 +38,14 @@
             "lambda_max": 1.0e7,
             "search_dimension": 35,
             "linear_solver_settings":{
-                "solver_type": "complex_skyline_lu_solver"
+                "solver_type": "SkylineLUComplexSolver"
             }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_plate"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -73,29 +75,17 @@
         }
     }],
     "list_other_processes"  : [{
-        "python_module" : "output_primal_solution_process",
-        "kratos_module" : "KratosMultiphysics.AdjointFluidApplication",
+        "python_module" : "eigen_solution_output_process",
+        "kratos_module" : "StructuralMechanicsApplication",
         "help"          : "",
-        "process_name"  : "OutputPrimalSolutionProcess",
+        "process_name"  : "",
         "Parameters" : {
-	    "model_part_name" : "Structure",
-            "file_name"                 : "harmonic_analysis_test/harmonic_analysis_test",
-            "variable_list"             : [],
-            "nodal_value_list"          : ["EIGENVECTOR_MATRIX"],
-            "processinfo_value_list"    : ["EIGENVALUE_VECTOR"]
+            "model_part_name" : "Structure",
+            "file_settings" : {
+                "file_name" : "harmonic_analysis_test/eigen_results.h5",
+                "file_access_mode" : "truncate"
+            },
+            "prefix" : "/ModelData"
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "harmonic_analysis_test/harmonic_analysis_test_materials.json"
-    }
+    }]}
 }

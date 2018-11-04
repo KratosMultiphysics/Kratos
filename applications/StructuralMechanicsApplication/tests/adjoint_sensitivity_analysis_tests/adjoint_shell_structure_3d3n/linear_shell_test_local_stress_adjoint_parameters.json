@@ -1,0 +1,122 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "rectangular_plate",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+        "solver_settings"                  : {
+        "solver_type"                  : "adjoint_static",
+        "analysis_type"                : "linear",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
+        "compute_reactions"			   : false,
+        "move_mesh_flag"                    : false,
+        "scheme_settings" : {
+            "scheme_type"              : "adjoint_structural"
+        },
+        "response_function_settings" : {
+            "response_type"     : "adjoint_local_stress",
+            "use_kratos"        : true,
+            "gradient_mode"     : "semi_analytic",
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : ["THICKNESS"],
+            "condition_sensitivity_variables"  : ["POINT_LOAD"],
+            "step_size"         : 1.0e-6,
+            "traced_element_id"    : 2,
+            "stress_type"       : "MXX",
+            "stress_treatment"  : "mean",
+            "stress_location"   : 1
+        },
+        "echo_level"                   : 0,
+        "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC"],
+        "computing_model_part_name" : "computing_domain",
+        "rotation_dofs"                      : true,
+        "linear_solver_settings"       : {
+            "solver_type"         : "Super_LU"
+        },
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename"   : "rectangular_plate"
+        },
+        "material_import_settings" :{
+            "materials_filename" : "StructuralMaterials.json"
+        }
+    },
+    "processes" : {
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_DIR_BC",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_NODES",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : 10.0,
+            "direction"       : [0.0,0.0,1],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "list_other_processes" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_temporal_input_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+	        "model_part_name" : "Structure",
+            "file_settings" : {
+                "file_access_mode" : "read_only"
+            },
+            "nodal_solution_step_data_settings" : {
+                "list_of_variables": ["DISPLACEMENT", "ROTATION"]
+            }
+        }
+     },
+     {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
+            "input_file_name"  : "linear_shell_test_local_stress_results.json",
+            "model_part_name"  : "Structure",
+            "tolerance"            : 1e-5,
+            "time_frequency"   : -2.0
+        }
+    }]},
+    "_json_output_process" : [
+    {
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
+            "output_variables" : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
+            "output_file_name" : "linear_shell_test_local_stress_results.json",
+            "model_part_name"  : "Structure",
+            "time_frequency"   : -2.0
+        }
+    }]
+}

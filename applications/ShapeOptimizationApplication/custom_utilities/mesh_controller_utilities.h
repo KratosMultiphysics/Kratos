@@ -98,34 +98,32 @@ public:
     ///@name Operations
     ///@{
 
-    // ==============================================================================
+    // --------------------------------------------------------------------------
     void UpdateMeshAccordingInputVariable( const Variable<array_1d<double,3>> &rInputVariable )
     {
-        KRATOS_TRY;
-
         for(auto & node_i: mrModelPart.Nodes())
-        {
-            array_1d<double,3> variable_value = node_i.FastGetSolutionStepValue(rInputVariable);
-            node_i.X0() += variable_value[0];
-            node_i.Y0() += variable_value[1];
-            node_i.Z0() += variable_value[2];
-            node_i.X() += variable_value[0];
-            node_i.Y() += variable_value[1];
-            node_i.Z() += variable_value[2];            
-        }
+            noalias(node_i.Coordinates()) += node_i.FastGetSolutionStepValue(rInputVariable);
+    }
 
-        KRATOS_CATCH("");
+    // --------------------------------------------------------------------------
+    void LogMeshChangeAccordingInputVariable( Variable<array_1d<double,3>> &rInputVariable )
+    {
+        for(auto & node_i: mrModelPart.Nodes())
+            noalias(node_i.FastGetSolutionStepValue(MESH_CHANGE)) += node_i.FastGetSolutionStepValue(rInputVariable);
     }
 
     // --------------------------------------------------------------------------
     void SetMeshToReferenceMesh()
     {
         for(auto & node_i: mrModelPart.Nodes())
-        {
-            node_i.X() = node_i.X0();
-            node_i.Y() = node_i.Y0();
-            node_i.Z() = node_i.Z0();
-        }
+            noalias(node_i.Coordinates()) = node_i.GetInitialPosition();
+    }
+
+    // --------------------------------------------------------------------------
+    void SetReferenceMeshToMesh()
+    {
+        for(auto & node_i: mrModelPart.Nodes())
+            noalias(node_i.GetInitialPosition()) = node_i.Coordinates();
     }
 
     // --------------------------------------------------------------------------
@@ -137,7 +135,7 @@ public:
             VariableUtils().SetToZero_VectorVar(ROTATION,mrModelPart.Nodes());
     }
 
-    // ==============================================================================
+    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Access

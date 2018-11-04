@@ -202,6 +202,19 @@ public:
     }
 
     /**
+     * PrintData is an auxiliary method to produce output only the value of given variable 
+     * knowing its address. For example writing an heterogenous container 
+     * in an output stream can be done using this method. Point assumes 
+     * that the streaming operator is defined for the variable type.
+     * @param pSource The pointer of the variable to be printed
+     * @param rOStream The stream used to print the information
+     */
+    void PrintData(const void* pSource, std::ostream& rOStream) const override
+    {
+        rOStream <<  *static_cast<const TDataType* >(pSource) ;
+    }
+
+    /**
      * The save operation which backups the data of the class
      * @param rSerializer The serializer used to preserve the information
      * @param pData A pointer to the data to be saved
@@ -268,7 +281,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << Name() << " variable";
+        buffer << Name() << " variable" <<" #" << static_cast<unsigned int>(Key());
         return buffer.str();
     }
 
@@ -282,7 +295,9 @@ public:
     }
 
     /// Print object's data.
-//       virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override{
+        VariableData::PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends

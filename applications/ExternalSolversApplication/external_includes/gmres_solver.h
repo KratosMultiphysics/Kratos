@@ -44,7 +44,7 @@
 
 #if !defined(KRATOS_GMRES_SOLVER_H_INCLUDED )
 #define  KRATOS_GMRES_SOLVER_H_INCLUDED
-#include "boost/smart_ptr.hpp"
+
 // #include "utilities/superlu_interface.h"
 #include "includes/ublas_interface.h"
 // #include "boost/numeric/bindings/superlu/superlu.hpp"
@@ -126,6 +126,8 @@ public:
     }
     
      GMRESSolver(Parameters settings):BaseType(settings) {}
+     
+     GMRESSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):BaseType(settings, pNewPreconditioner) {}
 
     /// Copy constructor.
     GMRESSolver(const GMRESSolver& Other) : BaseType(Other) {}

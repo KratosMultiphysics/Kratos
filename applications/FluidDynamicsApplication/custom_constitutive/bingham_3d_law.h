@@ -30,7 +30,7 @@ namespace Kratos
  * 3) REGULARIZATION_COEFFICIENT
  */
 
-class Bingham3DLaw : public FluidConstitutiveLaw
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) Bingham3DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
@@ -108,7 +108,7 @@ public:
     /**
      * Turn back information as a string.
      */
-    virtual std::string Info() const;
+    std::string Info() const override;
 
 
 protected:

@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 RveWeakRotationCondition3D::RveWeakRotationCondition3D(IndexType NewId, GeometryType::Pointer pGeometry)
 	: MyBase(NewId, pGeometry)
 {
@@ -76,7 +76,7 @@ RveWeakRotationCondition3D::RveWeakRotationCondition3D(IndexType NewId, Geometry
 	: MyBase(NewId, pGeometry, pProperties)
 {
 }
-	
+
 RveWeakRotationCondition3D::RveWeakRotationCondition3D(const RveWeakRotationCondition3D& rOther)
 	: MyBase(rOther)
 {
@@ -101,7 +101,7 @@ void RveWeakRotationCondition3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
 	if(rLeftHandSideMatrix.size1() != num_dofs || rLeftHandSideMatrix.size2() != num_dofs) rLeftHandSideMatrix.resize(num_dofs, num_dofs,false);
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(num_dofs, num_dofs);
-	
+
 	if(rRightHandSideVector.size() != num_dofs) rRightHandSideVector.resize(num_dofs, false);
 	noalias( rRightHandSideVector ) = ZeroVector(num_dofs);
 
@@ -175,7 +175,7 @@ int RveWeakRotationCondition3D::Check(const ProcessInfo& rCurrentProcessInfo)
 	KRATOS_TRY
 
 	GeometryType & geom = this->GetGeometry();
-	
+
 	//verify that the variables are correctly initialized
 	if(ROTATION.Key() == 0)
 		KRATOS_THROW_ERROR(std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered","");
@@ -184,10 +184,10 @@ int RveWeakRotationCondition3D::Check(const ProcessInfo& rCurrentProcessInfo)
 	for(unsigned int i = 0; i < 2; i++)
 	{
 		NodeType & iNode = geom[i];
-		
+
 		if(iNode.SolutionStepsDataHas(ROTATION) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable ROTATION on node ", iNode.Id());
-			
+
 		if(iNode.HasDofFor(ROTATION_X) == false || iNode.HasDofFor(ROTATION_Y) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ", iNode.Id());
 	}

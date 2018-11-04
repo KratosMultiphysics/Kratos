@@ -5,7 +5,7 @@
 
 namespace Kratos {
 
-    class ExcavatorUtility {
+    class KRATOS_API(DEM_APPLICATION) ExcavatorUtility {
 
         public:
 

@@ -151,7 +151,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
     ///@}
 
@@ -176,13 +176,13 @@ protected:
     ///@{
 
 
-    virtual void CalculateStaticTau(double Density,
-                                    double KinematicVisc,
-                                    const array_1d<double,3> &Velocity,
-                                    const ProcessInfo& rProcessInfo,
-                                    double &TauIncompr,
-                                    double &TauMomentum,
-                                    array_1d<double,3> &TauGrad);
+    void CalculateStabilizationParameters(double Density,
+                            double KinematicVisc,
+                            const array_1d<double,3> &Velocity,
+                            const ProcessInfo& rProcessInfo,
+                            double &TauIncompr,
+                            double &TauMomentum,
+                            array_1d<double,3> &TauGrad) override;
 
 
 
@@ -218,9 +218,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

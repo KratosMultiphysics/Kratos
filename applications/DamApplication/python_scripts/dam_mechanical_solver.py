@@ -4,29 +4,31 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
+import json
+
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
 
 def CreateSolver(main_model_part, custom_settings):
-    
+
     return DamMechanicalSolver(main_model_part, custom_settings)
 
 
 class DamMechanicalSolver(object):
 
-    ##constructor. the constructor shall only take care of storing the settings 
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the 
+    ##constructor. the constructor shall only take care of storing the settings
+    ##and the pointer to the main_model part. This is needed since at the point of constructing the
     ##model part is still not filled and the variables are not yet allocated
     ##
-    ##real construction shall be delayed to the function "Initialize" which 
+    ##real construction shall be delayed to the function "Initialize" which
     ##will be called once the model is already filled
-    def __init__(self, main_model_part, custom_settings): 
-        
+    def __init__(self, main_model_part, custom_settings):
+
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -86,15 +88,15 @@ class DamMechanicalSolver(object):
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
+
         # Construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["mechanical_solver_settings"]["linear_solver_settings"])
-        
+
         print("Construction of DamMechanicalSolver finished")
-    
+
     def AddVariables(self):
-        
+
         ## Mechanical Variables
         # Add displacements
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -105,27 +107,26 @@ class DamMechanicalSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         # Add variables for the solid conditions
         self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.LINE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.SURFACE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosSolid.FORCE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_JOINT_WIDTH)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_JOINT_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
-        
+
         print("Variables correctly added")
 
     def GetMinimumBufferSize(self):
         return 2
 
     def AddDofs(self):
-        
+
         for node in self.main_model_part.Nodes:
             ## Solid dofs
             node.AddDof(KratosMultiphysics.DISPLACEMENT_X,KratosMultiphysics.REACTION_X)
@@ -142,36 +143,36 @@ class DamMechanicalSolver(object):
                 node.AddDof(KratosMultiphysics.ACCELERATION_X)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Y)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Z)
-                
+
         print("DOFs correctly added")
 
     def ImportModelPart(self):
-        
+
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            
+
             # Read ModelPart
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-            
+
             # Create computing_model_part, set constitutive law and buffer size
             self._ExecuteAfterReading()
-            
+
         else:
             raise Exception("Other input options are not yet implemented.")
-                
+
         print ("Model reading finished")
-    
+
     def Initialize(self):
-                
+
         # Builder and solver creation
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["mechanical_solver_settings"]["block_builder"].GetBool())
-        
+
         # Solution scheme creation
         scheme = self._ConstructScheme(self.settings["mechanical_solver_settings"]["scheme_type"].GetString(),
                                          self.settings["mechanical_solver_settings"]["solution_type"].GetString())
 
         # Get the convergence criterion
         convergence_criterion = self._ConstructConvergenceCriterion(self.settings["mechanical_solver_settings"]["convergence_criterion"].GetString())
-                
+
         # Solver creation
         self.Solver = self._ConstructSolver(builder_and_solver,
                                             scheme,
@@ -185,31 +186,31 @@ class DamMechanicalSolver(object):
         self.Solver.Check()
 
         print ("Initialization of DamMechanicalSolver finished")
-    
+
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-    
+        return self.main_model_part.GetSubModelPart(self.mechanical_model_part_name)
+
     def GetOutputVariables(self):
         pass
 
     def ComputeDeltaTime(self):
         pass
-        
+
     def SaveRestart(self):
         pass #one should write the restart file here
-        
+
     def Solve(self):
         if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
             self.Clear()
-        
+
         self.Solver.Solve()
 
     # solve :: sequencial calls
-    
+
     def InitializeStrategy(self):
         if self.settings["mechanical_solver_settings"]["clear_storage"].GetBool():
             self.Clear()
-        
+
         self.Solver.Initialize()
 
     def InitializeSolutionStep(self):
@@ -227,30 +228,47 @@ class DamMechanicalSolver(object):
     # solve :: sequencial calls
 
     def SetEchoLevel(self, level):
-        
+
         self.Solver.SetEchoLevel(level)
 
     def Clear(self):
-        
+
         self.Solver.Clear()
-        
+
     def Check(self):
-        
+
         self.Solver.Check()
 
     #### Specific internal functions ####
 
     def _ExecuteAfterReading(self):
-        
-        self.computing_model_part_name = "mechanical_computing_domain"
-        
+
+        self.mechanical_model_part_name = "mechanical_computing_domain"
+
+        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
+        self.body_domain_sub_sub_model_part_list = []
+        for i in range(self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"].size()):
+            self.body_domain_sub_sub_model_part_list.append("sub_"+self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"][i].GetString())
+        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.body_domain_sub_sub_model_part_list))
+
+        self.loads_sub_sub_model_part_list = []
+        for i in range(self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"].size()):
+            self.loads_sub_sub_model_part_list.append("sub_"+self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"][i].GetString())
+        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
+
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         aux_params = KratosMultiphysics.Parameters("{}")
-        aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
+        aux_params.AddEmptyValue("mechanical_model_part_name").SetString(self.mechanical_model_part_name)
+        aux_params.AddValue("mechanical_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["problem_domain_sub_model_part_list"])
+        aux_params.AddValue("mechanical_loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["mechanical_loads_sub_model_part_list"])
+        aux_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+        aux_params.AddValue("body_domain_sub_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
+        aux_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+        aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
         # CheckAndPrepareModelProcess creates the solid_computational_model_part
-        import check_and_prepare_model_process_poro
-        check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+        import check_and_prepare_model_process_dam_mechanical
+        check_and_prepare_model_process_dam_mechanical.CheckAndPrepareModelProcessDamMechanical(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
         import dam_constitutive_law_utility
@@ -262,20 +280,20 @@ class DamMechanicalSolver(object):
             self.main_model_part.SetBufferSize( minimum_buffer_size )
 
     def _ConstructBuilderAndSolver(self, block_builder):
-        
+
         # Creating the builder and solver
         if(block_builder):
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
-        
+
         return builder_and_solver
-        
+
     def _ConstructScheme(self, scheme_type, solution_type):
 
         rayleigh_m = self.settings["mechanical_solver_settings"]["rayleigh_m"].GetDouble()
-        rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()  
-        
+        rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
+
         if(solution_type == "Quasi-Static"):
             if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
                 scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()
@@ -287,46 +305,46 @@ class DamMechanicalSolver(object):
             else:
                 damp_factor_m = -0.01
             scheme = KratosDam.BossakDisplacementSmoothingScheme(damp_factor_m,rayleigh_m,rayleigh_k)
-        
+
         return scheme
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
-        
+
         D_RT = self.settings["mechanical_solver_settings"]["displacement_relative_tolerance"].GetDouble()
         D_AT = self.settings["mechanical_solver_settings"]["displacement_absolute_tolerance"].GetDouble()
         R_RT = self.settings["mechanical_solver_settings"]["residual_relative_tolerance"].GetDouble()
         R_AT = self.settings["mechanical_solver_settings"]["residual_absolute_tolerance"].GetDouble()
         echo_level = self.settings["mechanical_solver_settings"]["echo_level"].GetInt()
-        
+
         if(convergence_criterion == "Displacement_criterion"):
-            convergence_criterion = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion == "Residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion == "And_criterion"):
-            Displacement = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
         elif(convergence_criterion == "Or_criterion"):
-            Displacement = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-        
+
         return convergence_criterion
-    
+
     def _ConstructSolver(self, builder_and_solver, scheme, convergence_criterion, strategy_type):
-        
+
         nonlocal_damage = self.settings["mechanical_solver_settings"]["nonlocal_damage"].GetBool()
         max_iters = self.settings["mechanical_solver_settings"]["max_iteration"].GetInt()
         compute_reactions = self.settings["mechanical_solver_settings"]["compute_reactions"].GetBool()
         reform_step_dofs = self.settings["mechanical_solver_settings"]["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["mechanical_solver_settings"]["move_mesh_flag"].GetBool()
-                
+
         if strategy_type == "Newton-Raphson":
             if nonlocal_damage:
                 self.strategy_params = KratosMultiphysics.Parameters("{}")
@@ -389,15 +407,15 @@ class DamMechanicalSolver(object):
                                                                        compute_reactions,
                                                                        reform_step_dofs,
                                                                        move_mesh_flag)
-        
+
         return solver
 
     def _CheckConvergence(self):
-        
+
         IsConverged = self.Solver.IsConverged()
-        
+
         return IsConverged
-    
+
     def _UpdateLoads(self):
-        
+
         self.Solver.UpdateLoads()

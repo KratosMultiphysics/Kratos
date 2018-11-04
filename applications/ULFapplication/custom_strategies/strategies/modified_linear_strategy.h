@@ -15,8 +15,14 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
+// #include "boost/smart_ptr.hpp"
+#include <stdlib.h>
+#include <boost/timer.hpp>
 
+
+#include <pybind11/pybind11.h>
+#include "includes/define.h"
+#include "includes/define_python.h"
 
 /* Project includes */
 #include "includes/define.h"
@@ -227,7 +233,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~LapModifiedLinearStrategy() {}
+    ~LapModifiedLinearStrategy() override{}
 
     /** Destructor.
     */
@@ -676,7 +682,7 @@ private:
 
             //setting up the Vectors involved to the correct size
             boost::timer system_matrix_resize_time;
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart());
             if(BaseType::GetEchoLevel()>0 && rank == 0)
                 std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
         }
@@ -874,7 +880,7 @@ private:
         TSystemMatrixType WorkMatrix(reduced_dim,reduced_dim);
         //KRATOS_WATCH(WorkMatrix)
 
-        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        BoundedMatrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N;
         array_1d<unsigned int ,TDim+1> local_indices;
         //array_1d<double,TDim+1> rhs_contribution;
@@ -997,7 +1003,7 @@ private:
 
         //WorkMatrix = D * G
         //TSparseSpace::Mult(mD, matG, WorkMatrix);
-        WorkMatrix=boost::numeric::ublas::prod(mD, matG);
+        WorkMatrix=prod(mD, matG);
         //KRATOS_WATCH(WorkMatrix)
 
         KRATOS_CATCH (" ")

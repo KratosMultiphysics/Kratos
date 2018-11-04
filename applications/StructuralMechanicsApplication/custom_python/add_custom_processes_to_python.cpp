@@ -12,54 +12,73 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "structural_mechanics_application_variables.h"
 
 //Processes
-#include "custom_processes/apply_multi_point_constraints_process.h"
+#include "custom_processes/prism_neighbours_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
+#include "custom_processes/shell_to_solid_shell_process.h"
+#include "custom_processes/solid_shell_thickness_compute_process.h"
+#include "custom_processes/spr_error_process.h"
+#include "custom_processes/impose_rigid_movement_process.h"
 
-namespace Kratos
-{
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
-void  AddCustomProcessesToPython()
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
-
-    typedef Process  ProcessBaseType;
+    namespace py = pybind11;
 
     /// Processes
-    class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
-    .def(init< ModelPart&, Parameters& >())
-	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents)
-    .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
-	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
-    .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
-    .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
-    .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
+    py::class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
+        .def(py::init<ModelPart&, Parameters>());
 
-    class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
-        "PostprocessEigenvaluesProcess", init<ModelPart&, Parameters>());
-    
-    class_<TotalStructuralMassProcess, bases<ProcessBaseType>, boost::noncopyable >
-    (
-        "TotalStructuralMassProcess", init<ModelPart&>()
-    )
-    .def("Execute", &TotalStructuralMassProcess::Execute)
-    ;
-    
+    py::class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
+        .def(py::init<ModelPart&>())
+        .def_static("CalculateElementMass", &TotalStructuralMassProcess::CalculateElementMass);
+        ;
 
+    py::class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
+        .def(py::init<ModelPart&>())
+        ;
+
+    py::class_<PrismNeighboursProcess, PrismNeighboursProcess::Pointer, Process>(m, "PrismNeighboursProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const bool >())
+        ;
+
+    py::class_<ShellToSolidShellProcess<3>, ShellToSolidShellProcess<3>::Pointer, Process>(m, "TriangleShellToSolidShellProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
+        ;
+
+    py::class_<ShellToSolidShellProcess<4>, ShellToSolidShellProcess<4>::Pointer, Process>(m, "QuadrilateralShellToSolidShellProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
+        ;
+
+    //SPR_ERROR
+    py::class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
+        ;
+
+    py::class_<SPRErrorProcess<3>, SPRErrorProcess<3>::Pointer, Process >(m, "SPRErrorProcess3D")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
+        ;
+
+    py::class_<ImposeRigidMovementProcess, ImposeRigidMovementProcess::Pointer, Process>(m, "ImposeRigidMovementProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
+        ;
 }
 
-}  // namespace Python.  
-
+}  // namespace Python.
 } // Namespace Kratos
 

@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Eigen_Q4_Thick_2x2_Plate_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "eigen_value",
         "scheme_type"                        : "dynamic",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "echo_level"                         : 0,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -21,7 +23,7 @@
             "materials_filename": "eigen_test/Eigen_Q4_Thick_2x2_Plate_test_materials.json"
         },
 	"eigensolver_settings":{
-        "solver_type": "FEAST",
+        "solver_type": "feast",
         "print_feast_output": false,
         "perform_stochastic_estimate": false,
         "solve_eigenvalue_problem": true,
@@ -29,13 +31,14 @@
         "lambda_max": 1.0e4,
         "search_dimension": 9,
         "linear_solver_settings":{
-            "solver_type": "complex_skyline_lu_solver"
+            "solver_type": "SkylineLUComplexSolver"
         }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_plate"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -50,44 +53,14 @@
     }],
     "loads_process_list"       : [],
     "list_other_processes" :[{
-        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module" : "StructuralMechanicsApplication",
         "python_module" : "check_eigenvalues_process",
         "help"          : "",
         "process_name"  : "CheckEigenvaluesProcess",
         "Parameters"    : {
             "model_part_name"  : "Structure",
-	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
+	    "variable_name"   : "EIGENVALUE_VECTOR",
             "reference_values": "[88.96614452368635, 3955.0855388258715, 7796.83946434412]"
         }
-    },{
-        "python_module"   : "postprocess_eigenvalues_process",
-        "kratos_module"   : "KratosMultiphysics.StructuralMechanicsApplication",
-        "help"                  : "This process postprocces the eigen values for GiD",
-        "process_name"          : "PostProcessEigenvaluesProcess",
-        "Parameters"            : {
-            "result_file_name" : "eigen_test/Eigen_Q4_Thick_2x2_Plate",
-            "animation_steps"   :  4,
-            "result_file_format_use_ascii" : true
-        }
-    },{
-        "python_module" : "compare_two_files_check_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process compares two files and executes an Unittest Assert",
-        "process_name"  : "CompareTwoFilesCheckProcess",
-        "Parameters"    : {
-            "file_name_1"       : "eigen_test/Eigen_Q4_Thick_2x2_Plate_test.post.res.ref",
-            "file_name_2"       : "eigen_test/Eigen_Q4_Thick_2x2_Plate_EigenResults_0.post.res",
-            "deterministic"     : true
-        }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    }]}
 }

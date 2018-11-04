@@ -20,7 +20,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -676,7 +675,7 @@ public:
         TSystemVectorType& mb = *mpb;
 
 
-        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             GetBuilderAndSolver()->BuildRHS(GetScheme(),BaseType::GetModelPart(),mb);
         }
@@ -761,6 +760,27 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "AdaptiveResidualBasedNewtonRaphsonStrategy";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     /*@} */
     /**@name Friends */
@@ -883,7 +903,7 @@ protected:
             pScheme->InitializeElements(BaseType::GetModelPart());
 
         //initialisation of the convergence criteria
-        if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+        if (mpConvergenceCriteria->IsInitialized() == false)
             mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
 
 
@@ -905,7 +925,7 @@ protected:
 
 
         //setting up the Vectors involved to the correct size
-        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart());
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;

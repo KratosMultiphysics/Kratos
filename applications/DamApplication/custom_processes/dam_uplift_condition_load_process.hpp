@@ -47,7 +47,6 @@ class DamUpliftConditionLoadProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
@@ -74,7 +73,6 @@ class DamUpliftConditionLoadProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
@@ -118,16 +116,21 @@ class DamUpliftConditionLoadProcess : public Process
     virtual ~DamUpliftConditionLoadProcess() {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void Execute() override
+    {
+    }
 
-    void ExecuteInitialize()
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteInitialize() override
     {
 
         KRATOS_TRY;
 
         //Defining necessary variables
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Computing the rotation matrix accoding with the introduced points by the user
         this->CalculateRotationMatrix(RotationMatrix);
@@ -150,7 +153,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             double ref_coord = mReferenceCoordinate + mWaterLevel;
 
@@ -222,15 +225,15 @@ class DamUpliftConditionLoadProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
 
         //Defining necessary variables
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
+        BoundedMatrix<double, 3, 3> RotationMatrix;
 
         // Getting the values of table in case that it exist
         if (mTableId != 0)
@@ -263,7 +266,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             double ref_coord = mReferenceCoordinate + mWaterLevel;
 
@@ -333,7 +336,7 @@ class DamUpliftConditionLoadProcess : public Process
         KRATOS_CATCH("");
     }
 
-    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3> &rRotationMatrix)
+    void CalculateRotationMatrix(BoundedMatrix<double, 3, 3> &rRotationMatrix)
     {
         KRATOS_TRY;
 
@@ -375,19 +378,19 @@ class DamUpliftConditionLoadProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamUpliftConditionLoadProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamUpliftConditionLoadProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 
@@ -397,7 +400,6 @@ class DamUpliftConditionLoadProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
     double mReferenceCoordinate;

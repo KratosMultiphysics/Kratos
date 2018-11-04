@@ -1,9 +1,12 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+import subprocess
 
 try:
     import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
@@ -20,11 +23,12 @@ except ImportError as e:
 
 ##### SELF-CONTAINED TESTS #####
 # CL tests
-from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
+from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
+from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
@@ -38,128 +42,157 @@ from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTe
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadingConditionsLine
 from test_loading_conditions_surface import TestLoadingConditionsSurface as TTestLoadingConditionsSurface
-# Multipoint constraint tests
-from test_multipoint_contstraints import TestMultipointConstraints as TTestMultipointConstraints
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 # Spring damper element test
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
-
+from test_harmonic_analysis import HarmonicAnalysisTestsWithHDF5 as THarmonicAnalysisTestsWithHDF5
+# Dynamic basic tests
+from test_dynamic_schemes import FastDynamicSchemesTests as TFastDynamicSchemesTests
+from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
+# Eigenvalues Postprocessing Process test
+from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
+# local-axis visualization tests
+from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
+# Test adjoint elements
+from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestCrBeamAdjointElement
+from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
+from test_truss_adjoint_element_3d2n import TestTrussAdjointElement as TTestTrussAdjointElement
+from test_truss_adjoint_element_3d2n import TestTrussLinearAdjointElement as TTestTrussLinearAdjointElement
+from test_adjoint_sensitity_analysis_beam_3d2n_structure import TestAdjointSensitivityAnalysisBeamStructure as TTestAdjointSensitivityAnalysisBeamStructure
+from test_adjoint_sensitity_analysis_shell_3d3n_structure import TestAdjointSensitivityAnalysisShell3D3NStructure as TTestAdjointSensitivityAnalysisShell3D3NStructure
+from test_adjoint_sensitity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
+from test_adjoint_sensitity_analysis_truss_3d2n_structure import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
 
 ##### SMALL TESTS #####
-# Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-from SmallTests import DynamicBossakTests as TDynamicBossakTests
-from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
-
+# Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMeshMovingTest
 
 ##### NIGHTLY TESTS #####
-# Basic moving mesh test
-from NightlyTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 # Patch test Small Displacements
-from NightlyTests import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
-from NightlyTests import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
-from NightlyTests import SDTwoDTensionQuaPatchTest as TSDTwoDTensionQuaPatchTest
-from NightlyTests import SDTwoDTensionTriPatchTest as TSDTwoDTensionTriPatchTest
-from NightlyTests import SDThreeDShearHexaPatchTest as TSDThreeDShearHexaPatchTest
-from NightlyTests import SDThreeDShearTetraPatchTest as TSDThreeDShearTetraPatchTest
-from NightlyTests import SDThreeDTensionHexaPatchTest as TSDThreeDTensionHexaPatchTest
-from NightlyTests import SDThreeDTensionTetraPatchTest as TSDThreeDTensionTetraPatchTest
+from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
+from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
+from structural_mechanics_test_factory import SDTwoDTensionQuaPatchTest as TSDTwoDTensionQuaPatchTest
+from structural_mechanics_test_factory import SDTwoDTensionTriPatchTest as TSDTwoDTensionTriPatchTest
+from structural_mechanics_test_factory import SDThreeDShearHexaPatchTest as TSDThreeDShearHexaPatchTest
+from structural_mechanics_test_factory import SDThreeDShearTetraPatchTest as TSDThreeDShearTetraPatchTest
+from structural_mechanics_test_factory import SDThreeDTensionHexaPatchTest as TSDThreeDTensionHexaPatchTest
+from structural_mechanics_test_factory import SDThreeDTensionTetraPatchTest as TSDThreeDTensionTetraPatchTest
 # Patch test Total Lagrangian
-from NightlyTests import TLTwoDShearQuaPatchTest as TTLTwoDShearQuaPatchTest
-from NightlyTests import TLTwoDShearTriPatchTest as TTLTwoDShearTriPatchTest
-from NightlyTests import TLTwoDTensionQuaPatchTest as TTLTwoDTensionQuaPatchTest
-from NightlyTests import TLTwoDTensionTriPatchTest as TTLTwoDTensionTriPatchTest
-from NightlyTests import TLThreeDShearHexaPatchTest as TTLThreeDShearHexaPatchTest
-from NightlyTests import TLThreeDShearTetraPatchTest as TTLThreeDShearTetraPatchTest
-from NightlyTests import TLThreeDTensionHexaPatchTest as TTLThreeDTensionHexaPatchTest
-from NightlyTests import TLThreeDTensionTetraPatchTest as TTLThreeDTensionTetraPatchTest
+from structural_mechanics_test_factory import TLTwoDShearQuaPatchTest as TTLTwoDShearQuaPatchTest
+from structural_mechanics_test_factory import TLTwoDShearTriPatchTest as TTLTwoDShearTriPatchTest
+from structural_mechanics_test_factory import TLTwoDTensionQuaPatchTest as TTLTwoDTensionQuaPatchTest
+from structural_mechanics_test_factory import TLTwoDTensionTriPatchTest as TTLTwoDTensionTriPatchTest
+from structural_mechanics_test_factory import TLThreeDShearHexaPatchTest as TTLThreeDShearHexaPatchTest
+from structural_mechanics_test_factory import TLThreeDShearTetraPatchTest as TTLThreeDShearTetraPatchTest
+from structural_mechanics_test_factory import TLThreeDTensionHexaPatchTest as TTLThreeDTensionHexaPatchTest
+from structural_mechanics_test_factory import TLThreeDTensionTetraPatchTest as TTLThreeDTensionTetraPatchTest
 # Patch test Updated Lagrangian
-from NightlyTests import ULTwoDShearQuaPatchTest as TULTwoDShearQuaPatchTest
-from NightlyTests import ULTwoDShearTriPatchTest as TULTwoDShearTriPatchTest
-from NightlyTests import ULTwoDTensionQuaPatchTest as TULTwoDTensionQuaPatchTest
-from NightlyTests import ULTwoDTensionTriPatchTest as TULTwoDTensionTriPatchTest
-from NightlyTests import ULThreeDShearHexaPatchTest as TULThreeDShearHexaPatchTest
-from NightlyTests import ULThreeDShearTetraPatchTest as TULThreeDShearTetraPatchTest
-from NightlyTests import ULThreeDTensionHexaPatchTest as TULThreeDTensionHexaPatchTest
-from NightlyTests import ULThreeDTensionTetraPatchTest as TULThreeDTensionTetraPatchTest
+from structural_mechanics_test_factory import ULTwoDShearQuaPatchTest as TULTwoDShearQuaPatchTest
+from structural_mechanics_test_factory import ULTwoDShearTriPatchTest as TULTwoDShearTriPatchTest
+from structural_mechanics_test_factory import ULTwoDTensionQuaPatchTest as TULTwoDTensionQuaPatchTest
+from structural_mechanics_test_factory import ULTwoDTensionTriPatchTest as TULTwoDTensionTriPatchTest
+from structural_mechanics_test_factory import ULThreeDShearHexaPatchTest as TULThreeDShearHexaPatchTest
+from structural_mechanics_test_factory import ULThreeDShearTetraPatchTest as TULThreeDShearTetraPatchTest
+from structural_mechanics_test_factory import ULThreeDTensionHexaPatchTest as TULThreeDTensionHexaPatchTest
+from structural_mechanics_test_factory import ULThreeDTensionTetraPatchTest as TULThreeDTensionTetraPatchTest
 # SPRISM tests
-from NightlyTests import SprismMembranePatchTests as TSprismMembranePatchTests
-from NightlyTests import SprismBendingPatchTests as TSprismBendingPatchTests
+from structural_mechanics_test_factory import SprismMembranePatchTests as TSprismMembranePatchTests
+from structural_mechanics_test_factory import SprismBendingPatchTests as TSprismBendingPatchTests
 # Eigenvalues tests
-from NightlyTests import EigenQ4Thick2x2PlateTests as TEigenQ4Thick2x2PlateTests
-from NightlyTests import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
-from NightlyTests import Eigen3D3NThinCircleTests as TEigen3D3NThinCircleTests
+from structural_mechanics_test_factory import EigenQ4Thick2x2PlateTests as TEigenQ4Thick2x2PlateTests
+from structural_mechanics_test_factory import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
+from structural_mechanics_test_factory import Eigen3D3NThinCircleTests as TEigen3D3NThinCircleTests
 # Membrane tests
-from NightlyTests import Fofi4PointTentnoCableTests as TFofi4PointTentnoCableTests
-from NightlyTests import Fofi4PointTentCableTests as TFofi4PointTentCableTests
-from NightlyTests import MembraneQ4PointLoadTests as TMembraneQ4PointLoadTests
-from NightlyTests import MembraneQ4TrussPointLoadTests as TMembraneQ4TrussPointLoadTests
+from structural_mechanics_test_factory import Fofi4PointTentnoCableTests as TFofi4PointTentnoCableTests
+from structural_mechanics_test_factory import Fofi4PointTentCableTests as TFofi4PointTentCableTests
+from structural_mechanics_test_factory import MembraneQ4PointLoadTests as TMembraneQ4PointLoadTests
+from structural_mechanics_test_factory import MembraneQ4TrussPointLoadTests as TMembraneQ4TrussPointLoadTests
 # 2Node Element tests
-from NightlyTests import Simple3D2NTrussTest as T3D2NTrussTest
-from NightlyTests import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
-from NightlyTests import Simple3D2NTrussDynamicTest as T3D2NTrussDynamicTest
-from NightlyTests import Simple3D2NBeamCrTest as T3D2NBeamCrTest
-from NightlyTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
-from NightlyTests import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
-from NightlyTests import Simple2D2NBeamCrTest as T2D2NBeamCrTest
+from structural_mechanics_test_factory import Simple3D2NTrussTest as T3D2NTrussTest
+from structural_mechanics_test_factory import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
+from structural_mechanics_test_factory import Simple3D2NTrussDynamicTest as T3D2NTrussDynamicTest
+from structural_mechanics_test_factory import Simple3D2NTrussLinearCompressionPlasticTest as T3D2NTrussLinearCompressionPlasticTest
+from structural_mechanics_test_factory import Simple3D2NTrussLinearTensionPlasticTest as T3D2NTrussLinearTensionPlasticTest
+from structural_mechanics_test_factory import Simple3D2NTrussNonLinearSnapthroughPlasticTest as T3D2NTrussNonLinearSnapthroughPlasticTest
+from structural_mechanics_test_factory import Simple3D2NTrussNonLinearTensionPlasticTest as T3D2NTrussNonLinearTensionPlasticTest
+from structural_mechanics_test_factory import Simple3D2NBeamCrTest as T3D2NBeamCrTest
+from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
+from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
+from structural_mechanics_test_factory import Simple2D2NBeamCrTest as T2D2NBeamCrTest
 # Shell tests
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
-from NightlyTests import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
-from NightlyTests import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
-from NightlyTests import ShellQ4ThickOrthotropicLaminateLinearStaticTests as TShellQ4ThickOrthotropicLaminateLinearStaticTests
-from NightlyTests import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollUpTests
-from NightlyTests import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests
-from NightlyTests import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
-from NightlyTests import ShellT3ThinOrthotropicLaminateLinearStaticTests as TShellT3ThinOrthotropicLaminateLinearStaticTests
-from NightlyTests import ShellT3ThickLinearStaticTests as TShellT3ThickLinearStaticTests
-from NightlyTests import ShellT3ThickNonLinearStaticTests as TShellT3ThickNonLinearStaticTests
-from NightlyTests import ShellT3ThickLinearDynamicTests as TShellT3ThickLinearDynamicTests
-from NightlyTests import ShellT3ThickNonLinearDynamicTests as TShellT3ThickNonLinearDynamicTests
-from NightlyTests import ShellT3ThickOrthotropicLaminateLinearStaticTests as TShellT3ThickOrthotropicLaminateLinearStaticTests
-from NightlyTests import ShellQ4ThinLinearStaticTests as TShellQ4ThinLinearStaticTests
-from NightlyTests import ShellQ4ThinNonLinearStaticTests as TShellQ4ThinNonLinearStaticTests
-from NightlyTests import ShellQ4ThinLinearDynamicTests as TShellQ4ThinLinearDynamicTests
-from NightlyTests import ShellQ4ThinNonLinearDynamicTests as TShellQ4ThinNonLinearDynamicTests
-from NightlyTests import ShellQ4ThinOrthotropicLaminateLinearStaticTests as TShellQ4ThinOrthotropicLaminateLinearStaticTests
+from structural_mechanics_test_factory import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
+from structural_mechanics_test_factory import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
+from structural_mechanics_test_factory import ShellQ4ThickOrthotropicLaminateLinearStaticTests as TShellQ4ThickOrthotropicLaminateLinearStaticTests
+from structural_mechanics_test_factory import ShellT3ThinBendingRollUpTests as TShellT3ThinBendingRollUpTests
+from structural_mechanics_test_factory import ShellT3ThinDrillingRollUpTests as TShellT3ThinDrillingRollUpTests
+from structural_mechanics_test_factory import ShellT3IsotropicScordelisTests as TShellT3IsotropicScordelisTests
+from structural_mechanics_test_factory import ShellT3ThinOrthotropicLaminateLinearStaticTests as TShellT3ThinOrthotropicLaminateLinearStaticTests
+from structural_mechanics_test_factory import ShellT3ThickLinearStaticTests as TShellT3ThickLinearStaticTests
+from structural_mechanics_test_factory import ShellT3ThickNonLinearStaticTests as TShellT3ThickNonLinearStaticTests
+from structural_mechanics_test_factory import ShellT3ThickLinearDynamicTests as TShellT3ThickLinearDynamicTests
+from structural_mechanics_test_factory import ShellT3ThickNonLinearDynamicTests as TShellT3ThickNonLinearDynamicTests
+from structural_mechanics_test_factory import ShellT3ThickOrthotropicLaminateLinearStaticTests as TShellT3ThickOrthotropicLaminateLinearStaticTests
+from structural_mechanics_test_factory import ShellQ4ThinLinearStaticTests as TShellQ4ThinLinearStaticTests
+from structural_mechanics_test_factory import ShellQ4ThinNonLinearStaticTests as TShellQ4ThinNonLinearStaticTests
+from structural_mechanics_test_factory import ShellQ4ThinLinearDynamicTests as TShellQ4ThinLinearDynamicTests
+from structural_mechanics_test_factory import ShellQ4ThinNonLinearDynamicTests as TShellQ4ThinNonLinearDynamicTests
+from structural_mechanics_test_factory import ShellQ4ThinOrthotropicLaminateLinearStaticTests as TShellQ4ThinOrthotropicLaminateLinearStaticTests
 ### ---| OLD Tests End
 # Shell tests
-from NightlyTests import ShellT3IsotropicLinearStaticStructScordelisLoRoofTests as TShellT3IsotropicLinearStaticStructScordelisLoRoofTests
-from NightlyTests import ShellT3AndQ4LinearStaticStructScordelisLoRoofTests as TShellT3AndQ4LinearStaticStructScordelisLoRoofTests
-from NightlyTests import ShellT3AndQ4LinearStaticStructPinchedCylinderTests as TShellT3AndQ4LinearStaticStructPinchedCylinderTests
-from NightlyTests import ShellT3AndQ4LinearStaticStructPinchedHemisphereTests as TShellT3AndQ4LinearStaticStructPinchedHemisphereTests
-from NightlyTests import ShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests as TShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests
-from NightlyTests import ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests as TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests
-from NightlyTests import ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests as TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests
-from NightlyTests import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests
-from NightlyTests import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
+from structural_mechanics_test_factory import ShellT3IsotropicLinearStaticStructScordelisLoRoofTests as TShellT3IsotropicLinearStaticStructScordelisLoRoofTests
+from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticStructScordelisLoRoofTests as TShellT3AndQ4LinearStaticStructScordelisLoRoofTests
+from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticStructPinchedCylinderTests as TShellT3AndQ4LinearStaticStructPinchedCylinderTests
+from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticStructPinchedHemisphereTests as TShellT3AndQ4LinearStaticStructPinchedHemisphereTests
+from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests as TShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests as TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests as TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
 # CL tests
-from NightlyTests import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
+from structural_mechanics_test_factory import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
+from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
+# Rigid test
+from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
 
 ##### VALIDATION TESTS #####
 # SPRISM tests
-from ValidationTests import SprismPanTests              as TSprismPanTests
+from structural_mechanics_test_factory import SprismPanTests              as TSprismPanTests
 # Pendulus Tests with Solid Elements
-from ValidationTests import PendulusTLTest              as TPendulusTLTest
-from ValidationTests import PendulusULTest              as TPendulusULTest
+from structural_mechanics_test_factory import PendulusTLTest              as TPendulusTLTest
+from structural_mechanics_test_factory import PendulusULTest              as TPendulusULTest
 # Pendulus Tests with Shell Elements
-from ValidationTests import ShellT3AndQ4NonLinearDynamicStructPendulusTests as TShellT3AndQ4NonLinearDynamicStructPendulusTests
-from ValidationTests import ShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests as TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests
-from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructPendulusTests as TShellT3AndQ4NonLinearDynamicUnstructPendulusTests
-from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructPendulusTests as TShellT3AndQ4NonLinearDynamicStructPendulusTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests as TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstructPendulusTests as TShellT3AndQ4NonLinearDynamicUnstructPendulusTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests
 # Shell tests
-from ValidationTests import ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests as TShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests
-from ValidationTests import ShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests as TShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests
-from ValidationTests import ShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests as TShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests
-from ValidationTests import ShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests as TShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests
-from ValidationTests import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests as TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests
-from ValidationTests import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests as TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests
-from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests
-from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests
+from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests as TShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests
+from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests as TShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests
+from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests as TShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests
+from structural_mechanics_test_factory import ShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests as TShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests as TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests as TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests
+from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests
 
+##### RESTART TESTS #####
+from restart_tests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
+from restart_tests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
+from restart_tests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
 
-def AssambleTestSuites():
+##### RESPONSE_FUNCTION #####
+from structural_response_function_test_factory import TestAdjointStrainEnergyResponseFunction as TTestAdjointStrainEnergyResponseFunction
+from structural_response_function_test_factory import TestAdjointDisplacementResponseFunction as TTestAdjointDisplacementResponseFunction
+from structural_response_function_test_factory import TestAdjointStressResponseFunction as TTestAdjointStressResponseFunction
+from structural_response_function_test_factory import TestMassResponseFunction as TTestMassResponseFunction
+from structural_response_function_test_factory import TestStrainEnergyResponseFunction as TTestStrainEnergyResponseFunction
+from structural_response_function_test_factory import TestEigenfrequencyResponseFunction as TTestEigenfrequencyResponseFunction
+
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -186,36 +219,47 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     # Shells
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
+    # Membranes
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N])) # TODO should be in smallSuite but is too slow
-    # Membranes
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Loading Conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
     # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
-    # Multipoint Constraint
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
+    # Dynamic basic tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TFastDynamicSchemesTests]))
+    # Eigenvalues Postprocessing Process test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+    # local-axis visualization tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
+    # Adjoint Elements
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
 
     ### Adding Small Tests
-    # Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-    smallSuite.addTest(TDynamicBossakTests('test_execution'))
-    smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
+    # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+    smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
+    # Basic restart test (leave these in the smallSuite to have the Exection script tested)
+    smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
+    smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
+    smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
 
     ### Adding Nightly Tests
-    # Basic moving mesh test
-    nightSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Patch test Small Displacements
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
@@ -255,6 +299,10 @@ def AssambleTestSuites():
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
     nightSuite.addTest(T3D2NTrussTest('test_execution'))
+    nightSuite.addTest(T3D2NTrussLinearCompressionPlasticTest('test_execution'))
+    nightSuite.addTest(T3D2NTrussLinearTensionPlasticTest('test_execution'))
+    nightSuite.addTest(T3D2NTrussNonLinearSnapthroughPlasticTest('test_execution'))
+    nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
@@ -270,6 +318,8 @@ def AssambleTestSuites():
     # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
     # Constitutive Law tests
     # nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
+    nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
+    nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
 
     if (missing_external_dependencies == False):
         if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):
@@ -279,10 +329,26 @@ def AssambleTestSuites():
             nightSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
             # Harmonic analysis test
             smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTests]))
+            nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
             # Element damping test
             nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests])) # TODO should be in smallSuite but is too slow
         else:
             print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisBeamStructure]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisLinearTrussStructure]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisNonLinearTrussStructure]))
+
+    nightSuite.addTest(TTestMassResponseFunction('test_execution'))
+    nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+
+    # Dynamic basic tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
 
     nightSuite.addTests(smallSuite)
 
@@ -315,7 +381,7 @@ def AssambleTestSuites():
     validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
     validationSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
     validationSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
@@ -340,4 +406,21 @@ def AssambleTestSuites():
 
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
+    try:
+        import KratosMultiphysics.mpi as KratosMPI
+        import KratosMultiphysics.MetisApplication as MetisApplication
+        import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"], stdout=subprocess.PIPE)
+        p.wait()
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
+    except ImportError:
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

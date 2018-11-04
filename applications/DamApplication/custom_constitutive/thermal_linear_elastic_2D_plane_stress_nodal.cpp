@@ -1,8 +1,8 @@
 //
-//   Project Name:   
-//   Last modified by:    $Author:     
-//   Date:                $Date:     
-//   Revision:            $Revision:     
+//   Project Name:
+//   Last modified by:    $Author:
+//   Date:                $Date:
+//   Revision:            $Revision:
 //
 
 /* Project includes */
@@ -62,7 +62,7 @@ void ThermalLinearElastic2DPlaneStressNodal::GetLawFeatures(Features& rFeatures)
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-    
+
     //Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
 
@@ -73,10 +73,11 @@ void ThermalLinearElastic2DPlaneStressNodal::GetLawFeatures(Features& rFeatures)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void ThermalLinearElastic2DPlaneStressNodal::CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables& rElasticVariables, double & rTemperature)
+void ThermalLinearElastic2DPlaneStressNodal::CalculateThermalStrain( Vector& rThermalStrainVector, const MaterialResponseVariables& rElasticVariables, double & rTemperature, double & rNodalReferenceTemperature)
 {
     KRATOS_TRY
-    
+
+
     //Identity vector
     rThermalStrainVector.resize(3,false);
     rThermalStrainVector[0] = 1.0;
@@ -84,12 +85,12 @@ void ThermalLinearElastic2DPlaneStressNodal::CalculateThermalStrain( Vector& rTh
     rThermalStrainVector[2] = 0.0;
 
     // Delta T
-    double DeltaTemperature = rTemperature - rElasticVariables.ReferenceTemperature;
+    double DeltaTemperature = rTemperature - rNodalReferenceTemperature;
 
     //Thermal strain vector
     for(unsigned int i = 0; i < 3; i++)
         rThermalStrainVector[i] *= rElasticVariables.ThermalExpansionCoefficient * DeltaTemperature;
-        
+
     KRATOS_CATCH( "" )
 }
 

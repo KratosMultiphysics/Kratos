@@ -7,34 +7,30 @@
 //
 //
 
-// System includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+// System includes
 
-// External includes 
-
-// Project includes
-#include "includes/node.h"
-#include "includes/define.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "utilities/openmp_utils.h"
+// External includes
 
 //Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
+
+// Project includes
+#include "includes/node.h"
+#include "linear_solvers/linear_solver.h"
+#include "utilities/openmp_utils.h"
 
 #include "custom_utilities/two_step_v_p_settings.h"
 
 namespace Kratos
 {
-	
+
   namespace Python
   {
-    
-    void  AddCustomUtilitiesToPython()
+
+    void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
 
-      using namespace boost::python;
+      using namespace pybind11;
     }
 
   }  // namespace Python.

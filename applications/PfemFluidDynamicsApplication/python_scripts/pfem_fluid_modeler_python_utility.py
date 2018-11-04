@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics 
-import KratosMultiphysics.PfemApplication as KratosPfem
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 KratosMultiphysics.CheckForPreviousImport()
 
 
@@ -76,7 +76,7 @@ class ModelerUtility:
         number_of_avg_nodes = 10
 
         # define search utility
-        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes)
+        nodal_neighbour_search = KratosDelaunay.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes)
 
         # execute search:
         nodal_neighbour_search.Execute()
@@ -90,7 +90,7 @@ class ModelerUtility:
         number_of_avg_elems = 10
          
         # define search utility
-        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.dimension, self.echo_level, number_of_avg_elems)
+        elemental_neighbour_search = KratosDelaunay.ElementalNeighboursSearch(self.model_part, self.dimension, self.echo_level, number_of_avg_elems)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -102,7 +102,7 @@ class ModelerUtility:
 
         # define calculation utility
         # normals_calculation = BoundaryNormalsCalculation()
-        normals_calculation = KratosPfem.BoundaryNormalsCalculation()
+        normals_calculation = KratosDelaunay.BoundaryNormalsCalculation()
 
         # execute calculation:
         #(scaled normals)
@@ -120,7 +120,7 @@ class ModelerUtility:
 
         # define building utility
         # skin_build = BuildMeshBoundary(self.model_part, self.dimension, self.echo_level)
-        skin_build = KratosPfem.BuildMeshBoundary(self.model_part, self.echo_level)
+        skin_build = KratosDelaunay.BuildMeshBoundary(self.model_part, self.echo_level)
 
         # execute building:
         skin_build.Execute()

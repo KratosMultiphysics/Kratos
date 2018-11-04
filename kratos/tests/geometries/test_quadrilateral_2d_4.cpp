@@ -19,6 +19,8 @@
 #include "testing/testing.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "tests/geometries/test_geometry.h"
+#include "tests/geometries/test_shape_function_derivatives.h"
+#include "tests/geometries/cross_check_shape_functions_values.h"
 
 // Utility includes
 #include "utilities/geometry_utilities.h"
@@ -151,6 +153,24 @@ namespace Testing
         KRATOS_CHECK_NEAR(TestResultB[0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(TestResultB[1], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(TestResultB[2], 0.0, TOLERANCE);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+      array_1d<double, 3> coord(3);
+      coord[0] = 1.0 / 2.0;
+      coord[1] = 1.0 / 4.0;
+      coord[2] = 0.0;
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.09375, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.28125, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.46875, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.15625, TOLERANCE);
+      CrossCheckShapeFunctionsValues(*geom);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        TestAllShapeFunctionsLocalGradients(*geom);
     }
 
 } // namespace Testing

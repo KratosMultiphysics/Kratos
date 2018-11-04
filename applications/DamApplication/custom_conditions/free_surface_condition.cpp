@@ -198,7 +198,7 @@ void FreeSurfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandS
 		noalias( rRightHandSideVector ) = ZeroVector( element_size );
 		
 
-		boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> MassMatrix;
+		BoundedMatrix<double,TNumNodes,TNumNodes> MassMatrix;
 		
 		 //Defining the shape functions, the jacobian and the shape functions local gradients Containers
 		array_1d<double,TNumNodes> Np;

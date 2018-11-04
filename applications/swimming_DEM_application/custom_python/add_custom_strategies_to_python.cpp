@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosTestApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,25 +41,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
-//   Last modified by:    $Author:  $
+
+//
+//   Project Name:        Kratos
+//   Last modified by:    $Author:  G. Casas (gcasas@cimne.upc.edu)$
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
 //
 //
 
-// System includes 
-
-// External includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
-#include "spaces/ublas_space.h"
+// System includes
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
+
+// External includes
+#include "spaces/ublas_space.h"
 
 //strategies
 #include "../DEM_application/custom_strategies/strategies/explicit_solver_strategy.h"
@@ -86,22 +83,33 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 	namespace Python
-	{		
-		using namespace boost::python;
+	{
+		using namespace pybind11;
 
-		void  AddCustomStrategiesToPython()
+		void  AddCustomStrategiesToPython(pybind11::module& m)
 		{
-            class_< HybridBashforthScheme, bases<SymplecticEulerScheme>, boost::noncopyable>
-            ("HybridBashforthScheme", init<>());
 
-            class_< TerminalVelocityScheme, bases<HybridBashforthScheme>, boost::noncopyable>
-            ("TerminalVelocityScheme", init<>());
+            class_< HybridBashforthScheme, typename HybridBashforthScheme::Pointer, SymplecticEulerScheme>
+            (m,  "HybridBashforthScheme").def(init<>());
 
-            class_< SymplecticEulerOldVelocityScheme, bases<SymplecticEulerScheme>, boost::noncopyable>
-            ("SymplecticEulerOldVelocityScheme", init<>());
-		  
-            class_< AdamsBashforthStrategy, bases<ExplicitSolverStrategy>, boost::noncopyable>
-            ("AdamsBashforthStrategy", init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, SpatialSearch::Pointer, const bool>());
+            class_< TerminalVelocityScheme, typename TerminalVelocityScheme::Pointer, HybridBashforthScheme>
+            (m,  "TerminalVelocityScheme").def(init<>());
+
+            class_< SymplecticEulerOldVelocityScheme, typename SymplecticEulerOldVelocityScheme::Pointer, SymplecticEulerScheme>
+            (m,  "SymplecticEulerOldVelocityScheme").def(init<>());
+
+            class_< AdamsBashforthStrategy, typename AdamsBashforthStrategy::Pointer, ExplicitSolverStrategy>
+            (m,  "AdamsBashforthStrategy")
+            .def(init<ExplicitSolverSettings&,
+                      double,
+                      double,
+                      double,
+                      int,
+                      ParticleCreatorDestructor::Pointer,
+                      DEM_FEM_Search::Pointer,
+                      SpatialSearch::Pointer,
+                      Parameters,
+                      const bool>());
 
             typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -113,12 +121,14 @@ namespace Kratos
             //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
-            class_< ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > >, boost::noncopyable >
-                    ("ResidualBasedDerivativeRecoveryStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
-                    .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
-                    .def("GetResidualNorm", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
-                    .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
-                    ;
+            class_< ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+                    typename ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
+                    ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > >
+            (m,  "ResidualBasedDerivativeRecoveryStrategy")
+            .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool>())
+            .def("GetResidualNorm", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
+            .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
+            ;
 		}
 
 	}  // namespace Python.

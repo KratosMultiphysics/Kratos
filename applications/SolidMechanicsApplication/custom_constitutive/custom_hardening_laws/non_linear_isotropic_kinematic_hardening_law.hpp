@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED )
+#if !defined(KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED)
 #define  KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED
 
 // System includes
@@ -44,7 +44,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) NonLinearIsotropicKinematicHardeningLaw 
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) NonLinearIsotropicKinematicHardeningLaw
 	: public HardeningLaw
 {
 public:
@@ -69,7 +69,7 @@ public:
     NonLinearIsotropicKinematicHardeningLaw& operator=(NonLinearIsotropicKinematicHardeningLaw const& rOther);
 
     /// Destructor.
-    ~NonLinearIsotropicKinematicHardeningLaw();
+    ~NonLinearIsotropicKinematicHardeningLaw() override;
 
     ///@}
     ///@name Operators
@@ -79,23 +79,23 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this hardening law
      */
-    virtual HardeningLaw::Pointer Clone() const;
+    HardeningLaw::Pointer Clone() const override;
 
     ///@}
     ///@name Operations
     ///@{
 
-    virtual double& CalculateHardening(double &rHardening, const Parameters& rValues);
-  
-    virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues);
+    double& CalculateHardening(double &rHardening, const Parameters& rValues) override;
 
-    virtual double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues);
+    double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues) override;
 
-    virtual double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues);
+    double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues) override;
 
-    virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues);
+    double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues) override;
 
-    virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const Parameters& rValues);
+    double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues) override;
+
+    double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const Parameters& rValues) override;
 
 
     ///@}
@@ -143,16 +143,16 @@ protected:
      * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
      */
 
-    double mTheta; 
-	
-     
+    double mTheta;
+
+
     ///@}
     ///@name Protected Operators
     ///@{
 
-    virtual double CalculateThermalReferenceEffect(const double &rTemperature);
+    double CalculateThermalReferenceEffect(const double &rTemperature) override;
 
-    virtual double CalculateThermalCurrentEffect(const double &rTemperature);
+    double CalculateThermalCurrentEffect(const double &rTemperature) override;
 
     ///@}
     ///@name Protected Operations
@@ -206,9 +206,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry
@@ -255,6 +255,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED  defined
 
 

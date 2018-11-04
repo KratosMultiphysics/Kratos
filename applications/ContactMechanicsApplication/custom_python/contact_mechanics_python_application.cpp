@@ -7,20 +7,16 @@
 //
 //
 
-
 // System includes
-
 #if defined(KRATOS_PYTHON)
-// External includes
-#include <boost/python.hpp>
 
+// External includes
 
 // Project includes
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_bounding_to_python.h"
-#include "custom_python/add_custom_modelers_to_python.h"
+#include "custom_python/add_custom_meshers_to_python.h"
 #include "custom_python/add_custom_friction_laws_to_python.h"
 
 #include "contact_mechanics_application.h"
@@ -31,48 +27,47 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace pybind11;
 
 
+PYBIND11_MODULE(KratosContactMechanicsApplication,m)
+{
 
-  BOOST_PYTHON_MODULE(KratosContactMechanicsApplication)
-  {
+  class_<KratosContactMechanicsApplication,
+         KratosContactMechanicsApplication::Pointer,
+         KratosApplication>(m,"KratosContactMechanicsApplication")
+      .def(init<>())
+      ;
 
-	  class_<KratosContactMechanicsApplication,
-		 KratosContactMechanicsApplication::Pointer,
-		 bases<KratosApplication>, boost::noncopyable >("KratosContactMechanicsApplication")
-	    ;
+  AddCustomUtilitiesToPython(m);
+  AddCustomProcessesToPython(m);
+  AddCustomBoundingToPython(m);
+  AddCustomMeshersToPython(m);
+  AddCustomFrictionLawsToPython(m);
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-	AddCustomProcessesToPython();
-        AddCustomBoundingToPython();
-	AddCustomModelersToPython();
-	AddCustomFrictionLawsToPython();
+  //registering variables in python
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_ACTIVE )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_PARAMETER )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_MULTIPLIER_NORMAL )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_MULTIPLIER_NORMAL_REACTION )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_MULTIPLIER_TANGENTIAL )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_MULTIPLIER_TANGENTIAL_REACTION )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TAU_STAB )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MU_STATIC )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MU_DYNAMIC )
+  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTACT_STRESS )
+  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, EFFECTIVE_CONTACT_STRESS )
+  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, EFFECTIVE_CONTACT_FORCE )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_ADHESION )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_FRICTION_ANGLE )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TANGENTIAL_PENALTY_RATIO )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_PLASTIC_SLIP )
 
-	//registering variables in python
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( FRICTION_ACTIVE )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( PENALTY_PARAMETER )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAGRANGE_MULTIPLIER_NORMAL )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAGRANGE_MULTIPLIER_NORMAL_REACTION )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAGRANGE_MULTIPLIER_TANGENTIAL )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAGRANGE_MULTIPLIER_TANGENTIAL_REACTION )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( TAU_STAB )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( MU_STATIC )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( MU_DYNAMIC )
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( CONTACT_STRESS )
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_STRESS )
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_FORCE )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONTACT_ADHESION )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONTACT_FRICTION_ANGLE )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENTIAL_PENALTY_RATIO )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONTACT_PLASTIC_SLIP )
+  //KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA)
 
-	//KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA)
-	
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( FRICTION_LAW )
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE( FRICTION_LAW_NAME )
-
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_LAW )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_LAW_NAME )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_STEP_TIME )
   }
 
 

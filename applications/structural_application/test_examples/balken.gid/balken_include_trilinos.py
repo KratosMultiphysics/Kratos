@@ -21,7 +21,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+# from KratosMultiphysics.MKLSolversApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.MetisApplication import *
 kernel = Kernel()  # defining kernel

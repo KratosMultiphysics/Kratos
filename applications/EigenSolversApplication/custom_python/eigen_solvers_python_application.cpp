@@ -9,37 +9,35 @@
 //  Author: Thomas Oberbichler
 */
 
-// System includes
-
 #if defined(KRATOS_PYTHON)
+
+// System includes
+#include <pybind11/pybind11.h>
+
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "eigen_solvers_application.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(KratosEigenSolversApplication, m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
+    py::class_<KratosEigenSolversApplication,
+           KratosEigenSolversApplication::Pointer,
+           KratosApplication>(m, "KratosEigenSolversApplication")
+        .def(py::init<>())
+        ;
 
-using namespace boost::python;
-
-BOOST_PYTHON_MODULE(KratosEigenSolversApplication)
-{
-
-	class_<KratosEigenSolversApplication,
-		   KratosEigenSolversApplication::Pointer,
-		   bases<KratosApplication>, boost::noncopyable>("KratosEigenSolversApplication");
-
-	AddCustomSolversToPython();
+    AddCustomSolversToPython(m);
 }
 
 } // namespace Python
-
 } // namespace Kratos
 
 #endif // defined(KRATOS_PYTHON)
