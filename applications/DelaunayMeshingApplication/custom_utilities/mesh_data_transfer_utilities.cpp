@@ -1116,7 +1116,7 @@ namespace Kratos
 		}
 
 		unsigned int id= ie->Id();
-		PointPointerType p_center =  Kratos::make_shared<PointType>(id,xc,yc,zc);
+		PointPointerType p_center =  std::make_intrusive<PointType>(id,xc,yc,zc);
 
 		// if ((*ie.base())->GetOptions().Is(Element::THERMAL))
 		//   std::cout<<" is thermal "<<std::endl;
