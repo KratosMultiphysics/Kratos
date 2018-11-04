@@ -193,8 +193,8 @@ public:
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
-#ifdef _OPENMP
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
 #else
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
@@ -221,8 +221,8 @@ public:
                     //calculate elemental contribution
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-#ifdef _OPENMP
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
 #else
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
@@ -729,16 +729,16 @@ public:
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished setting up the dofs" << std::endl;
 
 #ifdef _OPENMP
-        if (mlock_array.size() != 0)
+        if (mLockArray.size() != 0)
         {
-            for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
-                omp_destroy_lock(&mlock_array[i]);
+            for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
+                omp_destroy_lock(&mLockArray[i]);
         }
 
-        mlock_array.resize(BaseType::mDofSet.size());
+        mLockArray.resize(BaseType::mDofSet.size());
 
-        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
-            omp_init_lock(&mlock_array[i]);
+        for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
+            omp_init_lock(&mLockArray[i]);
 #endif
 
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -981,7 +981,7 @@ protected:
     ///@{
 
 #ifdef _OPENMP
-   std::vector< omp_lock_t > mlock_array;
+   std::vector<omp_lock_t> mLockArray;
 #endif
 
     ///@}
@@ -997,11 +997,11 @@ protected:
         TSystemVectorType& b,
         const LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemVectorType& RHS_Contribution,
-        const Element::EquationIdVectorType& EquationId
-#ifdef _OPENMP
+        Element::EquationIdVectorType& EquationId
+#ifdef USE_LOCKS_IN_ASSEMBLY
         ,std::vector< omp_lock_t >& lock_array
 #endif
-    )
+        )
     {
         unsigned int local_size = LHS_Contribution.size1();
 
@@ -1011,24 +1011,23 @@ protected:
 
             if (i_global < BaseType::mEquationSystemSize)
             {
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_set_lock(&lock_array[i_global]);
-#endif
                 b[i_global] += RHS_Contribution(i_local);
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = EquationId[j_local];
-                    if (j_global < BaseType::mEquationSystemSize)
-                    {
-                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                    }
-                }
-#ifdef _OPENMP
+#else
+                double& r_a = b[i_global];
+                const double& v_a = RHS_Contribution(i_local);
+                #pragma omp atomic
+                r_a += v_a;
+#endif
+                AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
+
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&lock_array[i_global]);
 #endif
-
             }
-            //note that assembly on fixed rows is not performed here
+
+            //note that computation of reactions is not performed here!
         }
     }
 
@@ -1084,7 +1083,7 @@ protected:
             if (ids[i] < BaseType::mEquationSystemSize)
             {
 #ifdef _OPENMP
-                                    omp_set_lock(&mlock_array[ids[i]]);
+                                    omp_set_lock(&mLockArray[ids[i]]);
 #endif
                auto& row_indices = indices[ids[i]];
                for (auto it = ids.begin(); it != ids.end(); it++)
@@ -1093,7 +1092,7 @@ protected:
                      row_indices.insert(*it);
                }
 #ifdef _OPENMP
-               omp_unset_lock(&mlock_array[ids[i]]);
+               omp_unset_lock(&mLockArray[ids[i]]);
 #endif
             }
          }
@@ -1110,7 +1109,7 @@ protected:
             if (ids[i] < BaseType::mEquationSystemSize)
             {
 #ifdef _OPENMP
-               omp_set_lock(&mlock_array[ids[i]]);
+               omp_set_lock(&mLockArray[ids[i]]);
 #endif
                auto& row_indices = indices[ids[i]];
                for (auto it = ids.begin(); it != ids.end(); it++)
@@ -1119,7 +1118,7 @@ protected:
                      row_indices.insert(*it);
                }
 #ifdef _OPENMP
-               omp_unset_lock(&mlock_array[ids[i]]);
+               omp_unset_lock(&mLockArray[ids[i]]);
 #endif
             }
          }
@@ -1286,6 +1285,81 @@ protected:
                 }
             }
         }
+    }
+
+    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, Element::EquationIdVectorType& EquationId)
+    {
+        double* values_vector = A.value_data().begin();
+        std::size_t* index1_vector = A.index1_data().begin();
+        std::size_t* index2_vector = A.index2_data().begin();
+
+        const std::size_t left_limit = index1_vector[i];
+
+        // Find the first entry
+        std::size_t last_pos, last_found;
+        std::size_t counter = 0;
+        for(std::size_t j=0; j < EquationId.size(); ++j) {
+            ++counter;
+            const std::size_t j_global = EquationId[j];
+            if (j_global < BaseType::mEquationSystemSize) {
+                last_pos = ForwardFind(j_global,left_limit,index2_vector);
+                last_found = j_global;
+                break;
+            }
+        }
+
+        if (counter < EquationId.size()) {
+#ifndef USE_LOCKS_IN_ASSEMBLY
+            double& r_a = values_vector[last_pos];
+            const double& v_a = Alocal(i_local,counter - 1);
+            #pragma omp atomic
+            r_a +=  v_a;
+#else
+            values_vector[last_pos] += Alocal(i_local,counter - 1);
+#endif
+            // Now find all of the other entries
+            std::size_t pos = 0;
+            for(std::size_t j=counter; j<EquationId.size(); ++j) {
+                std::size_t id_to_find = EquationId[j];
+                if (id_to_find < BaseType::mEquationSystemSize) {
+                    if(id_to_find > last_found)
+                        pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+                    else if(id_to_find < last_found)
+                        pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+                    else
+                        pos = last_pos;
+
+#ifndef USE_LOCKS_IN_ASSEMBLY
+                    double& r = values_vector[pos];
+                    const double& v = Alocal(i_local,j);
+                    #pragma omp atomic
+                    r +=  v;
+#else
+                    values_vector[pos] += Alocal(i_local,j);
+#endif
+                    last_found = id_to_find;
+                    last_pos = pos;
+                }
+            }
+        }
+    }
+
+    inline std::size_t ForwardFind(const std::size_t id_to_find,
+                                    const std::size_t start,
+                                    const size_t* index_vector)
+    {
+        std::size_t pos = start;
+        while(id_to_find != index_vector[pos]) pos++;
+        return pos;
+    }
+
+    inline std::size_t BackwardFind(const std::size_t id_to_find,
+                                     const std::size_t start,
+                                     const size_t* index_vector)
+    {
+        std::size_t pos = start;
+        while(id_to_find != index_vector[pos]) pos--;
+        return pos;
     }
 
     ///@}

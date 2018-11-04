@@ -381,15 +381,15 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
 
 #ifdef _OPENMP
-        if (BaseType::mlock_array.size() != 0) {
-            for (int i = 0; i < static_cast<int>(BaseType::mlock_array.size()); ++i) {
-                omp_destroy_lock(&BaseType::mlock_array[i]);
+        if (BaseType::mLockArray.size() != 0) {
+            for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
+                omp_destroy_lock(&BaseType::mLockArray[i]);
             }
         }
-        BaseType::mlock_array.resize(BaseType::mDofSet.size());
+        BaseType::mLockArray.resize(BaseType::mDofSet.size());
 
-        for (int i = 0; i < static_cast<int>(BaseType::mlock_array.size()); ++i) {
-            omp_init_lock(&BaseType::mlock_array[i]);
+        for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
+            omp_init_lock(&BaseType::mLockArray[i]);
         }
 #endif
 
@@ -679,7 +679,7 @@ protected:
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
                 #ifdef _OPENMP
-                    omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                     auto& row_indices = indices[ids[i]];
                     for (auto it = ids.begin(); it != ids.end(); ++it) {
@@ -687,7 +687,7 @@ protected:
                             row_indices.insert(*it);
                     }
                 #ifdef _OPENMP
-                    omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                 }
             }
@@ -701,7 +701,7 @@ protected:
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
                 #ifdef _OPENMP
-                    omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                     auto& row_indices = indices[ids[i]];
                     for (auto it = ids.begin(); it != ids.end(); ++it) {
@@ -709,7 +709,7 @@ protected:
                             row_indices.insert(*it);
                     }
                 #ifdef _OPENMP
-                    omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                 }
             }
@@ -725,24 +725,24 @@ protected:
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
                 #ifdef _OPENMP
-                    omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                    omp_set_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                     auto &row_indices = indices[ids[i]];
                     row_indices.insert(ids.begin(), ids.end());
                 #ifdef _OPENMP
-                    omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                    omp_unset_lock(&BaseType::mLockArray[ids[i]]);
                 #endif
                 }
             }
             for (IndexType i = 0; i < aux_ids.size(); ++i) {
                 if (aux_ids[i] < BaseType::mEquationSystemSize) {
                 #ifdef _OPENMP
-                    omp_set_lock(&BaseType::mlock_array[aux_ids[i]]);
+                    omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
                 #endif
                     auto &row_indices = indices[aux_ids[i]];
                     row_indices.insert(aux_ids.begin(), aux_ids.end());
                 #ifdef _OPENMP
-                    omp_unset_lock(&BaseType::mlock_array[aux_ids[i]]);
+                    omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
                 #endif
                 }
             }
@@ -989,7 +989,7 @@ protected:
 
                     // Assemble the constraint contribution
                 #ifdef _OPENMP
-                    AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, BaseType::mlock_array);
+                    AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, BaseType::mLockArray);
                 #else
                     AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
                 #endif
