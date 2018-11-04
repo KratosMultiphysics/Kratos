@@ -69,7 +69,7 @@ template<class TDataType,
          class TGetKeyType = SetIdentityFunction<TDataType>,
          class TCompareType = std::less<typename TGetKeyType::result_type>,
          class TEqualType = std::equal_to<typename TGetKeyType::result_type>,
-         class TPointerType = Kratos::shared_ptr<TDataType>,
+         class TPointerType = typename TDataType::Pointer,
          class TContainerType = std::vector<TPointerType> >
 class PointerVectorSet
 {
