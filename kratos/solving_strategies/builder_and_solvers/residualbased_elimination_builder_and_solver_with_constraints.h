@@ -138,17 +138,28 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
         ) : BaseType(pNewLinearSystemSolver)
-//         ) : BaseType(pNewLinearSystemSolver, ThisParameters)
     {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "reassemble_lhs" : false
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mReassembleLHS = ThisParameters["reassemble_lhs"].GetBool();
     }
 
     /**
      * @brief Default constructor
      */
     explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver)
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        const bool ReassembleLHS = false
+        )
         : BaseType(pNewLinearSystemSolver)
     {
+        // Set the flag
+        mReassembleLHS = ReassembleLHS;
     }
 
     /** Destructor.
@@ -267,7 +278,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             // Gets the array of conditions from the modeler
             ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
             const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-            #pragma omp for  schedule(guided, 512)
+            #pragma omp for  schedule(guided, 512) nowait
             for (int i = 0; i < number_of_conditions; ++i) {
                 auto it_cond = r_conditions_array.begin() + i;
 
@@ -278,7 +289,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
             auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
             const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-            #pragma omp for  schedule(guided, 512)
+            #pragma omp for  schedule(guided, 512) nowait
             for (int i = 0; i < number_of_constraints; ++i) {
                 auto it_const = r_constraints_array.begin() + i;
 
@@ -1101,6 +1112,7 @@ private:
     SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
 
     bool mCleared = true; /// If the system has been reseted
+    bool mReassembleLHS = false; /// If the LHS must be reconstructed after computing
 
     std::unordered_map<IndexType, IndexType> mSolvableDoFReorder; /// The correlation between the global total DoF order and the solvable DoF order
     std::unordered_map<IndexType, IndexSetType> mSlaveMasterDoFRelation; /// The relation between the slave and the master DoFs
@@ -1205,22 +1217,29 @@ private:
         rDx.resize(BaseType::mEquationSystemSize);
         TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
 
-        /* We reconstruct the rest of the system  */
-        // We compute the transposed matrix of the global relation matrix
-        TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
-        SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
+        // We reconstruct the LHS
+        if (mReassembleLHS) {
+            // We compute the transposed matrix of the global relation matrix
+            TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
+            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
 
-        // The auxiliar matrix to store the intermediate matrix multiplication
-        TSystemMatrixType auxiliar_A_matrix(BaseType::mEquationSystemSize, mDoFToSolveSystemSize);
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(rA, T_transpose_matrix, auxiliar_A_matrix);
+            // The auxiliar matrix to store the intermediate matrix multiplication
+            TSystemMatrixType auxiliar_A_matrix(BaseType::mEquationSystemSize, mDoFToSolveSystemSize);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(rA, T_transpose_matrix, auxiliar_A_matrix);
 
-        // We resize of system of equations
-        rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+            // We resize the LHS
+            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+
+            // Final multiplication
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(rTMatrix, auxiliar_A_matrix, rA);
+        } else {
+            // Simply resize
+            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+        }
+
+        // Reconstruct the RHS
         VectorType rb_copy(rb);
         rb.resize(BaseType::mEquationSystemSize, false);
-
-        // Final multiplication
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(rTMatrix, auxiliar_A_matrix, rA);
         TSparseSpace::Mult(rTMatrix, rb_copy, rb);
 
         // TODO: Remember that the constants are compued in the building side too
