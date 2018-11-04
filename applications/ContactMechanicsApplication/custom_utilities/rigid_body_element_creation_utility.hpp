@@ -303,21 +303,23 @@ public:
         {
 
           ModelPart::NodesContainerType::iterator it = it_begin + i;
-          std::cout<<" Rigid Link "<<it->Id()<<std::endl;
-          it->Set(SLAVE,false);
-          if (this->MatchTransferFlags(*(it.base()), TransferFlags))
-          {
-            // geometry point 2D or 3D type
-            GeometryType::Pointer pGeometry;
-            if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 3)
-              pGeometry = Kratos::make_shared<Point3DType>(*(it.base()));
-            else if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 2)
-              pGeometry = Kratos::make_shared<Point2DType>(*(it.base()));
+          if( it->IsNot(MASTER) ){
+            std::cout<<" Rigid Link "<<it->Id()<<std::endl;
+            it->Set(SLAVE,false);
+            if (this->MatchTransferFlags(*(it.base()), TransferFlags))
+            {
+              // geometry point 2D or 3D type
+              GeometryType::Pointer pGeometry;
+              if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 3)
+                pGeometry = Kratos::make_shared<Point3DType>(*(it.base()));
+              else if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 2)
+                pGeometry = Kratos::make_shared<Point2DType>(*(it.base()));
 
-            it->Set(SLAVE,true); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)
-            LinkConditions.push_back(this->CreateRigidBodyLinkCondition(ConditionName, Id, pGeometry, pProperties));
-            LinkConditions.back().Set(INTERACTION);
-            ++Id;
+              it->Set(SLAVE,true); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)
+              LinkConditions.push_back(this->CreateRigidBodyLinkCondition(ConditionName, Id, pGeometry, pProperties));
+              LinkConditions.back().Set(INTERACTION);
+              ++Id;
+            }
           }
         }
       }

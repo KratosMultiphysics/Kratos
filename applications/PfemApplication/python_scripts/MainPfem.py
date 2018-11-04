@@ -144,12 +144,11 @@ class PfemSolution(MainSolid.Solution):
                         default_settings["Parameters"]["direction"][counter].SetDouble(i)
                         counter+=1
 
+                model_part_name = self.model.GetMainModelPart().Name
+                default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
 
-        model_part_name = self.model.GetMainModelPart().Name
-        default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
-
-        loads_processes.Append(default_settings)
-
+                loads_processes.Append(default_settings)
+                
         return loads_processes
 
     def _set_particle_properties_process(self, problem_processes):

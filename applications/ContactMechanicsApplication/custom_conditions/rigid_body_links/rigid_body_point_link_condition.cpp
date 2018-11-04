@@ -1511,6 +1511,8 @@ void RigidBodyPointLinkCondition::CalculateAndAddForces(VectorType& rRightHandSi
   Vector ForceVector(3);
   noalias(ForceVector) = ZeroVector(3);
 
+  //std::cout<<" Slave RHS vector "<<rLinkedRightHandSideVector<<std::endl;
+  
   for(SizeType i=0; i<rVariables.SlaveNodeLinearBlockSize; i++)
   {
     rRightHandSideVector[start_master+i] += rLinkedRightHandSideVector[start_slave+i];
@@ -1522,6 +1524,8 @@ void RigidBodyPointLinkCondition::CalculateAndAddForces(VectorType& rRightHandSi
   Vector MomentVector(3);
   noalias(MomentVector) = prod(rVariables.SlaveSkewSymDistance,ForceVector);
 
+  //std::cout<<" ForceVector "<<ForceVector<<" Moment "<<MomentVector<<" skew "<<rVariables.SlaveSkewSymDistance<<std::endl;
+  
   for(SizeType i=0; i<rVariables.MasterAngularBlockSize; i++)
   {
     rRightHandSideVector[start_master+rVariables.MasterLinearBlockSize+i] -= MomentVector[start_rotation+i];
