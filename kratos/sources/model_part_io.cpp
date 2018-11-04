@@ -459,12 +459,11 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Start("Reading Input");
+        Timer::Start("Reading Input");
 
         ResetInput();
         std::string word;
-        while(true)
-        {
+        while(true) {
             ReadWord(word);
             if(mpStream->eof())
                 break;
@@ -523,13 +522,13 @@ namespace Kratos
             }
         }
         KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
-        if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Stop("Reading Input");
+        Timer::Stop("Reading Input");
         KRATOS_CATCH("")
     }
 
     void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
     {
-        if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Start("Writing Output");
+        Timer::Start("Writing Output");
 
         // Setting the buffer size
     //     size_t size_buffer = 4096; // Look to modify this
@@ -552,7 +551,7 @@ namespace Kratos
 
         KRATOS_INFO("ModelPartIO") << "  [Total Lines Wrote : " << mNumberOfLines<<"]" << std::endl;
 
-        if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Stop("Writing Output");
+        Timer::Stop("Writing Output");
     }
 
 
