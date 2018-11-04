@@ -34,7 +34,7 @@
 #include "containers/variables_list_data_value_container.h"
 #include "utilities/indexed_object.h"
 #include "containers/flags.h"
-#include "containers/intrusive_ptr.hpp"
+#include "intrusive_ptr/intrusive_ptr.hpp"
 #include "containers/weak_pointer_vector.h"
 
 #ifdef _OPENMP
