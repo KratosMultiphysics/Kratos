@@ -520,7 +520,7 @@ protected:
 
             if (i_global < BaseType::mEquationSystemSize) {
             #ifdef USE_LOCKS_IN_ASSEMBLY
-                omp_set_lock(&lock_array[i_global]);
+                omp_set_lock(&rLockArray[i_global]);
             #endif
 
                 BaseType::AssembleRowContribution(rT, rTransformationMatrix, i_global, i_local, rMasterEquationId);
@@ -615,12 +615,6 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        // Getting the elements from the model
-        const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
-
-        // Getting the array of the conditions
-        const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
-
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         const SizeType equation_size = BaseType::mEquationSystemSize;
@@ -633,90 +627,95 @@ protected:
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
-
-        // Element initial iterator
-        const auto el_begin = rModelPart.ElementsBegin();
-
-        #pragma omp parallel for firstprivate(number_of_elements, ids, r_current_process_info)
-        for (int i_elem = 0; i_elem<number_of_elements; i_elem++) {
-            auto it_elem = el_begin + i_elem;
-            pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
-
-            for (auto& id_i : ids) {
-                if (id_i < BaseType::mEquationSystemSize) {
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&BaseType::mLockArray[id_i]);
-                #endif
-                    auto& row_indices = indices[id_i];
-                    for (auto& id_j : ids)
-                        if (id_j < BaseType::mEquationSystemSize)
-                            row_indices.insert(id_j);
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&BaseType::mLockArray[id_i]);
-                #endif
-                }
-            }
-        }
-
-        // Condition initial iterator
-        const auto cond_begin = rModelPart.ConditionsBegin();
-
-        #pragma omp parallel for firstprivate(number_of_conditions, ids, r_current_process_info)
-        for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
-            auto it_cond = cond_begin + i_cond;
-            pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
-            for (auto& id_i : ids) {
-                if (id_i < BaseType::mEquationSystemSize) {
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&BaseType::mLockArray[id_i]);
-                #endif
-                    auto& row_indices = indices[id_i];
-                    for (auto& id_j : ids)
-                        if (id_j < BaseType::mEquationSystemSize)
-                            row_indices.insert(id_j);
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&BaseType::mLockArray[id_i]);
-                #endif
-                }
-            }
-        }
-
         EquationIdVectorType aux_ids(3, 0);
 
-        // Constraint initial iterator
-        const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
+        #pragma omp parallel firstprivate(ids, r_current_process_info)
+        {
+            std::vector<IndexSetType> aux_indices(equation_size);
 
-        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        #pragma omp parallel for firstprivate(number_of_constraints, ids, aux_ids, r_current_process_info)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = const_begin + i_const;
-            it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
-            for (auto& id_i : ids) {
-                if (id_i < BaseType::mEquationSystemSize) {
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&BaseType::mLockArray[id_i]);
-                #endif
-                    auto& row_indices = indices[id_i];
-                    for (auto& id_j : ids)
-                    if (id_j < BaseType::mEquationSystemSize)
-                        row_indices.insert(id_j);
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&BaseType::mLockArray[id_i]);
-                #endif
+            #pragma omp for
+            for (int index = 0; index < static_cast<int>(equation_size); ++index)
+                aux_indices[index].reserve(10);
+
+            // Getting the elements from the model
+            const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
+
+            // Element initial iterator
+            const auto el_begin = rModelPart.ElementsBegin();
+
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_elem = 0; i_elem<number_of_elements; i_elem++) {
+                auto it_elem = el_begin + i_elem;
+                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                    #ifdef USE_LOCKS_IN_ASSEMBLY
+                        omp_set_lock(&BaseType::mLockArray[id_i]);
+                    #endif
+                        auto& row_indices = aux_indices[id_i];
+                        for (auto& id_j : ids)
+                            if (id_j < BaseType::mEquationSystemSize)
+                                row_indices.insert(id_j);
+                    #ifdef USE_LOCKS_IN_ASSEMBLY
+                        omp_unset_lock(&BaseType::mLockArray[id_i]);
+                    #endif
+                    }
                 }
             }
-            for (auto& id_i : aux_ids) {
-                if (id_i < BaseType::mEquationSystemSize) {
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&BaseType::mLockArray[id_i]);
-                #endif
-                    auto& row_indices = indices[id_i];
-                    for (auto& id_j : aux_ids)
-                    if (id_j < BaseType::mEquationSystemSize)
-                        row_indices.insert(id_j);
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&BaseType::mLockArray[id_i]);
-                #endif
+
+            // Getting the array of the conditions
+            const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
+
+            // Condition initial iterator
+            const auto cond_begin = rModelPart.ConditionsBegin();
+
+            #pragma omp parallel for firstprivate(number_of_conditions, ids, r_current_process_info)
+            for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
+                auto it_cond = cond_begin + i_cond;
+                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = aux_indices[id_i];
+                        for (auto& id_j : ids)
+                            if (id_j < BaseType::mEquationSystemSize)
+                                row_indices.insert(id_j);
+                    }
+                }
+            }
+
+
+
+            // Constraint initial iterator
+            const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
+
+            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+            #pragma omp parallel for firstprivate(number_of_constraints, ids, aux_ids, r_current_process_info)
+            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                auto it_const = const_begin + i_const;
+                it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = aux_indices[id_i];
+                        for (auto& id_j : ids)
+                        if (id_j < BaseType::mEquationSystemSize)
+                            row_indices.insert(id_j);
+                    }
+                }
+                for (auto& id_i : aux_ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = aux_indices[id_i];
+                        for (auto& id_j : aux_ids)
+                        if (id_j < BaseType::mEquationSystemSize)
+                            row_indices.insert(id_j);
+                    }
+                }
+            }
+
+            #pragma omp critical
+            {
+                for (int i = 0; i < static_cast<int>(aux_indices.size()); ++i) {
+                    indices[i].insert(aux_indices[i].begin(), aux_indices[i].end());
                 }
             }
         }
