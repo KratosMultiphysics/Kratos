@@ -997,7 +997,7 @@ protected:
         TSystemVectorType& b,
         const LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId
+        const Element::EquationIdVectorType& EquationId
 #ifdef USE_LOCKS_IN_ASSEMBLY
         ,std::vector< omp_lock_t >& lock_array
 #endif
@@ -1026,7 +1026,6 @@ protected:
                 omp_unset_lock(&lock_array[i_global]);
 #endif
             }
-
             //note that computation of reactions is not performed here!
         }
     }
@@ -1287,7 +1286,7 @@ protected:
         }
     }
 
-    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, Element::EquationIdVectorType& EquationId)
+    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, const Element::EquationIdVectorType& EquationId)
     {
         double* values_vector = A.value_data().begin();
         std::size_t* index1_vector = A.index1_data().begin();
@@ -1345,8 +1344,8 @@ protected:
     }
 
     inline std::size_t ForwardFind(const std::size_t id_to_find,
-                                    const std::size_t start,
-                                    const size_t* index_vector)
+                                   const std::size_t start,
+                                   const std::size_t* index_vector)
     {
         std::size_t pos = start;
         while(id_to_find != index_vector[pos]) pos++;
@@ -1354,8 +1353,8 @@ protected:
     }
 
     inline std::size_t BackwardFind(const std::size_t id_to_find,
-                                     const std::size_t start,
-                                     const size_t* index_vector)
+                                    const std::size_t start,
+                                    const std::size_t* index_vector)
     {
         std::size_t pos = start;
         while(id_to_find != index_vector[pos]) pos--;
