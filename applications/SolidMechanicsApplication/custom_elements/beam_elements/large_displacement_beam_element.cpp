@@ -485,7 +485,6 @@ namespace Kratos
 
     if( this->Is(BeamElement::FINALIZED_STEP) ){
 
-      //rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
       for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
@@ -1736,7 +1735,7 @@ namespace Kratos
 
     Vector CurrentStepRotationVector(3);
     noalias(CurrentStepRotationVector) = ZeroVector(3);
- 
+
     Vector AngularVelocityVector(3);
     noalias(AngularVelocityVector) = ZeroVector(3);
     Vector AngularAccelerationVector(3);

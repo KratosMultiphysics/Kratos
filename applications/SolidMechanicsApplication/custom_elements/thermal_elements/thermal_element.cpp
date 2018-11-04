@@ -302,7 +302,7 @@ void ThermalElement::InitializeGeneralVariables (GeneralVariables & rVariables, 
   rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
   //Calculate Delta Position
-  rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+  ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
   //set variables including all integration points values
 
@@ -358,22 +358,6 @@ void ThermalElement::CalculateKinematics(GeneralVariables& rVariables,
     KRATOS_CATCH( "" )
 }
 
-
-//*************************COMPUTE DELTA POSITION*************************************
-//************************************************************************************
-
-Matrix& ThermalElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
-{
-    KRATOS_TRY
-
-    const GeometryType& rGeometry = GetGeometry();
-
-    ElementUtilities::CalculateDeltaPosition(rDeltaPosition,rGeometry);
-
-    return rDeltaPosition;
-
-    KRATOS_CATCH( "" )
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -545,7 +529,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
             HeatSource = GetProperties()[HEAT_SOURCE];
             // std::cout<<" HeatSource "<<HeatSource<<std::endl;
           }
-          
+
           Variables.PlasticDissipation=0;
           if( thermo_mechanical ){
             //std::cout<<" thermo_mechanical element RHS ["<<this->Id()<<"]"<<std::endl;
@@ -942,14 +926,14 @@ int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
      // Check that all required variables have been registered
      KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
-     
+
      KRATOS_CHECK_VARIABLE_KEY(HEAT_CAPACITY);
      KRATOS_CHECK_VARIABLE_KEY(HEAT_CONDUCTIVITY);
-     
+
      KRATOS_CHECK_VARIABLE_KEY(HEAT_SOURCE);
      KRATOS_CHECK_VARIABLE_KEY(PLASTIC_DISSIPATION);
      KRATOS_CHECK_VARIABLE_KEY(DELTA_PLASTIC_DISSIPATION);
-     
+
      return 0;
 
      KRATOS_CATCH( "" );

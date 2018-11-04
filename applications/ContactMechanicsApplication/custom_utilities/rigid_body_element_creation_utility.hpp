@@ -301,7 +301,9 @@ public:
 
         for(int i = 0; i<nnodes; i++)
         {
+
           ModelPart::NodesContainerType::iterator it = it_begin + i;
+          std::cout<<" Rigid Link "<<it->Id()<<std::endl;
           it->Set(SLAVE,false);
           if (this->MatchTransferFlags(*(it.base()), TransferFlags))
           {
@@ -312,7 +314,7 @@ public:
             else if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 2)
               pGeometry = Kratos::make_shared<Point2DType>(*(it.base()));
 
-            it->Set(SLAVE,true); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)        
+            it->Set(SLAVE,true); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)
             LinkConditions.push_back(this->CreateRigidBodyLinkCondition(ConditionName, Id, pGeometry, pProperties));
             LinkConditions.back().Set(INTERACTION);
             ++Id;

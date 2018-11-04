@@ -397,6 +397,8 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
     }
   }
 
+  std::cout<<" Slave node "<<rVariables.SlaveNode<<" "<<GetGeometry()[inode].Id()<<" size "<<SlaveGeometry.size()<<std::endl;
+
   DofsVectorType ElementalDofList;
   rVariables.pSlaveElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
   rVariables.SlaveNodeLinearBlockSize = 0;
@@ -453,11 +455,11 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
     rVariables.RigidSkewSymDistances.push_back(rVariables.SlaveSkewSymDistance);
   }
 
-  Distance = SlaveGeometry[inode].Coordinates() - MasterElement.GetGeometry()[0].Coordinates();
+  Distance = SlaveGeometry[rVariables.SlaveNode].Coordinates() - MasterElement.GetGeometry()[0].Coordinates();
   BeamMathUtilsType::VectorToSkewSymmetricTensor(Distance, rVariables.SlaveSkewSymDistance);
 
-  //std::cout<<" Distance "<<norm_2(rVariables.Distance)<<std::endl;
-
+  std::cout<<" Distance "<<norm_2(Distance)<<" D "<<Distance<<std::endl;
+  std::cout<<" SkewSym "<<rVariables.SlaveSkewSymDistance<<std::endl;
 
   KRATOS_CATCH("")
 }
@@ -510,7 +512,8 @@ void RigidBodyPointLinkCondition::CalculateAndAddLHS(LocalSystemComponents& rLoc
   if(rLinkedLeftHandSideMatrix.size1()!=0)
     this->CalculateAndAddTangent(rLeftHandSideMatrix, rLinkedLeftHandSideMatrix, rVariables);
 
-  //KRATOS_WATCH( rLeftHandSideMatrix )
+  // KRATOS_WATCH( rLinkedLeftHandSideMatrix )
+  // KRATOS_WATCH( rLeftHandSideMatrix )
 
   KRATOS_CATCH("")
 }
@@ -530,8 +533,9 @@ void RigidBodyPointLinkCondition::CalculateAndAddRHS(LocalSystemComponents& rLoc
   if(rLinkedRightHandSideVector.size()!=0)
     this->CalculateAndAddForces(rRightHandSideVector, rLinkedRightHandSideVector, rVariables);
 
-  //KRATOS_WATCH( rRightHandSideVector )
-      
+  // KRATOS_WATCH( rLinkedRightHandSideVector )
+  // KRATOS_WATCH( rRightHandSideVector )
+
   KRATOS_CATCH("")
 }
 
@@ -571,7 +575,7 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
   SizeType local_index = 0;
   for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
-    // std::cout<<" SLAVE ELEMENT "<<ie->Id()<<" nodes "<<ie->GetGeometry().size()<<std::endl;
+    //std::cout<<" ["<<this->Id()<<"] SLAVE ELEMENT "<<ie->Id()<<" nodes "<<ie->GetGeometry().size()<<std::endl;
 
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -599,7 +603,7 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
 
     LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
-    
+
     //std::cout<<"[LINK]: "<<ie->Id()<<std::endl;
     //Calculate condition system
     Element::Pointer pSlaveElement = Element::Pointer(*(ie.base()));
@@ -623,8 +627,8 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
     //std::cout<<" Assemble SLAVE finish "<<ie->Id()<<std::endl;
   }
 
-  // std::cout<<" LINK RighHandSide "<<rRightHandSideVector<<std::endl;
-  // std::cout<<" LINK LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
+  std::cout<<" LINK RighHandSide "<<rRightHandSideVector<<std::endl;
+  std::cout<<" LINK LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
 }
 
 //************************************************************************************
@@ -737,6 +741,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
   SizeType local_index = 0;
   for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
+    //std::cout<<" ["<<this->Id()<<"] 2nd SLAVE ELEMENT "<<ie->Id()<<" nodes "<<ie->GetGeometry().size()<<std::endl;
 
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -779,8 +784,8 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
     ++counter;
   }
 
-  // std::cout<<" LINK Dynamic RighHandSide "<<rRightHandSideVector<<std::endl;
-  // std::cout<<" LINK Dynamic LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
+  std::cout<<" LINK Dynamic RighHandSide "<<rRightHandSideVector<<std::endl;
+  std::cout<<" LINK Dynamic LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
 
   KRATOS_CATCH("")
 }

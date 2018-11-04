@@ -43,7 +43,7 @@ class ElementUtilities
    * @param rDeltaPosition, matrix storing the displacement or position increment, returned parameter
    * @param rGeometry, geometry where the gradient is calculated
    */
-  static inline void CalculateDeltaPosition(Matrix & rDeltaPosition, const GeometryType& rGeometry)
+  static inline void CalculateDeltaPosition(Matrix& rDeltaPosition, const GeometryType& rGeometry)
   {
 
     const SizeType number_of_nodes = rGeometry.PointsNumber();
@@ -54,15 +54,32 @@ class ElementUtilities
 
     //noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
 
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
+    if( rGeometry[0].SolutionStepsDataHas(STEP_DISPLACEMENT) )
     {
-      const array_1d<double, 3 > & CurrentDisplacement  = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
-      const array_1d<double, 3 > & PreviousDisplacement = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-      for ( SizeType j = 0; j < dimension; j++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
-        rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        const array_1d<double, 3 > & CurrentStepDisplacement = rGeometry[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
+
+        for ( SizeType j = 0; j < dimension; j++ )
+        {
+          rDeltaPosition(i,j) = CurrentStepDisplacement[j];
+        }
+
       }
+    }
+    else{
+
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        const array_1d<double, 3 > & CurrentDisplacement  = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & PreviousDisplacement = rGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( SizeType j = 0; j < dimension; j++ )
+        {
+          rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+      }
+
     }
 
   }

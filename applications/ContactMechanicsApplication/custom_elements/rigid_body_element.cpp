@@ -676,8 +676,8 @@ void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeft
       noalias(rRightHandSideVector) = ZeroVector( dofs_size ); //resetting RHS
     }
 
-    // std::cout<<" RIGID BODY RHS "<<rRightHandSideVector<<std::endl;
-    // std::cout<<" RIGID BODY LHS "<<rLeftHandSideMatrix<<std::endl;
+    std::cout<<" RIGID BODY RHS "<<rRightHandSideVector<<std::endl;
+    std::cout<<" RIGID BODY LHS "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1347,14 +1347,14 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
        //compute the contribution of the angular velocity to the velocity v = Wxr
        noalias(Variable) = prod(SkewSymVariable,Radius);
 
-       noalias((i)->FastGetSolutionStepValue(VELOCITY)) += Variable;
+       (i)->FastGetSolutionStepValue(VELOCITY) += Variable;
 
        // Update Acceleration:
 
        //centripetal acceleration:
        Variable = prod(SkewSymVariable,Variable); //ac = Wx(Wxr)
 
-       noalias((i)->FastGetSolutionStepValue(ACCELERATION)) += Variable;
+       (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
 
        //compute the skewsymmmetric tensor of the angular acceleration
        BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularAcceleration, SkewSymVariable);
@@ -1362,8 +1362,10 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
        //compute the contribution of the angular velocity to the velocity a = Axr
        noalias(Variable) = prod(SkewSymVariable,Radius);
 
-       noalias((i)->FastGetSolutionStepValue(ACCELERATION)) += Variable;
+       (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
 
+
+       std::cout<<" Id "<<i->Id()<<" velocity "<<(i)->FastGetSolutionStepValue(VELOCITY)<<" Velocity "<<Velocity<<std::endl;
        // std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
        // std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;
        // std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;

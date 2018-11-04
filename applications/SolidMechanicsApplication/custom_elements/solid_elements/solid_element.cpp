@@ -1681,6 +1681,15 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
+
+      if(rCurrentProcessInfo.Has(COMPONENT_TIME_INTEGRATION_METHODS)){
+        std::string integration = "DISPLACEMENT_X";
+        integration = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->GetMethodVariableName(integration);
+        double parameter = 1.0;
+        parameter = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->Get(integration)->GetSecondDerivativeInertialFactor(parameter);
+        rLeftHandSideMatrix *= parameter;
+      }
+
     }
     else{
 
@@ -1751,6 +1760,13 @@ void SolidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
+      if(rCurrentProcessInfo.Has(COMPONENT_TIME_INTEGRATION_METHODS)){
+        std::string integration = "DISPLACEMENT_X";
+        integration = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->GetMethodVariableName(integration);
+        double parameter = 1.0;
+        parameter = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->Get(integration)->GetSecondDerivativeInertialFactor(parameter);
+        rLeftHandSideMatrix *= parameter;
+      }
     }
     else{
 
