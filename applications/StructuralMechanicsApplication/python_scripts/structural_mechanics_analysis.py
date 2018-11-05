@@ -73,6 +73,39 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
+
+    def Check(self):
+        super(StructuralMechanicsAnalysis, self).Check()
+
+        # TODO this "if" is only for backwards-compatibility => to be removed
+        if not self.project_parameters.Has("processes"):
+            return
+
+        # Checking if the processes-modelparts are added to the computing-modelpart
+        solver_settings = self.project_parameters["solver_settings"]
+
+        main_model_part_name = solver_settings["model_part_name"].GetString()
+
+        # creating a list with the names of smps that will be added to the ComputingModelPart
+        processes_smp_param = solver_settings["processes_sub_model_part_list"]
+        list_smp_names = []
+        for i in range(processes_smp_param.size()):
+            list_smp_names.append(processes_smp_param[i].GetString())
+
+        for processes_block in self.project_parameters["processes"].values():
+            for i_proc in range(processes_block.size()):
+                process_params = processes_block[i_proc]["Parameters"]
+                if process_params.Has("model_part_name"):
+                    model_part_name = process_params["model_part_name"].GetString()
+                    if model_part_name.startswith(main_model_part_name):
+                        model_part_name = model_part_name.replace(main_model_part_name+".","")
+                    if model_part_name not in list_smp_names:
+                        warn_msg  = 'The SubModelPart with name "' + model_part_name + '"\n'
+                        warn_msg += 'is used for a process but is not added to the ComputingModelPart!\n'
+                        warn_msg += 'This can be done by adding it to "processes_sub_model_part_list" '
+                        warn_msg += 'in "solver_settings"\n'
+                        KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
+
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
