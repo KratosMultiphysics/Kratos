@@ -1396,8 +1396,8 @@ namespace Kratos {
         {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
-                mListOfSphericParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
+                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
+                mListOfSphericParticles[i]->mBondElements.resize(neighbors_size);
                 for (unsigned int j = 0; j < mListOfSphericParticles[i]->mBondElements.size(); j++) {
                     mListOfSphericParticles[i]->mBondElements[j] = NULL;
                 }
@@ -1409,9 +1409,9 @@ namespace Kratos {
             for (int i = 0; i < number_of_particles; i++) {
                 bool add_new_bond = true;
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericParticles[i]->mNeighbourElements;
-                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
+                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
 
-                for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
+                for (unsigned int j = 0; j < neighbors_size; j++) {
                     SphericParticle* neighbour_element = dynamic_cast<SphericParticle*> (neighbour_elements[j]);
                     if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
                     if (mListOfSphericParticles[i]->Id() > neighbour_element->Id()) continue;
@@ -1461,9 +1461,9 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericParticles[i]->mNeighbourElements;
-                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
+                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
 
-                for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
+                for (unsigned int j = 0; j < neighbors_size; j++) {
                     SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*> (neighbour_elements[j]);
                     if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
                     //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
