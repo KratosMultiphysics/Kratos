@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 from json_utilities import *
-import json
 
 # Importing the base class
 from json_output_process import JsonOutputProcess
@@ -46,7 +45,6 @@ class ParticleMPMJsonOutputProcess(JsonOutputProcess):
                     variable_name = out.GetString()
                     variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                     variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
-                    value = mp.GetValue(variable)
 
                     if (variable_type == "Double" or variable_type == "Component"):
                         if (self.resultant_solution == False):
