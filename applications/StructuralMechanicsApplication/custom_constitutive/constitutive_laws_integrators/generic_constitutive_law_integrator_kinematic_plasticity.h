@@ -187,7 +187,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
             threshold_indicator = rUniaxialStress - rThreshold;
-            plastic_consistency_factor_increment = F * rPlasticDenominator;
+            plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
             //if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0;
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
