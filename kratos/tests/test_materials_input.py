@@ -26,7 +26,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
     def _prepare_test(self):
         # Define a Model
         self.current_model = KratosMultiphysics.Model()
-        
+
         self.model_part = self.current_model.CreateModelPart("Main")
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
@@ -105,6 +105,56 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results()
+
+    def test_overdefined_materials_cpp(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.CreateSubModelPart("sub")
+
+        test_settings_1 = """
+        {
+            "properties": [{
+                "model_part_name": "Main.sub1"
+            },{
+                "model_part_name": "Main.sub1"
+            }
+        ]
+        }
+        """
+
+        test_settings_2 = """
+        {
+            "properties": [{
+                "model_part_name": "Main"
+            },{
+                "model_part_name": "Main.sub"
+            }
+        ]
+        }
+        """
+
+        test_settings_3 = """
+        {
+            "properties": [{
+                "model_part_name": "Main.sub1"
+            },{
+                "model_part_name": "Main.sub1.subsub"
+            }
+        ]
+        }
+        """
+
+
+        expected_error_msg = "Error: Materials for ModelPart \"Main.sub1\" are specified multiple times!"
+        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
+            KratosMultiphysics.ReadMaterialsUtility(test_settings_1, current_model)
+
+        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
+            KratosMultiphysics.ReadMaterialsUtility(test_settings_2, current_model)
+
+        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
+            KratosMultiphysics.ReadMaterialsUtility(test_settings_3, current_model)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
