@@ -34,4 +34,6 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CoSimulationApplication.py" DESTINATION KratosMultiphysics )
+install(DIRECTORY DESTINATION "KratosMultiphysics/CoSimulationApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CoSimulationApplication.py" DESTINATION "KratosMultiphysics/CoSimulationApplication" RENAME "__init__.py")
+
