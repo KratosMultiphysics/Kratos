@@ -32,6 +32,12 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
                 },
+                "nodal_data_value_settings" : {
+                    "list_of_variables": ["PRESSURE"]
+                },
+                "element_data_value_settings" : {
+                    "list_of_variables": ["TEMPERATURE"]
+                },
                 "output_time_settings" : {
                     "output_step_frequency": 1
                 }
@@ -44,6 +50,12 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 "model_part_name" : "ReadModelPart",
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
+                },
+                "nodal_data_value_settings" : {
+                    "list_of_variables": ["PRESSURE"]
+                },
+                "element_data_value_settings" : {
+                    "list_of_variables": ["TEMPERATURE"]
                 },
                 "file_name": "WriteModelPartForTemporalInput"
             }
@@ -71,6 +83,11 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 self.assertEqual(read_node.GetSolutionStepValue(REACTION_Y,0), 0.0)
                 self.assertEqual(read_node.GetSolutionStepValue(REACTION_Z,0), 0.0)
 
+                self.assertEqual(read_node.GetValue(PRESSURE), write_node.GetValue(PRESSURE))
+
+            for read_element,write_element in zip(read_model_part.Elements, write_model_part.Elements):
+                self.assertEqual(read_element.GetValue(TEMPERATURE), write_element.GetValue(TEMPERATURE))
+
     def testSingleMeshTemporalOutputInitialization(self):
         """
         Output ModelPart using SingleMeshTemporalOutputProcess.
@@ -87,6 +104,12 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
                 },
+                "nodal_data_value_settings" : {
+                    "list_of_variables": ["PRESSURE"]
+                },
+                "element_data_value_settings" : {
+                    "list_of_variables": ["TEMPERATURE"]
+                },
                 "output_time_settings" : {
                     "output_step_frequency": 1
                 }
@@ -99,6 +122,12 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 "model_part_name" : "ReadModelPart",
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
+                },
+                "nodal_data_value_settings" : {
+                    "list_of_variables": ["PRESSURE"]
+                },
+                "element_data_value_settings" : {
+                    "list_of_variables": ["TEMPERATURE"]
                 },
                 "file_name": "WriteModelPartForInitialization-0.2000"
             }
@@ -125,6 +154,11 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.assertEqual(read_node.GetSolutionStepValue(REACTION_Y,0), 0.0)
             self.assertEqual(read_node.GetSolutionStepValue(REACTION_Z,0), 0.0)
 
+            self.assertEqual(read_node.GetValue(PRESSURE), write_node.GetValue(PRESSURE))
+
+        for read_element,write_element in zip(read_model_part.Elements, write_model_part.Elements):
+            self.assertEqual(read_element.GetValue(TEMPERATURE), write_element.GetValue(TEMPERATURE))
+
     def _CreateNewModelPart(self,label):
         model_part = self.model.CreateModelPart(label,self.buffer_size)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
@@ -145,9 +179,6 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
     def _InitializeModelPart(self, model_part):
 
-        properties = model_part.GetProperties(1,0)
-        properties[VISCOSITY] = 0.01
-
         for node in model_part.Nodes:
             node.SetSolutionStepValue(VELOCITY_X, 0, 10. + node.X)
             node.SetSolutionStepValue(VELOCITY_Y, 0, 10. + node.Y)
@@ -157,16 +188,32 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             node.SetSolutionStepValue(REACTION_Z, 0, 20. + node.Z)
             node.SetSolutionStepValue(DENSITY, 0, 5.*node.Id)
 
+            node.SetValue(PRESSURE, 50. - node.Id)
+
+        for element in model_part.Elements:
+            element.SetValue(TEMPERATURE,3. + element.Id)
+
+
+
     def _SimulateTimeStep(self, model_part, new_time):
         model_part.CloneTimeStep(new_time)
+        update_factor = 1+new_time
         for node in model_part.Nodes:
             u = node.GetSolutionStepValue(VELOCITY,0)
             f = node.GetSolutionStepValue(REACTION,0)
             rho = node.GetSolutionStepValue(DENSITY,0)
 
-            node.SetSolutionStepValue(VELOCITY, 0, u*(1+new_time))
-            node.SetSolutionStepValue(REACTION, 0, f*(1+new_time))
-            node.SetSolutionStepValue(DENSITY, 0, rho*(1+new_time))
+            node.SetSolutionStepValue(VELOCITY, 0, u*update_factor)
+            node.SetSolutionStepValue(REACTION, 0, f*update_factor)
+            node.SetSolutionStepValue(DENSITY, 0, rho*update_factor)
+
+            p = node.GetValue(PRESSURE)
+            node.SetValue(PRESSURE, p*update_factor)
+
+        for element in model_part.Elements:
+            t = element.GetValue(TEMPERATURE)
+            element.SetValue(TEMPERATURE,t*update_factor)
+
 
     def _remove_h5_files(self, model_part_name):
         for name in os.listdir():
