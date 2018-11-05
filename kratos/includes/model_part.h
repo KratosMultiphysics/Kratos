@@ -802,9 +802,9 @@ public:
         auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
         if(pprop_it != GetMesh(ThisIndex).Properties().end()) { //property does exist
             return true;
-        } else {
-            return false;
         }
+
+
 
         return false;
     }
