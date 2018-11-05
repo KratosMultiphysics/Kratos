@@ -97,7 +97,7 @@ class FilterFunction
 
         // Type 3: Constant function
         else if (filter_function_type.compare(constant) == 0)
-            m_filter_function_type = 2;
+            m_filter_function_type = 3;
 
         // Throw error message in case of wrong specification
         else
