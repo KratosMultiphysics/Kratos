@@ -629,7 +629,7 @@ protected:
         EquationIdVectorType ids(3, 0);
         EquationIdVectorType aux_ids(3, 0);
 
-        #pragma omp parallel firstprivate(ids, r_current_process_info)
+        #pragma omp parallel firstprivate(ids, aux_ids, r_current_process_info)
         {
             std::vector<IndexSetType> aux_indices(equation_size);
 
