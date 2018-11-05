@@ -104,7 +104,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
         // Calculating the local RHS
         auto N = row(N_gausspoint,PointNumber); //these are the N which correspond to the gauss point "PointNumber"
-        double qgauss = inner_prod(N, heat_flux_local);
+        const double qgauss = inner_prod(N, heat_flux_local);
         
         noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
     }
