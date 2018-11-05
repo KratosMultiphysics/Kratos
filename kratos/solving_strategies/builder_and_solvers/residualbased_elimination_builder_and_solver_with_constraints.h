@@ -156,10 +156,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         const bool ReassembleLHS = false
         )
-        : BaseType(pNewLinearSystemSolver)
+        : BaseType(pNewLinearSystemSolver),
+          mReassembleLHS(ReassembleLHS)
     {
-        // Set the flag
-        mReassembleLHS = ReassembleLHS;
     }
 
     /** Destructor.
@@ -588,7 +587,7 @@ protected:
         const double stop_solve = OpenMPUtils::GetCurrentTime();
 
         const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
-        ReconstructSlaveSolutionAfterSolve(rModelPart, rA, rDx, rb);
+        ReconstructSlaveSolutionAfterSolve(pScheme, rModelPart, rA, rDx, rb);
 
         const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
@@ -1160,12 +1159,14 @@ private:
 
     /**
      * @brief This method reconstructs the slave solution after Solving.
+     * @param pScheme The pointer to the integration scheme
      * @param rModelPart Reference to the ModelPart containing the problem.
      * @param rA System matrix
      * @param rDx Vector of results (variations on nodal variables)
      * @param rb RHS vector (residual)
      */
     void ReconstructSlaveSolutionAfterSolve(
+        typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
@@ -1198,8 +1199,9 @@ private:
             // Final multiplication
             SparseMatrixMultiplicationUtility::MatrixMultiplication(rTMatrix, auxiliar_A_matrix, rA);
         } else {
-            // Simply resize
+            // Simply resize and reconstruct matrix structure
             rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+            ConstructMatrixStructure(pScheme, rA, rModelPart);
         }
 
         // Reconstruct the RHS
