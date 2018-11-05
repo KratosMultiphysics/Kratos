@@ -117,16 +117,14 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
         // Kinematic back stress substracted
         predictive_stress_vector -= back_stress_vector;
 
-		TConstLawIntegratorType::CalculatePlasticParameters(
+		const double threshold_indicator =TConstLawIntegratorType::CalculatePlasticParameters(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
             threshold, plastic_denominator, f_flux, g_flux,
             plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, rValues, characteristic_length,
             plastic_strain, back_stress_vector);
 
-        const double F = uniaxial_stress - threshold;
-
-        if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
+        if (threshold_indicator <= std::abs(1.0e-4 * threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
             this->SetNonConvPlasticDissipation(plastic_dissipation);
             this->SetNonConvPlasticStrain(plastic_strain);
