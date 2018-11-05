@@ -299,7 +299,7 @@ class InitialInputProcess(KratosMultiphysics.Process):
 
         self._model_part = model_part
         self._hdf5_file_factory = hdf5_file_factory
-        self._file_name = self._get_total_file_name()
+        self._file_name = self._get_total_file_name(file_name_string)
         self._list_of_inputs = []
 
     def AddInput(self,i):
@@ -310,5 +310,5 @@ class InitialInputProcess(KratosMultiphysics.Process):
         for i in self._list_of_inputs:
             i.Execute(self._model_part, hdf5_file)
 
-    def _get_total_file_name(self):
-        return self._file_name_string + ".h5"
+    def _get_total_file_name(self, file_name_string):
+        return file_name_string + ".h5"

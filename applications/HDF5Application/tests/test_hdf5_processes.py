@@ -14,21 +14,21 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.buffer_size = 2
 
     def tearDown(self):
-        pass
+        self._remove_h5_files("WriteModelPart")
 
     def testSingleMeshTemporalOutputInput(self):
         """
         Output ModelPart using SingleMeshTemporalOutputProcess.
         Use output file to set values in a new ModelPart with SingleMeshTemporalInputProcess.
         """
-        write_model_part = self._CreateNewModelPart("WriteModelPart")
+        write_model_part = self._CreateNewModelPart("WriteModelPartForTemporalInput")
         self._InitializeModelPart(write_model_part)
 
         read_model_part = self._CreateNewModelPart("ReadModelPart")
 
         output_settings = Parameters(r"""{
             "Parameters" : {
-                "model_part_name" : "WriteModelPart",
+                "model_part_name" : "WriteModelPartForTemporalInput",
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
                 },
@@ -45,7 +45,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
                 },
-                "file_name": "WriteModelPart"
+                "file_name": "WriteModelPartForTemporalInput"
             }
         }""")
         input_process = TimeInputFactory(input_settings, self.model)
@@ -71,21 +71,19 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 self.assertEqual(read_node.GetSolutionStepValue(REACTION_Y,0), 0.0)
                 self.assertEqual(read_node.GetSolutionStepValue(REACTION_Z,0), 0.0)
 
-        self._remove_h5_files("WriteModelPart")
-
     def testSingleMeshTemporalOutputInitialization(self):
         """
         Output ModelPart using SingleMeshTemporalOutputProcess.
         Use output file to initialize (restart) a ModelPart with initialization_from_hdf5_process.
         """
-        write_model_part = self._CreateNewModelPart("WriteModelPart")
+        write_model_part = self._CreateNewModelPart("WriteModelPartForInitialization")
         self._InitializeModelPart(write_model_part)
 
         read_model_part = self._CreateNewModelPart("ReadModelPart")
 
         output_settings = Parameters(r"""{
             "Parameters" : {
-                "model_part_name" : "WriteModelPart",
+                "model_part_name" : "WriteModelPartForInitialization",
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
                 },
@@ -102,7 +100,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
                 },
-                "file_name": "WriteModelPart-0.2000"
+                "file_name": "WriteModelPartForInitialization-0.2000"
             }
         }""")
         input_process = InitializationFactory(input_settings, self.model)
@@ -126,8 +124,6 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.assertEqual(read_node.GetSolutionStepValue(REACTION_X,0), 0.0)
             self.assertEqual(read_node.GetSolutionStepValue(REACTION_Y,0), 0.0)
             self.assertEqual(read_node.GetSolutionStepValue(REACTION_Z,0), 0.0)
-
-        self._remove_h5_files("WriteModelPart")
 
     def _CreateNewModelPart(self,label):
         model_part = self.model.CreateModelPart(label,self.buffer_size)
