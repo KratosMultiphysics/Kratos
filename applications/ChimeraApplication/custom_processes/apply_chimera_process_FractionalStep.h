@@ -363,7 +363,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 			else
 			{
 				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
-
 				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
 			}
 
@@ -418,18 +417,18 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		std::size_t counter = 0;
 
-/* #pragma omp parallel for firstprivate(results, N)
+		/*
+		#pragma omp parallel for firstprivate(results, N)
 		//MY NEW LOOP: reset the visited flag
 		for (int i = 0; i < n_boundary_nodes; i++)
-
 		{
 			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
 			Node<3>::Pointer p_boundary_node = *(iparticle.base());
 			p_boundary_node->Set(VISITED, false);
-		} */
+		} 
+		*/
 
 		for (int i = 0; i < n_boundary_nodes; i++)
-
 		{
 			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
 			Node<3>::Pointer p_boundary_node = *(iparticle.base());
@@ -535,7 +534,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 			else
 			{
 				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
-
 				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
 			}
 
@@ -546,9 +544,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 			if (!NodeCoupled)
 			{
 				typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
 				Element::Pointer pElement;
-
 				bool is_found = false;
 				is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
 
@@ -587,7 +583,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 		double rtMinvR = 0;
 		DofVectorType slaveDofVector;
 		double R = 0;
-
 		ApplyMpcConstraintForFractionalStep(rBoundaryModelPart, pBinLocator, pMpcV,pMpcP, pressure_coupling);
 		std::vector<VariableComponentType> dofComponentVector = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
 
@@ -619,7 +614,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 	static inline void GetBoundingBox(ModelPart &model_part, double *rLowPoint, double *rHighPoint)
     {
-
 		rLowPoint[0] = 1e10;
 		rLowPoint[1] = 1e10;
 		rLowPoint[2] = 1e10;
@@ -638,7 +632,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 			rHighPoint[1] = std::max(r_node.Y(), rHighPoint[1]);
 			rHighPoint[2] = std::max(r_node.Z(), rHighPoint[2]);
 		}
-
     }
 
 	bool BoundingBoxTest(ModelPart &A,ModelPart &B)  //background A and Patch B
@@ -839,7 +832,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 	void SetOverlapDistance(double distance)
 	{
-
 		this->m_overlap_distance = distance;
 	}
 
@@ -849,13 +841,10 @@ class ApplyChimeraProcessFractionalStep : public Process
 		{
 			if ((type != "nearest_element") && (type != "conservative"))
 				KRATOS_THROW_ERROR("", "Second argument should be either nearest_element or conservative \n", "");
-
 			this->m_type = type;
 			pMpcVelocity->SetType(this->m_type);
 			pMpcPressure->SetType(this->m_type);
-
 		}
-
 		KRATOS_CATCH("")
 	}
 
@@ -864,7 +853,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 		KRATOS_TRY
 		ConditionsArrayType &rConditions = rBoundaryModelPart.Conditions();
 		//resetting the normals and calculating centre point
-
 		array_1d<double, 3> zero;
 		array_1d<double, 3> centre;
 		std::size_t n_nodes = rBoundaryModelPart.Nodes().size();
@@ -894,7 +882,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 		}
 
 		centre = centre / n_nodes;
-
 		//calculating the normals and storing on the conditions
 		array_1d<double, 3> An;
 		if (TDim == 2)
@@ -927,7 +914,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 			double coeff = 1.00 / pGeometry.size();
 			const array_1d<double, 3> &normal = it->GetValue(NORMAL);
 			double nodal_mass = MathUtils<double>::Norm3(normal);
-
 			for (std::size_t i = 0; i < pGeometry.size(); i++)
 			{
 				noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;

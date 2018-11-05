@@ -387,7 +387,6 @@ class ApplyChimeraProcessMonolithic : public Process
 
 	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
 	{
-
 		double rtMinvR = 0;
 		DofVectorType slaveDofVector;
 		double R = 0;
@@ -441,7 +440,6 @@ class ApplyChimeraProcessMonolithic : public Process
 			rHighPoint[1] = std::max(r_node.Y(), rHighPoint[1]);
 			rHighPoint[2] = std::max(r_node.Z(), rHighPoint[2]);
 		}
-
     }
 
 	bool BoundingBoxTest(ModelPart &A,ModelPart &B)  //background A and Patch B
@@ -475,7 +473,6 @@ class ApplyChimeraProcessMonolithic : public Process
 		{
 			this->pHoleCuttingProcess->ExtractOutsideBoundaryMesh(rInsideBoundary,rModelPart, rExtractedBoundaryModelPart);
 		}
-
 		else if (n_nodes == 4)
 		{
 			this->pHoleCuttingProcess->ExtractOutsideSurfaceMesh(rInsideBoundary,rModelPart, rExtractedBoundaryModelPart);
