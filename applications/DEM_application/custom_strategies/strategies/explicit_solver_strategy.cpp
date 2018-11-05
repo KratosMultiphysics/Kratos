@@ -1396,7 +1396,7 @@ namespace Kratos {
         {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mInitialNeighborsSize;
+                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
                 mListOfSphericParticles[i]->mBondElements.resize(continuous_initial_neighbors_size);
                 for (unsigned int j = 0; j < mListOfSphericParticles[i]->mBondElements.size(); j++) {
                     mListOfSphericParticles[i]->mBondElements[j] = NULL;
@@ -1409,7 +1409,7 @@ namespace Kratos {
             for (int i = 0; i < number_of_particles; i++) {
                 bool add_new_bond = true;
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericParticles[i]->mNeighbourElements;
-                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mInitialNeighborsSize;
+                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
 
                 for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
                     SphericParticle* neighbour_element = dynamic_cast<SphericParticle*> (neighbour_elements[j]);
@@ -1461,7 +1461,7 @@ namespace Kratos {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
                 std::vector<SphericParticle*>& neighbour_elements = mListOfSphericParticles[i]->mNeighbourElements;
-                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mInitialNeighborsSize;
+                unsigned int continuous_initial_neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
 
                 for (unsigned int j = 0; j < continuous_initial_neighbors_size; j++) {
                     SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*> (neighbour_elements[j]);
@@ -1470,7 +1470,7 @@ namespace Kratos {
                     if (mListOfSphericParticles[i]->Id() < neighbour_element->Id()) continue;
                     //In all functions using mBondElements we must check that this bond is not used.
 
-                    for (unsigned int k = 0; k < neighbour_element->mInitialNeighborsSize; k++) {
+                    for (unsigned int k = 0; k < neighbour_element->mNeighborsSize; k++) {
                         //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
                         //In all functions using mBondElements we must check that this bond is not used.
                         if (neighbour_element->mNeighbourElements[k] == NULL) continue; //The initial neighbor was deleted at some point in time!!
@@ -1513,25 +1513,25 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::ContactInitializeSolutionStep() {
-        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
+    // void ExplicitSolverStrategy::ContactInitializeSolutionStep() {
+    //     ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
+    //     ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
 
-        DenseVector<unsigned int> contact_element_partition;
+    //     DenseVector<unsigned int> contact_element_partition;
 
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
+    //     OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+    //     #pragma omp parallel for
+    //     for (int k = 0; k < mNumberOfThreads; k++) {
+    //         ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
+    //         ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
 
-            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                (it_contact)->InitializeSolutionStep(r_process_info);
-            } //loop over CONTACT ELEMENTS
+    //         for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
+    //             (it_contact)->InitializeSolutionStep(r_process_info);
+    //         } //loop over CONTACT ELEMENTS
 
-        }// loop threads OpenMP
+    //     }// loop threads OpenMP
 
-    } //Contact_InitializeSolutionStep
+    // } //Contact_InitializeSolutionStep
 
     void ExplicitSolverStrategy::PrepareContactElementsForPrinting() {
 

@@ -9,20 +9,24 @@
 namespace Kratos {
 
     SphericContinuumParticle::SphericContinuumParticle():SphericParticle() {
+        mInitialNeighborsSize = 0;
         mContinuumInitialNeighborsSize = 0;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry) : SphericParticle(NewId, pGeometry){
+        mInitialNeighborsSize = 0;
         mContinuumInitialNeighborsSize = 0;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : SphericParticle(NewId, pGeometry, pProperties){
+        mInitialNeighborsSize = 0;
         mContinuumInitialNeighborsSize = 0;
     }
 
     SphericContinuumParticle::SphericContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes)
     : SphericParticle(NewId, ThisNodes){
+        mInitialNeighborsSize = 0;
         mContinuumInitialNeighborsSize = 0;
     }
 

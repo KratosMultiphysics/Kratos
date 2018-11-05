@@ -68,6 +68,7 @@ namespace Kratos {
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi);
         void ComputeNewNeighboursHistoricalData() override;
         void ComputeNewRigidFaceNeighboursHistoricalData() override;
+        void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
         double ComputeCoordinationNumber(double& standard_dev);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;

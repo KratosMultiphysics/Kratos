@@ -145,6 +145,7 @@ namespace Kratos
         std::vector<double> mIniNeighbourDelta;
 
         unsigned int mContinuumInitialNeighborsSize;
+        unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
 
     protected:

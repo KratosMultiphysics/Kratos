@@ -31,7 +31,7 @@ SphericParticle::SphericParticle()
 {
     mRadius = 0;
     mRealMass = 0;
-    mInitialNeighborsSize = 0;
+    mNeighborsSize = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
@@ -43,7 +43,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     : DiscreteElement(NewId, pGeometry), mRealMass(0){
     mRadius = 0;
     mRealMass = 0;
-    mInitialNeighborsSize = 0;
+    mNeighborsSize = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
@@ -56,7 +56,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
 {
     mRadius = 0;
     mRealMass = 0;
-    mInitialNeighborsSize = 0;
+    mNeighborsSize = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
@@ -69,7 +69,7 @@ SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNode
 {
     mRadius = 0;
     mRealMass = 0;
-    mInitialNeighborsSize = 0;
+    mNeighborsSize = 0;
     mStressTensor = NULL;
     mSymmStressTensor = NULL;
     mpTranslationalIntegrationScheme = NULL;
@@ -409,7 +409,7 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& mTemp
         }
     }
 
-    mInitialNeighborsSize = new_size;
+    mNeighborsSize = new_size;
     vector_of_ids_of_neighbours.swap(mTempNeighboursIds);
     mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
     mNeighbourElasticExtraContactForces.swap(mTempNeighbourElasticExtraContactForces);
@@ -857,7 +857,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
 
             if (r_process_info[CONTACT_MESH_OPTION] == 1) {
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
-                if ((i < (int)mInitialNeighborsSize) && this->Id() < neighbour_iterator_id) {
+                if ((i < (int)mNeighborsSize) && this->Id() < neighbour_iterator_id) {
                     double total_local_elastic_contact_force[3] = {0.0};
                     total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
                     total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];

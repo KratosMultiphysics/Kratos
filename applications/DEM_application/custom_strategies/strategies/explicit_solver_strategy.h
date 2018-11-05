@@ -245,9 +245,9 @@ namespace Kratos {
         void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();
         virtual void ComputeNewNeighboursHistoricalData();
-        void CreateContactElements();
+        virtual void CreateContactElements();
         void InitializeContactElements();
-        void ContactInitializeSolutionStep();
+        // void ContactInitializeSolutionStep();
         void PrepareContactElementsForPrinting();
         virtual void ComputeNewRigidFaceNeighboursHistoricalData();
         virtual void SearchRigidFaceNeighbours();
