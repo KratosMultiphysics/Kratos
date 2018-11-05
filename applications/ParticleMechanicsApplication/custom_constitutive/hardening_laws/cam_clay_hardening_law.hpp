@@ -48,8 +48,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class CamClayHardeningLaw 
-        : public MPMHardeningLaw 
+class CamClayHardeningLaw
+        : public MPMHardeningLaw
 {
 public:
     ///@name Type Definitions
@@ -84,8 +84,15 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure) override;
-	
+    /*
+    * @brief This function return the updated Preconsolidation Pressure P_c with the following inputs:
+    * @param[in/out] rHardening Hardening Parameter
+    * @param[in] rAlpha Plastic Volumetric Strain
+    * @param[in] rOldPreconsolidationPressure Old value of Preconsolidation Pressure P_c at the previous time step t_n
+    * @return Hardening parameter
+    */
+    double& CalculateHardening(double &rHardening, const double &rAlpha, const double &rOldPreconsolidationPressure) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -126,7 +133,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-     
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -163,7 +170,7 @@ private:
     ///@name Member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Private Operators
     ///@{

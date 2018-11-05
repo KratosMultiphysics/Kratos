@@ -741,7 +741,8 @@ int HyperElastic3DLaw::Check(const Properties& rMaterialProperties,
     KRATOS_ERROR_IF (YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00) << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
+    const double tolerance = 10.e-7;
+    const bool check = bool( (nu > 0.5-tolerance ) || (nu < (-1.0 + tolerance)) );
 
     KRATOS_ERROR_IF (POISSON_RATIO.Key() == 0 || check==true) << "POISSON_RATIO has Key zero invalid value " << std::endl;
     KRATOS_ERROR_IF (DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00) << "DENSITY has Key zero or invalid value " << std::endl;

@@ -35,7 +35,7 @@ The MPM is a one of the Lagrangian particle methods which has gained a remarkabl
 Recommended references for implementation details of MPM in Kratos:
 - Iaconeta, I., Larese, A., Rossi, R., & Zhiming, G. (2016). Comparison of a material point method and a Galerkin meshfree method for the simulation of cohesive-frictional materials. *Materials*, 10(10), p. 1150.
 - Iaconeta, I., Larese, A., Rossi, R., Oñate, E. (2017). An implicit material point method applied to granular flows. *Procedia Engineering: Proceeding of the 1st International Conference on the Material Point Method (MPM2017)*, Vol 175, 226-232 MPM 2017, Delft, Netherlands.
-- Iaconeta, I. Larese, A., Rossi, R., Oñate, E. (2018). A stabilized, mixed, implicit Material Point Method for non-linear incompressible solid mechanics problems. *Accepted for publication by Computational mechanics*.
+- Iaconeta, I., Larese, A., Rossi, R., & Oñate, E. (2018). A stabilized mixed implicit Material Point Method for non-linear incompressible solid mechanics. *Computational Mechanics*, 1-18.
 - Chandra, B., Larese, A., Iaconeta, I., Rossi, R., Wüchner, R. (2018). Soil-Structure Interaction Simulation of Landslides Impacting a Structure Using an Implicit Material Point Method. *Accepted for publication by Proceeding of the 2nd International Conference on The Material Point Method (MPM2019)*.
 
 ## Features
@@ -67,6 +67,8 @@ The following features are currently available and subject to development within
 - Other features:
     * Particle erase features - to delete particle outside the interest domain
     * Arbitrary slip boundary condition
+    
+Some unit tests of the above features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
 
 ## Available Interfaces
 
