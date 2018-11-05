@@ -36,22 +36,6 @@ namespace Testing
     Matrix CreateTestMatrix3x3()
     {
         Matrix matrix = ZeroMatrix(3);
-        matrix(0,0) = 3.0;
-        matrix(0,1) = 0.0;
-        matrix(0,2) = 2.0;
-        matrix(1,0) = 2.0;
-        matrix(1,1) = 0.0;
-        matrix(1,2) =-2.0;
-        matrix(2,0) = 0.0;
-        matrix(2,1) = 1.0;
-        matrix(2,2) = 1.0;
-        return matrix;
-    }
-
-    // Generate 3x3 test matrix
-    Matrix CreateTest2Matrix3x3()
-    {
-        Matrix matrix = ZeroMatrix(3);
         matrix(0,0) = -2.0;
         matrix(0,1) = -4.0;
         matrix(0,2) =  2.0;
@@ -72,17 +56,6 @@ namespace Testing
         matrix(0,1) =  2.0;
         matrix(1,0) =  5.0;
         matrix(1,1) = -1.0;
-        return matrix;
-    }
-
-    // Generate 2x2 singular matrix
-    Matrix CreateTestSingularMatrix2x2()
-    {
-        Matrix matrix = ZeroMatrix(2);
-        matrix(0,0) =  4.0;
-        matrix(0,1) =  2.0;
-        matrix(1,0) =  2.0;
-        matrix(1,1) =  1.0;
         return matrix;
     }
 
@@ -132,6 +105,22 @@ namespace Testing
         matrix(2,0) =  matrix(0,2);
         matrix(2,1) =  matrix(1,2);
         return matrix;
+    }
+
+    // Generate Vector of size 3
+    Vector CreateTestVector3()
+    {
+        Vector vector = ZeroVector(3);
+        std::fill(vector.begin(), vector.end(), 1.0);
+        return vector;
+    }
+
+    // Generate Vector of size 6
+    Vector CreateTestVector6()
+    {
+        Vector vector = ZeroVector(6);
+        std::fill(vector.begin(), vector.end(), 1.0);
+        return vector;
     }
 
 
@@ -188,7 +177,7 @@ namespace Testing
         Matrix eigen_vectors_3 = ZeroMatrix(3,3);
 
         // 1. Compute EigenValues
-        Matrix A = CreateTest2Matrix3x3();
+        Matrix A = CreateTestMatrix3x3();
         noalias(eigen_values_3) = ParticleMechanicsMathUtilities<double>::EigenValues(A);
 
         KRATOS_CHECK_LESS_EQUAL(( -5.0 - eigen_values_3[0])/eigen_values_3[0], tolerance);
@@ -252,45 +241,26 @@ namespace Testing
     }
 
     /**
-    * Check inverse computation
+    * Check norm computation
     */
-    KRATOS_TEST_CASE_IN_SUITE(ParticleMathUtilsInverseCalculation, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ParticleMathUtilsNormCalculation, KratosParticleMechanicsFastSuite)
     {
-        // 1. Check 3x3 inverse
-        Matrix A = CreateTestMatrix3x3();
-        Matrix inv_A = ZeroMatrix(3);
+        Vector V3 = CreateTestVector3();
+        Vector V6 = CreateTestVector6();
+        Matrix M  = CreateSymmetricTest2Matrix3x3();
 
-        ParticleMechanicsMathUtilities<double>::InvertMatrix( A, inv_A);
+        ParticleMechanicsMathUtilities<double>::Normalize(V3);
+        ParticleMechanicsMathUtilities<double>::Normalize(V6);
+        const double norm_M = ParticleMechanicsMathUtilities<double>::NormTensor(M);
 
-        KRATOS_CHECK_NEAR(inv_A(0,0), 0.2,tolerance);
-        KRATOS_CHECK_NEAR(inv_A(0,1), 0.2,tolerance);
-        KRATOS_CHECK_NEAR(inv_A(0,2), 0.0,tolerance);
-        KRATOS_CHECK_NEAR(inv_A(1,0),-0.2,tolerance);
-        KRATOS_CHECK_NEAR(inv_A(1,1), 0.3,tolerance);
-        KRATOS_CHECK_NEAR(inv_A(1,2), 1.0,tolerance);
-        KRATOS_CHECK_NEAR(inv_A(2,0), 0.2,tolerance);
-        KRATOS_CHECK_NEAR(inv_A(2,1),-0.3,tolerance);
-        KRATOS_CHECK_NEAR(inv_A(2,2), 0.0,tolerance);
+        for (unsigned int i = 0; i<3; ++i)
+            KRATOS_CHECK_NEAR(V3[i], 0.5773502692, tolerance);
 
-        // 2. Check 2x2 inverse
-        Matrix B = CreateTestMatrix2x2();
-        Matrix inv_B = ZeroMatrix(2);
+        for (unsigned int i = 0; i<6; ++i)
+            KRATOS_CHECK_NEAR(V6[i], 0.4082482905, tolerance);
 
-        ParticleMechanicsMathUtilities<double>::InvertMatrix( B, inv_B);
-
-        KRATOS_CHECK_NEAR(inv_B(0,0), 0.083333,tolerance);
-        KRATOS_CHECK_NEAR(inv_B(0,1), 0.166667,tolerance);
-        KRATOS_CHECK_NEAR(inv_B(1,0), 0.416667,tolerance);
-        KRATOS_CHECK_NEAR(inv_B(1,1),-0.166667,tolerance);
-
-        // 3. Check this will throw singular
-        Matrix C = CreateTestSingularMatrix2x2();
-        Matrix inv_C = ZeroMatrix(2);
-
-        KRATOS_CHECK_NOT_EQUAL(ParticleMechanicsMathUtilities<double>::InvertMatrix(C, inv_C), 0);
+        KRATOS_CHECK_NEAR(norm_M, 11.66190379, tolerance);
     }
-
-
 
 } // namespace Testing
 } // namespace Kratos
