@@ -38,7 +38,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             "filter_penalty_term"         : false,
             "penalty_factor"              : 1000.0,
             "gradient_ratio"              : 0.1,
-            "max_outer_iterations"        : 300,
+            "max_total_iterations"        : 10000,
+            "max_outer_iterations"        : 10000,
             "max_inner_iterations"        : 30,
             "min_inner_iterations"        : 3,
             "inner_iteration_tolerance"   : 1e-3,
@@ -104,6 +105,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.filter_penalty_term = self.algorithm_settings["filter_penalty_term"].GetBool()
         self.penalty_factor = self.algorithm_settings["penalty_factor"].GetDouble()
         self.gradient_ratio = self.algorithm_settings["gradient_ratio"].GetDouble()
+        self.max_total_iterations = self.algorithm_settings["max_total_iterations"].GetInt()
         self.max_outer_iterations = self.algorithm_settings["max_outer_iterations"].GetInt()
         self.max_inner_iterations = self.algorithm_settings["max_inner_iterations"].GetInt()
         self.min_inner_iterations = self.algorithm_settings["min_inner_iterations"].GetInt()
@@ -156,22 +158,23 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         current_lambda = self.lambda0
         penalty_scaling = self.penalty_scaling_0
-        overall_iteration = 0
+        total_iteration = 0
         is_design_converged = False
+        is_max_total_iterations_reached = False
         previos_L = None
 
         for outer_iteration in range(1,self.max_outer_iterations+1):
             for inner_iteration in range(1,self.max_inner_iterations+1):
 
-                overall_iteration = overall_iteration+1
+                total_iteration = total_iteration+1
                 timer.StartNewLap()
 
                 print("\n>=======================================================================================")
-                print("> ",timer.GetTimeStamp(),": Starting iteration ",outer_iteration,".",inner_iteration,".",overall_iteration,"(outer . inner . overall)")
+                print("> ",timer.GetTimeStamp(),": Starting iteration ",outer_iteration,".",inner_iteration,".",total_iteration,"(outer . inner . total)")
                 print(">=======================================================================================\n")
 
                 # Initialize new shape
-                self.model_part_controller.InitializeNewOptimizationStep(overall_iteration)
+                self.model_part_controller.InitializeNewOptimizationStep(total_iteration)
 
                 for node in self.design_surface.Nodes:
                     new_shape_change = node.GetSolutionStepValue(ALPHA_MAPPED) * node.GetValue(BEAD_DIRECTION) * self.bead_height
@@ -191,7 +194,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 self.communicator.requestValueOf(self.only_obj["identifier"].GetString())
                 self.communicator.requestGradientOf(self.only_obj["identifier"].GetString())
 
-                self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, overall_iteration, self.communicator)
+                self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, total_iteration, self.communicator)
 
                 objective_value = self.communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
                 objGradientDict = self.communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
@@ -300,15 +303,24 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 additional_values_to_log["penalty_lambda"] = current_lambda
                 additional_values_to_log["penalty_scaling"] = penalty_scaling
 
-                self.data_logger.LogCurrentValues(overall_iteration, additional_values_to_log)
-                self.data_logger.LogCurrentDesign(overall_iteration)
+                self.data_logger.LogCurrentValues(total_iteration, additional_values_to_log)
+                self.data_logger.LogCurrentDesign(total_iteration)
 
                 previos_L = L
 
                 # Convergence check of inner loop
+                if total_iteration == self.max_total_iterations:
+                    is_max_total_iterations_reached = True
+                    break
+
                 if inner_iteration >= self.min_inner_iterations and inner_iteration >1:
-                    if abs(dL_relative) < self.inner_iteration_tolerance:
-                        break
+                    # In the first outer iteration, the constraint is not yet active and properly scaled. Therefore, the objective is used to check the relative improvement
+                    if outer_iteration == 1:
+                        if abs(self.data_logger.GetValue("rel_change_obj", total_iteration)) < self.inner_iteration_tolerance:
+                            break
+                    else:
+                        if abs(dL_relative) < self.inner_iteration_tolerance:
+                            break
 
                 if penalty_value == 0.0:
                     is_design_converged = True
@@ -353,8 +365,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             # Check convergence of outer loop
-            if outer_iteration == self.max_outer_iterations:
-                print("\n> Maximal iterations of optimization problem reached!")
+            if is_max_total_iterations_reached:
+                print("\n> Maximal total iterations of optimization problem reached!")
                 break
 
             if is_design_converged:

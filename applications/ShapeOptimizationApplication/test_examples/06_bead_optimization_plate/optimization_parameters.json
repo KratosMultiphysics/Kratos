@@ -53,14 +53,12 @@
             "number_of_filter_iterations" : 1,
             "filter_penalty_term"         : false,
             "penalty_factor"              : 3000.0,
-            "max_outer_iterations"        : 100,
+            "max_total_iterations"        : 300,
             "max_inner_iterations"        : 30,
             "min_inner_iterations"        : 3,
             "inner_iteration_tolerance"   : 1e-3,
             "outer_iteration_tolerance"   : 1e-1,
             "line_search" : {
-                "line_search_type"           : "manual_stepping",
-                "normalize_search_direction" : true,
                 "step_size"                  : 0.3
             }
         },
