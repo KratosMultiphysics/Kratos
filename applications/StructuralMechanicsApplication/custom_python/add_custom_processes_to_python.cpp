@@ -46,9 +46,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
         .def(py::init<ModelPart&>())
-    class_<ComputeCenterOfGravityProcess, ComputeCenterOfGravityProcess::Pointer, Process>(m,"ComputeCenterOfGravityProcess")
-        .def(init<ModelPart&>())
         ;
+
+    py::class_<ComputeCenterOfGravityProcess, ComputeCenterOfGravityProcess::Pointer, Process>(m,"ComputeCenterOfGravityProcess")
+        .def(py::init<ModelPart&>())
         ;
 
     py::class_<PrismNeighboursProcess, PrismNeighboursProcess::Pointer, Process>(m, "PrismNeighboursProcess")
