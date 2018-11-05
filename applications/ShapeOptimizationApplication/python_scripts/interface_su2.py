@@ -79,7 +79,7 @@ class InterfaceSU2():
 
     # --------------------------------------------------------------------------
     def WriteSU2MeshAsMDPA(self):
-        if self.interface_parameters["echo_level"].GetInt()==1:
+        if self.interface_parameters["echo_level"].GetInt()>0:
             print("> Start writing mdpa file...")
 
         self.new_file = open(self.interface_parameters["kratos_related"]["mdpa_file"].GetString(), 'w')
@@ -95,7 +95,7 @@ class InterfaceSU2():
 
         self.new_file.close()
 
-        if self.interface_parameters["echo_level"].GetInt()==1:
+        if self.interface_parameters["echo_level"].GetInt()>0:
             print("> Finished writing mdpa file!\n")
 
     # --------------------------------------------------------------------------
@@ -127,7 +127,7 @@ class InterfaceSU2():
 
     # --------------------------------------------------------------------------
     def InitializeNewSU2Project(self):
-        if self.interface_parameters["echo_level"].GetInt()==1:
+        if self.interface_parameters["echo_level"].GetInt()>0:
             print("\n> Initializing SU2 project...")
 
         if os.path.isdir("DESIGNS"):
@@ -146,7 +146,7 @@ class InterfaceSU2():
             self.project.config["MOTION_FILENAME"] = self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()
             self.project.state.FILES["MOTION_FILE"] = self.interface_parameters["su2_related"]["mesh_motion_file"].GetString()
 
-        if self.interface_parameters["echo_level"].GetInt()==1:
+        if self.interface_parameters["echo_level"].GetInt()>0:
             print("> Finished initializing SU2 project!\n")
 
     # --------------------------------------------------------------------------
@@ -209,7 +209,7 @@ class InterfaceSU2():
     # --------------------------------------------------------------------------
     def __ReadSU2Mesh(self):
 
-        if self.interface_parameters["echo_level"].GetInt()==1:
+        if self.interface_parameters["echo_level"].GetInt()>0:
             print("\n> Start reading SU2 mesh file...")
 
         ''' imports mesh and builds python dictionary structure
@@ -371,7 +371,7 @@ class InterfaceSU2():
         # Close read file
         f_tb_read.close()
 
-        if self.interface_parameters["echo_level"].GetInt()==1:
+        if self.interface_parameters["echo_level"].GetInt()>0:
             print("> Finished reading SU2 mesh file!\n")
 
     # --------------------------------------------------------------------------
