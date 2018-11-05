@@ -44,7 +44,7 @@ namespace Python
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;;
 
   //**********MODEL PROPERTIES*********//
 
@@ -53,54 +53,54 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
 
   //to define it as a variable
-  class_<Variable<PropertiesContainerPointerType>, VariableData>(m,"PropertiesVectorPointerVariable")
+  py::class_<Variable<PropertiesContainerPointerType>, VariableData>(m,"PropertiesVectorPointerVariable")
       .def( "__repr__", &Variable<PropertiesContainerPointerType>::Info )
       ;
 
 
   //**********MESHER PROCESSES*********//
 
-  class_<RemoveFluidNodesMesherProcess, RemoveFluidNodesMesherProcess::Pointer, RemoveNodesMesherProcess>
+  py::class_<RemoveFluidNodesMesherProcess, RemoveFluidNodesMesherProcess::Pointer, RemoveNodesMesherProcess>
       (m, "RemoveFluidNodes")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<InsertFluidNodesMesherProcess, InsertFluidNodesMesherProcess::Pointer, MesherProcess>
+  py::class_<InsertFluidNodesMesherProcess, InsertFluidNodesMesherProcess::Pointer, MesherProcess>
       (m, "InsertFluidNodes")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<InletMesherProcess, InletMesherProcess::Pointer, MesherProcess>
+  py::class_<InletMesherProcess, InletMesherProcess::Pointer, MesherProcess>
       (m, "InsertInlet")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<RefineFluidElementsInEdgesMesherProcess, RefineFluidElementsInEdgesMesherProcess::Pointer, RefineElementsInEdgesMesherProcess>
+  py::class_<RefineFluidElementsInEdgesMesherProcess, RefineFluidElementsInEdgesMesherProcess::Pointer, RefineElementsInEdgesMesherProcess>
       (m,"RefineFluidElementsInEdges")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
   //*********SET SOLVER PROCESSES*************//
-  class_<AssignPropertiesToNodesProcess, AssignPropertiesToNodesProcess::Pointer, Process>
+  py::class_<AssignPropertiesToNodesProcess, AssignPropertiesToNodesProcess::Pointer, Process>
       (m, "AssignPropertiesToNodes")
-      .def(init<ModelPart&, Parameters>())
-      .def(init<ModelPart&, Parameters&>());
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init<ModelPart&, Parameters&>());
 
   //*********ADAPTIVE TIME STEP*************//
-  // class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
+  // py::class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
   //     (m, "AdaptiveTimeIntervalProcess")
-  //     .def(init<ModelPart&, int>());
+  //     .def(py::init<ModelPart&, int>());
 
   //*********VOLUME RECOVERY PROCESS********//
-  class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, Process>
+  py::class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, Process>
       (m, "RecoverVolumeLosses")
-      .def(init<ModelPart&, int>());
+      .def(py::init<ModelPart&, int>());
 
   //*********MANAGE PARTICULAR ENTITIES PROCESS********//
-  class_<ManageIsolatedNodesProcess, ManageIsolatedNodesProcess::Pointer, Process>
+  py::class_<ManageIsolatedNodesProcess, ManageIsolatedNodesProcess::Pointer, Process>
       (m, "ManageIsolatedNodesProcess")
-      .def(init<ModelPart&>());
+      .def(py::init<ModelPart&>());
 
-  class_<ManageSelectedElementsProcess, ManageSelectedElementsProcess::Pointer, Process>
+  py::class_<ManageSelectedElementsProcess, ManageSelectedElementsProcess::Pointer, Process>
       (m, "ManageSelectedElementsProcess")
-      .def(init<ModelPart&>());
+      .def(py::init<ModelPart&>());
 
 }
 
