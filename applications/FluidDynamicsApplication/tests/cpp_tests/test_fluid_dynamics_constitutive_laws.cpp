@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
@@ -95,7 +96,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Get the trial element
-			ModelPart model_part("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTriangle(model_part, p_cons_law);
             Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -151,7 +153,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Get the trial element
-            ModelPart model_part("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTetrahedron(model_part, p_cons_law);
             Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -219,7 +222,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Get the trial element
-            ModelPart model_part("Main", 3);
+            Model current_model;
+            ModelPart& model_part = current_model.CreateModelPart("Main", 3);
             model_part.AddNodalSolutionStepVariable(DISTANCE);
             model_part.AddNodalSolutionStepVariable(VELOCITY);
             model_part.AddNodalSolutionStepVariable(DENSITY);
@@ -323,7 +327,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Create a raw model part
-			ModelPart model_part("Main", 3);
+            Model model;
+			ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTriangle(model_part, p_cons_law);
 			Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -375,7 +380,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Create a raw model part
-			ModelPart model_part("Main", 3);
+            Model model;
+			ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTetrahedron(model_part, p_cons_law);
 			Element::Pointer p_element = model_part.pGetElement(1);
 

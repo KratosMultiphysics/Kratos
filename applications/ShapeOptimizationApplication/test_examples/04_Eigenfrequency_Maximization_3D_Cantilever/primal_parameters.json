@@ -16,8 +16,7 @@
             "time_step"       : 1.0
         },
         "model_import_settings"              : {
-            "input_type"     : "use_input_model_part",
-            "input_filename" : "solid_cantilever"
+            "input_type"     : "use_input_model_part"
         },
         "material_import_settings" :{
            "materials_filename": "materials.json"

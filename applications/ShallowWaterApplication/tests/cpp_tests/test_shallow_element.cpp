@@ -18,7 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/properties.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "custom_elements/shallow_element.h"
 #include "shallow_water_application_variables.h"
 
@@ -34,8 +34,8 @@ typedef ModelPart::NodeIterator     NodeIteratorType;
  */
 KRATOS_TEST_CASE_IN_SUITE(ShallowElement2D3N, ShallowWaterApplicationFastSuite)
 {
-    ModelPart model_part("main");
-    model_part.SetBufferSize(2);
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("main", 2);
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(VELOCITY);

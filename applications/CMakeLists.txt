@@ -39,7 +39,6 @@ SWIMMING_DEM_APPLICATION;\
 PARTICLE_MECHANICS_APPLICATION;\
 LAGRANGIAN_MPM_APPLICATION;\
 EXTERNAL_SOLVERS_APPLICATION;\
-OPENCL_APPLICATION;\
 TRILINOS_APPLICATION;\
 MPI_SEARCH_APPLICATION;\
 METIS_APPLICATION;\
@@ -58,6 +57,8 @@ FREE_SURFACE_APPLICATION;\
 FLUID_TRANSPORT_APPLICATION;\
 FLUID_RVE_LAGRANGE_MULTIPLIERS_APPLICATION;\
 IGA_APPLICATION;\
+NVIDIAFLEX_APPLICATION;\
+MULTILEVEL_MONTE_CARLO_APPLICATION;\
 ")
 
 message( " ")
@@ -175,10 +176,6 @@ message( "**********************************************************************
 message( " ")
 message( " ")
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/applications_interface.py DESTINATION applications)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
 #include subdirectories for compilation
 if(${FLUID_RVE_LAGRANGE_MULTIPLIERS_APPLICATION} MATCHES ON)
   add_subdirectory(fluid_rve_lagrange_multipliers_application)
@@ -255,10 +252,6 @@ endif(${FSI_APPLICATION} MATCHES ON)
 if(${EMPIRE_APPLICATION} MATCHES ON)
   add_subdirectory(EmpireApplication)
 endif(${EMPIRE_APPLICATION} MATCHES ON)
-
-if(${OPENCL_APPLICATION} MATCHES ON)
-  add_subdirectory(OpenCLapplication)
-endif(${OPENCL_APPLICATION} MATCHES ON)
 
 if(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
   add_subdirectory(MixedElementApplication)
@@ -411,6 +404,14 @@ endif(${CSHARP_WRAPPER_APPLICATION} MATCHES ON)
 if(${IGA_APPLICATION} MATCHES ON)
   add_subdirectory(IgaApplication)
 endif(${IGA_APPLICATION} MATCHES ON)
+
+if(${NVIDIAFLEX_APPLICATION} MATCHES ON)
+  add_subdirectory(NvidiaFlexApplication)
+endif(${NVIDIAFLEX_APPLICATION} MATCHES ON)
+
+if(${MULTILEVEL_MONTE_CARLO_APPLICATION} MATCHES ON)
+  add_subdirectory(MultilevelMonteCarloApplication)
+endif(${MULTILEVEL_MONTE_CARLO_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")

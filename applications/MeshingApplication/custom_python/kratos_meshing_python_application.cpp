@@ -32,15 +32,15 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosMeshingApplication,m)
 {
-    class_<KratosMeshingApplication,
-           KratosMeshingApplication::Pointer,
-           KratosApplication >(m, "KratosMeshingApplication")
-           .def(init<>())
-           ;
+    py::class_<KratosMeshingApplication,
+        KratosMeshingApplication::Pointer,
+        KratosApplication >(m, "KratosMeshingApplication")
+        .def(py::init<>())
+        ;
     AddMeshersToPython(m);
     AddProcessesToPython(m);
     AddCustomUtilitiesToPython(m);

@@ -398,7 +398,8 @@ private:
       pNode->Z0() = pNode->Z() - Displacement[2];
 
       //set contact force
-      pNode->FastGetSolutionStepValue(CONTACT_FORCE).clear();
+      if ( pNode->SolutionStepsDataHas(CONTACT_FORCE) ) 
+         pNode->FastGetSolutionStepValue(CONTACT_FORCE).clear();
 
 
       KRATOS_CATCH( "" )

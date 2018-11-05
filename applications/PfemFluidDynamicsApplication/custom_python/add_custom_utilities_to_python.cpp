@@ -7,26 +7,26 @@
 //
 //
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
+
+//Application includes
+#include "custom_python/add_custom_utilities_to_python.h"
 
 // Project includes
 #include "includes/node.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/openmp_utils.h"
 
-//Application includes
-#include "custom_python/add_custom_utilities_to_python.h"
-
 #include "custom_utilities/two_step_v_p_settings.h"
 
 namespace Kratos
 {
-	
+
   namespace Python
   {
-    
+
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
 

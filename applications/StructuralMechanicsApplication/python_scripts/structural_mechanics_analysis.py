@@ -50,18 +50,18 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
 
         if not solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
             time_stepping_params = KratosMultiphysics.Parameters("{}")
             time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
             solver_settings.AddValue("time_stepping", time_stepping_params)
 
         if not solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
 
         if not solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
@@ -95,7 +95,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", info_msg)
+                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
