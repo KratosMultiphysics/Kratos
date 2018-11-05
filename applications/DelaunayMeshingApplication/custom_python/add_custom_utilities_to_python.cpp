@@ -94,8 +94,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
 
   //***************DOMAIN SET**************//
-  class_<MesherUtilities>(m,"MesherUtilities")
-      .def(init<>())
+  py::class_<MesherUtilities>(m,"MesherUtilities")
+      .def(py::init<>())
       .def("SetModelPartNameToConditions",&MesherUtilities::SetModelPartNameToConditions)
       .def("SetModelPartNameToNodes",&MesherUtilities::SetModelPartNameToNodes)
       .def("CheckCriticalRadius",&MesherUtilities::CheckCriticalRadius)
@@ -144,8 +144,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
   //***************NORMALS**************//
 
-  class_<BoundaryNormalsCalculationUtilities>(m,"BoundaryNormalsCalculation")
-      .def(init<>())
+  py::class_<BoundaryNormalsCalculationUtilities>(m,"BoundaryNormalsCalculation")
+      .def(py::init<>())
       .def("CalculateWeightedBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateWeightedBoundaryNormals)
       .def("CalculateUnitBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateUnitBoundaryNormals)
       ;
@@ -160,8 +160,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
   TransferNodalValuesToElements    TransferNodesToElements = &MeshDataTransferUtilities::TransferNodalValuesToElements;
   TransferBoundaryData             TransferDataToBoundary  = &MeshDataTransferUtilities::TransferBoundaryData;
 
-  class_<MeshDataTransferUtilities>(m,"MeshDataTransferUtilities")
-      .def(init<>())
+  py::class_<MeshDataTransferUtilities>(m,"MeshDataTransferUtilities")
+      .def(py::init<>())
       .def("TransferElementalValuesToNodes", TransferElementsToNodes)
       .def("TransferNodalValuesToElements", TransferNodesToElements)
       .def("TransferNodalValuesToElementsOnThreshold", TransferNodesToElementsOnThreshold)
@@ -176,9 +176,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
 
   // Remeshing mesher information parameters
-  class_< MeshDataTransferUtilities::TransferParameters, typename MeshDataTransferUtilities::TransferParameters::Pointer>
+  py::class_< MeshDataTransferUtilities::TransferParameters, typename MeshDataTransferUtilities::TransferParameters::Pointer>
       (m,"TransferParameters")
-      .def(init<>())
+      .def(py::init<>())
       .def("Set",&MeshDataTransferUtilities::TransferParameters::Set)
       .def("Reset",&MeshDataTransferUtilities::TransferParameters::Reset)
       .def("SetOptions",&MeshDataTransferUtilities::TransferParameters::SetOptions)
@@ -192,9 +192,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
   //***************MESHER UTILITIES**************//
 
   // Remeshing mesher information parameters
-  class_< MesherUtilities::MeshingInfoParameters, typename MesherUtilities::MeshingInfoParameters::Pointer>
+  py::class_< MesherUtilities::MeshingInfoParameters, typename MesherUtilities::MeshingInfoParameters::Pointer>
       (m,"MeshingInfoParameters")
-      .def(init<>())
+      .def(py::init<>())
       .def("Initialize",&MesherUtilities::MeshingInfoParameters::Initialize)
       .def("CheckMechanicalSmoothing",&MesherUtilities::MeshingInfoParameters::CheckMechanicalSmoothing)
       .def("SetNumberOfNodes",&MesherUtilities::MeshingInfoParameters::SetNumberOfNodes)
@@ -212,9 +212,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       ;
 
   // Remeshing mesher refining parameters
-  class_< MesherUtilities::RefiningParameters, typename MesherUtilities::RefiningParameters::Pointer>
+  py::class_< MesherUtilities::RefiningParameters, typename MesherUtilities::RefiningParameters::Pointer>
       (m,"RefiningParameters")
-      .def(init<>())
+      .def(py::init<>())
       .def("Initialize",&MesherUtilities::RefiningParameters::Initialize)
       .def("SetRefiningOptions",&MesherUtilities::RefiningParameters::SetRefiningOptions)
       .def("SetRemovingOptions",&MesherUtilities::RefiningParameters::SetRemovingOptions)
@@ -237,9 +237,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       ;
 
   // Remeshing mesher remeshing parameters
-  class_< MesherUtilities::MeshingParameters, typename MesherUtilities::MeshingParameters::Pointer>
+  py::class_< MesherUtilities::MeshingParameters, typename MesherUtilities::MeshingParameters::Pointer>
       (m,"MeshingParameters")
-      .def(init<>())
+      .def(py::init<>())
       .def("Initialize",&MesherUtilities::MeshingParameters::Initialize)
       .def("Set",&MesherUtilities::MeshingParameters::Set)
       .def("Reset",&MesherUtilities::MeshingParameters::Reset)
