@@ -63,7 +63,7 @@ void Push_Back_Process( MesherProcessContainer& ThisProcessContainer,
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
-  namespace py = pybind11;;
+  namespace py = pybind11;
 
   //**********MESHER PROCESS*********//
 
