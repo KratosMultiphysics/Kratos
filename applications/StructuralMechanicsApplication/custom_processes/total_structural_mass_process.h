@@ -220,7 +220,7 @@ private:
     TotalStructuralMassProcess& operator=(TotalStructuralMassProcess const& rOther) = delete;
 
     /// Copy constructor.
-    //TotalStructuralMassProcess(TotalStructuralMassProcess const& rOther);
+    TotalStructuralMassProcess(TotalStructuralMassProcess const& rOther) = delete;
 
 
     ///@}

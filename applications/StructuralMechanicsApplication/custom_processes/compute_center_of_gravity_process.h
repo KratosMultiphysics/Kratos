@@ -219,7 +219,7 @@ private:
     ComputeCenterOfGravityProcess& operator=(ComputeCenterOfGravityProcess const& rOther) = delete;
 
     /// Copy constructor.
-    //ComputeCenterOfGravityProcess(ComputeCenterOfGravityProcess const& rOther);
+    ComputeCenterOfGravityProcess(ComputeCenterOfGravityProcess const& rOther) = delete;
 
 
     ///@}
