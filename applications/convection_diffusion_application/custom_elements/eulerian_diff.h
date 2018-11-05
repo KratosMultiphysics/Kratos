@@ -195,7 +195,7 @@ public:
 
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
 
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
         for(unsigned int igauss=0; igauss<TDim+1; igauss++)
         {

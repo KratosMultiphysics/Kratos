@@ -15,13 +15,13 @@ def CreateSolver(main_model_part, custom_settings):
 class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
     def __init__(self, main_model_part, custom_settings):
-        
+
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
-        {  
+        {
             "echo_level": 1,
             "buffer_size": 3,
             "solver_type": "pfem_fluid_nodal_integration_solver",
@@ -82,13 +82,13 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
             ],
             "problem_domain_sub_model_part_list": ["fluid_model_part"],
             "processes_sub_model_part_list": [""]
-        } 
+        }
         """)
-        
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-       
+
         #construct the linear solver
         import linear_solver_factory
         self.pressure_linear_solver = linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
@@ -105,8 +105,8 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
-        
-        
+
+
         self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategy(self.computing_model_part,
                                                                    self.velocity_linear_solver,
                                                                    self.pressure_linear_solver,
@@ -126,7 +126,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
             self.mechanical_solver.SetInitializePerformedFlag(True)
 
-    
+
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
 
@@ -134,15 +134,15 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         print("::[Pfem Fluid Nodal Integration Solver]:: -END- ")
 
 
-        
+
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-                        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
@@ -175,6 +175,9 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_OLD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_RATE)
 
         # PFEM fluid variables
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
@@ -197,20 +200,20 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_FREESURFACE_AREA)
 
         print("::[Pfem Fluid Solver]:: Variables ADDED")
-    
-    
-       
+
+
+
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-            
+
         self.fluid_solver.Solve()
-        
+
         #self.fluid_solver.CalculateAccelerations()  # ACCELERATION
         #self.fluid_solver.CalculateDisplacements()  # DISPLACEMENTS
 
     # solve :: sequencial calls
-    
+
     def InitializeStrategy(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -242,7 +245,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
     def FinalizeSolutionStep(self):
         #pass
-        self.fluid_solver.FinalizeSolutionStep()  
+        self.fluid_solver.FinalizeSolutionStep()
 
         #print("set_active_flag.ExecuteFinalize()")
         unactive_peak_elements = False
@@ -253,7 +256,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteFinalize()
-        
+
 
     # solve :: sequencial calls
 
@@ -279,7 +282,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
             infinite_friction = elem.Properties.GetValue(KratosPfemFluid.INFINITE_FRICTION)
             alpha_parameter = elem.Properties.GetValue(KratosPfemFluid.ALPHA_PARAMETER)
             break
-            
+
         print ("density: ",density)
         print ("viscosity: ",viscosity)
         print ("bulk_modulus: ",bulk_modulus)

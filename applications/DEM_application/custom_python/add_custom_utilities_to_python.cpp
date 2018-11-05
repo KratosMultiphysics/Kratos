@@ -28,6 +28,7 @@
 #include "custom_utilities/excavator_utility.h"
 #include "custom_utilities/analytic_tools/particles_history_watcher.h"
 #include "custom_utilities/move_mesh_utility.h"
+#include "custom_utilities/stationarity_checker.h"
 
 namespace Kratos {
 
@@ -302,7 +303,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
         .def(init<>())
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
-        .def("MoveAllMeshesUsingATable", &DEMFEMUtilities::MoveAllMeshesUsingATable)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
         ;
 
@@ -343,6 +343,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     class_<MoveMeshUtility, MoveMeshUtility::Pointer>(m, "MoveMeshUtility")
         .def(init<>())
         .def("MoveDemMesh", &MoveMeshUtility::MoveDemMesh)
+        ;
+
+    class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")
+        .def(init<>())
+        .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
         ;
     }
 
