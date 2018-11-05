@@ -34,6 +34,7 @@ namespace Kratos
         int rBrepId,
         std::vector<EdgeTopology>& rBrepEdgeTopologyVector,
         std::vector<TrimmingRange>& rTrimmingRangeVector,
+        int& rDegree,
         Vector& rKnotVector,
         Vector& rActiveRange,
         std::vector<int>& rControlPointIds,
@@ -46,19 +47,22 @@ namespace Kratos
           IndexedObject(rBrepId),
           Flags()
     {
-        //int number_of_nodes = rKnotVector.size() + rP - 1;
+        int number_of_nodes = rKnotVector.size() + rDegree - 1;
 
-        //NodeCurveGeometry3D& m_nurbs_curve_geometry_3d = new NodeCurveGeometry3D(degree, NumberOfNodes);
+        m_node_curve_geometry_3d = New<NodeCurveGeometry3D>(
+            rDegree, number_of_nodes);
 
-        //for (int i = 0; i < rControlPointIds.size(); ++i)
-        //{
-        //    m_nurbs_curve_geometry_3d.SetNode(i, rModelPart.pGetNode(rControlPointIds[i]));
-        //}
+        for (int i = 0; i < rControlPointIds.size(); ++i)
+        {
+            Node<3>::Pointer node = rModelPart.pGetNode(rControlPointIds[i]);
+            m_node_curve_geometry_3d->SetNode(i, node);
+            m_node_curve_geometry_3d->SetWeight(i, node->GetValue(NURBS_CONTROL_POINT_WEIGHT));
+        }
 
-        //for (int i = 0; i < rKnotVector.size(); ++i)
-        //{
-        //    m_nurbs_curve_geometry_3d.SetPole(i, rKnotVector[i]);
-        //}
+        for (int i = 0; i < rKnotVector.size() - 2; ++i)
+        {
+            m_node_curve_geometry_3d->SetKnot(i, rKnotVector[i + 1]);
+        }
     }
 } // namespace Kratos.
 

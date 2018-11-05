@@ -16,12 +16,19 @@
 #if !defined(KRATOS_BREP_EDGE_H_INCLUDED )
 #define  KRATOS_BREP_EDGE_H_INCLUDED
 
+// System includes
 
 // Project includes
 #include "iga_application.h"
 #include "iga_application_variables.h"
 
+#include "brep_trimming_curve.h"
+
 #include "../node_curve_geometry_3d.h"
+
+// Kratos includes
+#include "includes/node.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -33,6 +40,10 @@ namespace Kratos
     class BrepEdge : public IndexedObject, public Flags
     {
     public:
+
+        /// Pointer definition of KratosNurbsBrepApplication
+        KRATOS_CLASS_POINTER_DEFINITION(BrepEdge);
+
         /* Geometry Refinement Parameters are used to pass the full refinement information
         *  needed for face-refinement.
         */
@@ -91,10 +102,11 @@ namespace Kratos
         bool IsCouplingEdge();
 
         ///Constructor
-        BrepEdge::BrepEdge(
+        BrepEdge(
             int rBrepId,
             std::vector<EdgeTopology>& rBrepEdgeTopologyVector,
             std::vector<TrimmingRange>& rTrimmingRangeVector,
+            int& rDegree,
             Vector& rKnotVector,
             Vector& rActiveRange,
             std::vector<int>& rControlPointIds,
@@ -111,18 +123,19 @@ namespace Kratos
         ///@name Member Variables
         ///@{ 
         // topology parameter
-        std::vector<EdgeTopology>  m_brep_edge_topology_vector;
-        std::vector<TrimmingRange> m_trimming_range_vector;
+        std::vector<EdgeTopology>              m_brep_edge_topology_vector;
+        std::vector<TrimmingRange>             m_trimming_range_vector;
 
-        //NodeCurveGeometry3D&        m_nurbs_curve_geometry_3d;
+        //anurbs variables
+        std::shared_ptr<NodeCurveGeometry3D>   m_node_curve_geometry_3d;
 
-        //3d curve parameter
+        //3d curve parameters
         Vector                        m_active_range;
         std::vector<int>              m_control_point_ids;
-        ModelPart& m_model_part;
+        ModelPart&                    m_model_part;
         ///@}    
     }; // Class BrepEdge 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BREP_EDGE_H_INCLUDED  defined
+#endif // KRATOS_BREP_EDGE_H_INCLUDED defined

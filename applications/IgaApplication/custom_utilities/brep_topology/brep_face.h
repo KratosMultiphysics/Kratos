@@ -3,7 +3,6 @@
 
 
 // System includes
-#include "includes/define.h"
 
 // External includes
 
@@ -11,12 +10,14 @@
 #include "brep_trimming_curve.h"
 #include "brep_boundary_loop.h"
 
-#include "includes/model_part.h"
-
 #include "iga_application.h"
 #include "iga_application_variables.h"
 
 #include "../node_surface_geometry_3d.h"
+
+// Kratos includes
+#include "includes/model_part.h"
+#include "includes/node.h"
 
 namespace Kratos
 {
@@ -101,7 +102,7 @@ namespace Kratos
             int& rP,
             int& rQ,
             IntVector& rControlPointIds,
-            Kratos::shared_ptr<ModelPart> rModelPart);
+            ModelPart& rModelPart);
 
         /// Destructor.
         virtual ~BrepFace() {};
@@ -122,10 +123,13 @@ namespace Kratos
         std::vector<BrepTrimmingCurve> m_trimming_loops;
         std::vector<BrepBoundaryLoop> m_embedded_loops;
         std::vector<EmbeddedPoint> m_embedded_points;
-        IntVector m_control_points_ids;
-        Kratos::shared_ptr<ModelPart> mp_model_part;
 
-        //NodeSurfaceGeometry3D m_node_surface_geometry_3d;
+        //3d surface parameters
+        IntVector& m_control_points_ids;
+        ModelPart& m_model_part;
+
+        //anurbs variables
+        std::shared_ptr<NodeSurfaceGeometry3D> m_node_surface_geometry_3d;
         ///@}
 
     }; // Class BrepFace

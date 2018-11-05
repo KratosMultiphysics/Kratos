@@ -4,6 +4,9 @@
 
 // System includes
 
+// External includes
+#include <ANurbs/src/Curve.h>
+
 // Project includes
 #include "iga_application.h"
 #include "iga_application_variables.h"
@@ -11,6 +14,8 @@
 
 namespace Kratos
 {
+    using namespace ANurbs;
+
     ///@name Kratos Classes
     ///@{
     class BrepTrimmingCurve
@@ -18,10 +23,9 @@ namespace Kratos
     public:
         ///@name Type Definitions
         ///@{
-        //typedef std::vector<array_1d<double, 4>> ControlPointVector;
 
         /// Pointer definition of KratosNurbsBrepApplication
-        //KRATOS_CLASS_POINTER_DEFINITION(BrepTrimmingCurve);
+        KRATOS_CLASS_POINTER_DEFINITION(BrepTrimmingCurve);
 
         ///@}
         ///@name Life Cycle 
@@ -29,14 +33,17 @@ namespace Kratos
         // Utilities
         /* Returns trimming curve index
         */
-        unsigned int& GetTrimIndex();
+        int& GetTrimIndex();
 
-        //TODO: you need to give reading access to your internals through the Calculate function
         /// Constructor.
-        //TODO: pass by reference not by value
-        BrepTrimmingCurve(unsigned int trim_index, bool curve_direction, Vector& knot_vector_u,
-            unsigned int p,
-            Vector& active_range);
+        BrepTrimmingCurve(
+            int& rTrimIndex, 
+            Vector& rKnotVector,
+            int& rDegree,
+            std::vector<BoundedVector<double, 4>> rControlPoints,
+            bool& rCurveDirection,
+            bool& rIsRational,
+            Vector& rActiveRange);
 
         /// Destructor.
         virtual ~BrepTrimmingCurve() {};
@@ -47,16 +54,14 @@ namespace Kratos
     private:
         ///@name Member Variables
         ///@{ 
-        unsigned int m_trim_index;
+        int m_trim_index;
         bool m_curve_direction;
-        Vector m_knot_vector_u;
-        unsigned int m_p;
-        //std::vector<array_1d<double, 4>> m_control_points;
-        Vector m_active_range;
+
+        std::shared_ptr<CurveGeometry2D> m_geometry;
+        std::shared_ptr<Curve2D> m_curve;
         ///@}
         ///@name Un accessible methods 
         ///@{
-
 
 
         ///@}

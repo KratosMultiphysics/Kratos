@@ -7,6 +7,9 @@
 // Project includes
 #include "brep_trimming_curve.h"
 
+#include "iga_application.h"
+#include "iga_application_variables.h"
+
 namespace Kratos
 {
 
@@ -23,7 +26,7 @@ namespace Kratos
         ///@{
 
         /// Pointer definition of KratosNurbsBrepApplication
-        //KRATOS_CLASS_POINTER_DEFINITION(BrepBoundaryLoop);
+        KRATOS_CLASS_POINTER_DEFINITION(BrepBoundaryLoop);
 
         ///@}
         ///@name Life Cycle 

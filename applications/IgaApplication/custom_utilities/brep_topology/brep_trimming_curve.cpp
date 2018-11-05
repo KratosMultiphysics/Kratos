@@ -7,15 +7,14 @@
 //  License:     BSD License
 //               Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
+
 //  Main authors:    Tobias Teschemacher
 //                   Michael Breitenberger
 //
 
 // System includes
 
-
 // External includes 
-//#inclue "anurbs.h"
 
 // Project includes
 #include "brep_trimming_curve.h"
@@ -23,21 +22,44 @@
 
 namespace Kratos
 {
-    unsigned int& BrepTrimmingCurve::GetTrimIndex()
+    int& BrepTrimmingCurve::GetTrimIndex()
     {
         return m_trim_index;
     }
 
-    //Constructor
-    BrepTrimmingCurve::BrepTrimmingCurve(unsigned int trim_index, bool curve_direction, Vector& knot_vector_u,
-        unsigned int p, 
-        Vector& active_range)
-        : m_knot_vector_u(knot_vector_u),
-        m_curve_direction(curve_direction),
-        m_p(p),
-        m_active_range(active_range),
-        m_trim_index(trim_index)
+    ///Constructor
+    BrepTrimmingCurve::BrepTrimmingCurve(
+        int& rTrimIndex,
+        Vector& rKnotVector,
+        int& rDegree,
+        std::vector<BoundedVector<double, 4>> rControlPoints,
+        bool& rCurveDirection,
+        bool& rIsRational,
+        Vector& rActiveRange)
+        : m_curve_direction(rCurveDirection),
+          m_trim_index(rTrimIndex)
     {
+        int number_poles = rControlPoints.size();
+
+        m_geometry =  New<CurveGeometry2D>(
+            rDegree, number_poles, rIsRational);
+
+        for (int i = 0; i < rKnotVector.size() - 2; ++i)
+        {
+            m_geometry->SetKnot(i, rKnotVector(i + 1));
+        }
+
+        for (int i = 0; i < number_poles; ++i)
+        {
+            m_geometry->SetPole(i, 
+                { rControlPoints[i][0], rControlPoints[i][1] });
+            if (rIsRational)
+            {
+                m_geometry->SetWeight(i, rControlPoints[i][3]);
+            }
+        }
+
+        m_curve = New<Curve2D>(m_geometry, rActiveRange[0], rActiveRange[1]);
     }
 
 }  // namespace Kratos.
