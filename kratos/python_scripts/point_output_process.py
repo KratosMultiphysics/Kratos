@@ -32,7 +32,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "entity_type"       : "element",
             "position"          : [],
             "output_variables"  : [],
-            "historical_value"  : true,
             "print_format"      : "",
             "output_file_settings": {}
         }''')
@@ -50,7 +49,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.output_variables = []
 
         self.format = self.params["print_format"].GetString()
-        self.historical_value = self.params["historical_value"].GetBool()
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
@@ -149,7 +147,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
             # in the file writer when restarting
             out = str(time)
             for var in var_list:
-                value = Interpolate(var, ent, coord, self.historical_value)
+                value = Interpolate(var, ent, coord)
 
                 if IsArrayVariable(var):
                     out += " " + " ".join( format(v,self.format) for v in value )
@@ -198,25 +196,16 @@ def GetFileHeader(entity_type, entity_id, point, output_variables):
 
     return header
 
-def Interpolate(variable, entity, sf_values, historical_value):
+def Interpolate(variable, entity, sf_values):
     if type(entity) == KratosMultiphysics.Node:
-        if historical_value:
-            return entity.GetSolutionStepValue(variable)
-        else:
-            return entity.GetValue(variable)
+        return entity.GetSolutionStepValue(variable)
     else: # entity is element or condition
         nodes = entity.GetNodes()
         # Initializing 'value' like this, i don't need to know its type
         # => this way it works both for scalar and array3 variables
-        if historical_value:
-            value = nodes[0].GetSolutionStepValue(variable) * sf_values[0]
-            for n,c in zip(nodes[1:], sf_values[1:]):
-                value = value + c * n.GetSolutionStepValue(variable)
-        else:
-            value = nodes[0].GetValue(variable) * sf_values[0]
-            for n,c in zip(nodes[1:], sf_values[1:]):
-                value = value + c * n.GetValue(variable)
-
+        value = nodes[0].GetSolutionStepValue(variable) * sf_values[0]
+        for n,c in zip(nodes[1:], sf_values[1:]):
+            value = value + c * n.GetSolutionStepValue(variable)
 
         return value
 

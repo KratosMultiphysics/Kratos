@@ -20,7 +20,7 @@ namespace Kratos
   ///@name Kratos Globals
   ///@{
 
-  //Create Variables
+  //Create Variables 
 
   // KRATOS_CREATE_VARIABLE(double, M_MODULUS )
   // KRATOS_CREATE_VARIABLE(int, PATCH_INDEX )

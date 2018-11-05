@@ -230,8 +230,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
 
 
     def PrepareModelPart(self):

@@ -236,7 +236,6 @@ class PostUtils(object):
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
                     self.previous_vector_of_inner_nodes = vector_of_inner_nodes
 
-                absolute_path_to_file = os.path.join(graphs_path, filename)
                 f = open(absolute_path_to_file, 'a')
                 tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
                 if compute_flow:
@@ -970,41 +969,39 @@ class DEMFEMProcedures(object):
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
-    # def MoveAllMeshesUsingATable(self, model_part, time, dt):
+    def MoveAllMeshesUsingATable(self, model_part, time, dt):
 
-    #     self.mesh_motion.MoveAllMeshesUsingATable(model_part, time, dt)
+        for smp in model_part.SubModelParts:
 
-        # for smp in model_part.SubModelParts:
+            if not smp[TABLE_NUMBER]:
+                continue
 
-        #     if not smp[TABLE_NUMBER]:
-        #         continue
+            Logger.Print("Info:", label="")
+            Logger.Print(smp[IDENTIFIER], label="")
+            Logger.Print(smp[TABLE_NUMBER], label="")
 
-        #     Logger.Print("Info:", label="")
-        #     Logger.Print(smp[IDENTIFIER], label="")
-        #     Logger.Print(smp[TABLE_NUMBER], label="")
+            for node in smp.Nodes:
 
-        #     for node in smp.Nodes:
+                old_coords = Vector(3)
+                old_coords[0] = node.X
+                old_coords[1] = node.Y
+                old_coords[2] = node.Z
 
-        #         old_coords = Vector(3)
-        #         old_coords[0] = node.X
-        #         old_coords[1] = node.Y
-        #         old_coords[2] = node.Z
+                velocity = Vector(3)
+                velocity[0] = model_part.GetTable(smp[TABLE_NUMBER]).GetValue(time)
+                velocity[1] = 0.0
+                velocity[2] = 0.0
+                node.SetSolutionStepValue(VELOCITY, velocity)
 
-        #         velocity = Vector(3)
-        #         velocity[0] = model_part.GetTable(smp[TABLE_NUMBER]).GetValue(time)
-        #         velocity[1] = 0.0
-        #         velocity[2] = 0.0
-        #         node.SetSolutionStepValue(VELOCITY, velocity)
+                node.X = old_coords[0] + velocity[0] * dt
+                node.Y = old_coords[1] + velocity[1] * dt
+                node.Z = old_coords[2] + velocity[2] * dt
 
-        #         node.X = old_coords[0] + velocity[0] * dt
-        #         node.Y = old_coords[1] + velocity[1] * dt
-        #         node.Z = old_coords[2] + velocity[2] * dt
-
-        #         displacement = Vector(3)
-        #         displacement[0] = node.X - node.X0
-        #         displacement[1] = node.Y - node.Y0
-        #         displacement[2] = node.Z - node.Z0
-        #         node.SetSolutionStepValue(DISPLACEMENT, displacement)
+                displacement = Vector(3)
+                displacement[0] = node.X - node.X0
+                displacement[1] = node.Y - node.Y0
+                displacement[2] = node.Z - node.Z0
+                node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
     @classmethod
     def UpdateTimeInModelParts(self, all_model_parts, time, dt, step):
@@ -1315,8 +1312,6 @@ class DEMIo(object):
 
     def __init__(self, model, DEM_parameters, post_path, all_model_parts):
 
-        self.model = model
-
         self.post_path = post_path
         self.mixed_model_part = model.CreateModelPart("Mixed_Part")
         self.mixed_spheres_and_clusters_model_part = model.CreateModelPart("MixedSpheresAndClustersPart")
@@ -1400,7 +1395,18 @@ class DEMIo(object):
 
         self.continuum_element_types = ["SphericContPartDEMElement3D", "CylinderContPartDEMElement2D", "IceContPartDEMElement3D"]
 
-        self.OpenMultiFileLists()
+        one_level_up_path = os.path.join(self.post_path, "..")
+        self.multifiles = (
+            MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 10, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 20, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 50, "inner"),
+        )
+
+        self.SetMultifileLists(self.multifiles)
 
         #Analytic
         if not "PostNormalImpactVelocity" in self.DEM_parameters.keys():
@@ -1435,20 +1441,6 @@ class DEMIo(object):
             self.SeaSurfaceY3 = self.sea_settings["PostVirtualSeaSurfaceY3"].GetDouble()
             self.SeaSurfaceX4 = self.sea_settings["PostVirtualSeaSurfaceX4"].GetDouble()
             self.SeaSurfaceY4 = self.sea_settings["PostVirtualSeaSurfaceY4"].GetDouble()
-
-    def OpenMultiFileLists(self):
-        one_level_up_path = os.path.join(self.post_path, "..")
-        self.multifiles = (
-            #MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 10, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 20, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 50, "inner"),
-        )
-        self.SetMultifileLists(self.multifiles)
-
 
     def KRATOSprint(self, message):
         Logger.Print(message,label="DEM")
@@ -1486,14 +1478,14 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDisplacement, DISPLACEMENT, self.global_variables)
         self.PushPrintVar(self.PostVelocity, VELOCITY, self.global_variables)
         self.PushPrintVar(self.PostTotalForces, TOTAL_FORCES, self.global_variables)
-        self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_FORCE,  self.global_variables)
-        self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_MOMENT, self.global_variables)
         if self.DEM_parameters["PostAngularVelocity"].GetBool():
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
         if self.DEM_parameters["PostParticleMoment"].GetBool():
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
+        self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
+        self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
 
     # variables common to spheres and clusters
@@ -1823,7 +1815,7 @@ class DEMIo(object):
 
         if self.PostBoundingBox:
             # Creation of bounding box's model part
-            bounding_box_model_part = self.model.CreateModelPart("BoundingBoxPart")
+            bounding_box_model_part = ModelPart("BoundingBoxPart")
 
             max_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
             max_FEM_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
@@ -1851,7 +1843,6 @@ class DEMIo(object):
 
             self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh())
 
-            self.model.DeleteModelPart("BoundingBoxPart")
 
     def ComputeAndPrintSeaSurface(self, spheres_model_part, rigid_face_model_part):
 
@@ -1886,7 +1877,7 @@ class DEMIo(object):
 
     def ComputeAndPrintDEMFEMSearchBinBoundingBox(self, spheres_model_part, rigid_face_model_part, dem_fem_search):
 
-        bounding_box_model_part = self.model.CreateModelPart("BoundingBoxPart")
+        bounding_box_model_part = ModelPart("BoundingBoxPart")
 
         max_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(spheres_model_part)
         max_FEM_node_Id = ParticleCreatorDestructor().FindMaxNodeIdInModelPart(rigid_face_model_part)
@@ -1935,8 +1926,6 @@ class DEMIo(object):
             BBMinZ = 0.0
 
         self.BuildGraphicalBoundingBox(bounding_box_model_part, max_node_Id, max_element_Id, BBMinX, BBMinY, BBMinZ, BBMaxX, BBMaxY, BBMaxZ)
-
-        self.model.DeleteModelPart("BoundingBoxPart")
 
         #self.gid_io.WriteMesh(bounding_box_model_part.GetCommunicator().LocalMesh()) #BOUNDING BOX IMPLEMENTATION
 

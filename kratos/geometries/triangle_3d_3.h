@@ -2177,7 +2177,7 @@ private:
         noalias(edge2) = vert0 - vert2;
 
         // Bullet 3:
-        // test the 9 tests first (this was faster)
+        // test the 12 tests first (this was faster)
         abs_ex = std::abs(edge0[0]);
         abs_ey = std::abs(edge0[1]);
         abs_ez = std::abs(edge0[2]);
@@ -2210,11 +2210,11 @@ private:
         if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
 
         // test in Y-direction
-        min_max = std::minmax({vert0[1], vert1[1], vert2[1]});
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
         if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
 
         // test in Z-direction
-        min_max = std::minmax({vert0[2], vert1[2], vert2[2]});
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
         if(min_max.first>rBoxHalfSize[2] || min_max.second<-rBoxHalfSize[2]) return false;
 
         // Bullet 2:

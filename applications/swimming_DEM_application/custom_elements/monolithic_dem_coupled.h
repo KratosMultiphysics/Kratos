@@ -706,16 +706,6 @@ public:
 //             }
     }
 
-    void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override
-    {
-        for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            this->GetGeometry()[iNode].SetLock();
-            this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION_OLD) =  this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION);
-            this->GetGeometry()[iNode].UnSetLock();
-        }
-    }
-
     /// Implementation of Calculate to compute an error estimate.
     /**
      * If rVariable == ERROR_RATIO, this function will provide an a posteriori
@@ -2243,10 +2233,8 @@ protected:
 
 
            for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-              double rate = delta_time_inv * (this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION) - this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION_OLD));
-                this->GetGeometry()[iNode].SetLock();
+              double rate = delta_time_inv * (this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION) - this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION, 1));
               this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION_RATE) = rate;
-                this->GetGeometry()[iNode].UnSetLock();
               rResult += rShapeFunc[iNode] * rate;
              }
 

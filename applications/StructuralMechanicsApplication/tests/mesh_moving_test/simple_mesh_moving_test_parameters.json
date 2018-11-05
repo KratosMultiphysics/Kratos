@@ -10,7 +10,6 @@
         "solver_type"                        : "Dynamic",
         "time_integration_method"            : "implicit",
         "analysis_type"                      : "linear",
-        "block_builder"                      : false,
         "model_part_name" : "Structure",
         "echo_level"                         : 0,
         "domain_size"     : 2,

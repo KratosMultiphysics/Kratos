@@ -5,7 +5,6 @@ import KratosMultiphysics
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 # Other imports
 import filecmp
@@ -33,25 +32,10 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             "output_file_name"      : "",
             "remove_output_file"    : true,
             "comparison_type"       : "deterministic",
-            "tolerance"             : 1e-6,
-            "relative_tolerance"    : 1e-9,
+            "decimal_places"        : 6,
             "dimension"             : 3
         }
         """)
-
-        # backwards compatibility
-        if params.Has("decimal_places"):
-            if params.Has("tolerance") or params.Has("relative_tolerance"):
-                raise Exception('Conflicting settings specified, please remove "decimal_places"')
-            decimal_places = params["decimal_places"].GetInt()
-            params.RemoveValue("decimal_places")
-            warning  = 'Deprecated setting found: "decimal_places".\n'
-            warning += 'Please specify "tolerance" and "relative_tolerance" instead'
-            warning = '\n::[CompareTwoFilesCheckProcess]:: W-A-R-N-I-N-G: You have specified "decimal_places", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            KratosMultiphysics.Logger.PrintWarning("CompareTwoFilesCheckProcess", warning)
-            tol = 0.1**decimal_places
-            params.AddEmptyValue("tolerance").SetDouble(tol)
 
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_parameters)
@@ -65,8 +49,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
         self.remove_output_file = params["remove_output_file"].GetBool()
         self.comparison_type = params["comparison_type"].GetString()
-        self.tol = params["tolerance"].GetDouble()
-        self.reltol = params["relative_tolerance"].GetDouble()
+        self.decimal_places = params["decimal_places"].GetInt()
         self.dimension = params["dimension"].GetInt()
 
         self.info_msg = "".join([  "\n[%s]: Failed with following parameters:\n" % self.__class__.__name__,
@@ -216,7 +199,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 self.assertTrue(False, msg="Different number of results!" + self.info_msg)
 
             for val_1, val_2 in zip(lines_1_splitted, lines_2_splitted):
-                self.__CheckCloseValues(float(val_1), float(val_2))
+                self.assertAlmostEqual(float(val_1),
+                                       float(val_2),
+                                       self.decimal_places, msg = self.info_msg)
 
         return current_index+2 # directly incrementing to get the new result label
 
@@ -255,7 +240,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
 
         for line_ref, line_out in zip(lines_ref, lines_out):
             for v1, v2 in zip(line_ref.split(), line_out.split()):
-                self.__CheckCloseValues(float(v1), float(v2))
+                self.assertAlmostEqual(float(v1),
+                                       float(v2),
+                                       self.decimal_places, msg = self.info_msg)
 
     def __CompareMeshVerticesFile(self):
         """This function compares the output of the MMG meshing library
@@ -284,7 +271,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
 
         error /= nvertices
-        self.assertTrue(error < self.tol, msg = self.info_msg)
+        self.assertTrue(error < GetTolerance(self.decimal_places), msg = self.info_msg)
 
     def __CompareSolMetricFile(self):
         """This function compares the output of the MMG meshing library
@@ -327,16 +314,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2 + (tmp1[3] - tmp2[3])**2 + (tmp1[4] - tmp2[4])**2 + (tmp1[5] - tmp2[5])**2)
 
         error /= nvertices
-        self.assertTrue(error < self.tol, msg = self.info_msg)
-
-    def __CheckCloseValues(self, val_a, val_b, additional_info=""):
-        isclosethis = t_isclose(val_a, val_b, rel_tol=self.reltol, abs_tol=self.tol)
-        full_msg =  self.info_msg + "\n"
-        full_msg += str(val_a) + " != " + str(val_b) + ", rel_tol = "
-        full_msg += str(self.reltol) + ", abs_tol = " + str(self.tol)
-        if additional_info != "":
-            full_msg += "\n" + additional_info
-        self.assertTrue(isclosethis, msg=full_msg)
+        self.assertTrue(error < GetTolerance(self.decimal_places), msg = self.info_msg)
 
 
 def ConvertStringToListFloat(line, space = " ", endline = ""):
@@ -349,3 +327,11 @@ def ConvertStringToListFloat(line, space = " ", endline = ""):
             list_values.append(float(string))
 
     return list_values
+
+def GetTolerance(decimal_places):
+    """This function converts decimal places into a tolerance
+    e.g. 5 to 1e-5
+    """
+    tolerance = 0.1**decimal_places
+    tolerance = round(tolerance, decimal_places) # to remove rounding errors
+    return(tolerance)

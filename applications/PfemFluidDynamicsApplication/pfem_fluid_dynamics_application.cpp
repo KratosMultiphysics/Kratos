@@ -9,7 +9,7 @@
 
 // System includes
 
-// External includes
+// External includes 
 
 // Project includes
 #include "includes/define.h"
@@ -26,7 +26,7 @@
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
-
+ 
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
 
@@ -103,7 +103,7 @@ namespace Kratos
     mTwoStepUpdatedLagrangianVPExplicitFluidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10))))
   {
   }
-
+  
   void KratosPfemFluidDynamicsApplication::Register()
   {
     // calling base class register to register Kratos components
@@ -115,11 +115,11 @@ namespace Kratos
     std::cout << "           |  _/  _/ -_) '  \\| _|| | || | / _` |         " << std::endl;
     std::cout << "           |_| |_| \\___|_|_|_|_| |_|\\_,_|_\\__,_|DYNAMICS " << std::endl;
     std::cout << "Initializing KratosPfemFluidDynamicsApplication...       " << std::endl;
-
+       
     //Register Variables (variables created in pfem_fluid_dynamics_application_variables.cpp)
 
     // Material postprocess + invariants
-    // KRATOS_REGISTER_VARIABLE(M_MODULUS)
+    // KRATOS_REGISTER_VARIABLE(M_MODULUS)  
     // KRATOS_REGISTER_VARIABLE(PATCH_INDEX);
     // KRATOS_REGISTER_VARIABLE(NORMVELOCITY);
     KRATOS_REGISTER_VARIABLE(FREESURFACE);
@@ -166,7 +166,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(NODAL_VOLUMETRIC_DEF_RATE);
     KRATOS_REGISTER_VARIABLE(NODAL_MEAN_MESH_SIZE);
     KRATOS_REGISTER_VARIABLE(NODAL_FREESURFACE_AREA);
-
 
     //Register Elements
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement2D",mTwoStepUpdatedLagrangianVPImplicitElement2D);
@@ -224,13 +223,13 @@ namespace Kratos
     //Register Constitutive Laws
 
     //Register Flow Rules
-
+ 
     //Register Yield Criterion
-
+ 
     //Register Hardening Laws
-
+ 
   }
-
+  
 }  // namespace Kratos.
 
 

@@ -29,7 +29,6 @@ class LineOutputProcess(KratosMultiphysics.Process):
             "end_point"         : [],
             "sampling_points"   : 3,
             "output_variables"  : [],
-            "historical_value"  : true,
             "print_format"      : "",
             "output_file_settings": {}
         }''')

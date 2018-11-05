@@ -93,6 +93,7 @@ class MeshSolverBase(PythonSolver):
     def AddVariables(self):
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
+        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_RHS)
         if (self.settings["calculate_mesh_velocities"].GetBool() == True):
             self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.print_on_rank_zero("::[MeshSolverBase]:: Variables ADDED.")

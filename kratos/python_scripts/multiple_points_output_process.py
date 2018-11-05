@@ -28,7 +28,6 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             "entity_type"       : "element",
             "positions"         : [[]],
             "output_variables"  : [],
-            "historical_value"  : true,
             "print_format"      : "",
             "output_file_settings": {}
         }''')

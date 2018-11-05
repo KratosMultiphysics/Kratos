@@ -609,17 +609,17 @@ public:
     {
         using Quadrilateral3D4Type = Quadrilateral3D4<TPointType>;
         // Check if faces have intersection
-        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(1), this->pGetPoint(0)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
             return true;
         if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(2),this->pGetPoint(6), this->pGetPoint(5), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(7),this->pGetPoint(6), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(4), this->pGetPoint(7), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(7),this->pGetPoint(3), this->pGetPoint(0), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
-            return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(1),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
             return true;
         
         CoordinatesArrayType local_coordinates;

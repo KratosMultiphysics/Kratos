@@ -26,7 +26,7 @@ class Solution:
 
         if self.alg == None:
             import swimming_DEM_PFEM_algorithm
-            self.alg = swimming_DEM_PFEM_algorithm.Algorithm(model, varying_parameters)
+            self.alg = swimming_DEM_PFEM_algorithm.Algorithm(varying_parameters)
 
     def Run(self):
         return self.alg.Run()
