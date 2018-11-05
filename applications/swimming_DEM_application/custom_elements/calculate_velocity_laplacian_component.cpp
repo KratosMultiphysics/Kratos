@@ -228,6 +228,6 @@ void ComputeVelocityLaplacianComponentSimplex<TDim, TNumNodes>::AddIntegrationPo
 }
 
 // Explicit instantiations
-template class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeVelocityLaplacianComponentSimplex<2, 3>;
-template class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeVelocityLaplacianComponentSimplex<3, 4>;
+template class ComputeVelocityLaplacianComponentSimplex<2, 3>;
+template class ComputeVelocityLaplacianComponentSimplex<3, 4>;
 } // namespace Kratos

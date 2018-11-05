@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -967,6 +968,22 @@ public:
   virtual void PrintData(std::ostream &rOStream) const {};
 
 private:
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const 
+    {
+        rSerializer.save("Data", this->WriteJsonString());
+    }
+
+    void load(Serializer& rSerializer) 
+    {
+        std::string parameters_data;
+        rSerializer.load("Data", parameters_data);
+        *this = Parameters(parameters_data);
+    }
+
+
   // ATTENTION: please DO NOT use this constructor. It assumes rapidjson and
   // hence it should be considered as an implementation detail
   Parameters(rapidjson::Value *pvalue,

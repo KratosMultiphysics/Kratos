@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/process_info.h"
 #include "testing/testing.h"
-
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "processes/skin_detection_process.h"
@@ -29,8 +29,8 @@ typedef Node<3> NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
 {
-    ModelPart model_part("test_model_part");
-    model_part.SetBufferSize(2);
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("test_model_part",2);
 
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);;
 

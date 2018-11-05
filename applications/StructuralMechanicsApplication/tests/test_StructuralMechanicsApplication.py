@@ -48,10 +48,14 @@ from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
+from test_harmonic_analysis import HarmonicAnalysisTestsWithHDF5 as THarmonicAnalysisTestsWithHDF5
 # Dynamic basic tests
+from test_dynamic_schemes import FastDynamicSchemesTests as TFastDynamicSchemesTests
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Eigenvalues Postprocessing Process test
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
+# local-axis visualization tests
+from test_local_axis_visualization import TestLocalAxisVisualization as TTestLocalAxisVisualization
 # Test adjoint elements
 from test_cr_beam_adjoint_element_3d2n import TestCrBeamAdjointElement as TTestCrBeamAdjointElement
 from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
@@ -150,6 +154,7 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStruct
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
 # CL tests
 from structural_mechanics_test_factory import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
+from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
 
@@ -235,9 +240,11 @@ def AssembleTestSuites():
     # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Dynamic basic tests
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TFastDynamicSchemesTests]))
     # Eigenvalues Postprocessing Process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+    # local-axis visualization tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLocalAxisVisualization]))
     # Adjoint Elements
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
@@ -311,6 +318,7 @@ def AssembleTestSuites():
     # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
     # Constitutive Law tests
     # nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
+    nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
 
     if (missing_external_dependencies == False):
@@ -321,6 +329,7 @@ def AssembleTestSuites():
             nightSuite.addTest(TEigen3D3NThinCircleTests('test_execution'))
             # Harmonic analysis test
             smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTests]))
+            nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
             # Element damping test
             nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests])) # TODO should be in smallSuite but is too slow
         else:
@@ -337,6 +346,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+
+    # Dynamic basic tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
 
     nightSuite.addTests(smallSuite)
 

@@ -20,7 +20,6 @@
 
 // Project includes
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "particle_mechanics_application.h"
 #include "custom_utilities/mpm_stress_principal_invariants_utility.h"
@@ -99,14 +98,17 @@ void MCPlasticFlowRule::InitializeMaterialParameters(){
     mMaterialParameters.DilatancyAngle= mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
 }
 
-bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
+bool MCPlasticFlowRule::CalculateReturnMapping(
+            RadialReturnVariables& rReturnMappingVariables,
+            const Matrix& rIncrementalDeformationGradient,
+            Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
 {
     bool plasticity_active = false;
     rReturnMappingVariables.Options.Set(PLASTIC_REGION,false);
-    
+
     Vector principal_stress = ZeroVector(3);
     Vector main_strain      = ZeroVector(3);
-    
+
     for (unsigned int i = 0; i<3; ++i)
         main_strain[i] = rNewElasticLeftCauchyGreen(i,i);
 
@@ -126,7 +128,7 @@ bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMa
     // Check for the yield Condition -- calling the yield criterion
     rReturnMappingVariables.TrialStateFunction = 0.0;
     rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, principal_stress, mMaterialParameters.Cohesion, mMaterialParameters.FrictionAngle);
-    
+
     // If yield is reached, do return mapping
     if (rReturnMappingVariables.TrialStateFunction <= 0.0)
     {
@@ -153,12 +155,12 @@ bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMa
     // rStressMatrix is the matrix of the updated stress in cartesian configuration -- this function perform back transformation
     this->ReturnStressFromPrincipalAxis(rReturnMappingVariables.MainDirections, mPrincipalStressUpdated, rStressMatrix);
 
-    Vector DeltaPrincipalStress = principal_stress - mPrincipalStressUpdated; 
+    Vector DeltaPrincipalStress = principal_stress - mPrincipalStressUpdated;
 
     // Updated the PrincipalStrain vector
     Matrix inv_elastic_matrix = ZeroMatrix(3,3);
     this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
- 
+
     // Delta plastic strain
     Vector plastic_strain = prod(inv_elastic_matrix, DeltaPrincipalStress);
 
@@ -280,8 +282,8 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
         rPrincipalStressUpdated[1] = apex;
         rPrincipalStressUpdated[2] = apex;
     }
-    
-    // Return mapping to line 1     
+
+    // Return mapping to line 1
     else if(pI_II < 0)
     {
         rRegion = 2;
@@ -368,7 +370,7 @@ void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rRet
 {
     const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     const double poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
-    
+
     const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
     const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
     const double corte       = young_modulus/(1.0+poisson_ratio)/2.0;
@@ -393,7 +395,7 @@ void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rRet
 
 }
 
-void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
     Vector main_strain = ZeroVector(3);
 
@@ -434,11 +436,11 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
         rStressMatrix(i,i) = principal_stress[i];
     }
 }
-    
+
 
 void MCPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix)
 {
-    rStressMatrix = ZeroMatrix(3,3); 
+    rStressMatrix = ZeroMatrix(3,3);
     Vector aux_N  = ZeroVector(3);
     Matrix aux_M  = ZeroMatrix(3,3);
     for (unsigned int i = 0; i<3; ++i)
@@ -592,7 +594,7 @@ void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVari
         //4. Return constitutive matrix from principal axis
         Matrix A = ZeroMatrix(6,6);
         Matrix A_trans = ZeroMatrix(6,6);
-        
+
         //4.a Calculate transformation matrix
         this->CalculateTransformationMatrix(rReturnMappingVariables.MainDirections, A);
         A_trans = trans(A);
@@ -611,17 +613,17 @@ void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVari
 
 void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep)
 {
-    
+
     const double young_modulus      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     const double poisson_ratio      = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     const double shear_contribution = young_modulus/(1.0+poisson_ratio)/2.0;
 
-    const double friction_angle  = mMaterialParameters.FrictionAngle; 
+    const double friction_angle  = mMaterialParameters.FrictionAngle;
     const double dilatancy_angle = mMaterialParameters.DilatancyAngle;
 
     const double friction_coefficient = (1 + std::sin(friction_angle))/(1 - std::sin(friction_angle));
     const double dilatancy_coefficient = (1 + std::sin(dilatancy_angle))/(1 - std::sin(dilatancy_angle));
-    
+
     switch(rRegion)
     {
         // Return mapping on yield surface
@@ -642,7 +644,7 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
 
             // Compute elastic matrix which takes account only for normal stresses
             Matrix D = ZeroMatrix(3,3);
-            this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D); 
+            this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D);
 
             this->CalculateDepSurface(D, F_norm, G_norm, aux_D_ep);
 
@@ -660,8 +662,8 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
 
             break;
         }
-        
-        // Return to a line 1, triaxial compression, sigp1 = sigp2        
+
+        // Return to a line 1, triaxial compression, sigp1 = sigp2
         case 2:
         {
             // Edge line direction
@@ -761,12 +763,12 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
         deviatoric_plastic_principal_strain[i] -= 1.0/3.0 * volumetric_plastic_principal_strain;
     double plastic_deviatoric_strain = std::sqrt(2.0/3.0) * norm_2(deviatoric_plastic_principal_strain);
 
-    const double friction_angle  = mMaterialParameters.FrictionAngle; 
+    const double friction_angle  = mMaterialParameters.FrictionAngle;
     const double dilatancy_angle = mMaterialParameters.DilatancyAngle;
 
     const double friction_coefficient = (1 + std::sin(friction_angle))/(1 - std::sin(friction_angle));
     const double dilatancy_coefficient = (1 + std::sin(dilatancy_angle))/(1 - std::sin(dilatancy_angle));
-    
+
     double norm_state_function_derivative = 0.0;
 
     // Calculate the norm of state function (or potential) derivative

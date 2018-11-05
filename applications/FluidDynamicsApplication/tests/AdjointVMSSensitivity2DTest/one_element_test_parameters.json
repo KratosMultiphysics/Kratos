@@ -1,7 +1,4 @@
 {
-    "test_settings" : {
-        "execute_solve" : true
-    },
     "problem_data" : {
         "problem_name"    : "one_element",
         "model_part_name" : "MainModelPart",

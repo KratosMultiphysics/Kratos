@@ -47,11 +47,9 @@ class CustomAnalyzer(AnalyzerBaseClass):
             communicator.reportGradient("y_position_1048", gradient)
 
 
-# Defining the model_part
-optimization_model_part = ModelPart(parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
-optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
+model = Model()
 
 # Create optimizer and perform optimization
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part, CustomAnalyzer())
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
 optimizer.Optimize()

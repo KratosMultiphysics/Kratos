@@ -173,6 +173,7 @@ public:
      * 0 (disjoint - no intersection) 
      * 1 (intersect in a unique point)
      * 2 (overlap)
+     * 3 (intersect in one endpoint)
      */
 	template <class TGeometryType>
 	static int ComputeLineLineIntersection(
@@ -216,11 +217,59 @@ public:
 			const double t = aux_3/aux_1;
 			if (((u >= 0.0) && (u <= 1.0)) && ((t >= 0.0) && (t <= 1.0))){
 				rIntersectionPoint = rLinePoint0 + u*s;
-				return 1;
+				// Check if the intersection occurs in one of the end points
+				if (u < epsilon || (1.0 - u) < epsilon) {
+					return 3;
+				} else {
+					return 1;
+				}
 			}
 		}
 		// Otherwise, the lines are non-parallel but do not intersect
 		return 0;														
+	}
+
+	/**
+	 * @brief Compute a segment box intersection
+	 * Provided the minimum and maximum points of a box cell, this method checks if
+	 * the segment intersects it. If it does intersect, it returns the rIntersectionPointpoint as well.
+	 * Note that the cell box is assumed to be aligned to the cartesian axes.
+	 * Adapted from: https://www.3dkingdoms.com/weekly/weekly.php?a=3
+	 * @param rBoxPoint0 Minimum point of the box cell
+	 * @param rBoxPoint1 Maximum point of the box cell
+	 * @param rLinePoint0 Segment origin point
+	 * @param rLinePoint1 Segment end point
+	 * @return int Returns 0 if there is no intersection and 1 otherwise
+	 */
+	static int ComputeLineBoxIntersection(
+		const array_1d<double,3> &rBoxPoint0,
+		const array_1d<double,3> &rBoxPoint1,
+		const array_1d<double,3> &rLinePoint0,
+		const array_1d<double,3> &rLinePoint1)
+	{
+		array_1d<double,3> intersection_point = ZeroVector(3);
+
+		if (rLinePoint1[0] < rBoxPoint0[0] && rLinePoint0[0] < rBoxPoint0[0]) return false;
+		if (rLinePoint1[0] > rBoxPoint1[0] && rLinePoint0[0] > rBoxPoint1[0]) return false;
+		if (rLinePoint1[1] < rBoxPoint0[1] && rLinePoint0[1] < rBoxPoint0[1]) return false;
+		if (rLinePoint1[1] > rBoxPoint1[1] && rLinePoint0[1] > rBoxPoint1[1]) return false;
+		if (rLinePoint1[2] < rBoxPoint0[2] && rLinePoint0[2] < rBoxPoint0[2]) return false;
+		if (rLinePoint1[2] > rBoxPoint1[2] && rLinePoint0[2] > rBoxPoint1[2]) return false;
+		if (rLinePoint0[0] > rBoxPoint0[0] && rLinePoint0[0] < rBoxPoint1[0] &&
+			rLinePoint0[1] > rBoxPoint0[1] && rLinePoint0[1] < rBoxPoint1[1] &&
+			rLinePoint0[2] > rBoxPoint0[2] && rLinePoint0[2] < rBoxPoint1[2]) {
+			return true;
+		}
+		if ((GetLineBoxIntersection(rLinePoint0[0]-rBoxPoint0[0], rLinePoint1[0]-rBoxPoint0[0], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 1 )) || 
+			(GetLineBoxIntersection(rLinePoint0[1]-rBoxPoint0[1], rLinePoint1[1]-rBoxPoint0[1], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 2 )) || 
+			(GetLineBoxIntersection(rLinePoint0[2]-rBoxPoint0[2], rLinePoint1[2]-rBoxPoint0[2], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 3 )) || 
+			(GetLineBoxIntersection(rLinePoint0[0]-rBoxPoint1[0], rLinePoint1[0]-rBoxPoint1[0], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 1 )) || 
+			(GetLineBoxIntersection(rLinePoint0[1]-rBoxPoint1[1], rLinePoint1[1]-rBoxPoint1[1], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 2 )) || 
+			(GetLineBoxIntersection(rLinePoint0[2]-rBoxPoint1[2], rLinePoint1[2]-rBoxPoint1[2], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 3 ))){
+			return true;
+		}
+
+		return false;
 	}
 
     ///@}
@@ -263,6 +312,36 @@ private:
      */
 	static inline double CrossProd2D(const array_1d<double,3> &a, const array_1d<double,3> &b){
 		return (a(0)*b(1) - a(1)*b(0));
+	}
+
+	static inline int GetLineBoxIntersection(
+		const double Dist1,
+		const double Dist2,
+		const array_1d<double,3> &rPoint1,
+		const array_1d<double,3> &rPoint2,
+		array_1d<double,3> &rIntersectionPoint)
+	{
+		if ((Dist1 * Dist2) >= 0.0){
+			return 0;
+		} 
+		// if ( Dist1 == Dist2) return 0; 
+		if (std::abs(Dist1-Dist2) < 1e-12){
+			return 0; 
+		}
+		rIntersectionPoint = rPoint1 + (rPoint2-rPoint1)*(-Dist1/(Dist2-Dist1));
+		return 1;
+	}
+
+	static inline int InBox(
+		const array_1d<double,3> &rIntersectionPoint,
+		const array_1d<double,3> &rBoxPoint0,
+		const array_1d<double,3> &rBoxPoint1,
+		const unsigned int Axis)
+	{
+		if ( Axis==1 && rIntersectionPoint[2] > rBoxPoint0[2] && rIntersectionPoint[2] < rBoxPoint1[2] && rIntersectionPoint[1] > rBoxPoint0[1] && rIntersectionPoint[1] < rBoxPoint1[1]) return 1;
+		if ( Axis==2 && rIntersectionPoint[2] > rBoxPoint0[2] && rIntersectionPoint[2] < rBoxPoint1[2] && rIntersectionPoint[0] > rBoxPoint0[0] && rIntersectionPoint[0] < rBoxPoint1[0]) return 1;
+		if ( Axis==3 && rIntersectionPoint[0] > rBoxPoint0[0] && rIntersectionPoint[0] < rBoxPoint1[0] && rIntersectionPoint[1] > rBoxPoint0[1] && rIntersectionPoint[1] < rBoxPoint1[1]) return 1;
+		return 0;
 	}
 
     ///@}

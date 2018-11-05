@@ -89,6 +89,9 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	# Utilites
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 
+	# Processes
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_entities_process.cpp
+
 
 	##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION ##
 	# Constitutive laws

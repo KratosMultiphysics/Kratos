@@ -64,6 +64,10 @@ class TransposeMatrix
 
     inline std::size_t size1() const { return _original_expression.size2(); }
     inline std::size_t size2() const { return _original_expression.size1(); }
+
+	bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _original_expression.check_aliasing(From, To);
+	}
 };
 
 template <typename TExpressionType>
@@ -117,6 +121,10 @@ class MatrixRow : public MatrixExpression<MatrixRow<TExpressionType>> {
     inline std::size_t size() const { return _original_expression.size2(); }
     inline std::size_t size1() const { return 1; }
     inline std::size_t size2() const { return _original_expression.size2(); }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _original_expression.check_aliasing(From, To);
+    }
 };
 
 template <typename TExpressionType>
@@ -170,6 +178,10 @@ class MatrixColumn : public MatrixExpression<MatrixColumn<TExpressionType>> {
     inline std::size_t size() const { return _original_expression.size1(); }
     inline std::size_t size1() const { return _original_expression.size1(); }
     inline std::size_t size2() const { return 1; }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _original_expression.check_aliasing(From, To);
+    }
 };
 
 template <typename TExpressionType>
@@ -226,6 +238,10 @@ class SubMatrix : public MatrixExpression<SubMatrix<TExpressionType>> {
     inline std::size_t size() const { return _size1 * _size2; }
     inline std::size_t size1() const { return _size1; }
     inline std::size_t size2() const { return _size2; }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _original_expression.check_aliasing(From, To);
+    }
 };
 
 template <typename TExpressionType>
@@ -295,6 +311,10 @@ class SubVector
     data_type* data() { return &_original_expression[_origin_index]; }
 
     data_type const* data() const { return &_original_expression[_origin_index]; }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _original_expression.check_aliasing(From, To);
+    }
 };
 
 template <typename TDataType>
@@ -323,6 +343,10 @@ class ZeroMatrix
     inline std::size_t size2() const { return _size2; }
 
     inline std::size_t size() const { return _size1 * _size2; }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return false;
+    }
 };
 
 template <typename TDataType>
@@ -344,6 +368,10 @@ class IdentityMatrix
     inline std::size_t size1() const { return _size; }
     inline std::size_t size2() const { return _size; }
     inline std::size_t size() const { return _size * _size; }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return false;
+    }
 };
 
 template <typename TExpression1Type, typename TExpression2Type>
@@ -373,6 +401,11 @@ class MatrixSumExpression
 
     inline data_type operator[](std::size_t i) const {
         return _first[i] + _second[i];
+    }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _first.check_aliasing(From, To) ||
+               _second.check_aliasing(From, To);
     }
 };
 
@@ -413,6 +446,11 @@ class MatrixMinusExpression
     inline data_type operator[](std::size_t i) const {
         return _first[i] - _second[i];
     }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _first.check_aliasing(From, To) ||
+               _second.check_aliasing(From, To);
+    }
 };
 
 template <typename TExpression1Type, typename TExpression2Type,
@@ -448,6 +486,10 @@ class MatrixUnaryMinusExpression
     inline data_type operator[](std::size_t i) const {
         return -_original_expression[i];
     }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _original_expression.check_aliasing(From, To);
+    }
 };
 
 template <typename TExpressionType>
@@ -475,6 +517,10 @@ class MatrixScalarProductExpression
 
     inline data_type operator[](std::size_t i) const {
         return _first * _second[i];
+    }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _second.check_aliasing(From, To);
     }
 };
 
@@ -520,6 +566,10 @@ class MatrixScalarDivisionExpression
     inline data_type operator[](std::size_t i) const {
         return _first[i] * _inverse_of_second;
     }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _first.check_aliasing(From, To);
+    }
 };
 
 template <typename TExpressionType, std::size_t TCategory>
@@ -556,6 +606,11 @@ class MatrixProductExpression
             result += _first(i, k) * _second(k, j);
         return result;
     }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _first.check_aliasing(From, To) ||
+               _second.check_aliasing(From, To);
+    }
 };
 
 template <typename TExpression1Type, typename TExpression2Type,
@@ -589,6 +644,11 @@ class VectorOuterProductExpression
 
     inline data_type operator()(std::size_t i, std::size_t j) const {
         return _first[i] * _second[j];
+    }
+
+    bool check_aliasing(const data_type* From, const data_type* To) const {
+        return _first.check_aliasing(From, To) ||
+               _second.check_aliasing(From, To);
     }
 };
 
@@ -642,23 +702,23 @@ class LUFactorization
     /// The algorithm is based on wikipedia implemenation which
     /// can be found in https://en.wikipedia.org/wiki/LU_decomposition
     TMatrixType inverse() {
-        const std::size_t size = size1();
+        const int size = static_cast<int>(size1());
         TMatrixType result(size, size);
 
-        for (std::size_t j = 0; j < size; j++) {
-            for (std::size_t i = 0; i < size; i++) {
-                if (_permutation_vector[i] == j)
+        for (int j = 0; j < size; j++) {
+            for (int i = 0; i < size; i++) {
+                if (_permutation_vector[i] == static_cast<std::size_t>(j))
                     result(i, j) = 1.0;
                 else
                     result(i, j) = 0.0;
 
-                for (std::size_t k = 0; k < i; k++)
+                for (int k = 0; k < i; k++)
                     result(i, j) -=
                         _matrix(_permutation_vector[i], k) * result(k, j);
             }
 
             for (int i = size - 1; i >= 0; i--) {
-                for (std::size_t k = i + 1; k < size; k++)
+                for (int k = i + 1; k < size; k++)
                     result(i, j) -=
                         _matrix(_permutation_vector[i], k) * result(k, j);
 
@@ -683,8 +743,8 @@ class LUFactorization
                 result[i] -= _matrix(_permutation_vector[i], k) * result[k];
         }
 
-         for (int i = size - 1; i >= 0; i--) {
-            for (std::size_t k = i + 1; k < size; k++)
+         for (int i = static_cast<int>(size - 1); i >= 0; i--) {
+            for (int k = i + 1; k < static_cast<int>(size); k++)
                  result[i] -= _matrix(_permutation_vector[i], k) * result[k];
 
             result[i] /= _matrix(_permutation_vector[i], i);

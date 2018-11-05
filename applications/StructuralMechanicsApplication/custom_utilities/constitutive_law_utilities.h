@@ -54,7 +54,7 @@ namespace Kratos
  * @todo Finish adapt for 2D dimension
  */
 template <SizeType TVoigtSize = 6>
-class ConstitutiveLawUtilities
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 {
   public:
     ///@name Type definitions
@@ -276,7 +276,61 @@ class ConstitutiveLawUtilities
         const BoundedVectorType& rStressVector
         );
 
+    /**
+     * @brief This method calculates the projection operator
+     * and calculates the Projection Operator
+     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
+     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
+     * Materials" - M. Cervera and C. Tesei.
+     * @param rStrainVector The Strain Vector
+     * @param rProjectionOperator The projection operator
+     */
+    static void CalculateProjectionOperator(
+        const Vector& rStrainVector,
+        MatrixType& rProjectionOperator
+        );
+
+    /**
+     * @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
+     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
+     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
+     * Materials" - M. Cervera and C. Tesei.
+     * @param rStressVector The Stress Vector
+     * @param rStressVectorTension The Stress Vector
+     * @param rStressVectorCompression The Stress Vector
+     * @param rMatrixTension The Stress Vector
+     * @param rMatrixCompression The Stress Vector
+     */
+    static void SpectralDecomposition(
+        const BoundedVectorType& rStressVector,
+        BoundedVectorType& rStressVectorTension,
+        BoundedVectorType& rStressVectorCompression
+        );
+
+    /**
+     * @brief This computes the linear plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     */
+    static MatrixType CalculateLinearPlasticDeformationGradientIncrement(
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement
+        );
+
+    /**
+     * @brief This computes the exponential plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     */
+    static MatrixType CalculateExponentialPlasticDeformationGradientIncrement(
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const MatrixType& rRe
+        );
+
   private:
+
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
 #endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */
