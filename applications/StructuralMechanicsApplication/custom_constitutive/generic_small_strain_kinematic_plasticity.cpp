@@ -77,18 +77,18 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if ( r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // Elastic Matrix
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+    if ( r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
 
     // We compute the stress
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+    if ( r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Elastic Matrix
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
@@ -256,7 +256,6 @@ bool GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Has(const V
     } else {
         return BaseType::Has(rThisVariable);
     }
-
     return false;
 }
 
@@ -271,7 +270,6 @@ bool GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Has(const V
     } else {
         return BaseType::Has(rThisVariable);
     }
-
     return false;
 }
 
@@ -335,7 +333,6 @@ double& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
     } else {
         BaseType::GetValue(rThisVariable, rValue);
     }
-
     return rValue;
 }
 
@@ -353,7 +350,6 @@ Vector& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
-
     return rValue;
 }
 
@@ -371,7 +367,6 @@ Matrix& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
-
     return rValue;
 }
 
@@ -393,7 +388,6 @@ double& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Calculat
     } else {
         return this->GetValue(rThisVariable, rValue);
     }
-
     return rValue;
 }
 
@@ -420,33 +414,11 @@ Matrix& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::Calculat
     Matrix& rValue
     )
 {
-    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-        //1.-Compute total deformation gradient
-        const Matrix& DeformationGradientF = rParameterValues.GetDeformationGradientF();
-        //2.-Right Cauchy-Green tensor C
-        const Matrix right_cauchy_green = prod(trans(DeformationGradientF), DeformationGradientF);
-        Vector strain_vector = ZeroVector(6);
-
-        //E= 0.5*(FT*F-1) or E = 0.5*(C-1)
-        strain_vector[0] = 0.5 * (right_cauchy_green(0, 0) - 1.00);
-        strain_vector[1] = 0.5 * (right_cauchy_green(1, 1) - 1.00);
-        strain_vector[2] = 0.5 * (right_cauchy_green(2, 2) - 1.00);
-        strain_vector[3] = right_cauchy_green(0, 1); // xy
-        strain_vector[4] = right_cauchy_green(1, 2); // yz
-        strain_vector[5] = right_cauchy_green(0, 2); // xz
-
-        Matrix constitutive_matrix;
-        this->CalculateElasticMatrix(constitutive_matrix, rParameterValues);
-
-        array_1d<double,VoigtSize> tmp = prod(constitutive_matrix, strain_vector - mPlasticStrain);
-        rValue = MathUtils<double>::StressVectorToTensor(tmp);
-        return rValue;
-    } else if (this->Has(rThisVariable)) {
+    if (this->Has(rThisVariable)) {
         return this->GetValue(rThisVariable, rValue);
     } else {
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
-    
     return rValue;
 }
 
