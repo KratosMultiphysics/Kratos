@@ -5,6 +5,9 @@
 // System includes
 
 // Project includes
+#include "iga_application.h"
+#include "iga_application_variables.h"
+
 
 namespace Kratos
 {
@@ -15,10 +18,10 @@ namespace Kratos
     public:
         ///@name Type Definitions
         ///@{
-        typedef std::vector<array_1d<double, 4>> ControlPointVector;
+        //typedef std::vector<array_1d<double, 4>> ControlPointVector;
 
         /// Pointer definition of KratosNurbsBrepApplication
-        KRATOS_CLASS_POINTER_DEFINITION(BrepTrimmingCurve);
+        //KRATOS_CLASS_POINTER_DEFINITION(BrepTrimmingCurve);
 
         ///@}
         ///@name Life Cycle 
@@ -32,7 +35,7 @@ namespace Kratos
         /// Constructor.
         //TODO: pass by reference not by value
         BrepTrimmingCurve(unsigned int trim_index, bool curve_direction, Vector& knot_vector_u,
-            unsigned int p, ControlPointVector& control_points,
+            unsigned int p,
             Vector& active_range);
 
         /// Destructor.
@@ -48,7 +51,7 @@ namespace Kratos
         bool m_curve_direction;
         Vector m_knot_vector_u;
         unsigned int m_p;
-        ControlPointVector m_control_points;
+        //std::vector<array_1d<double, 4>> m_control_points;
         Vector m_active_range;
         ///@}
         ///@name Un accessible methods 

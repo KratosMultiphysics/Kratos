@@ -16,19 +16,21 @@
 // External includes
 
 // Project includes
-#include "NurbsBrepModeler.h"
+#include "nurbs_brep_modeler.h"
 
 
 namespace Kratos
 {
-    void NurbsBrepModeler::ImportGeometry(BrepJSON_IO& rBrepJSON_IO)
+    void NurbsBrepModeler::ImportGeometry(BrepJsonIO& rBrepJsonIO, Parameters& rNurbsBrepGeometryJson)
     {
-        std::vector<BrepModel> brep_model_vector = rBrepJSON_IO.ImportGeometry(mp_model_part);
+        std::vector<BrepModel> brep_model_vector = rBrepJsonIO.ImportNurbsBrepGeometry(m_model_part, rNurbsBrepGeometryJson);
         for (auto brep_model = brep_model_vector.begin(); brep_model != brep_model_vector.end(); ++brep_model)
         {
-            m_brep_model_vector.push_back(brep_model::Pointer);
+            m_brep_model_vector.push_back(*brep_model);
         }
     }
+
+    //void NurbsBrepModeler::ImportModelPart(Parameters& r)
 }  // namespace Kratos.
 
 

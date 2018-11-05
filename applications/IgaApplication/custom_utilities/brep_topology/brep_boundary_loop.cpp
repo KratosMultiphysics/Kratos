@@ -18,6 +18,8 @@
 // Project includes
 #include "brep_boundary_loop.h"
 
+#include "brep_trimming_curve.h"
+
 #include "iga_application.h"
 #include "iga_application_variables.h"
 
@@ -35,7 +37,7 @@ namespace Kratos
     }
 
     /// Constructor.
-    BrepBoundaryLoop(
+    BrepBoundaryLoop::BrepBoundaryLoop(
         std::vector<BrepTrimmingCurve>& rBrepTrimmingCurves,
         bool rIsOuterLoop)
         : m_brep_trimming_curves(rBrepTrimmingCurves),

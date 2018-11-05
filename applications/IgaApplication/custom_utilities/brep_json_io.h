@@ -7,11 +7,11 @@
 // External includes
 
 // Project includes
-#include "brep_topology/BrepModel.h"
-#include "brep_topology/BrepTrimmingCurve.h"
-#include "brep_topology/BrepBoundaryLoop.h"
-#include "brep_topology/BrepFace.h"
-#include "brep_topology/BrepEdge.h"
+#include "brep_topology/brep_model.h"
+#include "brep_topology/brep_trimming_curve.h"
+#include "brep_topology/brep_boundary_loop.h"
+#include "brep_topology/brep_face.h"
+#include "brep_topology/brep_edge.h"
 
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"

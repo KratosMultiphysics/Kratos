@@ -16,6 +16,14 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_truss_element.cpp
     # utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/iga_flags.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_json_io.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/nurbs_brep_modeler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_edge.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_face.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_model.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_vertex.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_boundary_loop.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_trimming_curve.cpp
     # elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp

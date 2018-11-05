@@ -4,8 +4,8 @@
 // System includes
 
 // Project includes
-#include "BrepJSON_IO.h"
-#include "brep/BrepModel.h"
+#include "brep_json_io.h"
+#include "brep_topology/brep_model.h"
 
 namespace Kratos
 {
@@ -26,7 +26,9 @@ namespace Kratos
         * Imports and adds a brep model with the use of the BrepJSON_IO
         * @param rBrepJSON_IO the IO reader
         */
-        void ImportGeometry(BrepJSON_IO& rBrepJSON_IO);
+        void ImportGeometry(
+            BrepJsonIO& rBrepJsonIO, 
+            Parameters& rNurbsBrepGeometryJson);
 
         // here shall be added the functionality for more import option
         // especially directly creating the model in python/ Rhino/ GiD...
@@ -36,24 +38,22 @@ namespace Kratos
         ///@name Life Cycle 
         ///@{ 
         /// Constructor.
-        NurbsBrepModeler::NurbsBrepModeler(Kratos::shared_ptr<ModelPart> rpModelPart)
-            : mp_model_part(rpModelPart)
+        NurbsBrepModeler::NurbsBrepModeler(ModelPart& rModelPart)
+            : m_model_part(rModelPart)
         { };
 
+        /// Destructor.
         NurbsBrepModeler::~NurbsBrepModeler()
         { };
 
-
-        /// Destructor.
-        virtual ~NurbsBrepModeler();
         ///@} 
     protected:
 
     private:
         ///@name Member Variables
         ///@{
-        Kratos::shared_ptr<ModelPart>  mp_model_part;
-        std::vector<BrepModel>         m_brep_model_vector;
+        ModelPart&                 m_model_part;
+        std::vector<BrepModel>     m_brep_model_vector;
 
         ///@} 
         ///@name Private Operations

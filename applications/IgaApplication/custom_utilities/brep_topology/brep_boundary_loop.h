@@ -23,7 +23,7 @@ namespace Kratos
         ///@{
 
         /// Pointer definition of KratosNurbsBrepApplication
-        KRATOS_CLASS_POINTER_DEFINITION(BrepBoundaryLoop);
+        //KRATOS_CLASS_POINTER_DEFINITION(BrepBoundaryLoop);
 
         ///@}
         ///@name Life Cycle 
@@ -36,8 +36,8 @@ namespace Kratos
 
         /// Constructor.
         BrepBoundaryLoop(
-            std::vector<BrepTrimmingCurve>& brep_trimming_curves,
-            bool is_outer_loop);
+            std::vector<BrepTrimmingCurve>& rBrepTrimmingCurves,
+            bool rIsOuterLoop);
 
         /// Destructor.
         virtual ~BrepBoundaryLoop() {};

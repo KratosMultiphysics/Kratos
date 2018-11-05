@@ -104,7 +104,7 @@ namespace Kratos
             Kratos::shared_ptr<ModelPart> rModelPart);
 
         /// Destructor.
-        virtual ~BrepFace();
+        virtual ~BrepFace() {};
 
         ///@}
     protected:

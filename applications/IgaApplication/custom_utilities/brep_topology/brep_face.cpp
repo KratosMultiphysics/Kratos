@@ -40,11 +40,11 @@ namespace Kratos
           IndexedObject(rBrepId),
           Flags()
     {
-        //int number_of_nodes_u = rKnotVectorU.size() + rP - 1;
-        //int number_of_nodes_v = rKnotVectorV.size() + rQ - 1;
+        int number_of_nodes_u = rKnotVectorU.size() + rP - 1;
+        int number_of_nodes_v = rKnotVectorV.size() + rQ - 1;
 
 
-        //NodeSurfaceGeometry3D& m_node_surface_geometry_3d(rP, rQ, number_of_nodes_u, number_of_nodes_v);
+        NodeSurfaceGeometry3D m_node_surface_geometry_3d(rP, rQ, number_of_nodes_u, number_of_nodes_v);
 
         //for (int i = 0; i < number_of_nodes_u; ++i)
         //{
@@ -54,8 +54,4 @@ namespace Kratos
         //    }
         //}
     }
-
-    ///Destructor
-    BrepFace::~BrepFace()
-    {}
 } // namespace Kratos.
