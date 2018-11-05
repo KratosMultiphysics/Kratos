@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import numpy as np
 import time
+import matplotlib.pyplot as plt
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -246,13 +247,13 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "/home/kratos105b/Kratos/applications/MonteCarloApplication/tests/Level1/ProjectParameters.json"
+        parameter_file_name = "/home/kratos105b/Kratos/applications/MonteCarloApplication/tests/Level0/ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
     
-    number_samples = 10
+    number_samples = 10000
     Qlist = []
     run_results = []
 
@@ -323,4 +324,7 @@ if __name__ == '__main__':
     # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
     # print("L2 relative error = ", error/L2norm_analyticalsolution)
     # print("")
+
+    n, bins, patches = plt.hist(Qlist,density=True, bins=30)
+    plt.show()
     
