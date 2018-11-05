@@ -33,8 +33,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
         self.model_part_io.ReadModelPart(self.model_part)
 
-
-
         self.test_settings = KratosMultiphysics.Parameters("""
         {
             "Parameters": {
@@ -106,54 +104,52 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results()
 
-    def test_overdefined_materials_cpp(self):
+    def test_overdefined_materials(self):
+        import read_materials_process
         current_model = KratosMultiphysics.Model()
-        model_part = current_model.CreateModelPart("Main")
-        model_part.CreateSubModelPart("sub")
-
-        test_settings_1 = """
-        {
-            "properties": [{
-                "model_part_name": "Main.sub1"
-            },{
-                "model_part_name": "Main.sub1"
-            }
-        ]
-        }
-        """
-
-        test_settings_2 = """
-        {
-            "properties": [{
-                "model_part_name": "Main"
-            },{
-                "model_part_name": "Main.sub"
-            }
-        ]
-        }
-        """
-
-        test_settings_3 = """
-        {
-            "properties": [{
-                "model_part_name": "Main.sub1"
-            },{
-                "model_part_name": "Main.sub1.subsub"
-            }
-        ]
-        }
-        """
+        test_settings = KratosMultiphysics.Parameters(""" { "Parameters": { "materials_filename": ""}} """)
 
 
-        expected_error_msg = "Error: Materials for ModelPart \"Main.sub1\" are specified multiple times!"
-        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
-            KratosMultiphysics.ReadMaterialsUtility(test_settings_1, current_model)
+        test_settings["Parameters"]["materials_filename"].SetString(
+            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_1.json")))
+        expected_error_msg = "Error: Materials for ModelPart \"Main\" are specified multiple times!"
 
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
-            KratosMultiphysics.ReadMaterialsUtility(test_settings_2, current_model)
+            KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
+        with self.assertRaisesRegex(Exception, expected_error_msg):
+            read_materials_process.Factory(test_settings, current_model)
+
+
+        test_settings["Parameters"]["materials_filename"].SetString(
+            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_2.json")))
+        expected_error_msg = "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!"
 
         with self.assertRaisesRegex(RuntimeError, expected_error_msg):
-            KratosMultiphysics.ReadMaterialsUtility(test_settings_3, current_model)
+            KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
+        with self.assertRaisesRegex(Exception, expected_error_msg):
+            read_materials_process.Factory(test_settings, current_model)
+
+
+        test_settings["Parameters"]["materials_filename"].SetString(
+            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_3.json")))
+        expected_error_msg =  "Error: Materials for ModelPart \"Main.sub\" are specified multiple times!\n"
+        expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main\"!"
+
+        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
+            KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
+        with self.assertRaisesRegex(Exception, expected_error_msg):
+            read_materials_process.Factory(test_settings, current_model)
+
+
+        test_settings["Parameters"]["materials_filename"].SetString(
+            GetFilePath(os.path.join("wrong_materials_input","wrong_materials_4.json")))
+        expected_error_msg =  "Error: Materials for ModelPart \"Main.sub1.subsub\" are specified multiple times!\n"
+        expected_error_msg += "Overdefined due to also specifying the materials for Parent-ModelPart \"Main.sub1\"!"
+
+        with self.assertRaisesRegex(RuntimeError, expected_error_msg):
+            KratosMultiphysics.ReadMaterialsUtility(test_settings, current_model)
+        with self.assertRaisesRegex(Exception, expected_error_msg):
+            read_materials_process.Factory(test_settings, current_model)
 
 
 if __name__ == '__main__':
