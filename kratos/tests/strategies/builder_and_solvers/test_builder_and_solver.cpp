@@ -391,11 +391,6 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementEliminationBuilderAndSolverWithConstraints, KratosCoreFastSuite)
         {
-            if (!KratosComponents<Element>::Has("TrussElement3D2N")) {
-                std::cout << "Please compile the StructuralMechanicsApplication in order to run this test" << std::endl;
-                return void();
-            }
-
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
 
@@ -868,11 +863,6 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ExtendedDisplacementEliminationBuilderAndSolverWithConstraints, KratosCoreFastSuite)
         {
-            if (!KratosComponents<Element>::Has("TrussElement3D2N")) {
-                std::cout << "Please compile the StructuralMechanicsApplication in order to run this test" << std::endl;
-                return void();
-            }
-
             Model current_model;
             ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
 
