@@ -1308,13 +1308,14 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
      ArrayType&  AngularVelocity     = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_VELOCITY);
      ArrayType&  AngularAcceleration = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-     std::cout<<" [ MasterElement "<<this->Id()<<" ]"<<std::endl;
+     std::cout<<" [ MasterElement "<<this->Id()<<" ]"<<rCenterOfGravity->Coordinates()<<std::endl;
      std::cout<<" [ Nodes_size "<<mpNodes->size()<<" ]"<<std::endl;
      std::cout<<" [ Fixed DisplacementY DOF: "<<this->GetGeometry()[0].IsFixed(DISPLACEMENT_Y)<<"]"<<std::endl;
      std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<"]"<<std::endl;
-     std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity->FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
+     std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<"]"<<std::endl;
      std::cout<<" [ AngularVelocity:"<<AngularVelocity<<",AngularAcceleration:"<<AngularAcceleration<<"]"<<std::endl;
-
+     if( rCenterOfGravity->SolutionStepsDataHas(STEP_DISPLACEMENT) )
+       std::cout<<" [ DeltaDisplacement"<<rCenterOfGravity->FastGetSolutionStepValue(STEP_DISPLACEMENT)<<"]"<<std::endl;
 
      ArrayType Radius;
      ArrayType Variable;
@@ -1331,7 +1332,20 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
        TotalQuaternion.ToRotationMatrix(RotationMatrix);
        Radius = prod(RotationMatrix, Radius);
 
-       noalias((i)->FastGetSolutionStepValue(DISPLACEMENT)) = ( (Center + Displacement) + Radius ) - (i)->GetInitialPosition();
+       noalias(Variable) = Center + Displacement + Radius ;
+       noalias((i)->Coordinates()) = Variable;
+       noalias((i)->FastGetSolutionStepValue(DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
+
+       if( rCenterOfGravity->SolutionStepsDataHas(STEP_DISPLACEMENT) ){
+         TotalQuaternion = QuaternionType::FromRotationVector<ArrayType>(StepRotation);
+         TotalQuaternion.ToRotationMatrix(RotationMatrix);
+         Radius = (i)->GetInitialPosition() - Center;
+         Radius = prod(RotationMatrix, Radius);
+         noalias(Variable) = Center + rCenterOfGravity->FastGetSolutionStepValue(STEP_DISPLACEMENT) + Radius;
+         noalias((i)->FastGetSolutionStepValue(STEP_DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
+       }
+
+
        noalias((i)->FastGetSolutionStepValue(ROTATION)) = Rotation;
        noalias((i)->FastGetSolutionStepValue(STEP_ROTATION)) = StepRotation;
        noalias((i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = AngularVelocity;
@@ -1365,7 +1379,7 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
        (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
 
 
-       std::cout<<" Id "<<i->Id()<<" velocity "<<(i)->FastGetSolutionStepValue(VELOCITY)<<" Velocity "<<Velocity<<std::endl;
+       // std::cout<<" Id "<<i->Id()<<" velocity "<<(i)->FastGetSolutionStepValue(VELOCITY)<<" Velocity "<<Velocity<<std::endl;
        // std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
        // std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;
        // std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;

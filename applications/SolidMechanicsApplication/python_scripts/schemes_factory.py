@@ -313,6 +313,9 @@ class SolutionScheme:
             if(self.settings["solution_type"].GetString() == "Dynamic"):
                 self.dof_derivatives = self.dof_derivatives + ['VELOCITY','ACCELERATION']
 
+            if self.settings["integration_method"].GetString().find("Step") != -1:
+                self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT']
+
         if self._check_input_dof("VELOCITY"):
             # Add specific variables for the problem (velocity dofs)
             self.dof_variables = self.dof_variables + ['VELOCITY']
@@ -331,7 +334,8 @@ class SolutionScheme:
             if(self.settings["solution_type"].GetString() == "Dynamic"):
                 self.dof_derivatives = self.dof_derivatives + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
             # Add large rotation variables
-            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION']
+            if self.settings["integration_method"].GetString().find("Step") != -1:
+                self.nodal_variables = self.nodal_variables + ['STEP_ROTATION']
 
         # Add pressure variables
         if self._check_input_dof("PRESSURE"):
