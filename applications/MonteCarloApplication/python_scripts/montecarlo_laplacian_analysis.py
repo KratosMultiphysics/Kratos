@@ -253,7 +253,7 @@ if __name__ == '__main__':
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
     
-    number_samples = 10000
+    number_samples = 10
     Qlist = []
     run_results = []
 
@@ -324,7 +324,4 @@ if __name__ == '__main__':
     # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
     # print("L2 relative error = ", error/L2norm_analyticalsolution)
     # print("")
-
-    n, bins, patches = plt.hist(Qlist,density=True, bins=30)
-    plt.show()
-    
+   
