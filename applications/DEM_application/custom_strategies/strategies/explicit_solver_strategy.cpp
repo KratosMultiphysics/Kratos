@@ -1464,7 +1464,7 @@ namespace Kratos {
                 unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighborsSize;
 
                 for (unsigned int j = 0; j < neighbors_size; j++) {
-                    SphericContinuumParticle* neighbour_element = dynamic_cast<SphericContinuumParticle*> (neighbour_elements[j]);
+                    SphericParticle* neighbour_element = dynamic_cast<SphericParticle*> (neighbour_elements[j]);
                     if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
                     //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
                     if (mListOfSphericParticles[i]->Id() < neighbour_element->Id()) continue;
