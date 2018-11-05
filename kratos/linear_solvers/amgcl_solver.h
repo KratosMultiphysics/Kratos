@@ -302,17 +302,12 @@ public:
         mGMRESSize = ThisParameters["gmres_krylov_space_dimension"].GetInt();
 
         const std::string& solver_type = ThisParameters["krylov_type"].GetString();
-        if(solver_type == "gmres" || solver_type == "lgmres" || solver_type == "fgmres") {
-            //KRATOS_ERROR << "------------------------  aaaaaaa";
-            mAMGCLParameters.put("solver.M",  mGMRESSize);
-            mAMGCLParameters.put("solver.type", solver_type);
-        } else if(solver_type == "bicgstab_with_gmres_fallback") {
-            mAMGCLParameters.put("solver.M",  mGMRESSize);
+        mAMGCLParameters.put("solver.type", solver_type);
+        mFallbackToGMRES = false;
+
+        if(solver_type == "bicgstab_with_gmres_fallback") {
             mFallbackToGMRES = true;
             mAMGCLParameters.put("solver.type", "bicgstab");
-        } else {
-            mFallbackToGMRES = false;
-            mAMGCLParameters.put("solver.type", solver_type);
         }
 
         //settings only needed if full AMG is used
@@ -519,6 +514,8 @@ public:
                 mAMGCLParameters.get<std::string>("solver.type") == "lgmres" ||
                 mAMGCLParameters.get<std::string>("solver.type") == "fgmres" )
                     mAMGCLParameters.put("solver.M",  mGMRESSize);
+            else
+                mAMGCLParameters.erase("solver.M");
 
             if(mUseBlockMatricesIfPossible) {
                 KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA)%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
