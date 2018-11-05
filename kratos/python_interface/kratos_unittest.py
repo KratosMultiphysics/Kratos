@@ -146,3 +146,9 @@ KratosSuites = {
     'mpi_all': TestSuite(),
     'mpi_validation': TestSuite(),
 }
+
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+    '''Same implementation as math.isclose
+    self-implemented bcs msth.isclose was only introduced in python3.5
+    '''
+    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
