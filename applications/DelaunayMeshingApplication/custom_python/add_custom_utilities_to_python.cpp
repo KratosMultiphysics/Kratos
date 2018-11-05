@@ -90,7 +90,7 @@ void SetMatrixVariable( MeshDataTransferUtilities::TransferParameters& rTransfer
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
 
-  using namespace  pybind11;
+  namespace py = pybind11;
 
 
   //***************DOMAIN SET**************//
