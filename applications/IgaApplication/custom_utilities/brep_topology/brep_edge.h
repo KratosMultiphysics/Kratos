@@ -22,8 +22,6 @@
 #include "iga_application.h"
 #include "iga_application_variables.h"
 
-#include "brep_trimming_curve.h"
-
 #include "../node_curve_geometry_3d.h"
 
 // Kratos includes
@@ -67,6 +65,16 @@ namespace Kratos
             }
         };
 
+        struct EmbeddedPoint {
+            int trim_index;
+            double local_parameter;
+
+            EmbeddedPoint(const int& rTrimIndex, const double& rLocalParameter)
+            {
+                trim_index = rTrimIndex;
+                local_parameter = rLocalParameter;
+            }
+        };
 
         /* Used to separate the curve into trimmed ranges. */
         struct TrimmingRange
@@ -101,11 +109,14 @@ namespace Kratos
 
         bool IsCouplingEdge();
 
+        std::vector<Node<3>> GetGeometryIntegrationNodes();
+
         ///Constructor
         BrepEdge(
             int rBrepId,
             std::vector<EdgeTopology>& rBrepEdgeTopologyVector,
             std::vector<TrimmingRange>& rTrimmingRangeVector,
+            std::vector<EmbeddedPoint>& rEmbeddedPoints,
             int& rDegree,
             Vector& rKnotVector,
             Vector& rActiveRange,
@@ -125,6 +136,7 @@ namespace Kratos
         // topology parameter
         std::vector<EdgeTopology>              m_brep_edge_topology_vector;
         std::vector<TrimmingRange>             m_trimming_range_vector;
+        std::vector<EmbeddedPoint>             m_embedded_points;
 
         //anurbs variables
         std::shared_ptr<NodeCurveGeometry3D>   m_node_curve_geometry_3d;

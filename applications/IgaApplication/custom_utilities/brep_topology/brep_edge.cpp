@@ -29,11 +29,21 @@ namespace Kratos
             return false;
     }
 
+    std::vector<Node<3>> BrepEdge::GetGeometryIntegrationNodes()
+    {
+        std::vector<Node<3>> integration_nodes;
+
+
+
+        return integration_nodes;
+    }
+
     ///Constructor
     BrepEdge::BrepEdge(
         int rBrepId,
         std::vector<EdgeTopology>& rBrepEdgeTopologyVector,
         std::vector<TrimmingRange>& rTrimmingRangeVector,
+        std::vector<EmbeddedPoint>& rEmbeddedPoints,
         int& rDegree,
         Vector& rKnotVector,
         Vector& rActiveRange,
@@ -41,6 +51,7 @@ namespace Kratos
         ModelPart& rModelPart)
         : m_brep_edge_topology_vector(rBrepEdgeTopologyVector),
           m_trimming_range_vector(rTrimmingRangeVector),
+          m_embedded_points(rEmbeddedPoints),
           m_active_range(rActiveRange),
           m_control_point_ids(rControlPointIds),
           m_model_part(rModelPart),
@@ -49,7 +60,7 @@ namespace Kratos
     {
         int number_of_nodes = rKnotVector.size() + rDegree - 1;
 
-        m_node_curve_geometry_3d = New<NodeCurveGeometry3D>(
+        m_node_curve_geometry_3d = Kratos::make_unique<NodeCurveGeometry3D>(
             rDegree, number_of_nodes);
 
         for (int i = 0; i < rControlPointIds.size(); ++i)

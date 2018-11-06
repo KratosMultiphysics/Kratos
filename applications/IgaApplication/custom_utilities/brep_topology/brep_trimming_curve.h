@@ -15,11 +15,12 @@
 namespace Kratos
 {
     using namespace ANurbs;
-
     ///@name Kratos Classes
     ///@{
     class BrepTrimmingCurve
     {
+
+
     public:
         ///@name Type Definitions
         ///@{

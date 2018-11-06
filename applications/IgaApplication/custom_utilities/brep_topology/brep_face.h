@@ -89,6 +89,8 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
+        
+
         /// Constructor.
         BrepFace(
             int& rBrepId,

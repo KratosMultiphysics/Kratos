@@ -43,7 +43,7 @@ namespace Kratos
         int number_of_nodes_u = rKnotVectorU.size() + rP - 1;
         int number_of_nodes_v = rKnotVectorV.size() + rQ - 1;
 
-        m_node_surface_geometry_3d = New<NodeSurfaceGeometry3D>(
+        m_node_surface_geometry_3d = Kratos::make_unique<NodeSurfaceGeometry3D>(
             rP, rQ, number_of_nodes_u, number_of_nodes_v);
 
         for (int i = 0; i < rKnotVectorU.size() - 2; ++i)
