@@ -15,9 +15,11 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
 def ImportDataStructure(parameters_file_name):
     import json
     import sys
+    global cs_data_structure
     with open(parameters_file_name,'r') as parameter_file:
         parameters = json.load(parameter_file) # This is for getting the flag for database
         if 'data_structure' in parameters['problem_data'].keys():
