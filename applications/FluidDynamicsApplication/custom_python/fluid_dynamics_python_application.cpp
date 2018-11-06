@@ -32,16 +32,16 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
 
 
 PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
 {
+    namespace py = pybind11;
 
-    class_<KratosFluidDynamicsApplication,
+    py::class_<KratosFluidDynamicsApplication,
            KratosFluidDynamicsApplication::Pointer,
            KratosApplication >(m,"KratosFluidDynamicsApplication")
-           .def(init<>())
+           .def(py::init<>())
            ;
 
     AddCustomConstitutiveLawsToPython(m);

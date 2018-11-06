@@ -108,8 +108,10 @@ void BorjaCamClayPlasticFlowRule::InitializeMaterialParameters(){
 }
 
 
-bool BorjaCamClayPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient,
-    Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
+bool BorjaCamClayPlasticFlowRule::CalculateReturnMapping(
+            RadialReturnVariables& rReturnMappingVariables,
+            const Matrix& rIncrementalDeformationGradient,
+            Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
 {
     bool plasticity_active = false;
     rReturnMappingVariables.Options.Set(PLASTIC_REGION,false);
@@ -422,7 +424,7 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrinci
 }
 
 // Compute Trial elastic principal stress matrix from Trial elastic principal strain matrix
-void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
     Vector main_strain      = ZeroVector(3);
     Vector principal_stress = ZeroVector(3);
@@ -444,7 +446,7 @@ void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressTrial(const RadialRetu
 
 
 // Function to compute Principal Stress Vector from Principal Strain Vector
-void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressVector(Vector& rPrincipalStrain, Vector& rPrincipalStress)
+void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressVector(const Vector& rPrincipalStrain, Vector& rPrincipalStress)
 {
     // Calculate volumetric and deviatoric strains from princial strain
     double volumetric_strain, deviatoric_strain;

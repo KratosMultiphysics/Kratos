@@ -84,23 +84,23 @@ namespace Kratos
 {
 	namespace Python
 	{
-		using namespace pybind11;
+		namespace py = pybind11;
 
 		void  AddCustomStrategiesToPython(pybind11::module& m)
 		{
 
-            class_< HybridBashforthScheme, typename HybridBashforthScheme::Pointer, SymplecticEulerScheme>
-            (m,  "HybridBashforthScheme").def(init<>());
+            py::class_< HybridBashforthScheme, typename HybridBashforthScheme::Pointer, SymplecticEulerScheme>
+            (m,  "HybridBashforthScheme").def(py::init<>());
 
-            class_< TerminalVelocityScheme, typename TerminalVelocityScheme::Pointer, HybridBashforthScheme>
-            (m,  "TerminalVelocityScheme").def(init<>());
+            py::class_< TerminalVelocityScheme, typename TerminalVelocityScheme::Pointer, HybridBashforthScheme>
+            (m,  "TerminalVelocityScheme").def(py::init<>());
 
-            class_< SymplecticEulerOldVelocityScheme, typename SymplecticEulerOldVelocityScheme::Pointer, SymplecticEulerScheme>
-            (m,  "SymplecticEulerOldVelocityScheme").def(init<>());
+            py::class_< SymplecticEulerOldVelocityScheme, typename SymplecticEulerOldVelocityScheme::Pointer, SymplecticEulerScheme>
+            (m,  "SymplecticEulerOldVelocityScheme").def(py::init<>());
 
-            class_< AdamsBashforthStrategy, typename AdamsBashforthStrategy::Pointer, ExplicitSolverStrategy>
+            py::class_< AdamsBashforthStrategy, typename AdamsBashforthStrategy::Pointer, ExplicitSolverStrategy>
             (m,  "AdamsBashforthStrategy")
-            .def(init<ExplicitSolverSettings&,
+            .def(py::init<ExplicitSolverSettings&,
                       double,
                       double,
                       double,
@@ -121,11 +121,11 @@ namespace Kratos
             //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
-            class_< ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+            py::class_< ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                     typename ResidualBasedDerivativeRecoveryStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                     ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > >
             (m,  "ResidualBasedDerivativeRecoveryStrategy")
-            .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool>())
+            .def(py::init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool>())
             .def("GetResidualNorm", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
             .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
             ;
