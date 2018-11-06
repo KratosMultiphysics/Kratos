@@ -12,6 +12,7 @@
 
 // System includes
 #include <limits>
+#include <iomanip>
 
 /* External includes */
 
@@ -88,11 +89,9 @@ namespace Kratos
             p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
             p_prop->SetValue(NODAL_AREA, 0.01);
 
-            std::vector<NodeType::Pointer> indexes1({pnode1, pnode2});
-            GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes1});
+            GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 1, pgeom1, p_prop));
-            std::vector<NodeType::Pointer> indexes2({pnode2, pnode3 });
-            GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes2});
+            GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 2, pgeom2, p_prop));
 
             /// Add dof
@@ -155,62 +154,43 @@ namespace Kratos
             p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
             p_prop->SetValue(NODAL_AREA, 0.01);
 
-            std::vector<NodeType::Pointer> indexes1({pnode11, pnode10});
-            GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes1});
+            GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode11, pnode10})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 1, pgeom1, p_prop));
-            std::vector<NodeType::Pointer> indexes2({pnode10, pnode8 });
-            GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes2});
+            GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode10, pnode8})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 2, pgeom2, p_prop));
-            std::vector<NodeType::Pointer> indexes3({pnode8, pnode6});
-            GeometryType::Pointer pgeom3 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes3});
+            GeometryType::Pointer pgeom3 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode8, pnode6})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 3, pgeom3, p_prop));
-            std::vector<NodeType::Pointer> indexes4({pnode6, pnode5});
-            GeometryType::Pointer pgeom4 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes4});
+            GeometryType::Pointer pgeom4 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode6, pnode5})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 4, pgeom4, p_prop));
-            std::vector<NodeType::Pointer> indexes5({pnode5, pnode4});
-            GeometryType::Pointer pgeom5 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes5});
+            GeometryType::Pointer pgeom5 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode5, pnode4})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 5, pgeom5, p_prop));
-            std::vector<NodeType::Pointer> indexes6({pnode4, pnode1});
-            GeometryType::Pointer pgeom6 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes6});
+            GeometryType::Pointer pgeom6 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode4, pnode1})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 6, pgeom6, p_prop));
-            std::vector<NodeType::Pointer> indexes7({pnode1, pnode2});
-            GeometryType::Pointer pgeom7 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes7});
+            GeometryType::Pointer pgeom7 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 7, pgeom7, p_prop));
-            std::vector<NodeType::Pointer> indexes8({pnode2, pnode3});
-            GeometryType::Pointer pgeom8 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes8});
+            GeometryType::Pointer pgeom8 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 8, pgeom8, p_prop));
-            std::vector<NodeType::Pointer> indexes9({pnode3, pnode7});
-            GeometryType::Pointer pgeom9 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes9});
+            GeometryType::Pointer pgeom9 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode3, pnode7})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 9, pgeom9, p_prop));
-            std::vector<NodeType::Pointer> indexes10({pnode7, pnode9});
-            GeometryType::Pointer pgeom10 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes10});
+            GeometryType::Pointer pgeom10 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode7, pnode9})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 10, pgeom10, p_prop));
-            std::vector<NodeType::Pointer> indexes11({pnode9, pnode11});
-            GeometryType::Pointer pgeom11 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes11});
+            GeometryType::Pointer pgeom11 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode9, pnode11})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 11, pgeom11, p_prop));
-            std::vector<NodeType::Pointer> indexes12({pnode10, pnode9});
-            GeometryType::Pointer pgeom12 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes12});
+            GeometryType::Pointer pgeom12 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode10, pnode9})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 12, pgeom12, p_prop));
-            std::vector<NodeType::Pointer> indexes13({pnode9, pnode8});
-            GeometryType::Pointer pgeom13 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes13});
+            GeometryType::Pointer pgeom13 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode9, pnode8})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 13, pgeom13, p_prop));
-            std::vector<NodeType::Pointer> indexes14({pnode8, pnode7});
-            GeometryType::Pointer pgeom14 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes14});
+            GeometryType::Pointer pgeom14 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode8, pnode7})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 14, pgeom14, p_prop));
-            std::vector<NodeType::Pointer> indexes15({pnode7, pnode6});
-            GeometryType::Pointer pgeom15 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes15});
+            GeometryType::Pointer pgeom15 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode7, pnode6})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 15, pgeom15, p_prop));
-            std::vector<NodeType::Pointer> indexes16({pnode6, pnode3});
-            GeometryType::Pointer pgeom16 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes16});
+            GeometryType::Pointer pgeom16 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode6, pnode3})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 16, pgeom16, p_prop));
-            std::vector<NodeType::Pointer> indexes17({pnode3, pnode5});
-            GeometryType::Pointer pgeom17 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes17});
+            GeometryType::Pointer pgeom17 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode3, pnode5})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 17, pgeom17, p_prop));
-            std::vector<NodeType::Pointer> indexes18({pnode5, pnode2});
-            GeometryType::Pointer pgeom18 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes18});
+            GeometryType::Pointer pgeom18 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode5, pnode2})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 18, pgeom18, p_prop));
-            std::vector<NodeType::Pointer> indexes19({pnode2, pnode4});
-            GeometryType::Pointer pgeom19 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{indexes19});
+            GeometryType::Pointer pgeom19 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode4})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 19, pgeom19, p_prop));
             
             /// Add dof
@@ -279,20 +259,23 @@ namespace Kratos
             return rA;
         }
 
-//         static void DebugLHS(const SparseSpaceType::MatrixType& rA)
-//         {
-//             const double numeric_limit = std::numeric_limits<double>::epsilon();
-//             for (int i = 0; i < rA.size1(); ++i) {
-//                 for (int j = 0; j < rA.size2(); ++j) {
-//                     if (std::abs(rA(i, j)) > 1.0e4 * numeric_limit) {
-//                         std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - " << rA(i, j) << ")/rA(" << i << "," << j << ")), tolerance);" << std::endl;
-//                     }
-//                 }
-//             }
-//         }
+        static void DebugLHS(const SparseSpaceType::MatrixType& rA)
+        {
+            for (int i = 0; i < rA.size1(); ++i) {
+                for (int j = 0; j < rA.size2(); ++j) {
+                    if (std::abs(rA(i, j)) > 0.99) {
+                        std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - ";
+                        std::cout << std::fixed;
+                        std::cout << std::setprecision(16);
+                        std::cout << rA(i, j);
+                        std::cout << ")/rA(" << i << "," << j << ")), tolerance);" << std::endl;
+                    }
+                }
+            }
+        }
      
         /**
-         * Checks if the block builder and solver performs correctly the resolution of the system
+         * Checks if the block builder and solver performs correctly the assemble of the system
          */
         KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolver, KratosCoreFastSuite)
         {
@@ -311,21 +294,22 @@ namespace Kratos
 //             DebugLHS(rA);
 
             // The solution check
-            constexpr double tolerance = 1e-4;
+            constexpr double tolerance = 1e-8;
             KRATOS_CHECK(rA.size1() == 6);
             KRATOS_CHECK(rA.size2() == 6);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2.069e+09)/rA(0,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 4.138e+09)/rA(2,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -2.069e+09)/rA(2,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1)/rA(3,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -2.069e+09)/rA(4,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2.069e+09)/rA(4,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1)/rA(5,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.000000000)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.000000000)/rA(1,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 4138000000.000000000)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -2069000000.000000000)/rA(2,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.000000000)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -2069000000.000000000)/rA(4,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.000000000)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.000000000)/rA(5,5)), tolerance);
+
         }
 
         /**
-         * Checks if the block builder and solver with constraints performs correctly the resolution of the system
+         * Checks if the block builder and solver with constraints performs correctly the assemble of the system
          */
         KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraints, KratosCoreFastSuite)
         {
@@ -344,19 +328,21 @@ namespace Kratos
 //             DebugLHS(rA);
 
             // The solution check
-            constexpr double tolerance = 1e-4;
+            constexpr double tolerance = 1e-8;
             KRATOS_CHECK(rA.size1() == 6);
             KRATOS_CHECK(rA.size2() == 6);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2.069e+09)/rA(0,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 2.069e+09)/rA(2,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1)/rA(3,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2.069e+09)/rA(4,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1)/rA(5,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 2069000000.0000000000000000)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.0000000000000000)/rA(1,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 2069000000.0000000000000000)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.0000000000000000)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 2069000000.0000000000000000)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.0000000000000000)/rA(5,5)), tolerance);
+
+
         }
 
         /**
-         * Checks if the elimination builder and solver performs correctly the resolution of the system
+         * Checks if the elimination builder and solver performs correctly the assemble of the system
          */
         KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementEliminationBuilderAndSolver, KratosCoreFastSuite)
         {
@@ -375,17 +361,18 @@ namespace Kratos
 //             DebugLHS(rA);
 
             // The solution check
-            constexpr double tolerance = 1e-4;
+            constexpr double tolerance = 1e-8;
             KRATOS_CHECK(rA.size1() == 2);
             KRATOS_CHECK(rA.size2() == 2);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 4.138e+09)/rA(0,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,1) - -2.069e+09)/rA(0,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,0) - -2.069e+09)/rA(1,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 2.069e+09)/rA(1,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 4138000000.000000000)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,1) - -2069000000.000000000)/rA(0,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,0) - -2069000000.000000000)/rA(1,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 2069000000.000000000)/rA(1,1)), tolerance);
+
         }
 
         /**
-         * Checks if the block builder and solver performs correctly the resolution of the system
+         * Checks if the block builder and solver performs correctly the assemble of the system
          */
         KRATOS_TEST_CASE_IN_SUITE(ExtendedDisplacementBlockBuilderAndSolver, KratosCoreFastSuite)
         {
@@ -404,145 +391,127 @@ namespace Kratos
 //             DebugLHS(rA);
 
             // The solution check
-            constexpr double tolerance = 1e-4;
+            constexpr double tolerance = 1e-8;
             KRATOS_CHECK(rA.size1() == 22);
             KRATOS_CHECK(rA.size2() == 22);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 7.40228e+08)/rA(0,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 5.98857e+08)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,2) - 3.70114e+08)/rA(1,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,3) - -1.85057e+08)/rA(1,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,1) - 3.70114e+08)/rA(2,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1.57298e+09)/rA(2,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,3) - -5.55171e+08)/rA(2,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -7.40228e+08)/rA(2,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,5) - 3.70114e+08)/rA(2,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,9) - 3.16724e-08)/rA(2,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,1) - -1.85057e+08)/rA(3,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,2) - -5.55171e+08)/rA(3,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.25748e+09)/rA(3,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,4) - 3.70114e+08)/rA(3,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,5) - -1.85057e+08)/rA(3,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,8) - 3.16724e-08)/rA(3,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,9) - -5.1725e+08)/rA(3,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -7.40228e+08)/rA(4,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,3) - 3.70114e+08)/rA(4,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1.65702e+09)/rA(4,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,5) - -4.7538e+08)/rA(4,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,8) - -1.76565e+08)/rA(4,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,9) - -2.64848e+08)/rA(4,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,11) - 4.22299e-08)/rA(4,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,12) - -7.40228e+08)/rA(4,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,13) - 3.70114e+08)/rA(4,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,2) - 3.70114e+08)/rA(5,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,3) - -1.85057e+08)/rA(5,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,4) - -4.7538e+08)/rA(5,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.45705e+09)/rA(5,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,8) - -2.64848e+08)/rA(5,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,9) - -3.97272e+08)/rA(5,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,10) - 4.22299e-08)/rA(5,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,11) - -6.89667e+08)/rA(5,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,12) - 3.70114e+08)/rA(5,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,13) - -1.85057e+08)/rA(5,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 1.12703e+09)/rA(6,6)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - 7.83914e+08)/rA(7,7)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,3) - 3.16724e-08)/rA(8,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,4) - -1.76565e+08)/rA(8,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,5) - -2.64848e+08)/rA(8,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,8) - 2.24557e+09)/rA(8,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,9) - 2.64848e+08)/rA(8,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,10) - -1.0345e+09)/rA(8,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,2) - 3.16724e-08)/rA(9,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,3) - -5.1725e+08)/rA(9,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,4) - -2.64848e+08)/rA(9,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,5) - -3.97272e+08)/rA(9,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,8) - 2.64848e+08)/rA(9,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,9) - 9.14522e+08)/rA(9,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,5) - 4.22299e-08)/rA(10,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,8) - -1.0345e+09)/rA(10,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,10) - 2.43475e+09)/rA(10,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,11) - 3.65751e+08)/rA(10,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,12) - -3.65751e+08)/rA(10,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,13) - -3.65751e+08)/rA(10,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,14) - -1.0345e+09)/rA(10,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,4) - 4.22299e-08)/rA(11,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,5) - -6.89667e+08)/rA(11,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,10) - 3.65751e+08)/rA(11,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,11) - 1.05542e+09)/rA(11,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,12) - -3.65751e+08)/rA(11,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,13) - -3.65751e+08)/rA(11,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,4) - -7.40228e+08)/rA(12,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,5) - 3.70114e+08)/rA(12,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,10) - -3.65751e+08)/rA(12,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,11) - -3.65751e+08)/rA(12,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,12) - 1.84621e+09)/rA(12,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,13) - -3.74477e+08)/rA(12,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,15) - 6.33449e-08)/rA(12,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,16) - -7.40228e+08)/rA(12,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,17) - 3.70114e+08)/rA(12,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,4) - 3.70114e+08)/rA(13,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,5) - -1.85057e+08)/rA(13,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,10) - -3.65751e+08)/rA(13,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,11) - -3.65751e+08)/rA(13,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,12) - -3.74477e+08)/rA(13,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,13) - 1.77036e+09)/rA(13,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,14) - 6.33449e-08)/rA(13,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,15) - -1.0345e+09)/rA(13,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,16) - 3.70114e+08)/rA(13,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,17) - -1.85057e+08)/rA(13,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,10) - -1.0345e+09)/rA(14,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,13) - 6.33449e-08)/rA(14,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,14) - 2.80923e+09)/rA(14,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,15) - 3.70114e+08)/rA(14,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,16) - -7.40228e+08)/rA(14,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,17) - -3.70114e+08)/rA(14,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,18) - -1.0345e+09)/rA(14,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,12) - 6.33449e-08)/rA(15,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,13) - -1.0345e+09)/rA(15,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,14) - 3.70114e+08)/rA(15,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,15) - 1.21956e+09)/rA(15,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,16) - -3.70114e+08)/rA(15,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,17) - -1.85057e+08)/rA(15,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,12) - -7.40228e+08)/rA(16,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,13) - 3.70114e+08)/rA(16,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,14) - -7.40228e+08)/rA(16,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,15) - -3.70114e+08)/rA(16,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,16) - 2.22068e+09)/rA(16,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,17) - -3.70114e+08)/rA(16,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,19) - 1.2669e-07)/rA(16,19)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,20) - -7.40228e+08)/rA(16,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,21) - 3.70114e+08)/rA(16,21)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,12) - 3.70114e+08)/rA(17,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,13) - -1.85057e+08)/rA(17,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,14) - -3.70114e+08)/rA(17,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,15) - -1.85057e+08)/rA(17,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,16) - -3.70114e+08)/rA(17,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,17) - 2.62417e+09)/rA(17,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,18) - 1.2669e-07)/rA(17,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,19) - -2.069e+09)/rA(17,19)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,20) - 3.70114e+08)/rA(17,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,21) - -1.85057e+08)/rA(17,21)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,14) - -1.0345e+09)/rA(18,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,17) - 1.2669e-07)/rA(18,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,18) - 2.069e+09)/rA(18,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,19) - -1.2669e-07)/rA(18,19)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,20) - -1.0345e+09)/rA(18,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,16) - 1.2669e-07)/rA(19,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,17) - -2.069e+09)/rA(19,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,18) - -1.2669e-07)/rA(19,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,19) - 2.069e+09)/rA(19,19)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,16) - -7.40228e+08)/rA(20,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,17) - 3.70114e+08)/rA(20,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,18) - -1.0345e+09)/rA(20,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,20) - 1.77473e+09)/rA(20,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,21) - -3.70114e+08)/rA(20,21)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,16) - 3.70114e+08)/rA(21,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,17) - -1.85057e+08)/rA(21,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,20) - -3.70114e+08)/rA(21,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,21) - 1.85057e+08)/rA(21,21)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 740227943.2715302705764771)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 598856985.8178827762603760)/rA(1,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,2) - 370113971.6357653141021729)/rA(1,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,3) - -185056985.8178827166557312)/rA(1,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,1) - 370113971.6357653141021729)/rA(2,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1572984379.4520018100738525)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,3) - -555170957.4536480903625488)/rA(2,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -740227943.2715302705764771)/rA(2,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,5) - 370113971.6357653141021729)/rA(2,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,1) - -185056985.8178827166557312)/rA(3,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,2) - -555170957.4536479711532593)/rA(3,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1257477943.2715306282043457)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,4) - 370113971.6357653141021729)/rA(3,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,5) - -185056985.8178827166557312)/rA(3,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,9) - -517250000.0000000000000000)/rA(3,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -740227943.2715302705764771)/rA(4,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,3) - 370113971.6357653141021729)/rA(4,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1657021225.9261374473571777)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,5) - -475379934.1969153881072998)/rA(4,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,8) - -176565339.3830768167972565)/rA(4,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,9) - -264848009.0746152102947235)/rA(4,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,12) - -740227943.2715302705764771)/rA(4,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,13) - 370113971.6357653141021729)/rA(4,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,2) - 370113971.6357652544975281)/rA(5,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,3) - -185056985.8178827166557312)/rA(5,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,4) - -475379934.1969153881072998)/rA(5,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1457052651.9143548011779785)/rA(5,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,8) - -264848009.0746152102947235)/rA(5,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,9) - -397272013.6119228005409241)/rA(5,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,11) - -689666666.6666666269302368)/rA(5,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,12) - 370113971.6357653141021729)/rA(5,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,13) - -185056985.8178827166557312)/rA(5,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 1127028492.9089412689208984)/rA(6,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - 783913971.6357650756835938)/rA(7,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,4) - -176565339.3830768167972565)/rA(8,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,5) - -264848009.0746152102947235)/rA(8,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,8) - 2245565339.3830766677856445)/rA(8,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,9) - 264848009.0746151804924011)/rA(8,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,10) - -1034500000.0000000000000000)/rA(8,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,3) - -517250000.0000000000000000)/rA(9,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,4) - -264848009.0746152102947235)/rA(9,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,5) - -397272013.6119228005409241)/rA(9,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,8) - 264848009.0746151804924011)/rA(9,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,9) - 914522013.6119227409362793)/rA(9,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,8) - -1034500000.0000000000000000)/rA(10,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,10) - 2434750982.5687417984008789)/rA(10,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,11) - 365750982.5687416195869446)/rA(10,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,12) - -365750982.5687417387962341)/rA(10,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,13) - -365750982.5687416791915894)/rA(10,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,14) - -1034500000.0000000000000000)/rA(10,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,5) - -689666666.6666666269302368)/rA(11,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,10) - 365750982.5687416195869446)/rA(11,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,11) - 1055417649.2354083061218262)/rA(11,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,12) - -365750982.5687416791915894)/rA(11,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,13) - -365750982.5687416195869446)/rA(11,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,4) - -740227943.2715302705764771)/rA(12,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,5) - 370113971.6357653141021729)/rA(12,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,10) - -365750982.5687417387962341)/rA(12,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,11) - -365750982.5687416791915894)/rA(12,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,12) - 1846206869.1118023395538330)/rA(12,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,13) - -374476960.7027890682220459)/rA(12,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,16) - -740227943.2715302705764771)/rA(12,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,17) - 370113971.6357653141021729)/rA(12,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,4) - 370113971.6357652544975281)/rA(13,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,5) - -185056985.8178827166557312)/rA(13,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,10) - -365750982.5687416791915894)/rA(13,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,11) - -365750982.5687416195869446)/rA(13,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,12) - -374476960.7027890682220459)/rA(13,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,13) - 1770364954.2045071125030518)/rA(13,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,15) - -1034500000.0000000000000000)/rA(13,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,16) - 370113971.6357653141021729)/rA(13,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,17) - -185056985.8178827166557312)/rA(13,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,10) - -1034500000.0000000000000000)/rA(14,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,14) - 2809227943.2715301513671875)/rA(14,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,15) - 370113971.6357650756835938)/rA(14,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,16) - -740227943.2715302705764771)/rA(14,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,17) - -370113971.6357651352882385)/rA(14,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,18) - -1034500000.0000000000000000)/rA(14,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,13) - -1034500000.0000000000000000)/rA(15,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,14) - 370113971.6357650756835938)/rA(15,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,15) - 1219556985.8178825378417969)/rA(15,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,16) - -370113971.6357651352882385)/rA(15,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,17) - -185056985.8178825676441193)/rA(15,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,12) - -740227943.2715302705764771)/rA(16,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,13) - 370113971.6357653141021729)/rA(16,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,14) - -740227943.2715302705764771)/rA(16,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,15) - -370113971.6357651352882385)/rA(16,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,16) - 2220683829.8145909309387207)/rA(16,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,17) - -370113971.6357656121253967)/rA(16,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,20) - -740227943.2715302705764771)/rA(16,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,21) - 370113971.6357653141021729)/rA(16,21)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,12) - 370113971.6357652544975281)/rA(17,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,13) - -185056985.8178827166557312)/rA(17,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,14) - -370113971.6357651352882385)/rA(17,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,15) - -185056985.8178825676441193)/rA(17,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,16) - -370113971.6357656121253967)/rA(17,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,17) - 2624170957.4536480903625488)/rA(17,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,19) - -2069000000.0000000000000000)/rA(17,19)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,20) - 370113971.6357653141021729)/rA(17,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,21) - -185056985.8178827166557312)/rA(17,21)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,14) - -1034500000.0000000000000000)/rA(18,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,18) - 2069000000.0000000000000000)/rA(18,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,20) - -1034500000.0000000000000000)/rA(18,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,17) - -2069000000.0000000000000000)/rA(19,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,19) - 2069000000.0000000000000000)/rA(19,19)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,16) - -740227943.2715302705764771)/rA(20,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,17) - 370113971.6357653141021729)/rA(20,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,18) - -1034500000.0000000000000000)/rA(20,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,20) - 1774727943.2715301513671875)/rA(20,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,21) - -370113971.6357653141021729)/rA(20,21)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,16) - 370113971.6357652544975281)/rA(21,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,17) - -185056985.8178827166557312)/rA(21,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,20) - -370113971.6357653141021729)/rA(21,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,21) - 185056985.8178827166557312)/rA(21,21)), tolerance);
         }
 
         /**
-         * Checks if the block builder and solver with constraints performs correctly the resolution of the system
+         * Checks if the block builder and solver with constraints performs correctly the assemble of the system
          */
         KRATOS_TEST_CASE_IN_SUITE(ExtendedDisplacementBlockBuilderAndSolverWithConstraints, KratosCoreFastSuite)
         {
@@ -561,141 +530,123 @@ namespace Kratos
 //             DebugLHS(rA);
 
             // The solution check
-            constexpr double tolerance = 1e-4;
+            constexpr double tolerance = 1e-8;
             KRATOS_CHECK(rA.size1() == 22);
             KRATOS_CHECK(rA.size2() == 22);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 7.40228e+08)/rA(0,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.48622e+09)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,2) - -1.85057e+08)/rA(1,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,4) - 3.70114e+08)/rA(1,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,5) - -1.85057e+08)/rA(1,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,8) - 3.16724e-08)/rA(1,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,9) - -5.1725e+08)/rA(1,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,1) - -1.85057e+08)/rA(2,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1.57298e+09)/rA(2,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -7.40228e+08)/rA(2,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,5) - 3.70114e+08)/rA(2,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,9) - 3.16724e-08)/rA(2,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.25748e+09)/rA(3,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,1) - 3.70114e+08)/rA(4,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -7.40228e+08)/rA(4,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1.65702e+09)/rA(4,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,5) - -4.7538e+08)/rA(4,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,8) - -1.76565e+08)/rA(4,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,9) - -2.64848e+08)/rA(4,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,11) - 4.22299e-08)/rA(4,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,12) - -7.40228e+08)/rA(4,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,13) - 3.70114e+08)/rA(4,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,1) - -1.85057e+08)/rA(5,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,2) - 3.70114e+08)/rA(5,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,4) - -4.7538e+08)/rA(5,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1.45705e+09)/rA(5,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,8) - -2.64848e+08)/rA(5,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,9) - -3.97272e+08)/rA(5,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,10) - 4.22299e-08)/rA(5,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,11) - -6.89667e+08)/rA(5,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,12) - 3.70114e+08)/rA(5,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,13) - -1.85057e+08)/rA(5,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 1.12703e+09)/rA(6,6)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - 7.83914e+08)/rA(7,7)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,1) - 3.16724e-08)/rA(8,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,4) - -1.76565e+08)/rA(8,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,5) - -2.64848e+08)/rA(8,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,8) - 2.24557e+09)/rA(8,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,9) - 2.64848e+08)/rA(8,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,10) - -1.0345e+09)/rA(8,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,1) - -5.1725e+08)/rA(9,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,2) - 3.16724e-08)/rA(9,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,4) - -2.64848e+08)/rA(9,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,5) - -3.97272e+08)/rA(9,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,8) - 2.64848e+08)/rA(9,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,9) - 9.14522e+08)/rA(9,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,5) - 4.22299e-08)/rA(10,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,8) - -1.0345e+09)/rA(10,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,10) - 2.43475e+09)/rA(10,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,11) - 3.65751e+08)/rA(10,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,12) - -3.65751e+08)/rA(10,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,13) - -3.65751e+08)/rA(10,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,14) - -1.0345e+09)/rA(10,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,4) - 4.22299e-08)/rA(11,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,5) - -6.89667e+08)/rA(11,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,10) - 3.65751e+08)/rA(11,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,11) - 1.05542e+09)/rA(11,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,12) - -3.65751e+08)/rA(11,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,13) - -3.65751e+08)/rA(11,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,4) - -7.40228e+08)/rA(12,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,5) - 3.70114e+08)/rA(12,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,10) - -3.65751e+08)/rA(12,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,11) - -3.65751e+08)/rA(12,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,12) - 1.84621e+09)/rA(12,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,13) - -3.74477e+08)/rA(12,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,15) - 6.33449e-08)/rA(12,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,16) - -7.40228e+08)/rA(12,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,17) - 3.70114e+08)/rA(12,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,4) - 3.70114e+08)/rA(13,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,5) - -1.85057e+08)/rA(13,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,10) - -3.65751e+08)/rA(13,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,11) - -3.65751e+08)/rA(13,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,12) - -3.74477e+08)/rA(13,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,13) - 1.77036e+09)/rA(13,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,14) - 6.33449e-08)/rA(13,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,15) - -1.0345e+09)/rA(13,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,16) - 3.70114e+08)/rA(13,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,17) - -1.85057e+08)/rA(13,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,10) - -1.0345e+09)/rA(14,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,13) - 6.33449e-08)/rA(14,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,14) - 2.80923e+09)/rA(14,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,15) - 3.70114e+08)/rA(14,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,16) - -7.40228e+08)/rA(14,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,17) - -3.70114e+08)/rA(14,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,18) - -1.0345e+09)/rA(14,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,12) - 6.33449e-08)/rA(15,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,13) - -1.0345e+09)/rA(15,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,14) - 3.70114e+08)/rA(15,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,15) - 1.21956e+09)/rA(15,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,16) - -3.70114e+08)/rA(15,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,17) - -1.85057e+08)/rA(15,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,12) - -7.40228e+08)/rA(16,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,13) - 3.70114e+08)/rA(16,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,14) - -7.40228e+08)/rA(16,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,15) - -3.70114e+08)/rA(16,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,16) - 2.22068e+09)/rA(16,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,17) - -3.70114e+08)/rA(16,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,19) - 1.2669e-07)/rA(16,19)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,20) - -7.40228e+08)/rA(16,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,21) - 3.70114e+08)/rA(16,21)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,12) - 3.70114e+08)/rA(17,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,13) - -1.85057e+08)/rA(17,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,14) - -3.70114e+08)/rA(17,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,15) - -1.85057e+08)/rA(17,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,16) - -3.70114e+08)/rA(17,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,17) - 2.62417e+09)/rA(17,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,18) - 1.2669e-07)/rA(17,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,19) - -2.069e+09)/rA(17,19)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,20) - 3.70114e+08)/rA(17,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,21) - -1.85057e+08)/rA(17,21)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,14) - -1.0345e+09)/rA(18,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,17) - 1.2669e-07)/rA(18,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,18) - 2.069e+09)/rA(18,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,19) - -1.2669e-07)/rA(18,19)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,20) - -1.0345e+09)/rA(18,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,16) - 1.2669e-07)/rA(19,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,17) - -2.069e+09)/rA(19,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,18) - -1.2669e-07)/rA(19,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,19) - 2.069e+09)/rA(19,19)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,16) - -7.40228e+08)/rA(20,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,17) - 3.70114e+08)/rA(20,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,18) - -1.0345e+09)/rA(20,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,20) - 1.77473e+09)/rA(20,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,21) - -3.70114e+08)/rA(20,21)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,16) - 3.70114e+08)/rA(21,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,17) - -1.85057e+08)/rA(21,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,20) - -3.70114e+08)/rA(21,20)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,21) - 1.85057e+08)/rA(21,21)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 740227943.2715302705764771)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1486220957.4536478519439697)/rA(1,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,2) - -185056985.8178826868534088)/rA(1,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,4) - 370113971.6357653141021729)/rA(1,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,5) - -185056985.8178827166557312)/rA(1,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,9) - -517250000.0000000000000000)/rA(1,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,1) - -185056985.8178827762603760)/rA(2,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1572984379.4520018100738525)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -740227943.2715302705764771)/rA(2,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,5) - 370113971.6357653141021729)/rA(2,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1257477943.2715306282043457)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,1) - 370113971.6357653141021729)/rA(4,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -740227943.2715302705764771)/rA(4,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1657021225.9261374473571777)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,5) - -475379934.1969153881072998)/rA(4,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,8) - -176565339.3830768167972565)/rA(4,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,9) - -264848009.0746152102947235)/rA(4,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,12) - -740227943.2715302705764771)/rA(4,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,13) - 370113971.6357653141021729)/rA(4,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,1) - -185056985.8178827166557312)/rA(5,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,2) - 370113971.6357652544975281)/rA(5,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,4) - -475379934.1969153881072998)/rA(5,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 1457052651.9143548011779785)/rA(5,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,8) - -264848009.0746152102947235)/rA(5,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,9) - -397272013.6119228005409241)/rA(5,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,11) - -689666666.6666666269302368)/rA(5,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,12) - 370113971.6357653141021729)/rA(5,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,13) - -185056985.8178827166557312)/rA(5,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 1127028492.9089412689208984)/rA(6,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - 783913971.6357650756835938)/rA(7,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,4) - -176565339.3830768167972565)/rA(8,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,5) - -264848009.0746152102947235)/rA(8,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,8) - 2245565339.3830766677856445)/rA(8,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,9) - 264848009.0746151804924011)/rA(8,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,10) - -1034500000.0000000000000000)/rA(8,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,1) - -517250000.0000000000000000)/rA(9,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,4) - -264848009.0746152102947235)/rA(9,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,5) - -397272013.6119228005409241)/rA(9,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,8) - 264848009.0746151804924011)/rA(9,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,9) - 914522013.6119227409362793)/rA(9,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,8) - -1034500000.0000000000000000)/rA(10,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,10) - 2434750982.5687417984008789)/rA(10,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,11) - 365750982.5687416195869446)/rA(10,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,12) - -365750982.5687417387962341)/rA(10,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,13) - -365750982.5687416791915894)/rA(10,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,14) - -1034500000.0000000000000000)/rA(10,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,5) - -689666666.6666666269302368)/rA(11,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,10) - 365750982.5687416195869446)/rA(11,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,11) - 1055417649.2354083061218262)/rA(11,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,12) - -365750982.5687416791915894)/rA(11,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,13) - -365750982.5687416195869446)/rA(11,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,4) - -740227943.2715302705764771)/rA(12,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,5) - 370113971.6357653141021729)/rA(12,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,10) - -365750982.5687417387962341)/rA(12,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,11) - -365750982.5687416791915894)/rA(12,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,12) - 1846206869.1118023395538330)/rA(12,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,13) - -374476960.7027890682220459)/rA(12,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,16) - -740227943.2715302705764771)/rA(12,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,17) - 370113971.6357653141021729)/rA(12,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,4) - 370113971.6357652544975281)/rA(13,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,5) - -185056985.8178827166557312)/rA(13,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,10) - -365750982.5687416791915894)/rA(13,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,11) - -365750982.5687416195869446)/rA(13,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,12) - -374476960.7027890682220459)/rA(13,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,13) - 1770364954.2045071125030518)/rA(13,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,15) - -1034500000.0000000000000000)/rA(13,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,16) - 370113971.6357653141021729)/rA(13,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,17) - -185056985.8178827166557312)/rA(13,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,10) - -1034500000.0000000000000000)/rA(14,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,14) - 2809227943.2715301513671875)/rA(14,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,15) - 370113971.6357650756835938)/rA(14,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,16) - -740227943.2715302705764771)/rA(14,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,17) - -370113971.6357651352882385)/rA(14,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,18) - -1034500000.0000000000000000)/rA(14,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,13) - -1034500000.0000000000000000)/rA(15,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,14) - 370113971.6357650756835938)/rA(15,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,15) - 1219556985.8178825378417969)/rA(15,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,16) - -370113971.6357651352882385)/rA(15,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,17) - -185056985.8178825676441193)/rA(15,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,12) - -740227943.2715302705764771)/rA(16,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,13) - 370113971.6357653141021729)/rA(16,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,14) - -740227943.2715302705764771)/rA(16,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,15) - -370113971.6357651352882385)/rA(16,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,16) - 2220683829.8145909309387207)/rA(16,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,17) - -370113971.6357656121253967)/rA(16,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,20) - -740227943.2715302705764771)/rA(16,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,21) - 370113971.6357653141021729)/rA(16,21)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,12) - 370113971.6357652544975281)/rA(17,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,13) - -185056985.8178827166557312)/rA(17,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,14) - -370113971.6357651352882385)/rA(17,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,15) - -185056985.8178825676441193)/rA(17,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,16) - -370113971.6357656121253967)/rA(17,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,17) - 2624170957.4536480903625488)/rA(17,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,19) - -2069000000.0000000000000000)/rA(17,19)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,20) - 370113971.6357653141021729)/rA(17,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,21) - -185056985.8178827166557312)/rA(17,21)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,14) - -1034500000.0000000000000000)/rA(18,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,18) - 2069000000.0000000000000000)/rA(18,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,20) - -1034500000.0000000000000000)/rA(18,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,17) - -2069000000.0000000000000000)/rA(19,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(19,19) - 2069000000.0000000000000000)/rA(19,19)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,16) - -740227943.2715302705764771)/rA(20,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,17) - 370113971.6357653141021729)/rA(20,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,18) - -1034500000.0000000000000000)/rA(20,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,20) - 1774727943.2715301513671875)/rA(20,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(20,21) - -370113971.6357653141021729)/rA(20,21)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,16) - 370113971.6357652544975281)/rA(21,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,17) - -185056985.8178827166557312)/rA(21,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,20) - -370113971.6357653141021729)/rA(21,20)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(21,21) - 185056985.8178827166557312)/rA(21,21)), tolerance);
         }
 
         /**
-         * Checks if the elimination builder and solver performs correctly the resolution of the system
+         * Checks if the elimination builder and solver performs correctly the assemble of the system
          */
         KRATOS_TEST_CASE_IN_SUITE(ExtendedDisplacementEliminationBuilderAndSolver, KratosCoreFastSuite)
         {
@@ -714,120 +665,120 @@ namespace Kratos
 //             DebugLHS(rA);
 
             // The solution check
-            constexpr double tolerance = 1e-4;
+            constexpr double tolerance = 1e-8;
             KRATOS_CHECK(rA.size1() == 19);
             KRATOS_CHECK(rA.size2() == 19);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 5.98857e+08)/rA(0,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,1) - 3.70114e+08)/rA(0,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,2) - -1.85057e+08)/rA(0,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,0) - 3.70114e+08)/rA(1,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1.57298e+09)/rA(1,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,2) - -5.55171e+08)/rA(1,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,3) - -7.40228e+08)/rA(1,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,4) - 3.70114e+08)/rA(1,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,0) - -1.85057e+08)/rA(2,0)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,1) - -5.55171e+08)/rA(2,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1.25748e+09)/rA(2,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,3) - 3.70114e+08)/rA(2,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -1.85057e+08)/rA(2,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,6) - -5.1725e+08)/rA(2,6)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,1) - -7.40228e+08)/rA(3,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,2) - 3.70114e+08)/rA(3,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1.65702e+09)/rA(3,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,4) - -4.7538e+08)/rA(3,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,5) - -1.76565e+08)/rA(3,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,6) - -2.64848e+08)/rA(3,6)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,9) - -7.40228e+08)/rA(3,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,10) - 3.70114e+08)/rA(3,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,1) - 3.70114e+08)/rA(4,1)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -1.85057e+08)/rA(4,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,3) - -4.7538e+08)/rA(4,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1.45705e+09)/rA(4,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,5) - -2.64848e+08)/rA(4,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,6) - -3.97272e+08)/rA(4,6)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,8) - -6.89667e+08)/rA(4,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,9) - 3.70114e+08)/rA(4,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,10) - -1.85057e+08)/rA(4,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,3) - -1.76565e+08)/rA(5,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,4) - -2.64848e+08)/rA(5,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 2.24557e+09)/rA(5,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,6) - 2.64848e+08)/rA(5,6)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,7) - -1.0345e+09)/rA(5,7)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,2) - -5.1725e+08)/rA(6,2)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,3) - -2.64848e+08)/rA(6,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,4) - -3.97272e+08)/rA(6,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,5) - 2.64848e+08)/rA(6,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 9.14522e+08)/rA(6,6)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,5) - -1.0345e+09)/rA(7,5)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - 2.43475e+09)/rA(7,7)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,8) - 3.65751e+08)/rA(7,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,9) - -3.65751e+08)/rA(7,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,10) - -3.65751e+08)/rA(7,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,11) - -1.0345e+09)/rA(7,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,4) - -6.89667e+08)/rA(8,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,7) - 3.65751e+08)/rA(8,7)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,8) - 1.05542e+09)/rA(8,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,9) - -3.65751e+08)/rA(8,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,10) - -3.65751e+08)/rA(8,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,3) - -7.40228e+08)/rA(9,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,4) - 3.70114e+08)/rA(9,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,7) - -3.65751e+08)/rA(9,7)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,8) - -3.65751e+08)/rA(9,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,9) - 1.84621e+09)/rA(9,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,10) - -3.74477e+08)/rA(9,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,13) - -7.40228e+08)/rA(9,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,14) - 3.70114e+08)/rA(9,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,3) - 3.70114e+08)/rA(10,3)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,4) - -1.85057e+08)/rA(10,4)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,7) - -3.65751e+08)/rA(10,7)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,8) - -3.65751e+08)/rA(10,8)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,9) - -3.74477e+08)/rA(10,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,10) - 1.77036e+09)/rA(10,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,12) - -1.0345e+09)/rA(10,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,13) - 3.70114e+08)/rA(10,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,14) - -1.85057e+08)/rA(10,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,7) - -1.0345e+09)/rA(11,7)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,11) - 2.80923e+09)/rA(11,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,12) - 3.70114e+08)/rA(11,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,13) - -7.40228e+08)/rA(11,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,14) - -3.70114e+08)/rA(11,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,15) - -1.0345e+09)/rA(11,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,10) - -1.0345e+09)/rA(12,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,11) - 3.70114e+08)/rA(12,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,12) - 1.21956e+09)/rA(12,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,13) - -3.70114e+08)/rA(12,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,14) - -1.85057e+08)/rA(12,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,9) - -7.40228e+08)/rA(13,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,10) - 3.70114e+08)/rA(13,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,11) - -7.40228e+08)/rA(13,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,12) - -3.70114e+08)/rA(13,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,13) - 2.22068e+09)/rA(13,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,14) - -3.70114e+08)/rA(13,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,17) - -7.40228e+08)/rA(13,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,18) - 3.70114e+08)/rA(13,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,9) - 3.70114e+08)/rA(14,9)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,10) - -1.85057e+08)/rA(14,10)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,11) - -3.70114e+08)/rA(14,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,12) - -1.85057e+08)/rA(14,12)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,13) - -3.70114e+08)/rA(14,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,14) - 2.62417e+09)/rA(14,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,16) - -2.069e+09)/rA(14,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,17) - 3.70114e+08)/rA(14,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,18) - -1.85057e+08)/rA(14,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,11) - -1.0345e+09)/rA(15,11)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,15) - 2.069e+09)/rA(15,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,17) - -1.0345e+09)/rA(15,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,14) - -2.069e+09)/rA(16,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,16) - 2.069e+09)/rA(16,16)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,13) - -7.40228e+08)/rA(17,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,14) - 3.70114e+08)/rA(17,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,15) - -1.0345e+09)/rA(17,15)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,17) - 1.77473e+09)/rA(17,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,18) - -3.70114e+08)/rA(17,18)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,13) - 3.70114e+08)/rA(18,13)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,14) - -1.85057e+08)/rA(18,14)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,17) - -3.70114e+08)/rA(18,17)), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,18) - 1.85057e+08)/rA(18,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,0) - 598856985.8178827762603760)/rA(0,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,1) - 370113971.6357653141021729)/rA(0,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(0,2) - -185056985.8178827166557312)/rA(0,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,0) - 370113971.6357653141021729)/rA(1,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,1) - 1572984379.4520018100738525)/rA(1,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,2) - -555170957.4536480903625488)/rA(1,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,3) - -740227943.2715302705764771)/rA(1,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(1,4) - 370113971.6357653141021729)/rA(1,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,0) - -185056985.8178827166557312)/rA(2,0)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,1) - -555170957.4536479711532593)/rA(2,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,2) - 1257477943.2715306282043457)/rA(2,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,3) - 370113971.6357653141021729)/rA(2,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,4) - -185056985.8178827166557312)/rA(2,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(2,6) - -517250000.0000000000000000)/rA(2,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,1) - -740227943.2715302705764771)/rA(3,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,2) - 370113971.6357653141021729)/rA(3,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,3) - 1657021225.9261374473571777)/rA(3,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,4) - -475379934.1969153881072998)/rA(3,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,5) - -176565339.3830768167972565)/rA(3,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,6) - -264848009.0746152102947235)/rA(3,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,9) - -740227943.2715302705764771)/rA(3,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(3,10) - 370113971.6357653141021729)/rA(3,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,1) - 370113971.6357652544975281)/rA(4,1)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,2) - -185056985.8178827166557312)/rA(4,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,3) - -475379934.1969153881072998)/rA(4,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,4) - 1457052651.9143548011779785)/rA(4,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,5) - -264848009.0746152102947235)/rA(4,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,6) - -397272013.6119228005409241)/rA(4,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,8) - -689666666.6666666269302368)/rA(4,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,9) - 370113971.6357653141021729)/rA(4,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(4,10) - -185056985.8178827166557312)/rA(4,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,3) - -176565339.3830768167972565)/rA(5,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,4) - -264848009.0746152102947235)/rA(5,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,5) - 2245565339.3830766677856445)/rA(5,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,6) - 264848009.0746151804924011)/rA(5,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(5,7) - -1034500000.0000000000000000)/rA(5,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,2) - -517250000.0000000000000000)/rA(6,2)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,3) - -264848009.0746152102947235)/rA(6,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,4) - -397272013.6119228005409241)/rA(6,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,5) - 264848009.0746151804924011)/rA(6,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(6,6) - 914522013.6119227409362793)/rA(6,6)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,5) - -1034500000.0000000000000000)/rA(7,5)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,7) - 2434750982.5687417984008789)/rA(7,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,8) - 365750982.5687416195869446)/rA(7,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,9) - -365750982.5687417387962341)/rA(7,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,10) - -365750982.5687416791915894)/rA(7,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(7,11) - -1034500000.0000000000000000)/rA(7,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,4) - -689666666.6666666269302368)/rA(8,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,7) - 365750982.5687416195869446)/rA(8,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,8) - 1055417649.2354083061218262)/rA(8,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,9) - -365750982.5687416791915894)/rA(8,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(8,10) - -365750982.5687416195869446)/rA(8,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,3) - -740227943.2715302705764771)/rA(9,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,4) - 370113971.6357653141021729)/rA(9,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,7) - -365750982.5687417387962341)/rA(9,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,8) - -365750982.5687416791915894)/rA(9,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,9) - 1846206869.1118023395538330)/rA(9,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,10) - -374476960.7027890682220459)/rA(9,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,13) - -740227943.2715302705764771)/rA(9,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(9,14) - 370113971.6357653141021729)/rA(9,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,3) - 370113971.6357652544975281)/rA(10,3)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,4) - -185056985.8178827166557312)/rA(10,4)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,7) - -365750982.5687416791915894)/rA(10,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,8) - -365750982.5687416195869446)/rA(10,8)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,9) - -374476960.7027890682220459)/rA(10,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,10) - 1770364954.2045071125030518)/rA(10,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,12) - -1034500000.0000000000000000)/rA(10,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,13) - 370113971.6357653141021729)/rA(10,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(10,14) - -185056985.8178827166557312)/rA(10,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,7) - -1034500000.0000000000000000)/rA(11,7)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,11) - 2809227943.2715301513671875)/rA(11,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,12) - 370113971.6357650756835938)/rA(11,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,13) - -740227943.2715302705764771)/rA(11,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,14) - -370113971.6357651352882385)/rA(11,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(11,15) - -1034500000.0000000000000000)/rA(11,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,10) - -1034500000.0000000000000000)/rA(12,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,11) - 370113971.6357650756835938)/rA(12,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,12) - 1219556985.8178825378417969)/rA(12,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,13) - -370113971.6357651352882385)/rA(12,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(12,14) - -185056985.8178825676441193)/rA(12,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,9) - -740227943.2715302705764771)/rA(13,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,10) - 370113971.6357653141021729)/rA(13,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,11) - -740227943.2715302705764771)/rA(13,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,12) - -370113971.6357651352882385)/rA(13,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,13) - 2220683829.8145909309387207)/rA(13,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,14) - -370113971.6357656121253967)/rA(13,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,17) - -740227943.2715302705764771)/rA(13,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(13,18) - 370113971.6357653141021729)/rA(13,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,9) - 370113971.6357652544975281)/rA(14,9)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,10) - -185056985.8178827166557312)/rA(14,10)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,11) - -370113971.6357651352882385)/rA(14,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,12) - -185056985.8178825676441193)/rA(14,12)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,13) - -370113971.6357656121253967)/rA(14,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,14) - 2624170957.4536480903625488)/rA(14,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,16) - -2069000000.0000000000000000)/rA(14,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,17) - 370113971.6357653141021729)/rA(14,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(14,18) - -185056985.8178827166557312)/rA(14,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,11) - -1034500000.0000000000000000)/rA(15,11)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,15) - 2069000000.0000000000000000)/rA(15,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(15,17) - -1034500000.0000000000000000)/rA(15,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,14) - -2069000000.0000000000000000)/rA(16,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(16,16) - 2069000000.0000000000000000)/rA(16,16)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,13) - -740227943.2715302705764771)/rA(17,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,14) - 370113971.6357653141021729)/rA(17,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,15) - -1034500000.0000000000000000)/rA(17,15)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,17) - 1774727943.2715301513671875)/rA(17,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(17,18) - -370113971.6357653141021729)/rA(17,18)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,13) - 370113971.6357652544975281)/rA(18,13)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,14) - -185056985.8178827166557312)/rA(18,14)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,17) - -370113971.6357653141021729)/rA(18,17)), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,18) - 185056985.8178827166557312)/rA(18,18)), tolerance);
         }
         
     } // namespace Testing
