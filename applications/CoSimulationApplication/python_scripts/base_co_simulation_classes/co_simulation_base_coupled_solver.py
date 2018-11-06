@@ -1,10 +1,11 @@
 # co simulation imports
 import co_simulation_tools as tools
 # Importing the CoSimulation application
-import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
-from co_simulation_base_solver import CoSimulationBaseSolver
-
+from CoSimulationApplication import *
+from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 # Other imports
+import co_simulation_data_structure
+cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTRURE__
 
 
 ##
@@ -18,19 +19,26 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param self            The object pointer.
     #  @param custom_settings     parameters for configuring the CoSimulationBaseCoupledSolver
     def __init__(self, custom_settings):
-
         ##settings string in json format
         # default values for all available settings
         # for mandatory settings, the type is defined
         self.full_settings = custom_settings
+        self.settings= custom_settings['coupled_solver_settings']
         #super(CoSimulationBaseCoupledSolver,self).__init__(custom_settings)
-        defaultSettings = {}
-        defaultSettings["echo_level"] = 1
-        defaultSettings["max_coupling_iterations"] = 10
-        defaultSettings["participants"] = list
-        defaultSettings["start_coupling_time"] = float #MANDATORY
-        self.settings = tools.ValidateAndAssignInputParameters(defaultSettings, custom_settings["coupled_solver_settings"], False)
-        self.number_of_participants = len( self.settings['participants'] )
+        default_setting = cs_data_structure.Parameters("""
+        {
+            "name" : "",
+            "solver_type" : "gauss_seidel_strong_coupling",
+            "echo_level" : 0,
+            "num_coupling_iterations" : 10,
+            "start_coupling_time" : 0.0,
+            "convergence_accelerators" : [],
+            "participants" : [],
+            "convergence_criteria_settings" : {}
+        }
+        """)
+        self.settings.ValidateAndAssignDefaults(default_setting)
+        self.number_of_participants = self.settings['participants'].size()
         self.echo_level = self.settings["echo_level"]
 
         # Get the participating solvers a map with their names and objects
@@ -45,7 +53,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         if self.start_coupling_time > 0.0:
             self.coupling_started = False
         else:
-            self.coupling_started = True
+            self.coupling_started = Trueco_simulation_data_structure
 
     ## Initialize : Initialize function. Called only once
     #               all member variables are initialized here.
@@ -178,14 +186,13 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     ## _GetSolvers : Private Function to make the participating solver objects
     #
     #  @param self            The object pointer.
-    def _GetSolvers(self, SolversDataList):
+    def _GetSolvers(self, SolversDataMap):
         solvers_map = {}
-        num_solvers = len(SolversDataList)
-        import co_simulation_solver_factory as factory
+        num_solvers = len(SolversDataMap.keys())
+        import custom_co_simulation_solver_interfaces.co_simulation_solver_factory as factory
 
-        for i in range(0,num_solvers):
-            solver = factory.CreateSolverInterface(SolversDataList[i])
-            solver_name = SolversDataList[i]["name"]
+        for solver_name, settings in SolversDataMap.items():
+            solver = factory.CreateSolverInterface(settings)
             solvers_map[solver_name] = solver
 
         return solvers_map
