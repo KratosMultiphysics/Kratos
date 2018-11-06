@@ -8,17 +8,17 @@ except ModuleNotFoundError:
         exit()
 
 # Importing the base class
-from co_simulation_base_solver import CoSimulationBaseSolver
+from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
 import co_simulation_tools as tools
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
-    def __init__(self, cosim_solver_settings, level):
-        super(KratosBaseFieldSolver, self).__init__(cosim_solver_settings, level)
+    def __init__(self, solver_name, cosim_solver_settings):
+        super(KratosBaseFieldSolver, self).__init__(solver_name, cosim_solver_settings)
         self.model = KratosMultiphysics.Model()
 
-        input_file_name = self.cosim_solver_settings["input_file"]
+        input_file_name = self.cosim_solver_settings["settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):
             input_file_name += ".json"
 
@@ -29,6 +29,7 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
 
     def Initialize(self):
         self._GetAnalysisStage().Initialize()
+        self.InitializeIO()
 
     def Finalize(self):
         self._GetAnalysisStage().Finalize()
@@ -80,16 +81,7 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         ## TODO print additional stuff with higher echo-level
 
     def Check(self):
-        is_distributed = co_simulation_tools.COSIM_SPACE.IsDistributed()
-        solver_parallel_type = self._GetParallelType()
-        if is_distributed and not solver_parallel_type == "MPI":
-            warning_msg  = 'WARNING: Global "parallel_type" (MPI) is different '
-            warning_msg += 'from local one (' + solver_parallel_type + ')!'
-            solverprint(self.lvl, self._Name(), ": " + red(warning_msg))
-        elif not is_distributed and not solver_parallel_type == "OpenMP":
-            warning_msg  = 'WARNING: Global "parallel_type" (OpenMP) is different '
-            warning_msg += 'from local one (' + solver_parallel_type + ')!'
-            solverprint(self.lvl, self._Name(), ": " + red(warning_msg))
+        pass
 
     def _GetIOName(self):
         return "kratos"
