@@ -100,6 +100,8 @@ namespace Kratos {
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
         typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3ul> > > ComponentOf3ComponentsVariableType;
 
+        typedef ModelPart::NodeType NodeType;
+
         /// Pointer definition of ExplicitSolverStrategy
         KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
 
@@ -214,6 +216,9 @@ namespace Kratos {
         virtual void GetClustersForce();
         virtual void GetRigidBodyElementsForce();
         virtual double Solve();
+
+        virtual double SolveSolutionStep() {KRATOS_ERROR << "'SolveSolutionStep()' not yet implemented for 'ExplicitSolverStrategy'"<< std::endl;}
+
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
         virtual void ForceOperations(ModelPart& r_model_part);
@@ -281,6 +286,87 @@ namespace Kratos {
         DenseVector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
+
+
+        void SaveOldDataParticles()
+        {
+            for (SizeType i = 0; i < this->mListOfSphericParticles.size(); ++i) {
+
+                SphericParticle* p_particle_i = this->mListOfSphericParticles[i];
+                const NodeType& r_node_i = p_particle_i->GetGeometry()[0];
+
+                p_particle_i->mVelOld         =   r_node_i.FastGetSolutionStepValue(VELOCITY);
+                p_particle_i->mDispOld        =   r_node_i.FastGetSolutionStepValue(DISPLACEMENT);
+                p_particle_i->mDeltaDispOld   =   r_node_i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+                p_particle_i->mCoordOld       =   r_node_i.Coordinates();
+                p_particle_i->mCoordInitOld   =   r_node_i.GetInitialPosition();
+                p_particle_i->mForceOld       =   r_node_i.FastGetSolutionStepValue(TOTAL_FORCES);
+
+                p_particle_i->mPARTICLE_MOMENT             = r_node_i.FastGetSolutionStepValue(PARTICLE_MOMENT)            ;
+                p_particle_i->mCONTACT_FORCES              = r_node_i.FastGetSolutionStepValue(CONTACT_FORCES)             ;
+                p_particle_i->mELASTIC_FORCES              = r_node_i.FastGetSolutionStepValue(ELASTIC_FORCES)             ;
+                p_particle_i->mTANGENTIAL_ELASTIC_FORCES   = r_node_i.FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES)  ;
+                p_particle_i->mDEM_PRESSURE                = r_node_i.FastGetSolutionStepValue(DEM_PRESSURE)               ;
+                p_particle_i->mSHEAR_STRESS                = r_node_i.FastGetSolutionStepValue(SHEAR_STRESS)               ;
+                p_particle_i->mANGULAR_VELOCITY            = r_node_i.FastGetSolutionStepValue(ANGULAR_VELOCITY)           ;
+                p_particle_i->mROTATION                    = r_node_i.FastGetSolutionStepValue(ROTATION)                   ;
+                p_particle_i->mEXTERNAL_APPLIED_FORCE      = r_node_i.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)     ;
+                p_particle_i->mEXTERNAL_APPLIED_MOMENT     = r_node_i.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)    ;
+                p_particle_i->mDELTA_ROTATION              = r_node_i.FastGetSolutionStepValue(DELTA_ROTATION)             ;
+                p_particle_i->mIMPACT_WEAR                 = r_node_i.FastGetSolutionStepValue(IMPACT_WEAR)                ;
+                p_particle_i->mNON_DIMENSIONAL_VOLUME_WEAR = r_node_i.FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR);
+                p_particle_i->mFORCE_REACTION              = r_node_i.FastGetSolutionStepValue(FORCE_REACTION)             ;
+                p_particle_i->mMOMENT_REACTION             = r_node_i.FastGetSolutionStepValue(MOMENT_REACTION)            ;
+                p_particle_i->mDEM_STRESS_TENSOR           = r_node_i.FastGetSolutionStepValue(DEM_STRESS_TENSOR)          ;
+                p_particle_i->mMOMENTUM                    = r_node_i.FastGetSolutionStepValue(MOMENTUM)                   ;
+                p_particle_i->mANGULAR_MOMENTUM            = r_node_i.FastGetSolutionStepValue(ANGULAR_MOMENTUM)           ;
+                p_particle_i->mPARTICLE_MOMENT_OF_INERTIA  = r_node_i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) ;
+                p_particle_i->mORIENTATION                 = r_node_i.FastGetSolutionStepValue(ORIENTATION)                ;
+                p_particle_i->mRIGID_ELEMENT_FORCE         = r_node_i.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE)        ;
+            }
+        }
+
+        void SetOldDataParticles()
+        {
+            for (SizeType i = 0; i < this->mListOfSphericParticles.size(); ++i) {
+
+                SphericParticle* p_particle_i = this->mListOfSphericParticles[i];
+                NodeType& r_node_i = p_particle_i->GetGeometry()[0];
+
+                r_node_i.FastGetSolutionStepValue(VELOCITY)               =     p_particle_i->mVelOld;
+                r_node_i.FastGetSolutionStepValue(DISPLACEMENT)           =     p_particle_i->mDispOld;
+                r_node_i.FastGetSolutionStepValue(DELTA_DISPLACEMENT)     =     p_particle_i->mDeltaDispOld;
+                r_node_i.Coordinates()                                    =     p_particle_i->mCoordOld;
+                r_node_i.GetInitialPosition()                             =     p_particle_i->mCoordInitOld;
+                r_node_i.FastGetSolutionStepValue(TOTAL_FORCES)           =     p_particle_i->mForceOld;
+
+
+                r_node_i.FastGetSolutionStepValue(PARTICLE_MOMENT)              = p_particle_i->mPARTICLE_MOMENT            ;
+                r_node_i.FastGetSolutionStepValue(CONTACT_FORCES)               = p_particle_i->mCONTACT_FORCES             ;
+                r_node_i.FastGetSolutionStepValue(ELASTIC_FORCES)               = p_particle_i->mELASTIC_FORCES             ;
+                r_node_i.FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES)    = p_particle_i->mTANGENTIAL_ELASTIC_FORCES  ;
+                r_node_i.FastGetSolutionStepValue(DEM_PRESSURE)                 = p_particle_i->mDEM_PRESSURE               ;
+                r_node_i.FastGetSolutionStepValue(SHEAR_STRESS)                 = p_particle_i->mSHEAR_STRESS               ;
+                r_node_i.FastGetSolutionStepValue(ANGULAR_VELOCITY)             = p_particle_i->mANGULAR_VELOCITY           ;
+                r_node_i.FastGetSolutionStepValue(ROTATION)                     = p_particle_i->mROTATION                   ;
+                r_node_i.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)       = p_particle_i->mEXTERNAL_APPLIED_FORCE     ;
+                r_node_i.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)      = p_particle_i->mEXTERNAL_APPLIED_MOMENT    ;
+                r_node_i.FastGetSolutionStepValue(DELTA_ROTATION)               = p_particle_i->mDELTA_ROTATION             ;
+                r_node_i.FastGetSolutionStepValue(IMPACT_WEAR)                  = p_particle_i->mIMPACT_WEAR                ;
+                r_node_i.FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR)  = p_particle_i->mNON_DIMENSIONAL_VOLUME_WEAR;
+                r_node_i.FastGetSolutionStepValue(FORCE_REACTION)               = p_particle_i->mFORCE_REACTION             ;
+                r_node_i.FastGetSolutionStepValue(MOMENT_REACTION)              = p_particle_i->mMOMENT_REACTION            ;
+                r_node_i.FastGetSolutionStepValue(DEM_STRESS_TENSOR)            = p_particle_i->mDEM_STRESS_TENSOR          ;
+                r_node_i.FastGetSolutionStepValue(MOMENTUM)                     = p_particle_i->mMOMENTUM                   ;
+                r_node_i.FastGetSolutionStepValue(ANGULAR_MOMENTUM)             = p_particle_i->mANGULAR_MOMENTUM           ;
+                r_node_i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA)   = p_particle_i->mPARTICLE_MOMENT_OF_INERTIA ;
+                r_node_i.FastGetSolutionStepValue(ORIENTATION)                  = p_particle_i->mORIENTATION                ;
+                r_node_i.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE)          = p_particle_i->mRIGID_ELEMENT_FORCE        ;
+
+            }
+        }
+
+
 
     protected:
 

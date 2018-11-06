@@ -554,3 +554,9 @@ class ExplicitStrategy(object):
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
+
+
+    def SaveOldDataParticles(self):
+        self.cplusplus_strategy.SaveOldDataParticles()
+    def SetOldDataParticles(self):
+        self.cplusplus_strategy.SetOldDataParticles()

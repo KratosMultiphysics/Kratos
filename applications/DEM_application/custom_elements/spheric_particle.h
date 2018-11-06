@@ -55,6 +55,36 @@ virtual ~SphericParticle();
 
 SphericParticle& operator=(const SphericParticle& rOther);
 
+array_1d<double, 3 > mVelOld                       = ZeroVector(3);
+array_1d<double, 3 > mDispOld                      = ZeroVector(3);
+array_1d<double, 3 > mDeltaDispOld                 = ZeroVector(3);
+array_1d<double, 3 > mCoordOld                     = ZeroVector(3);
+array_1d<double, 3 > mCoordInitOld                 = ZeroVector(3);
+array_1d<double, 3 > mForceOld                     = ZeroVector(3);
+array_1d<double, 3 > mPARTICLE_MOMENT              = ZeroVector(3);
+array_1d<double, 3 > mCONTACT_FORCES               = ZeroVector(3);
+array_1d<double, 3 > mELASTIC_FORCES               = ZeroVector(3);
+array_1d<double, 3 > mTANGENTIAL_ELASTIC_FORCES    = ZeroVector(3);
+double mDEM_PRESSURE                               = 0.0;
+double mSHEAR_STRESS                               = 0.0;
+array_1d<double, 3 > mANGULAR_VELOCITY             = ZeroVector(3);
+array_1d<double, 3 > mROTATION                     = ZeroVector(3);
+array_1d<double, 3 > mEXTERNAL_APPLIED_FORCE       = ZeroVector(3);
+array_1d<double, 3 > mEXTERNAL_APPLIED_MOMENT      = ZeroVector(3);
+array_1d<double, 3 > mDELTA_ROTATION               = ZeroVector(3);
+double mIMPACT_WEAR                                = 0.0;
+double mNON_DIMENSIONAL_VOLUME_WEAR                = 0.0;
+array_1d<double, 3 > mFORCE_REACTION               = ZeroVector(3);
+array_1d<double, 3 > mMOMENT_REACTION              = ZeroVector(3);
+Matrix mDEM_STRESS_TENSOR                          = ZeroMatrix(3);
+array_1d<double, 3 > mMOMENTUM                     = ZeroVector(3);
+array_1d<double, 3 > mANGULAR_MOMENTUM             = ZeroVector(3);
+double mPARTICLE_MOMENT_OF_INERTIA                 = 0.0;
+Kratos::Quaternion<double> mORIENTATION;
+array_1d<double, 3 > mRIGID_ELEMENT_FORCE          = ZeroVector(3);
+
+
+
 class ParticleDataBuffer
 {
 public:

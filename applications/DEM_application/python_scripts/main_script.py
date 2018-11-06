@@ -490,6 +490,13 @@ class Solution(object):
 
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
 
+    def SaveOldDataParticles(self):
+        self.solver.SaveOldDataParticles()
+
+    def SetOldDataParticles(self):
+        self.solver.SetOldDataParticles()
+
+
     def SolveSingleTemporalLoop(self):
 
         self.BeforeSolveOperations(self.time)

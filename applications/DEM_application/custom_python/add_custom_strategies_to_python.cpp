@@ -111,6 +111,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("InitialTimeStepCalculation", &ExplicitSolverStrategy::InitialTimeStepCalculation)
         .def("PrepareElementsForPrinting", &ExplicitSolverStrategy::PrepareElementsForPrinting)
         .def("ResetPrescribedMotionFlagsRespectingImposedDofs", &ExplicitSolverStrategy::ResetPrescribedMotionFlagsRespectingImposedDofs)
+        .def("SaveOldDataParticles", &ExplicitSolverStrategy::SaveOldDataParticles)
+        .def("SetOldDataParticles", &ExplicitSolverStrategy::SetOldDataParticles)
         ;
 
     class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
