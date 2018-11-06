@@ -57,93 +57,93 @@ namespace Kratos
     void  AddCustomProcessesToPython(pybind11::module& m)
     {
 
-      using namespace pybind11;
+      namespace py = pybind11;
       typedef Process                                         ProcessBaseType;
       typedef SettleModelStructureProcess     ModelStartEndMeshingProcessType;
 
 
 
-      class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, MesherProcess>
+      py::class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, MesherProcess>
 	(m, "RecoverVolumeLosses")
-	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
+	.def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<RemoveMeshNodesForFluidsProcess, RemoveMeshNodesForFluidsProcess::Pointer, MesherProcess>
+      py::class_<RemoveMeshNodesForFluidsProcess, RemoveMeshNodesForFluidsProcess::Pointer, MesherProcess>
       	(m, "RemoveMeshNodesForFluids")
-	.def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+	.def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-      class_<GenerateNewNodesBeforeMeshingProcess, GenerateNewNodesBeforeMeshingProcess::Pointer, MesherProcess>
+      py::class_<GenerateNewNodesBeforeMeshingProcess, GenerateNewNodesBeforeMeshingProcess::Pointer, MesherProcess>
       	(m, "GenerateNewNodesBeforeMeshing")
-	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
+	.def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, MesherProcess>
+      py::class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, MesherProcess>
 	(m, "SelectMeshElementsForFluids")
-	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
+	.def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>
+      py::class_<InletManagementProcess, InletManagementProcess::Pointer, MesherProcess>
       	(m, "InletManagement")
-	.def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
+	.def(py::init<ModelPart&,  MesherUtilities::MeshingParameters&, int>());
 
-      class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>
+      py::class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>
       	(m, "SetInlet")
-	.def(init<ModelPart&, int>());
+	.def(py::init<ModelPart&, int>());
 
-      class_<SplitElementsProcess, SplitElementsProcess::Pointer, ProcessBaseType>
+      py::class_<SplitElementsProcess, SplitElementsProcess::Pointer, ProcessBaseType>
 	(m,"SplitElementsProcess")
-	.def(init<ModelPart&, int>());
+	.def(py::init<ModelPart&, int>());
 
-      class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>
+      py::class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>
 	(m, "SetActiveFlagProcess")
-	.def(init<ModelPart&, bool, bool, int>());
+	.def(py::init<ModelPart&, bool, bool, int>());
 
-      class_<SetMaterialPropertiesToFluidNodesProcess, SetMaterialPropertiesToFluidNodesProcess::Pointer, MesherProcess>
+      py::class_<SetMaterialPropertiesToFluidNodesProcess, SetMaterialPropertiesToFluidNodesProcess::Pointer, MesherProcess>
 	(m, "SetMaterialPropertiesToFluidNodes")
-	.def(init<ModelPart&>());
-      
-      class_<SetMaterialPropertiesFromFluidToRigidNodesProcess, SetMaterialPropertiesFromFluidToRigidNodesProcess::Pointer, MesherProcess>
+	.def(py::init<ModelPart&>());
+
+      py::class_<SetMaterialPropertiesFromFluidToRigidNodesProcess, SetMaterialPropertiesFromFluidToRigidNodesProcess::Pointer, MesherProcess>
 	(m, "SetMaterialPropertiesFromFluidToRigidNodes")
-	.def(init<ModelPart&, ModelPart&>());
+	.def(py::init<ModelPart&, ModelPart&>());
 
-      class_<SetMaterialPropertiesToSolidNodesProcess, SetMaterialPropertiesToSolidNodesProcess::Pointer, MesherProcess>
+      py::class_<SetMaterialPropertiesToSolidNodesProcess, SetMaterialPropertiesToSolidNodesProcess::Pointer, MesherProcess>
 	(m, "SetMaterialPropertiesToSolidNodes")
-	.def(init<ModelPart&>());
-      
-     class_<SetActiveFlagMesherProcess, SetActiveFlagMesherProcess::Pointer, SetActiveFlagProcess>
+	.def(py::init<ModelPart&>());
+
+     py::class_<SetActiveFlagMesherProcess, SetActiveFlagMesherProcess::Pointer, SetActiveFlagProcess>
 	(m, "SetActiveFlagMesherProcess")
-	.def(init<ModelPart&, bool, bool, int>());
+	.def(py::init<ModelPart&, bool, bool, int>());
 
 
-      class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, ProcessBaseType>
+      py::class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, ProcessBaseType>
       	(m, "AdaptiveTimeIntervalProcess")
-	.def(init<ModelPart&, int>());
+	.def(py::init<ModelPart&, int>());
 
-     class_<ModelStartEndMeshingWithConditionsForFluidsProcess, ModelStartEndMeshingWithConditionsForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>
+     py::class_<ModelStartEndMeshingWithConditionsForFluidsProcess, ModelStartEndMeshingWithConditionsForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>
        (m, "ModelMeshingWithConditionsForFluids")
-       .def(init<ModelPart&, Flags, int>());
+       .def(py::init<ModelPart&, Flags, int>());
 
-     class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>
+     py::class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>
        (m, "ModelMeshingForFluids")
-       .def(init<ModelPart&, Flags, int>());
+       .def(py::init<ModelPart&, Flags, int>());
 
-     class_<BuildMeshBoundaryForFluidsProcess, BuildMeshBoundaryForFluidsProcess::Pointer, MesherProcess>
+     py::class_<BuildMeshBoundaryForFluidsProcess, BuildMeshBoundaryForFluidsProcess::Pointer, MesherProcess>
 	(m, "BuildMeshBoundaryForFluids")
-	.def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+	.def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-     class_<BuildModelPartBoundaryForFluidsProcess, BuildModelPartBoundaryForFluidsProcess::Pointer, MesherProcess>
+     py::class_<BuildModelPartBoundaryForFluidsProcess, BuildModelPartBoundaryForFluidsProcess::Pointer, MesherProcess>
 	(m, "BuildModelPartBoundaryForFluids")
-       .def(init<ModelPart&, std::string, int>())
+       .def(py::init<ModelPart&, std::string, int>())
        .def("SearchConditionMasters", &BuildModelPartBoundaryForFluidsProcess::SearchConditionMasters)
        ;
       //**********TRANSFER ELEMENTS TO MODEL PART*********//
 
-      class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, ProcessBaseType>
+      py::class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, ProcessBaseType>
       	(m, "TransferModelPartElementsProcess")
-	  .def(init<ModelPart&, ModelPart&>())
+	  .def(py::init<ModelPart&, ModelPart&>())
         .def("Execute", &TransferModelPartElementsProcess::Execute)
       	;
 
-        class_<GenerateNewConditionsMesherForFluidsProcess, GenerateNewConditionsMesherForFluidsProcess::Pointer, BuildModelPartBoundaryProcess>
+        py::class_<GenerateNewConditionsMesherForFluidsProcess, GenerateNewConditionsMesherForFluidsProcess::Pointer, BuildModelPartBoundaryProcess>
       (m,"GenerateNewConditionsForFluids")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
 
