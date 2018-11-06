@@ -31,8 +31,8 @@ namespace Kratos {
 		void GenerateElement(ModelPart& rModelPart)
 		{
 			// Variables addition
-			rModelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
-			rModelPart.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);			
+			rModelPart.AddNodalSolutionStepVariable(POSITIVE_POTENTIAL);
+			rModelPart.AddNodalSolutionStepVariable(NEGATIVE_POTENTIAL);			
 
 			// Set the element properties
 			Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
@@ -42,7 +42,7 @@ namespace Kratos {
 			rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
 			rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
 			std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
-			rModelPart.CreateNewElement("CompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+			rModelPart.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
 		}
 
 	    /** Checks the CompressiblePotentialFlowElement element.
@@ -62,7 +62,7 @@ namespace Kratos {
 			potential(2) = 3.0;
 
 			for(unsigned int i=0; i<3; i++)
-				pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = potential(i);
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) = potential(i);
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(3);
@@ -86,11 +86,11 @@ namespace Kratos {
 			Model current_model;
 			ModelPart& modelPart=current_model.CreateModelPart("Main");
 			GenerateElement(modelPart);
-			GenerateElement(modelPart);
+			// GenerateElement(modelPart);
 			Element::Pointer pElement = modelPart.pGetElement(1);
 
 			for(unsigned int i=0; i<3; i++)
-				pElement->GetGeometry()[i].AddDof(POSITIVE_FACE_PRESSURE);
+				pElement->GetGeometry()[i].AddDof(POSITIVE_POTENTIAL);
 
 			Element::DofsVectorType ElementalDofList;
 			pElement->GetDofList(ElementalDofList,modelPart.GetProcessInfo());
@@ -116,7 +116,7 @@ namespace Kratos {
 			Model current_model;
 			ModelPart& modelPart=current_model.CreateModelPart("Main");
 			GenerateElement(modelPart);
-			GenerateElement(modelPart);
+			// GenerateElement(modelPart);
 			Element::Pointer pElement = modelPart.pGetElement(1);
 			pElement->Set(MARKER,true);
 
@@ -127,8 +127,8 @@ namespace Kratos {
 			pElement->SetValue(ELEMENTAL_DISTANCES,distances);
 
 			for(unsigned int i=0; i<3; i++){
-				pElement->GetGeometry()[i].AddDof(POSITIVE_FACE_PRESSURE);
-				pElement->GetGeometry()[i].AddDof(NEGATIVE_FACE_PRESSURE);
+				pElement->GetGeometry()[i].AddDof(POSITIVE_POTENTIAL);
+				pElement->GetGeometry()[i].AddDof(NEGATIVE_POTENTIAL);
 			}
 
 			Element::DofsVectorType ElementalDofList;
