@@ -33,15 +33,30 @@ namespace Kratos
         Flags Options)
     {
         const bool overwrite_values = Options.Is(OVERWRITE_OLD_VALUES);
-        for (const_iterator i = rOther.mData.begin(); i != rOther.mData.end(); ++i) {
+
+        if (overwrite_values) {
+            for (const_iterator i = rOther.mData.begin(); i != rOther.mData.end(); ++i) {
             bool variable_already_exist = false;
-            for (iterator j = mData.begin(); j != mData.end(); ++j) {
-                if (i->first->Key() == j->first->Key()) {
-                    variable_already_exist = true;
-                    if (overwrite_values) j->second = i->first->Clone(i->second);
+                for (iterator j = mData.begin(); j != mData.end(); ++j) {
+                    if (i->first->Key() == j->first->Key()) {
+                        variable_already_exist = true;
+                        j->second = i->first->Clone(i->second);
+                    }
                 }
-            }
             if (!variable_already_exist) mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+            }
+        }
+
+        else {
+            for (const_iterator i = rOther.mData.begin(); i != rOther.mData.end(); ++i) {
+            bool variable_already_exist = false;
+                for (iterator j = mData.begin(); j != mData.end(); ++j) {
+                    if (i->first->Key() == j->first->Key()) {
+                        variable_already_exist = true;
+                    }
+                }
+            if (!variable_already_exist) mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+            }
         }
     }
 
