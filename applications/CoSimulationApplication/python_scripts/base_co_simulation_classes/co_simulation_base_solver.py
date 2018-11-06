@@ -1,7 +1,8 @@
 from __future__ import print_function, absolute_import, division
 
 # Other imports
-import co_simulation_io_factory as io_factory
+from CoSimulationApplication import *
+import custom_co_simulation_solver_interfaces.co_simulation_io_factory as io_factory
 import co_simulation_tools as tools
 
 ##
@@ -25,6 +26,9 @@ class CoSimulationBaseSolver(object):
         self.cosim_solver_settings = tools.ValidateAndAssignInputParameters(default_settings, cosim_solver_settings, False)
         self.SetEchoLevel( self.cosim_solver_settings["echo_level"] )
         self.data_list = self._GetDataList()
+
+        # This is the map of all the geometries that a solver can have
+        self.geometry_map = {}
 
         self.io_is_initialized = False
 
