@@ -728,7 +728,7 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished setting up the dofs" << std::endl;
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
         if (mLockArray.size() != 0)
         {
             for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
@@ -980,7 +980,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
    std::vector<omp_lock_t> mLockArray;
 #endif
 
@@ -992,6 +992,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
+   /**
+    * @brief This function does the assembling of the LHS and RHS
+    * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are not considered on the assembling
+    */
     void Assemble(
         TSystemMatrixType& A,
         TSystemVectorType& b,
@@ -1020,7 +1024,7 @@ protected:
                 #pragma omp atomic
                 r_a += v_a;
 #endif
-                AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
+                AssembleRowContributionFreeDofs(A, LHS_Contribution, i_global, i_local, EquationId);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&lock_array[i_global]);
@@ -1081,7 +1085,7 @@ protected:
          {
             if (ids[i] < BaseType::mEquationSystemSize)
             {
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                                     omp_set_lock(&mLockArray[ids[i]]);
 #endif
                auto& row_indices = indices[ids[i]];
@@ -1090,7 +1094,7 @@ protected:
                   if (*it < BaseType::mEquationSystemSize)
                      row_indices.insert(*it);
                }
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                omp_unset_lock(&mLockArray[ids[i]]);
 #endif
             }
@@ -1107,7 +1111,7 @@ protected:
          {
             if (ids[i] < BaseType::mEquationSystemSize)
             {
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                omp_set_lock(&mLockArray[ids[i]]);
 #endif
                auto& row_indices = indices[ids[i]];
@@ -1116,7 +1120,7 @@ protected:
                   if (*it < BaseType::mEquationSystemSize)
                      row_indices.insert(*it);
                }
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                omp_unset_lock(&mLockArray[ids[i]]);
 #endif
             }
@@ -1286,7 +1290,11 @@ protected:
         }
     }
 
-    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, const Element::EquationIdVectorType& EquationId)
+    /**
+    * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
+    * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
+    */
+    inline void AssembleRowContributionFreeDofs(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, const Element::EquationIdVectorType& EquationId)
     {
         double* values_vector = A.value_data().begin();
         std::size_t* index1_vector = A.index1_data().begin();
@@ -1295,6 +1303,8 @@ protected:
         const std::size_t left_limit = index1_vector[i];
 
         // Find the first entry
+        // We iterate over the equation ids until we find the first equation id to be considered
+        // We count in which component we find an ID
         std::size_t last_pos, last_found;
         std::size_t counter = 0;
         for(std::size_t j=0; j < EquationId.size(); ++j) {
@@ -1307,6 +1317,7 @@ protected:
             }
         }
 
+        // If the counter is equal to the size of the EquationID vector that means that only one dof will be considered, if the number is greater means that all the dofs are fixed. If the number is below means that at we have several dofs free to be considered
         if (counter <= EquationId.size()) {
 #ifndef USE_LOCKS_IN_ASSEMBLY
             double& r_a = values_vector[last_pos];
