@@ -1,0 +1,29 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+PARTICLE_DENSITY 2500.0
+YOUNG_MODULUS 1.0e5
+POISSON_RATIO 0.20
+PARTICLE_FRICTION 45.0
+LN_OF_RESTITUTION_COEFF -1.6094379124341003
+PARTICLE_MATERIAL 1
+ROLLING_FRICTION 0.01
+ROLLING_FRICTION_WITH_WALLS 0.01
+DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEMDiscontinuumConstitutiveLaw
+End Properties
+
+Begin Nodes // GUI group identifier: DEM celemid SwimmingDEMElement
+843 0.00004 0.00000 0.59997
+End Nodes
+
+Begin Elements SphericSwimmingParticle3D   //  GUI group identifier: DEM
+7788 0 843
+End Elements
+
+Begin NodalData RADIUS  // GUI group identifier: DEM Elementid SwimmingDEMElement
+843 0 0.020000000000000004
+End NodalData
+
