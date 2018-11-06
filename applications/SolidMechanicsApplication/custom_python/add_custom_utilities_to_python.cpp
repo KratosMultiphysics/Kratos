@@ -45,10 +45,10 @@ void TransferEigenvector2(EigenvectorToSolutionStepVariableTransferUtility& rThi
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;
 
-  class_<EnergyUtilities>(m,"EnergyUtilities")
-      .def(init<>())
+  py::class_<EnergyUtilities>(m,"EnergyUtilities")
+      .def(py::init<>())
       .def("GetTotalKinematicEnergy",&EnergyUtilities::GetTotalKinematicEnergy)
       .def("CalculateNodalMass",&EnergyUtilities::CalculateNodalMass)
       .def("GetTotalStrainEnergy",&EnergyUtilities::GetTotalStrainEnergy)
@@ -56,7 +56,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
       .def("GetExternallyAppliedEnergy",&EnergyUtilities::GetExternallyAppliedEnergy)
       ;
 
-  class_<EigenvectorToSolutionStepVariableTransferUtility>(m,"EigenvectorToSolutionStepVariableTransferUtility")
+  py::class_<EigenvectorToSolutionStepVariableTransferUtility>(m,"EigenvectorToSolutionStepVariableTransferUtility")
       .def("Transfer",TransferEigenvector1)
       .def("Transfer",TransferEigenvector2)
       ;
