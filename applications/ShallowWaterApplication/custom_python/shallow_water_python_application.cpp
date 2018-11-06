@@ -10,34 +10,34 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <pybind11/pybind11.h>
 
 
-// Project includes 
+// Project includes
 #include "includes/define_python.h"
 #include "shallow_water_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;
 
-  
+
   PYBIND11_MODULE(KratosShallowWaterApplication, m)
   {
-    class_<KratosShallowWaterApplication, 
-        KratosShallowWaterApplication::Pointer, 
+    py::class_<KratosShallowWaterApplication,
+        KratosShallowWaterApplication::Pointer,
         KratosApplication>(m, "KratosShallowWaterApplication")
-        .def(init<>())
+        .def(py::init<>())
         ;
 
     AddCustomUtilitiesToPython(m);
@@ -61,9 +61,9 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TIME_UNIT_CONVERTER)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,WATER_HEIGHT_UNIT_CONVERTER)
   }
-  
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

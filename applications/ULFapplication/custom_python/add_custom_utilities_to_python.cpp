@@ -91,10 +91,10 @@ void GenerateModelPart(NistUtils& NistUtils,ModelPart& origin_model_part,ModelPa
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<UlfUtils>(m,"UlfUtils")
-    .def(init<>())
+    py::class_<UlfUtils>(m,"UlfUtils")
+    .def(py::init<>())
     .def ("CalculateFreeSurfaceArea", &UlfUtils::CalculateFreeSurfaceArea)
     .def("ApplyBoundaryConditions",&UlfUtils::ApplyBoundaryConditions)
     .def("ApplyMinimalPressureConditions",&UlfUtils::ApplyMinimalPressureConditions)
@@ -126,19 +126,19 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     ;
 
-    class_<NistUtils>(m,"NistUtils")
-        .def(init<>())
+    py::class_<NistUtils>(m,"NistUtils")
+        .def(py::init<>())
         .def("GenerateModelPart",GenerateModelPart)
         .def("ApplyInitialTemperature",&NistUtils::ApplyInitialTemperature)
         .def("FindFluidLevel",&NistUtils::FindFluidLevel)
         ;
 
-   class_<AssignPointNeumannConditions > (m,"AssignPointNeumannConditions")
-    .def(init<>())
+   py::class_<AssignPointNeumannConditions > (m,"AssignPointNeumannConditions")
+    .def(py::init<>())
     .def("AssignPointNeumannConditionsDisp", &AssignPointNeumannConditions::AssignPointNeumannConditionsDisp)
     .def("AssignPointNeumannConditionsDispAxisym", &AssignPointNeumannConditions::AssignPointNeumannConditionsDispAxisym)
     //.def("AssignPointNeumannConditionsMonolithic2D", &AssignPointNeumannConditions::AssignPointNeumannConditionsMonolithic2D)
-    ; 
+    ;
 
 
 }
