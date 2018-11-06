@@ -26,17 +26,6 @@ class IgaAnalysis(AnalysisStage):
 
     It can be imported and used as "black-box"
     """
-    def __init__(self, model, project_parameters):
-        # Making sure that older cases still work by properly initalizing the parameters
-        solver_settings = project_parameters["solver_settings"]
-
-        # Import parallel modules if needed
-        # has to be done before the base-class constuctor is called (in which the solver is constructed)
-        if (project_parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-
-        super(IgaAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):
