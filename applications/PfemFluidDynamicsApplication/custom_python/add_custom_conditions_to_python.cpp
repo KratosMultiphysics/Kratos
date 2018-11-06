@@ -35,7 +35,7 @@ namespace Kratos
 
     namespace Python
     {
-	using namespace pybind11;
+	namespace py = pybind11;
 
 	typedef Condition                            ConditionBaseType;
 	typedef Geometry<Node<3> >                        GeometryType;
@@ -44,7 +44,7 @@ namespace Kratos
 
 	void  AddCustomConditionsToPython(pybind11::module& m)
 	{
-	    // class_< FaceForce3D, FaceForce3D::Pointer, bases< ConditionBaseType > >
+	    // py::class_< FaceForce3D, FaceForce3D::Pointer, bases< ConditionBaseType > >
 	    // ("FaceForce3D",
 	    //  init<int, GeometryType::Pointer, Properties::Pointer>() )
 	    // ;
