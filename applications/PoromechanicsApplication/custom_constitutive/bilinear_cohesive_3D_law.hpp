@@ -81,23 +81,19 @@ protected:
 
     struct ConstitutiveLawVariables
     {
-        double EquivalentStrain;
-        bool LoadingFlag;
-        double LoadingFunction;
-
         double CriticalDisplacement;
         double DamageThreshold;
         double YieldStress;
         double YoungModulus;
         double FrictionCoefficient;
-
-        double FractureEnergy;
-        double ShearFractureEnergy;
-        double ModeMixingRatio;
-        double CurveFittingParameter;
+        double PenaltyStiffness;
 
         Matrix CompressionMatrix;
         Matrix WeightMatrix;
+
+        double EquivalentStrain;
+        bool LoadingFlag;
+        double LoadingFunction;
     };
 
     // Member Variables
