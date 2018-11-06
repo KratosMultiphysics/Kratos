@@ -1,0 +1,93 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "linear_elastic_3D_hexa_test",
+        "parallel_type" : "OpenMP",
+        "start_time"    : 0.0,
+        "end_time"      : 1.0,
+        "echo_level"    : 0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Static",
+        "model_part_name"                    : "MPM_Material",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_Body"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "geometry_element"                   : "Quadrilateral",
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"],
+        "grid_model_import_settings"         : {
+            "input_type"     : "mdpa",
+            "input_filename" : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_Grid"
+        },
+        "particle_per_element"               : 4,
+        "pressure_dofs"                      : false,
+        "linear_solver_settings"             : {
+            "solver_type" : "SuperLUSolver",
+            "scaling"     : false
+        }
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,false],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,false],
+                "value"           : [0.0,-0.001,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes": [{
+            "python_module"   : "mpm_from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ParticleMPMFromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
+                "input_file_name"  : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_results.json",
+                "model_part_name"  : "MPM_Material",
+                "time_frequency"   : 1.0
+            }
+        }]
+    },
+    "print_output_process" : [{
+        "python_module"   : "mpm_json_output_process",
+        "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+        "help"                  : "",
+        "process_name"          : "ParticleMPMJsonOutputProcess",
+        "Parameters"            : {
+            "gauss_points_output_variables" : ["MP_CAUCHY_STRESS_VECTOR","MP_ALMANSI_STRAIN_VECTOR"],
+            "output_file_name"              : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_results.json",
+            "model_part_name"               : "MPM_Material",
+            "time_frequency"                : 1.0
+        }
+    }]
+}
