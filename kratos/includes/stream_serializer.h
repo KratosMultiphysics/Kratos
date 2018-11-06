@@ -25,7 +25,8 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 
-//This is a Helper object to provide a simpler interface for serialization to a string instead of to a file
+//This class provides a simpler interface for serialization to a string instead of to a file
+// Note that you may not override any load or save method of the Serializer. They are not virtual.
 namespace Kratos
 {
     class StreamSerializer : public Serializer 
