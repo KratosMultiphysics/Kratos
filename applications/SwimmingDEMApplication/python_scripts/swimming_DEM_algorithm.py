@@ -237,7 +237,9 @@ class Algorithm(object):
 
         # Making all time steps be an exact multiple of the smallest time step
         self.Dt_DEM = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
-        self.pp.Dt = int(self.pp.Dt / self.Dt_DEM) * self.Dt_DEM
+        self.Dt = self.fluid_solution._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
+        self.Dt = int(self.Dt / self.Dt_DEM) * self.Dt_DEM
+        self.fluid_solution._GetSolver().settings["time_stepping"]["time_step"].SetDouble(self.Dt)
         self.output_time = self.pp.CFD_DEM["OutputTimeStep"].GetDouble()
         self.output_time = int(self.output_time / self.Dt_DEM) * self.Dt_DEM
 
@@ -320,7 +322,7 @@ class Algorithm(object):
         vars_man.ConstructListsOfVariables(self.pp)
 
         self.FluidInitialize()
-        self.DispersePhaseInitialize()
+        self.DispersePhaseInitFinalizeialize()
 
         self.SetAllModelParts()
 
@@ -329,11 +331,11 @@ class Algorithm(object):
         self.swimming_DEM_gid_io = \
         swimming_DEM_gid_output.SwimmingDEMGiDOutput(
             self.pp.CFD_DEM["problem_name"].GetString(),
-            self.pp.VolumeOutput,
-            self.pp.GiDPostMode,
-            self.pp.GiDMultiFileFlag,
-            self.pp.GiDWriteMeshFlag,
-            self.pp.GiDWriteConditionsFlag
+            self.pp.fluid_parameters["output_configuration"]["body_output"].GetBool(),
+            self.pp.fluid_parameters["output_configuration"]["gidpost_flags"]["GiDPostMode"].GetString(),
+            self.pp.fluid_parameters["output_configuration"]["gidpost_flags"]["MultiFileFlag"].GetString(),
+            self.pp.fluid_parameters["output_configuration"]["gidpost_flags"]["WriteDeformedMeshFlag"].GetString(),
+            self.pp.fluid_parameters["output_configuration"]["gidpost_flags"]["WriteConditionsFlag"].GetString()
             )
 
         self.swimming_DEM_gid_io.initialize_swimming_DEM_results(
@@ -457,8 +459,8 @@ class Algorithm(object):
 
         ##################################################
         self.step       = 0
-        self.time       = self.pp.Start_time
-        self.Dt         = self.pp.Dt
+        self.time       = self.pp.fluid_parameters["problem_data"]["start_time"].GetDouble()
+        self.Dt         = self.fluid_solution._GetSolver()._ComputeDeltaTime()
         self.final_time = self.pp.CFD_DEM["FinalTime"].GetDouble()
         self.DEM_step   = 0
         self.time_dem   = 0.0
@@ -542,24 +544,16 @@ class Algorithm(object):
     def FluidInitialize(self):
         self.fluid_model_part = self.fluid_solution.fluid_model_part
         self.fluid_solution.vars_man = vars_man
+        self.fluid_solution.Initialize()
 
-        self.fluid_solution.SetFluidSolverModule()
-        self.fluid_solution.AddFluidVariables()
         self.AddExtraProcessInfoVariablesToFluid()
-        self.ReadFluidModelParts()
-        self.fluid_solution.SetFluidBufferSizeAndAddDofs()
+
         SDP.AddExtraDofs(
             self.pp,
             self.fluid_model_part,
             self.spheres_model_part,
             self.cluster_model_part,
             self.DEM_inlet_model_part)
-        self.fluid_solution.SetFluidSolver()
-        self.fluid_solution.fluid_solver.Initialize()
-        self.fluid_solution.ActivateTurbulenceModel()
-
-    def ReadFluidModelParts(self):
-        self.fluid_solution.ReadFluidModelPart()
 
     def DispersePhaseInitialize(self):
         vars_man.AddNodalVariables(self.spheres_model_part, self.pp.dem_vars)
@@ -613,9 +607,9 @@ class Algorithm(object):
 
         while self.TheSimulationMustGoOn():
 
-            self.time = self.time + self.Dt
+            #self.time = self.time + self.Dt
+            self.time = self.fluid_solution._GetSolver().AdvanceInTime(self.time)
             self.step += 1
-            self.CloneTimeStep()
             self.TellTime(self.time)
 
             if coupling_scheme_type == "UpdatedDEM":
@@ -792,7 +786,7 @@ class Algorithm(object):
         Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
 
         if solve_system:
-            self.fluid_solution.fluid_solver.Solve()
+            self.fluid_solution.RunSingleTimeStep()
         else:
             Say("Skipping solving system...\n")
 
@@ -998,6 +992,8 @@ class Algorithm(object):
 
         self.FinalizeDragOutput()
 
+        self.fluid_solution.Finalize()
+
         self.TellFinalSummary(self.step, self.time, self.DEM_step)
 
     def FinalizeDragOutput(self):
@@ -1005,7 +1001,7 @@ class Algorithm(object):
             i.close()
 
     def SetCutsOutput(self):
-        if not self.pp.VolumeOutput:
+        if not self.pp.fluid_parameters["output_configuration"]["body_output"].GetBool():
             cut_list = define_output.DefineCutPlanes()
             self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list)
 
