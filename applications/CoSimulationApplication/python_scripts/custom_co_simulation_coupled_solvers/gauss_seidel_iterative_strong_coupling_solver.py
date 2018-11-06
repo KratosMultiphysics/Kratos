@@ -11,14 +11,7 @@ def Create(custom_settings):
 
 class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
-        default_settings = {}
         super(GaussSeidelIterativeStrongCouplingSolver, self).__init__(custom_settings)
-        default_settings["convergence_accelerators"] = list    #MANDATORY
-        default_settings["convergence_criteria_settings"] = dict    #MANDATORY
-        self.settings = tools.ValidateAndAssignInputParameters(default_settings, self.settings, False)
-        self.number_of_participants = len( self.settings['participants'] )
-        self.max_num_coupling_iterations = self.settings['max_coupling_iterations']
-
         if not self.number_of_participants == 2:
             raise Exception(tools.bcolors.FAIL + "Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
@@ -30,7 +23,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
             self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
 
         ### Making the convergence accelerator for this strategy
-        self.convergence_accelerators = self._GetConvergenceAccelerators(self.settings["convergence_accelerators"])
+        #self.convergence_accelerators = self._GetConvergenceAccelerators(self.settings["convergence_accelerators"])
 
         ### Creating the convergence criterion
         #self.convergence_criteria = CoSimApp.CoSimulationBaseConvergenceCriterion(self.settings['residual_relative_tolerance'].GetDouble(), self.settings['residual_relative_tolerance'].GetDouble())
@@ -57,14 +50,14 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         #self.convergence_criteria.InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        for iteration in range(self.max_num_coupling_iterations):
+        for iteration in range(self.num_coupling_iterations):
             if self.echo_level > 0:
                 print("\t"+ tools.bcolors.HEADER + str(self._Name()) + " : "+
                                     tools.bcolors.MEGENTA + "Coupling iteration: ", tools.bcolors.BOLD + str(iteration+1) +
-                                    " / " + tools.bcolors.BLUE + str(self.max_num_coupling_iterations) + tools.bcolors.ENDC)
+                                    " / " + tools.bcolors.BLUE + str(self.num_coupling_iterations) + tools.bcolors.ENDC)
 
-            for accelerator in self.convergence_accelerators:
-                accelerator.InitializeNonLinearIteration()
+            #for accelerator in self.convergence_accelerators:
+                #accelerator.InitializeNonLinearIteration()
             #self.convergence_criteria.InitializeNonLinearIteration()
 
             for solver_name, solver in self.participating_solvers.items():
@@ -72,8 +65,8 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver_name)
 
-            for accelerator in self.convergence_accelerators:
-                accelerator.FinalizeNonLinearIteration()
+            #for accelerator in self.convergence_accelerators:
+                #accelerator.FinalizeNonLinearIteration()
             #self.convergence_criteria.FinalizeNonLinearIteration()
 
             """if self.convergence_criteria.IsConverged():
@@ -83,11 +76,11 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
             else:
                 self.convergence_accelerator.ComputeUpdate()"""
 
-            if iteration+1 >= self.max_num_coupling_iterations and self.echo_level > 0:
+            if iteration+1 >= self.num_coupling_iterations and self.echo_level > 0:
                 print("\t"+tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + tools.bcolors.ENDC)
 
     def _Name(self):
-        return self.settings['name']
+        return self.settings['name'].GetString()
 
 
     def PrintInfo(self):
