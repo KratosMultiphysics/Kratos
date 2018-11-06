@@ -564,7 +564,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_elem_dist[3], -0.103167, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceDoubleEmbeddedVariable, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessDoubleEmbeddedVariable, KratosCoreFastSuite)
     {
         Model current_model;
 
@@ -618,7 +618,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(TEMPERATURE), 0.0, 1e-6);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceArrayEmbeddedVariable, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessArrayEmbeddedVariable, KratosCoreFastSuite)
     {
         Model current_model;
 
