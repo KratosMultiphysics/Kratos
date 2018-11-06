@@ -1,5 +1,6 @@
 # co simulation imports
-from co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
+from CoSimulationApplication import *
+from base_co_simulation_classes.co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
 import co_simulation_tools as tools
 
 # Other imports
