@@ -845,7 +845,7 @@ public:
             if ((this)->IsDefined(ACTIVE))
                 active = (this)->Is(ACTIVE);
 
-            array_1d<double,3> v = ZeroVector();
+            array_1d<double,3> v(3,0.0);
             if(this->IsNot(MARKER) && active==true)
             {
                 ElementalData<NumNodes,Dim> data;
