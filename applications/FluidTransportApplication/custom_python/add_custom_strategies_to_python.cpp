@@ -37,7 +37,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -55,13 +55,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    class_< GeneralizedNewmarkGN11SchemeType, typename GeneralizedNewmarkGN11SchemeType::Pointer, BaseSchemeType >
+    py::class_< GeneralizedNewmarkGN11SchemeType, typename GeneralizedNewmarkGN11SchemeType::Pointer, BaseSchemeType >
     (m, "GeneralizedNewmarkGN11Scheme")
-    .def(init< double >());
+    .def(py::init< double >());
 
-    class_< ExplicitForwardEulerSchemeType, typename ExplicitForwardEulerSchemeType::Pointer, BaseSchemeType >
+    py::class_< ExplicitForwardEulerSchemeType, typename ExplicitForwardEulerSchemeType::Pointer, BaseSchemeType >
     (m, "ExplicitForwardEulerScheme")
-    .def(init< double >());
+    .def(py::init< double >());
 
 }
 

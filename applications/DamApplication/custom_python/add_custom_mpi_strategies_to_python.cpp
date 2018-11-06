@@ -1,5 +1,5 @@
-//   
-//   Project Name:        
+//
+//   Project Name:
 //   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: $
@@ -35,7 +35,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 {
@@ -43,19 +43,19 @@ void  AddCustomMPIStrategiesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
-    
+
     typedef TrilinosIncrementalUpdateStaticDampedScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosIncrementalUpdateStaticDampedSchemeType;
     typedef TrilinosDamUPScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosDamUPSchemeType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// Schemes
-    class_< TrilinosIncrementalUpdateStaticDampedSchemeType, typename TrilinosIncrementalUpdateStaticDampedSchemeType::Pointer, TrilinosBaseSchemeType>
+    py::class_< TrilinosIncrementalUpdateStaticDampedSchemeType, typename TrilinosIncrementalUpdateStaticDampedSchemeType::Pointer, TrilinosBaseSchemeType>
     (m,  "TrilinosIncrementalUpdateStaticDampedScheme")
-    .def(init< double >());
-	class_< TrilinosDamUPSchemeType, typename TrilinosDamUPSchemeType::Pointer, TrilinosBaseSchemeType >
+    .def(py::init< double >());
+	py::class_< TrilinosDamUPSchemeType, typename TrilinosDamUPSchemeType::Pointer, TrilinosBaseSchemeType >
     (m, "TrilinosDamUPScheme")
-    .def(init< double, double, double, double >());
+    .def(py::init< double, double, double, double >());
 }
 
 }  // namespace Python.
