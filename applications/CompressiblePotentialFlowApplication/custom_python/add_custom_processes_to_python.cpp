@@ -17,20 +17,15 @@
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/kutta_condition_process.h"
 #include "custom_processes/compute_lift_level_set_process.h"
 
+namespace Kratos {
+namespace Python {
 
-
-namespace Kratos
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
-
-namespace Python
-{
-  void  AddCustomProcessesToPython(pybind11::module& m)
-  {
 	using namespace pybind11;
 
         class_<KuttaConditionProcess, KuttaConditionProcess::Pointer, Process >

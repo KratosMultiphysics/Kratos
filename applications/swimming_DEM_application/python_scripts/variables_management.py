@@ -348,6 +348,7 @@ def ConstructListsOfVariablesForCoupling(pp):
 
     if pp.CFD_DEM["fluid_model_type"].GetInt() == 0 or pp.CFD_DEM["coupling_level_type"].GetInt() > 1 or pp.CFD_DEM["drag_force_type"].GetInt() == 4:
         pp.coupling_fluid_vars += [FLUID_FRACTION]
+        pp.coupling_fluid_vars += [FLUID_FRACTION_OLD]
 
         if pp.CFD_DEM["print_DISPERSE_FRACTION_option"].GetBool():
             pp.coupling_fluid_vars += [DISPERSE_FRACTION]

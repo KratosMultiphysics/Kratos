@@ -26,15 +26,15 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosConvectionDiffusionApplication,m)
 {
 
-    class_<KratosConvectionDiffusionApplication,
+    py::class_<KratosConvectionDiffusionApplication,
            KratosConvectionDiffusionApplication::Pointer,
            KratosApplication >(m,"KratosConvectionDiffusionApplication")
-           .def(init<>())
+           .def(py::init<>())
            ;
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
@@ -46,7 +46,7 @@ PYBIND11_MODULE(KratosConvectionDiffusionApplication,m)
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BFECC_ERROR)
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BFECC_ERROR_1)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONVECTION_COEFFICIENT)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SCALAR1)    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SCALAR1)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MEAN_SIZE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MELT_TEMPERATURE_1)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MELT_TEMPERATURE_2)

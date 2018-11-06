@@ -82,6 +82,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/swimming_dem_in_pfem_utils.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_utilities/mesh_rotation_utility.h"
+#include "custom_utilities/renumbering_nodes_utility.h"
 
 namespace Kratos{
 
@@ -121,56 +122,56 @@ bool ModelPartHasNodalVariableOrNot(VariableChecker& rChecker, ModelPart& rModel
     return rChecker.ModelPartHasNodalVariableOrNot(rModelPart, rThisVariable);
 }
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomUtilitiesToPython(pybind11::module& m){
 
-    class_<VariableChecker> (m, "VariableChecker").def(init<>())
+    py::class_<VariableChecker> (m, "VariableChecker").def(py::init<>())
         .def("ModelPartHasNodalVariableOrNot", ModelPartHasNodalVariableOrNot<double>)
         .def("ModelPartHasNodalVariableOrNot", ModelPartHasNodalVariableOrNot<array_1d<double, 3> >)
         ;
 
-    class_<RealFunction> (m, "RealFunction").def(init<const double, const double>())
+    py::class_<RealFunction> (m, "RealFunction").def(py::init<const double, const double>())
         .def("Evaluate", &RealFunction::Evaluate)
         .def("CalculateDerivative", &RealFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &RealFunction::CalculateSecondDerivative)
         ;
 
-    class_<LinearFunction, RealFunction> (m, "LinearFunction")
-        .def(init<const double, const double>())
+    py::class_<LinearFunction, RealFunction> (m, "LinearFunction")
+        .def(py::init<const double, const double>())
         .def("Evaluate", &LinearFunction::Evaluate)
         .def("CalculateDerivative", &LinearFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &LinearFunction::CalculateSecondDerivative)
         ;
 
-    class_<PowerFunction, RealFunction> (m, "PowerFunction")
-        .def(init<const double, const double, const double>())
+    py::class_<PowerFunction, RealFunction> (m, "PowerFunction")
+        .def(py::init<const double, const double, const double>())
         .def("Evaluate", &PowerFunction::Evaluate)
         .def("CalculateDerivative", &PowerFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &PowerFunction::CalculateSecondDerivative)
         ;
 
-    class_<AdditionFunction, RealFunction> (m, "AdditionFunction")
-        .def(init<const double, RealFunction&, RealFunction&>())
+    py::class_<AdditionFunction, RealFunction> (m, "AdditionFunction")
+        .def(py::init<const double, RealFunction&, RealFunction&>())
         .def("Evaluate", &AdditionFunction::Evaluate)
         .def("CalculateDerivative", &AdditionFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &AdditionFunction::CalculateSecondDerivative)
         ;
 
-    class_<CompositionFunction, RealFunction> (m, "CompositionFunction")
-        .def(init<const double, RealFunction&, RealFunction&>())
+    py::class_<CompositionFunction, RealFunction> (m, "CompositionFunction")
+        .def(py::init<const double, RealFunction&, RealFunction&>())
         .def("Evaluate", &CompositionFunction::Evaluate)
         .def("CalculateDerivative", &CompositionFunction::CalculateDerivative)
         .def("CalculateSecondDerivative", &CompositionFunction::CalculateSecondDerivative)
         ;
 
-    class_<RealField, RealField::Pointer> (m, "RealField").def(init<>())
+    py::class_<RealField, RealField::Pointer> (m, "RealField").def(py::init<>())
         ;
 
-    class_<VectorField<2>, VectorField<2>::Pointer> (m, "VectorField2D").def(init<>())
+    py::class_<VectorField<2>, VectorField<2>::Pointer> (m, "VectorField2D").def(py::init<>())
         ;
 
-    class_<VectorField<3>, VectorField<3>::Pointer> (m, "VectorField3D").def(init<>())
+    py::class_<VectorField<3>, VectorField<3>::Pointer> (m, "VectorField3D").def(py::init<>())
         ;
 
     //typedef void (VelocityField::*Evaluate)(const double, const DenseVector<double>&, DenseVector<double>&, const int);
@@ -200,8 +201,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
 
-    class_<VelocityField, VelocityField::Pointer, VectorField<3>> (m, "VelocityField")
-        .def(init<>())
+    py::class_<VelocityField, VelocityField::Pointer, VectorField<3>> (m, "VelocityField")
+        .def(py::init<>())
         .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
         .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateDivergence", CalculateDivergenceVector)
@@ -210,58 +211,58 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
         ;
 
-    class_<ConstantVelocityField, ConstantVelocityField::Pointer, VelocityField > (m, "ConstantVelocityField")
-        .def(init<const double, const double, const double>())
+    py::class_<ConstantVelocityField, ConstantVelocityField::Pointer, VelocityField > (m, "ConstantVelocityField")
+        .def(py::init<const double, const double, const double>())
         ;
 
-    class_<ShearFlow1DWithExponentialViscosityField, ShearFlow1DWithExponentialViscosityField::Pointer, VelocityField > (m, "ShearFlow1DWithExponentialViscosityField")
-        .def(init<const double, const double, const double>())
+    py::class_<ShearFlow1DWithExponentialViscosityField, ShearFlow1DWithExponentialViscosityField::Pointer, VelocityField > (m, "ShearFlow1DWithExponentialViscosityField")
+        .def(py::init<const double, const double, const double>())
         .def("SetRimZoneThickness", &ShearFlow1DWithExponentialViscosityField::SetRimZoneThickness)
         ;
 
-    class_<CellularFlowField, CellularFlowField::Pointer, VelocityField > (m, "CellularFlowField")
-        .def(init<const double, const double, const double, const double>())
+    py::class_<CellularFlowField, CellularFlowField::Pointer, VelocityField > (m, "CellularFlowField")
+        .def(py::init<const double, const double, const double, const double>())
         ;
 
-    class_<EthierFlowField, EthierFlowField::Pointer, VelocityField > (m, "EthierFlowField")
-        .def(init<const double, const double>())
+    py::class_<EthierFlowField, EthierFlowField::Pointer, VelocityField > (m, "EthierFlowField")
+        .def(py::init<const double, const double>())
         ;
 
-    class_<PouliotFlowField, PouliotFlowField::Pointer, VelocityField > (m, "PouliotFlowField")
-        .def(init<>())
+    py::class_<PouliotFlowField, PouliotFlowField::Pointer, VelocityField > (m, "PouliotFlowField")
+        .def(py::init<>())
         ;
 
-    class_<PouliotFlowField2D, PouliotFlowField2D::Pointer, VelocityField > (m, "PouliotFlowField2D")
-        .def(init<>())
+    py::class_<PouliotFlowField2D, PouliotFlowField2D::Pointer, VelocityField > (m, "PouliotFlowField2D")
+        .def(py::init<>())
         ;
 
-    class_<LinearRealField, LinearRealField::Pointer, RealField > (m, "LinearRealField")
-        .def(init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
+    py::class_<LinearRealField, LinearRealField::Pointer, RealField > (m, "LinearRealField")
+        .def(py::init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
         .def("Evaluate", &LinearRealField::Evaluate)
         .def("CalculateTimeDerivative", &LinearRealField::CalculateTimeDerivative)
         ;
 
-    class_<TimeDependantPorosityField, TimeDependantPorosityField::Pointer, RealField > (m, "TimeDependantPorosityField")
-        .def(init<const double&>())
+    py::class_<TimeDependantPorosityField, TimeDependantPorosityField::Pointer, RealField > (m, "TimeDependantPorosityField")
+        .def(py::init<const double&>())
         .def("Evaluate", &TimeDependantPorosityField::Evaluate)
         .def("CalculateTimeDerivative", &TimeDependantPorosityField::CalculateTimeDerivative)
         .def("CalculateGradient", &TimeDependantPorosityField::CalculateGradient)
         .def("CalculateLaplacian", &TimeDependantPorosityField::CalculateLaplacian)
         ;
 
-    class_<TimeDependantForceField, TimeDependantForceField::Pointer, VectorField<3>> (m, "TimeDependantForceField")
-        .def(init<const double&>())
+    py::class_<TimeDependantForceField, TimeDependantForceField::Pointer, VectorField<3>> (m, "TimeDependantForceField")
+        .def(py::init<const double&>())
         .def("Evaluate", &TimeDependantForceField::Evaluate)
         .def("GetPorosityField", &TimeDependantForceField::GetPorosityField)
         ;
 
-    class_<SpaceTimeRule> (m, "SpaceTimeRule")
-        .def(init<>())
+    py::class_<SpaceTimeRule> (m, "SpaceTimeRule")
+        .def(py::init<>())
         ;
 
-    class_<BoundingBoxRule, SpaceTimeRule > (m, "BoundingBoxRule")
-        .def(init<>())
-        .def(init<const double, const double, const double, const double, const double, const double, const double, const double>())
+    py::class_<BoundingBoxRule, SpaceTimeRule > (m, "BoundingBoxRule")
+        .def(py::init<>())
+        .def(py::init<const double, const double, const double, const double, const double, const double, const double, const double>())
         .def("SetTimeBoundingInterval", &BoundingBoxRule::SetTimeBoundingInterval)
         .def("SetXBoundingInterval", &BoundingBoxRule::SetXBoundingInterval)
         .def("SetYBoundingInterval", &BoundingBoxRule::SetYBoundingInterval)
@@ -271,14 +272,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("Info", &BoundingBoxRule::Info)
         ;
 
-    class_<MoreThanRule, SpaceTimeRule > (m, "MoreThanRule")
-        .def(init<const double, RealField::Pointer>())
-        .def(init<RealField::Pointer, RealField::Pointer>())
+    py::class_<MoreThanRule, SpaceTimeRule > (m, "MoreThanRule")
+        .def(py::init<const double, RealField::Pointer>())
+        .def(py::init<RealField::Pointer, RealField::Pointer>())
         .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
         ;
 
-    class_<SpaceTimeSet> (m, "SpaceTimeSet")
-        .def(init<>())
+    py::class_<SpaceTimeSet> (m, "SpaceTimeSet")
+        .def(py::init<>())
         .def("AddAndRule", &SpaceTimeSet::AddAndRule)
         .def("AddOrRule", &SpaceTimeSet::AddOrRule)
         .def("AddAndRules", &SpaceTimeSet::AddAndRules)
@@ -312,8 +313,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     ImposeVelocityFieldOnNodes ImposeVelocityField = &FieldUtility::ImposeFieldOnNodes;
     ImposeFieldOnNodes ImposeField = &FieldUtility::ImposeFieldOnNodes;
 
-    class_<FieldUtility> (m, "FieldUtility")
-        .def(init<SpaceTimeSet::Pointer, VectorField<3>::Pointer >())
+    py::class_<FieldUtility> (m, "FieldUtility")
+        .def(py::init<SpaceTimeSet::Pointer, VectorField<3>::Pointer >())
         .def("EvaluateFieldAtPoint", EvaluateDoubleField)
         .def("EvaluateFieldAtPoint", EvaluateVectorField)
         .def("ImposeFieldOnNodes", ImposeDoubleField)
@@ -323,8 +324,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     // and the same for 'FluidFieldUtility' ...
-    class_<FluidFieldUtility> (m, "FluidFieldUtility")
-        .def(init<SpaceTimeSet::Pointer, VelocityField::Pointer, const double, const double >())
+    py::class_<FluidFieldUtility> (m, "FluidFieldUtility")
+        .def(py::init<SpaceTimeSet::Pointer, VelocityField::Pointer, const double, const double >())
         ;
 
     typedef void (CustomFunctionsCalculator<3>::*CopyValuesScalar)(ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&);
@@ -338,8 +339,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     SetValuesVector SetValueOfAllNotesVector = &CustomFunctionsCalculator<3>::SetValueOfAllNotes;
 
 
-    class_<CustomFunctionsCalculator <2> > (m, "CustomFunctionsCalculator2D")
-        .def(init<>())
+    py::class_<CustomFunctionsCalculator <2> > (m, "CustomFunctionsCalculator2D")
+        .def(py::init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <2>::CalculatePressureGradient)
         .def("AssessStationarity", &CustomFunctionsCalculator <2>::AssessStationarity)
         .def("CalculateDomainVolume", &CustomFunctionsCalculator <2>::CalculateDomainVolume)
@@ -348,8 +349,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator <2>::CalculateGlobalFluidVolume)
         ;
 
-    class_<CustomFunctionsCalculator <3> > (m, "CustomFunctionsCalculator3D")
-        .def(init<>())
+    py::class_<CustomFunctionsCalculator <3> > (m, "CustomFunctionsCalculator3D")
+        .def(py::init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator <3>::CalculatePressureGradient)
         .def("AssessStationarity", &CustomFunctionsCalculator <3>::AssessStationarity)
         .def("CalculateDomainVolume", &CustomFunctionsCalculator <3>::CalculateDomainVolume)
@@ -371,8 +372,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 //    RecoverGradientComponent RecoverSuperconvergentGradientComponent = &DerivativeRecovery<3>::RecoverSuperconvergentGradient<std::size_t TDim, class TScalarVariable>;
 
 
-    class_<DerivativeRecovery <3> > (m, "DerivativeRecoveryTool3D")
-        .def(init<ModelPart&, Parameters&>())
+    py::class_<DerivativeRecovery <3> > (m, "DerivativeRecoveryTool3D")
+        .def(py::init<ModelPart&, Parameters&>())
         .def("AddTimeDerivativeComponent", &DerivativeRecovery <3>::AddTimeDerivativeComponent)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< Variable<double> >)
         .def("RecoverSuperconvergentGradient", &DerivativeRecovery <3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >)
@@ -393,8 +394,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
     //**********************************************************************************************************************************************
 
 
-    class_<BassetForceTools> (m, "BassetForceTools")
-        .def(init<>())
+    py::class_<BassetForceTools> (m, "BassetForceTools")
+        .def(py::init<>())
         .def("FillDaitcheVectors", &BassetForceTools::FillDaitcheVectors)
         .def("FillHinsbergVectors", &BassetForceTools::FillHinsbergVectors)
         .def("AppendIntegrands", &BassetForceTools::AppendIntegrands)
@@ -402,8 +403,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AppendIntegrandsImplicit", &BassetForceTools::AppendIntegrandsImplicit)
         ;
 
-    class_<BinBasedDEMFluidCoupledMapping <2, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping2D")
-        .def(init<Parameters&>())
+    py::class_<BinBasedDEMFluidCoupledMapping <2, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping2D")
+        .def(py::init<Parameters&>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeFlowOnDEMFromField)
         .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
@@ -415,8 +416,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,SphericParticle> ::AddDEMVariablesToImpose)
         ;
 
-    class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping2D")
-        .def(init<Parameters&>())
+    py::class_<BinBasedDEMFluidCoupledMapping <2, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping2D")
+        .def(py::init<Parameters&>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::InterpolateFromFluidMesh)
         .def("ImposeFlowOnDEMFromField", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeFlowOnDEMFromField)
         .def("ImposeVelocityOnDEMFromFieldToSlipVelocity", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::ImposeVelocityOnDEMFromFieldToSlipVelocity)
@@ -428,8 +429,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AddDEMVariablesToImpose", &BinBasedDEMFluidCoupledMapping <2,NanoParticle> ::AddDEMVariablesToImpose)
         ;
 
-    class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping3D")
-        .def(init<Parameters&>())
+    py::class_<BinBasedDEMFluidCoupledMapping <3, SphericParticle> > (m, "BinBasedDEMFluidCoupledMapping3D")
+        .def(py::init<Parameters&>())
         .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::InterpolateFromNewestFluidMesh)
@@ -444,8 +445,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,SphericParticle> ::AddFluidVariableToBeTimeFiltered)
         ;
 
-    class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping3D")
-        .def(init<Parameters&>())
+    py::class_<BinBasedDEMFluidCoupledMapping <3, NanoParticle> > (m, "BinBasedNanoDEMFluidCoupledMapping3D")
+        .def(py::init<Parameters&>())
         .def("InterpolateVelocityOnSlipVelocity", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateVelocityOnSlipVelocity)
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::InterpolateFromNewestFluidMesh)
@@ -461,35 +462,44 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("AddFluidVariableToBeTimeFiltered", &BinBasedDEMFluidCoupledMapping <3,NanoParticle> ::AddFluidVariableToBeTimeFiltered)
         ;
 
-    class_<DerivativeRecoveryMeshingTools <2> > (m, "DerivativeRecoveryMeshingTools2D")
-        .def(init<>())
+    py::class_<DerivativeRecoveryMeshingTools <2> > (m, "DerivativeRecoveryMeshingTools2D")
+        .def(py::init<>())
         .def("FillUpEdgesModelPartFromSimplicesModelPart", &DerivativeRecoveryMeshingTools<2>::FillUpEdgesModelPartFromSimplicesModelPart)
         ;
-    class_<DerivativeRecoveryMeshingTools <3> > (m, "DerivativeRecoveryMeshingTools3D")
-        .def(init<>())
+    py::class_<DerivativeRecoveryMeshingTools <3> > (m, "DerivativeRecoveryMeshingTools3D")
+        .def(py::init<>())
         .def("FillUpEdgesModelPartFromSimplicesModelPart", &DerivativeRecoveryMeshingTools<3>::FillUpEdgesModelPartFromSimplicesModelPart)
         ;
 
-    class_<EmbeddedVolumeTool <3> > (m, "EmbeddedVolumeTool")
-        .def(init<>())
+    py::class_<EmbeddedVolumeTool <3> > (m, "EmbeddedVolumeTool")
+        .def(py::init<>())
         .def("CalculateNegativeDistanceVolume", &EmbeddedVolumeTool <3> ::CalculateNegativeDistanceVolume)
         ;
 
-    class_<Bentonite_Force_Based_Inlet, Bentonite_Force_Based_Inlet::Pointer, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
-        .def(init<ModelPart&, array_1d<double, 3> >())
+    py::class_<Bentonite_Force_Based_Inlet, Bentonite_Force_Based_Inlet::Pointer, DEM_Force_Based_Inlet > (m, "Bentonite_Force_Based_Inlet")
+        .def(py::init<ModelPart&, array_1d<double, 3> >())
         ;
 
-    class_<SwimmingDemInPfemUtils> (m, "SwimmingDemInPfemUtils")
-        .def(init<>())
+    py::class_<SwimmingDemInPfemUtils> (m, "SwimmingDemInPfemUtils")
+        .def(py::init<>())
         .def("TransferWalls", &SwimmingDemInPfemUtils::TransferWalls)
         ;
 
-    class_<MeshRotationUtility> (m, "MeshRotationUtility")
-        .def(init<Parameters&>())
+    py::class_<MeshRotationUtility> (m, "MeshRotationUtility")
+        .def(py::init<Parameters&>())
         .def("RotateMesh", &MeshRotationUtility::RotateMesh)
         .def("RotateDEMMesh", &MeshRotationUtility::RotateDEMMesh)
         .def("SetStationaryField", &MeshRotationUtility::SetStationaryField)
         .def("RotateFluidVelocities", &MeshRotationUtility::RotateFluidVelocities)
+        ;
+    py::class_<RenumberingNodesUtility> (m, "RenumberingNodesUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&,ModelPart&>())
+        .def(py::init<ModelPart&,ModelPart&,ModelPart&>())
+        .def(py::init<ModelPart&,ModelPart&,ModelPart&,ModelPart&>())
+        .def(py::init<ModelPart&,ModelPart&,ModelPart&,ModelPart&,ModelPart&>())
+        .def("Renumber", &RenumberingNodesUtility::Renumber)
+        .def("UndoRenumber", &RenumberingNodesUtility::UndoRenumber)
         ;
     }
 
