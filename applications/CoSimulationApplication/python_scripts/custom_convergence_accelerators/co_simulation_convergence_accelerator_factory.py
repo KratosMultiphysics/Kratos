@@ -17,11 +17,7 @@ def CreateConvergenceAccelerator(settings):
     This function creates and returns the convergence accelerator used for CoSimulation
     New convergence accelerators have to be registered by adding them to "available_convergence_accelerators" above
     """
-    if (type(settings) != dict):
-        raise Exception("Input is expected to be provided as a python dictionary")
-
-    accelerator_type = settings["type"]
-
+    accelerator_type = settings["type"].GetString()
     if accelerator_type in available_convergence_accelerators:
         accelerator_module = __import__(available_convergence_accelerators[accelerator_type])
         return accelerator_module.Create(settings)
