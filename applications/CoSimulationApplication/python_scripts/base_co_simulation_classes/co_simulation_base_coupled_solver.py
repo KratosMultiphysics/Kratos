@@ -6,7 +6,7 @@ from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBas
 # Other imports
 import co_simulation_data_structure
 cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTRURE__
-
+import collections
 
 ##
 #  IMPORTANT : This is a BASE CLASS
@@ -39,7 +39,8 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         """)
         self.settings.ValidateAndAssignDefaults(default_setting)
         self.number_of_participants = self.settings['participants'].size()
-        self.echo_level = self.settings["echo_level"]
+        self.echo_level = self.settings["echo_level"].GetInt()
+        self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt()
 
         # Get the participating solvers a map with their names and objects
         self.participating_solvers = self._GetSolvers(self.full_settings['solvers'])
@@ -53,8 +54,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         if self.start_coupling_time > 0.0:
             self.coupling_started = False
         else:
-            self.coupling_started = Trueco_simulation_data_structure
-
+            self.coupling_started = True
     ## Initialize : Initialize function. Called only once
     #               all member variables are initialized here.
     #  @param self            The object pointer.
@@ -161,12 +161,14 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
             input_data_list = self.solver_settings[solver_name]["input_data_list"]
-            for input_data in input_data_list:
-                from_solver = self.participating_solvers[input_data["from_solver"]]
-                data_name = input_data["data_name"]
+            num_input_data = input_data_list.size()
+            for i in range(num_input_data):
+                input_data = input_data_list[i]
+                from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
+                data_name = input_data["data_name"].GetString()
                 from_solver_data_conf = from_solver.GetDataConfig(data_name)
-                current_solver_data_conf = solver.GetDataConfig(data_name)
-                if( from_solver_data_conf["dimension"] == current_solver_data_conf["dimension"] ):
+                current_solver_data_conf = solver.GetDataConfig(input_data["settings"]["destination_data"].GetString())
+                if( from_solver_data_conf["dimension"].GetInt() == current_solver_data_conf["dimension"].GetInt() ):
                     solver.ImportData(data_name, from_solver)
 
     ## _SynchronizeOutputData : Private Function to synchronize the out put data between the solver
@@ -178,8 +180,10 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
             output_data_list = self.solver_settings[solver_name]["output_data_list"]
-            for output_data in output_data_list:
-                data_name = output_data["data_name"]
+            num_output_data = output_data_list.size()
+            for i in range(num_output_data):
+                output_data = output_data_list[i]
+                data_name = output_data["data_name"].GetString()
                 data_conf = solver.GetDataConfig(data_name)
                 solver.ExportData(data_conf)
 
@@ -187,12 +191,12 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #
     #  @param self            The object pointer.
     def _GetSolvers(self, SolversDataMap):
-        solvers_map = {}
+        solvers_map = collections.OrderedDict()
         num_solvers = len(SolversDataMap.keys())
         import custom_co_simulation_solver_interfaces.co_simulation_solver_factory as factory
 
         for solver_name, settings in SolversDataMap.items():
-            solver = factory.CreateSolverInterface(settings)
+            solver = factory.CreateSolverInterface(solver_name,settings)
             solvers_map[solver_name] = solver
 
         return solvers_map
@@ -202,10 +206,12 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #
     #  @param self            The object pointer.
     def _GetSolverCoSimulationDetails(self,co_simulation_solver_settings):
-        num_solvers = len(co_simulation_solver_settings)
+        num_solvers = co_simulation_solver_settings.size()
         solver_cosim_details = {}
-        for solver_settings in co_simulation_solver_settings:
-            solver_name = solver_settings["name"]
+
+        for i in range(num_solvers):
+            solver_settings = co_simulation_solver_settings[i]
+            solver_name = solver_settings["name"].GetString()
             solver_cosim_details[solver_name] = solver_settings
         # TODO check if the data is consistently defined! => maybe do at another place though...
         # - input in one is output in another
@@ -214,13 +220,13 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         # - check if data format has been specified
         return solver_cosim_details
 
-    ## _GetSolvers : Private Function to make convergence accelerator objects list
+    ## _GetConvergenceAccelerators : Private Function to make convergence accelerator objects list
     #
     #  @param self            The object pointer.
     #  @param conv_acc_settings dict: setting of the convergence accelerator to be make
     def _GetConvergenceAccelerators(self, conv_acc_settings):
         conv_accelerators = []
-        import co_simulation_convergence_accelerator_factory as factory
+        import custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as factory
         for accelerator_settings in conv_acc_settings:
             accelerator = factory.CreateConvergenceAccelerator(accelerator_settings)
             conv_accelerators.append(accelerator)
