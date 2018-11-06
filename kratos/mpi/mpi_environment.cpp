@@ -18,6 +18,7 @@
 
 // Module includes
 #include "mpi_environment.h"
+#include "mpi/includes/mpi_data_communicator.h"
 
 namespace Kratos {
 
@@ -81,6 +82,19 @@ bool MPIEnvironment::IsFinalized()
     int mpi_is_finalized;
     MPI_Finalized(&mpi_is_finalized);
     return (bool)mpi_is_finalized;
+}
+
+MPI_Comm MPIEnvironment::GetMPICommunicator(const DataCommunicator& rDataCommunicator)
+{
+    if (rDataCommunicator.IsDistributed())
+    {
+        const MPIDataCommunicator& r_mpi_data_comm = static_cast<const MPIDataCommunicator&>(rDataCommunicator);
+        return r_mpi_data_comm.GetMPICommunicator();
+    }
+    else
+    {
+        return MPI_COMM_SELF;
+    }
 }
 
 }

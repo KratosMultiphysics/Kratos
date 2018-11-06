@@ -80,17 +80,6 @@ class DataCommunicator
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-/*    #ifdef KRATOS_USING_MPI
-    virtual MPI_Comm GetMPICommunicator() const
-    {
-        return MPI_COMM_SELF;
-    }
-    #endif*/
-
-    ///@}
     ///@name Inquiry
     ///@{
 
@@ -102,6 +91,11 @@ class DataCommunicator
     virtual int Size() const
     {
         return 1;
+    }
+
+    virtual bool IsDistributed() const
+    {
+        return false;
     }
 
     ///@}

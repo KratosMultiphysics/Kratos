@@ -13,6 +13,9 @@
 #ifndef KRATOS_MPI_ENVIRONMENT_H_INCLUDED
 #define KRATOS_MPI_ENVIRONMENT_H_INCLUDED
 
+#include "mpi.h"
+#include "includes/data_communicator.h"
+
 namespace Kratos {
 
 /// Helper utilities to manage the MPI lifecycle
@@ -33,6 +36,12 @@ bool IsInitialized();
 /// Query MPI finalization status.
 /** returns false if MPI_Finalized would return 0, true otherwise. */
 bool IsFinalized();
+
+/// Helper function to obtain the underlying MPI_Comm for a data communicator.
+/** If the data communicator is serial, MPI_COMM_SELF is returned.
+ *  @param rDataCommunicator The DataCommunicator whose MPI_Comm we want to get.
+ */
+MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
 
 }
 }

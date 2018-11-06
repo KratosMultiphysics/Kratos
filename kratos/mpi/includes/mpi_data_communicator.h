@@ -76,10 +76,14 @@ class MPIDataCommunicator: public DataCommunicator
     ///@name Access
     ///@{
 
-/*    MPI_Comm GetMPICommunicator() const override
+    /// Get the underlying MPI_Comm instance
+    /** @note This method does not exist in the base class
+     *  as it would introduce a dependency to MPI in the Kratos core.
+     */
+    MPI_Comm GetMPICommunicator() const
     {
         return mComm;
-    }*/
+    }
 
     ///@}
     ///@name Inquiry
@@ -97,6 +101,11 @@ class MPIDataCommunicator: public DataCommunicator
         int size;
         MPI_Comm_size(mComm, &size);
         return size;
+    }
+
+    bool IsDistributed() const override
+    {
+        return true;
     }
 
     ///@}
