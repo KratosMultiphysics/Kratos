@@ -1,16 +1,15 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-import sys
+import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
 import co_simulation_tools as cs_tools
+from CoSimulationApplication import *
+import sys
 
 class CoSimulationAnalysis(object):
     """
     The base class for the CoSimulation-AnalysisStage
     """
     def __init__(self, cosim_settings):
-        if (type(cosim_settings) != dict):
-            raise Exception("Input is expected to be provided as a python dictionary")
-
         self.cosim_settings = cosim_settings
         self.flush_stdout = False
 
@@ -44,8 +43,8 @@ class CoSimulationAnalysis(object):
             self._GetSolver().PrintInfo()
 
         ## Stepping and time settings
-        self.end_time = self.cosim_settings["problem_data"]["end_time"]
-        self.time = self.cosim_settings["problem_data"]["start_time"]
+        self.end_time = self.cosim_settings["problem_data"]["end_time"].GetDouble()
+        self.time = self.cosim_settings["problem_data"]["start_time"].GetDouble()
         self.step = 0
 
         sys.stdout.flush()
@@ -72,21 +71,23 @@ class CoSimulationAnalysis(object):
         return self._solver
 
     def _CreateSolver(self):
-        if("coupled_solver_settings" in self.cosim_settings):
-            import co_simulation_coupled_solver_factory as coupled_solver_factory
-            return coupled_solver_factory.CreateCoupledSolver(self.cosim_settings)
-        elif ("solvers" in self.cosim_settings):
+        if("coupled_solver_settings" in self.cosim_settings.keys()):
+            import custom_co_simulation_coupled_solvers.co_simulation_coupled_solver_factory as coupled_solver_factory
+            self._solver = coupled_solver_factory.CreateCoupledSolver(self.cosim_settings)
+            return self._solver
+        elif ("solvers" in self.cosim_settings.keys()):
             num_solvers = len(self.cosim_settings["solvers"])
             if(num_solvers > 1 or num_solvers == 0):
                 Exception("More than one or no solvers defined with out coupled solver !")
             else:
                 import co_simulation_solver_factory as solver_factory
-                return solver_factory.CreateSolverInterface(self.cosim_settings["solvers"][0])
+                self._solver = solver_factory.CreateSolverInterface(self.cosim_settings["solvers"][0])
+                return self._solver
+
 
 
 if __name__ == '__main__':
     from sys import argv
-    import json
 
     if len(argv) != 2:
         err_msg =  'Wrong number of input arguments!\n'
@@ -95,9 +96,12 @@ if __name__ == '__main__':
         raise Exception(err_msg)
 
     parameter_file_name = argv[1]
+    global cs_data_structure
+    cs_data_structure = cs_tools.ImportDataStructure(parameter_file_name) 
 
+    # Now we import actual parameters from the cs_data_structure
     with open(parameter_file_name,'r') as parameter_file:
-        parameters = json.load(parameter_file)
+        parameters = cs_data_structure.Parameters(parameter_file.read())
 
     simulation = CoSimulationAnalysis(parameters)
     simulation.Run()
