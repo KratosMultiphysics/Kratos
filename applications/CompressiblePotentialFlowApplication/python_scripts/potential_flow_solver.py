@@ -70,9 +70,10 @@ class LaplacianSolver(PythonSolver):
         
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY, 1000)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY, 2.0)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
         
                     
         #construct the linear solvers
@@ -103,7 +104,7 @@ class LaplacianSolver(PythonSolver):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
-        if self.settings["problem_type"].GetString() == "incompressible":
+        if self.settings["problem_type"].GetString() == "incompressible" or self.settings["problem_type"].GetString() == "incompressible_stresses":
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
                 self.main_model_part, 
@@ -142,7 +143,8 @@ class LaplacianSolver(PythonSolver):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             #here it would be the place to import restart data if required
             print(self.settings["model_import_settings"]["input_filename"].GetString())
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
+            IOdir='./Meshes/'+self.settings["model_import_settings"]["input_filename"].GetString()
+            KratosMultiphysics.ModelPartIO(IOdir).ReadModelPart(self.main_model_part)
             
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part,throw_errors).Execute()
@@ -182,6 +184,16 @@ class LaplacianSolver(PythonSolver):
                         """)
                 else:
                     raise Exception("Domain size is not 2 or 3!!")
+            elif (self.settings["problem_type"].GetString() == "incompressible_stresses"):
+                if(self.domain_size == 2):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"IncompressibleStressesPotentialFlowElement2D3N",
+                        "condition_name": "IncompressiblePotentialWallCondition2D2N"
+                        }
+                        """)
+                else:
+                    raise Exception("Domain size is not 2!!")
             else:
                 raise Exception("Problem type not defined!!")
             
@@ -225,7 +237,7 @@ class LaplacianSolver(PythonSolver):
 
 
     def SolveSolutionStep(self):
-        (self.solver).SolveSolutionStep() 
+        (self.solver).Solve() 
 
     def FinalizeSolutionStep(self):        
         self.solver.FinalizeSolutionStep()
