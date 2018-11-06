@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
-#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_INCOMPRESSIBLE_STRESSES_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
+#define KRATOS_INCOMPRESSIBLE_STRESSES_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
 
 // #define SYMMETRIC_CONSTRAINT_APPLICATION
 
@@ -54,7 +54,7 @@ namespace Kratos
 ///@{
 
 template< int Dim, int NumNodes >
-class IncompressiblePotentialFlowElement : public Element
+class IncompressibleStressesPotentialFlowElement : public Element
 {
 public:
 
@@ -78,8 +78,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of IncompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
+    /// Pointer definition of IncompressibleStressesPotentialFlowElement
+    KRATOS_CLASS_POINTER_DEFINITION(IncompressibleStressesPotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -88,39 +88,39 @@ public:
     /**
      * Constructor.
      */
-    IncompressiblePotentialFlowElement(IndexType NewId = 0) {};
+    IncompressibleStressesPotentialFlowElement(IndexType NewId = 0) {};
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {};
+    IncompressibleStressesPotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {};
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {};
+    IncompressibleStressesPotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {};
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {};
+    IncompressibleStressesPotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {};
 
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther) {};
+    IncompressibleStressesPotentialFlowElement(IncompressibleStressesPotentialFlowElement const& rOther) {};
 
     /**
      * Destructor
      */
-    ~IncompressiblePotentialFlowElement() override {};
+    ~IncompressibleStressesPotentialFlowElement() override {};
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement & operator=(IncompressiblePotentialFlowElement const& rOther)
+    IncompressibleStressesPotentialFlowElement & operator=(IncompressibleStressesPotentialFlowElement const& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
@@ -141,7 +141,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Element::Pointer(new IncompressibleStressesPotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("");
     }
 
@@ -155,7 +155,7 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, pGeom, pProperties));
+        return Element::Pointer(new IncompressibleStressesPotentialFlowElement(NewId, pGeom, pProperties));
         KRATOS_CATCH("");
     }
 
@@ -169,7 +169,7 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+        return Element::Pointer(new IncompressibleStressesPotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
         KRATOS_CATCH("");
     }
 
@@ -389,63 +389,64 @@ public:
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
-            Matrix lhs_penalty_positive = ZeroMatrix(NumNodes,NumNodes);
-            Matrix lhs_penalty_negative = ZeroMatrix(NumNodes,NumNodes);
+
             Matrix lhs_plus_sigma = ZeroMatrix(NumNodes,Dim);
             Matrix lhs_sigma_plus = ZeroMatrix(Dim,NumNodes);
-            Matrix lhs_sigma_sigma = ZeroMatrix(1,1);
+            Matrix lhs_sigma_sigma = ZeroMatrix(Dim,Dim);
+            Matrix sigma_shape_func = ZeroMatrix(Dim,Dim);
             Matrix lhs_minus_sigma = ZeroMatrix(NumNodes,Dim);
             Matrix lhs_sigma_minus = ZeroMatrix(Dim,NumNodes);
+
+            Matrix lhs_plus_plus = ZeroMatrix(NumNodes,NumNodes);
+            Matrix lhs_plus_minus = ZeroMatrix(NumNodes,NumNodes);
+            Matrix lhs_minus_plus = ZeroMatrix(NumNodes,NumNodes);
+            Matrix lhs_minus_minus = ZeroMatrix(NumNodes,NumNodes);
             
             bounded_matrix<double, 2, 1 > n;
-            Matrix DN_DX_positive = ZeroMatrix(NumNodes,Dim);
-            Matrix DN_DX_negative = ZeroMatrix(NumNodes,Dim);
-            // bounded_matrix<double, NumNodes, Dim > DN_DX_positive;
-            // bounded_matrix<double, NumNodes, Dim > DN_DX_negative;
-            // n(0,0)=0.087155743;
-            // n(1,0)=0.996194698;
-            // n(0,0)=0.052335956;
-            // n(1,0)=0.998629535;
+
+            Matrix lhs_penalty_positive = ZeroMatrix(NumNodes,NumNodes);
+            Matrix lhs_penalty_negative = ZeroMatrix(NumNodes,NumNodes);
             n(0,0)=0;
             n(1,0)=1;
-            Matrix test=prod(data.DN_DX,n);
+            sigma_shape_func(0,0)=1.0;
+            sigma_shape_func(1,1)=1.0;
+            Matrix normal_gradient=prod(data.DN_DX,n);
             // double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
-            double n_parameter=2.0;
-          
-            lhs_sigma_sigma(0,0)=n_parameter*data.vol;
+
+            double n_parameter=rCurrentProcessInfo[INITIAL_PENALTY];;
+            
+            lhs_sigma_sigma=n_parameter*data.vol*sigma_shape_func;
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0){
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data); //K++                    
-                    noalias(lhs_penalty_positive) += Volumes[i] * prod(test,trans(test));
-                    noalias(lhs_plus_sigma) += 1/n_parameter*Volumes[i]*data.DN_DX;
-                    noalias(lhs_sigma_plus) += 1/n_parameter*Volumes[i]*trans(data.DN_DX);
+                    // noalias(lhs_penalty_positive) += Volumes[i] * prod(normal_gradient,trans(normal_gradient));
+                    noalias(lhs_plus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
+                    noalias(lhs_sigma_plus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
                 }
                 else{
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data); //K--
-                    noalias(lhs_penalty_negative) += Volumes[i] * prod(test,trans(test));
-                    noalias(lhs_minus_sigma) += 1/n_parameter*Volumes[i]*data.DN_DX;
-                    noalias(lhs_sigma_minus) += 1/n_parameter*Volumes[i]*trans(data.DN_DX);
+                    // noalias(lhs_penalty_negative) += Volumes[i] * prod(normal_gradient,trans(normal_gradient));
+                    noalias(lhs_minus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
+                    noalias(lhs_sigma_minus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
                 }
-                
-                
             }
             
-            // lhs_plus_plus_sigma = 0.5 / n_parameter * prod(DN_DX_positive,trans(DN_DX_positive));
-            // lhs_plus_minus_sigma = 0.5 / n_parameter * prod(DN_DX_positive,trans(DN_DX_negative));
-            // lhs_minus_minus_sigma = 0.5 / n_parameter * prod(DN_DX_negative,trans(DN_DX_negative));
-            // lhs_minus_plus_sigma = 0.5 / n_parameter * prod(DN_DX_negative,trans(DN_DX_positive));
-           
+            lhs_plus_plus = prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
+            lhs_plus_minus = prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));   
+            lhs_minus_plus = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
+            lhs_minus_minus = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));
+            
             if(kutta_element)
             {
                 for(unsigned int i=0; i<NumNodes; ++i)
                 {
                     for(unsigned int j=0; j<NumNodes; ++j)
                     {
-                        rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j); 
+                        rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j);//+penalty*lhs_penalty_positive(i,j); 
                         rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
                         
-                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =   lhs_negative(i,j); 
+                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j);//+penalty*lhs_penalty_negative(i,j);
                         rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                     }
                 }
@@ -456,10 +457,10 @@ public:
                 {
                     for(unsigned int j=0; j<NumNodes; ++j)
                     {
-                        rLeftHandSideMatrix(i,j)                   =  (1.0-1.0/n_parameter)*lhs_positive(i,j)+lhs_plus_sigma(i,j)*lhs_sigma_sigma(i,j)*lhs_sigma_plus(i,j); 
+                        rLeftHandSideMatrix(i,j)                   =  (1.0-1.0/n_parameter)*lhs_positive(i,j)+lhs_plus_plus(i,j); 
                         rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
                         
-                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0-1.0/n_parameter)*lhs_negative(i,j)+lhs_minus_sigma(i,j)*lhs_sigma_sigma(i,j)*lhs_sigma_minus(i,j);
+                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0-1.0/n_parameter)*lhs_negative(i,j)+lhs_minus_minus(i,j);
                         rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                     }
                 }
@@ -472,8 +473,8 @@ public:
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)          =  (1.0-1.0/n_parameter)*lhs_positive(i,j)+lhs_plus_sigma(i,j)*lhs_sigma_sigma(i,j)*lhs_sigma_plus(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes) = lhs_plus_sigma(i,j)*lhs_sigma_sigma(i,j)*lhs_sigma_minus(i,j);
+                            rLeftHandSideMatrix(i,j)          =  (1.0-1.0/n_parameter)*lhs_positive(i,j)+lhs_plus_plus(i,j); 
+                            rLeftHandSideMatrix(i,j+NumNodes) = lhs_plus_minus(i,j);
                         }
                     }
                 }
@@ -485,8 +486,8 @@ public:
                     {   
                         for(unsigned int j=0; j<NumNodes; ++j)
                             {
-                                rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = (1-1/n_parameter)*lhs_negative(i,j)+lhs_minus_sigma(i,j)*lhs_sigma_sigma(i,j)*lhs_sigma_minus(i,j);
-                                rLeftHandSideMatrix(i+NumNodes,j) = lhs_minus_sigma(i,j)*lhs_sigma_sigma(i,j)*lhs_sigma_plus(i,j); 
+                                rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = (1.0-1.0/n_parameter)*lhs_negative(i,j)+lhs_minus_minus(i,j);
+                                rLeftHandSideMatrix(i+NumNodes,j) = lhs_minus_plus(i,j); 
                             }
                     }
                 }
@@ -538,12 +539,12 @@ public:
 
         if (this->Id() < 1)
         {
-            KRATOS_THROW_ERROR(std::logic_error, "IncompressiblePotentialFlowElement found with Id 0 or negative", "")
+            KRATOS_THROW_ERROR(std::logic_error, "IncompressibleStressesPotentialFlowElement found with Id 0 or negative", "")
         }
 
         if (this->GetGeometry().Area() <= 0)
         {
-            std::cout << "error on IncompressiblePotentialFlowElement -> " << this->Id() << std::endl;
+            std::cout << "error on IncompressibleStressesPotentialFlowElement -> " << this->Id() << std::endl;
             KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0", "")
         }
 
@@ -607,7 +608,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "IncompressiblePotentialFlowElement #" << Id();
+        buffer << "IncompressibleStressesPotentialFlowElement #" << Id();
         return buffer.str();
     }
 
@@ -615,7 +616,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "IncompressiblePotentialFlowElement #" << Id();
+        rOStream << "IncompressibleStressesPotentialFlowElement #" << Id();
     }
 
 /// Print object's data.
@@ -708,37 +709,9 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
 
-        // if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
-            // calculate shape functions
-            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
 
-            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
-        // }
-        // else if (this->Is(BOUNDARY)){
-        //     array_1d<double,NumNodes> elemental_distance;
-        //     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-        //         elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
-      
-        //     const Vector& r_elemental_distances=elemental_distance;
-        //     Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-        //     Matrix positive_side_sh_func;
-        //     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-        //     Vector positive_side_weights;
-        //     triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-        //         positive_side_sh_func,
-        //         positive_side_sh_func_gradients,
-        //         positive_side_weights,
-        //         GeometryData::GI_GAUSS_2);
-        //     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-        //         array_1d<double,Dim> aux_matrix;
-        //         bounded_matrix<double,NumNodes,Dim> DN_DX;
-        //         DN_DX=positive_side_sh_func_gradients(i_gauss);            
-            
-        //         aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
-
-        //         noalias(velocity) += aux_matrix;         
-        //     }
-        // }
+        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
     }
 
     void ComputeVelocityUpperWakeElement(array_1d<double,Dim>& velocity)
@@ -757,38 +730,9 @@ protected:
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
         
-        // if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
-            // calculate shape functions
-            
-            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
-        // }
-        // else if (this->Is(BOUNDARY)){
-        //     array_1d<double,NumNodes> elemental_distance;
-        //     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-        //         elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
-      
-        //     const Vector& r_elemental_distances=elemental_distance;
-        //     Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-        //     Matrix positive_side_sh_func;
-        //     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-        //     Vector positive_side_weights;
-        //     triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-        //         positive_side_sh_func,
-        //         positive_side_sh_func_gradients,
-        //         positive_side_weights,
-        //         GeometryData::GI_GAUSS_2);
-        //     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-        //         array_1d<double,Dim> aux_matrix;
-        //         bounded_matrix<double,NumNodes,Dim> DN_DX;
-        //         DN_DX=positive_side_sh_func_gradients(i_gauss);            
-            
-        //         aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
-
-        //         noalias(velocity) += aux_matrix;         
-        //     }
-        // }
+        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
     }
 
     void ComputeVelocityLowerWakeElement(array_1d<double,Dim>& velocity)
@@ -806,50 +750,21 @@ protected:
             else
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
-
-        // if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
-            // calculate shape functions
             
-            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
-        // }
-        // else if (this->Is(BOUNDARY)){
-        //     array_1d<double,NumNodes> elemental_distance;
-        //     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-        //         elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
-      
-        //     const Vector& r_elemental_distances=elemental_distance;
-        //     Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-        //     Matrix positive_side_sh_func;
-        //     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-        //     Vector positive_side_weights;
-        //     triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-        //         positive_side_sh_func,
-        //         positive_side_sh_func_gradients,
-        //         positive_side_weights,
-        //         GeometryData::GI_GAUSS_2);
-        //     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-        //         array_1d<double,Dim> aux_matrix;
-        //         bounded_matrix<double,NumNodes,Dim> DN_DX;
-        //         DN_DX=positive_side_sh_func_gradients(i_gauss);            
-            
-        //         aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
-
-        //         noalias(velocity) += aux_matrix;         
-        //     }
-        // }
+        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
     }
 
     void CheckWakeCondition()
     {
-        array_1d<double, Dim> upper_wake_velocity;
-        ComputeVelocityUpperWakeElement(upper_wake_velocity);
-        const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
+        // array_1d<double, Dim> upper_wake_velocity;
+        // ComputeVelocityUpperWakeElement(upper_wake_velocity);
+        // const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
 
-        array_1d<double, Dim> lower_wake_velocity;
-        ComputeVelocityLowerWakeElement(lower_wake_velocity);
-        const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
+        // array_1d<double, Dim> lower_wake_velocity;
+        // ComputeVelocityLowerWakeElement(lower_wake_velocity);
+        // const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
 
         // if (std::abs(vupnorm - vlownorm) > 0.1)
             // std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
@@ -976,7 +891,7 @@ private:
 
     ///@}
 
-}; // Class IncompressiblePotentialFlowElement
+}; // Class IncompressibleStressesPotentialFlowElement
 
 ///@}
 
