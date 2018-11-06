@@ -259,20 +259,20 @@ namespace Kratos
             return rA;
         }
 
-        static void DebugLHS(const SparseSpaceType::MatrixType& rA)
-        {
-            for (int i = 0; i < rA.size1(); ++i) {
-                for (int j = 0; j < rA.size2(); ++j) {
-                    if (std::abs(rA(i, j)) > 0.99) {
-                        std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - ";
-                        std::cout << std::fixed;
-                        std::cout << std::setprecision(16);
-                        std::cout << rA(i, j);
-                        std::cout << ")/rA(" << i << "," << j << ")), tolerance);" << std::endl;
-                    }
-                }
-            }
-        }
+//         static void DebugLHS(const SparseSpaceType::MatrixType& rA)
+//         {
+//             for (int i = 0; i < rA.size1(); ++i) {
+//                 for (int j = 0; j < rA.size2(); ++j) {
+//                     if (std::abs(rA(i, j)) > 0.99) {
+//                         std::cout << "            KRATOS_CHECK_LESS_EQUAL(std::abs((rA(" << i << "," << j << ") - ";
+//                         std::cout << std::fixed;
+//                         std::cout << std::setprecision(16);
+//                         std::cout << rA(i, j);
+//                         std::cout << ")/rA(" << i << "," << j << ")), tolerance);" << std::endl;
+//                     }
+//                 }
+//             }
+//         }
      
         /**
          * Checks if the block builder and solver performs correctly the assemble of the system
