@@ -43,7 +43,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             "max_inner_iterations"        : 30,
             "min_inner_iterations"        : 3,
             "inner_iteration_tolerance"   : 1e-3,
-            "outer_iteration_tolerance"   : 1e-3,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
@@ -110,7 +109,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.max_inner_iterations = self.algorithm_settings["max_inner_iterations"].GetInt()
         self.min_inner_iterations = self.algorithm_settings["min_inner_iterations"].GetInt()
         self.inner_iteration_tolerance = self.algorithm_settings["inner_iteration_tolerance"].GetDouble()
-        self.outer_iteration_tolerance = self.algorithm_settings["outer_iteration_tolerance"].GetDouble()
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
 
         # Specify bounds and initial values
@@ -365,6 +363,10 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             # Check convergence of outer loop
+            if outer_iteration == self.max_outer_iterations:
+                print("\n> Maximal outer iterations of optimization problem reached!")
+                break
+
             if is_max_total_iterations_reached:
                 print("\n> Maximal total iterations of optimization problem reached!")
                 break
