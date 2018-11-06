@@ -244,21 +244,30 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
 
-        DofsVectorType dof_list, auxiliar_dof_list;
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
 
         typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
 
         // Declaring temporal variables
         DofsArrayType dof_temp_all, dof_temp_solvable;
-        BaseType::mDofSet = DofsArrayType();
-        mDoFToSolveSet = DofsArrayType();
 
+        // We assign an empty dof array to our dof sets
+        BaseType::mDofSet = DofsArrayType(); /// This corresponds with all the DoF of the system
+        mDoFToSolveSet = DofsArrayType();    /// This corresponds with the solvable (the ones solved after compacting the system using MPC)
+
+        /**
+         * Here we declare three sets.
+         * - The global set: Contains all the DoF of the system
+         * - The solvable set: The DoF that are going to be solved by the linear solver after apply the constraints
+         * - The slave set: The DoF that are not going to be solved, due to MPC formulation
+         */
         set_type dof_global_set, dof_global_solvable_set, dof_global_slave_set;
 
-        #pragma omp parallel firstprivate(dof_list, auxiliar_dof_list, r_current_process_info)
+        #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // We cleate the temporal set and we reserve some space on them
             set_type dofs_tmp_set, dofs_tmp_solvable_set, dof_temp_slave_set;
             dofs_tmp_set.reserve(20000);
             dofs_tmp_solvable_set.reserve(20000);
@@ -290,6 +299,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 dofs_tmp_solvable_set.insert(dof_list.begin(), dof_list.end());
             }
 
+            // Gets the array of constraints from the modeler
             auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
             const int number_of_constraints = static_cast<int>(r_constraints_array.size());
             #pragma omp for  schedule(guided, 512) nowait
@@ -297,13 +307,14 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 auto it_const = r_constraints_array.begin() + i;
 
                 // Gets list of Dof involved on every element
-                it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
+                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_set.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
+                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
                 dof_temp_slave_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_solvable_set.insert(auxiliar_dof_list.begin(), auxiliar_dof_list.end());
+                dofs_tmp_solvable_set.insert(second_dof_list.begin(), second_dof_list.end());
             }
 
+            // We merge all the sets in one thread
             #pragma omp critical
             {
                 dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
@@ -314,6 +325,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
 
+        /// We transfer the temporal sets to our DoF set
         dof_temp_all.reserve(dof_global_set.size());
         for (auto& dof : dof_global_set) {
             dof_temp_all.push_back( dof.get() );
@@ -321,7 +333,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         dof_temp_all.Sort();
         BaseType::mDofSet = dof_temp_all;
 
-        // We remove the slave DoF from the set
+        // We remove the slave DoF from the solvable set (they can be repited even if not included in the constraint because can be added by an element or condition)
         for (auto& dof : dof_global_slave_set) {
             auto it = dof_global_solvable_set.find(dof);
             // Check if Iterator is valid
@@ -329,6 +341,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 dof_global_solvable_set.erase(it);
         }
 
+        /// Now we transfet the temporal set to the solvable
         dof_global_slave_set.clear();
         dof_temp_solvable.reserve(dof_global_solvable_set.size());
         for (auto& dof : dof_global_solvable_set) {
@@ -347,9 +360,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
 
+#ifdef USE_LOCKS_IN_ASSEMBLY
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
 
-#ifdef USE_LOCKS_IN_ASSEMBLY
         if (BaseType::mLockArray.size() != 0) {
             for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
                 omp_destroy_lock(&BaseType::mLockArray[i]);
@@ -360,9 +373,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
             omp_init_lock(&BaseType::mLockArray[i]);
         }
-#endif
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+#endif
 
     // If reactions are to be calculated, we check if all the dofs have reactions defined
     // This is tobe done only in debug mode
@@ -495,7 +508,7 @@ protected:
     ///@{
 
     /**
-    * @brief This method assembles the global relation matrix
+    * @brief This method assembles the global relation matrix (T matrix used to impose the MPC)
     * @param rT The global relation matrix
     * @param rTransformationMatrix The local transformation contribution
     * @param rSlaveEquationId The equation id of the slave dofs
@@ -570,28 +583,33 @@ protected:
 
         Timer::Start("Build");
 
+        // We do the build (after that we resize the solution vector to avoid problems)
         Build(pScheme, rModelPart, rA, rb);
         rDx.resize(mDoFToSolveSystemSize, false);
 
         Timer::Stop("Build");
 
+        // Now we apply the BC (in the elmination B&S does nothing)
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) <<
         "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
+        // We solve the system of equations
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
 
+        // We reconstruct the Unknowns vector and the residual
         const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         ReconstructSlaveSolutionAfterSolve(pScheme, rModelPart, rA, rDx, rb);
 
         const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
 
+        // Some verbosity
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) <<
@@ -691,7 +709,7 @@ protected:
             const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
 
             // We iterate over the constraints
-            #pragma omp for schedule(guided, 512)
+            #pragma omp for schedule(guided, 512) nowait
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = const_begin + i_const;
                 it_const->EquationIdVector(ids, second_ids, r_current_process_info);
@@ -1019,7 +1037,7 @@ protected:
         // We resize the basic system
         BaseType::ResizeAndInitializeVectors(pScheme, pA, pDx, pb, rModelPart);
 
-        // Now we resize the constraint system
+        // Now we resize the relation matrix used on the MPC solution
         if(rModelPart.MasterSlaveConstraints().size() > 0) {
             if (mpTMatrix == NULL) { // If the pointer is not initialized initialize it to an empty matrix
                 TSystemMatrixPointerType pNewT = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
