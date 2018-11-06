@@ -19,9 +19,9 @@ import MainFluidPFEM
 
 class Solution(MainFluidPFEM.Solution):
 
-    def __init__(self):
+    def __init__(self, model):
         self.pp = self.ProblemParameters()
-        super(Solution,self).__init__()
+        super(Solution,self).__init__(model)
 
         self.fluid_model_part = self.main_model_part
 

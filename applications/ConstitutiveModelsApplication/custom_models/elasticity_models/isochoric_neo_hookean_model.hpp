@@ -109,16 +109,16 @@ namespace Kratos
      * Check
      */
 
-    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
-      HyperElasticModel::Check(rMaterialProperties,rCurrentProcessInfo);
+      HyperElasticModel::Check(rProperties,rCurrentProcessInfo);
 
-      if( C10.Key() == 0 || rMaterialProperties[C10] <= 0.00 )
+      if( C10.Key() == 0 || rProperties[C10] <= 0.00 )
 	KRATOS_ERROR << "C10 has an invalid key or value" << std::endl;
 
-      if( BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.00 )
+      if( BULK_MODULUS.Key() == 0 || rProperties[BULK_MODULUS] <= 0.00 )
 	KRATOS_ERROR << "BULK_MODULUS has an invalid key or value" << std::endl;
 
 
@@ -209,7 +209,7 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
     virtual void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor)
     {
       KRATOS_TRY
@@ -230,7 +230,7 @@ namespace Kratos
 
     // SPECIALIZED METHODS:
     // {
-    
+
     // Specialized method instead of the general one (faster) this calculation is not needed
     void CalculateScalingFactors(HyperElasticDataType& rVariables) override
     {
@@ -243,7 +243,7 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
     // Specialized method instead of the general one (faster)
     virtual void CalculateAndAddIsochoricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
@@ -255,7 +255,7 @@ namespace Kratos
       MatrixType StressMatrix;
       const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
     	StressMatrix  = msIdentityMatrix;
     	StressMatrix -= 1.0/3.0 * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.InverseMatrix;
@@ -264,7 +264,7 @@ namespace Kratos
 
     	rStressMatrix += StressMatrix;
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
     	StressMatrix  = rVariables.Strain.Matrix;
     	StressMatrix -= 1.0/3.0 * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * msIdentityMatrix;
@@ -284,20 +284,20 @@ namespace Kratos
 
       const ModelDataType&  rModelData        = rVariables.GetModelData();
       const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
-      
+
       MatrixType StressMatrix;
 
       double Factor = 0;
       this->CalculatePressureFactor(rVariables,Factor);
 
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
     	StressMatrix = Factor * rVariables.Strain.InverseMatrix;
 
     	rStressMatrix += StressMatrix;
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
     	StressMatrix = Factor * msIdentityMatrix;
 
@@ -324,7 +324,7 @@ namespace Kratos
       const MatrixType& rIsochoricStressMatrix = rModelData.GetStressMatrix();
 
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
 
     	Cabcd  = (1.0/3.0) * (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(d,c));
 
@@ -337,7 +337,7 @@ namespace Kratos
     	Cabcd *= (-2.0/3.0);
 
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
 
     	Cabcd  = (1.0/3.0) * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
 
@@ -385,7 +385,7 @@ namespace Kratos
       double FactorC = 0;
       this->CalculateConstitutiveMatrixPressureFactor(rVariables,FactorC);
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
 
     	Cabcd  = FactorA * (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(c,d));
 
@@ -394,7 +394,7 @@ namespace Kratos
     	Cabcd *= FactorC;
 
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
 
     	Cabcd  = FactorA * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
 

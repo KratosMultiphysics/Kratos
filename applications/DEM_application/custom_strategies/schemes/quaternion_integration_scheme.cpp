@@ -63,7 +63,7 @@ namespace Kratos {
         }
 
         if (StepFlag != 1 && StepFlag != 2) {
-            array_1d<double, 3 > local_angular_velocity, quarter_angular_velocity, half_angular_velocity;
+            array_1d<double, 3 > local_angular_velocity, quarter_angular_velocity;
 
             CalculateLocalAngularAcceleration(moment_of_inertia, global_torque, moment_reduction_factor, local_angular_acceleration);
 
@@ -71,11 +71,6 @@ namespace Kratos {
             noalias(half_local_angular_velocity) = angular_velocity + 0.5  * local_angular_acceleration * delta_t;
 
             array_1d<double, 3 > rotation_aux = 0.5 * quarter_angular_velocity * delta_t;
-            GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
-
-            GeometryFunctions::QuaternionVectorLocal2Global(half_Orientation, half_local_angular_velocity, half_angular_velocity);
-
-            rotation_aux = half_angular_velocity * delta_t;
             GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
 
             GeometryFunctions::QuaternionVectorGlobal2Local(half_Orientation, global_torque, local_torque);
@@ -91,7 +86,7 @@ namespace Kratos {
         }
 
         else if (StepFlag == 1) { //PREDICT
-            array_1d<double, 3 > quarter_angular_velocity, half_angular_velocity, local_angular_velocity;
+            array_1d<double, 3 > quarter_angular_velocity, local_angular_velocity;
 
             CalculateLocalAngularAcceleration(moment_of_inertia, global_torque, moment_reduction_factor, local_angular_acceleration);
 
@@ -99,11 +94,6 @@ namespace Kratos {
             noalias(half_local_angular_velocity) = angular_velocity + 0.5  * local_angular_acceleration * delta_t;
 
             array_1d<double, 3 > rotation_aux = 0.5 * quarter_angular_velocity * delta_t;
-            GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
-
-            GeometryFunctions::QuaternionVectorLocal2Global(half_Orientation, half_local_angular_velocity, half_angular_velocity);
-
-            rotation_aux = half_angular_velocity * delta_t;
             GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
         }//if StepFlag == 1
 
@@ -150,7 +140,7 @@ namespace Kratos {
         }
 
         if (StepFlag != 1 && StepFlag != 2) {
-            array_1d<double, 3 > quarter_local_angular_velocity, quarter_angular_velocity, half_angular_velocity;
+            array_1d<double, 3 > quarter_local_angular_velocity, quarter_angular_velocity;
 
             GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, global_torque, local_torque);
             CalculateLocalAngularAccelerationByEulerEquations(local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);
@@ -162,12 +152,7 @@ namespace Kratos {
             array_1d<double, 3 > rotation_aux = 0.5 * quarter_angular_velocity * delta_t;
             GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
 
-            GeometryFunctions::QuaternionVectorLocal2Global(half_Orientation, half_local_angular_velocity, half_angular_velocity);
-
-            rotation_aux = half_angular_velocity * delta_t;
-            GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
-
-            GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, global_torque, local_torque);
+            GeometryFunctions::QuaternionVectorGlobal2Local(half_Orientation, global_torque, local_torque);
             CalculateLocalAngularAccelerationByEulerEquations(half_local_angular_velocity, moments_of_inertia, local_torque, moment_reduction_factor, local_angular_acceleration);
 
             noalias(local_angular_velocity) += local_angular_acceleration * delta_t;
@@ -180,7 +165,7 @@ namespace Kratos {
         }
 
         else if (StepFlag == 1) { //PREDICT
-            array_1d<double, 3 > quarter_local_angular_velocity, quarter_angular_velocity, half_angular_velocity;
+            array_1d<double, 3 > quarter_local_angular_velocity, quarter_angular_velocity;
 
             GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, global_torque, local_torque);
             CalculateLocalAngularAccelerationByEulerEquations(local_angular_velocity,moments_of_inertia,local_torque,moment_reduction_factor,local_angular_acceleration);
@@ -190,11 +175,6 @@ namespace Kratos {
 
             GeometryFunctions::QuaternionVectorLocal2Global(Orientation, quarter_local_angular_velocity, quarter_angular_velocity);
             array_1d<double, 3 > rotation_aux = 0.5 * quarter_angular_velocity * delta_t;
-            GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
-
-            GeometryFunctions::QuaternionVectorLocal2Global(half_Orientation, half_local_angular_velocity, half_angular_velocity);
-
-            rotation_aux = half_angular_velocity * delta_t;
             GeometryFunctions::UpdateOrientation(Orientation, half_Orientation, rotation_aux);
         }//if StepFlag == 1
 

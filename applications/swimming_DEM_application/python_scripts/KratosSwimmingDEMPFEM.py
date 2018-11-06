@@ -20,15 +20,17 @@ from KratosMultiphysics.ExternalSolversApplication import *
 
 
 class Solution:
-    def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
+    def __init__(self, model, algorithm = None, varying_parameters = Parameters("{}")):
+        self.model = model
         self.alg = algorithm
 
         if self.alg == None:
             import swimming_DEM_PFEM_algorithm
-            self.alg = swimming_DEM_PFEM_algorithm.Algorithm(varying_parameters)
+            self.alg = swimming_DEM_PFEM_algorithm.Algorithm(model, varying_parameters)
 
     def Run(self):
         return self.alg.Run()
 
 if __name__=="__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()
