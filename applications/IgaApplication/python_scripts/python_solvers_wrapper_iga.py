@@ -5,10 +5,10 @@ import KratosMultiphysics
 
 def CreateSolver(model, custom_settings):
 
-    if (type(model) != KratosMultiphysics.Model):
+    if not (isinstance(model, KratosMultiphysics.Model)):
         raise Exception("input is expected to be provided as a Kratos Model object")
 
-    if (type(custom_settings) != KratosMultiphysics.Parameters):
+    if not (isinstance(custom_settings, KratosMultiphysics.Parameters)):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()

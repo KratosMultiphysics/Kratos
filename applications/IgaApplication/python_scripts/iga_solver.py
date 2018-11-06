@@ -334,7 +334,7 @@ class IgaSolver(PythonSolver):
         step =-buffer_size
         time = time - delta_time * buffer_size
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for i in range(0, buffer_size):
+        for _ in range(0, buffer_size):
             step = step + 1
             time = time + delta_time
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
