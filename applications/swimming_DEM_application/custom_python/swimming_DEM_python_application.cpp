@@ -70,12 +70,12 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosSwimmingDEMApplication, m)
 {
-    class_<KratosSwimmingDEMApplication, KratosSwimmingDEMApplication::Pointer, KratosApplication>(m, "KratosSwimmingDEMApplication")
-        .def(init<>())
+    py::class_<KratosSwimmingDEMApplication, KratosSwimmingDEMApplication::Pointer, KratosApplication>(m, "KratosSwimmingDEMApplication")
+        .def(py::init<>())
         ;
 
     AddCustomStrategiesToPython(m);
