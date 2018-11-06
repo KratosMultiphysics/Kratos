@@ -197,6 +197,4 @@ install(TARGETS KratosStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(DIRECTORY DESTINATION "KratosMultiphysics/StructuralMechanicsApplication")
-
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION "KratosMultiphysics/StructuralMechanicsApplication" RENAME "__init__.py")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/StructuralMechanicsApplication")
