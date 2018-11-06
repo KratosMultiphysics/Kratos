@@ -2,12 +2,12 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Antonia Larese 
+//  Main authors:    Antonia Larese
 //
 
 
@@ -37,7 +37,7 @@ namespace Kratos
 
 	namespace Python
 	{
-		using namespace pybind11;
+		namespace py = pybind11;
 
 		void  AddCustomStrategiesToPython(pybind11::module& pymodule)
 		{
@@ -50,7 +50,7 @@ namespace Kratos
 
 			//********************************************************************
 			//********************************************************************
-// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+// 			py::class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
 // 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
 // 				("TestStrategy",
 // 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
