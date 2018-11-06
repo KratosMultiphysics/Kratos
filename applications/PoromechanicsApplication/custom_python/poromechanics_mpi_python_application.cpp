@@ -28,14 +28,14 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosPoromechanicsApplication, m)
 {
-    class_<KratosPoromechanicsApplication,
+    py::class_<KratosPoromechanicsApplication,
     KratosPoromechanicsApplication::Pointer,
     KratosApplication>(m, "KratosPoromechanicsApplication")
-    .def(init<>());
+    .def( py::init<>());
 
     AddCustomStrategiesToPython(m);
     AddCustomMPIStrategiesToPython(m);
