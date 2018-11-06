@@ -44,7 +44,7 @@ namespace Kratos
 
   namespace Python
   {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     void  AddCustomStrategiesToPython(pybind11::module& m)
     {
@@ -69,35 +69,35 @@ namespace Kratos
       //********************************************************************
 
 
-      class_< TwoStepVPStrategyType, TwoStepVPStrategyType::Pointer, BaseSolvingStrategyType >(m,"TwoStepVPStrategy")
-      	.def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
+      py::class_< TwoStepVPStrategyType, TwoStepVPStrategyType::Pointer, BaseSolvingStrategyType >(m,"TwoStepVPStrategy")
+      	.def(py::init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
         .def("CalculateAccelerations",&TwoStepVPStrategyType::CalculateAccelerations)
         .def("CalculateDisplacements",&TwoStepVPStrategyType::CalculateDisplacementsAndPorosity)
       	// .def("InitializeStressStrain",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
       	    ;
 
-      class_< ExplicitStrategyType, ExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"ExplicitStrategyType")
-	.def(init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+      py::class_< ExplicitStrategyType, ExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"ExplicitStrategyType")
+	.def(py::init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
+	.def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
 	.def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
 	.def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
 	;
 
-      class_< NodalTwoStepVPStrategyType, NodalTwoStepVPStrategyType::Pointer, BaseSolvingStrategyType >(m,"NodalTwoStepVPStrategy")
-      	.def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
+      py::class_< NodalTwoStepVPStrategyType, NodalTwoStepVPStrategyType::Pointer, BaseSolvingStrategyType >(m,"NodalTwoStepVPStrategy")
+      	.def(py::init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
         .def("CalculateAccelerations",&NodalTwoStepVPStrategyType::CalculateAccelerations)
         .def("CalculateDisplacements",&NodalTwoStepVPStrategyType::CalculateDisplacements)
 	;
 
-      class_< GaussSeidelLinearStrategyType,GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType >(m,"GaussSeidelLinearStrategy")
-	      .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool  >())
+      py::class_< GaussSeidelLinearStrategyType,GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType >(m,"GaussSeidelLinearStrategy")
+	      .def(py::init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool  >())
         .def("GetResidualNorm", &GaussSeidelLinearStrategyType::GetResidualNorm)
         .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver)
       ;
 
       // Explicit scheme: Central differences
-      class_< FirstOrderForwardEulerSchemeType,FirstOrderForwardEulerSchemeType::Pointer, BaseSchemeType > (m,"FirstOrderForwardEulerSchemeType")
-	.def(init< const double, const double, const double, const bool >() )
+      py::class_< FirstOrderForwardEulerSchemeType,FirstOrderForwardEulerSchemeType::Pointer, BaseSchemeType > (m,"FirstOrderForwardEulerSchemeType")
+	.def(py::init< const double, const double, const double, const bool >() )
 	.def("Initialize", &FirstOrderForwardEulerScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
     }

@@ -70,7 +70,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     //resizing as needed the RHS
     if(rRightHandSideVector.size() != number_of_points)
         rRightHandSideVector.resize(number_of_points,false);
-    rRightHandSideVector = ZeroVector(number_of_points); //resetting RHS
+    noalias(rRightHandSideVector) = ZeroVector(number_of_points); //resetting RHS
 
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -90,22 +90,21 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
     GetGeometry().Jacobian(J0);
     double DetJ0;
-    double qgauss;
-    
-    for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
+
+    for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
     {
         //calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[PointNumber],InvJ0,DetJ0);
+        MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
         
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[PointNumber],InvJ0);
+        noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
         
-        const double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
+        const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
 
         // Calculating the local RHS
-        auto N = row(N_gausspoint,PointNumber); //these are the N which correspond to the gauss point "PointNumber"
-        qgauss = inner_prod(N, heat_flux_local);
+        auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
+        const double qgauss = inner_prod(N, heat_flux_local);
         
         noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
     }
