@@ -120,6 +120,28 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief Computes the value of a double embedded variable
+     * For a given double variable in the skin mesh, this method calculates the value
+     * of such variable in the embedded mesh. This is done in each element of the volume 
+     * mesh elements by computing the average of the intersecting entities nodal values.
+     * @param rVariable double variable to be calculated
+     */
+    void CalculateEmbeddedVariableFromSkin(
+        const Variable<double> &rVariable,
+        const Variable<double> &rEmbeddedVariable);
+
+    /**
+     * @brief Computes the value of an array embedded variable
+     * For a given array variable in the skin mesh, this method calculates the value
+     * of such variable in the embedded mesh. This is done in each element of the volume 
+     * mesh elements by computing the average of the intersecting entities nodal values.
+     * @param rVariable array variable to be calculated
+     */
+    void CalculateEmbeddedVariableFromSkin(
+        const Variable<array_1d<double,3>> &rVariable,
+        const Variable<array_1d<double,3>> &rEmbeddedVariable);
+
     ///@}
     ///@name Access
     ///@{
@@ -143,6 +165,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief Set the Intersection Plane object
+     * This method returns the plane that defines the element intersection. The 2D
+     * case is considered to be a simplification of the 3D one, so a "fake" extra
+     * point is created by extruding the first point in the z-direction.
+     * @param rIntPtsVector array containing the intersecting points coordinates
+     * @return Plane3D the plane defined by the given intersecting points coordinates
+     */
     Plane3D SetIntersectionPlane(const std::vector<array_1d<double,3>> &rIntPtsVector);
 
     ///@}
