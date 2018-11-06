@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -29,7 +29,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -38,8 +38,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
-    class_< MixedElementConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ,  ConvergenceCriteriaBaseType  >(m,"MixedElementConvergenceCriteria")
-            .def(init<double, double >())
+    py::class_< MixedElementConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ,  ConvergenceCriteriaBaseType  >(m,"MixedElementConvergenceCriteria")
+            .def(py::init<double, double >())
             ;
 
 }

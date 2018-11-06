@@ -41,58 +41,58 @@
 namespace Kratos {
 namespace Python {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef OMP_DEMSearch                                                         OmpDemSearchType;
     typedef DEMSearch<OmpDemSearchType >                                          DemSearchType;
 
-    class_<DEMIntegrationScheme, DEMIntegrationScheme::Pointer>(m, "DEMIntegrationScheme")
-        .def(init<>())
+    py::class_<DEMIntegrationScheme, DEMIntegrationScheme::Pointer>(m, "DEMIntegrationScheme")
+        .def(py::init<>())
         .def("SetTranslationalIntegrationSchemeInProperties", &DEMIntegrationScheme::SetTranslationalIntegrationSchemeInProperties)
         .def("SetRotationalIntegrationSchemeInProperties", &DEMIntegrationScheme::SetRotationalIntegrationSchemeInProperties)
         ;
 
-    class_<Variable<DEMIntegrationScheme::Pointer>, Variable<DEMIntegrationScheme::Pointer>::Pointer >(m, "DEMIntegrationSchemePointerVariable")
+    py::class_<Variable<DEMIntegrationScheme::Pointer>, Variable<DEMIntegrationScheme::Pointer>::Pointer >(m, "DEMIntegrationSchemePointerVariable")
         .def("__str__", &Variable<DEMIntegrationScheme::Pointer>::Info)
         ;
 
-    class_<Variable<DEMIntegrationScheme*>, Variable<DEMIntegrationScheme*>::Pointer>(m, "DEMIntegrationSchemeRawPointerVariable")
+    py::class_<Variable<DEMIntegrationScheme*>, Variable<DEMIntegrationScheme*>::Pointer>(m, "DEMIntegrationSchemeRawPointerVariable")
         .def("__str__", &Variable<DEMIntegrationScheme*>::Info)
         ;
 
-    class_<ForwardEulerScheme, ForwardEulerScheme::Pointer, DEMIntegrationScheme>(m, "ForwardEulerScheme")
-        .def(init<>())
+    py::class_<ForwardEulerScheme, ForwardEulerScheme::Pointer, DEMIntegrationScheme>(m, "ForwardEulerScheme")
+        .def(py::init<>())
         ;
 
-    class_<SymplecticEulerScheme, SymplecticEulerScheme::Pointer, DEMIntegrationScheme>(m, "SymplecticEulerScheme")
-        .def(init<>())
+    py::class_<SymplecticEulerScheme, SymplecticEulerScheme::Pointer, DEMIntegrationScheme>(m, "SymplecticEulerScheme")
+        .def(py::init<>())
         ;
 
-    class_<TaylorScheme, TaylorScheme::Pointer, DEMIntegrationScheme>(m, "TaylorScheme")
-        .def(init<>())
+    py::class_<TaylorScheme, TaylorScheme::Pointer, DEMIntegrationScheme>(m, "TaylorScheme")
+        .def(py::init<>())
         ;
 
-    class_<VelocityVerletScheme, VelocityVerletScheme::Pointer, DEMIntegrationScheme>(m, "VelocityVerletScheme")
-        .def(init<>())
+    py::class_<VelocityVerletScheme, VelocityVerletScheme::Pointer, DEMIntegrationScheme>(m, "VelocityVerletScheme")
+        .def(py::init<>())
         ;
 
-    class_<RungeKuttaScheme, RungeKuttaScheme::Pointer, DEMIntegrationScheme>(m, "RungeKuttaScheme")
-        .def(init<>())
+    py::class_<RungeKuttaScheme, RungeKuttaScheme::Pointer, DEMIntegrationScheme>(m, "RungeKuttaScheme")
+        .def(py::init<>())
         ;
 
-    class_<QuaternionIntegrationScheme, QuaternionIntegrationScheme::Pointer, DEMIntegrationScheme>(m, "QuaternionIntegrationScheme")
-        .def(init<>())
+    py::class_<QuaternionIntegrationScheme, QuaternionIntegrationScheme::Pointer, DEMIntegrationScheme>(m, "QuaternionIntegrationScheme")
+        .def(py::init<>())
         ;
 
-    class_<DemSearchType, DemSearchType::Pointer, SpatialSearch>(m, "OMP_DEMSearch")
-        .def(init<>())
-        .def(init<const double, const double, const double, const double, const double, const double>(), arg("min_x"), arg("min_y"), arg("min_z"), arg("max_x"), arg("max_y"), arg("max_z"))
+    py::class_<DemSearchType, DemSearchType::Pointer, SpatialSearch>(m, "OMP_DEMSearch")
+        .def(py::init<>())
+        .def(py::init<const double, const double, const double, const double, const double, const double>(), py::arg("min_x"), py::arg("min_y"), py::arg("min_z"), py::arg("max_x"), py::arg("max_y"), py::arg("max_z"))
         ;
 
-    class_<ExplicitSolverSettings, ExplicitSolverSettings::Pointer>(m, "ExplicitSolverSettings")
-        .def(init<>())
+    py::class_<ExplicitSolverSettings, ExplicitSolverSettings::Pointer>(m, "ExplicitSolverSettings")
+        .def(py::init<>())
         .def_readwrite("r_model_part",&ExplicitSolverSettings::r_model_part)
         .def_readwrite("contact_model_part",&ExplicitSolverSettings::contact_model_part)
         .def_readwrite("fem_model_part",&ExplicitSolverSettings::fem_model_part)
@@ -100,8 +100,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def_readwrite("inlet_model_part",&ExplicitSolverSettings::inlet_model_part)
         ;
 
-    class_<ExplicitSolverStrategy, ExplicitSolverStrategy::Pointer>(m, "ExplicitSolverStrategy")
-        .def(init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters, const bool>())
+    py::class_<ExplicitSolverStrategy, ExplicitSolverStrategy::Pointer>(m, "ExplicitSolverStrategy")
+        .def(py::init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters, const bool>())
         .def("Solve", &ExplicitSolverStrategy::Solve)
         .def("Initialize", &ExplicitSolverStrategy::Initialize)
         .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
@@ -118,16 +118,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 
-    class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")
-        .def(init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters, const bool>())
+    py::class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")
+        .def(py::init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters, const bool>())
         ;
 
-    class_<VelocityVerletSolverStrategy<ExplicitSolverStrategy>, VelocityVerletSolverStrategy<ExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "VelocityVerletSolverStrategy")
-        .def(init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
+    py::class_<VelocityVerletSolverStrategy<ExplicitSolverStrategy>, VelocityVerletSolverStrategy<ExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "VelocityVerletSolverStrategy")
+        .def(py::init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 
-    class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
-        .def(init<ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
+    py::class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
+        .def(py::init<ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 
 }
