@@ -858,11 +858,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
             if (r_process_info[CONTACT_MESH_OPTION] == 1) {
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                 if ((i < (int)mNeighborsSize) && this->Id() < neighbour_iterator_id) {
-                    double total_local_elastic_contact_force[3] = {0.0};
-                    total_local_elastic_contact_force[0] = LocalElasticContactForce[0] + LocalElasticExtraContactForce[0];
-                    total_local_elastic_contact_force[1] = LocalElasticContactForce[1] + LocalElasticExtraContactForce[1];
-                    total_local_elastic_contact_force[2] = LocalElasticContactForce[2] + LocalElasticExtraContactForce[2];
-                    CalculateOnContactElements(i, total_local_elastic_contact_force);
+                    CalculateOnContactElements(i, LocalContactForce);
                 }
             }
 
@@ -1986,7 +1982,7 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         KRATOS_CATCH("")
     }
 
-    void SphericParticle::CalculateOnContactElements(size_t i, double LocalElasticContactForce[3]) {
+    void SphericParticle::CalculateOnContactElements(size_t i, double LocalContactForce[3]) {
 
         KRATOS_TRY
 
@@ -1994,9 +1990,9 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         ParticleContactElement* bond = mBondElements[i];
         if (bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
 
-        bond->mLocalContactForce[0] = LocalElasticContactForce[0];
-        bond->mLocalContactForce[1] = LocalElasticContactForce[1];
-        bond->mLocalContactForce[2] = LocalElasticContactForce[2];
+        bond->mLocalContactForce[0] = LocalContactForce[0];
+        bond->mLocalContactForce[1] = LocalContactForce[1];
+        bond->mLocalContactForce[2] = LocalContactForce[2];
         KRATOS_CATCH("")
     }
 
