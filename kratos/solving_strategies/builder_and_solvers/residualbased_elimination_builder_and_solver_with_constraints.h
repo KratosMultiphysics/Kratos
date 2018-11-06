@@ -522,7 +522,7 @@ protected:
                 omp_set_lock(&rLockArray[i_global]);
             #endif
 
-                BaseType::AssembleRowContribution(rT, rTransformationMatrix, i_global, i_local, rMasterEquationId);
+                BaseType::AssembleRowContributionFreeDofs(rT, rTransformationMatrix, i_global, i_local, rMasterEquationId);
 
             #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&rLockArray[i_global]);
@@ -614,42 +614,48 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
+        // The total number of dof of the system
         const SizeType equation_size = BaseType::mEquationSystemSize;
 
+        // This vector contains the indexes sets for all rows
         std::vector<IndexSetType> indices(equation_size);
 
+        // We reserve some indexes on each row
         #pragma omp parallel for firstprivate(equation_size)
         for (int index = 0; index < static_cast<int>(equation_size); ++index)
             indices[index].reserve(40);
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
-        EquationIdVectorType aux_ids(3, 0);
+        EquationIdVectorType second_ids(3, 0); // NOTE: Used only on the constraints to take into account the master dofs
 
-        #pragma omp parallel firstprivate(ids, aux_ids, r_current_process_info)
+        #pragma omp parallel firstprivate(ids, second_ids)
         {
-            std::vector<IndexSetType> aux_indices(equation_size);
+            // The process info
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // We repeat the same declaration for each thead
+            std::vector<IndexSetType> temp_indexes(equation_size);
 
             #pragma omp for
             for (int index = 0; index < static_cast<int>(equation_size); ++index)
-                aux_indices[index].reserve(10);
+                temp_indexes[index].reserve(30);
 
-            // Getting the elements from the model
+            // Getting the size of the array of elements from the model
             const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
 
             // Element initial iterator
             const auto el_begin = rModelPart.ElementsBegin();
 
+            // We iterate over the elements
             #pragma omp for schedule(guided, 512) nowait
-            for (int i_elem = 0; i_elem<number_of_elements; i_elem++) {
+            for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
                 auto it_elem = el_begin + i_elem;
                 pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
 
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
-                        auto& row_indices = aux_indices[id_i];
+                        auto& row_indices = temp_indexes[id_i];
                         for (auto& id_j : ids)
                             if (id_j < BaseType::mEquationSystemSize)
                                 row_indices.insert(id_j);
@@ -657,19 +663,20 @@ protected:
                 }
             }
 
-            // Getting the array of the conditions
+            // Getting the size of the array of the conditions
             const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
             // Condition initial iterator
             const auto cond_begin = rModelPart.ConditionsBegin();
 
+            // We iterate over the conditions
             #pragma omp for schedule(guided, 512) nowait
             for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
                 auto it_cond = cond_begin + i_cond;
                 pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
-                        auto& row_indices = aux_indices[id_i];
+                        auto& row_indices = temp_indexes[id_i];
                         for (auto& id_j : ids)
                             if (id_j < BaseType::mEquationSystemSize)
                                 row_indices.insert(id_j);
@@ -677,37 +684,42 @@ protected:
                 }
             }
 
+            // Getting the size of the array of the constraints
+            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
             // Constraint initial iterator
             const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
 
-            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
-            #pragma omp for schedule(guided, 512) nowait
+            // We iterate over the constraints
+            #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = const_begin + i_const;
-                it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
+                it_const->EquationIdVector(ids, second_ids, r_current_process_info);
+                // Slave DoFs
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
-                        auto& row_indices = aux_indices[id_i];
+                        auto& row_indices = temp_indexes[id_i];
                         for (auto& id_j : ids)
                         if (id_j < BaseType::mEquationSystemSize)
                             row_indices.insert(id_j);
                     }
                 }
-                for (auto& id_i : aux_ids) {
+                // Master DoFs
+                for (auto& id_i : second_ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
-                        auto& row_indices = aux_indices[id_i];
-                        for (auto& id_j : aux_ids)
+                        auto& row_indices = temp_indexes[id_i];
+                        for (auto& id_j : second_ids)
                         if (id_j < BaseType::mEquationSystemSize)
                             row_indices.insert(id_j);
                     }
                 }
             }
 
+            // Merging all the temporal indexes
             #pragma omp critical
             {
-                for (int i = 0; i < static_cast<int>(aux_indices.size()); ++i) {
-                    indices[i].insert(aux_indices[i].begin(), aux_indices[i].end());
+                for (int i = 0; i < static_cast<int>(temp_indexes.size()); ++i) {
+                    indices[i].insert(temp_indexes[i].begin(), temp_indexes[i].end());
                 }
             }
         }
@@ -812,23 +824,23 @@ protected:
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
-        EquationIdVectorType aux_ids(3, 0);
+        EquationIdVectorType second_ids(3, 0); // NOTE: Used only on the constraints to take into account the master dofs
 
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // TODO: OMP
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-            it_const->EquationIdVector(ids, aux_ids, r_current_process_info);
+            it_const->EquationIdVector(ids, second_ids, r_current_process_info);
             for (auto& slave_id : ids) {
                 if (slave_id < BaseType::mEquationSystemSize) {
                     auto it_slave = mSlaveMasterDoFRelation.find(slave_id);
                     if (it_slave != mSlaveMasterDoFRelation.end()) {
                         auto& master_set = it_slave->second;
-                        for (auto& master_id : aux_ids) {
+                        for (auto& master_id : second_ids) {
                             if (master_id < BaseType::mEquationSystemSize) {
                                 auto it_master = master_set.find(master_id);
                                 if (it_master != master_set.end()) {
-                                    auto &master_row_indices = master_indices[slave_id];
+                                    auto& master_row_indices = master_indices[slave_id];
                                     master_row_indices.insert(mSolvableDoFReorder[master_id]);
                                 }
                             }
