@@ -1226,11 +1226,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 
             if (mCouplingType != 4){
 		double nodalFluidVolume=i_node->FastGetSolutionStepValue(NODAL_AREA);
-		if(nodalFluidVolume==0){
-		   fluid_fraction = 0;
+		if(std::abs(nodalFluidVolume) < 1.0e-12){
+		   fluid_fraction = 1.0;
 		}else{
 		  fluid_fraction = 1.0 - fluid_fraction / nodalFluidVolume;
-		}	    
+		}
             }
 
             else {
