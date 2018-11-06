@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division
 from CoSimulationApplication import *
 import custom_co_simulation_solver_interfaces.co_simulation_io_factory as io_factory
 import co_simulation_tools as tools
+cs_data_structure = tools.cs_data_structure
 
 ##
 #  IMPORTANT : This is a BASE CLASS
@@ -17,20 +18,26 @@ class CoSimulationBaseSolver(object):
     #
     #  @param self                      The object pointer.
     #  @param cosim_solver_settings     python dictionary : with the solver settings.
-    def __init__(self, cosim_solver_settings):
-        default_settings = {}
-        default_settings["name"] = str # MANDATORY
-        default_settings["settings"] = dict # MANDATORY
-        default_settings["data"] = list # MANDATORY
-        default_settings["echo_level"] = 0
-        self.cosim_solver_settings = tools.ValidateAndAssignInputParameters(default_settings, cosim_solver_settings, False)
-        self.SetEchoLevel( self.cosim_solver_settings["echo_level"] )
+    def __init__(self, solver_name, cosim_solver_settings):
+        default_setting = cs_data_structure.Parameters("""
+        {
+            "solver_type" : "",
+            "io_settings":{},
+            "settings" : {},
+            "data" : {},
+            "echo_level" : 0
+        }
+        """)
+        self.name = solver_name
+        self.cosim_solver_settings = cosim_solver_settings
+        self.cosim_solver_settings.ValidateAndAssignDefaults(default_setting)
+        self.SetEchoLevel( self.cosim_solver_settings["echo_level"].IsInt() )
         self.data_list = self._GetDataList()
 
         # This is the map of all the geometries that a solver can have
         self.geometry_map = {}
-
         self.io_is_initialized = False
+
 
     ## Initialize : Initialize function for the solver class. Necessary
     #               initialization of the variables and objects to be done here.
@@ -43,11 +50,11 @@ class CoSimulationBaseSolver(object):
     #  @param self                      The object pointer.
     #  @param io_echo_level             int : echo level for the io to be initialized.
     def InitializeIO(self, io_echo_level=0):
-        solver_name = self.cosim_solver_settings["name"]
+        solver_name = self.name
         if self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is already initialized!')
 
-        self.io = io_factory.CreateIO(self._GetIOName(), solver_name)
+        self.io = io_factory.CreateIO(self._GetIOName(), self.cosim_solver_settings["io_settings"])
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
@@ -103,7 +110,7 @@ class CoSimulationBaseSolver(object):
         if data_name in self.data_list.keys():
             return self.data_list[data_name]
         else:
-            raise Exception(tools.bcolors.FAIL+ "Requested data field " + data_name + " does not exist in the solver "+self.cosim_solver_settings[name]+tools.bcolors.ENDC)
+            raise Exception(tools.bcolors.FAIL+ "Requested data field " + data_name + " does not exist in the solver "+self.name+tools.bcolors.ENDC)
 
     ## ImportData : This function imports the requested data from
     #               from_client
@@ -114,7 +121,7 @@ class CoSimulationBaseSolver(object):
     def ImportData(self, data_name, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        data_conf = self.GetDataConfig(data_name)
+        data_conf = from_client.GetDataConfig(data_name)
         self.io.ImportData(data_conf, from_client)
 
     ## ImportMesh : This function imports the requested surface/volume
@@ -190,8 +197,36 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     def _GetDataList(self):
         data_list = {}
-        for data_def in self.cosim_solver_settings["data"]:
-            data_conf = tools.MakeDataConfig(data_def)
-            data_list[data_conf["name"]] = data_conf
+        for data_name, data_def in self.cosim_solver_settings["data"].items():
+            data_conf = self._MakeDataConfig(data_def)
+            data_list[data_name] = data_conf
 
         return data_list
+
+    def _MakeDataConfig(self,custom_config):
+        default_config = cs_data_structure.Parameters("""
+        {
+            "name" : "default",
+            "format":"list",
+            "dimension" : 0,
+            "size" : 0,
+            "geometry_name" : "",
+            "location_on_mesh":""
+        }
+        """)
+        custom_config.ValidateAndAssignDefaults(default_config)
+        if custom_config["format"].GetString() == "list" :
+            default_config = cs_data_structure.Parameters("""
+            {
+                "name" : "default",
+                "format":"list",
+                "dimension" : 0,
+                "size" : 0,
+                "geometry_name" : "",
+                "location_on_mesh":"",
+                "data":[]
+            }
+            """)
+            custom_config.ValidateAndAssignDefaults(default_config)
+
+        return custom_config
