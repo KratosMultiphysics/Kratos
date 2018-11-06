@@ -25,23 +25,17 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
-{
-
-using namespace pybind11;
-
-
+namespace Kratos {
+namespace Python {
 
 PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
 {
+    namespace py = pybind11;
 
-    class_<KratosStructuralMechanicsApplication,
+    py::class_<KratosStructuralMechanicsApplication,
             KratosStructuralMechanicsApplication::Pointer,
             KratosApplication >(m,"KratosStructuralMechanicsApplication")
-            .def(init<>())
+            .def(py::init<>())
             ;
 
     AddCustomStrategiesToPython(m);
@@ -50,7 +44,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomConstitutiveLawsToPython(m);
     AddCustomResponseFunctionUtilitiesToPython(m);
 
-    class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
+    py::class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
 
     // General pourpose
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_ORDER); // The integration order considered on the element
@@ -232,6 +226,11 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UNIAXIAL_STRESS_TENSION)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UNIAXIAL_STRESS_COMPRESSION)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRACTURE_ENERGY_COMPRESSION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CURVE_FITTING_PARAMETERS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_STRAIN_INDICATORS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EQUIVALENT_PLASTIC_STRAIN)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KINEMATIC_PLASTICITY_PARAMETERS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, KINEMATIC_HARDENING_TYPE)
 
     // Adjoint Variables
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_DISPLACEMENT)
@@ -261,9 +260,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DESIGN_VARIABLE_NAME);
 }
 
-
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

@@ -74,6 +74,7 @@ def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part, pp)
 
     if checker.ModelPartHasNodalVariableOrNot(fluid_model_part, FLUID_FRACTION):
         SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
+        SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION_OLD, 1.0)
     if checker.ModelPartHasNodalVariableOrNot(balls_model_part, FLUID_FRACTION_PROJECTED):
         SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
 
@@ -467,6 +468,9 @@ class PostUtils:
         Logger.Flush()
 
         if self.pp.GiDMultiFileFlag == "Multiples":
+            renumbering_utility = RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
+            renumbering_utility.Renumber()
+
             self.mixed_model_part.Elements.clear()
             self.mixed_model_part.Nodes.clear()
             # here order is important!
@@ -486,6 +490,9 @@ class PostUtils:
                                                self.pp.rigid_faces_nodal_results,
                                                self.pp.mixed_nodal_results,
                                                self.pp.gauss_points_results)
+
+        if self.pp.GiDMultiFileFlag == "Multiples":
+            renumbering_utility.UndoRenumber()
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
