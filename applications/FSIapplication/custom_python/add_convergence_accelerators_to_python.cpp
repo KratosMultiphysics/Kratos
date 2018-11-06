@@ -61,7 +61,7 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 
     // MVQN convergence accelerator
     py::class_<MVQNFullJacobianConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
-        .def(py::init<double>())
+        .def(py::init<double, double>)
         .def(py::init<Parameters &>())
         .def("InitializeSolutionStep", &MVQNFullJacobianConvergenceAccelerator<TSpace>::InitializeSolutionStep)
         .def("UpdateSolution", &MVQNFullJacobianConvergenceAccelerator<TSpace>::UpdateSolution)
@@ -70,7 +70,6 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 
     // MVQN recursive convergence accelerator
     py::class_<MVQNRecursiveJacobianConvergenceAccelerator<TSpace>, BaseConvergenceAcceleratorType>(m, "MVQNRecursiveJacobianConvergenceAccelerator")
-        .def(py::init<double, unsigned int>())
         .def(py::init<Parameters &>())
         .def(py::init<double, unsigned int, double>())
         .def("Initialize", &MVQNRecursiveJacobianConvergenceAccelerator<TSpace>::Initialize)
