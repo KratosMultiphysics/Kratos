@@ -22,12 +22,12 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosDEMApplication,m)
 {
-    class_<KratosDEMApplication, KratosDEMApplication::Pointer, KratosApplication>(m, "KratosDEMApplication")
-        .def(init<>());
+    py::class_<KratosDEMApplication, KratosDEMApplication::Pointer, KratosApplication>(m, "KratosDEMApplication")
+        .def(py::init<>());
         ;
 
     AddCustomStrategiesToPython(m);

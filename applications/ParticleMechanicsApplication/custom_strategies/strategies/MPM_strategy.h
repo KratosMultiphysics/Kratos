@@ -170,6 +170,15 @@ public:
         array_1d<double,3> xg = ZeroVector(3);
         array_1d<double,3> MP_Displacement = ZeroVector(3);
         array_1d<double,3> MP_Velocity = ZeroVector(3);
+        array_1d<double,3> MP_Acceleration = ZeroVector(3);
+        array_1d<double,3> Aux_MP_Velocity = ZeroVector(3);
+        array_1d<double,3> Aux_MP_Acceleration = ZeroVector(3);
+        array_1d<double,3> MP_Volume_Acceleration = ZeroVector(3);
+
+        Vector MP_Cauchy_Stress_Vector = ZeroVector(6);
+        Vector MP_Almansi_Strain_Vector = ZeroVector(6);
+        double MP_Pressure = 0.0;
+        double Aux_MP_Pressure = 0.0;
 
         double MP_Mass;
         double MP_Volume;
@@ -280,6 +289,7 @@ public:
                             }
                         }
 
+                        // Setting particle element's initial condition
                         p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
                         p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
                         p_element -> SetValue(MP_DENSITY, MP_Density);
@@ -288,6 +298,18 @@ public:
                         p_element -> SetValue(GAUSS_COORD, xg);
                         p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
                         p_element -> SetValue(MP_VELOCITY, MP_Velocity);
+                        p_element -> SetValue(MP_ACCELERATION, MP_Acceleration);
+                        p_element -> SetValue(AUX_MP_VELOCITY, Aux_MP_Velocity);
+                        p_element -> SetValue(AUX_MP_ACCELERATION, Aux_MP_Acceleration);
+                        p_element -> SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
+                        p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
+                        p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
+
+                        if(isMixedFormulation)
+                        {
+                            p_element -> SetValue(MP_PRESSURE, MP_Pressure);
+                            p_element -> SetValue(AUX_MP_PRESSURE, Aux_MP_Pressure);
+                        }
 
                         // Add the MP Element to the model part
                         mpm_model_part.GetSubModelPart(submodelpart_name).AddElement(p_element);
