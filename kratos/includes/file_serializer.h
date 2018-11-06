@@ -27,7 +27,8 @@
 
 namespace Kratos
 {
-    //This is a Helper object to provide a simpler interface for serialization to a file
+    //This class provides a simpler interface for serialization to a file
+    // Note that you may not override any load or save method of the Serializer. They are not virtual
     class KRATOS_API(KRATOS_CORE) FileSerializer : public Serializer 
     {
         public:
