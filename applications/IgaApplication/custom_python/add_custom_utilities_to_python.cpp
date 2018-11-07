@@ -31,7 +31,6 @@ void RegisterPoint1D(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
 
     using namespace pybind11::literals;
 
@@ -54,7 +53,6 @@ void RegisterPoint2D(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = Kratos::array_1d<double, 2>;
@@ -81,13 +79,12 @@ void RegisterInterval(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = ANurbs::Interval<double>;
 
-    py::class_<Type>(m, name.c_str())
-        .def(py::init<double, double>())
+    pybind11::class_<Type>(m, name.c_str())
+        .def(pybind11::init<double, double>())
         .def_property_readonly("T0", &Type::T0)
         .def_property_readonly("T1", &Type::T1)
         .def_property_readonly("Min", &Type::Min)
@@ -108,7 +105,6 @@ void RegisterCurveShapeEvaluator(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = ANurbs::CurveShapeEvaluator<double>;
@@ -147,7 +143,6 @@ void RegisterSurfaceShapeEvaluator(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = ANurbs::SurfaceShapeEvaluator<double>;
@@ -206,7 +201,6 @@ void RegisterCurveGeometryBase(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = CurveGeometryBase<TDimension>;
@@ -244,7 +238,6 @@ void RegisterCurveGeometry(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = CurveGeometry<TDimension>;
@@ -264,7 +257,6 @@ void RegisterSurfaceGeometryBase(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using VectorType = Kratos::array_1d<double, TDimension>;
@@ -334,7 +326,6 @@ void RegisterSurfaceGeometry(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = SurfaceGeometry<TDimension>;
@@ -355,7 +346,6 @@ void RegisterNodeCurveGeometry(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using VectorType = Kratos::array_1d<double, 3>;
@@ -436,7 +426,6 @@ void RegisterNodeSurfaceGeometry(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using VectorType = Kratos::array_1d<double, 3>;
@@ -536,13 +525,12 @@ void RegisterCurveBase(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = CurveBase<TDimension>;
     using Holder = shared_ptr<Type>;
 
-    py::class_<Type, Holder>(m, name.c_str())
+    pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("Domain", &Type::Domain)
         .def("PointAt", &Type::PointAt,
             "T"_a)
@@ -558,7 +546,6 @@ void RegisterCurve(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using GeometryType = CurveGeometry<TDimension>;
@@ -580,13 +567,12 @@ void RegisterSurfaceBase(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = SurfaceBase<TDimension>;
     using Holder = shared_ptr<Type>;
 
-    py::class_<Type, Holder>(m, name.c_str())
+    pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("DomainU", &Type::DomainU)
         .def_property_readonly("DomainV", &Type::DomainV)
         .def("PointAt", &Type::PointAt,
@@ -606,7 +592,6 @@ void RegisterSurface(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using GeometryType = SurfaceGeometry<TDimension>;
@@ -629,7 +614,6 @@ void RegisterCurveOnSurface(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = CurveOnSurface<TDimension>;
@@ -651,7 +635,6 @@ void RegisterPointOnCurveProjection(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using VectorType = Kratos::array_1d<double, TDimension>;
@@ -660,8 +643,8 @@ void RegisterPointOnCurveProjection(
     using Type = ANurbs::PointOnCurveProjection<VectorType>;
     using Pointer = shared_ptr<Type>;
 
-    py::class_<Type, Pointer>(m, name.c_str())
-        .def(py::init<shared_ptr<CurveBaseType>, double>(),
+    pybind11::class_<Type, Pointer>(m, name.c_str())
+        .def(pybind11::init<shared_ptr<CurveBaseType>, double>(),
             "Curve"_a,
             "Tolerance"_a)
         .def("Compute",
@@ -678,7 +661,6 @@ void RegisterCurveTessellation(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using VectorType = Kratos::array_1d<double, TDimension>;
@@ -686,8 +668,8 @@ void RegisterCurveTessellation(
     using Type = ANurbs::CurveTessellation<VectorType>;
     using Pointer = shared_ptr<Type>;
 
-    py::class_<Type, Pointer>(m, name.c_str())
-        .def(py::init<>())
+    pybind11::class_<Type, Pointer>(m, name.c_str())
+        .def(pybind11::init<>())
         .def("Compute", &Type::Compute,
             "Curve"_a,
             "Tolerance"_a)
@@ -703,7 +685,6 @@ void RegisterIntegrationPoint1(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = ANurbs::IntegrationPoint1<double>;
@@ -722,7 +703,6 @@ void RegisterIntegrationPoint2(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = ANurbs::IntegrationPoint2<double>;
@@ -742,7 +722,6 @@ void RegisterIntegrationPoints(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     using Type = ANurbs::IntegrationPoints<double>;
@@ -772,7 +751,6 @@ void RegisterIntegrationPoints(
 void AddCustomUtilitiesToPython(
     pybind11::module& m)
 {
-    namespace py = pybind11;
     using namespace pybind11::literals;
 
     RegisterInterval(m, "Interval");
