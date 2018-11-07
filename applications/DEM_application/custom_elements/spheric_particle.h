@@ -290,7 +290,6 @@ Matrix* mStressTensor;
 Matrix* mSymmStressTensor;
 double mPartialRepresentativeVolume;
 
-unsigned int mNeighborsSize;
 std::vector<int> mFemOldNeighbourIds;
 
 protected:
