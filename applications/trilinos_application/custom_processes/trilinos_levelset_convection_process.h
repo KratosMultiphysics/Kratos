@@ -151,7 +151,7 @@ public:
         const bool reform_dof_at_each_iteration = false;
         const bool calculate_norm_Dx_flag = false;
 
-        ModelPart& r_distance_model_part = rBaseModelPart.GetOwnerModel().GetModelPart("DistanceConvectionPart");
+        ModelPart& r_distance_model_part = rBaseModelPart.GetModel().GetModelPart("DistanceConvectionPart");
         (this->mpSolvingStrategy) = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
             r_distance_model_part,
             p_scheme,
@@ -240,10 +240,10 @@ protected:
         KRATOS_ERROR_IF(base_buffer_size < 2) << 
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
-        if(rBaseModelPart.GetOwnerModel().HasModelPart("DistanceConvectionPart"))
-            rBaseModelPart.GetOwnerModel().DeleteModelPart("DistanceConvectionPart");
+        if(rBaseModelPart.GetModel().HasModelPart("DistanceConvectionPart"))
+            rBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
 
-        ModelPart& r_distance_model_part = rBaseModelPart.GetOwnerModel().CreateModelPart("DistanceConvectionPart");
+        ModelPart& r_distance_model_part = rBaseModelPart.GetModel().CreateModelPart("DistanceConvectionPart");
 
         // Generate
 

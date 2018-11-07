@@ -139,7 +139,7 @@ public:
         const bool ReformDofAtEachIteration = false;
         const bool CalculateNormDxFlag = false;
 
-        ModelPart& r_distance_model_part = base_model_part.GetOwnerModel().GetModelPart("DistancePart");
+        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart("DistancePart");
         (this->mp_solving_strategy) = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part, 
             pscheme, 
@@ -192,10 +192,10 @@ protected:
         KRATOS_TRY
 
         // Generate distance model part
-        if(!base_model_part.GetOwnerModel().HasModelPart("DistancePart"))
-            base_model_part.GetOwnerModel().CreateModelPart("DistancePart",2);
+        if(!base_model_part.GetModel().HasModelPart("DistancePart"))
+            base_model_part.GetModel().CreateModelPart("DistancePart",2);
 
-        ModelPart& r_distance_model_part = base_model_part.GetOwnerModel().GetModelPart("DistancePart");
+        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart("DistancePart");
         
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();

@@ -33,25 +33,25 @@ namespace Python
 void AddMappersToPython(pybind11::module &m)
 {
 
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<SharedPointsMapper>(m,"SharedPointsMapper")
-        .def(init<const ModelPart::NodesContainerType &, const ModelPart::NodesContainerType &, double>())
+    py::class_<SharedPointsMapper>(m,"SharedPointsMapper")
+        .def(py::init<const ModelPart::NodesContainerType &, const ModelPart::NodesContainerType &, double>())
         .def("ScalarMap", &SharedPointsMapper::ScalarMap)
         .def("InverseScalarMap", &SharedPointsMapper::InverseScalarMap)
         .def("VectorMap", &SharedPointsMapper::VectorMap)
         .def("InverseVectorMap", &SharedPointsMapper::InverseVectorMap);
 
-    class_<AdvancedNMPointsMapper>(m,"AdvancedNMPointsMapper")
-        .def(init<ModelPart &, ModelPart &>())
+    py::class_<AdvancedNMPointsMapper>(m,"AdvancedNMPointsMapper")
+        .def(py::init<ModelPart &, ModelPart &>())
         .def("FindNeighbours", &AdvancedNMPointsMapper::FindNeighbours)
         .def("ScalarToNormalVectorMap", &AdvancedNMPointsMapper::ScalarToNormalVectorMap)
         .def("NormalVectorToScalarMap", &AdvancedNMPointsMapper::NormalVectorToScalarMap)
         .def("ScalarMap", &AdvancedNMPointsMapper::ScalarMap)
         .def("VectorMap", &AdvancedNMPointsMapper::VectorMap);
 
-    class_<InterfacePreprocess>(m,"InterfacePreprocess")
-        .def(init<>())
+    py::class_<InterfacePreprocess>(m,"InterfacePreprocess")
+        .def(py::init<>())
         .def("GenerateTriangleInterfacePart", &InterfacePreprocess::GenerateTriangleInterfacePart)
         .def("GenerateLineInterfacePart", &InterfacePreprocess::GenerateLineInterfacePart);
 }

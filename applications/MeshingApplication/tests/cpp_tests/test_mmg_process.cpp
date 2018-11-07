@@ -117,7 +117,7 @@ namespace Kratos
             mmg_process.Execute();
 
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
 //             // DEBUG
@@ -275,7 +275,7 @@ namespace Kratos
             mmg_process.Execute();
 
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
 //             // DEBUG
