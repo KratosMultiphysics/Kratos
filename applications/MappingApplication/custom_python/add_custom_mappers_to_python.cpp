@@ -34,7 +34,7 @@
 namespace Kratos {
 namespace Python {
 
-// Wrapper functions for taking a default argument for the flags // TODO inline? Jordi
+// Wrapper functions for taking a default argument for the flags
 template<class TSparseSpace, class TDenseSpace>
 inline void UpdateInterfaceWithoutArgs(Mapper<TSparseSpace, TDenseSpace>& dummy)
 {
