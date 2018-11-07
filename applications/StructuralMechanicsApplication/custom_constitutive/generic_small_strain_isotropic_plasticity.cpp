@@ -377,9 +377,12 @@ double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
     )
 {
     if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
-        const Vector& r_stress_vector = rParameterValues.GetStressVector();
-        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, mUniaxialStress, mPlasticStrain, 0.0, rParameterValues, rValue);
+        // Calculate the stress vector
+        Vector stress_vector;
+        this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, stress_vector);
 
+        // Compute the equivalent plastic strain
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(stress_vector, mUniaxialStress, mPlasticStrain, 0.0, rParameterValues, rValue);
         return rValue;
     } else {
         return this->GetValue(rThisVariable, rValue);
