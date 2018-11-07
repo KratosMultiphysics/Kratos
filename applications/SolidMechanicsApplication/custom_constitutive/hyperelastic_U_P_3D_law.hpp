@@ -94,7 +94,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticUP3DLaw();
+    ~HyperElasticUP3DLaw() override;
 
     /**
      * Operators

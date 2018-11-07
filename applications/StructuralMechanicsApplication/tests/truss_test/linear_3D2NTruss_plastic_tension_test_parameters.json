@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "linear_3D2NTruss_tension_plasticity_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.5,
         "start_time"      : 0.0,
         "end_time"        : 210,
         "echo_level"      : 0
@@ -12,11 +9,16 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.5
+        },
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "truss_test/linear_3D2NTruss_plastic_tension_test"
-        },        
+        },
         "material_import_settings" :{
             "materials_filename": "truss_test/linear_3D2NTruss_plastic_tension_test_materials.json"
         },
@@ -24,13 +26,14 @@
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
+        "residual_relative_tolerance"        : 1e-6,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 40,
         "problem_domain_sub_model_part_list" : ["Parts_structure"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -101,16 +104,6 @@
             "interval"        : [195,"End"]
         }
     }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
     "list_other_processes": [
     {
         "python_module"   : "from_json_check_result_process",
@@ -125,7 +118,7 @@
             "time_frequency"   : 0.8
         }
     }
-    ],
+    ]},
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
@@ -140,5 +133,5 @@
             "time_frequency"   : 0.8
         }
     }
-    ]     
+    ]
 }

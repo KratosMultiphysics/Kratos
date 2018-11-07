@@ -207,7 +207,7 @@ public:
 	@return SizeType, working space dimension of this geometry.
     */
 
-    SizeType WorkingSpaceDimension() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
     {
          return pGetGeometry()->WorkingSpaceDimension();
     }
@@ -222,7 +222,7 @@ public:
      */
 
     /**
-     * creates a new element pointer
+     * @brief It creates a new element pointer
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -232,12 +232,13 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
+        KRATOS_ERROR << "Please implement the First Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     /**
-     * creates a new element pointer
+     * @brief It creates a new element pointer
      * @param NewId the ID of the new element
      * @param pGeom the geometry to be employed
      * @param pProperties the properties assigned to the new element
@@ -248,12 +249,13 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
+        KRATOS_ERROR << "Please implement the Second Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
     /**
-     * creates a new element pointer and clones the previous element data
+     * @brief It creates a new element pointer and clones the previous element data
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -262,11 +264,11 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl; 
-        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties()); 
+        KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
+        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_elem->SetData(this->GetData());
-        p_new_elem->Set(Flags(*this)); 
-        return p_new_elem; 
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
         KRATOS_CATCH("");
     }
 
@@ -918,17 +920,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    //METHODS TO BE CLEANED: DEPRECATED start
-
-    //NOTE: They will be deleted in December, 2015
-
-
-    /**
-     * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions
-     * MassMatrix, AddMassMatrix, DampMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */
 
     /**
      * this is called during the assembling process in order

@@ -40,7 +40,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             pass
 
     def test_trilinos_levelset_convection(self):
-        self.model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        self.model_part = current_model.CreateModelPart("Main",2)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
@@ -56,7 +57,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         }""")
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part, import_settings)
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
+        TrilinosModelPartImporter.ImportModelPart()
         TrilinosModelPartImporter.CreateCommunicators()
 
         # Recall to set the buffer size
@@ -102,6 +103,6 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(max_distance, 0.7904255118014996)
         self.assertAlmostEqual(min_distance,-0.11710292469993094)
-        
+
 if __name__ == '__main__':
     KratosUnittest.main()

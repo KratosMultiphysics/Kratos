@@ -62,7 +62,7 @@ namespace Kratos
     SmallStrain3DLaw& operator=(const SmallStrain3DLaw& rOther);
 
     /// Destructor.
-    virtual ~SmallStrain3DLaw();
+    ~SmallStrain3DLaw() override;
 
     ///@}
     ///@name Operators
@@ -76,7 +76,7 @@ namespace Kratos
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties& rProperties,
 			    const GeometryType& rElementGeometry,
 			    const Vector& rShapeFunctionsValues ) override;
 
@@ -123,7 +123,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SmallStrain3DLaw";
@@ -131,13 +131,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SmallStrain3DLaw";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SmallStrain3DLaw Data";
     }
@@ -180,18 +180,18 @@ namespace Kratos
      * @see   Parameters
      * @param rModelValues
      */
-    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
 
     /**
      * Initialize ModelData type:
      */
-    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
+    void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
 
 
     /**
      * Finalize ModelData type:
      */
-    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
+    void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
 
     /**
      * Calculates the stress vector
@@ -238,7 +238,7 @@ namespace Kratos
 
 
     virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-					     const Properties& rMaterialProperties);
+					     const Properties& rProperties);
 
 
     ///@}
@@ -269,12 +269,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Constitutive3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Constitutive3DLaw )
     }

@@ -117,7 +117,10 @@ public:
                                         TSystemVectorType &b) override
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
-        mPreviousDx = ZeroVector(Dx.size());
+        if (TSparseSpace::Size(mPreviousDx) != TSparseSpace::Size(Dx)) {
+            TSparseSpace::Resize(mPreviousDx, TSparseSpace::Size(Dx));
+        }
+        TSparseSpace::SetToZero(mPreviousDx);
         mIterationCounter = 0;
     }
 
@@ -190,7 +193,7 @@ public:
         }
 
         // Store results for next iteration
-        noalias(mPreviousDx) = Dx;
+        boost::numeric::ublas::noalias(mPreviousDx) = Dx;
         mOldOmega = Omega;
     }
 
@@ -203,11 +206,27 @@ public:
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedIncrementalAitkenStaticScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

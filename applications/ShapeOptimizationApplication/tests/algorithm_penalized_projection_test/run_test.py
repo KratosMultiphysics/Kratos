@@ -14,9 +14,8 @@ import csv, os
 with open("parameters.json",'r') as parameter_file:
     parameters = Parameters(parameter_file.read())
 
-# Defining the model_part
-optimization_model_part = ModelPart(parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
-optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
+
+model = Model()
 
 # =======================================================================================================
 # Define external analyzer
@@ -35,14 +34,14 @@ class CustomAnalyzer(AnalyzerBaseClass):
     # --------------------------------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
         if communicator.isRequestingValueOf("distance"):
-            communicator.reportValue("distance", self.__CalculateValue())
+            communicator.reportValue("distance", self.__CalculateValue(current_design))
 
         if communicator.isRequestingGradientOf("distance"):
-            communicator.reportGradient("distance", self.__CalculateGradient())
+            communicator.reportGradient("distance", self.__CalculateGradient(current_design))
 
     # --------------------------------------------------------------------------
-    def __CalculateValue( self ):
-        constrained_node = optimization_model_part.GetNodes()[self.constrained_node_id]
+    def __CalculateValue( self, current_design ):
+        constrained_node = current_design.GetNodes()[self.constrained_node_id]
 
         distance = [0,0,0]
         distance[0] = constrained_node.X0 - self.target_x
@@ -52,11 +51,11 @@ class CustomAnalyzer(AnalyzerBaseClass):
         return distance[0]**2 + distance[1]**2 + distance[2]**2
 
     # --------------------------------------------------------------------------
-    def __CalculateGradient( self ):
-        constrained_node = optimization_model_part.GetNodes()[self.constrained_node_id]
+    def __CalculateGradient( self, current_design ):
+        constrained_node = current_design.GetNodes()[self.constrained_node_id]
 
         response_gradient = {}
-        for node in optimization_model_part.Nodes:
+        for node in current_design.Nodes:
 
             local_gradient = [0,0,0]
 
@@ -80,7 +79,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
 
 # Create optimizer and perform optimization
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part, CustomAnalyzer())
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
 optimizer.Optimize()
 
 # =======================================================================================================
@@ -88,7 +87,7 @@ optimizer.Optimize()
 # =======================================================================================================
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
 response_log_filename = parameters["optimization_settings"]["output"]["response_log_filename"].GetString() + ".csv"
-optimization_model_part_name = parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString()
+optimization_model_part_name = parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString()
 
 # Testing
 original_directory = os.getcwd()

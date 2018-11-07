@@ -77,7 +77,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlastic3DLaw();
+    ~LinearElasticPlastic3DLaw() override;
 
     /**
      * Operators

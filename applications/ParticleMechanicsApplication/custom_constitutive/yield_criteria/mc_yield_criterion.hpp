@@ -7,20 +7,19 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
+
 
 #if !defined(KRATOS_MC_YIELD_CRITERION_H_INCLUDED)
 #define      KRATOS_MC_YIELD_CRITERION_H_INCLUDED
-
-
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/MPM_yield_criterion.hpp"
 
 namespace Kratos
 {
@@ -49,7 +48,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class MCYieldCriterion
-    : public YieldCriterion
+    : public MPMYieldCriterion
 {
 public:
     ///@name Type Definitions
@@ -88,7 +87,16 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha) override;
+
+    /*
+    * @brief This function return the Mohr Coulomb yield criterion at the given principal stress condition
+    * @param[in/out] rStateFunction Mohr coulomb yield criterion
+    * @param[in] rStressVector Principal stresses
+    * @param[in] rCohesion Current cohesion value
+    * @param[in] rFrictionAngle Current internal friction angle
+    * @return Mohr coulomb yield criterion
+    */
+    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle) override;
 
     ///@name Access
     ///@{
@@ -129,12 +137,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double GetSmoothingLodeAngle();
-
     double GetPI();
 
-    double GetSmoothingHiperbolic();
-    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -196,7 +200,7 @@ private:
 
     ///@}
 
-}; 
+};
 
 ///@}
 
@@ -229,6 +233,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRESCA_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_TRESCA_YIELD_CRITERION_H_INCLUDED  defined
 
 

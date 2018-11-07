@@ -179,7 +179,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     TotalLagrangian() : BaseSolidElement()
     {
     }
@@ -193,24 +193,25 @@ protected:
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-        
+
     /**
      * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
-     */ 
+     * @param rIntegrationMethod The integration method considered
+     */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -240,7 +241,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-   
+
     /**
      * @brief This method computes the deformation matrix B
      * @param rB The deformation matrix
@@ -327,4 +328,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined

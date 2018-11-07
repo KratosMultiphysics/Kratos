@@ -632,6 +632,7 @@ CrBeamElement3D2N::CalculateInitialLocalCS() {
       direction_vector_x /= vector_norm;
 
     direction_vector_y = this->GetValue(LOCAL_AXIS_2);
+
     direction_vector_z[0] = direction_vector_x[1] * direction_vector_y[2] -
                             direction_vector_x[2] * direction_vector_y[1];
     direction_vector_z[1] = direction_vector_x[2] * direction_vector_y[0] -
@@ -1200,7 +1201,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
   }
 
   BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
-  if (this->mIterationCount == 1)
+  if (this->mIterationCount <= 1)
     transformation_matrix = this->CalculateInitialLocalCS();
   else
     this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,
@@ -1224,7 +1225,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     rOutput[1][2] = 1.0 * stress[5] * 0.50 - stress[11] * 0.50;
     rOutput[2][2] = 1.0 * stress[5] * 0.25 - stress[11] * 0.75;
   }
-  if (rVariable == FORCE) {
+  else if (rVariable == FORCE) {
     rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[6] * 0.25;
     rOutput[1][0] = -1.0 * stress[0] * 0.50 + stress[6] * 0.50;
     rOutput[2][0] = -1.0 * stress[0] * 0.25 + stress[6] * 0.75;
@@ -1238,6 +1239,19 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     rOutput[2][2] = -1.0 * stress[2] * 0.25 + stress[8] * 0.75;
   }
 
+
+
+  else if (rVariable == LOCAL_AXIS_1){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 0)[i];
+  }
+  else if (rVariable == LOCAL_AXIS_2){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 1)[i];
+  }
+  else if (rVariable == LOCAL_AXIS_3){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 2)[i];
+  }
+
+
   KRATOS_CATCH("")
 }
 
@@ -1250,40 +1264,6 @@ void CrBeamElement3D2N::GetValueOnIntegrationPoints(
   KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-
-  if (rVariable == LOCAL_AXES_VECTOR) {
-    BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
-    if (this->mIterationCount == 1)
-      transformation_matrix = this->CalculateInitialLocalCS();
-    else
-      this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,
-                                     transformation_matrix);
-
-    rOutput.resize(3);
-    for (int i = 0; i < 3; ++i)
-      rOutput[i] = ZeroVector(3);
-
-    for (IndexType i = 0; i < 3; ++i) {
-      for (IndexType j = 0; j < 3; ++j) {
-        rOutput[i][j] = transformation_matrix(j, i);
-      }
-    }
-  }
-
-  KRATOS_CATCH("");
-}
-
-void CrBeamElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-  this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-  KRATOS_CATCH("")
-}
 
 void CrBeamElement3D2N::AssembleSmallInBigMatrix(
     Matrix SmallMatrix,
@@ -1692,6 +1672,41 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
     KRATOS_ERROR << "I33 not provided for this element" << this->Id()
                  << std::endl;
   }
+
+  if (this->Has(LOCAL_AXIS_2)) {
+    array_1d<double, msDimension> direction_vector_x = ZeroVector(msDimension);
+    array_1d<double, msDimension> direction_vector_y = ZeroVector(msDimension);
+    array_1d<double, msLocalSize> reference_coordinates = ZeroVector(msLocalSize);
+
+    reference_coordinates[0] = this->GetGeometry()[0].X0();
+    reference_coordinates[1] = this->GetGeometry()[0].Y0();
+    reference_coordinates[2] = this->GetGeometry()[0].Z0();
+    reference_coordinates[3] = this->GetGeometry()[1].X0();
+    reference_coordinates[4] = this->GetGeometry()[1].Y0();
+    reference_coordinates[5] = this->GetGeometry()[1].Z0();
+
+    for (unsigned int i = 0; i < msDimension; ++i) {
+    direction_vector_x[i] =
+        (reference_coordinates[i + msDimension] - reference_coordinates[i]);
+    }
+
+    const double vector_norm = MathUtils<double>::Norm(direction_vector_x);
+    if (vector_norm > numerical_limit)
+      direction_vector_x /= vector_norm;
+
+    direction_vector_y = this->GetValue(LOCAL_AXIS_2);
+
+    KRATOS_ERROR_IF(MathUtils<double>::Norm(direction_vector_y)<numerical_limit)
+      << "Given LOCAL_AXIS_2 has length 0 for element " << this->Id() << std::endl;
+
+    // a tollerance of 1e-3 allows for a rough deviation of 0.06 degrees from 90.0 degrees
+    KRATOS_ERROR_IF(std::abs(MathUtils<double>::Dot(direction_vector_x,direction_vector_y))>1e-3)
+      << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element " << this->Id() << std::endl;
+  }
+
+
+
+
   return 0;
 
   KRATOS_CATCH("")

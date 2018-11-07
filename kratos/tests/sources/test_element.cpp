@@ -12,6 +12,7 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
@@ -25,7 +26,8 @@ namespace Kratos {
         */
         KRATOS_TEST_CASE_IN_SUITE(ElementCloneOperator, KratosCoreFastSuite)
         {
-            ModelPart model_part("test");
+            Model current_model;
+            ModelPart& model_part = current_model.CreateModelPart("test");
 
             // Definition of nodes
             auto p_node1 = model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
@@ -41,13 +43,13 @@ namespace Kratos {
             list_nodes[1] = p_node2;
             list_nodes[2] = p_node3;
 
-            auto p_elem = model_part.CreateNewElement("Element2D3N", 1, list_nodes, p_prop);
+            auto p_elem = model_part.CreateNewElement("Element2D3N", 1, PointerVector<NodeType>{list_nodes}, p_prop);
 
             p_elem->SetValue(DISTANCE, 12.1);
             p_elem->SetValue(VELOCITY_X, 32.4);
             p_elem->Set(ACTIVE, true);
 
-            Element::Pointer p_clone_of_elem = p_elem->Clone(2, list_nodes);
+            Element::Pointer p_clone_of_elem = p_elem->Clone(2, PointerVector<NodeType>{list_nodes});
 
             KRATOS_CHECK_EQUAL(p_clone_of_elem->Id(), 2);
             KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_elem->GetValue(DISTANCE), 12.1);

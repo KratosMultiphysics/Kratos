@@ -1,13 +1,11 @@
 /*
-//  KRATOS .___  ________    _____
-//         |   |/  _____/   /  _  \
-//         |   /   \  ___  /  /_\  \
-//         |   \    \_\  \/    |    \
-//         |___|\______  /\____|__  /
-//                     \/         \/  Application
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
-//  License: BSD License
-//           Kratos default license: kratos/license.txt
+//  Main authors:   Thomas Oberbichler
 */
 
 // System includes
@@ -22,12 +20,19 @@ namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
+    , mIgaTrussElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
 {
 }
 
 void KratosIgaApplication::Register() {
     KratosApplication::Register();
     std::cout << "Initializing KratosIgaApplication... " << std::endl;
+
+    KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
+    KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
 }
 
 }  // namespace Kratos

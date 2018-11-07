@@ -284,6 +284,11 @@ class MaterialsSolver(object):
     #
     def _build_dummy_geometry(self):
 
+        #tables depent on this nodal variables (TODO: get them from assign_materials_process.py)
+        nodal_variables = {"TEMPERATURE":293.15 , "PRESSURE":0.0}
+        for variable in nodal_variables:
+            self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
+
         #build a dummy geometry
         self.dimension = self.material_law.WorkingSpaceDimension()
         self.nodes = []
@@ -301,6 +306,10 @@ class MaterialsSolver(object):
             self.nodes.append(self.model_part.CreateNewNode(2,0.0,1.0,0.0))
             self.geometry = KratosMultiphysics.Triangle2D3(self.nodes[0],self.nodes[1],self.nodes[2])
 
+
+        for node in self.nodes:
+            for variable, value in nodal_variables.items():
+                node.SetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(variable), value)
 
     #
     def _set_strain_parameters(self):

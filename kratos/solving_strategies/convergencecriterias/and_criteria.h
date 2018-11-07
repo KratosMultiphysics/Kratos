@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_AND_CRITERIA_H)
@@ -26,28 +26,28 @@
 namespace Kratos
 {
 
-///@name Kratos Globals 
+///@name Kratos Globals
 ///@{
 
-///@} 
-///@name Type Definitions 
+///@}
+///@name Type Definitions
 ///@{
 
-///@} 
-///@name  Enum's 
+///@}
+///@name  Enum's
 ///@{
 
-///@} 
-///@name  Functions 
+///@}
+///@name  Functions
 ///@{
 
-///@} 
-///@name Kratos Classes 
+///@}
+///@name Kratos Classes
 ///@{
 
-/** 
- * @class And_Criteria 
- * @ingroup KratosCore 
+/**
+ * @class And_Criteria
+ * @ingroup KratosCore
  * @brief This convergence criteria checks simultaneously two convergence criteria (both must be satisfied)
  * @details It takes two different convergence criteria in order to work
  * @author Riccardo Rossi
@@ -55,7 +55,7 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class And_Criteria 
+class And_Criteria
     : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
@@ -78,18 +78,18 @@ public:
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
     typedef typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /** 
+    /**
      * @brief Default constructor.
      * @details It takes two different convergence criteria in order to work
      * @param pFirstCriterion The first convergence criteria
      * @param pSecondCriterion The second convergence criteria
     */
-    And_Criteria(
+    explicit And_Criteria(
         ConvergenceCriteriaPointerType pFirstCriterion,
         ConvergenceCriteriaPointerType pSecondCriterion
         ) :BaseType(),
@@ -98,15 +98,15 @@ public:
     {
     }
 
-    /** 
+    /**
      * @brief Copy constructor.
      * @param rOther The other And_Criteria to be copied
     */
-    And_Criteria(And_Criteria const& rOther)
+    explicit And_Criteria(And_Criteria const& rOther)
         :BaseType(rOther),
          mpFirstCriterion(rOther.mpFirstCriterion),
          mpSecondCriterion(rOther.mpSecondCriterion)
-     {     
+     {
      }
 
     /** Destructor.
@@ -154,7 +154,7 @@ public:
 
         return (first_criterion_result && second_criterion_result);
     }
-    
+
     /**
      * @brief Criteria that need to be called after getting the solution
      * @param rModelPart ModelPart containing the problem.
@@ -181,7 +181,7 @@ public:
     /**
      * @brief This function initialize the convergence criteria
      * @param rModelPart The model part of interest
-     */ 
+     */
     void Initialize(ModelPart& rModelPart) override
     {
         mpFirstCriterion->Initialize(rModelPart);
@@ -207,7 +207,7 @@ public:
         mpFirstCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
         mpSecondCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
     }
-    
+
     /**
      * @brief This function initializes the non linear iteration
      * @param rModelPart ModelPart containing the problem.
@@ -227,7 +227,7 @@ public:
         mpFirstCriterion->InitializeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
         mpSecondCriterion->InitializeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
     }
-    
+
     /**
      * @brief This function finalizes the solution step
      * @param rModelPart ModelPart containing the problem.
@@ -267,13 +267,13 @@ public:
         mpFirstCriterion->FinalizeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
         mpSecondCriterion->FinalizeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
     }
-    
+
     /**
-     * @brief This function is designed to be called once to perform all the checks needed on the input provided. 
+     * @brief This function is designed to be called once to perform all the checks needed on the input provided.
      * @details Checks can be "expensive" as the function is designed
      * to catch user's errors.
      * @param rModelPart ModelPart containing the problem.
-     * @return 0 all ok 
+     * @return 0 all ok
      */
     int Check(ModelPart& rModelPart) override
     {
@@ -281,23 +281,45 @@ public:
 
         const int check1 = mpFirstCriterion->Check(rModelPart);
         const int check2 = mpSecondCriterion->Check(rModelPart);
-        
+
         return check1 + check2;
-        
+
         KRATOS_CATCH("");
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
 
     ///@}
-    ///@name Access 
+    ///@name Access
     ///@{
 
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "And_Criteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -332,9 +354,9 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
-    
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -343,7 +365,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ConvergenceCriteriaPointerType mpFirstCriterion;  /// The pointer to the first convergence criterion
     ConvergenceCriteriaPointerType mpSecondCriterion; /// The pointer to the second convergence criterion
 

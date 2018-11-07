@@ -7,6 +7,14 @@ CheckForPreviousImport()
 
 import gid_output_process
 
+def Factory(settings, Model):
+    if(type(settings) != Parameters):
+        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
+    output_name = settings["Parameters"]["output_name"].GetString()
+    postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
+    return GiDOutputProcessMPI(model_part, output_name, postprocess_parameters)
+
 class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
 
     def __init__(self,model_part,file_name,param = None):
@@ -79,6 +87,10 @@ class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
         self.nodal_flags_names =[]
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
+        self.elemental_conditional_flags = self._GenerateFlagsListFromInput(result_file_configuration["elemental_conditional_flags_results"])
+        self.elemental_conditional_flags_names =[]
+        for i in range(result_file_configuration["elemental_conditional_flags_results"].size()):
+            self.elemental_conditional_flags_names.append(result_file_configuration["elemental_conditional_flags_results"][i].GetString())
 
         # Set up output frequency and format
         output_file_label = result_file_configuration["file_label"].GetString()

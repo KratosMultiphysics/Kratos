@@ -16,39 +16,32 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # ==============================================================================
-def CreateMapper( ModelPartController, OptimizationSettings ):
+def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
     default_settings = Parameters("""
     {
         "filter_function_type"       : "linear",
-        "filter_radius"              : 1.0,
+        "filter_radius"              : 0.000000000001,
         "max_nodes_in_filter_radius" : 10000,
         "matrix_free_filtering"      : false,
-        "integration":
-        {
-            "integration_method": "node_sum",
-            "number_of_gauss_points": 0
-        },
-        "consistent_mapping_to_geometry_space": false
+        "consistent_mapping"         : false,
+        "improved_integration"       : false,
+        "integration_method"         : "gauss_integration",
+        "number_of_gauss_points"     : 5
     }""")
 
-    mapper_settings = OptimizationSettings["design_variables"]["filter"]
     mapper_settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-    design_surface = ModelPartController.GetDesignSurface()
-
     if mapper_settings["matrix_free_filtering"].GetBool():
-        if mapper_settings["consistent_mapping_to_geometry_space"].GetBool():
-             raise ValueError ("Matrix free Mapper has no consistent_mapping_to_geometry_space option yet!")
-        if mapper_settings["integration"]["integration_method"].GetString() != "node_sum":
-             raise ValueError ("Matrix free Mapper can only be combined with 'node_sum' integration method!")
+        if mapper_settings["consistent_mapping"].GetBool():
+             raise ValueError ("Matrix free mapper has no option to map consistently yet!")
+        if mapper_settings["improved_integration"].GetBool():
+             raise ValueError ("Matrix free mapper does not yet allow for an improved integration!")
         else:
-            return MapperVertexMorphingMatrixFree( design_surface, mapper_settings )
+            return MapperVertexMorphingMatrixFree(origin_model_part, destination_model_part, mapper_settings)
     else:
-        if mapper_settings["integration"]["integration_method"].GetString() in ["gauss_integration", "area_weighted_sum"]:
-            return MapperVertexMorphingImprovedIntegration( design_surface, mapper_settings )
-        elif mapper_settings["integration"]["integration_method"].GetString() == "node_sum":
-            return MapperVertexMorphing( design_surface, mapper_settings )
+        if mapper_settings["improved_integration"].GetBool():
+            return MapperVertexMorphingImprovedIntegration(origin_model_part, destination_model_part, mapper_settings)
         else:
-            raise ValueError ("CreateMapper: integration_method not known!")
+            return MapperVertexMorphing(origin_model_part, destination_model_part, mapper_settings)
 
 # ==============================================================================

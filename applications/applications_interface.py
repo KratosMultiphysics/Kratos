@@ -30,7 +30,6 @@ Import_ElectrostaticApplication = False
 Import_MagnetostaticApplication = False
 Import_DamApplication = False
 Import_TestApplication = False
-Import_OpenCLApplication = False
 Import_PodApplication = False
 Import_LevelSetApplication = False
 Import_FluidDynamicsApplication = False
@@ -79,7 +78,6 @@ print("Import_ElectrostaticApplication: False")
 print("Import_MagnetostaticApplication: False")
 print("Import_DamApplication: False")
 print("Import_TestApplication: False")
-print("Import_OpenCLApplication: False")
 print("Import_PodApplication: False")
 print("Import_LevelSetApplication: False")
 print("Import_FluidDynamicsApplication: False")
@@ -131,7 +129,6 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_MagnetostaticApplication: " + str(Import_MagnetostaticApplication))
     print("Import_DamApplication: " + str(Import_DamApplication))
     print("Import_TestApplication: " + str(Import_TestApplication))
-    print("Import_OpenCLApplication: " + str(Import_OpenCLApplication))
     print("Import_PodApplication: " + str(Import_PodApplication))
     print("Import_LevelSetApplication:" + str(Import_LevelSetApplication))
     print("Import_FluidDynamicsApplication: " + str(Import_FluidDynamicsApplication))
@@ -397,14 +394,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.ImportApplication(test_application)
         print("Kratos TestApplication sucessfully imported")
 
-    if(Import_OpenCLApplication):
-        print("importing KratosOpenCLApplication ...")
-        sys.path.append(applications_path + '/OpenCLapplication/python_scripts')
-        from KratosOpenCLApplication import *
-        opencl_application = KratosOpenCLApplication()
-        kernel.ImportApplication(opencl_application)
-        print("KratosOpenCLApplication sucessfully imported")
-
     if(Import_PodApplication):
         print("importing KratosPodApplication ...")
         sys.path.append(applications_path + '/PODApplication/python_scripts')
@@ -439,7 +428,7 @@ def ImportApplications(kernel, applications_path=application_directory):
 
     if(Import_KratosSwimmingDEMApplication):
         print("importing KratosSwimmingDEMApplication ...")
-        sys.path.append(applications_path + '/swimming_DEM_application/python_scripts')
+        sys.path.append(applications_path + '/SwimmingDEMApplication/python_scripts')
         from KratosSwimmingDEMApplication import *
         swimming_DEM_application = KratosSwimmingDEMApplication()
         kernel.ImportApplication(swimming_DEM_application)
@@ -482,7 +471,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/ContactStructuralMechanics/python_scripts')
         sys.path.append(applications_path + '/ContactStructuralMechanics/Linux')
         from KratosContactStructuralMechanicsApplication import *
-        contact_mechanics_application = KratosContactStructuralMechanicsApplication()
+        contact_structural_mechanics_application = KratosContactStructuralMechanicsApplication()
         kernel.ImportApplication(contact_structural_mechanics_application)
         print("KratosContactStructuralMechanicsApplication Succesfully imported")
 
@@ -601,8 +590,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(dam_application)
     if(Import_TestApplication):
         kernel.InitializeApplication(test_application)
-    if(Import_OpenCLApplication):
-        kernel.InitializeApplication(opencl_application)
     if(Import_PodApplication):
         kernel.InitializeApplication(pod_application)
     if(Import_LevelSetApplication):

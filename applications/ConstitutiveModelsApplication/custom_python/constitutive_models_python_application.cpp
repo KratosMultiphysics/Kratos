@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 #include "constitutive_models_application.h"
 
@@ -24,19 +25,23 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 PYBIND11_MODULE(KratosConstitutiveModelsApplication,m)
 {
 
-  class_<KratosConstitutiveModelsApplication,
+  py::class_<KratosConstitutiveModelsApplication,
          KratosConstitutiveModelsApplication::Pointer,
          KratosApplication>(m,"KratosConstitutiveModelsApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
   AddCustomConstitutiveLawsToPython(m);
+  AddCustomUtilitiesToPython(m);
+
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_LAYOUT )
+
 }
 
 

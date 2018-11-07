@@ -17,8 +17,9 @@ import KratosMultiphysics.SolidMechanicsApplication
 
 class Solution(object):
 
-    def __init__(self, file_parameters = "ProjectParameters.json"):
+    def __init__(self, model, file_parameters = "ProjectParameters.json"):
 
+        self.model=model
         #### TIME MONITORING START ####
 
         # Time control starts
@@ -62,7 +63,7 @@ class Solution(object):
         #### Model_part settings start ####
 
         # Defining the model_part
-        self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+        self.main_model_part = self.model.CreateModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
@@ -281,6 +282,9 @@ class Solution(object):
         # processes to be executed after witting the output
         self.model_processes.ExecuteAfterOutputStep()
 
+        # Calculate Nodal_Area
+        self.CalculateNodalArea()
+        
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
     def Finalize(self):
@@ -369,6 +373,9 @@ class Solution(object):
             used_time = time_fp - time_ip
             print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
 
+    def CalculateNodalArea(self):
+        pass
+
     #### Main internal methods ####
 
     def _import_project_parameters(self, input_file):
@@ -378,4 +385,5 @@ class Solution(object):
 
 
 if __name__ == "__main__":
-    Solution().Run()
+    model = KratosMultiphysics.Model()
+    Solution(model).Run()

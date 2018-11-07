@@ -18,6 +18,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
 #include "meshing_application.h"
@@ -82,10 +83,10 @@ namespace Kratos
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
 
-            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 1, element_nodes_0, p_elem_prop);
-            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 2, element_nodes_1, p_elem_prop);
-            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 3, element_nodes_2, p_elem_prop);
-            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, element_nodes_3, p_elem_prop);
+            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 1, PointerVector<NodeType>{element_nodes_0}, p_elem_prop);
+            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 2, PointerVector<NodeType>{element_nodes_1}, p_elem_prop);
+            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
+            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
 
             // Initialize Elements
             p_elem_0->Initialize();
@@ -186,18 +187,18 @@ namespace Kratos
             element_nodes_11[2] = p_node_1;
             element_nodes_11[3] = p_node_6;
 
-            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 1, element_nodes_0, p_elem_prop);
-            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 2, element_nodes_1, p_elem_prop);
-            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 3, element_nodes_2, p_elem_prop);
-            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 4, element_nodes_3, p_elem_prop);
-            Element::Pointer p_elem_4 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 5, element_nodes_4, p_elem_prop);
-            Element::Pointer p_elem_5 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 6, element_nodes_5, p_elem_prop);
-            Element::Pointer p_elem_6 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 7, element_nodes_6, p_elem_prop);
-            Element::Pointer p_elem_7 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 8, element_nodes_7, p_elem_prop);
-            Element::Pointer p_elem_8 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 9, element_nodes_8, p_elem_prop);
-            Element::Pointer p_elem_9 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 10, element_nodes_9, p_elem_prop);
-            Element::Pointer p_elem_10 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 11, element_nodes_10, p_elem_prop);
-            Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, element_nodes_11, p_elem_prop);
+            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 1, PointerVector<NodeType>{element_nodes_0}, p_elem_prop);
+            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 2, PointerVector<NodeType>{element_nodes_1}, p_elem_prop);
+            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
+            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
+            Element::Pointer p_elem_4 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 5, PointerVector<NodeType>{element_nodes_4}, p_elem_prop);
+            Element::Pointer p_elem_5 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 6, PointerVector<NodeType>{element_nodes_5}, p_elem_prop);
+            Element::Pointer p_elem_6 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 7, PointerVector<NodeType>{element_nodes_6}, p_elem_prop);
+            Element::Pointer p_elem_7 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 8, PointerVector<NodeType>{element_nodes_7}, p_elem_prop);
+            Element::Pointer p_elem_8 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 9, PointerVector<NodeType>{element_nodes_8}, p_elem_prop);
+            Element::Pointer p_elem_9 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 10, PointerVector<NodeType>{element_nodes_9}, p_elem_prop);
+            Element::Pointer p_elem_10 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 11, PointerVector<NodeType>{element_nodes_10}, p_elem_prop);
+            Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, PointerVector<NodeType>{element_nodes_11}, p_elem_prop);
 
             // Initialize Elements
             p_elem_0->Initialize();
@@ -221,8 +222,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
             
@@ -270,8 +271,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTetra, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 

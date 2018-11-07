@@ -79,7 +79,7 @@ public:
 
 
   /// Destructor.
-  virtual ~UpdatedLagrangianSegregatedVPElement();
+  ~UpdatedLagrangianSegregatedVPElement() override;
 
   ///@}
   ///@name Operators

@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "geometries/triangle_3d_3.h"
 
@@ -33,10 +34,12 @@ namespace Kratos
         * Test 1
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess1, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess1, KratosCoreFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            Model current_model;
+
+            ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
+            ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
 
@@ -58,13 +61,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_3;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_1;
-            Triangle3D3 <NodeType> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <NodeType> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
@@ -91,10 +94,12 @@ namespace Kratos
         * Test 2 (with flags)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess2, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess2, KratosCoreFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            Model current_model;
+
+            ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
+            ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
 
@@ -116,13 +121,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_3;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_1;
-            Triangle3D3 <NodeType> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <NodeType> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
@@ -171,10 +176,12 @@ namespace Kratos
         * Test 3 (clone/replicate)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess3, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess3, KratosCoreFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            Model current_model;
+
+            ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
+            ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
 
@@ -196,13 +203,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_3;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_1;
-            Triangle3D3 <NodeType> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <NodeType> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
@@ -229,10 +236,12 @@ namespace Kratos
         * Test 4 (clone/replicate with flags)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess4, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess4, KratosCoreFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            Model current_model;
+            
+            ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
+            ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
             
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
             
@@ -254,13 +263,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_3;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_1;
-            Triangle3D3 <NodeType> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
             
             std::vector<NodeType::Pointer> condition_nodes_1 (3);
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <NodeType> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
             
             Condition::Pointer p_cond_0 = origin_model_part.CreateNewCondition("Condition3D", 1, triangle_0, p_cond_prop);
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);

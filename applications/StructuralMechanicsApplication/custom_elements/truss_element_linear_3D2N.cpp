@@ -166,9 +166,15 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
       prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 
-    array_1d<double, 3 > truss_stresses;
-    this->mpConstitutiveLaw->GetValue(FORCE,truss_stresses);
-    truss_forces[0] = (truss_stresses[0] + prestress) * A;
+    array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
+    ProcessInfo temp_process_information;
+    ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
+
+    Vector temp_strain = ZeroVector(1);
+    temp_strain[0] = this->CalculateLinearStrain();
+    Values.SetStrainVector(temp_strain);
+    this->mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
+    truss_forces[0] = (temp_internal_stresses[0] + prestress) * A;
 
     rOutput[0] = truss_forces;
   }
@@ -236,6 +242,9 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
   Vector temp_internal_stresses = ZeroVector(msLocalSize);
   ProcessInfo temp_process_information;
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
+  Vector temp_strain = ZeroVector(1);
+  temp_strain[0] = this->CalculateLinearStrain();
+  Values.SetStrainVector(temp_strain);
   this->mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
 
   rInternalForces = temp_internal_stresses*this->GetProperties()[CROSS_AREA];

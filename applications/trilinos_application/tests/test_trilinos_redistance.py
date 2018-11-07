@@ -39,7 +39,8 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
 
     def testTrilinosRedistance(self):
         # Set the model part
-        self.model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        self.model_part = current_model.CreateModelPart("Main")
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
@@ -54,7 +55,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         }""")
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part, import_settings)
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
+        TrilinosModelPartImporter.ImportModelPart()
         TrilinosModelPartImporter.CreateCommunicators()
 
         # Recall to set the buffer size
@@ -63,7 +64,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         # Initialize the DISTANCE values
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0, self._ExpectedDistance(node.X,node.Y,node.Z))
-        
+
         # Fake time advance
         self.model_part.CloneTimeStep(1.0)
 
@@ -91,6 +92,6 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(max_distance, 0.44556526310761013) # Serial max_distance
         self.assertAlmostEqual(min_distance,-0.504972246827639) # Serial min_distance
-        
+
 if __name__ == '__main__':
     KratosUnittest.main()

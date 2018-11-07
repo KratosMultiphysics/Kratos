@@ -154,12 +154,12 @@ public:
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods> IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     continer.
     */
-    typedef boost::array<Matrix, GeometryData::NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
+    typedef std::array<Matrix, GeometryData::NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry.
@@ -877,7 +877,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -885,10 +885,10 @@ public:
     virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint
-            )
+            ) const
     {
         KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
-        
+
         Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
 
         rResult.clear();
@@ -927,7 +927,7 @@ public:
                 break;
             }
         }
-        
+
         return rResult;
     }
 
@@ -1206,8 +1206,6 @@ public:
         CoordinatesArrayType const& LocalCoordinates
         ) const
     {
-        if (rResult.size() != 3)
-            rResult.resize(3, false);
         noalias( rResult ) = ZeroVector( 3 );
 
         Vector N( this->size() );
@@ -1232,11 +1230,10 @@ public:
         Matrix& DeltaPosition
         ) const
     {
-        if (rResult.size() != 3)
-            rResult.resize(3, false);
+        constexpr std::size_t dimension = 3;
         noalias( rResult ) = ZeroVector( 3 );
         if (DeltaPosition.size2() != 3)
-            DeltaPosition.resize(DeltaPosition.size1(), 3);
+            DeltaPosition.resize(DeltaPosition.size1(), dimension,false);
 
         Vector N( this->size() );
         ShapeFunctionsValues( N, LocalCoordinates );

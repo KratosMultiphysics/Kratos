@@ -99,7 +99,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~SimoStepRotationMethod(){}
+    ~SimoStepRotationMethod() override{}
 
     ///@}
     ///@name Operators

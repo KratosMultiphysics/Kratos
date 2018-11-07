@@ -59,7 +59,7 @@ public:
     LineMomentCondition( LineMomentCondition const& rOther);
 
     /// Destructor
-    virtual ~LineMomentCondition();
+    ~LineMomentCondition() override;
 
     ///@}
     ///@name Operators
@@ -104,7 +104,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -137,25 +137,25 @@ protected:
     /**
      * Initialize System Matrices
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables,
+    void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables,
+    void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber) override;
 
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalMoment(ConditionVariables& rVariables) override;
+    void CalculateExternalMoment(ConditionVariables& rVariables) override;
 
 
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight) override;
 
@@ -211,9 +211,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class LineMomentCondition.

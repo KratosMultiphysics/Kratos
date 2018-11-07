@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:  Josep Maria Carbonell
@@ -29,7 +29,7 @@ namespace Kratos
 
   namespace Python
   {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     void  AddMATVariablesToPython(pybind11::module& m)
     {
@@ -69,7 +69,7 @@ namespace Kratos
 
       //plasticity
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_STRAIN )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_PLASTIC_STRAIN )      
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_PLASTIC_STRAIN )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORM_ISOCHORIC_STRESS )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_STRAIN_RATE )
 
@@ -87,7 +87,7 @@ namespace Kratos
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, JC_PARAMETER_C )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, JC_PARAMETER_m )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, JC_PARAMETER_n )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, JC_PARAMETER_K ) 
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, JC_PARAMETER_K )
 
       //thermal
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_PLASTIC_STRAIN )
@@ -139,6 +139,12 @@ namespace Kratos
 
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PK2_STRESS_VECTOR )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PK2_STRESS_TENSOR )
+
+      // Constitutive matrices
+//       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_CONSTITUTIVE_MATRIX )
+//       KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTITUTIVE_MATRIX )
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTITUTIVE_MATRIX_PK2 )
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTITUTIVE_MATRIX_KIRCHHOFF )
     }
   }  // namespace Python.
 } // Namespace Kratos

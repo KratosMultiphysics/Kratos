@@ -78,7 +78,7 @@ namespace Kratos
       }
 
       /// Destructor.
-      virtual ~NewtonianPlaneStrain2DLaw(){}
+      ~NewtonianPlaneStrain2DLaw() override{}
 
 
       ///@}
@@ -133,7 +133,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
 	std::stringstream buffer;
         buffer << "NewtonianPlaneStrain2DLaw" ;
@@ -141,10 +141,10 @@ namespace Kratos
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "NewtonianPlaneStrain2DLaw";}
+      void PrintInfo(std::ostream& rOStream) const override {rOStream << "NewtonianPlaneStrain2DLaw";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override {}
+      void PrintData(std::ostream& rOStream) const override {}
 
 
       ///@}
@@ -173,15 +173,15 @@ namespace Kratos
        * Calculates the stresses for given strain state
        * @param rStressVector the stress vector corresponding to the deformation
        * @param rStrainVector strain rates
-       * @param rMaterialProperties properties of the material
+       * @param rProperties properties of the material
        */
       void CalculateStress(Vector& rStressVector,
                            const Vector & rStrainVector,
-                           const Properties& rMaterialProperties) override
+                           const Properties& rProperties) override
       {
         KRATOS_TRY
 
-        const double& rViscosity = rMaterialProperties[DYNAMIC_VISCOSITY];
+        const double& rViscosity = rProperties[DYNAMIC_VISCOSITY];
 
         const double pressure = (rStrainVector[0]+rStrainVector[1])/3.0;
 
@@ -198,15 +198,15 @@ namespace Kratos
       /**
        * calculates the linear elastic constitutive matrix in terms of Young's modulus and
        * @param rConstitutiveMatrix constitutive matrix return value
-       * @param rMaterialProperties properties of the material
+       * @param rProperties properties of the material
        */
       void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                       const Properties& rMaterialProperties) override
+                                       const Properties& rProperties) override
       {
 	KRATOS_TRY
 
         // Viscosity
-        const double& rViscosity = rMaterialProperties[DYNAMIC_VISCOSITY];
+        const double& rViscosity = rProperties[DYNAMIC_VISCOSITY];
 
         const double diagonal_component = 4.0 * rViscosity / 3.0;
         const double side_component = -0.5 * diagonal_component;
@@ -287,12 +287,12 @@ namespace Kratos
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Newtonian3DLaw )
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Newtonian3DLaw )
       }

@@ -72,13 +72,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return Kratos::make_shared<SaintVenantKirchhoffModel>(*this);
     }
 
     /// Destructor.
-    virtual ~SaintVenantKirchhoffModel() {}
+    ~SaintVenantKirchhoffModel() override {}
 
 
     ///@}
@@ -91,7 +91,7 @@ namespace Kratos
     ///@{
 
 
-    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override
+    void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override
     {
       KRATOS_TRY
 
@@ -127,7 +127,7 @@ namespace Kratos
     }
 
 
-    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
+    void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -149,7 +149,7 @@ namespace Kratos
 
       const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
 
 	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 
@@ -179,7 +179,7 @@ namespace Kratos
       // it is computationally expensive but relevant for the convergence of the method
       const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
         const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
         ConstitutiveModelUtilities::PushForwardConstitutiveMatrix(rConstitutiveMatrix, rTotalDeformationMatrix);
       }
@@ -188,7 +188,7 @@ namespace Kratos
     }
 
 
-    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
+    void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
 
@@ -211,7 +211,7 @@ namespace Kratos
 
       const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
 
 	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 
@@ -232,18 +232,18 @@ namespace Kratos
     /**
      * Check
      */
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
-      if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
+      if(YOUNG_MODULUS.Key() == 0 || rProperties[YOUNG_MODULUS] <= 0.00)
 	KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
       if(POISSON_RATIO.Key() == 0){
 	KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
       }
       else{
-	const double& nu = rMaterialProperties[POISSON_RATIO];
+	const double& nu = rProperties[POISSON_RATIO];
 	if( (nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01) )
 	  KRATOS_ERROR << "POISSON_RATIO has an invalid value" << std::endl;
       }
@@ -269,7 +269,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SaintVenantKirchhoffModel";
@@ -277,13 +277,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SaintVenantKirchhoffModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SaintVenantKirchhoffModel Data";
     }
@@ -329,10 +329,10 @@ namespace Kratos
 
       const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = GreenLagrangeTensor
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Strain.Matrix = GreenLagrangeTensor
 
 	//set working strain measure
-	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Right);
+	rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_Right);
 
 	//historical strain matrix
 	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
@@ -355,10 +355,10 @@ namespace Kratos
 	rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
 
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = GreenLagrangeTensor
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Strain.Matrix = GreenLagrangeTensor
 
 	//set working strain measure
-	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
+	rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left);
 
 	//historical strain matrix
 	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
@@ -381,7 +381,7 @@ namespace Kratos
       else{
 
 	//set working strain measure
-	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
+	rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
 	KRATOS_ERROR << "calling initialize SaintVenantKirchhoffModel .. StressMeasure is inconsistent"  << std::endl;
 
       }
@@ -524,12 +524,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
     }

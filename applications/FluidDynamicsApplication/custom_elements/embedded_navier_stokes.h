@@ -349,7 +349,7 @@ public:
         }
 
         // Add level set boundary terms, penalty and modified Nitche contributions
-        AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
+        AddBoundaryConditionElementContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
     }
 
     /**
@@ -587,8 +587,10 @@ protected:
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rData reference to element data structure
      */
-    double ComputePenaltyCoefficient(const EmbeddedElementDataStruct& rData) {
-
+    double ComputePenaltyCoefficient(
+        const EmbeddedElementDataStruct& rData,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         // Compute the intersection area using the Gauss pts. weights
         double intersection_area = 0.0;
         for (unsigned int i_gauss = 0; i_gauss < (rData.w_gauss_pos_int).size(); ++i_gauss) {
@@ -618,7 +620,7 @@ protected:
                                 avg_rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
-        const double K = 10.0;
+        const double K = rCurrentProcessInfo[PENALTY_COEFFICIENT];
         const double pen_coef = K * pen_cons / intersection_area;
 
         return pen_coef;
@@ -634,8 +636,9 @@ protected:
     void AddBoundaryConditionPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const EmbeddedElementDataStruct& rData) {
-
+        const EmbeddedElementDataStruct& rData,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -656,7 +659,7 @@ protected:
         }
 
         // Multiply the penalty matrix by the penalty coefficient
-        double pen_coef = ComputePenaltyCoefficient(rData);
+        double pen_coef = ComputePenaltyCoefficient(rData, rCurrentProcessInfo);
         P_gamma *= pen_coef;
 
         VectorType auxRightHandSideVector = ZeroVector(MatrixSize);
@@ -848,8 +851,9 @@ protected:
     void AddSlipWinterNormalPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const EmbeddedElementDataStruct& rData) {
-
+        const EmbeddedElementDataStruct& rData,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -880,7 +884,7 @@ protected:
         avg_rho /= TNumNodes;
 
         // Compute the Nitsche coefficient (considering the Winter stabilization term)
-        const double penalty = 1.0/10.0;
+        const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
         const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*rData.h + avg_rho*rData.h*rData.h/rData.dt)/(rData.h*penalty);
 
         // Declare auxiliar arrays
@@ -1045,8 +1049,9 @@ protected:
     void AddSlipWinterTangentialPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const EmbeddedElementDataStruct& rData) {
-
+        const EmbeddedElementDataStruct& rData,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1056,8 +1061,8 @@ protected:
 
         // Compute the penalty coefficients
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double penalty = 1.0/10.0;
-        const double slip_length = 1.0e+08;
+        const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
+        const double slip_length = rCurrentProcessInfo[SLIP_LENGTH];
         const double coeff_1 = slip_length / (slip_length + penalty*rData.h);
         const double coeff_2 = eff_mu / (slip_length + penalty*rData.h);
 
@@ -1142,8 +1147,9 @@ protected:
     void AddSlipWinterTangentialSymmetricCounterpartContribution(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const EmbeddedElementDataStruct& rData) {
-
+        const EmbeddedElementDataStruct& rData,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         constexpr unsigned int BlockSize = TDim+1;
         constexpr unsigned int MatrixSize = TNumNodes*BlockSize;
 
@@ -1156,8 +1162,8 @@ protected:
 
         // Compute the coefficients
         const double eff_mu = BaseType::ComputeEffectiveViscosity(rData);
-        const double penalty = 1.0/10.0;
-        const double slip_length = 1.0e+08;
+        const double penalty = 1.0/rCurrentProcessInfo[PENALTY_COEFFICIENT];
+        const double slip_length = rCurrentProcessInfo[SLIP_LENGTH];
         const double coeff_1 = slip_length*penalty*rData.h / (slip_length + penalty*rData.h);
         const double coeff_2 = eff_mu*penalty*rData.h / (slip_length + penalty*rData.h);
 
@@ -1244,23 +1250,24 @@ protected:
     void AddBoundaryConditionElementContribution(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const EmbeddedElementDataStruct& rData) {
-
+        const EmbeddedElementDataStruct& rData,
+        const ProcessInfo &rCurrentProcessInfo)
+    {
         // Compute and assemble the boundary terms comping from the integration by parts
         AddIntersectionBoundaryTermsContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
 
         if (this->Is(SLIP)) {
             // Winter Navier-slip condition
-            AddSlipWinterNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
+            AddSlipWinterNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
             AddSlipWinterNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
-            AddSlipWinterTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
-            AddSlipWinterTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
+            AddSlipWinterTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
+            AddSlipWinterTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
 
         } else {
             // First, compute and assemble the penalty level set BC imposition contribution
             // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution (Codina and Baiges, 2009)
             // Note that the Nitche contribution has to be computed the last since it drops the outer nodes rows previous constributions
-            AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
+            AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, rData, rCurrentProcessInfo);
             DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
             AddBoundaryConditionModifiedNitcheContribution(rLeftHandSideMatrix, rRightHandSideVector, rData);
         }
@@ -1335,7 +1342,11 @@ protected:
 
         // Fill the tangential projection matrix (I - nxn)
         if (TDim == 3) {
+            #ifdef KRATOS_USE_AMATRIX
+            BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim);
+            #else
             BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim,TDim);
+            #endif
             noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
         } else {
             rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);

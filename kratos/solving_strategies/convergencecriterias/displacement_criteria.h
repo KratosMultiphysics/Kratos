@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_DISPLACEMENT_CRITERIA )
@@ -16,9 +16,7 @@
 
 /* System includes */
 
-
 /* External includes */
-
 
 /* Project includes */
 #include "includes/model_part.h"
@@ -86,7 +84,7 @@ public:
 
     /** Constructor.
     */
-    DisplacementCriteria(
+    explicit DisplacementCriteria(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
@@ -97,7 +95,7 @@ public:
 
     /** Copy constructor.
     */
-    DisplacementCriteria( DisplacementCriteria const& rOther )
+    explicit DisplacementCriteria( DisplacementCriteria const& rOther )
       :BaseType(rOther)
       ,mRatioTolerance(rOther.mRatioTolerance)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
@@ -234,6 +232,27 @@ public:
     ///@name Inquiry
     ///@{
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "DisplacementCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

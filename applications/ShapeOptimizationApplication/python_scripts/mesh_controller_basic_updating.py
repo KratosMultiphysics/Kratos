@@ -25,11 +25,11 @@ class MeshControllerBasicUpdating(MeshController):
         self.OptimizationModelPart = OptimizationModelPart
 
     # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable(self, InputVariable):
+    def UpdateMeshAccordingInputVariable(self, variable):
         print("\n> Starting to update the mesh")
         startTime = timer.time()
-        MeshControllerUtilities(self.OptimizationModelPart).UpdateMeshAccordingInputVariable(InputVariable)
-        MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(InputVariable)
+        MeshControllerUtilities(self.OptimizationModelPart).UpdateMeshAccordingInputVariable(variable)
+        MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(variable)
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
 # ==============================================================================

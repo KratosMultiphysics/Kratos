@@ -14,6 +14,8 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
+
 
 namespace Kratos {
     namespace Testing {
@@ -25,7 +27,8 @@ namespace Kratos {
         */
         KRATOS_TEST_CASE_IN_SUITE(ConditionCloneOperator, KratosCoreFastSuite)
         {
-            ModelPart model_part("test");
+            Model current_model;
+            ModelPart& model_part = current_model.CreateModelPart("test");
 
             // Definition of nodes
             auto p_node1 = model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
@@ -41,13 +44,13 @@ namespace Kratos {
             list_nodes[1] = p_node2;
             list_nodes[2] = p_node3;
 
-            auto p_cond = model_part.CreateNewCondition("Condition3D", 1, list_nodes, p_prop);
+            auto p_cond = model_part.CreateNewCondition("Condition3D", 1, PointerVector<NodeType>{list_nodes}, p_prop);
 
             p_cond->SetValue(DISTANCE, 12.1);
             p_cond->SetValue(VELOCITY_X, 32.4);
             p_cond->Set(ACTIVE, true);
 
-            Condition::Pointer p_clone_of_cond = p_cond->Clone(2, list_nodes);
+            Condition::Pointer p_clone_of_cond = p_cond->Clone(2, PointerVector<NodeType>{list_nodes});
 
             KRATOS_CHECK_EQUAL(p_clone_of_cond->Id(), 2);
             KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(DISTANCE), 12.1);

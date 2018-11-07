@@ -267,7 +267,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AddDofsProcess() {}
+    ~AddDofsProcess() override {}
 
 
     ///@}

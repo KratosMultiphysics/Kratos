@@ -2,8 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 
-CheckRegisteredApplications("ExternalSolversApplication")
-
 def ConstructPreconditioner(configuration):
     if hasattr(configuration, 'preconditioner_type'):
         preconditioner_type = configuration.preconditioner_type
@@ -80,6 +78,7 @@ def ConstructSolver(configuration):
             linear_solver = BICGSTABSolver(tol, max_it, precond)
     #
     elif(solver_type == "GMRES" or solver_type == "GMRESSolver"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         precond = ConstructPreconditioner(configuration)
         max_it = configuration.max_iteration
@@ -128,11 +127,12 @@ def ConstructSolver(configuration):
         linear_solver = SkylineLUFactorizationSolver()
     #
     elif(solver_type == "Super LU" or solver_type == "Super_LU" or solver_type == "SuperLUSolver"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
-        linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver(
-        )
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver()
     #
     elif(solver_type == "SuperLUIterativeSolver"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         tol = configuration.tolerance
         max_it = configuration.max_iteration
@@ -165,6 +165,7 @@ def ConstructSolver(configuration):
 
     #
     elif(solver_type == "PastixDirect" or solver_type == "PastixSolver"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         is_symmetric = False
         if hasattr(configuration, 'is_symmetric'):
@@ -176,6 +177,7 @@ def ConstructSolver(configuration):
             verbosity, is_symmetric)
     #
     elif(solver_type == "PastixIterative"):
+        CheckRegisteredApplications("ExternalSolversApplication")
         import KratosMultiphysics.ExternalSolversApplication
         tol = configuration.tolerance
         max_it = configuration.max_iteration

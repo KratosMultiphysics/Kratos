@@ -96,7 +96,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AssignTorqueAboutAnAxisToConditionsProcess() {}
+    ~AssignTorqueAboutAnAxisToConditionsProcess() override {}
 
 
     ///@}

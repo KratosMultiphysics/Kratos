@@ -7,7 +7,7 @@
 //   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
 //     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
- 
+
 // System includes
 
 // External includes
@@ -22,7 +22,7 @@ namespace Kratos {
   template< unsigned int TDim >
   Element::Pointer TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
- 
+
     TwoStepUpdatedLagrangianVPExplicitFluidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
     NewElement.SetData(this->GetData());
@@ -39,7 +39,7 @@ namespace Kratos {
     KRATOS_TRY;
     KRATOS_CATCH( "" );
   }
-  
+
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
   {
@@ -49,7 +49,7 @@ namespace Kratos {
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
   {
-    KRATOS_TRY; 
+    KRATOS_TRY;
     KRATOS_CATCH( "" );
   }
 
@@ -80,15 +80,15 @@ namespace Kratos {
     }
     VolumetricCoeff = FluidBulkModulus*timeStep;
 
-    
+
     if(FluidYieldShear!=0){
       // std::cout<<"For a Newtonian fluid I should not enter here"<<std::endl;
       DeviatoricCoeff=this->ComputeNonLinearViscosity(rElementalVariables.EquivalentStrainRate);
     }else if(staticFrictionCoefficient!=0){
-      DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables); 
+      DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables);
       // if(regularizationCoefficient!=0 && inertialNumberThreshold==0){
       // 	// DeviatoricCoeff=this->ComputeBercovierMuIrheologyViscosity(rElementalVariables);
-      // 	DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables); 
+      // 	DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables);
       // }
       // else if(regularizationCoefficient==0 && inertialNumberThreshold!=0){
       // 	DeviatoricCoeff=this->ComputeBarkerMuIrheologyViscosity(rElementalVariables);
@@ -99,7 +99,7 @@ namespace Kratos {
       // }
     }else{
       // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
-      this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
+      this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,DYNAMIC_VISCOSITY);
     }
 
     // this->ComputeMaterialParametersGranularGas(rElementalVariables,VolumetricCoeff,DeviatoricCoeff);
@@ -123,17 +123,17 @@ namespace Kratos {
 
   }
 
-  
+
 
   template< unsigned int TDim>
   double TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeNonLinearViscosity(double & equivalentStrainRate)
   {
     double FluidViscosity=0;
-    
+
     double FluidFlowIndex=0;
     double FluidYieldShear=0;
     double FluidAdaptiveExponent=0;
-    this->EvaluatePropertyFromANotRigidNode(FluidViscosity,VISCOSITY);
+    this->EvaluatePropertyFromANotRigidNode(FluidViscosity,DYNAMIC_VISCOSITY);
     this->EvaluatePropertyFromANotRigidNode(FluidFlowIndex,FLOW_INDEX);
     this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
     this->EvaluatePropertyFromANotRigidNode(FluidAdaptiveExponent,ADAPTIVE_EXPONENT);
@@ -147,7 +147,7 @@ namespace Kratos {
     }
     return FluidViscosity;
   }
-  
+
 
   template< unsigned int TDim>
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeMaterialParametersGranularGas(double& Density,
@@ -220,7 +220,7 @@ namespace Kratos {
     temperature=pow(grainDiameter,2)*f5Coeff*rElementalVariables.EquivalentStrainRate;
     // temperature=pow(grainDiameter,2)*f5Coeff*ElementalVariables.SpatialDefRate[2];
 
-				
+
     VolumetricCoeff=grainDensity*grainDiameter*f4Coeff*sqrt(fabs(temperature));
     DeviatoricCoeff=grainDensity*grainDiameter*f2Coeff*sqrt(fabs(temperature));
 
@@ -238,7 +238,7 @@ namespace Kratos {
     rElementalVariables.UpdatedTotalCauchyStress[2]=DeviatoricCoeff*rElementalVariables.SpatialDefRate[2];
   }
 
-  
+
   template< unsigned int TDim>
   double TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables)
   {
@@ -260,7 +260,7 @@ namespace Kratos {
     if(meanPressure>0){
       meanPressure=0.0000001;
     }
-    
+
     double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
     double inertialNumber=0;
     if(meanPressure!=0){
@@ -301,13 +301,13 @@ namespace Kratos {
     if(meanPressure>0){
       meanPressure=0.0000001;
     }
-    
+
     double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
     double inertialNumber=0;
     if(meanPressure!=0){
       inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
     }
-    
+
     if(rElementalVariables.EquivalentStrainRate!=0 && fabs(meanPressure)!=0){
       double firstViscousTerm=staticFrictionCoefficient / sqrt(pow(rElementalVariables.EquivalentStrainRate,2)+pow(regularizationCoefficient,2));
       double secondViscousTerm=deltaFrictionCoefficient*inertialNumber/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
@@ -315,7 +315,7 @@ namespace Kratos {
     }else{
       FluidViscosity=1.0;
     }
-    
+
     return FluidViscosity;
   }
 
@@ -342,13 +342,13 @@ namespace Kratos {
     if(pressure>0){
       pressure=0.0000001;
     }
-    
+
     double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
     double inertialNumber=0;
     if(rElementalVariables.MeanPressure!=0){
       inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(pressure)/grainDensity);
     }
-    
+
     double exponent=-rElementalVariables.EquivalentStrainRate/regularizationCoefficient;
 
     if(rElementalVariables.EquivalentStrainRate!=0 && fabs(pressure)!=0){
@@ -367,7 +367,7 @@ namespace Kratos {
     // 	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=inertialNumber;
     // 	// std::cout<<"FluidViscosity "<<FluidViscosity<<"  StrainRate "<<rElementalVariables.EquivalentStrainRate<<"  inertialNumber "<<inertialNumber<<"  pressure "<<rElementalVariables.MeanPressure<<std::endl;
     //   }
-    
+
     return FluidViscosity;
   }
 
@@ -383,7 +383,7 @@ namespace Kratos {
     double inertialNumberThreshold=0;
     double infiniteFrictionCoefficient=0;
     double alphaParameter=0;
-  
+
     this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
     this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
     this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
@@ -397,7 +397,7 @@ namespace Kratos {
     if(meanPressure>0){
       meanPressure=0.0000001;
     }
-        
+
     double inertialNumber=0;
     if(meanPressure!=0){
       inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
@@ -413,14 +413,14 @@ namespace Kratos {
     }
 
     if(rElementalVariables.EquivalentStrainRate!=0 && fabs(meanPressure)!=0){
-      FluidViscosity*=fabs(meanPressure)/rElementalVariables.EquivalentStrainRate;	    
+      FluidViscosity*=fabs(meanPressure)/rElementalVariables.EquivalentStrainRate;
     }else{
       FluidViscosity=1.0;
     }
     return FluidViscosity;
   }
 
-  
+
   template< unsigned int TDim>
   double TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
   {
@@ -435,7 +435,7 @@ namespace Kratos {
     double infiniteFrictionCoefficient=0;
     double alphaParameter=0;
     double regularizationCoefficient=0;
-  
+
     this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
     this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
     this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
@@ -450,7 +450,7 @@ namespace Kratos {
     if(meanPressure>0){
       meanPressure=0.0000001;
     }
-        
+
     double inertialNumber=0;
     if(meanPressure!=0){
       inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
@@ -479,13 +479,13 @@ namespace Kratos {
       }else{
     	FluidViscosity=1.0;
       }
-    }   
- 
+    }
+
     return FluidViscosity;
   }
 
 
-  
+
   template< unsigned int TDim >
   int TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
   {
@@ -506,8 +506,8 @@ namespace Kratos {
       KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE Key is 0. Check that the application was correctly registered.","");
     if(DENSITY.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
+    if(DYNAMIC_VISCOSITY.Key() == 0)
+      KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.","");
     if(DELTA_TIME.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
 
@@ -522,8 +522,8 @@ namespace Kratos {
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing BODY_FORCE variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+        if(this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
+	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DYNAMIC_VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
@@ -531,7 +531,7 @@ namespace Kratos {
         if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
       }
-    
+
     // If this is a 2D problem, check that nodes are in XY plane
     if (this->GetGeometry().WorkingSpaceDimension() == 2)
       {
@@ -592,7 +592,7 @@ namespace Kratos {
 
 
 
-  template <  unsigned int TDim> 
+  template <  unsigned int TDim>
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
   {
     KRATOS_TRY;
@@ -620,7 +620,7 @@ namespace Kratos {
     rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize,false);
 
     noalias(rElementalVariables.MDGreenLagrangeMaterial) = ZeroVector(voigtsize);
-  
+
     rElementalVariables.Fgrad = ZeroMatrix(TDim,TDim);
 
     rElementalVariables.InvFgrad= ZeroMatrix(TDim,TDim);
@@ -646,12 +646,12 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,double TimeStep, unsigned int g)
   {
 
     double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient; 
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
     // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
     double DefX=rElementalVariables.SpatialDefRate[0];
@@ -709,7 +709,7 @@ namespace Kratos {
     //   this->SetValue(YIELDED,1.0);
 
     //   for (SizeType i = 0; i < NumNodes; ++i){
-	
+
     // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 1;
     // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
     //   }
@@ -718,7 +718,7 @@ namespace Kratos {
     //   this->SetValue(YIELDED,0.0);
     //   // std::vector<double> rOutput;
     //   // this->GetElementalValueForOutput(YIELDED,rOutput);
-      
+
     //   for (SizeType i = 0; i < NumNodes; ++i){
     // 	// rGeom[i].FastGetSolutionStepValue(FLOW_INDEX) = 0;
     // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
@@ -751,18 +751,18 @@ namespace Kratos {
   // }
 
 
-  
 
-  
 
-  template < > 
+
+
+  template < >
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
 
     double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
     // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
     // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
-   
+
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
     double DefZ=rElementalVariables.SpatialDefRate[2];

@@ -57,6 +57,9 @@ public:
   ///@name Type Definitions
   ///@{
 
+    // Type definitions for better reading later
+    typedef array_1d<double,3> array_3d;
+
   /// Pointer definition of Mapper
   KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
@@ -83,10 +86,22 @@ public:
   ///@{
 
   // --------------------------------------------------------------------------
-  virtual void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) = 0;
+  virtual void Initialize(){};
 
   // --------------------------------------------------------------------------
-  virtual void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) = 0;
+  virtual void Update(){};
+
+  // --------------------------------------------------------------------------
+  virtual void Map(const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) = 0;
+
+  // --------------------------------------------------------------------------
+  virtual void Map(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) = 0;
+
+  // --------------------------------------------------------------------------
+  virtual void InverseMap(const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable) = 0;
+
+  // --------------------------------------------------------------------------
+  virtual void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) = 0;
 
   // --------------------------------------------------------------------------
 

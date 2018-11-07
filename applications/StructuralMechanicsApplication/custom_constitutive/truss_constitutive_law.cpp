@@ -70,13 +70,7 @@ array_1d<double, 3 > & TrussConstitutiveLaw::GetValue(
     const Variable<array_1d<double, 3 > >& rThisVariable,
     array_1d<double, 3 > & rValue)
 {
-    if (rThisVariable == FORCE)
-    {
-        rValue[0] = this->mStressState;
-        rValue[1] = 0.0;
-        rValue[2] = 0.0;
-    }
-    else KRATOS_ERROR << "Can't get the specified value" << std::endl;
+    KRATOS_ERROR << "Can't get the specified value" << std::endl;
     return rValue;
 }
 
@@ -101,17 +95,38 @@ Vector& TrussConstitutiveLaw::CalculateValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue)
 {
-
     if(rThisVariable == NORMAL_STRESS)
     {
+        const double current_stress = this->CalculateStressElastic(rParameterValues);
         constexpr SizeType dofs = 6;
         rValue = ZeroVector(dofs);
-        rValue[0] = -1.0 * this->mStressState;
-        rValue[3] = 1.0 * this->mStressState;
+        rValue[0] = -1.0 * current_stress;
+        rValue[3] = 1.0 * current_stress;
     }
     else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
+
+//************************************************************************************
+//************************************************************************************
+
+array_1d<double, 3 > & TrussConstitutiveLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<array_1d<double, 3 > >& rVariable,
+	array_1d<double, 3 > & rValue)
+    {
+        if (rVariable == FORCE)
+        {
+            constexpr SizeType dimension = 3;
+            rValue = ZeroVector(dimension);
+            //rValue[0] = this->mStressState;
+            rValue[0] = this->CalculateStressElastic(rParameterValues);
+            rValue[1] = 0.0;
+            rValue[2] = 0.0;
+        }
+        else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
+        return rValue;
+    }
 
 //************************************************************************************
 //************************************************************************************
@@ -128,9 +143,21 @@ void TrussConstitutiveLaw::CalculateMaterialResponse(
 
     if (rStressVector.size() != 1) rStressVector.resize(1);
     rStressVector[0] = youngs_modulus*axial_strain;
-    this->mStressState = rStressVector[0];
 }
 
+//************************************************************************************
+//************************************************************************************
+
+double TrussConstitutiveLaw::CalculateStressElastic(
+    ConstitutiveLaw::Parameters& rParameterValues) const
+{
+    Vector current_strain = ZeroVector(1);
+    rParameterValues.GetStrainVector(current_strain);
+
+    const double current_stress =
+     rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]*current_strain[0];
+    return current_stress;
+}
 
 //************************************************************************************
 //************************************************************************************

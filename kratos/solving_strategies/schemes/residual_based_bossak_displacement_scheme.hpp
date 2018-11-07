@@ -117,7 +117,7 @@ public:
     /**
      * @brief Copy Constructor.
      */
-    ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
+    explicit ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
         ,mAlpha(rOther.mAlpha)
         ,mNewmark(rOther.mNewmark)
@@ -151,7 +151,6 @@ public:
      * @param beta The Newmark beta coefficient
      * @param gamma The Newmark gamma coefficient
      */
-
     void CalculateNewmarkCoefficients(
             double beta,
             double gamma
@@ -170,7 +169,6 @@ public:
      * @param Dx incremental update of primary variables
      * @param b RHS Vector
      */
-
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -216,7 +214,6 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -294,7 +291,6 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -338,7 +334,6 @@ public:
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-
     int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
@@ -391,6 +386,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedBossakDisplacementScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -457,7 +470,6 @@ protected:
      * @param PreviousVelocity The previous velocity
      * @param PreviousAcceleration The previous acceleration
      */
-
     inline void UpdateVelocity(
         array_1d<double, 3>& CurrentVelocity,
         const array_1d<double, 3>& DeltaDisplacement,
@@ -476,7 +488,6 @@ protected:
      * @param PreviousVelocity The previous velocity
      * @param PreviousAcceleration The previous acceleration
      */
-
     inline void UpdateAcceleration(
         array_1d<double, 3>& CurrentAcceleration,
         const array_1d<double, 3>& DeltaDisplacement,
@@ -495,7 +506,6 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToLHS(
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
@@ -520,7 +530,6 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToRHS(
         Element::Pointer pElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -558,7 +567,6 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-
     void AddDynamicsToRHS(
         Condition::Pointer pCondition,
         LocalSystemVectorType& RHS_Contribution,
