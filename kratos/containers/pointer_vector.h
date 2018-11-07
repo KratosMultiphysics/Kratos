@@ -66,7 +66,7 @@ namespace Kratos
     deleting.
  */
 template<class TDataType,
-         class TPointerType = Kratos::shared_ptr<TDataType>,
+         class TPointerType = typename TDataType::Pointer,
          class TContainerType = std::vector<TPointerType> >
 class PointerVector
 {
