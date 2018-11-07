@@ -3199,8 +3199,6 @@ proc ::wkcf::WriteDEMElementMeshProperties {AppId} {
 	GiD_File fprintf $filechannel "  ANGULAR_VELOCITY_STOP_TIME $AngularVelocityEndTime"
     }
     GiD_File fprintf $filechannel "  RIGID_BODY_MOTION $RigidBodyMotion"
-    GiD_File fprintf $filechannel "  TABLE_NUMBER $TableNumber"
-    GiD_File fprintf $filechannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
     GiD_File fprintf $filechannel "  IDENTIFIER $cgroupid"
     GiD_File fprintf $filechannel "  End SubModelPartData"
     GiD_File fprintf $filechannel "  Begin SubModelPartNodes"
@@ -4094,10 +4092,8 @@ proc ::wkcf::WriteInletGroupMeshProperties {AppId} {
 		GiD_File fprintf $deminletchannel "  ANGULAR_VELOCITY_START_TIME $AngularVelocityStartTime"
 		GiD_File fprintf $deminletchannel "  ANGULAR_VELOCITY_STOP_TIME $AngularVelocityEndTime"
 		GiD_File fprintf $deminletchannel "  RIGID_BODY_MOTION 1"
-		GiD_File fprintf $deminletchannel "  TABLE_NUMBER 0"
 	    } else {
 		GiD_File fprintf $deminletchannel "  RIGID_BODY_MOTION 0"
-		GiD_File fprintf $deminletchannel "  TABLE_NUMBER $TableNumber"
 		GiD_File fprintf $deminletchannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
 		}
 	    GiD_File fprintf $deminletchannel "  IDENTIFIER $cgroupid"

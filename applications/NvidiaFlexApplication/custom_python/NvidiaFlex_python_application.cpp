@@ -16,12 +16,12 @@ namespace Kratos {
 
     namespace Python {
 
-        using namespace pybind11;
+        namespace py = pybind11;
 
         PYBIND11_MODULE(KratosNvidiaFlexApplication,m) {
 
-            class_<KratosNvidiaFlexApplication, KratosNvidiaFlexApplication::Pointer, KratosApplication>(m, "KratosNvidiaFlexApplication")
-                .def(init<>());
+            py::class_<KratosNvidiaFlexApplication, KratosNvidiaFlexApplication::Pointer, KratosApplication>(m, "KratosNvidiaFlexApplication")
+                .def(py::init<>());
                 ;
 
             AddCustomUtilitiesToPython(m);

@@ -4,7 +4,7 @@ This application focuses on the Discrete Element Method (DEM), a particles metho
 
 The [DEMpack Team](www.cimne.com/dem) at [CIMNE](www.cimne.com) is in charge of all developments related to the DEM.
 
-For the coupling between DEM and Fluids, go to the [Swimming DEM Application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/swimming_DEM_application).
+For the coupling between DEM and Fluids, go to the [Swimming DEM Application](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/SwimmingDEMApplication).
 
 ## Getting Started
 

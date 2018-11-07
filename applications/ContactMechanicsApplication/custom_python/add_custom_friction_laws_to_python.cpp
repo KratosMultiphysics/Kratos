@@ -27,7 +27,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 typedef typename FrictionLaw::Pointer         FrictionLawPointerType;
 //typedef std::vector<FrictionLawPointerType>     FrictionLawContainer;
@@ -37,8 +37,8 @@ void  AddCustomFrictionLawsToPython(pybind11::module& m)
 {
 
   //Friction laws
-  class_<FrictionLaw, FrictionLawPointerType>(m,"FrictionLaw")
-      .def(init<>())
+  py::class_<FrictionLaw, FrictionLawPointerType>(m,"FrictionLaw")
+      .def(py::init<>())
       .def("Clone", &FrictionLaw::Clone)
       .def("__repr__", &FrictionLaw::Info)
       DECLARE_HAS_THIS_TYPE_PROPERTIES_PYTHON_AS_POINTER(FrictionLaw)
@@ -47,16 +47,16 @@ void  AddCustomFrictionLawsToPython(pybind11::module& m)
       ;
 
   //to define it as a variable
-  class_<Variable<FrictionLawPointerType>, VariableData>(m,"FrictionLawVariable")
+  py::class_<Variable<FrictionLawPointerType>, VariableData>(m,"FrictionLawVariable")
       .def( "__repr__", &Variable<FrictionLawPointerType>::Info )
       ;
 
-  class_<CoulombAdhesionFrictionLaw, typename CoulombAdhesionFrictionLaw::Pointer, FrictionLaw>(m,"CoulombAdhesionFrictionLaw")
-      .def(init<>())
+  py::class_<CoulombAdhesionFrictionLaw, typename CoulombAdhesionFrictionLaw::Pointer, FrictionLaw>(m,"CoulombAdhesionFrictionLaw")
+      .def(py::init<>())
       ;
 
-  class_<HardeningCoulombFrictionLaw, typename HardeningCoulombFrictionLaw::Pointer, CoulombAdhesionFrictionLaw>(m,"HardeningCoulombFrictionLaw")
-      .def(init<>())
+  py::class_<HardeningCoulombFrictionLaw, typename HardeningCoulombFrictionLaw::Pointer, CoulombAdhesionFrictionLaw>(m,"HardeningCoulombFrictionLaw")
+      .def(py::init<>())
       ;
 
 }
