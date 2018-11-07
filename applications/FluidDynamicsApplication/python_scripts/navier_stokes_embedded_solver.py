@@ -203,7 +203,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             # Initialize the FM-ALE utility
             self.fm_ale_step = 1
             self.mesh_moving_util = KratosMeshMoving.ExplicitMeshMovingUtilities(
-                self._get_fm_ale_virtual_model_part(), 
+                self._get_fm_ale_virtual_model_part(),
                 self._get_fm_ale_structure_model_part(),
                 self.settings["fm_ale_settings"]["search_radius"].GetDouble())
 
