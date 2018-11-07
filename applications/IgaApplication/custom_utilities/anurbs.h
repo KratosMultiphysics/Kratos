@@ -49,4 +49,40 @@ struct Zero<Kratos::array_1d<TScalar, TDimension>>
 } // namespace Internals
 } // namespace ANurbs
 
+namespace Kratos {
+
+template <int TDimension>
+using CurveGeometryBase = ANurbs::CurveGeometryBase<
+    Kratos::array_1d<double, TDimension>>;
+
+template <int TDimension>
+using CurveGeometry = ANurbs::CurveGeometry<
+    Kratos::array_1d<double, TDimension>>;
+
+template <int TDimension>
+using SurfaceGeometryBase = ANurbs::SurfaceGeometryBase<
+    Kratos::array_1d<double, TDimension>>;
+
+template <int TDimension>
+using SurfaceGeometry = ANurbs::SurfaceGeometry<
+    Kratos::array_1d<double, TDimension>>;
+
+template <int TDimension>
+using CurveBase = ANurbs::CurveBase<Kratos::array_1d<double, TDimension>>;
+
+template <int TDimension>
+using Curve = ANurbs::Curve<CurveGeometry<TDimension>>;
+
+template <int TDimension>
+using SurfaceBase = ANurbs::SurfaceBase<Kratos::array_1d<double, TDimension>>;
+
+template <int TDimension>
+using Surface = ANurbs::Surface<SurfaceGeometry<TDimension>>;
+
+template <int TDimension>
+using CurveOnSurface = ANurbs::CurveOnSurface<
+    Kratos::array_1d<double, 2>, Kratos::array_1d<double, TDimension>>;
+
+} // namespace Kratos
+
 #endif // !defined(KRATOS_ANURBS_H_INCLUDED)
