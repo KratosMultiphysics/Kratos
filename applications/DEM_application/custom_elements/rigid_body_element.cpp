@@ -120,6 +120,18 @@ namespace Kratos {
 
         central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = ZeroVector(3);
 
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE)) {
+
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            KRATOS_INFO("DEM") << "** Warning ** since 1 January 2019 the external applied force on rigid" << std::endl;
+            KRATOS_INFO("DEM") << "elements should be defined by its three components: EXTERNAL_APPLIED_FORCE_X," << std::endl;
+            KRATOS_INFO("DEM") << "EXTERNAL_APPLIED_FORCE_Y and EXTERNAL_APPLIED_FORCE_Z" << std::endl;
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][0];
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][1];
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][2];
+        }
+
         if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE_X)) {
             central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE_X];
         }
@@ -132,6 +144,17 @@ namespace Kratos {
 
         central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = ZeroVector(3);
 
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT)) {
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            KRATOS_INFO("DEM") << "** Warning ** since 1 January 2019 the external applied moments on rigid" << std::endl;
+            KRATOS_INFO("DEM") << "elements should be defined by its three components: EXTERNAL_APPLIED_MOMENT_X," << std::endl;
+            KRATOS_INFO("DEM") << "EXTERNAL_APPLIED_MOMENT_Y and EXTERNAL_APPLIED_MOMENT_Z" << std::endl;
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
+        }
+
         if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT_X)) {
             central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT_X];
         }
@@ -140,6 +163,14 @@ namespace Kratos {
         }
         if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT_Z)) {
             central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT_Z];
+        }
+
+        if (rigid_body_element_sub_model_part.Has(TABLE_NUMBER)) {
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            KRATOS_INFO("DEM") << "** Warning ** in 1 January 2019 TABLE_NUMBER variable will disappear, the new" << std::endl;
+            KRATOS_INFO("DEM") << " variables are TABLE_NUMBER_VELOCITY, TABLE_NUMBER_ANGULAR_VELOCITY," << std::endl;
+            KRATOS_INFO("DEM") << " TABLE_NUMBER_FORCE and TABLE_NUMBER_MOMENT for defining each variable" << std::endl;
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
         }
 
         array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
