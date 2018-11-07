@@ -29,6 +29,12 @@ namespace Kratos
 ///@addtogroup Kratos MPI Core
 ///@{
 
+namespace Internals {
+
+template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&);
+
+}
+
 ///@name Kratos Classes
 ///@{
 
@@ -71,6 +77,24 @@ class MPIDataCommunicator: public DataCommunicator
     {
         MPI_Barrier(mComm);
     }
+
+    void SumAll(int& rValue) const override;
+
+    void SumAll(double& rValue) const override;
+
+    void SumAll(array_1d<double,3>& rValue) const override;
+
+    void MinAll(int& rValue) const override;
+
+    void MinAll(double& rValue) const override;
+
+    void MinAll(array_1d<double,3>& rValue) const override;
+
+    void MaxAll(int& rValue) const override;
+
+    void MaxAll(double& rValue) const override;
+
+    void MaxAll(array_1d<double,3>& rValue) const override;
 
     ///@}
     ///@name Access
@@ -128,12 +152,6 @@ class MPIDataCommunicator: public DataCommunicator
 
     /// Print object's data.
     void PrintData(std::ostream &rOStream) const override {}
-
-    ///@}
-
-  protected:
-    ///@name Protected LifeCycle
-    ///@{
 
     ///@}
 

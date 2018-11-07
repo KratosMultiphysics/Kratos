@@ -69,15 +69,23 @@ class DataCommunicator
 
     virtual void Barrier() const {}
 
-    virtual int Broadcast(double* pValues, int Count, int Root) const
-    {
-        return 0;
-    }
+    virtual void SumAll(int& rValue) const {}
 
-    virtual int Broadcast(int* pValues, int Count, int Root) const
-    {
-        return 0;
-    }
+    virtual void SumAll(double& rValue) const {}
+
+    virtual void SumAll(array_1d<double,3>& rValue) const {}
+
+    virtual void MinAll(int& rValue) const {}
+
+    virtual void MinAll(double& rValue) const {}
+
+    virtual void MinAll(array_1d<double,3>& rValue) const {}
+
+    virtual void MaxAll(int& rValue) const {}
+
+    virtual void MaxAll(double& rValue) const {}
+
+    virtual void MaxAll(array_1d<double,3>& rValue) const {}
 
     ///@}
     ///@name Inquiry
