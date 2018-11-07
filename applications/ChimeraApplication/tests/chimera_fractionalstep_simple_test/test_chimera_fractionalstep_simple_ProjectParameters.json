@@ -1,6 +1,6 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "ChimeraInput1",
+        "problem_name"    : "test_chimera_fractionalstep_simple_input",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
@@ -151,15 +151,5 @@
 		"pressure_coupling_node" :0.0,
 		"overlap_distance" :0.02
 }],
-    "auxiliar_process_list"            : [{
-        "python_module" : "compute_body_fitted_drag_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ComputeDragProcess",
-        "Parameters"    : {
-            "model_part_name"        : "Drag_structure",
-            "write_drag_output_file" : true,
-            "print_drag_to_screen"   : false,
-            "interval"               : [0.0,"End"]
-        }
-    }]
+    "auxiliar_process_list"            : []
 }

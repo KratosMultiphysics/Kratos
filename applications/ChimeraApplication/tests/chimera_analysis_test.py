@@ -43,8 +43,15 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
         settings_file_name = "test_chimera_monolithic_simple_ProjectParameters.json"
         with WorkFolderScope(work_folder):
             self._run_test(settings_file_name)
-            kratos_utilities.DeleteFileIfExisting("test_chimera_monolithic_simple_ProjectParameters.time")
+            kratos_utilities.DeleteFileIfExisting("test_chimera_monolithic_simple_input.time")
+            kratos_utilities.DeleteFileIfExisting("ModifiedPatch_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("GENERIC_domainboundary_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("ModifiedPatchBoundary_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("chimera_monolithic_simple_test.post.lst")
+            kratos_utilities.DeleteFileIfExisting("test_chimera_monolithic_simple_input_0.post.msh")
+            kratos_utilities.DeleteFileIfExisting("test_chimera_monolithic_simple_input_0.post.res")
             #self._checkResults()
+    
     def testFractionalStep(self):
         self.check_tolerance = 1e-6
         # Set to true to get post-process files for the test
@@ -54,8 +61,32 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
         settings_file_name = "test_chimera_fractionalstep_simple_ProjectParameters.json"
         with WorkFolderScope(work_folder):
             self._run_test(settings_file_name)
-            kratos_utilities.DeleteFileIfExisting("test_chimera_fractionalstep_simple_ProjectParameters.time")
-
+            kratos_utilities.DeleteFileIfExisting("test_chimera_fractionalstep_simple_input.time")
+            kratos_utilities.DeleteFileIfExisting("ModifiedPatch_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("GENERIC_domainboundary_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("ModifiedPatchBoundary_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("chimera_fractionalstep_simple_test.post.lst")
+            kratos_utilities.DeleteFileIfExisting("test_chimera_fractionalstep_simple_input_0.post.msh")
+            kratos_utilities.DeleteFileIfExisting("test_chimera_fractionalstep_simple_input_0.post.res")
+            
+    def testMultipleOverlappingPatch(self):
+        self.check_tolerance = 1e-6
+        # Set to true to get post-process files for the test
+        self.print_reference_values = False
+        self.reference_file = "reference_chimera_multiple_overlapping_patch_simple_test"
+        work_folder = "chimera_multiple_overlapping_patch"
+        settings_file_name = "test_chimera_multiple_overlapping_simple_ProjectParameters.json"
+        with WorkFolderScope(work_folder):
+            self._run_test(settings_file_name)
+            kratos_utilities.DeleteFileIfExisting("test_chimera_multiple_overlapping_simple_input.time")
+            kratos_utilities.DeleteFileIfExisting("ModifiedPatch_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("GENERIC_domainboundary_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("ModifiedPatchBoundary_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("NoSlip2D_structure_1_1_0_0.vtk")
+            kratos_utilities.DeleteFileIfExisting("chimera_multiple_overlapping_patch.post.lst")
+            kratos_utilities.DeleteFileIfExisting("test_chimera_multiple_overlapping_simple_0.post.msh")
+            kratos_utilities.DeleteFileIfExisting("test_chimera_multiple_overlapping_simple_0.post.res")
+    
     def _run_test(self,settings_file_name):
         self.model = km.Model()
         with open(settings_file_name,'r') as settings_file:
@@ -129,6 +160,7 @@ if __name__ == '__main__':
     #test_case.setUp()
     test_case.testMonolithic()
     test_case.testFractionalStep()
+    test_case.testMultipleOverlappingPatch()
     print("completed all tests")
 
 

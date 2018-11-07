@@ -159,7 +159,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
 		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
-
 		MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
 		(*mpcDataVector).push_back(pMpcVelocity);
 		(*mpcDataVector).push_back(pMpcPressure);
@@ -241,7 +240,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 	void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
 	{
-
 		//loop over nodes and find the triangle in which it falls, than do interpolation
 		array_1d<double, TDim + 1> N;
 		const int max_results = 10000;
@@ -775,8 +773,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 						},
 						"point_data_configuration"  : []})" );
 
-			VtkOutput VtkOutput_Patch = VtkOutput(rPatchModelPart,"nnn",parameters);
-			VtkOutput_Patch.PrintOutput();
+			//VtkOutput VtkOutput_Patch = VtkOutput(rPatchModelPart,"nnn",parameters);
+			//VtkOutput_Patch.PrintOutput();
 			VtkOutput VtkOutput_Boundary = VtkOutput(rDomainBoundaryModelPart,"nnn",parameters);
 			VtkOutput_Boundary.PrintOutput();
 
