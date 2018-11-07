@@ -19,8 +19,8 @@
 
 /* Project includes */
 #include "includes/define.h"
-//~ #include "includes/model_part.h"
-
+#include "includes/kratos_parameters.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -87,7 +87,7 @@ public:
     */
 
     /*@{ */
-    ConvergenceAccelerator(const ConvergenceAccelerator& Other);
+    ConvergenceAccelerator(const ConvergenceAccelerator& Other) = delete;
     /*@{ */
 
     /** Destructor.
