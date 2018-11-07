@@ -66,7 +66,15 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "is_slip": false,
+            "slip_length": 1e+8,
+            "penalty_coefficient": 10.0,
+            "fm_ale_settings": {
+                "fm_ale_step_frequency": 0,
+                "structure_model_part_name": "",
+                "search_radius" : 1.0
+            }
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -86,6 +94,17 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
             self.element_name = "EmbeddedSymbolicNavierStokes"
 
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
+            self.settings["is_slip"].SetBool(True)
+            self.element_name = "EmbeddedAusasNavierStokes"
+            self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
+
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedAusasDevelopment"):
+            self.settings["is_slip"].SetBool(True)
+            self.element_name = "EmbeddedSymbolicNavierStokesDiscontinuous"
+
         ## Construct the linear solver
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -93,12 +112,9 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
-
     def AddVariables(self):
-
         super(NavierStokesMPIEmbeddedMonolithicSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-
         KratosMPI.mpi.world.barrier()
 
         if self._IsPrintingRank():
@@ -121,13 +137,11 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.trilinos_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
-
         super(NavierStokesMPIEmbeddedMonolithicSolver, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","DOFs for the VMS Trilinos fluid solver added correctly.")
-
 
     def Initialize(self):
         ## Construct the communicator
@@ -154,8 +168,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         ## Creating the Trilinos incremental update time scheme (the time integration is defined within the embedded element)
         self.time_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                                  self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
-
-
 
         ## Set the guess_row_size (guess about the number of zero entries) for the Trilinos builder and solver
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
@@ -190,3 +202,15 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+
+        # For the primitive Ausas formulation, set the find nodal neighbours process
+        # Recall that the Ausas condition requires the nodal neighbouts.
+        if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
+            number_of_avg_elems = 10
+            number_of_avg_nodes = 10
+            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.GetComputingModelPart(),
+                                                                                               number_of_avg_elems,
+                                                                                               number_of_avg_nodes)
+        
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Solver initialization finished.")
