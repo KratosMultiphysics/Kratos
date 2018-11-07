@@ -1,11 +1,11 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:            January 2016 $
 //   Revision:            $Revision:                 1.0 $
 //
 
-// External includes 
+// External includes
 #include "spaces/ublas_space.h"
 
 // Project includes
@@ -36,13 +36,13 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    
+
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
@@ -52,41 +52,41 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticUPwSchemeType;
     typedef NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticDampedUPwSchemeType;
     typedef NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkDynamicUPwSchemeType;
-    
+
     typedef PoromechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsNewtonRaphsonStrategyType;
     typedef PoromechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsRammArcLengthStrategyType;
     typedef PoromechanicsNewtonRaphsonNonlocalStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsNewtonRaphsonNonlocalStrategyType;
     typedef PoromechanicsRammArcLengthNonlocalStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > PoromechanicsRammArcLengthNonlocalStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticUPwScheme")
-    .def(init<  double, double, double >());
-    class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkQuasistaticDampedUPwScheme")
-    .def(init<  double, double, double, double, double >());
-    class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
-    (m, "NewmarkDynamicUPwScheme")
-    .def(init<  double, double, double, double, double >());
 
-    class_< PoromechanicsNewtonRaphsonStrategyType, typename PoromechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
+    py::class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkQuasistaticUPwScheme")
+    .def( py::init<  double, double, double >());
+    py::class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkQuasistaticDampedUPwScheme")
+    .def( py::init<  double, double, double, double, double >());
+    py::class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkDynamicUPwScheme")
+    .def( py::init<  double, double, double, double, double >());
+
+    py::class_< PoromechanicsNewtonRaphsonStrategyType, typename PoromechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsNewtonRaphsonStrategy")
-    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def( py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
-    class_< PoromechanicsRammArcLengthStrategyType, typename PoromechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
+    py::class_< PoromechanicsRammArcLengthStrategyType, typename PoromechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsRammArcLengthStrategy")
-    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def( py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
     .def("UpdateLoads",&PoromechanicsRammArcLengthStrategyType::UpdateLoads);
-    class_< PoromechanicsNewtonRaphsonNonlocalStrategyType, typename PoromechanicsNewtonRaphsonNonlocalStrategyType::Pointer, BaseSolvingStrategyType >
+    py::class_< PoromechanicsNewtonRaphsonNonlocalStrategyType, typename PoromechanicsNewtonRaphsonNonlocalStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsNewtonRaphsonNonlocalStrategy")
-    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def( py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
-    class_< PoromechanicsRammArcLengthNonlocalStrategyType, typename PoromechanicsRammArcLengthNonlocalStrategyType::Pointer, BaseSolvingStrategyType >
+    py::class_< PoromechanicsRammArcLengthNonlocalStrategyType, typename PoromechanicsRammArcLengthNonlocalStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsRammArcLengthNonlocalStrategy")
-    .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def( py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
 }
