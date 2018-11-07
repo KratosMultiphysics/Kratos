@@ -17,8 +17,9 @@ from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 
 # Import from Test Factories (with different analysis flows)
-from test_static_loading_conditions_point import TestStaticLoadingConditionsPoint as TTestStaticLoadingConditionsPoint
-from test_static_loading_conditions_line  import TestStaticLoadingConditionsLine  as TTestStaticLoadingConditionsLine
+from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
+from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
+from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
 
 
 def AssembleTestSuites():
@@ -44,6 +45,7 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
