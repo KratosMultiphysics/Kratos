@@ -152,8 +152,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(init<>())
         .def("CalculateBodyFittedDrag", &DragUtilities::CalculateBodyFittedDrag)
         .def("CalculateEmbeddedDrag", &DragUtilities::CalculateEmbeddedDrag)
+        .def("CalculateBodyNormalForce",&DragUtilities::CalculateBodyNormalForce) //rishith
         ;
-
+    
     class_<CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double>,
             CoordinateTransformationUtils<LocalSpaceType::MatrixType,LocalSpaceType::VectorType,double>::Pointer>(m,"CoordinateTransformationUtils");
 

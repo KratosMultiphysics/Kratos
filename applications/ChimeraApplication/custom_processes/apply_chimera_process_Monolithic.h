@@ -459,8 +459,9 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		for (int i=0;i<idim;i++)
 		{
-			if(min_cornerA[i]<min_cornerB[i]!=true) return false;
-			if(max_cornerA[i]>max_cornerB[i]!=true) return false;
+			if(min_cornerA[i]>max_cornerB[i]) return false;
+
+			if(max_cornerA[i]<min_cornerB[i]) return false;
 		}
 		return true;
 	}
@@ -552,6 +553,9 @@ class ApplyChimeraProcessMonolithic : public Process
 		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
 		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
+		CalculateNodalAreaAndNodalMass(rPatchInsideBoundaryModelPart, 1);
+		CalculateNodalAreaAndNodalMass(rDomainBoundaryModelPart, 1);
+
  		//ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
  		//Debug for checking if the patch background combination and their boundaries are correct
 		/*
@@ -584,18 +588,19 @@ class ApplyChimeraProcessMonolithic : public Process
 			ModelPartPointer pModifiedPatchBoundaryModelPart = ModelPartPointer(new ModelPart("ModifiedPatchBoundary"));
 			ModelPartPointer pModifiedPatchModelPart = ModelPartPointer(new ModelPart("ModifiedPatch"));
 
-			bool BBoxOverlapTest = BoundingBoxTest(rBackgroundModelPart,rPatchModelPart);
-			BBoxOverlapTest = false;
+			bool BBoxOverlapTest = BoundingBoxTest(rBackgroundModelPart,rPatchModelPart); // true if they dont overlap
+			//BBoxOverlapTest = true;
 
 			if(BBoxOverlapTest)
-			{
-				FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart,rPatchInsideBoundaryModelPart,*pModifiedPatchBoundaryModelPart);
-			}
-			else
-			{
+			{	
 				KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
 				this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
 				this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+			}
+			else
+			{	
+				KRATOS_INFO("Bounding boxes does NOT overlap , So finding outside boundary of patch using the inside boundary") << std::endl;
+				FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart,rPatchInsideBoundaryModelPart,*pModifiedPatchBoundaryModelPart);
 			}
 
 			//VTK output of intermediate results like modified patch, mdified patch boundary and domain boundary
@@ -830,9 +835,19 @@ void CalculateNodalAreaAndNodalMass(ModelPart &rBoundaryModelPart, int sign)
 
 		for (std::size_t i = 0; i < pGeometry.size(); i++)
 		{
-			noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+			noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal; 
 			pGeometry[i].FastGetSolutionStepValue(NODAL_MASS) += coeff * nodal_mass;
 		}
+	}
+
+	// modified to make the normal to unit normal. may not be suitable for the implementation here, done by rishith to use it for finding shear force on structure
+	for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
+	{
+		const array_1d<double, 3> &normal = inode->FastGetSolutionStepValue(NORMAL);
+		double magnitude = sqrt(normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2]);
+		if(magnitude<1e-10) 
+			magnitude =1e-10;
+		inode->FastGetSolutionStepValue(NORMAL)/=magnitude;
 	}
 
 	KRATOS_CATCH("")
@@ -856,9 +871,7 @@ void CalculateNormal2D(ConditionsArrayType::iterator it, array_1d<double, 3> &An
 
 	if ((MathUtils<double>::Dot(An, rVector) > 0))
 		normal = -1 * normal;
-
 	normal = normal * sign;
-
 	// 				(it)->SetValue(NORMAL,An);
 }
 
@@ -1065,11 +1078,11 @@ void AddMasterSlaveRelationWithNodeIdsAndVariable(MpcDataPointerType pMpc, Index
 
 // Default functions
 /**
-		Applies the MPC condition using DOFs, one as master and other as slave, and with the given weight
-		@arg slaveDOF
-        @arg masterDOF
-        @arg weight
-		*/
+	Applies the MPC condition using DOFs, one as master and other as slave, and with the given weight
+	@arg slaveDOF
+	@arg masterDOF
+	@arg weight
+*/
 void AddMasterSlaveRelationWithDofs(MpcDataPointerType pMpc, DofType slaveDOF, DofType masterDOF, double masterWeight, double constant = 0.0)
 {
 	pMpc->AddConstraint(slaveDOF, masterDOF, masterWeight, constant);

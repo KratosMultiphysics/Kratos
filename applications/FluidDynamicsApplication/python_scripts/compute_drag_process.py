@@ -90,7 +90,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
 
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-
+            
         if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
             # Compute the drag force
             drag_force = self._GetCorrespondingDragForce()

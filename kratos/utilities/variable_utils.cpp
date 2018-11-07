@@ -20,6 +20,7 @@
 /* Project includes */
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -325,6 +326,40 @@ array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
             #pragma omp atomic
             sum_value[j] += private_sum_value[j];
         }
+    }
+
+    rModelPart.GetCommunicator().SumAll(sum_value);
+
+    return sum_value;
+
+    KRATOS_CATCH("")
+}
+
+// this function can dot product given noda variable with its normal or surface component. Present implementation does it with surface/parallel component
+// This require calculation of NORMAL on the respective structure part before, for the Chimera its done in the initial chimera step of apply chimera process monolithic
+double VariableUtils::SumHistoricalNodeVectorVariableDotWithNormal(
+    const Variable<array_1d<double, 3> >& rVar,
+    ModelPart& rModelPart,
+    const unsigned int rBuffStep
+    )
+{
+    KRATOS_TRY
+    double sum_value = 0;
+    #pragma omp parallel
+    {
+        double private_sum_value = 0;
+        #pragma omp for
+        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
+            NodesContainerType::iterator it_node = rModelPart.NodesBegin() + k;
+            //KRATOS_INFO("NORMAL TO NODES")<<it_node->Id()<<".........."<<it_node->GetSolutionStepValue(NORMAL)<<std::endl;
+            double temp = MathUtils<double>::Dot(it_node->GetSolutionStepValue(rVar, rBuffStep),it_node->GetSolutionStepValue(NORMAL));
+            array_1d<double, 3> normalForce = temp* it_node->GetSolutionStepValue(NORMAL);
+            array_1d<double, 3> ShearForce = it_node->GetSolutionStepValue(rVar, rBuffStep)-normalForce;
+            temp = sqrt(ShearForce[0]*ShearForce[0]+ShearForce[1]*ShearForce[1]+ShearForce[2]*ShearForce[2]);
+            private_sum_value += temp;
+        }
+        #pragma omp atomic
+        sum_value += private_sum_value;
     }
 
     rModelPart.GetCommunicator().SumAll(sum_value);
