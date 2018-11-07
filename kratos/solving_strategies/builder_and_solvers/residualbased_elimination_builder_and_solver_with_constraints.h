@@ -635,20 +635,20 @@ protected:
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(b) != 0)
-            norm_b = TSparseSpace::TwoNorm(b);
+        if (TSparseSpace::Size(rb) != 0)
+            norm_b = TSparseSpace::TwoNorm(rb);
         else
             norm_b = 0.0;
 
         if (norm_b != 0.0) {
-            //provide physical data as needed
-            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
+            // Provide physical data as needed
+            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
                 BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, mDoFToSolveSet, rModelPart);
 
             // Do solve
             BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
         } else {
-            TSparseSpace::SetToZero(Dx);
+            TSparseSpace::SetToZero(rDx);
             KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolver", rModelPart.GetCommunicator().MyPID() == 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
