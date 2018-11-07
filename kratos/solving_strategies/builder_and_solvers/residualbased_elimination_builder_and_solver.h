@@ -16,17 +16,12 @@
 
 /* System includes */
 #include <set>
+#include <unordered_set>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
 /* External includes */
-// #define USE_GOOGLE_HASH
-#ifdef USE_GOOGLE_HASH
-#include "sparsehash/dense_hash_set" //included in external libraries
-#else
-#include <unordered_set>
-#endif
 
 /* Project includes */
 #include "utilities/timer.h"
@@ -633,12 +628,7 @@ public:
 //             DofPointerComparor,
 //             allocator_type    >  set_type;
 
-#ifdef USE_GOOGLE_HASH
-        typedef google::dense_hash_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-#else
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-#endif
-      //
 
 
         std::vector<set_type> dofs_aux_list(nthreads);
@@ -646,12 +636,8 @@ public:
 
         for (int i = 0; i < static_cast<int>(nthreads); i++)
         {
-#ifdef USE_GOOGLE_HASH
-            dofs_aux_list[i].set_empty_key(NodeType::DofType::Pointer());
-#else
 //             dofs_aux_list[i] = set_type( allocators[i]);
             dofs_aux_list[i].reserve(nelements);
-#endif
         }
 
 #pragma omp parallel for firstprivate(nelements, ElementalDofList)
@@ -1036,136 +1022,128 @@ protected:
 
 
     //**************************************************************************
-   virtual void ConstructMatrixStructure(
+    virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
         ModelPart& rModelPart)
-   {
-      //filling with zero the matrix (creating the structure)
-      Timer::Start("MatrixStructure");
+    {
+        //filling with zero the matrix (creating the structure)
+        Timer::Start("MatrixStructure");
 
-      // Getting the elements from the model
-      const int nelements = static_cast<int>(rModelPart.Elements().size());
+        const std::size_t equation_size = BaseType::mEquationSystemSize;
 
-      // Getting the array of the conditions
-      const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
 
-      ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-      ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-      ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
+        #pragma omp parallel for firstprivate(equation_size)
+        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
+            indices[iii].reserve(40);
+        }
 
-      const std::size_t equation_size = BaseType::mEquationSystemSize;
+        Element::EquationIdVectorType ids(3, 0);
 
-#ifdef USE_GOOGLE_HASH
-      std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
-      const std::size_t empty_key = 2 * equation_size + 10;
-#else
-      std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-#endif
+        #pragma omp parallel firstprivate(ids)
+        {
+            // The process info
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-#pragma omp parallel for firstprivate(equation_size)
-      for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
-      {
-#ifdef USE_GOOGLE_HASH
-         indices[iii].set_empty_key(empty_key);
-#else
-         indices[iii].reserve(40);
-#endif
-      }
+            // We repeat the same declaration for each thead
+            std::vector<std::unordered_set<std::size_t> > temp_indexes(equation_size);
 
-      Element::EquationIdVectorType ids(3, 0);
+            #pragma omp for
+            for (int index = 0; index < static_cast<int>(equation_size); ++index)
+                temp_indexes[index].reserve(30);
 
-#pragma omp parallel for firstprivate(nelements, ids)
-      for (int iii = 0; iii<nelements; iii++)
-      {
-         typename ElementsContainerType::iterator i_element = el_begin + iii;
-         pScheme->EquationId( *(i_element.base()), ids, CurrentProcessInfo);
+            // Getting the size of the array of elements from the model
+            const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
 
-         for (std::size_t i = 0; i < ids.size(); i++)
-         {
-            if (ids[i] < BaseType::mEquationSystemSize)
-            {
-#ifdef USE_LOCKS_IN_ASSEMBLY
-                                    omp_set_lock(&mLockArray[ids[i]]);
-#endif
-               auto& row_indices = indices[ids[i]];
-               for (auto it = ids.begin(); it != ids.end(); it++)
-               {
-                  if (*it < BaseType::mEquationSystemSize)
-                     row_indices.insert(*it);
-               }
-#ifdef USE_LOCKS_IN_ASSEMBLY
-               omp_unset_lock(&mLockArray[ids[i]]);
-#endif
+            // Element initial iterator
+            const auto el_begin = rModelPart.ElementsBegin();
+
+            // We iterate over the elements
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
+                auto it_elem = el_begin + i_elem;
+                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = temp_indexes[id_i];
+                        for (auto& id_j : ids)
+                            if (id_j < BaseType::mEquationSystemSize)
+                                row_indices.insert(id_j);
+                    }
+                }
             }
-         }
 
-      }
+            // Getting the size of the array of the conditions
+            const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
-#pragma omp parallel for firstprivate(nconditions, ids)
-      for (int iii = 0; iii<nconditions; iii++)
-      {
-         typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
-         pScheme->Condition_EquationId( *(i_condition.base()) , ids, CurrentProcessInfo);
-         for (std::size_t i = 0; i < ids.size(); i++)
-         {
-            if (ids[i] < BaseType::mEquationSystemSize)
-            {
-#ifdef USE_LOCKS_IN_ASSEMBLY
-               omp_set_lock(&mLockArray[ids[i]]);
-#endif
-               auto& row_indices = indices[ids[i]];
-               for (auto it = ids.begin(); it != ids.end(); it++)
-               {
-                  if (*it < BaseType::mEquationSystemSize)
-                     row_indices.insert(*it);
-               }
-#ifdef USE_LOCKS_IN_ASSEMBLY
-               omp_unset_lock(&mLockArray[ids[i]]);
-#endif
+            // Condition initial iterator
+            const auto cond_begin = rModelPart.ConditionsBegin();
+
+            // We iterate over the conditions
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
+                auto it_cond = cond_begin + i_cond;
+                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = temp_indexes[id_i];
+                        for (auto& id_j : ids)
+                            if (id_j < BaseType::mEquationSystemSize)
+                                row_indices.insert(id_j);
+                    }
+                }
             }
-         }
-      }
 
-      //count the row sizes
-      unsigned int nnz = 0;
-      for (unsigned int i = 0; i < indices.size(); i++)
-         nnz += indices[i].size();
+            // Merging all the temporal indexes
+            #pragma omp critical
+            {
+                for (int i = 0; i < static_cast<int>(temp_indexes.size()); ++i) {
+                    indices[i].insert(temp_indexes[i].begin(), temp_indexes[i].end());
+                }
+            }
+        }
 
-      A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
+        //count the row sizes
+        unsigned int nnz = 0;
+        for (unsigned int i = 0; i < indices.size(); i++)
+            nnz += indices[i].size();
 
-      double* Avalues = A.value_data().begin();
-      std::size_t* Arow_indices = A.index1_data().begin();
-      std::size_t* Acol_indices = A.index2_data().begin();
+        A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
 
-      //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-      Arow_indices[0] = 0;
-      for (int i = 0; i < static_cast<int>(A.size1()); i++)
-         Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
+        double* Avalues = A.value_data().begin();
+        std::size_t* Arow_indices = A.index1_data().begin();
+        std::size_t* Acol_indices = A.index2_data().begin();
+
+        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        Arow_indices[0] = 0;
+        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+            Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
 
 
-#pragma omp parallel for
-      for (int i = 0; i < static_cast<int>(A.size1()); i++)
-      {
-         const unsigned int row_begin = Arow_indices[i];
-         const unsigned int row_end = Arow_indices[i + 1];
-         unsigned int k = row_begin;
-         for (auto it = indices[i].begin(); it != indices[i].end(); it++)
-         {
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+        {
+            const unsigned int row_begin = Arow_indices[i];
+            const unsigned int row_end = Arow_indices[i + 1];
+            unsigned int k = row_begin;
+            for (auto it = indices[i].begin(); it != indices[i].end(); it++)
+            {
             Acol_indices[k] = *it;
             Avalues[k] = 0.0;
             k++;
-         }
+            }
 
-         std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
+            std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
 
-      }
+        }
 
-      A.set_filled(indices.size() + 1, nnz);
+        A.set_filled(indices.size() + 1, nnz);
 
-      Timer::Stop("MatrixStructure");
-   }
+        Timer::Stop("MatrixStructure");
+    }
 
 //    virtual void ConstructMatrixStructure(
 //        TSystemMatrixType& A,
