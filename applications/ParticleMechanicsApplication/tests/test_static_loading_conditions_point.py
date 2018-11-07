@@ -15,10 +15,10 @@ class TestStaticLoadingConditionsPoint(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosParticle.POINT_LOAD)
 
-        # create node
+        # Create node
         node = mp.CreateNewNode(1,0.0,0.0,0.0)
 
-        # ensure that the property 1 is created
+        # Ensure that the property 1 is created
         mp.GetProperties()[1]
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
@@ -35,7 +35,7 @@ class TestStaticLoadingConditionsPoint(KratosUnittest.TestCase):
         lhs = KratosMultiphysics.Matrix(0,0)
         rhs = KratosMultiphysics.Vector(0)
 
-        # first we apply a load to the condition
+        # First we apply a load to the condition
         load_on_cond = KratosMultiphysics.Vector(3)
         load_on_cond[0] = 1.8
         load_on_cond[1] = 2.6
@@ -50,7 +50,7 @@ class TestStaticLoadingConditionsPoint(KratosUnittest.TestCase):
         if Dimension == 3:
             self.assertEqual(rhs[2], load_on_cond[2])
 
-        # now we apply a load to the node
+        # Now we apply a load to the node
         nodal_load = KratosMultiphysics.Vector(3)
         nodal_load[0] = -5.5
         nodal_load[1] = 1.2
