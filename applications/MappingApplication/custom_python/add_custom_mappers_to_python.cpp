@@ -139,7 +139,7 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
             .def("InverseMap",       pInverseMapScalarOptions<TSparseSpace, TDenseSpace>)
             .def("InverseMap",       pInverseMapVectorOptions<TSparseSpace, TDenseSpace>)
 
-            .def("__str__",          KRATOS_DEF_PYTHON_STR(MapperType))
+            .def("__str__",          PrintObject<MapperType>)
             ;
 
     // Adding the flags that can be used for mapping
