@@ -28,6 +28,8 @@
 #include "processes/process.h"
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
+
 #include "geometries/geometry_data.h"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
@@ -227,7 +229,8 @@ class ApplyChimeraProcessMonolithic : public Process
 	{
 
 		//loop over nodes and find the triangle in which it falls, than do interpolation
-		array_1d<double, TDim + 1> N;
+		//array_1d<double, TDim + 1> N;
+		Vector N;
 		const int max_results = 10000;
 		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
@@ -556,15 +559,6 @@ class ApplyChimeraProcessMonolithic : public Process
 		CalculateNodalAreaAndNodalMass(rPatchInsideBoundaryModelPart, 1);
 		CalculateNodalAreaAndNodalMass(rDomainBoundaryModelPart, 1);
 
- 		//ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
- 		//Debug for checking if the patch background combination and their boundaries are correct
-		/*
-		KRATOS_INFO("printing my background") << std::endl;
-		KRATOS_INFO("printing my domain boundary") << std::endl;
-		KRATOS_INFO("printing my patch") << std::endl;
-		KRATOS_INFO("printing my patchboundary") << std::endl;
-		KRATOS_INFO("printing my patch inside boundary") << std::endl;
- 		*/
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
@@ -577,16 +571,15 @@ class ApplyChimeraProcessMonolithic : public Process
 			KRATOS_THROW_ERROR("", "Overlap distance should be a positive number \n", "");
 		}
 
-		//this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
 
 		if (m_overlap_distance > epsilon)
 		{
-			ModelPartPointer pHoleModelPart = ModelPartPointer(new ModelPart("HoleModelpart"));
-			ModelPartPointer pHoleBoundaryModelPart = ModelPartPointer(new ModelPart("HoleBoundaryModelPart"));
-			//ModelPartPointer pOutOfDomainPatchModelPart = ModelPartPointer(new ModelPart("OutOfDomainPatch"));
-			//ModelPartPointer pOutOfDomainPatchBoundaryModelPart = ModelPartPointer(new ModelPart("OutOfDomainPatchBoundary"));
-			ModelPartPointer pModifiedPatchBoundaryModelPart = ModelPartPointer(new ModelPart("ModifiedPatchBoundary"));
-			ModelPartPointer pModifiedPatchModelPart = ModelPartPointer(new ModelPart("ModifiedPatch"));
+			Model& current_model = mrMainModelPart.GetModel();
+
+			ModelPart& pHoleModelPart = current_model.CreateModelPart("HoleModelpart");
+			ModelPart& pHoleBoundaryModelPart= current_model.CreateModelPart("HoleBoundaryModelPart");
+			ModelPart& pModifiedPatchBoundaryModelPart= current_model.CreateModelPart("ModifiedPatchBoundary");
+			ModelPart& pModifiedPatchModelPart = current_model.CreateModelPart("ModifiedPatch");
 
 			bool BBoxOverlapTest = BoundingBoxTest(rBackgroundModelPart,rPatchModelPart); // true if they dont overlap
 			//BBoxOverlapTest = true;
@@ -595,33 +588,23 @@ class ApplyChimeraProcessMonolithic : public Process
 			{	
 				KRATOS_INFO("Bounding boxes overlap , So finding the modified patch boundary") << std::endl;
 				this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-				this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+				this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, pModifiedPatchModelPart, pModifiedPatchBoundaryModelPart,MainDomainOrNot);
 			}
 			else
 			{	
 				KRATOS_INFO("Bounding boxes does NOT overlap , So finding outside boundary of patch using the inside boundary") << std::endl;
-				FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart,rPatchInsideBoundaryModelPart,*pModifiedPatchBoundaryModelPart);
+				FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart,rPatchInsideBoundaryModelPart,pModifiedPatchBoundaryModelPart);
 			}
 
-			//VTK output of intermediate results like modified patch, mdified patch boundary and domain boundary
-			VtkOutput VtkOutput_Boundary = VtkOutput(*pModifiedPatchBoundaryModelPart,"nnn",parameters);
-			VtkOutput_Boundary.PrintOutput();
-
-			VtkOutput VtkOutput_ModPatch = VtkOutput(*pModifiedPatchModelPart,"nnn",parameters);
-			VtkOutput_ModPatch.PrintOutput();
-
-			VtkOutput VtkOutput_DomainBoundary = VtkOutput(rDomainBoundaryModelPart,"nnn",parameters);
-			VtkOutput_DomainBoundary.PrintOutput();
-
-			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
-			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
+			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, pModifiedPatchBoundaryModelPart);
+			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, pHoleModelPart, pHoleBoundaryModelPart, m_overlap_distance);
 
 			//for multipatch
-			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
+			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart.ElementsBegin(); it != pHoleModelPart.ElementsEnd(); ++it)
 				it->Set(VISITED, true);
 
-			CalculateNodalAreaAndNodalMass(*pModifiedPatchBoundaryModelPart, 1);
-			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
+			CalculateNodalAreaAndNodalMass(pModifiedPatchBoundaryModelPart, 1);
+			CalculateNodalAreaAndNodalMass(pHoleBoundaryModelPart, -1);
 
 			KRATOS_INFO("Formulate Chimera: Calculated Nodal area and nodal mass") << std::endl;
 
@@ -630,121 +613,24 @@ class ApplyChimeraProcessMonolithic : public Process
 			std::string pr_coupling_patch = m_parameters["pressure_coupling"].GetString();
 			std::string pr_coupling_background = m_parameters["pressure_coupling"].GetString();
 
-			if (m_type == "nearest_element")
-			{
-				ApplyMpcConstraint(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
-				ApplyMpcConstraint(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
-				KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using nearest element approach") << std::endl;
-			}
+			ApplyMpcConstraint(pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
+			ApplyMpcConstraint(pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
+			
+			KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using nearest element approach") << std::endl;
 
-			else if (m_type == "conservative")
-			{
-				ApplyMpcConstraintConservative(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
-				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
-				KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using conservativeapproach") << std::endl;
-			}
 			KRATOS_INFO("Formulate Chimera: Appplied MPCs") << std::endl;
+
+			current_model.DeleteModelPart("HoleModelpart");
+			current_model.DeleteModelPart("HoleBoundaryModelPart");
+			current_model.DeleteModelPart("ModifiedPatchBoundary");
+			current_model.DeleteModelPart("ModifiedPatch");
 		}
 		KRATOS_INFO("End of Formulate Chimera") << std::endl;
 	}
 
 	// This function removes all the boundaries common to first and second but retain rest of the boundaries
 	//Below function is required if the inside boundary not given : not used in the implementation
-	void CalculateModifiedPatchBoundary(ModelPart &FirstBoundary, ModelPart &SecondBoundary, ModelPart &FirstMinusSecondBoundary)
-	{
-		std::vector<std::size_t> vector_of_node_ids;
-		Properties::Pointer properties = FirstMinusSecondBoundary.rProperties()(0);
-		Condition const &rReferenceLineCondition = KratosComponents<Condition>::Get("Condition2D");
-
-		typedef std::unordered_map<std::size_t, std::size_t > hashmap;
-		hashmap NodeToDomainMap;
-		/*
-		Node<3>::Pointer pnode1 = rSurfaceModelPart.Nodes()(original_nodes_order[0]);
-		Node<3>::Pointer pnode2 = rSurfaceModelPart.Nodes()(original_nodes_order[1]);
-
-		vector_of_node_ids.push_back(original_nodes_order[0]);
-		vector_of_node_ids.push_back(original_nodes_order[1]);
-
-		// Skin edges are added as conditions
-         */
-		//iterate through all Geometries of first and second and compare for the common edges
-		std::size_t id_condition = 1;
-
-		for (ModelPart::ConditionIterator itCondF = FirstBoundary.ConditionsBegin(); itCondF != FirstBoundary.ConditionsEnd(); ++itCondF)
-		{
-			//Element::GeometryType::GeometriesArrayType edgesF = itCondF->GetGeometry().Edges();
-
-			bool CommonEdgeDetected = false ;
-
-				vector<std::size_t> idsFirst(2);
-				// Store node ids
-				for (std::size_t i = 0; i < itCondF->GetGeometry().size();i++)
-					idsFirst[i] = itCondF->GetGeometry()[i].Id();
-
-				for (ModelPart::ConditionIterator itCondS = SecondBoundary.ConditionsBegin(); itCondS != SecondBoundary.ConditionsEnd(); ++itCondS)
-				{
-					vector<std::size_t> idsSecond(2);
-					for (std::size_t i = 0; i < itCondS->GetGeometry().size();i++)
-						idsSecond[i] = itCondS->GetGeometry()[i].Id();
-
-
-					if ((idsFirst[0] != idsSecond[0]) || (idsFirst[1] != idsSecond[1]))
-					{
-						Node<3>::Pointer pnodeS1 = SecondBoundary.Nodes()(idsSecond[0]);
-						Node<3>::Pointer pnodeS2 = SecondBoundary.Nodes()(idsSecond[1]);
-
-						vector_of_node_ids.push_back(idsSecond[0]);
-						vector_of_node_ids.push_back(idsSecond[1]);
-						NodeToDomainMap[idsSecond[0]] = 2;
-						NodeToDomainMap[idsSecond[1]] = 2;
-
-						Line2D2<Node<3>> lineS(pnodeS1, pnodeS2);
-						Condition::Pointer p_conditionS = rReferenceLineCondition.Create(id_condition++, lineS, properties);
-						FirstMinusSecondBoundary.Conditions().push_back(p_conditionS);
-
-					}
-					else
-						CommonEdgeDetected = true;
-
-				}
-
-			if (!CommonEdgeDetected)
-			{
-				Node<3>::Pointer pnodeF1 = FirstBoundary.Nodes()(idsFirst[0]);
-				Node<3>::Pointer pnodeF2 = FirstBoundary.Nodes()(idsFirst[1]);
-
-				vector_of_node_ids.push_back(idsFirst[0]);
-				vector_of_node_ids.push_back(idsFirst[1]);
-
-				NodeToDomainMap[idsFirst[0]] = 1;
-				NodeToDomainMap[idsFirst[1]] = 1;
-
-				Line2D2<Node<3>> lineF(pnodeF1, pnodeF2);
-				Condition::Pointer p_conditionF = rReferenceLineCondition.Create(id_condition++, lineF, properties);
-				FirstMinusSecondBoundary.Conditions().push_back(p_conditionF);
-			}
-		}
-
-
-		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
-		vector_of_node_ids.assign(s.begin(), s.end());
-
-		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
-		{
-			if (NodeToDomainMap[*it] == 1)
-			{
-				Node<3>::Pointer pnode = FirstBoundary.Nodes()(*it);
-				FirstMinusSecondBoundary.AddNode(pnode);
-			}
-			else
-			{
-				Node<3>::Pointer pnode2 = SecondBoundary.Nodes()(*it);
-				FirstMinusSecondBoundary.AddNode(pnode2);
-			}
-		}
-		KRATOS_INFO("First minus Second ") << FirstMinusSecondBoundary.GetMesh() << std::endl;
-	}
-
+	
 void SetOverlapDistance(double distance)
 {
 	this->m_overlap_distance = distance;
@@ -929,7 +815,6 @@ void CalculateConservativeCorrections(ModelPart &r_model_part, MpcDataPointerTyp
 		slaveNodeId = slaveDofMap.first;
 		slaveDofKey = slaveDofMap.second;
 		Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
-		Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
 		nodalMass = slaveNode.FastGetSolutionStepValue(NODAL_MASS);
 		NodalNormalComponent = pMpc->mSlaveDofToNodalNormalMap[slaveDofMap];
 		VectorOfconstants.push_back(0.0);

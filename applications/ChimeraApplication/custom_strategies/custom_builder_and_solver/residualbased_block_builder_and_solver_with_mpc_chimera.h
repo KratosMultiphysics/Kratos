@@ -1119,7 +1119,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                         slaveNodeId = slaveDofMap.first;
                         slaveDofKey = slaveDofMap.second;
                         Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
-                        Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
                         nodalMass = slaveNode.FastGetSolutionStepValue(NODAL_MASS);
                         NodalNormalComponent = mpcData->mSlaveDofToNodalNormalMap[slaveDofMap];
 

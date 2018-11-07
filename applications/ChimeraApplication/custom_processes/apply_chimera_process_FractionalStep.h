@@ -29,6 +29,7 @@
 #include "processes/process.h"
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
 #include "geometries/geometry_data.h"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
@@ -241,7 +242,9 @@ class ApplyChimeraProcessFractionalStep : public Process
 	void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
 	{
 		//loop over nodes and find the triangle in which it falls, than do interpolation
-		array_1d<double, TDim + 1> N;
+
+		//array_1d<double, TDim + 1> N;
+		Vector N;
 		const int max_results = 10000;
 		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
@@ -408,7 +411,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 	void ApplyMpcConstraintForFractionalStep(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV, MpcDataPointerType pMpcP, std::string pressure_coupling)
 	{
 		//loop over nodes and find the triangle in which it falls, than do interpolation
-		array_1d<double, TDim + 1> N;
+		//array_1d<double, TDim + 1> N;
+		Vector N;
 		const int max_results = 10000;
 		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
@@ -650,8 +654,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 		for (int i=0;i<idim;i++)
 		{
 			KRATOS_INFO(" checked direction")<<"::"<<i<<std::endl;
-			if(min_cornerA[i]<min_cornerB[i]!=true) return false;
-			if(max_cornerA[i]>max_cornerB[i]!=true) return false;
+			if((min_cornerA[i]<min_cornerB[i])!=true) return false;
+			if((max_cornerA[i]>max_cornerB[i])!=true) return false;
 		}
 		KRATOS_INFO(" outside loop ")<<std::endl;
 		return true;
@@ -723,15 +727,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
 		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
 		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
-		//ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
 
-	/* 	KRATOS_INFO("printing my background")<<rBackgroundModelPart<<std::endl;
-		KRATOS_INFO("printing my domain boundary ")<<rDomainBoundaryModelPart<<std::endl;
-
-		KRATOS_INFO("printing my patch")<<rPatchModelPart<<std::endl;
-	//	KRATOS_INFO("printing my patch boundary")<<rPatchBoundaryModelPart<<std::endl;
-		KRATOS_INFO("printing my patch inside boundary")<<rPatchInsideBoundaryModelPart<<std::endl;
- 	*/
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
@@ -748,10 +744,14 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		if (m_overlap_distance > epsilon)
 		{
-			ModelPartPointer pHoleModelPart = ModelPartPointer(new ModelPart("HoleModelpart"));
-			ModelPartPointer pHoleBoundaryModelPart = ModelPartPointer(new ModelPart("HoleBoundaryModelPart"));
-			ModelPartPointer pModifiedPatchBoundaryModelPart = ModelPartPointer(new ModelPart("ModifiedPatchBoundary"));
-			ModelPartPointer pModifiedPatchModelPart = ModelPartPointer(new ModelPart("ModifiedPatch"));
+			Model& current_model = mrMainModelPart.GetModel();
+
+			ModelPart& pHoleModelPart = current_model.CreateModelPart("HoleModelpart");
+			ModelPart& pHoleBoundaryModelPart= current_model.CreateModelPart("HoleBoundaryModelPart");
+			ModelPart& pModifiedPatchBoundaryModelPart= current_model.CreateModelPart("ModifiedPatchBoundary");
+			ModelPart& pModifiedPatchModelPart = current_model.CreateModelPart("ModifiedPatch");
+
+			//mrModel.DeleteModelPart("HoleModelpart");
 
 			Parameters parameters= Parameters(R"({
 						"result_file_configuration" : {
@@ -773,34 +773,25 @@ class ApplyChimeraProcessFractionalStep : public Process
 						},
 						"point_data_configuration"  : []})" );
 
-			//VtkOutput VtkOutput_Patch = VtkOutput(rPatchModelPart,"nnn",parameters);
-			//VtkOutput_Patch.PrintOutput();
-			VtkOutput VtkOutput_Boundary = VtkOutput(rDomainBoundaryModelPart,"nnn",parameters);
-			VtkOutput_Boundary.PrintOutput();
-
 			if(BBoxOverlapTest)
 			{
-				FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart,rPatchInsideBoundaryModelPart,*pModifiedPatchBoundaryModelPart);
+				FindOutsideBoundaryOfModelPartGivenInside(rPatchModelPart,rPatchInsideBoundaryModelPart,pModifiedPatchBoundaryModelPart);
 			}
 			else
 			{
 				this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-				this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+				this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, pModifiedPatchModelPart, pModifiedPatchBoundaryModelPart,MainDomainOrNot);
 			}
 
-			//this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchInsideBoundaryModelPart);
-			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
-			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
+			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, pModifiedPatchBoundaryModelPart);
+			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, pHoleModelPart, pHoleBoundaryModelPart, m_overlap_distance);
 
 			//for multipatch
-			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
+			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart.ElementsBegin(); it != pHoleModelPart.ElementsEnd(); ++it)
 				it->Set(VISITED, true);
 
-			CalculateNodalAreaAndNodalMass(*pModifiedPatchBoundaryModelPart, 1);
-			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
-
-			VtkOutput VtkOutput_ModifiedPatch = VtkOutput(*pModifiedPatchBoundaryModelPart,"nnn",parameters);
-			VtkOutput_ModifiedPatch.PrintOutput();
+			CalculateNodalAreaAndNodalMass(pModifiedPatchBoundaryModelPart, 1);
+			CalculateNodalAreaAndNodalMass(pHoleBoundaryModelPart, -1);
 
 			KRATOS_INFO("Formulate chimera for fractional step")<<std::endl;
 
@@ -810,20 +801,17 @@ class ApplyChimeraProcessFractionalStep : public Process
 			std::string pr_coupling_patch = m_parameters["pressure_coupling"].GetString();
 			std::string pr_coupling_background = m_parameters["pressure_coupling"].GetString();
 
-			if (m_type == "nearest_element")
-			{
-				ApplyMpcConstraintForFractionalStep(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
-				ApplyMpcConstraintForFractionalStep(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure, pr_coupling_background);
-				KRATOS_INFO( "Fractional : Patch boundary coupled with background and hole boundary with patch") << std::endl;
-			}
-			else if (m_type == "conservative")
-			{
-				KRATOS_INFO("Fractional step MPC Conservative not implemented ")<<std::endl;
-				ApplyMpcConstraintConservative(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
-				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure, pr_coupling_background);
-				KRATOS_INFO( "Patch boundary coupled with background and hole boundary with patch using conservative approach") << std::endl;
-			}
+			ApplyMpcConstraintForFractionalStep(pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
+			ApplyMpcConstraintForFractionalStep(pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure, pr_coupling_background);
+			
+			KRATOS_INFO( "Fractional : Patch boundary coupled with background and hole boundary with patch") << std::endl;
+
 			KRATOS_INFO("Formulate Chimera: Appplied MPCs ")<<std::endl;
+			
+			current_model.DeleteModelPart("HoleModelpart");
+			current_model.DeleteModelPart("HoleBoundaryModelPart");
+			current_model.DeleteModelPart("ModifiedPatchBoundary");
+			current_model.DeleteModelPart("ModifiedPatch");
 		}
 		KRATOS_INFO("End of Formulate Chimera")<<std::endl;
 	}
@@ -1001,7 +989,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 			slaveNodeId = slaveDofMap.first;
 			slaveDofKey = slaveDofMap.second;
 			Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
-			Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
 			nodalMass = slaveNode.FastGetSolutionStepValue(NODAL_MASS);
 			NodalNormalComponent = pMpc->mSlaveDofToNodalNormalMap[slaveDofMap];
 			VectorOfconstants.push_back(0.0);

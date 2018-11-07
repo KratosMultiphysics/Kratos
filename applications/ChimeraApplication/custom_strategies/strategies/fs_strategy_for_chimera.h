@@ -453,7 +453,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "FSStrategyForChimera" ;
@@ -461,10 +461,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "FSStrategyForChimera";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "FSStrategyForChimera";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -605,64 +605,6 @@ protected:
         if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
             KRATOS_INFO("Fractional velocity iterations did not converge.")<< std::endl;
 
-
-        // KRATOS_INFO("Finding and printing flux across boundary ")<<std::endl;
-
-        // for (auto mpcData : (*mpcDataVector))
-        // {
-        //     if (mpcData->IsActive())
-        //     {
-        //         if (mpcData->mType == "nearest_element")
-        //         {
-        //             double NodalNormalComponent;
-        //             double flux = 0;
-        //             for (auto slaveMasterDofMap : mpcData->mDofConstraints)
-        //             {
-        //                 SlavePairType slaveDofMap = slaveMasterDofMap.first;
-        //                 //MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-        //                 std::size_t slaveNodeId = slaveDofMap.first;
-        //                 NodeType &node = rModelPart.Nodes()[slaveNodeId];
-        //                 //KRATOS_INFO(" Slave Fract velocity")<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
-        //                 //array_1d<double,3> Fract_Vel_interpolated = array_1d<double,3>(3,0.0);
-        //                 //KRATOS_INFO("variable before interpolation")<<Fract_Vel_interpolated<<std::endl;
-        //                 /*
-
-        //                 for (auto masterDofMapElem : masterDofMap)
-        //                 {
-        //                     std::size_t masterNodeId;
-        //                     double constant;
-        //                     std::size_t masterDofKey;
-        //                     std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
-        //                     double weight = masterDofMapElem.second;
-        //                     NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
-        //                     Fract_Vel_interpolated +=(masterNode.FastGetSolutionStepValue(FRACT_VEL))*weight;
-        //                 }
-        //                 KRATOS_INFO(" Fract velocity interpolated from its masters ")<<Fract_Vel_interpolated<<std::endl;
-        //                  */
-        //                 //node.FastGetSolutionStepValue(FRACT_VEL) = Fract_Vel_interpolated;
-        //                 NodalNormalComponent = mpcData->mSlaveDofToNodalNormalMap[slaveDofMap];
-
-        //                 // KRATOS_INFO("Nodal normal")<<node.GetValue(NORMAL)<<std::endl;
-        //                 // KRATOS_INFO("Nodal normal")<<node.FastGetSolutionStepValue(NORMAL)<<std::endl;
-        //                 // KRATOS_INFO("Fract velocity")<<node.FastGetSolutionStepValue(VELOCITY)<<std::endl;
-        //                 // KRATOS_INFO("Fract velocity")<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
-        //                 flux = flux+ MathUtils<double>::Dot(node.FastGetSolutionStepValue(VELOCITY),node.FastGetSolutionStepValue(NORMAL));
-
-        //             }
-
-        //             KRATOS_INFO(" total flux across ")<<mpcData->GetName()<<"::"<<flux<<std::endl;
-
-        //             std::fstream myfile;
-        //             myfile.open ("example.txt",std::ios_base::app);
-        //             myfile << "Writing this to a file.\n";
-        //             myfile<<"total flux across "<<mpcData->GetName()<<"::"<<flux<<std::endl;
-        //             myfile.close();
-        //         }
-        //     }
-        // }
-
-       // CalculateConservativeCorrections();
-
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
         this->ComputeSplitOssProjections(rModelPart);
@@ -678,15 +620,8 @@ protected:
 
             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
             {
-                bool is_slave = false;
-                if ((itNode)->IsDefined(SLAVE))
-                    is_slave = (itNode)->Is(SLAVE);
-
-                if(true) //if(!is_slave)
-                {
-                    const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
-                    itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
-                }
+                const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
+                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;      
             }
         }
 
@@ -708,32 +643,6 @@ protected:
             KRATOS_INFO("Calculating Pressure.")<< std::endl;
         //double NormDp = 0;
         double NormDp = mpPressureStrategy->Solve();
-
-     /*
-        for (auto mpcData : (*mpcDataVector))
-        {
-            for (auto slaveMasterDofMap : mpcData->mDofConstraints)
-            {
-                SlavePairType slaveDofMap = slaveMasterDofMap.first;
-                MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
-                std::size_t slaveNodeId = slaveDofMap.first;
-                NodeType &node = rModelPart.Nodes()[slaveNodeId];
-                KRATOS_INFO(" Slave pressure")<<node.FastGetSolutionStepValue(PRESSURE)<<std::endl;
-                double Pressure_interpolated = 0.0;
-                for (auto masterDofMapElem : masterDofMap)
-                {
-                    std::size_t masterNodeId;
-                    double constant;
-                    std::size_t masterDofKey;
-                    std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
-                    double weight = masterDofMapElem.second;
-                    NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
-                    Pressure_interpolated +=(masterNode.FastGetSolutionStepValue(PRESSURE))*weight;
-                }
-                KRATOS_INFO(" Pressure interpolated from its masters ")<<Pressure_interpolated<<std::endl;
-            }
-        }
-        */
 
         for (auto mpcData : (*mpcDataVector))
         {
@@ -759,13 +668,7 @@ protected:
 
         this->CalculateEndOfStepVelocity();
 
-        /*
-        mpPressureStrategy->Clear();
-        double NormDu = mpPressureStrategy->Solve();
-        mpPressureStrategy->Clear();
-        */
-
-        // Additional steps
+       // Additional steps
         for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
              iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
             (*iExtraSteps)->Execute();
@@ -881,11 +784,6 @@ protected:
 
             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
             {
-                bool element_is_active = true;
-                if ((itElem)->IsDefined(ACTIVE))
-                    element_is_active = (itElem)->Is(ACTIVE);
-
-                //if(element_is_active)
                 itElem->Calculate(CONV_PROJ,Out,rModelPart.GetProcessInfo());
             }
         }
@@ -979,11 +877,6 @@ protected:
 
             for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
             {
-                bool element_is_active = true;
-                if ((itElem)->IsDefined(ACTIVE))
-                    element_is_active = (itElem)->Is(ACTIVE);
-
-                //if(element_is_active)
                 itElem->Calculate(VELOCITY,Out,rModelPart.GetProcessInfo());
             }
         }
