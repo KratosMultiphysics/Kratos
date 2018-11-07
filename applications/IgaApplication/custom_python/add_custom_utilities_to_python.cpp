@@ -209,9 +209,7 @@ void RegisterCurveGeometryBase(
     namespace py = pybind11;
     using namespace pybind11::literals;
 
-    using VectorType = Kratos::array_1d<double, TDimension>;
-
-    using Type = ANurbs::CurveGeometryBase<VectorType>;
+    using Type = CurveGeometryBase<TDimension>;
     using Holder = ANurbs::Pointer<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
@@ -249,11 +247,9 @@ void RegisterCurveGeometry(
     namespace py = pybind11;
     using namespace pybind11::literals;
 
-    using VectorType = Kratos::array_1d<double, TDimension>;
-
-    using Type = ANurbs::CurveGeometry<VectorType>;
+    using Type = CurveGeometry<TDimension>;
     using Holder = ANurbs::Pointer<Type>;
-    using Base = ANurbs::CurveGeometryBase<VectorType>;
+    using Base = CurveGeometryBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
         .def(pybind11::init<int, int, bool>(),
@@ -273,7 +269,7 @@ void RegisterSurfaceGeometryBase(
 
     using VectorType = Kratos::array_1d<double, TDimension>;
 
-    using Type = ANurbs::SurfaceGeometryBase<VectorType>;
+    using Type = SurfaceGeometryBase<TDimension>;
     using Holder = ANurbs::Pointer<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
@@ -341,11 +337,9 @@ void RegisterSurfaceGeometry(
     namespace py = pybind11;
     using namespace pybind11::literals;
 
-    using VectorType = Kratos::array_1d<double, TDimension>;
-
-    using Type = ANurbs::SurfaceGeometry<VectorType>;
+    using Type = SurfaceGeometry<TDimension>;
     using Holder = ANurbs::Pointer<Type>;
-    using Base = ANurbs::SurfaceGeometryBase<VectorType>;
+    using Base = SurfaceGeometryBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
         .def(pybind11::init<int, int, int, int, bool>(),
@@ -368,10 +362,10 @@ void RegisterNodeCurveGeometry(
 
     using Type = NodeCurveGeometry3D;
     using Pointer = ANurbs::Pointer<Type>;
-    using Base = ANurbs::CurveGeometryBase<VectorType>;
+    using Base = CurveGeometryBase<3>;
 
     using VariableComponent = Kratos::VariableComponent<
-        Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>;
+        Kratos::VectorComponentAdaptor<VectorType>>;
 
     pybind11::class_<Type, Base, Pointer>(m, name.c_str())
         .def(pybind11::init<int, int>(),
@@ -545,9 +539,7 @@ void RegisterCurveBase(
     namespace py = pybind11;
     using namespace pybind11::literals;
 
-    using VectorType = Kratos::array_1d<double, TDimension>;
-
-    using Type = ANurbs::CurveBase<VectorType>;
+    using Type = CurveBase<TDimension>;
     using Holder = ANurbs::Pointer<Type>;
 
     py::class_<Type, Holder>(m, name.c_str())
@@ -569,12 +561,11 @@ void RegisterCurve(
     namespace py = pybind11;
     using namespace pybind11::literals;
 
-    using VectorType = Kratos::array_1d<double, TDimension>;
-    using GeometryType = ANurbs::CurveGeometry<VectorType>;
+    using GeometryType = CurveGeometry<TDimension>;
 
-    using Type = ANurbs::Curve<GeometryType>;
+    using Type = Curve<TDimension>;
     using Holder = ANurbs::Pointer<Type>;
-    using Base = ANurbs::CurveBase<VectorType>;
+    using Base = CurveBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
         .def(pybind11::init<ANurbs::Pointer<GeometryType>,
@@ -592,9 +583,7 @@ void RegisterSurfaceBase(
     namespace py = pybind11;
     using namespace pybind11::literals;
 
-    using VectorType = Kratos::array_1d<double, TDimension>;
-
-    using Type = ANurbs::SurfaceBase<VectorType>;
+    using Type = SurfaceBase<TDimension>;
     using Holder = ANurbs::Pointer<Type>;
 
     py::class_<Type, Holder>(m, name.c_str())
@@ -620,12 +609,11 @@ void RegisterSurface(
     namespace py = pybind11;
     using namespace pybind11::literals;
 
-    using VectorType = Kratos::array_1d<double, TDimension>;
-    using GeometryType = ANurbs::SurfaceGeometry<VectorType>;
+    using GeometryType = SurfaceGeometry<TDimension>;
 
-    using Type = ANurbs::Surface<GeometryType>;
+    using Type = Surface<TDimension>;
     using Holder = ANurbs::Pointer<Type>;
-    using Base = ANurbs::SurfaceBase<VectorType>;
+    using Base = SurfaceBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
         .def(pybind11::init<ANurbs::Pointer<GeometryType>,
@@ -644,19 +632,13 @@ void RegisterCurveOnSurface(
     namespace py = pybind11;
     using namespace pybind11::literals;
 
-    using Vector2Type = Kratos::array_1d<double, 2>;
-    using VectorType = Kratos::array_1d<double, TDimension>;
-
-    using CurveGeometryBaseType = ANurbs::CurveGeometryBase<Vector2Type>;
-    using SurfaceGeometryBaseType = ANurbs::SurfaceGeometryBase<VectorType>;
-
-    using Type = ANurbs::CurveOnSurface<Vector2Type, VectorType>;
+    using Type = CurveOnSurface<TDimension>;
     using Pointer = ANurbs::Pointer<Type>;
-    using Base = ANurbs::CurveBase<VectorType>;
+    using Base = CurveBase<TDimension>;
 
     pybind11::class_<Type, Base, Pointer>(m, name.c_str())
-        .def(pybind11::init<ANurbs::Pointer<CurveGeometryBaseType>,
-            ANurbs::Pointer<SurfaceGeometryBaseType>,
+        .def(pybind11::init<ANurbs::Pointer<CurveGeometryBase<2>>,
+            ANurbs::Pointer<SurfaceGeometryBase<TDimension>>,
             ANurbs::Interval<double>>(),
             "CurveGeometry"_a,
             "SurfaceGeometry"_a,
@@ -673,7 +655,7 @@ void RegisterPointOnCurveProjection(
     using namespace pybind11::literals;
 
     using VectorType = Kratos::array_1d<double, TDimension>;
-    using CurveBaseType = ANurbs::CurveBase<VectorType>;
+    using CurveBaseType = CurveBase<TDimension>;
 
     using Type = ANurbs::PointOnCurveProjection<VectorType>;
     using Pointer = ANurbs::Pointer<Type>;
