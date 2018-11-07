@@ -16,7 +16,8 @@ from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as T
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 
-# Import from Test Factories (with differet analysis flows)
+# Import from Test Factories (with different analysis flows)
+from test_static_loading_conditions_point import TestStaticLoadingConditionsPoint as TTestStaticLoadingConditionsPoint
 
 
 def AssembleTestSuites():
@@ -40,6 +41,7 @@ def AssembleTestSuites():
 
     ## These tests are executed by the continuous integration tool
     smallSuite = suites['small']
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
