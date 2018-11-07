@@ -598,7 +598,7 @@ protected:
         // We solve the system of equations
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
-        this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+        SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
 
@@ -616,6 +616,47 @@ protected:
         "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+      *@brief This is a call to the linear system solver (taking into account some physical particularities of the problem)
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SystemSolveWithPhysics(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        ModelPart& rModelPart
+        )
+    {
+        KRATOS_TRY
+
+        double norm_b;
+        if (TSparseSpace::Size(b) != 0)
+            norm_b = TSparseSpace::TwoNorm(b);
+        else
+            norm_b = 0.0;
+
+        if (norm_b != 0.0) {
+            //provide physical data as needed
+            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, mDoFToSolveSet, rModelPart);
+
+            // Do solve
+            BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
+        } else {
+            TSparseSpace::SetToZero(Dx);
+            KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolver", rModelPart.GetCommunicator().MyPID() == 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
+        }
+
+        // Prints informations about the current time
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << *(BaseType::mpLinearSystemSolver) << std::endl;
+
+        KRATOS_CATCH("")
+
     }
 
     /**
