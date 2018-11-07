@@ -244,6 +244,13 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     void TrimComponentName(std::string& rLine);
 
 
+    /**
+     * @brief Checks if the materials are assigned uniquely to the modelparts
+     * @param Materials The parameters containing the properties of the materials
+     */
+    void CheckUniqueMaterialAssignment(Parameters Materials);
+
+
     ///@}
     ///@name Private  Access
     ///@{
