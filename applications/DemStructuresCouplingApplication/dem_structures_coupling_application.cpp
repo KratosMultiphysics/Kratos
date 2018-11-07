@@ -16,6 +16,10 @@ namespace Kratos {
     // We define the node type
     typedef Node<3> NodeType;
 
+    // STRUCTURAL COUPLING
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DEM_SURFACE_LOAD)
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CURRENT_STRUCTURAL_VELOCITY)
+    
     KratosDemStructuresCouplingApplication::KratosDemStructuresCouplingApplication()
         : KratosApplication("DemStructuresCouplingApplication"),
 
@@ -27,6 +31,10 @@ namespace Kratos {
 
         KratosApplication::Register();
 
+        // STRUCTURAL COUPLING
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DEM_SURFACE_LOAD)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CURRENT_STRUCTURAL_VELOCITY)
+            
         // Surface loads
         KRATOS_REGISTER_CONDITION("SurfaceLoadFromDEMCondition3D3N", mSurfaceLoadFromDEMCondition3D3N)
 

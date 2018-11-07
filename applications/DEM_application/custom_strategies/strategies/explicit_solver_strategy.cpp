@@ -207,6 +207,7 @@ namespace Kratos {
 
         // 5. Finalize Solution Step.
         //FinalizeSolutionStep();
+        KRATOS_WATCH("ExplicitSolverStrategy::Initialize()")
         ComputeNodalArea();
 
         KRATOS_CATCH("")
@@ -251,6 +252,7 @@ namespace Kratos {
 
             Condition::GeometryType& geometry = it->GetGeometry();
             double Element_Area = geometry.Area();
+            KRATOS_WATCH(Element_Area)
 
             for (unsigned int i = 0; i < geometry.size(); i++) { //talking about each of the three nodes of the condition
                 double& node_area = geometry[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
@@ -489,10 +491,10 @@ namespace Kratos {
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
         GetClustersForce();
+        GetRigidBodyElementsForce();
 
         if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
             CalculateNodalPressuresAndStressesOnWalls();
-            GetRigidBodyElementsForce();
         }
 
         // 4. Synchronize (should be just FORCE and TORQUE)

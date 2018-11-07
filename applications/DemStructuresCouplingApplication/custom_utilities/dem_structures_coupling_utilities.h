@@ -50,29 +50,30 @@ virtual ~DemStructuresCouplingUtilities(){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_destination_model_part, Properties::Pointer props)
-{
+void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_destination_model_part, Properties::Pointer props) {
+    
     std::string error = CheckProvidedProperties(props);
-    if (error != "all_ok") {
-      KRATOS_ERROR << "The Dem Walls ModelPart has no valid Properties. Missing "<< error << " . Exiting." << std::endl;
-    }
+    
+    if (error != "all_ok") KRATOS_ERROR << "The Dem Walls ModelPart has no valid Properties. Missing " << error << " . Exiting." << std::endl;
 
     r_destination_model_part.Conditions().Sort();
     int id = 1;
-    if (r_destination_model_part.Conditions().size()) {
-      id = (r_destination_model_part.ConditionsEnd()-1)->Id() + 1;
-    }
+    
+    if (r_destination_model_part.Conditions().size()) id = (r_destination_model_part.ConditionsEnd()-1)->Id() + 1;
 
     ModelPart::ConditionsContainerType& source_conditions = r_source_model_part.Conditions();
 
+    // Adding conditions
     for (unsigned int i = 0; i < source_conditions.size(); i++) {
-      ModelPart::ConditionsContainerType::iterator it = r_source_model_part.ConditionsBegin() + i;
-      Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
-      Condition::Pointer cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
-      r_destination_model_part.AddCondition(cond);
-      id++;
+        ModelPart::ConditionsContainerType::iterator it = r_source_model_part.ConditionsBegin() + i;
+        Geometry< Node<3> >::Pointer p_geometry =  it->pGetGeometry();
+        Condition::Pointer cond = Condition::Pointer(new RigidFace3D(id, p_geometry, props));
+        r_destination_model_part.AddCondition(cond);
+        id++;
     }
-
+        
+    // Adding nodes
+    r_destination_model_part.AddNodes(r_source_model_part.NodesBegin(), r_source_model_part.NodesEnd());
 }
 
 std::string CheckProvidedProperties(Properties::Pointer props) {

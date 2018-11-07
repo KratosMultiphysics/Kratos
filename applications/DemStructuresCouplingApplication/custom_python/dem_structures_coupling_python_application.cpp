@@ -36,6 +36,9 @@ PYBIND11_MODULE(KratosDemStructuresCouplingApplication, m)
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
+    
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DEM_SURFACE_LOAD)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CURRENT_STRUCTURAL_VELOCITY)
 
 }
 

@@ -29,10 +29,44 @@ class Algorithm(object):
 
         with open(structural_parameters_file_name,'r') as parameter_file:
             parameters = Kratos.Parameters(parameter_file.read())
+            
+        # Create structural solver, main_model_part and added variables
         self.structural_solution = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.model, parameters)
+        
+        self.AddDEMVariablesToStructural()
 
-        # Adding DEM Surface Load variable to Structural Model Part
-        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DEM_SURFACE_LOAD)
+    def AddDEMVariablesToStructural(self):
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.DEM_SURFACE_LOAD)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(DemFem.CURRENT_STRUCTURAL_VELOCITY)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DEM_PRESSURE)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DEM_NODAL_AREA)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.DELTA_DISPLACEMENT)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Kratos.TOTAL_FORCES)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.ELASTIC_FORCES)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.CONTACT_FORCES)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.TANGENTIAL_ELASTIC_FORCES)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.SHEAR_STRESS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.NON_DIMENSIONAL_VOLUME_WEAR)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.IMPACT_WEAR)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.PARTICLE_ROTATION_ANGLE)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Kratos.DELTA_ROTATION)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Kratos.ANGULAR_VELOCITY)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.LOCAL_ANGULAR_VELOCITY)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.LOCAL_AUX_ANGULAR_VELOCITY)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.ORIENTATION_REAL)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.ORIENTATION_IMAG)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.ORIENTATION)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.AUX_ORIENTATION)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Kratos.ANGULAR_MOMENTUM)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.RIGID_ELEMENT_FORCE)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.PARTICLE_MOMENT)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Kratos.EXTERNAL_APPLIED_FORCE)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Kratos.EXTERNAL_APPLIED_MOMENT)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.PRINCIPAL_MOMENTS_OF_INERTIA)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.CLUSTER_VOLUME)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Kratos.NODAL_MASS)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.CHARACTERISTIC_LENGTH)
+        self.structural_solution._GetSolver().main_model_part.AddNodalSolutionStepVariable(Dem.PARTICLE_DENSITY)
 
     def Run(self):
         self.Initialize()
@@ -40,8 +74,8 @@ class Algorithm(object):
         self.Finalize()
 
     def Initialize(self):
-        self.structural_solution.Initialize()
-        self.dem_solution.Initialize()
+        self.structural_solution.Initialize() # Reading mdpa
+        self.dem_solution.Initialize() # Adding DEM variables and reading
 
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
@@ -61,20 +95,19 @@ class Algorithm(object):
                             self.dem_solution.rigid_face_model_part,
                             mixed_mp
                             )
-        structures_nodal_results = []
-        dem_nodal_results = ["VELOCITY"]
+        
+        structures_nodal_results = ["VOLUME_ACCELERATION","DEM_SURFACE_LOAD"]
+        dem_nodal_results = []
         clusters_nodal_results = []
-        rigid_faces_nodal_results = []
-        mixed_nodal_results = ["DISPLACEMENT"]
+        rigid_faces_nodal_results = ["DEM_NODAL_AREA"]
+        mixed_nodal_results = ["DISPLACEMENT","VELOCITY"]
         gauss_points_results = []
-        self.gid_output.initialize_dem_fem_results(
-                                                    structures_nodal_results,
-                                                    dem_nodal_results,
-                                                    clusters_nodal_results,
-                                                    rigid_faces_nodal_results,
-                                                    mixed_nodal_results,
-                                                    gauss_points_results
-                                                    )
+        self.gid_output.initialize_dem_fem_results(structures_nodal_results,
+                                                   dem_nodal_results,
+                                                   clusters_nodal_results,
+                                                   rigid_faces_nodal_results,
+                                                   mixed_nodal_results,
+                                                   gauss_points_results)
 
     def _DetectStructuresSkin(self):
 
@@ -98,7 +131,8 @@ class Algorithm(object):
         self.structure_skin_detector.Execute()
 
     def _TransferStructuresSkinToDem(self):
-        skin_mp = self.structural_solution._GetSolver().GetComputingModelPart().GetSubModelPart("DetectedByProcessSkinModelPart")
+        self.structural_mp = self.structural_solution._GetSolver().GetComputingModelPart()
+        self.skin_mp = self.structural_mp.GetSubModelPart("DetectedByProcessSkinModelPart")
         dem_walls_mp = self.dem_solution.rigid_face_model_part
         props = Kratos.Properties(0)
         props[Dem.WALL_FRICTION] = 0.5773502691896257
@@ -110,14 +144,15 @@ class Algorithm(object):
         props[Kratos.YOUNG_MODULUS] = 1e20
         props[Kratos.POISSON_RATIO] = 0.25
         dem_walls_mp.AddProperties(props)
-        DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(skin_mp, dem_walls_mp, props)
+        DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(self.skin_mp, dem_walls_mp, props)
 
     def RunSolutionLoop(self):
         self.dem_solution.step = 0
         self.dem_solution.time = 0.0
         self.dem_solution.time_old_print = 0.0
         self.time_dem   = 0.0
-
+        self.Dt_structural = self.structural_solution._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
+        
         while self.structural_solution.time < self.structural_solution.end_time:
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
             self.structural_solution.InitializeSolutionStep()
@@ -128,23 +163,35 @@ class Algorithm(object):
             time_final_DEM_substepping = self.structural_solution.time
 
             self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
-
+            
+            DemFem.InterpolateStructuralSolutionForDEM().SaveStructuralSolution(self.structural_mp)
+            
+            DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
+            
             for self.dem_solution.time_dem in self.yield_DEM_time(self.time_dem, time_final_DEM_substepping, self.Dt_DEM):
+                
                 self.dem_solution.InitializeTimeStep()
                 self.dem_solution.time = self.dem_solution.time + self.dem_solution.dt
                 self.dem_solution.step += 1
 
                 self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.dt, self.dem_solution.step)
-
+                
                 self.dem_solution.BeforeSolveOperations(self.dem_solution.time)
-
+                
+                DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution.time)
+                
                 self.dem_solution.SolverSolve()
 
                 self.dem_solution.AfterSolveOperations()
 
+                DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution.dt, self.Dt_structural)
+                
                 self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.dt)
                 #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
+                if self.dem_solution.time > 1.0:
+                    sescalla
+                    
                 ##### adding DEM elements by the inlet ######
                 if self.dem_solution.DEM_parameters["dem_inlet_option"].GetBool():
                     self.dem_solution.DEM_inlet.CreateElementsFromInletMesh(self.dem_solution.spheres_model_part, self.dem_solution.cluster_model_part, self.dem_solution.creator_destructor)  # After solving, to make sure that neighbours are already set.
@@ -173,6 +220,8 @@ class Algorithm(object):
                     self.dem_solution.time_old_print = self.dem_solution.time
 
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
+            
+            DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
     def ReadDemModelParts(self,
                                     starting_node_Id=0,

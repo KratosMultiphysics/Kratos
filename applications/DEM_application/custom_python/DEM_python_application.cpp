@@ -339,9 +339,6 @@ PYBIND11_MODULE(KratosDEMApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, THERMAL_CONDUCTIVITY)
     // *************** Thermal only END ***************
 
-    // STRUCTURAL COUPLING
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DEM_SURFACE_LOAD)
-
 }
 
 }  // namespace Python.
