@@ -15,6 +15,7 @@ from particle_mechanics_test_factory import CooksMembraneCompressibleTest as TCo
 from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
+from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
 
 # Import from Test Factories (with different analysis flows)
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
@@ -43,9 +44,13 @@ def AssembleTestSuites():
 
     ## These tests are executed by the continuous integration tool
     smallSuite = suites['small']
+
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))
+
+    smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
+    smallSuite.addTest(TGravityApplicationTest('test_execution'))
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
@@ -59,7 +64,6 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
-    nightSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate
