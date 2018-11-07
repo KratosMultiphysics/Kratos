@@ -16,8 +16,13 @@ set( KRATOS_MPI_PYTHON_SOURCES
     python/add_mpi_utilities_to_python.cpp
 )
 
+## Kratos MPI test sources.
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_MPI_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/sources/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 ## Define library for the C++ layer
-add_library(KratosMPICore SHARED ${KRATOS_MPI_SOURCES} )
+add_library(KratosMPICore SHARED ${KRATOS_MPI_SOURCES} ${KRATOS_MPI_TEST_SOURCES})
 target_link_libraries(KratosMPICore PUBLIC KratosCore ${MPI_LIBRARIES} )
 #set_target_properties(KratosMPICore PROPERTIES COMPILE_DEFINITIONS "KRATOS_MPI_CORE=IMPORT,API")
 
