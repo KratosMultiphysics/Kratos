@@ -1320,70 +1320,73 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
      ArrayType Radius;
      ArrayType Variable;
      Matrix SkewSymVariable(3,3);
-
+     QuaternionType TotalQuaternion;
+     Matrix RotationMatrix(3,3);
      for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
      {
-       //Get rotation matrix
-       QuaternionType TotalQuaternion = QuaternionType::FromRotationVector<ArrayType>(Rotation);
+       if( i->Id() != this->Id() ){
+         if( rCenterOfGravity->SolutionStepsDataHas(STEP_DISPLACEMENT) ){
+           TotalQuaternion = QuaternionType::FromRotationVector<ArrayType>(StepRotation);
+           TotalQuaternion.ToRotationMatrix(RotationMatrix);
+           Radius = (i)->GetInitialPosition() - Center;
+           Radius = prod(RotationMatrix, Radius);
+           noalias(Variable) = Center + rCenterOfGravity->FastGetSolutionStepValue(STEP_DISPLACEMENT) + Radius;
+           noalias((i)->FastGetSolutionStepValue(STEP_DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
+         }
+       
+         //Get rotation matrix
+         TotalQuaternion = QuaternionType::FromRotationVector<ArrayType>(Rotation);
 
-       Radius = (i)->GetInitialPosition() - Center;
-
-       Matrix RotationMatrix(3,3);
-       TotalQuaternion.ToRotationMatrix(RotationMatrix);
-       Radius = prod(RotationMatrix, Radius);
-
-       noalias(Variable) = Center + Displacement + Radius ;
-       noalias((i)->Coordinates()) = Variable;
-       noalias((i)->FastGetSolutionStepValue(DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
-
-       if( rCenterOfGravity->SolutionStepsDataHas(STEP_DISPLACEMENT) ){
-         TotalQuaternion = QuaternionType::FromRotationVector<ArrayType>(StepRotation);
-         TotalQuaternion.ToRotationMatrix(RotationMatrix);
          Radius = (i)->GetInitialPosition() - Center;
+       
+         TotalQuaternion.ToRotationMatrix(RotationMatrix);
          Radius = prod(RotationMatrix, Radius);
-         noalias(Variable) = Center + rCenterOfGravity->FastGetSolutionStepValue(STEP_DISPLACEMENT) + Radius;
-         noalias((i)->FastGetSolutionStepValue(STEP_DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
+
+         noalias(Variable) = Center + Displacement + Radius ;
+         noalias((i)->Coordinates()) = Variable;
+         noalias((i)->FastGetSolutionStepValue(DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
+
+         std::cout<<" Displacement "<<i->Id()<<" "<<(i)->FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
+       
+         noalias((i)->FastGetSolutionStepValue(ROTATION)) = Rotation;
+         noalias((i)->FastGetSolutionStepValue(STEP_ROTATION)) = StepRotation;
+         noalias((i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = AngularVelocity;
+         noalias((i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)) = AngularAcceleration;
+         noalias((i)->FastGetSolutionStepValue(VELOCITY)) = Velocity;
+         noalias((i)->FastGetSolutionStepValue(ACCELERATION)) = Acceleration;
+
+         // Update velocity:
+
+         //compute the skewsymmmetric tensor of the angular velocity
+         BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVelocity, SkewSymVariable);
+
+         //compute the contribution of the angular velocity to the velocity v = Wxr
+         noalias(Variable) = prod(SkewSymVariable,Radius);
+
+         (i)->FastGetSolutionStepValue(VELOCITY) += Variable;
+
+         // Update Acceleration:
+
+         //centripetal acceleration:
+         Variable = prod(SkewSymVariable,Variable); //ac = Wx(Wxr)
+
+         (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
+
+         //compute the skewsymmmetric tensor of the angular acceleration
+         BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularAcceleration, SkewSymVariable);
+
+         //compute the contribution of the angular velocity to the velocity a = Axr
+         noalias(Variable) = prod(SkewSymVariable,Radius);
+
+         (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
+
+
+         // std::cout<<" Id "<<i->Id()<<" velocity "<<(i)->FastGetSolutionStepValue(VELOCITY)<<" Velocity "<<Velocity<<std::endl;
+         // std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
+         // std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;
+         // std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;
        }
-
-
-       noalias((i)->FastGetSolutionStepValue(ROTATION)) = Rotation;
-       noalias((i)->FastGetSolutionStepValue(STEP_ROTATION)) = StepRotation;
-       noalias((i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = AngularVelocity;
-       noalias((i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)) = AngularAcceleration;
-       noalias((i)->FastGetSolutionStepValue(VELOCITY)) = Velocity;
-       noalias((i)->FastGetSolutionStepValue(ACCELERATION)) = Acceleration;
-
-       // Update velocity:
-
-       //compute the skewsymmmetric tensor of the angular velocity
-       BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVelocity, SkewSymVariable);
-
-       //compute the contribution of the angular velocity to the velocity v = Wxr
-       noalias(Variable) = prod(SkewSymVariable,Radius);
-
-       (i)->FastGetSolutionStepValue(VELOCITY) += Variable;
-
-       // Update Acceleration:
-
-       //centripetal acceleration:
-       Variable = prod(SkewSymVariable,Variable); //ac = Wx(Wxr)
-
-       (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
-
-       //compute the skewsymmmetric tensor of the angular acceleration
-       BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularAcceleration, SkewSymVariable);
-
-       //compute the contribution of the angular velocity to the velocity a = Axr
-       noalias(Variable) = prod(SkewSymVariable,Radius);
-
-       (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
-
-
-       // std::cout<<" Id "<<i->Id()<<" velocity "<<(i)->FastGetSolutionStepValue(VELOCITY)<<" Velocity "<<Velocity<<std::endl;
-       // std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
-       // std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;
-       // std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;
-
+       
      }
 
      KRATOS_CATCH("")

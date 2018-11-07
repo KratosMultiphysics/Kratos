@@ -387,13 +387,6 @@ class RigidBodyPointLinkCondition
   virtual void CalculateAndAddTangent(MatrixType& rLeftHandSideMatrix,
                                       MatrixType& rLinkedLeftHandSideMatrix,
                                       GeneralVariables& rVariables);
-
-  /**
-   * Calculation of the Link Stiffness Matrix
-   */
-  virtual void CalculateAndAddTangentRotation(MatrixType& rLeftHandSideMatrix,
-                                              MatrixType& rLinkedLeftHandSideMatrix,
-                                              GeneralVariables& rVariables);
   /**
    * Calculation of the Link Force Vector
    */
