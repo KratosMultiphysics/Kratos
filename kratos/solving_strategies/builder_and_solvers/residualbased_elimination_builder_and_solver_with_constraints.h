@@ -249,28 +249,26 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
 
         // Declaring temporal variables
-        DofsArrayType dof_temp_all, dof_temp_solvable;
+        DofsArrayType dof_temp_all, dof_temp_solvable, dof_temp_slave;
 
         // We assign an empty dof array to our dof sets
         BaseType::mDofSet = DofsArrayType(); /// This corresponds with all the DoF of the system
-        mDoFToSolveSet = DofsArrayType();    /// This corresponds with the solvable (the ones solved after compacting the system using MPC)
+        mDoFSlaveSet = DofsArrayType();    /// This corresponds with the slave (the ones not solved after compacting the system using MPC)
 
         /**
          * Here we declare three sets.
          * - The global set: Contains all the DoF of the system
-         * - The solvable set: The DoF that are going to be solved by the linear solver after apply the constraints
          * - The slave set: The DoF that are not going to be solved, due to MPC formulation
          */
-        set_type dof_global_set, dof_global_solvable_set, dof_global_slave_set;
+        set_type dof_global_set, dof_global_slave_set;
 
         #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
             ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
             // We cleate the temporal set and we reserve some space on them
-            set_type dofs_tmp_set, dofs_tmp_solvable_set, dof_temp_slave_set;
+            set_type dofs_tmp_set, dof_temp_slave_set;
             dofs_tmp_set.reserve(20000);
-            dofs_tmp_solvable_set.reserve(20000);
             dof_temp_slave_set.reserve(200);
 
             // Gets the array of elements from the modeler
@@ -283,7 +281,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_solvable_set.insert(dof_list.begin(), dof_list.end());
             }
 
             // Gets the array of conditions from the modeler
@@ -296,7 +293,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 // Gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_solvable_set.insert(dof_list.begin(), dof_list.end());
             }
 
             // Gets the array of constraints from the modeler
@@ -311,14 +307,12 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
                 dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
                 dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
                 dof_temp_slave_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_solvable_set.insert(second_dof_list.begin(), second_dof_list.end());
             }
 
             // We merge all the sets in one thread
             #pragma omp critical
             {
                 dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
-                dof_global_solvable_set.insert(dofs_tmp_solvable_set.begin(), dofs_tmp_solvable_set.end());
                 dof_global_slave_set.insert(dof_temp_slave_set.begin(), dof_temp_slave_set.end());
             }
         }
@@ -333,26 +327,16 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         dof_temp_all.Sort();
         BaseType::mDofSet = dof_temp_all;
 
-        // We remove the slave DoF from the solvable set (they can be repited even if not included in the constraint because can be added by an element or condition)
+        dof_temp_slave.reserve(dof_global_slave_set.size());
         for (auto& dof : dof_global_slave_set) {
-            auto it = dof_global_solvable_set.find(dof);
-            // Check if Iterator is valid
-            if(it != dof_global_solvable_set.end())
-                dof_global_solvable_set.erase(it);
+            dof_temp_slave.push_back( dof.get() );
         }
-
-        /// Now we transfet the temporal set to the solvable
-        dof_global_slave_set.clear();
-        dof_temp_solvable.reserve(dof_global_solvable_set.size());
-        for (auto& dof : dof_global_solvable_set) {
-            dof_temp_solvable.push_back( dof.get() );
-        }
-        dof_temp_solvable.Sort();
-        mDoFToSolveSet = dof_temp_solvable;
+        dof_temp_slave.Sort();
+        mDoFSlaveSet = dof_temp_slave;
 
         // Throws an exception if there are no Degrees Of Freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_ERROR_IF( mDoFToSolveSet.size() == 0) << "No degrees of freedom to solve!" << std::endl;
+        KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", mDoFSlaveSet.size() == 0) << "No slave degrees of freedom to solve!" << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
 
@@ -641,9 +625,14 @@ protected:
             norm_b = 0.0;
 
         if (norm_b != 0.0) {
+
+             // Create the auxiliar dof set
+             DofsArrayType aux_dof_set = BaseType::mDofSet;
+             aux_dof_set.erase(mDoFSlaveSet.begin(), mDoFSlaveSet.end());
+
             // Provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
-                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, mDoFToSolveSet, rModelPart);
+                BaseType::mpLinearSystemSolver->ProvideAdditionalData(rA, rDx, rb, aux_dof_set, rModelPart);
 
             // Do solve
             BaseType::mpLinearSystemSolver->Solve(rA, rDx, rb);
@@ -1108,7 +1097,7 @@ protected:
     {
         BaseType::Clear();
 
-        mDoFToSolveSet = DofsArrayType();
+        mDoFSlaveSet = DofsArrayType();
         mSolvableDoFReorder.clear();
         mSlaveMasterDoFRelation.clear();
 
@@ -1142,7 +1131,7 @@ private:
 
     TSystemMatrixPointerType mpTMatrix = NULL; /// This is matrix containing the global relation for the constraints
 
-    DofsArrayType mDoFToSolveSet;              /// The set containing the solvable DoF of the system
+    DofsArrayType mDoFSlaveSet;              /// The set containing the slave DoF of the system
 
     SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
 
@@ -1179,8 +1168,8 @@ private:
         IndexType counter = 0;
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
-                auto it = mDoFToSolveSet.find(dof);
-                if (it != mDoFToSolveSet.end()) {
+                auto it = mDoFSlaveSet.find(dof);
+                if (it == mDoFSlaveSet.end()) {
                     mSolvableDoFReorder.insert(IdPairType(dof.EquationId(), counter));
                     ++counter;
                 }
