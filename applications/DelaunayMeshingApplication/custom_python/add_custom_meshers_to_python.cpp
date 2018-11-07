@@ -29,11 +29,11 @@ namespace Python
 
 void  AddCustomMeshersToPython(pybind11::module& m)
 {
-  using namespace pybind11;
+  namespace py = pybind11;
 
   //class that allos remeshing and adaptive refining (inserting and erasing nodes)
-  class_<Mesher, typename Mesher::Pointer>(m,"Mesher")
-      .def(init< >())
+  py::class_<Mesher, typename Mesher::Pointer>(m,"Mesher")
+      .def(py::init< >())
       .def("Initialize",&Mesher::Initialize)
       .def("InitializeMesher",&Mesher::InitializeMesher)
       .def("FinalizeMesher",&Mesher::FinalizeMesher)
@@ -49,15 +49,15 @@ void  AddCustomMeshersToPython(pybind11::module& m)
       ;
 
   //class that allows 3D adaptive remeshing (inserting and erasing nodes)
-  class_<TetrahedralMesh3DMesher, typename TetrahedralMesh3DMesher::Pointer, Mesher>
+  py::class_<TetrahedralMesh3DMesher, typename TetrahedralMesh3DMesher::Pointer, Mesher>
       (m,"TetrahedralMesh3DMesher")
-      .def(init< >())
+      .def(py::init< >())
       ;
 
   //class that allows 2D adaptive remeshing (inserting and erasing nodes)
-  class_<TriangularMesh2DMesher, typename TriangularMesh2DMesher::Pointer, Mesher>
+  py::class_<TriangularMesh2DMesher, typename TriangularMesh2DMesher::Pointer, Mesher>
       (m,"TriangularMesh2DMesher")
-      .def(init< >())
+      .def(py::init< >())
       ;
 
 }
