@@ -107,7 +107,7 @@ class Algorithm(object):
 
     def SetFluidAlgorithm(self):
         import eulerian_fluid_ready_for_coupling
-        self.fluid_solution = eulerian_fluid_ready_for_coupling.Solution(self.model)
+        self.fluid_solution = eulerian_fluid_ready_for_coupling.DEMCoupledFluidDynamicsAnalysis(self.model)
         self.fluid_solution.main_path = self.main_path
 
     def SetDispersePhaseAlgorithm(self):
@@ -322,20 +322,21 @@ class Algorithm(object):
         vars_man.ConstructListsOfVariables(self.pp)
 
         self.FluidInitialize()
-        self.DispersePhaseInitFinalizeialize()
+        self.DispersePhaseInitialize()
 
         self.SetAllModelParts()
 
         self.SetCutsOutput()
-
+        gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
+        result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
         self.swimming_DEM_gid_io = \
         swimming_DEM_gid_output.SwimmingDEMGiDOutput(
             self.pp.CFD_DEM["problem_name"].GetString(),
-            self.pp.fluid_parameters["output_configuration"]["body_output"].GetBool(),
-            self.pp.fluid_parameters["output_configuration"]["gidpost_flags"]["GiDPostMode"].GetString(),
-            self.pp.fluid_parameters["output_configuration"]["gidpost_flags"]["MultiFileFlag"].GetString(),
-            self.pp.fluid_parameters["output_configuration"]["gidpost_flags"]["WriteDeformedMeshFlag"].GetString(),
-            self.pp.fluid_parameters["output_configuration"]["gidpost_flags"]["WriteConditionsFlag"].GetString()
+            result_file_configuration["body_output"].GetBool(),
+            result_file_configuration["gidpost_flags"]["GiDPostMode"].GetString(),
+            result_file_configuration["gidpost_flags"]["MultiFileFlag"].GetString(),
+            result_file_configuration["gidpost_flags"]["WriteDeformedMeshFlag"].GetString(),
+            result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString()
             )
 
         self.swimming_DEM_gid_io.initialize_swimming_DEM_results(
@@ -1001,7 +1002,10 @@ class Algorithm(object):
             i.close()
 
     def SetCutsOutput(self):
-        if not self.pp.fluid_parameters["output_configuration"]["body_output"].GetBool():
+        gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
+        result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+
+        if not result_file_configuration["body_output"].GetBool():
             cut_list = define_output.DefineCutPlanes()
             self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list)
 

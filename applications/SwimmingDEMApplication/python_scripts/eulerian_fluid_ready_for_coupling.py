@@ -4,15 +4,16 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication
 
-from fluid_dynamic_analysis import FluidDynamicsAnalysis
+from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class python_parameters:
     def __init__(self):
+        self.nodal_results = []
         pass
 
 class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysis):
 
-    def __init__(self, model, parameters):
+    def __init__(self, model, parameters=None):
 
         self.model = model
         self.pp = python_parameters()
