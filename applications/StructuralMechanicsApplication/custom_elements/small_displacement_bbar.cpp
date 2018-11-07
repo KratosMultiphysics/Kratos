@@ -787,6 +787,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
         Values.SetConstitutiveMatrix(this_constitutive_variables.D); //this is the output parameter
 
         // Read integration points

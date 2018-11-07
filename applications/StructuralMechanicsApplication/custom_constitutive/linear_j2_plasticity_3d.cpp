@@ -63,6 +63,33 @@ bool LinearJ2Plasticity3D::Has(const Variable<bool>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
+bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
+{
+    if(rThisVariable == PLASTIC_STRAIN){
+        return true;
+    }
+    return false;
+}
+
+
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if(rThisVariable == PLASTIC_STRAIN){
+        mAccumulatedPlasticStrain = rValue;
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
 bool& LinearJ2Plasticity3D::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue
@@ -70,6 +97,21 @@ bool& LinearJ2Plasticity3D::GetValue(
 {
     if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
+    }
+
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& LinearJ2Plasticity3D::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
+    if(rThisVariable == PLASTIC_STRAIN){
+        rValue = mAccumulatedPlasticStrain;
     }
 
     return rValue;
@@ -132,6 +174,7 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::P
 
 void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
     Vector& strain_vector = rValues.GetStrainVector();
     Vector& stress_vector = rValues.GetStressVector();
