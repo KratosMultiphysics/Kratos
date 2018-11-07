@@ -10,7 +10,6 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
 
     def test_MPMLineLoadCondition2D2N(self):
         current_model = KratosMultiphysics.Model()
-        dim = 2
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -66,7 +65,6 @@ class TestStaticLoadingConditionsLine(KratosUnittest.TestCase):
 
     def test_MPMLineLoadCondition2D2NAngle(self):
         current_model = KratosMultiphysics.Model()
-        dim = 2
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
