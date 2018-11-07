@@ -301,10 +301,9 @@ public:
 
         for(int i = 0; i<nnodes; i++)
         {
-
           ModelPart::NodesContainerType::iterator it = it_begin + i;
           if( it->IsNot(MASTER) ){
-            std::cout<<" Rigid Link "<<it->Id()<<std::endl;
+            //std::cout<<" Rigid Link "<<it->Id()<<std::endl;
             it->Set(SLAVE,false);
             if (this->MatchTransferFlags(*(it.base()), TransferFlags))
             {

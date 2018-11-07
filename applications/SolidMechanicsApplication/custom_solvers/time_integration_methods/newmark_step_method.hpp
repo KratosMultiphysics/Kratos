@@ -269,7 +269,7 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
     }
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -299,12 +299,11 @@ namespace Kratos
       KRATOS_TRY
 
       // predict step variable from previous and current values
-      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
+      // TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
+      // const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      // const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
 
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-
-      CurrentStepVariable  = CurrentVariable-PreviousVariable;
+      // CurrentStepVariable  = CurrentVariable-PreviousVariable;
 
       KRATOS_CATCH( "" )
     }
@@ -313,8 +312,8 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      TValueType& PreviousVariable               = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+      TValueType& CurrentVariable            = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      TValueType& PreviousVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
 
       // update variable previous iteration instead of previous step
       PreviousVariable = CurrentVariable;
@@ -330,7 +329,7 @@ namespace Kratos
       TValueType& CurrentFirstDerivative         = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
       const TValueType& CurrentSecondDerivative  = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
 
-      CurrentFirstDerivative  = (this->mNewmark.gamma/(this->mNewmark.beta*this->mNewmark.delta_time)) * CurrentStepVariable - ( (this->mNewmark.gamma/this->mNewmark.beta) - 1.0 ) * CurrentFirstDerivative - this->mNewmark.delta_time * 0.5 * ( (this->mNewmark.gamma/this->mNewmark.beta) - 2.0 ) * CurrentSecondDerivative;
+      CurrentFirstDerivative = this->mNewmark.c1 * CurrentStepVariable - this->mNewmark.c4 * CurrentFirstDerivative - this->mNewmark.c5 * CurrentSecondDerivative;
 
       KRATOS_CATCH( "" )
     }

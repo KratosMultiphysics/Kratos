@@ -263,6 +263,8 @@ void RigidBodyElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 {
      KRATOS_TRY
 
+     //this->UpdateRigidBodyNodes(rCurrentProcessInfo);
+
      KRATOS_CATCH("")
 }
 
@@ -286,6 +288,8 @@ void RigidBodyElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 void RigidBodyElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
      KRATOS_TRY
+
+     //this->UpdateRigidBodyNodes(rCurrentProcessInfo);
 
      KRATOS_CATCH("")
 }
@@ -676,8 +680,8 @@ void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeft
       noalias(rRightHandSideVector) = ZeroVector( dofs_size ); //resetting RHS
     }
 
-    std::cout<<" RIGID BODY RHS "<<rRightHandSideVector<<std::endl;
-    std::cout<<" RIGID BODY LHS "<<rLeftHandSideMatrix<<std::endl;
+    // std::cout<<" RIGID BODY RHS "<<rRightHandSideVector<<std::endl;
+    // std::cout<<" RIGID BODY LHS "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1136,6 +1140,12 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     Matrix CurrentRotationMatrix   = ZeroMatrix(3,3);
     TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
 
+
+    std::cout<<" [ Rotation:"<<CurrentCompoundRotationVector<<"]"<<std::endl;
+    std::cout<<" [ Acceleration:"<<CurrentLinearAccelerationVector<<"]"<<std::endl;
+    std::cout<<" [ AngularVelocity:"<<AngularVelocityVector<<",AngularAcceleration:"<<CurrentAngularAccelerationVector<<"]"<<std::endl;
+
+
     //-----------------
     //block 1 of the inertial force vector
 
@@ -1187,7 +1197,8 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 
     BeamMathUtilsType::AddVector(TotalInertialForceVector, rRightHandSideVector, 0);
 
-    //std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+
+    std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1310,7 +1321,6 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
 
      std::cout<<" [ MasterElement "<<this->Id()<<" ]"<<rCenterOfGravity->Coordinates()<<std::endl;
      std::cout<<" [ Nodes_size "<<mpNodes->size()<<" ]"<<std::endl;
-     std::cout<<" [ Fixed DisplacementY DOF: "<<this->GetGeometry()[0].IsFixed(DISPLACEMENT_Y)<<"]"<<std::endl;
      std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<"]"<<std::endl;
      std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<"]"<<std::endl;
      std::cout<<" [ AngularVelocity:"<<AngularVelocity<<",AngularAcceleration:"<<AngularAcceleration<<"]"<<std::endl;
@@ -1333,12 +1343,12 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
            noalias(Variable) = Center + rCenterOfGravity->FastGetSolutionStepValue(STEP_DISPLACEMENT) + Radius;
            noalias((i)->FastGetSolutionStepValue(STEP_DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
          }
-       
+
          //Get rotation matrix
          TotalQuaternion = QuaternionType::FromRotationVector<ArrayType>(Rotation);
 
          Radius = (i)->GetInitialPosition() - Center;
-       
+
          TotalQuaternion.ToRotationMatrix(RotationMatrix);
          Radius = prod(RotationMatrix, Radius);
 
@@ -1346,8 +1356,8 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
          noalias((i)->Coordinates()) = Variable;
          noalias((i)->FastGetSolutionStepValue(DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
 
-         std::cout<<" Displacement "<<i->Id()<<" "<<(i)->FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
-       
+         // std::cout<<" Displacement "<<i->Id()<<" "<<(i)->FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
+
          noalias((i)->FastGetSolutionStepValue(ROTATION)) = Rotation;
          noalias((i)->FastGetSolutionStepValue(STEP_ROTATION)) = StepRotation;
          noalias((i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = AngularVelocity;
@@ -1386,7 +1396,7 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
          // std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;
          // std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;
        }
-       
+
      }
 
      KRATOS_CATCH("")

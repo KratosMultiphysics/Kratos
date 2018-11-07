@@ -445,7 +445,7 @@ namespace Kratos
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
 
       // consistent newmark
-      CurrentFirstDerivative = (this->mNewmark.gamma/(this->mNewmark.beta*this->mNewmark.delta_time)) * (CurrentVariable-PreviousVariable) - ( (this->mNewmark.gamma/this->mNewmark.beta) - 1.0 ) * CurrentFirstDerivative - this->mNewmark.delta_time * 0.5 * ( (this->mNewmark.gamma/this->mNewmark.beta) - 2.0 ) * CurrentSecondDerivative;
+      CurrentFirstDerivative = this->mNewmark.c1 * (CurrentVariable-PreviousVariable) - this->mNewmark.c4 * CurrentFirstDerivative - this->mNewmark.c5 * CurrentSecondDerivative;
 
       // uniform accelerated movement
       // CurrentFirstDerivative = (2.0/this->mNewmark.delta_time) * (CurrentVariable-PreviousVariable) - this->mNewmark.delta_time * CurrentSecondDerivative - CurrentFirstDerivative;
