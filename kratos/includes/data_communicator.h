@@ -69,6 +69,29 @@ class DataCommunicator
 
     virtual void Barrier() const {}
 
+    // Reduce operations
+
+    virtual void Sum(int& rValue, const int Root) const {}
+
+    virtual void Sum(double& rValue, const int Root) const {}
+
+    virtual void Sum(array_1d<double,3>& rValue, const int Root) const {}
+
+    virtual void Min(int& rValue, const int Root) const {}
+
+    virtual void Min(double& rValue, const int Root) const {}
+
+    virtual void Min(array_1d<double,3>& rValue, const int Root) const {}
+
+    virtual void Max(int& rValue, const int Root) const {}
+
+    virtual void Max(double& rValue, const int Root) const {}
+
+    virtual void Max(array_1d<double,3>& rValue, const int Root) const {}
+
+
+    // Allreduce operations
+
     virtual void SumAll(int& rValue) const {}
 
     virtual void SumAll(double& rValue) const {}

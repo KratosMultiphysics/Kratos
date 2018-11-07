@@ -37,6 +37,70 @@ template<> inline MPI_Datatype MPIDatatype<array_1d<double,3>>(const array_1d<do
 
 // MPIDataCommunicator implementation
 
+// Reduce operations
+
+void MPIDataCommunicator::Sum(int& rValue, const int Root) const
+{
+    int local_value(rValue);
+    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_SUM, Root, mComm);
+}
+
+void MPIDataCommunicator::Sum(double& rValue, const int Root) const
+{
+    double local_value(rValue);
+    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_SUM, Root, mComm);
+}
+
+void MPIDataCommunicator::Sum(array_1d<double,3>& rValue, const int Root) const
+{
+    array_1d<double,3> local_value(rValue);
+    MPI_Reduce(
+        local_value.data().data(), rValue.data().data(), 3,
+        Internals::MPIDatatype(rValue), MPI_SUM, Root, mComm);
+}
+
+void MPIDataCommunicator::Min(int& rValue, const int Root) const
+{
+    int local_value(rValue);
+    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MIN, Root, mComm);
+}
+
+void MPIDataCommunicator::Min(double& rValue, const int Root) const
+{
+    double local_value(rValue);
+    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MIN, Root, mComm);
+}
+
+void MPIDataCommunicator::Min(array_1d<double,3>& rValue, const int Root) const
+{
+    array_1d<double,3> local_value(rValue);
+    MPI_Reduce(
+        local_value.data().data(), rValue.data().data(), 3,
+        Internals::MPIDatatype(rValue), MPI_MIN, Root, mComm);
+}
+
+void MPIDataCommunicator::Max(int& rValue, const int Root) const
+{
+    int local_value(rValue);
+    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MAX, Root, mComm);
+}
+
+void MPIDataCommunicator::Max(double& rValue, const int Root) const
+{
+    double local_value(rValue);
+    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MAX, Root, mComm);
+}
+
+void MPIDataCommunicator::Max(array_1d<double,3>& rValue, const int Root) const
+{
+    array_1d<double,3> local_value(rValue);
+    MPI_Reduce(
+        local_value.data().data(), rValue.data().data(), 3,
+        Internals::MPIDatatype(rValue), MPI_MAX, Root, mComm);
+}
+
+// Allreduce operations
+
 void MPIDataCommunicator::SumAll(int& rValue) const
 {
     int local_value(rValue);

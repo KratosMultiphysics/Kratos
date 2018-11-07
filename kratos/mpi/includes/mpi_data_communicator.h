@@ -78,6 +78,28 @@ class MPIDataCommunicator: public DataCommunicator
         MPI_Barrier(mComm);
     }
 
+    // Reduce operations
+
+    void Sum(int& rValue, const int Root) const override;
+
+    void Sum(double& rValue, const int Root) const override;
+
+    void Sum(array_1d<double,3>& rValue, const int Root) const override;
+
+    void Min(int& rValue, const int Root) const override;
+
+    void Min(double& rValue, const int Root) const override;
+
+    void Min(array_1d<double,3>& rValue, const int Root) const override;
+
+    void Max(int& rValue, const int Root) const override;
+
+    void Max(double& rValue, const int Root) const override;
+
+    void Max(array_1d<double,3>& rValue, const int Root) const override;
+
+    // Allreduce operations
+
     void SumAll(int& rValue) const override;
 
     void SumAll(double& rValue) const override;
