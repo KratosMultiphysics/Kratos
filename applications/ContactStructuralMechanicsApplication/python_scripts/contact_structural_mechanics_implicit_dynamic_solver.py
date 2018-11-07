@@ -88,9 +88,6 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         if (self.settings["reform_dofs_at_each_step"].GetBool() == False):
             self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
-        if (self.settings["block_builder"].GetBool() == False):
-            self.print_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
-            self.settings["block_builder"].SetBool(True)
 
         # Setting echo level
         self.echo_level =  self.settings["echo_level"].GetInt()
@@ -278,9 +275,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 else:
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                raise Exception("Contact not compatible with EliminationBuilderAndSolver")
-        else:
-            builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
+                builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 
