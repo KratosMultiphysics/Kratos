@@ -2,6 +2,7 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import sys
 
@@ -55,7 +56,7 @@ class TestModel(KratosUnittest.TestCase):
         other = current_model.CreateModelPart("Other")
         other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         other.CreateNewNode(1,0.0,0.0,0.0)
-        
+
         KratosMultiphysics.Serializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
 
 
@@ -76,6 +77,9 @@ class TestModel(KratosUnittest.TestCase):
         self.assertTrue(loaded_model.HasModelPart("Main.Temp"))
         self.assertTrue(1 in loaded_model["Main"].Nodes)
         self.assertTrue(1 in loaded_model["Other"].Nodes)
+
+        kratos_utils.DeleteFileIfExisting(file_name + ".rest")
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
