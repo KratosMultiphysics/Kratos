@@ -210,7 +210,7 @@ void RegisterCurveGeometryBase(
     using namespace pybind11::literals;
 
     using Type = CurveGeometryBase<TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
+    using Holder = shared_ptr<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("Degree", &Type::Degree)
@@ -248,7 +248,7 @@ void RegisterCurveGeometry(
     using namespace pybind11::literals;
 
     using Type = CurveGeometry<TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
+    using Holder = shared_ptr<Type>;
     using Base = CurveGeometryBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
@@ -270,7 +270,7 @@ void RegisterSurfaceGeometryBase(
     using VectorType = Kratos::array_1d<double, TDimension>;
 
     using Type = SurfaceGeometryBase<TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
+    using Holder = shared_ptr<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("DegreeU", &Type::DegreeU)
@@ -338,7 +338,7 @@ void RegisterSurfaceGeometry(
     using namespace pybind11::literals;
 
     using Type = SurfaceGeometry<TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
+    using Holder = shared_ptr<Type>;
     using Base = SurfaceGeometryBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
@@ -361,7 +361,7 @@ void RegisterNodeCurveGeometry(
     using VectorType = Kratos::array_1d<double, 3>;
 
     using Type = NodeCurveGeometry3D;
-    using Pointer = ANurbs::Pointer<Type>;
+    using Pointer = shared_ptr<Type>;
     using Base = CurveGeometryBase<3>;
 
     using VariableComponent = Kratos::VariableComponent<
@@ -442,7 +442,7 @@ void RegisterNodeSurfaceGeometry(
     using VectorType = Kratos::array_1d<double, 3>;
 
     using Type = NodeSurfaceGeometry3D;
-    using Pointer = ANurbs::Pointer<Type>;
+    using Pointer = shared_ptr<Type>;
     using Base = ANurbs::SurfaceGeometryBase<VectorType>;
 
     using VariableComponent = Kratos::VariableComponent<
@@ -540,7 +540,7 @@ void RegisterCurveBase(
     using namespace pybind11::literals;
 
     using Type = CurveBase<TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
+    using Holder = shared_ptr<Type>;
 
     py::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("Domain", &Type::Domain)
@@ -564,11 +564,11 @@ void RegisterCurve(
     using GeometryType = CurveGeometry<TDimension>;
 
     using Type = Curve<TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
+    using Holder = shared_ptr<Type>;
     using Base = CurveBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
-        .def(pybind11::init<ANurbs::Pointer<GeometryType>,
+        .def(pybind11::init<shared_ptr<GeometryType>,
             ANurbs::Interval<double>>(),
             "CurveGeometry"_a,
             "Domain"_a)
@@ -584,7 +584,7 @@ void RegisterSurfaceBase(
     using namespace pybind11::literals;
 
     using Type = SurfaceBase<TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
+    using Holder = shared_ptr<Type>;
 
     py::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("DomainU", &Type::DomainU)
@@ -612,11 +612,11 @@ void RegisterSurface(
     using GeometryType = SurfaceGeometry<TDimension>;
 
     using Type = Surface<TDimension>;
-    using Holder = ANurbs::Pointer<Type>;
+    using Holder = shared_ptr<Type>;
     using Base = SurfaceBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
-        .def(pybind11::init<ANurbs::Pointer<GeometryType>,
+        .def(pybind11::init<shared_ptr<GeometryType>,
             ANurbs::Interval<double>, ANurbs::Interval<double>>(),
             "SurfaceGeometry"_a,
             "DomainU"_a,
@@ -633,12 +633,12 @@ void RegisterCurveOnSurface(
     using namespace pybind11::literals;
 
     using Type = CurveOnSurface<TDimension>;
-    using Pointer = ANurbs::Pointer<Type>;
+    using Pointer = shared_ptr<Type>;
     using Base = CurveBase<TDimension>;
 
     pybind11::class_<Type, Base, Pointer>(m, name.c_str())
-        .def(pybind11::init<ANurbs::Pointer<CurveGeometryBase<2>>,
-            ANurbs::Pointer<SurfaceGeometryBase<TDimension>>,
+        .def(pybind11::init<shared_ptr<CurveGeometryBase<2>>,
+            shared_ptr<SurfaceGeometryBase<TDimension>>,
             ANurbs::Interval<double>>(),
             "CurveGeometry"_a,
             "SurfaceGeometry"_a,
@@ -658,10 +658,10 @@ void RegisterPointOnCurveProjection(
     using CurveBaseType = CurveBase<TDimension>;
 
     using Type = ANurbs::PointOnCurveProjection<VectorType>;
-    using Pointer = ANurbs::Pointer<Type>;
+    using Pointer = shared_ptr<Type>;
 
     py::class_<Type, Pointer>(m, name.c_str())
-        .def(py::init<ANurbs::Pointer<CurveBaseType>, double>(),
+        .def(py::init<shared_ptr<CurveBaseType>, double>(),
             "Curve"_a,
             "Tolerance"_a)
         .def("Compute",
@@ -684,7 +684,7 @@ void RegisterCurveTessellation(
     using VectorType = Kratos::array_1d<double, TDimension>;
 
     using Type = ANurbs::CurveTessellation<VectorType>;
-    using Pointer = ANurbs::Pointer<Type>;
+    using Pointer = shared_ptr<Type>;
 
     py::class_<Type, Pointer>(m, name.c_str())
         .def(py::init<>())
