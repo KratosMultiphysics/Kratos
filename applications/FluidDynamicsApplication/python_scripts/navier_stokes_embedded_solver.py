@@ -127,8 +127,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
         if (self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt() != 0):
-            self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+            self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+            self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
             self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+            self._get_fm_ale_virtual_model_part().AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
