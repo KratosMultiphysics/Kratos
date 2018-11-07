@@ -360,45 +360,7 @@ namespace Kratos
 		const Variable<double> &rVariable,
 		const Variable<double> &rEmbeddedVariable)
 	{
-		const auto &r_int_obj_vect= this->GetIntersections();
-		const int n_elems = mrVolumePart.NumberOfElements();
-
-		// Check requested variables
-		KRATOS_ERROR_IF(rEmbeddedVariable.Key() == 0) 
-				<< rEmbeddedVariable << " key is 0. Check that the variable is correctly registered." << std::endl;
-
-		KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false) 
-				<< "Skin model part solution step data missing variable: " << rVariable << std::endl;
-
-		// Initialize embedded variable value
-		#pragma omp parallel for
-		for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-			auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
-			it_elem->SetValue(rEmbeddedVariable, 0.0);
-		}
-
-		// Compute the embedded variable value for each element
-		#pragma omp parallel for schedule(dynamic)
-		for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-			// Check if there are intersecting entities
-			if (r_int_obj_vect[i_elem].size() != 0) {
-				auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
-				// Loop the current element intersecting skin entities
-				for (const auto &r_int_obj : r_int_obj_vect[i_elem]) {
-					// Compute the embedded variable intersecting nodes average value
-					double aux_val = 0.0;
-					for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
-						aux_val += (r_int_obj.GetGeometry())[i_node].FastGetSolutionStepValue(rVariable);
-					}
-					aux_val /= r_int_obj.GetGeometry().PointsNumber();
-
-					// Accumulate the value
-					it_elem->GetValue(rEmbeddedVariable) += aux_val;
-				}
-				// Average all the intersecting skin entities
-				it_elem->GetValue(rEmbeddedVariable) /= r_int_obj_vect[i_elem].size();
-			}
-		}
+		this->CalculateEmbeddedVariableFromSkinSpecialization<double>(rVariable, rEmbeddedVariable);
 	}
 
 	template<std::size_t TDim>
@@ -406,46 +368,7 @@ namespace Kratos
 		const Variable<array_1d<double,3>> &rVariable,
 		const Variable<array_1d<double,3>> &rEmbeddedVariable)
 	{
-		const auto &r_int_obj_vect= this->GetIntersections();
-		const int n_elems = mrVolumePart.NumberOfElements();
-
-		// Check requested variables
-		KRATOS_ERROR_IF(rEmbeddedVariable.Key() == 0) 
-				<< rEmbeddedVariable << " key is 0. Check that the variable is correctly registered." << std::endl;
-
-		KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false) 
-				<< "Skin model part solution step data missing variable: " << rVariable << std::endl;
-
-		// Initialize embedded variable value
-		array_1d<double,3> zero_vect = ZeroVector(3);
-		#pragma omp parallel for firstprivate(zero_vect)
-		for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-			auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
-			it_elem->SetValue(rEmbeddedVariable, zero_vect);
-		}
-
-		// Compute the embedded variable value for each element
-		#pragma omp parallel for schedule(dynamic)
-		for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
-			// Check if there are intersecting entities
-			if (r_int_obj_vect[i_elem].size() != 0) {
-				auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
-				// Loop the current element intersecting skin entities
-				for (const auto &r_int_obj : r_int_obj_vect[i_elem]) {
-					// Compute the embedded variable intersecting nodes average value
-					array_1d<double,3> aux_val = ZeroVector(3);
-					for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
-						aux_val += (r_int_obj.GetGeometry())[i_node].FastGetSolutionStepValue(rVariable);
-					}
-					aux_val /= r_int_obj.GetGeometry().PointsNumber();
-
-					// Accumulate the value
-					it_elem->GetValue(rEmbeddedVariable) += aux_val;
-				}
-				// Average all the intersecting skin entities
-				it_elem->GetValue(rEmbeddedVariable) /= r_int_obj_vect[i_elem].size();
-			}
-		}
+		this->CalculateEmbeddedVariableFromSkinSpecialization<array_1d<double,3>>(rVariable, rEmbeddedVariable);
 	}
 
 	template<>
