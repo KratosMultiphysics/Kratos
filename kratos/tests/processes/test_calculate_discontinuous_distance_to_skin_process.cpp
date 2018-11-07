@@ -564,6 +564,90 @@ namespace Testing {
         KRATOS_CHECK_NEAR(r_elem_dist[3], -0.103167, 1e-6);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessDoubleEmbeddedVariableComplex, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate a triangle element
+        ModelPart& volume_part = current_model.CreateModelPart("Volume");
+        volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        volume_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        volume_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        volume_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        Properties::Pointer p_properties_0(new Properties(0));
+        volume_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties_0);
+
+        // Generate the skin
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.AddNodalSolutionStepVariable(TEMPERATURE);
+        skin_part.CreateNewNode(1,-0.1, 0.5,0.0);
+        skin_part.CreateNewNode(2, 0.1, 0.5,0.0);
+        skin_part.CreateNewNode(3,-0.1, 0.3,0.0);
+        skin_part.CreateNewNode(4, 0.1, 0.3,0.0);
+        skin_part.CreateNewNode(5, 0.1,-0.1,0.0);
+        Properties::Pointer p_properties_1(new Properties(1));
+        skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 2, {{2,3}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 3, {{3,4}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 4, {{4,5}}, p_properties_1);
+
+        // Set the embedded cube double variable
+        for (auto &i_node : skin_part.Nodes()) {
+            i_node.FastGetSolutionStepValue(TEMPERATURE) = i_node.Y();
+        }
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part);
+        disc_dist_proc.Execute();
+        disc_dist_proc.CalculateEmbeddedVariableFromSkin(TEMPERATURE, TEMPERATURE);
+
+        // Check values
+        KRATOS_CHECK_NEAR(volume_part.GetElement(1).GetValue(TEMPERATURE), 0.2, 1e-6);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessArrayEmbeddedVariableComplex, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate a triangle element
+        ModelPart& volume_part = current_model.CreateModelPart("Volume");
+        volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        volume_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        volume_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        volume_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        Properties::Pointer p_properties_0(new Properties(0));
+        volume_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties_0);
+
+        // Generate the skin
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.AddNodalSolutionStepVariable(VELOCITY);
+        skin_part.CreateNewNode(1,-0.1, 0.5,0.0);
+        skin_part.CreateNewNode(2, 0.1, 0.5,0.0);
+        skin_part.CreateNewNode(3,-0.1, 0.3,0.0);
+        skin_part.CreateNewNode(4, 0.1, 0.3,0.0);
+        skin_part.CreateNewNode(5, 0.1,-0.1,0.0);
+        Properties::Pointer p_properties_1(new Properties(1));
+        skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 2, {{2,3}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 3, {{3,4}}, p_properties_1);
+        skin_part.CreateNewElement("Element2D2N", 4, {{4,5}}, p_properties_1);
+
+        // Set the embedded cube double variable
+        for (auto &i_node : skin_part.Nodes()) {
+            i_node.FastGetSolutionStepValue(VELOCITY_X) = i_node.X();
+            i_node.FastGetSolutionStepValue(VELOCITY_Y) = i_node.Y();
+        }
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part);
+        disc_dist_proc.Execute();
+        disc_dist_proc.CalculateEmbeddedVariableFromSkin(VELOCITY, EMBEDDED_VELOCITY);
+
+        // Check values
+        KRATOS_CHECK_NEAR(volume_part.GetElement(1).GetValue(EMBEDDED_VELOCITY_X), 0.05, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(1).GetValue(EMBEDDED_VELOCITY_Y), 0.2, 1e-6);
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessDoubleEmbeddedVariable, KratosCoreFastSuite)
     {
         Model current_model;
