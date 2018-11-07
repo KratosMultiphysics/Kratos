@@ -1007,23 +1007,24 @@ class DEMFEMProcedures(object):
         #         node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
     @classmethod
-    def UpdateTimeInModelParts(self, all_model_parts, time, dt, step):
+    def UpdateTimeInModelParts(self, all_model_parts, time, dt, step, is_time_to_print):
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
         DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
 
-        self.UpdateTimeInOneModelPart(spheres_model_part, time, dt, step)
-        self.UpdateTimeInOneModelPart(cluster_model_part, time, dt, step)
-        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, dt, step)
-        self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step)
+        self.UpdateTimeInOneModelPart(spheres_model_part, time, dt, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(cluster_model_part, time, dt, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, dt, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step, is_time_to_print)
 
     @classmethod
-    def UpdateTimeInOneModelPart(self, model_part, time, dt, step):
+    def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print):
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step
+        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def close_graph_files(self, RigidFace_model_part):
 

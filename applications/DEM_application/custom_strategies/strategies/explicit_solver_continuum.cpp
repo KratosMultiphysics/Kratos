@@ -185,6 +185,7 @@ namespace Kratos {
         const int time_step = r_process_info[TIME_STEPS];
         const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % BaseType::GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
+        const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
 
         if (r_process_info[SEARCH_CONTROL] > 0) {
 
@@ -225,15 +226,17 @@ namespace Kratos {
                 MarkNewSkinParticles();
 
                 r_process_info[SEARCH_CONTROL] = 2;
-                //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-                if (r_process_info[CONTACT_MESH_OPTION] == 1) {
-                    CreateContactElements();
-                    BaseType::InitializeContactElements();
-                }
-                //}
             } else {
                 r_process_info[SEARCH_CONTROL] = 1;
             }
+
+            //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
+            if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+                CreateContactElements();
+                BaseType::InitializeContactElements();
+            }
+            //}
+
         }
         //Synch this var.
         r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
@@ -515,7 +518,7 @@ namespace Kratos {
 
         p_creator_destructor->MarkDistantParticlesForErasing(r_model_part);
 
-        if (r_process_info[CONTACT_MESH_OPTION] == 1) {
+        if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
             p_creator_destructor->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
             p_creator_destructor->DestroyContactElements(*mpContact_model_part);
         }

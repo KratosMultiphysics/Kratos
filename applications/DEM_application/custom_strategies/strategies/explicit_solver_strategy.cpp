@@ -203,11 +203,6 @@ namespace Kratos {
             CalculateMaxTimeStep();
         }
 
-        if (r_process_info[CONTACT_MESH_OPTION] == 1) {
-            CreateContactElements();
-            InitializeContactElements();
-        }
-
         r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY] = 0.0;
 
         // 5. Finalize Solution Step.
@@ -427,6 +422,7 @@ namespace Kratos {
         int time_step = r_process_info[TIME_STEPS];
         const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
+        const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
         const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
         BoundingBoxUtility(is_time_to_mark_and_remove);
 
@@ -452,12 +448,13 @@ namespace Kratos {
 
             mSearchControl = 2; // Search is active and has been performed during this time step
             //ReorderParticles();
-            if (r_process_info[CONTACT_MESH_OPTION] == 1) {
-                CreateContactElements();
-                InitializeContactElements();
-            }
         } else {
             mSearchControl = 1; // Search is active but no search has been done this time step;
+        }
+
+        if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+            CreateContactElements();
+            InitializeContactElements();
         }
 
         //RebuildPropertiesProxyPointers(mListOfSphericParticles);
