@@ -1391,6 +1391,7 @@ namespace Kratos {
         //We proceed in this way because we want to have the pointers to contact elements in a list in the same order as the initial elements order.
 
         const int number_of_particles = (int) mListOfSphericParticles.size();
+        int used_bonds_counter = 0;
 
         #pragma omp parallel
         {
@@ -1404,7 +1405,6 @@ namespace Kratos {
             }
 
             int private_counter = 0;
-            int used_bonds_counter = 0;
             Element::Pointer p_new_contact_element;
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
