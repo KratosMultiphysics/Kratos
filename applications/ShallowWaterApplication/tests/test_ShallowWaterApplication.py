@@ -34,10 +34,9 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-
-    # For very long tests that should not be in nightly and you can use to validate
-    validationSuite = suites['validation']
-    validationSuite.addTests(nightSuite)
+    # smallSuite.addTest(TPfem2ConservedVariables('test_execution'))
+    # smallSuite.addTest(TEulerianPrimitiveVariables('test_execution'))
+    # smallSuite.addTest(TEulerianConservedVariables('test_execution'))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -48,4 +47,3 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     run_cpp_unit_tests.run()
     KratosUnittest.runTests(AssembleTestSuites())
-    
