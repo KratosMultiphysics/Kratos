@@ -40,10 +40,6 @@ class TrilinosImportModelPartUtility():
                 self.settings["model_import_settings"]["perform_partitioning"].SetBool(True)
 
             perform_partitioning = self.settings["model_import_settings"]["perform_partitioning"].GetBool()
-<<<<<<< HEAD
-=======
-            perform_partitioning_in_memory = "file"
->>>>>>> 560436c52a32dc73829ed572ce91ed8a1e32d80c
 
             # Select the partitioning method (File by default)
             partition_in_memory = False
@@ -65,22 +61,14 @@ class TrilinosImportModelPartUtility():
                 # Original .mdpa file reading
                 model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
 
-<<<<<<< HEAD
                 if not partition_in_memory:
-=======
-                if perform_partitioning_in_memory == "file":
->>>>>>> 560436c52a32dc73829ed572ce91ed8a1e32d80c
                     ## Serial partition of the original .mdpa file
                     if KratosMPI.mpi.rank == 0:
                         partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                         partitioner.Execute()
 
                         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
-<<<<<<< HEAD
                 else partition_in_memory:
-=======
-                elif perform_partitioning_in_memory == "memory":
->>>>>>> 560436c52a32dc73829ed572ce91ed8a1e32d80c
                     # Create a second io that does not reorder the parts while reading from memory
                     serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
 
@@ -90,11 +78,6 @@ class TrilinosImportModelPartUtility():
 
                     if KratosMPI.mpi.rank == 0:
                         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
-<<<<<<< HEAD
-=======
-                else:
-                    raise Exception("Invalid 'partitioning_method' selected, possibilities are 'file' and 'memory'") 
->>>>>>> 560436c52a32dc73829ed572ce91ed8a1e32d80c
 
             else:
                 if (KratosMPI.mpi.rank == 0):
