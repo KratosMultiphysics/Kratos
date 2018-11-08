@@ -10,8 +10,8 @@
 //                   Salman Yousaf
 //
 
-#if !defined(KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS)
-#define KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS
+#if !defined(KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS)
+#define KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS
 
 // System includes
 
@@ -39,31 +39,31 @@ namespace Kratos
 ///@{
 
 /**
- * @class ComputeCenterOfGravityProcess
+ * @class ComputeMomentOfInertiaProcess
  *
  * @ingroup StructuralMechanicsApplication
  *
- * @brief This method computes the center of gravity
+ * @brief This method computes the moment of inertia (rotational)
  * @details It takes into account all elements in the ModelPart
  *
  * @author Philipp Bucher, Salman Yousaf
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeCenterOfGravityProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeMomentOfInertiaProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ComputeCenterOfGravityProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeCenterOfGravityProcess);
+    /// Pointer definition of ComputeMomentOfInertiaProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ComputeMomentOfInertiaProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ComputeCenterOfGravityProcess(
+    ComputeMomentOfInertiaProcess(
         ModelPart& rThisModelPart
         ):mrThisModelPart(rThisModelPart)
     {
@@ -73,7 +73,7 @@ public:
     }
 
     /// Destructor.
-    ~ComputeCenterOfGravityProcess() override
+    ~ComputeMomentOfInertiaProcess() override
     = default;
 
     ///@}
@@ -124,13 +124,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ComputeCenterOfGravityProcess";
+        return "ComputeMomentOfInertiaProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ComputeCenterOfGravityProcess";
+        rOStream << "ComputeMomentOfInertiaProcess";
     }
 
     /// Print object's data.
@@ -216,15 +216,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ComputeCenterOfGravityProcess& operator=(ComputeCenterOfGravityProcess const& rOther) = delete;
+    ComputeMomentOfInertiaProcess& operator=(ComputeMomentOfInertiaProcess const& rOther) = delete;
 
     /// Copy constructor.
-    ComputeCenterOfGravityProcess(ComputeCenterOfGravityProcess const& rOther) = delete;
+    ComputeMomentOfInertiaProcess(ComputeMomentOfInertiaProcess const& rOther) = delete;
 
 
     ///@}
 
-}; // Class ComputeCenterOfGravityProcess
+}; // Class ComputeMomentOfInertiaProcess
 
 ///@}
 
@@ -238,11 +238,11 @@ private:
 
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   ComputeCenterOfGravityProcess& rThis);
+//                                   ComputeMomentOfInertiaProcess& rThis);
 //
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ComputeCenterOfGravityProcess& rThis)
+//                                   const ComputeMomentOfInertiaProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -252,4 +252,4 @@ private:
 // }
 
 }
-#endif /* KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS defined */
+#endif /* KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS defined */
