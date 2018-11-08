@@ -84,10 +84,14 @@ class ALEFluidSolver(PythonSolver):
     def AddVariables(self):
         self.mesh_motion_solver.AddVariables()
         self.fluid_solver.AddVariables()
+
         # Adding Variables used for computation of Mesh-Velocity
+        time_scheme = self.mesh_vel_comp_settings["time_scheme"].GetString()
         main_model_part = self.model[self.settings["model_part_name"].GetString()]
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION)
+        if not time_scheme.startswith("bdf"): # bdfx does not need MESH_ACCELERATION
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION)
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Variables Added")
 
@@ -184,6 +188,15 @@ class ALEFluidSolver(PythonSolver):
         return python_solvers_wrapper_fluid.CreateSolverByParameters(
             self.model, solver_settings, parallelism)
 
+    def _ApplyALEBoundaryCondition(self):
+        '''Copy the MESH_VELOCITY to the VELOCITY (ALE) on the ale-boundary
+        '''
+        for mp in self.ale_boundary_parts:
+            KratosMultiphysics.VariableUtils().CopyVectorVar(
+                KratosMultiphysics.MESH_VELOCITY,
+                KratosMultiphysics.VELOCITY,
+                mp.GetCommunicator().LocalMesh().Nodes)
+
     def _GetMeshVelocityComputationSettings(self, fluid_settings, mesh_motion_settings):
         # selecting the time-integration for the MESH_VELOCITY to be consistent
         # with the fluid time-integration
@@ -221,18 +234,18 @@ class ALEFluidSolver(PythonSolver):
                         info_msg += 'mesh-velocity to "' + time_scheme_fluid + '" to be consistent with the '
                         info_msg += '"time_scheme" of the fluid'
                         KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
-                if mesh_vel_comp_settings.Has("alpha"):
-                    alpha_mesh_vel = mesh_vel_comp_settings["alpha"].GetDouble()
+                if mesh_vel_comp_settings.Has("alpha_m"):
+                    alpha_mesh_vel = mesh_vel_comp_settings["alpha_"].GetDouble()
                     if abs(alpha_fluid-alpha_mesh_vel) > 1e-12 and self.is_printing_rank:
                         info_msg  = '"alpha" of the fluid (' + str(alpha_fluid)
-                        info_msg += ') is different from the "alpha" used for the '
+                        info_msg += ') is different from the "alpha_m" used for the '
                         info_msg += 'computation of the mesh-velocity (' + str(alpha_mesh_vel) + ')'
                         KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
                 else:
-                    mesh_vel_comp_settings.AddValue("alpha", fluid_settings["alpha"])
+                    mesh_vel_comp_settings.AddValue("alpha_m", fluid_settings["alpha"])
                     if self.is_printing_rank:
-                        info_msg  = 'setting "alpha" of the mesh-solver for the computation of the '
-                        info_msg += 'mesh-velocity to "' + str(alpha_fluid) + '" to be consistent with the '
+                        info_msg  = 'setting "alpha_m" of the mesh-solver for the computation of the '
+                        info_msg += 'mesh-velocity to "' + str(alpha_fluid) + '" to be consistent with '
                         info_msg += '"alpha" of the fluid'
                         KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
             else:
@@ -264,15 +277,4 @@ class ALEFluidSolver(PythonSolver):
                 info_msg += 'of the mesh-velocity performed (mesh-solver uses it\'s default)'
                 KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
 
-
         return mesh_vel_comp_settings
-
-
-    def _ApplyALEBoundaryCondition(self):
-        '''Copy the MESH_VELOCITY to the VELOCITY (ALE) on the ale-boundary
-        '''
-        for mp in self.ale_boundary_parts:
-            KratosMultiphysics.VariableUtils().CopyVectorVar(
-                KratosMultiphysics.MESH_VELOCITY,
-                KratosMultiphysics.VELOCITY,
-                mp.GetCommunicator().LocalMesh().Nodes)
