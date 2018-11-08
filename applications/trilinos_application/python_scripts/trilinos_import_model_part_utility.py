@@ -40,11 +40,11 @@ class TrilinosImportModelPartUtility():
                 self.settings["model_import_settings"]["perform_partitioning"].SetBool(True)
 
             perform_partitioning = self.settings["model_import_settings"]["perform_partitioning"].GetBool()
-            perform_partitioning_in_memory = "File"
 
-            # Select the partitioning method
-            if self.settings["model_import_settings"].Has("partition_system"):
-                perform_partitioning_in_memory = self.settings["model_import_settings"]["partition_system"].GetString()
+            # Select the partitioning method (File by default)
+            partition_in_memory = False
+            if self.settings["model_import_settings"].Has("partition_in_memory"):
+                partition_in_memory = self.settings["model_import_settings"]["partition_in_memory"].GetBool()
 
             if perform_partitioning == True:
                 KratosMultiphysics.CheckRegisteredApplications("MetisApplication")
@@ -61,14 +61,14 @@ class TrilinosImportModelPartUtility():
                 # Original .mdpa file reading
                 model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
 
-                if perform_partitioning_in_memory == "File":
+                if not partition_in_memory:
                     ## Serial partition of the original .mdpa file
                     if KratosMPI.mpi.rank == 0:
                         partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                         partitioner.Execute()
 
                         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
-                elif perform_partitioning_in_memory == "Memory":
+                else partition_in_memory:
                     # Create a second io that does not reorder the parts while reading from memory
                     serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
 
@@ -78,8 +78,6 @@ class TrilinosImportModelPartUtility():
 
                     if KratosMPI.mpi.rank == 0:
                         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
-                else:
-                    raise Exception("Invalid reading method selected") 
 
             else:
                 if (KratosMPI.mpi.rank == 0):
