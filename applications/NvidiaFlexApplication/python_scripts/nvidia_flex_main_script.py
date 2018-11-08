@@ -13,8 +13,8 @@ import main_script
 
 class SolutionDEM(main_script.Solution):
 
-    def __init__(self):
-        super(SolutionDEM, self).__init__()
+    def __init__(self, model):
+        super(SolutionDEM, self).__init__(model)
 
         parameters_file = open("NvidiaFlexSimulationParameters.json", 'r')
         self.nvidia_flex_parameters = Parameters(parameters_file.read())
@@ -78,8 +78,8 @@ class SolutionDEM(main_script.Solution):
 
 class SolutionFlex(SolutionDEM):
 
-    def __init__(self):
-        super(SolutionFlex, self).__init__()
+    def __init__(self, model):
+        super(SolutionFlex, self).__init__(model)
         flex_delta_time = self.nvidia_flex_parameters["flex_delta_time"].GetDouble()
         self.DEM_parameters["MaxTimeStep"].SetDouble(flex_delta_time)
         self.dt = flex_delta_time
@@ -122,9 +122,11 @@ if __name__=="__main__":
 
     if sys.argv[1] == "DEM":
         print("Running Case with DEM...")
-        SolutionDEM().Run()
+        model = Model()
+        SolutionDEM(model).Run()
     elif sys.argv[1] == "Flex":
         print("Running Case with Flex...")
-        SolutionFlex().Run()
+        model = Model()
+        SolutionFlex(model).Run()
     else:
         print("Argument not understood. Specify 'DEM' or 'Flex', like 'python3 " + str(sys.argv[0]) + " Flex'. Exiting.")

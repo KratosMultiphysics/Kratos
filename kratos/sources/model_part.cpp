@@ -1458,7 +1458,7 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
         ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
-        Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer            
+        Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
         p_model_part->SetParentModelPart(this);
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
@@ -1477,13 +1477,13 @@ KRATOS_DEPRECATED void ModelPart::AddSubModelPart(ModelPart& rThisSubModelPart)
 //     if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
 //         // Here a warning would be enough. To be disscussed. Pooyan.
 //         KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
-// 
+//
 //     if (IsSubModelPart())
 //     {
 //         mpParentModelPart->AddSubModelPart(pThisSubModelPart);
 //         return;
 //     }
-// 
+//
 //     pThisSubModelPart->SetParentModelPart(this);
 }
 /** Remove a sub modelpart with given name.
@@ -1562,7 +1562,7 @@ int ModelPart::Check(ProcessInfo& rCurrentProcessInfo) const
         err = elem_iterator->Check(rCurrentProcessInfo);
     for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
         err = condition_iterator->Check(rCurrentProcessInfo);
-    for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin(); 
+    for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin();
             constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
         err = constraint_iterator->Check(rCurrentProcessInfo);
     return err;
@@ -1650,12 +1650,12 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Tables", mTables);
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
-    
+
     rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
-            
+
     for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
          rSerializer.save("SubModelPartName", i_sub_model_part->Name());
-    
+
     for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
         rSerializer.save("SubModelPart", *(i_sub_model_part));
 }
@@ -1665,8 +1665,8 @@ void ModelPart::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer);
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     std::string ModelPartName;
-    rSerializer.load("Name", ModelPartName); 
-    
+    rSerializer.load("Name", ModelPartName);
+
     if(ModelPartName != mName) //checking if the name is correct
     {
         KRATOS_ERROR << "trying to load a modelpart called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
@@ -1677,7 +1677,7 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Tables", mTables);
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
-    
+
     SizeType number_of_submodelparts;
     rSerializer.load("NumberOfSubModelParts", number_of_submodelparts);
 
