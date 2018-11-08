@@ -758,14 +758,15 @@ public:
      * element.
      *
      * STEPS:
-     * 1) all the elements are set to be INACTIVE
-     * 2) a serching is performed and the grid elements which contain at least a MP are set to be ACTIVE
+     * 1) All the elements are set to be INACTIVE
+     * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
      *
     */
     virtual void SearchElement(
         ModelPart& grid_model_part,
         ModelPart& mpm_model_part)
     {
+        // Reset elements to inactive
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 
@@ -797,37 +798,35 @@ public:
             }
 		}
 
-        //******************SEARCH FOR TRIANGLES************************
-        // Initialize shape function vector to be passed to PointLocator function
+        // Search background grid and make element active
         Vector N;
         const int max_result = 1000;
 
-        if (m_GeometryElement == "Triangle")
+        #pragma omp parallel
         {
-			#pragma omp parallel
-			{
-                BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-                SearchStructure.UpdateSearchDatabase();
+            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+            SearchStructure.UpdateSearchDatabase();
 
-                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
-                #pragma omp for
-                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
+            #pragma omp for
+            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
-                    auto element_itr = mpm_model_part.Elements().begin() + i;
+                auto element_itr = mpm_model_part.Elements().begin() + i;
 
-                    array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
-                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
+                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-                    Element::Pointer pelem;
+                Element::Pointer pelem;
 
-                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
+                // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
 
-                    if (is_found == true)
+                if (is_found == true)
+                {
+                    pelem->Set(ACTIVE);
+                    if (m_GeometryElement == "Triangle")
                     {
-                        pelem->Set(ACTIVE);
-
                         element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
                         element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
                         element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
@@ -842,38 +841,8 @@ public:
                             pelem->GetGeometry()[3].Set(ACTIVE);
                         }
                     }
-                }
-		    }
-        }
-
-        //******************SEARCH FOR QUADRILATERALS************************
-        else if(m_GeometryElement == "Quadrilateral")
-        {
-	        #pragma omp parallel
-			{
-                BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-                SearchStructure.UpdateSearchDatabase();
-
-                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
-
-                // Loop over the material points
-                #pragma omp for
-                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-                    auto element_itr = mpm_model_part.Elements().begin() + i;
-
-                    array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
-                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                    Element::Pointer pelem;
-
-                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
-
-                    if (is_found == true)
+                    else if(m_GeometryElement == "Quadrilateral")
                     {
-                        pelem->Set(ACTIVE);
-
                         element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
                         element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
                         element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
