@@ -497,6 +497,7 @@ public:
 
         // We separate if we consider a block builder and solver or an elimination builder and solver
         if (rModelPart.IsNot(TO_SPLIT)) {
+            // In case of block builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
                 const NodeType& node = rModelPart.GetNode(node_id);
@@ -520,7 +521,7 @@ public:
                 }
             }
         } else {
-            // In case of using
+            // In case of elimination builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
                 const NodeType& node = rModelPart.GetNode(node_id);
@@ -579,12 +580,66 @@ public:
         SizeType slave_inactive_counter = 0, slave_active_counter = 0;
         SizeType other_counter = 0;
         IndexType global_pos = 0;
-        for (auto& i_dof : rDofSet) {
-            node_id = i_dof.Id();
-            const NodeType& node = rModelPart.GetNode(node_id);
-            if (i_dof.EquationId() < rA.size1()) {
+
+        // We separate if we consider a block builder and solver or an elimination builder and solver
+        if (rModelPart.IsNot(TO_SPLIT)) {
+            // In case of block builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& r_node = rModelPart.GetNode(node_id);
+                if (i_dof.EquationId() < rA.size1()) {
+                    if (IsLMDof(i_dof)) {
+                        if (r_node.Is(ACTIVE)) {
+                            mLMActiveIndices[lm_active_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = lm_active_counter;
+                            mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
+                            ++lm_active_counter;
+                        } else {
+                            mLMInactiveIndices[lm_inactive_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = lm_inactive_counter;
+                            mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
+                            ++lm_inactive_counter;
+                        }
+                    } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                        if (r_node.Is(MASTER)) {
+                            mMasterIndices[master_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = master_counter;
+                            mWhichBlockType[global_pos] = BlockType::MASTER;
+                            ++master_counter;
+                        } else if (r_node.Is(SLAVE)) {
+                            if (r_node.Is(ACTIVE)) {
+                                mSlaveActiveIndices[slave_active_counter] = global_pos;
+                                mGlobalToLocalIndexing[global_pos] = slave_active_counter;
+                                mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
+                                ++slave_active_counter;
+                            } else {
+                                mSlaveInactiveIndices[slave_inactive_counter] = global_pos;
+                                mGlobalToLocalIndexing[global_pos] = slave_inactive_counter;
+                                mWhichBlockType[global_pos] = BlockType::SLAVE_INACTIVE;
+                                ++slave_inactive_counter;
+                            }
+                        } else { // We need to consider always an else to ensure that the system size is consistent
+                            mOtherIndices[other_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = other_counter;
+                            mWhichBlockType[global_pos] = BlockType::OTHER;
+                            ++other_counter;
+                        }
+                    } else {
+                        mOtherIndices[other_counter] = global_pos;
+                        mGlobalToLocalIndexing[global_pos] = other_counter;
+                        mWhichBlockType[global_pos] = BlockType::OTHER;
+                        ++other_counter;
+                    }
+                    ++global_pos;
+                }
+            }
+        } else {
+            // In case of elimination builder and solver
+            for (auto& i_dof : rDofSet) {
+                node_id = i_dof.Id();
+                const NodeType& r_node = rModelPart.GetNode(node_id);
                 if (IsLMDof(i_dof)) {
-                    if (node.Is(ACTIVE)) {
+                    if (r_node.Is(ACTIVE)) {
                         mLMActiveIndices[lm_active_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = lm_active_counter;
                         mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
@@ -595,14 +650,14 @@ public:
                         mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
                         ++lm_inactive_counter;
                     }
-                } else if ( node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
-                    if (node.Is(MASTER)) {
+                } else if ( r_node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
+                    if (r_node.Is(MASTER)) {
                         mMasterIndices[master_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = master_counter;
                         mWhichBlockType[global_pos] = BlockType::MASTER;
                         ++master_counter;
-                    } else if (node.Is(SLAVE)) {
-                        if (node.Is(ACTIVE)) {
+                    } else if (r_node.Is(SLAVE)) {
+                        if (r_node.Is(ACTIVE)) {
                             mSlaveActiveIndices[slave_active_counter] = global_pos;
                             mGlobalToLocalIndexing[global_pos] = slave_active_counter;
                             mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
