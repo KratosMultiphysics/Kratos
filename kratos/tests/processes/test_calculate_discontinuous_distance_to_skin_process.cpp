@@ -13,6 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "intrusive_ptr/intrusive_ptr.hpp"
 #include "containers/model.h"
 #include "includes/checks.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -653,10 +654,10 @@ namespace Testing {
         Model current_model;
 
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, -0.5, -0.5, 0.0);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, -0.5,  0.5, 0.0);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3,  0.5,  0.5, 0.0);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4,  0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_1 = std::make_intrusive<Node<3>>(1, -0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_2 = std::make_intrusive<Node<3>>(2, -0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_3 = std::make_intrusive<Node<3>>(3,  0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_4 = std::make_intrusive<Node<3>>(4,  0.5, -0.5, 0.0);
 
         Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -707,10 +708,10 @@ namespace Testing {
         Model current_model;
 
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, -0.5, -0.5, 0.0);
-        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, -0.5,  0.5, 0.0);
-        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3,  0.5,  0.5, 0.0);
-        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4,  0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_1 = std::make_intrusive<Node<3>>(1, -0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_2 = std::make_intrusive<Node<3>>(2, -0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_3 = std::make_intrusive<Node<3>>(3,  0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_4 = std::make_intrusive<Node<3>>(4,  0.5, -0.5, 0.0);
 
         Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
