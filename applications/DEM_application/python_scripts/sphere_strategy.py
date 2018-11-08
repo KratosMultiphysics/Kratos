@@ -213,6 +213,10 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
         self.spheres_model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
+        if self.contact_mesh_option:
+            self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 1)
+        else:
+            self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
 
         # PRINTING VARIABLES
 
@@ -343,6 +347,9 @@ class ExplicitStrategy(object):
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
+
+    def PrepareContactElementsForPrinting(self):
+        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
 
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
