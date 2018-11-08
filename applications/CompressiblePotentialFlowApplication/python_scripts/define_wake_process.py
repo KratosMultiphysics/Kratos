@@ -303,7 +303,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
 
                 mesh = mesh.Mesh.from_multi_file(self.stl_filename)
-                wake_mp = KratosMultiphysics.ModelPart("wake_stl")
+
+                wake_mp = self.model.CreateModelPart("wake_stl")
                 wake_mp.AddNodalSolutionStepVariable(CompressiblePotentialFlow.WAKE_DISTANCE)
                 wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
                 prop = wake_mp.Properties[0]
@@ -331,7 +332,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     #node.X = node.X - 1.0
                     #node.Y = node.Y -0.001
                     
-                representation_mp = KratosMultiphysics.ModelPart("representation_mp")
+                representation_mp = self.model.CreateModelPart("representation_mp")
                 
                 distance_calculator = KratosMultiphysics.CalculateSignedDistanceTo3DSkinProcess(wake_mp, self.fluid_model_part)
                 distance_calculator.Execute()
