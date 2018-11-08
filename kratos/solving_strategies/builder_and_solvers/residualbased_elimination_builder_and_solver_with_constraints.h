@@ -963,31 +963,35 @@ protected:
             // Vector containing the localization in the system of the different terms
             EquationIdVectorType slave_equation_id, master_equation_id;
 
-            // The current process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
             const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-            #pragma omp parallel for firstprivate(number_of_constraints, r_current_process_info, transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
-            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
+            #pragma omp parallel firstprivate(number_of_constraints, transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
+            {
+                // The current process info
+                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-                if (constraint_is_active) {
-                    it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                #pragma omp for schedule(guided, 512)
+                for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
-                    it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
+                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                    // It is active by default
+                    bool constraint_is_active = true;
+                    if (it_const->IsDefined(ACTIVE))
+                        constraint_is_active = it_const->Is(ACTIVE);
 
-                    // Assemble the constraint contribution
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, BaseType::mLockArray);
-                #else
-                    AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
-                #endif
+                    if (constraint_is_active) {
+                        it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+
+                        it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
+
+                        // Assemble the constraint contribution
+                    #ifdef USE_LOCKS_IN_ASSEMBLY
+                        AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, BaseType::mLockArray);
+                    #else
+                        AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
+                    #endif
+                    }
                 }
             }
         }
@@ -1123,9 +1127,6 @@ private:
 
         // First we set up the system of equations without constraints
         BaseType::SetUpSystem(rModelPart);
-
-        /// A pair of Ids
-        typedef std::pair<IndexType, IndexType> IdPairType;
 
         // Add the computation of the global ids of the solvable dofs
         IndexType counter = 0;
