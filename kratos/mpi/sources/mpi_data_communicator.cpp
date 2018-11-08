@@ -222,6 +222,21 @@ void MPIDataCommunicator::SendRecv(
         mComm, MPI_STATUS_IGNORE);
 }
 
+// Broadcast
+
+void MPIDataCommunicator::Broadcast(
+    std::vector<int>& rBuffer,
+    const unsigned int SourceRank) const
+{
+    MPI_Bcast(rBuffer.data(), rBuffer.size(), MPI_INT, SourceRank, mComm);
+}
+
+void MPIDataCommunicator::Broadcast(
+    std::vector<double>& rBuffer,
+    const unsigned int SourceRank) const
+{
+    MPI_Bcast(rBuffer.data(), rBuffer.size(), MPI_DOUBLE, SourceRank, mComm);
+}
 
 // Scatter operations
 

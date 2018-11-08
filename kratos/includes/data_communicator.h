@@ -180,6 +180,18 @@ class DataCommunicator
         std::vector<double>& rRecvValues, const unsigned int RecvSource) const
     {}
 
+    // Broadcast
+
+    virtual void Broadcast(
+        std::vector<int>& rBuffer,
+        const unsigned int SourceRank) const
+    {}
+
+    virtual void Broadcast(
+        std::vector<double>& rBuffer,
+        const unsigned int SourceRank) const
+    {}
+
     // Scatter operations
 
     virtual void Scatter(
