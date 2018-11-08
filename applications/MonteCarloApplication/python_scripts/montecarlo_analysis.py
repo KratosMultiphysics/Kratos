@@ -53,7 +53,7 @@ class MonteCarloAnalysis(AnalysisStage):
     def _GetSimulationName(self):
         return "Monte Carlo Analysis"
 
-    ''''''
+    '''Define here the right hand side as desired'''
     def ApplyBoundaryConditions(self):
         super(MonteCarloAnalysis,self).ApplyBoundaryConditions()
         '''define the forcing function and apply the stochastic contribute'''
@@ -63,14 +63,6 @@ class MonteCarloAnalysis(AnalysisStage):
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
             forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents an analytical solution
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
-            
-        
-        '''need to use SetSolutionStepValue and not SetValue (equivalent for GetSolutionStepValue and GetValue) because in custom_elements and custom_conditions I use this function
-        Set/GetValue uses less memory and is always used for element and conditions
-        Set/GetSolutionStepValue uses more memory, and allows to memorize values stored in the nodes in case of buffer > 1 (e.g. sol_{i-1}, sol_{i-2} remain stored there to evaluate sol_{i})
-        if I use SetValue, I need to use GetValue (the same for the other)
-        # node.SetValue(Poisson.FORCING,node.GetSolutionStepValue(Poisson.FORCING)*sample)'''
-
 
     
 ##################################################
@@ -231,5 +223,4 @@ if __name__ == '__main__':
     # error = np.sqrt(error)
     # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
     # print("L2 relative error = ", error/L2norm_analyticalsolution)
-    # print("")
    
