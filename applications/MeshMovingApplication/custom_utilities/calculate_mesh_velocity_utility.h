@@ -70,10 +70,6 @@ public:
     enum IntegrationMethod{
         bdf1,
         bdf2,
-        bdf3,
-        bdf4,
-        bdf5,
-        bdf6,
         generalized_alpha,
         newmark,
         bossak
@@ -190,8 +186,8 @@ private:
 
     IntegrationMethod mIntegrationMethod;
 
-    double mAlphaM;
-    double mAlphaF;
+    double mBossakBeta;
+    double mBossakGamma;
 
     ///@}
     ///@name Private Operators

@@ -46,10 +46,6 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
     available_integration_methods {
         {"bdf1",              bdf1},
         {"bdf2",              bdf2},
-        {"bdf3",              bdf3},
-        {"bdf4",              bdf4},
-        {"bdf5",              bdf5},
-        {"bdf6",              bdf6},
         {"generalized_alpha", generalized_alpha},
         {"bossak",            generalized_alpha},
         {"newmark",           generalized_alpha}
@@ -62,7 +58,7 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
         std::stringstream err_msg;
 
         err_msg << "The requested integration-method \"" << time_scheme
-                << "\" is not available!"
+                << "\" is not available!\n"
                 << "The following methods are available:" << std::endl;
 
         for (const auto& avail_method : available_integration_methods) {
@@ -78,13 +74,28 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
     KRATOS_ERROR_IF(current_buffer_size < min_buffer_size) << "Insufficient buffer size: "
         << current_buffer_size << " < " << min_buffer_size << "!" << std::endl;
 
-    // setting mAlphaF and mAlphaM
-    if (time_scheme == "generalized_alpha") {
+    // set Generalized-Alpha specific Settings
+    if (mIntegrationMethod == generalized_alpha) {
 
-    } else if (time_scheme == "bossak") {
+        // default (Newmark)
+        double alpha_m = 0.0;
+        double alpha_f = 0.0;
 
-    } else if (time_scheme == "newmark") {
+        // setting mAlphaF and mAlphaM
+        if (time_scheme == "generalized_alpha") {
+            alpha_m = Settings["alpha_m"].GetDouble();
+            alpha_f = Settings["alpha_f"].GetDouble();
+        } else if (time_scheme == "bossak") {
+            if (Settings.Has("alpha_m")) {
+                alpha_m = Settings["alpha_m"].GetDouble();
+            }
+            else {
+                alpha_m = -0.3; // default in Kratos
+            }
+        }
 
+        mBossakBeta = std::pow((1.0 + alpha_f - alpha_m), 2) * 0.25;
+        mBossakGamma = 0.5 + alpha_f - alpha_m;
     }
 }
 
@@ -93,10 +104,6 @@ CalculateMeshVelocityUtility::SizeType CalculateMeshVelocityUtility::GetMinimumB
     const std::map<std::string, SizeType> required_buffer_sizes {
         {"bdf1",              2},
         {"bdf2",              3},
-        {"bdf3",              4},
-        {"bdf4",              5},
-        {"bdf5",              6},
-        {"bdf6",              7},
         {"generalized_alpha", 2},
         {"bossak",            2},
         {"newmark",           2}
@@ -112,52 +119,79 @@ void CalculateMeshVelocityUtility::CalculateMeshVelocities()
         << "for the current time step" << std::endl;
 
     if ( mIntegrationMethod == bdf1 ||
-         mIntegrationMethod == bdf2 ||
-         mIntegrationMethod == bdf3 ||
-         mIntegrationMethod == bdf4 ||
-         mIntegrationMethod == bdf5 ||
-         mIntegrationMethod == bdf6 ) {
+         mIntegrationMethod == bdf2 ) {
         CalculateMeshVelocitiesBDF(delta_time);
     }
     else {
         CalculateMeshVelocitiesGeneralizedAlpha(delta_time);
     }
+
+    mrModelPart.GetCommunicator().SynchronizeVariable(MESH_VELOCITY);
 }
 
 void CalculateMeshVelocityUtility::CalculateMeshVelocitiesBDF(const double DeltaTime)
 {
+    const int num_local_nodes = mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
+    const auto nodes_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
+
+    const double coeff = 1 / DeltaTime;
+
     switch(mIntegrationMethod) {
         case bdf1 : {
-
+            #pragma omp parallel for
+            for (int i=0; i<num_local_nodes; i++) {
+                const auto it_node  = nodes_begin + i;
+                auto& r_mesh_v0       = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
+                const auto& r_mesh_u0 = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+                const auto& r_mesh_u1 = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
+                noalias(r_mesh_v0) = r_mesh_u0 - r_mesh_u1;
+                r_mesh_v0 *= coeff;
+            }
             break;
         }
         case bdf2 : {
+            const double c1 = 1.50 * coeff;
+            const double c2 = -2.0 * coeff;
+            const double c3 = 0.50 * coeff;
 
+            #pragma omp parallel for
+            for (int i=0; i<num_local_nodes; i++) {
+                const auto it_node  = nodes_begin + i;
+                auto& r_mesh_v0 = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
+                noalias(r_mesh_v0)  = c1 * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+                noalias(r_mesh_v0) += c2 * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
+                noalias(r_mesh_v0) += c3 * it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 2);
+            }
             break;
         }
-        case bdf3 : {
-
-            break;
-        }
-        case bdf4 : {
-
-            break;
-        }
-        case bdf5 : {
-
-            break;
-        }
-        case bdf6 : {
-
-            break;
-        }
-        default : KRATOS_ERROR << "unknown integration-order!" << std::endl;
+        default : KRATOS_ERROR << "unknown bdf integration-order!" << std::endl;
     }
 }
 
 void CalculateMeshVelocityUtility::CalculateMeshVelocitiesGeneralizedAlpha(const double DeltaTime)
 {
+    const int num_local_nodes = mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
+    const auto nodes_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
+    const double const_u = mBossakGamma / (DeltaTime * mBossakBeta);
+    const double const_v = 1.0 - mBossakGamma / mBossakBeta;
+    const double const_a = DeltaTime * (1.0 - mBossakGamma / (2.0 * mBossakBeta));
 
+    #pragma omp parallel for
+    for (int i=0; i<num_local_nodes; i++) {
+        const auto it_node  = nodes_begin + i;
+        const auto& r_mesh_u0 = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+        auto&       r_mesh_v0 = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
+        auto&       r_mesh_a0 = it_node->FastGetSolutionStepValue(MESH_ACCELERATION);
+
+        const auto& r_mesh_u1 = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
+        const auto& r_mesh_v1 = it_node->FastGetSolutionStepValue(MESH_VELOCITY, 1);
+        const auto& r_mesh_a1 = it_node->FastGetSolutionStepValue(MESH_ACCELERATION, 1);
+
+        r_mesh_v0 = const_u * (r_mesh_u0 - r_mesh_u1) + const_v * r_mesh_v1 + const_a * r_mesh_a1;
+        r_mesh_a0 = (1.0 / (DeltaTime * mBossakGamma)) * (r_mesh_v0 - r_mesh_v1) - ((1 - mBossakGamma) / mBossakGamma) * r_mesh_a1;
+    }
+
+    mrModelPart.GetCommunicator().SynchronizeVariable(MESH_ACCELERATION);
 }
 
 
