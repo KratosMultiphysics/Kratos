@@ -29,6 +29,8 @@ class KratosIo(CoSimulationBaseIO):
         """)
         self.settings.ValidateAndAssignDefaults(default_settings)
 
+        self.mappers = {}
+
         super(KratosIo, self).__init__(self.settings)
         ### Constructing the IO for this solver
 
@@ -42,7 +44,18 @@ class KratosIo(CoSimulationBaseIO):
     def ImportData(self, data_config, from_solver):
         if(from_solver):
             # exchange data from python cosim solver
-            print('print from kratos io')
+            if(data_config.Has("mapper_settings")):
+                origin_geo = data_config["origin_data_config"]["geometry_name"].GetString()
+                origin_var = data_config["origin_data_config"]["name"].GetString()
+                dest_geo = data_config["geometry_name"].GetString()
+                dest_var = data_config["name"].GetString()
+                if(self.HasMapper((origin_geo,dest_geo))):
+                    mapper = self.GetMapper((origin_geo,dest_geo))
+                elif(self.HasMapper((dest_geo,origin_geo))):
+                    mapper = self.GetMapper((dest_geo,origin_geo))
+
+                flags = data_config["mapper_settings"]
+                mapper.Map(origin_var, dest_var, flags)
             pass
         else:
             # import data from remote solver
@@ -96,3 +109,10 @@ class KratosIo(CoSimulationBaseIO):
             # export the given mesh to the remote solver
         """
         raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ExportMesh is not implemented in the IO class!" + tools.bcolors.ENDC)
+
+
+    def HasMapper(self, mapper_tuple):
+        return True
+
+    def GetMapper(self, mapper_tuple):
+        return self.mappers[(mapper_tuple)]
