@@ -14,7 +14,7 @@ def Factory(settings, Model):
 
 class RigidBodiesProcess(KratosMultiphysics.Process):
     #
-    def __init__(self, Model, custom_settings ):
+    def __init__(self, Model, custom_settings):
 
         KratosMultiphysics.Process.__init__(self)
 
@@ -38,8 +38,7 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
 
         self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
-        self.dimension       = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
-
+ 
         # construct rigid body domains
         self.rigid_bodies = []
         bodies_list = self.settings["rigid_bodies"]
