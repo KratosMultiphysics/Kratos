@@ -627,8 +627,14 @@ protected:
         if (norm_b != 0.0) {
 
              // Create the auxiliar dof set
-             DofsArrayType aux_dof_set = BaseType::mDofSet;
-             aux_dof_set.erase(mDoFSlaveSet.begin(), mDoFSlaveSet.end());
+             DofsArrayType aux_dof_set;
+             aux_dof_set.reserve(BaseType::mDofSet.size() - mDoFSlaveSet.size());
+             for (auto& dof : BaseType::mDofSet) {
+                 auto it = mDoFSlaveSet.find(dof);
+                 if (it == mDoFSlaveSet.end())
+                    aux_dof_set.push_back( &dof );
+             }
+             aux_dof_set.Sort();
 
             // Provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
