@@ -371,5 +371,50 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
     }
 }
 
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatter, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator = DataCommunicator();
+    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = 0;
+
+    std::vector<int> send_buffer_int(0);
+    std::vector<double> send_buffer_double(0);
+    std::vector<int> recv_buffer_int = {0, 0};
+    std::vector<double> recv_buffer_double = {0.0, 0.0};
+
+    if (world_rank == send_rank)
+    {
+        send_buffer_int.resize(2*world_size);
+        send_buffer_double.resize(2*world_size);
+        for (unsigned int i = 0; i < 2*world_size; i++)
+        {
+            send_buffer_int[i] = 1;
+            send_buffer_double[i] = 2.0;
+        }
+    }
+
+    serial_communicator.Scatter(send_buffer_int, recv_buffer_int, send_rank);
+    serial_communicator.Scatter(send_buffer_double, recv_buffer_double, send_rank);
+
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer_int[i], 0);
+        KRATOS_CHECK_EQUAL(recv_buffer_double[i], 0.0);
+    }
+
+    mpi_world_communicator.Scatter(send_buffer_int, recv_buffer_int, send_rank);
+    mpi_world_communicator.Scatter(send_buffer_double, recv_buffer_double, send_rank);
+
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer_int[i], 1);
+        KRATOS_CHECK_EQUAL(recv_buffer_double[i], 2.0);
+    }
+}
+
 }
 }

@@ -131,6 +131,20 @@ class DataCommunicator
         std::vector<double>& rRecvValues, const unsigned int RecvSource) const
     {}
 
+    // Scatter operations
+
+    virtual void Scatter(
+        const std::vector<int>& rSendValues,
+        std::vector<int>& rRecvValues,
+        const unsigned int SourceRank) const
+    {}
+
+    virtual void Scatter(
+        const std::vector<double>& rSendValues,
+        std::vector<double>& rRecvValues,
+        const unsigned int SourceRank) const
+    {}
+
     ///@}
     ///@name Inquiry
     ///@{

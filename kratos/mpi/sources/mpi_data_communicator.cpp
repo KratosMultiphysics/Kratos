@@ -204,4 +204,31 @@ void MPIDataCommunicator::SendRecv(
         mComm, MPI_STATUS_IGNORE);
 }
 
+
+// Scatter operations
+
+void MPIDataCommunicator::Scatter(
+    const std::vector<int>& rSendValues,
+    std::vector<int>& rRecvValues,
+    const unsigned int SourceRank) const
+{
+    const int sends_per_rank = rRecvValues.size();
+    MPI_Scatter(
+        rSendValues.data(), sends_per_rank, MPI_INT,
+        rRecvValues.data(), sends_per_rank, MPI_INT,
+        SourceRank, mComm);
+}
+
+void MPIDataCommunicator::Scatter(
+    const std::vector<double>& rSendValues,
+    std::vector<double>& rRecvValues,
+    const unsigned int SourceRank) const
+{
+    const int sends_per_rank = rRecvValues.size();
+    MPI_Scatter(
+        rSendValues.data(), sends_per_rank, MPI_DOUBLE,
+        rRecvValues.data(), sends_per_rank, MPI_DOUBLE,
+        SourceRank, mComm);
+}
+
 }

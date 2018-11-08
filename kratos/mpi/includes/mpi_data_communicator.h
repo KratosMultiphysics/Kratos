@@ -126,13 +126,25 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Sendrecv operations
 
-    virtual void SendRecv(
+    void SendRecv(
         const std::vector<int>& rSendValues, const unsigned int SendDestination,
         std::vector<int>& rRecvValues, const unsigned int RecvSource) const override;
 
-    virtual void SendRecv(
+    void SendRecv(
         const std::vector<double>& rSendValues, const unsigned int SendDestination,
         std::vector<double>& rRecvValues, const unsigned int RecvSource) const override;
+
+    // Scatter operations
+
+    void Scatter(
+        const std::vector<int>& rSendValues,
+        std::vector<int>& rRecvValues,
+        const unsigned int SourceRank) const override;
+
+    void Scatter(
+        const std::vector<double>& rSendValues,
+        std::vector<double>& rRecvValues,
+        const unsigned int SourceRank) const override;
 
     ///@}
     ///@name Access
