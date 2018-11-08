@@ -99,7 +99,7 @@ public:
     ///@{
 
     /// Default constructor.
-    MetisDivideHeterogeneousInputInMemoryProcess(IO& rIO, IO& rSerialIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
+    MetisDivideHeterogeneousInputInMemoryProcess(IO& rIO, ModelPartIO& rSerialIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
         BaseType(rIO,NumberOfPartitions,Dimension,Verbosity,SynchronizeConditions), mrSerialIO(rSerialIO)
     {
     }
@@ -329,8 +329,7 @@ public:
 #endif
 
         // TODO: Try to come up with a better way to change the buffer.
-        ((ModelPartIO&)mrSerialIO).SwapStreamSource(streams[mpi_rank]);
-        //((ModelPartIO&)mrIO).SwapStreamSource(streams[mpi_rank]);
+        mrSerialIO.SwapStreamSource(streams[mpi_rank]);
 
         // Free buffers
         free(mpi_recv_buffer[mpi_rank]);
@@ -431,7 +430,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    IO& mrSerialIO;
+    ModelPartIO& mrSerialIO;
 
     ///@}
     ///@name Private Operators
