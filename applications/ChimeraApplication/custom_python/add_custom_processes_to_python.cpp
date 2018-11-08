@@ -45,7 +45,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def("FormulateChimera2D", &ApplyChimeraProcessMonolithic<2>::FormulateChimera)
 		.def("SetOverlapDistance",&ApplyChimeraProcessMonolithic<2>::SetOverlapDistance)
 		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessMonolithic<2>::CalculateNodalAreaAndNodalMass)
-		.def("SetType",&ApplyChimeraProcessMonolithic<2>::SetType)
 		;
 
 	class_<ApplyChimeraProcessMonolithic<3>, ApplyChimeraProcessMonolithic<3>::Pointer, Process>(m, "ApplyChimeraProcessMonolithic3d")
@@ -54,25 +53,20 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def("FormulateChimera2D", &ApplyChimeraProcessMonolithic<3>::FormulateChimera)
 		.def("SetOverlapDistance",&ApplyChimeraProcessMonolithic<3>::SetOverlapDistance)
 		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessMonolithic<3>::CalculateNodalAreaAndNodalMass)
-		.def("SetType",&ApplyChimeraProcessMonolithic<3>::SetType)
 		;
 
 	class_<ApplyChimeraProcessFractionalStep<2>, ApplyChimeraProcessFractionalStep<2>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep2d")
 		.def(init< ModelPart&, Parameters >())
-		.def("ApplyMpcConstraint", &ApplyChimeraProcessFractionalStep<2>::ApplyMpcConstraint)
 		.def("FormulateChimera2D", &ApplyChimeraProcessFractionalStep<2>::FormulateChimera)
 		.def("SetOverlapDistance",&ApplyChimeraProcessFractionalStep<2>::SetOverlapDistance)
 		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessFractionalStep<2>::CalculateNodalAreaAndNodalMass)
-		.def("SetType",&ApplyChimeraProcessFractionalStep<2>::SetType)
 		;
 
 	class_<ApplyChimeraProcessFractionalStep<3>, ApplyChimeraProcessFractionalStep<3>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep3d")
 		.def(init< ModelPart&, Parameters >())
-		.def("ApplyMpcConstraint", &ApplyChimeraProcessFractionalStep<3>::ApplyMpcConstraint)
 		.def("FormulateChimera2D", &ApplyChimeraProcessFractionalStep<3>::FormulateChimera)
 		.def("SetOverlapDistance",&ApplyChimeraProcessFractionalStep<3>::SetOverlapDistance)
 		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessFractionalStep<3>::CalculateNodalAreaAndNodalMass)
-		.def("SetType",&ApplyChimeraProcessFractionalStep<3>::SetType)
 		;
 
 	/* class_<ApplyChimeraProcess<3>,bases<Process> >("ApplyChimeraProcess3d", init< ModelPart&, Parameters >())

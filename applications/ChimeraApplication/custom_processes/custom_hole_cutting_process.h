@@ -173,7 +173,6 @@ class CustomHoleCuttingProcess
 					numPointsInside++;
 				}
 			}
-
 			if (numPointsInside > 0)
 			{
 				pElem = Element::Pointer(new Element(*it));

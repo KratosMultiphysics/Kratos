@@ -5,7 +5,8 @@
 //                   license: ChimeraApplication/license.txt
 //
 //  Main authors:    Aditya Ghantasala, https://github.com/adityaghantasala
-//
+// 					 Navaneeth K Narayanan
+//					 Rishith Ellath Meethal
 // ==============================================================================
 //
 
@@ -126,14 +127,9 @@ class ApplyChimeraProcessFractionalStep : public Process
 														"model_part_inside_boundary_name":"GENERIC_strcuture2_1"
 		            								}]
 													],
-                    			"type" : "nearest_element",
-                                "IsWeak" : true,
-                                "pressure_coupling" : "all",
-                                "pressure_coupling_node" : 0.0,
                                 "overlap_distance":0.045
             })");
 
-		m_type = m_parameters["type"].GetString();
 		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
 		NumberOfLevels = m_parameters["Chimera_levels"].size();
 
@@ -144,9 +140,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 		if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
 			info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
 
-		this->pMpcVelocity = MpcDataPointerType(new MpcData(m_type));
-
-		this->pMpcPressure = MpcDataPointerType(new MpcData(m_type));
+		this->pMpcVelocity = MpcDataPointerType(new MpcData("nearest_element"));
+		this->pMpcPressure = MpcDataPointerType(new MpcData("nearest_element"));
 
 		this->pMpcVelocity->SetName("MPC_Patch_Velocity");
 		this->pMpcPressure->SetName("MPC_Patch_Pressure");
@@ -193,7 +188,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 	{
 		pMpcVelocity->Clear();
 		pMpcPressure->Clear();
-
 		KRATOS_INFO( "FractionalStep Chimera process is cleared") << std::endl;
 	}
 
@@ -211,7 +205,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 		}
 		// Actual execution of the functionality of this class
 		DoChimeraLoop();
-
 		KRATOS_CATCH("");
 	}
 
@@ -239,196 +232,14 @@ class ApplyChimeraProcessFractionalStep : public Process
 	{
 	}
 
-	void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
-	{
-		//loop over nodes and find the triangle in which it falls, than do interpolation
-
-		//array_1d<double, TDim + 1> N;
-		Vector N;
-		const int max_results = 10000;
-		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
-
-		std::size_t counter = 0;
-
-/* #pragma omp parallel for firstprivate(results, N)
-		//MY NEW LOOP: reset the visited flag
-		for (int i = 0; i < n_boundary_nodes; i++)
-
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
-			Node<3>::Pointer p_boundary_node = *(iparticle.base());
-			p_boundary_node->Set(VISITED, false);
-		}
- */
-		for (int i = 0; i < n_boundary_nodes; i++)
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
-			Node<3>::Pointer p_boundary_node = *(iparticle.base());
-
-			bool NodeCoupled = false;
-			if ((p_boundary_node)->IsDefined(VISITED))
-				NodeCoupled = (p_boundary_node)->Is(VISITED);
-
-			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-			Element::Pointer pElement;
-
-			bool is_found = false;
-			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-			// Initialise the boundary nodes dofs to 0 at ever time steps
-			if (NodeCoupled && is_found)
-			{
-				RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpc, *p_boundary_node, VELOCITY_X);
-				RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpc, *p_boundary_node, VELOCITY_Y);
-				if (TDim == 3)
-				{
-					//Define master slave relation for velocity
-					RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpc, *p_boundary_node, VELOCITY_Z);
-				}
-
-				if (pressure_coupling == "all")
-				{
-					//Defining master slave relation for pressure
-					RemoveMasterSlaveRelationWithNodesAndVariable(pMpc, *p_boundary_node, PRESSURE);
-				}
-			}
-
-			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
-			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
-
-			if (TDim == 3)
-				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
-
-			if (pressure_coupling == "all")
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
-			if (is_found == true)
-			{
-				Geometry<Node<3>> &geom = pElement->GetGeometry();
-
-				for (std::size_t i = 0; i < geom.size(); i++)
-				{
-					//Interpolation of velocity
-					p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
-					p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * N[i];
-
-					//Define master slave relation for velocity
-					AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
-					AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
-					if (TDim == 3)
-					{
-						//Interpolation of velocity
-						p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
-
-						//Define master slave relation for velocity
-						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
-					}
-
-					if (pressure_coupling == "all")
-					{
-						//Interpolation of pressure
-						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-
-						//Defining master slave relation for pressure
-						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-
-						counter++;
-					}
-				} // end of loop over host element nodes
-
-			// Setting the buffer 1 same buffer 0
-			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0);
-			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0);
-			if (TDim == 3)
-				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0);
-
-			if (pressure_coupling == "all")
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
-
-			} // if (is_found = true)
-			p_boundary_node->Set(VISITED, true);
-		} // end of loop over boundary nodes
-
-		if (pressure_coupling == "one")
-		{
-
-			Node<3>::Pointer p_boundary_node;
-			if (m_parameters["pressure_coupling_node"].GetDouble() == 0.0)
-			{
-				ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin();
-				p_boundary_node = *(iparticle.base());
-			}
-
-			else
-			{
-				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
-				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
-			}
-
-			bool NodeCoupled = false;
-			if ((p_boundary_node)->IsDefined(VISITED))
-				NodeCoupled = (p_boundary_node)->Is(VISITED);
-
-			if(!NodeCoupled)
-			{
-				typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-				Element::Pointer pElement;
-
-				bool is_found = false;
-				is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-				//Initialsing pressure to 0 at every time steps
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
-				if (is_found == true)
-				{
-					Geometry<Node<3>> &geom = pElement->GetGeometry();
-					for (std::size_t i = 0; i < geom.size(); i++)
-					{
-						// Interpolation of pressure
-						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-						// Defining master slave relation for one pressure node
-						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-						counter++;
-					}
-				}
-				// Setting the buffer 1 same buffer 0
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
-
-				KRATOS_INFO("Coordinates of node that are pressure coupled") << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
-			}
-			p_boundary_node->Set(VISITED,true);
-		} // end of if (pressure_coupling == "one")
-
-		counter /= TDim + 1;
-
-		KRATOS_INFO( " pressure nodes from ") << rBoundaryModelPart.Name() << " coupled = " <<counter <<  std::endl;
-	}
-
 	void ApplyMpcConstraintForFractionalStep(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV, MpcDataPointerType pMpcP, std::string pressure_coupling)
 	{
 		//loop over nodes and find the triangle in which it falls, than do interpolation
-		//array_1d<double, TDim + 1> N;
 		Vector N;
 		const int max_results = 10000;
 		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
-
 		std::size_t counter = 0;
-
-		/*
-		#pragma omp parallel for firstprivate(results, N)
-		//MY NEW LOOP: reset the visited flag
-		for (int i = 0; i < n_boundary_nodes; i++)
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
-			Node<3>::Pointer p_boundary_node = *(iparticle.base());
-			p_boundary_node->Set(VISITED, false);
-		} 
-		*/
 
 		for (int i = 0; i < n_boundary_nodes; i++)
 		{
@@ -440,10 +251,9 @@ class ApplyChimeraProcessFractionalStep : public Process
 				NodeCoupled = (p_boundary_node)->Is(VISITED);
 
 			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
 			Element::Pointer pElement;
-
 			bool is_found = false;
+			
 			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
 
 			if (NodeCoupled && is_found)
@@ -451,28 +261,18 @@ class ApplyChimeraProcessFractionalStep : public Process
 				//Define master slave relation for velocity
 				RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpcV, *p_boundary_node, VELOCITY_X);
 				RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpcV, *p_boundary_node, VELOCITY_Y);
-				if (TDim == 3)
-				{
-					//Define master slave relation for velocity
+				if (TDim == 3)  
 					RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpcV, *p_boundary_node, VELOCITY_Z);
-				}
-
-				if (pressure_coupling == "all")
-				{
-					//Defining master slave relation for pressure
-					RemoveMasterSlaveRelationWithNodesAndVariable(pMpcP, *p_boundary_node, PRESSURE);
-				}
+				
+				//Defining master slave relation for pressure
+				RemoveMasterSlaveRelationWithNodesAndVariable(pMpcP, *p_boundary_node, PRESSURE);
 			}
 			// Initialise the boundary nodes dofs to 0 at ever time steps
-
 			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
 			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
-
 			if (TDim == 3)
 				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
-
-			if (pressure_coupling == "all")
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
 
 			if (is_found == true)
 			{
@@ -491,21 +291,15 @@ class ApplyChimeraProcessFractionalStep : public Process
 					{
 						//Interpolation of velocity
 						p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
-
 						//Define master slave relation for velocity
 						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpcV, geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
 					}
 
-					if (pressure_coupling == "all")
-					{
-						//Interpolation of pressure
-						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-
-						//Defining master slave relation for pressure
-						AddMasterSlaveRelationWithNodesAndVariable(pMpcP, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-
-						counter++;
-					}
+					//Interpolation of pressure
+					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
+					//Defining master slave relation for pressure
+					AddMasterSlaveRelationWithNodesAndVariable(pMpcP, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
+					counter++;
 				} // end of loop over host element nodes
 
 				// Setting the buffer 1 same buffer 0
@@ -513,89 +307,29 @@ class ApplyChimeraProcessFractionalStep : public Process
 				p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0);
 				if (TDim == 3)
 					p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0);
-
-				if (pressure_coupling == "all")
-					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
-
+				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
 			} // if (is_found = true)
-
-
 			p_boundary_node->Set(VISITED, true);
 		} // end of loop over boundary nodes
-
-		if (pressure_coupling == "one")
-		{
-
-			Node<3>::Pointer p_boundary_node;
-			if (m_parameters["pressure_coupling_node"].GetDouble() == 0.0)
-			{
-				ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin();
-				p_boundary_node = *(iparticle.base());
-			}
-
-			else
-			{
-				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
-				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
-			}
-
-			bool NodeCoupled = false;
-			if ((p_boundary_node)->IsDefined(VISITED))
-				NodeCoupled = (p_boundary_node)->Is(VISITED);
-
-			if (!NodeCoupled)
-			{
-				typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-				Element::Pointer pElement;
-				bool is_found = false;
-				is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-				//Initialsing pressure to 0 at every time steps
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
-				if (is_found == true)
-				{
-					Geometry<Node<3>> &geom = pElement->GetGeometry();
-					for (std::size_t i = 0; i < geom.size(); i++)
-					{
-						// Interpolation of pressure
-						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-
-						// Defining master slave relation for one pressure node
-						AddMasterSlaveRelationWithNodesAndVariable(pMpcP, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-						counter++;
-					}
-				}
-				// Setting the buffer 1 same buffer 0
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
-
-				KRATOS_INFO( "Coordinates of node that are pressure coupled" )<< p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
-			}
-			p_boundary_node->Set(VISITED, true);
-		} // end of if (pressure_coupling == "one")
-
+		
 		counter /= TDim + 1;
-
 		KRATOS_INFO( " pressure nodes from ") << rBoundaryModelPart.Name() << "coupled = " <<counter <<  std::endl;
 	}
 
-	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV,MpcDataPointerType pMpcP,  std::string pressure_coupling)
+	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpcV,MpcDataPointerType pMpcP)
 	{
-
 		double rtMinvR = 0;
 		DofVectorType slaveDofVector;
 		double R = 0;
-		ApplyMpcConstraintForFractionalStep(rBoundaryModelPart, pBinLocator, pMpcV,pMpcP, pressure_coupling);
+		ApplyMpcConstraintForFractionalStep(rBoundaryModelPart, pBinLocator, pMpcV,pMpcP);
 		std::vector<VariableComponentType> dofComponentVector = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
 
 		// Calculation of Rt*Minv*R and assignment of nodalnormals to the slave dofs
 		for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
 		{
 			double Minode = inode->FastGetSolutionStepValue(NODAL_MASS);
-
 			for (std::size_t i = 0; i < TDim; i++)
 			{
-
 				double rIdof = inode->FastGetSolutionStepValue(NORMAL)[i];
 				DofType &slaveDOF = inode->GetDof(dofComponentVector[i]);
 				AddNodalNormalSlaveRelationWithDofs(pMpcV, inode->GetDof(dofComponentVector[i]), rIdof);
@@ -603,10 +337,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 				rtMinvR += (rIdof * rIdof) / Minode;
 				R += rIdof;
 			}
-
 			AddNodalNormalSlaveRelationWithDofs(pMpcP, inode->GetDof(PRESSURE), 0);
 		}
-
 		SetRtMinvR(pMpcV, rtMinvR);
 		KRATOS_INFO( "RtMRinv of ") << rBoundaryModelPart.Name() << rtMinvR << std::endl;
 
@@ -795,8 +527,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 			KRATOS_INFO("Formulate chimera for fractional step")<<std::endl;
 
-			pMpcVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
-			pMpcPressure->SetIsWeak(m_parameters["IsWeak"].GetBool());
+			pMpcVelocity->SetIsWeak(true);
+			pMpcPressure->SetIsWeak(true);
 
 			std::string pr_coupling_patch = m_parameters["pressure_coupling"].GetString();
 			std::string pr_coupling_background = m_parameters["pressure_coupling"].GetString();
@@ -819,19 +551,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 	void SetOverlapDistance(double distance)
 	{
 		this->m_overlap_distance = distance;
-	}
-
-	void SetType(std::string type)
-	{
-		KRATOS_TRY
-		{
-			if ((type != "nearest_element") && (type != "conservative"))
-				KRATOS_THROW_ERROR("", "Second argument should be either nearest_element or conservative \n", "");
-			this->m_type = type;
-			pMpcVelocity->SetType(this->m_type);
-			pMpcPressure->SetType(this->m_type);
-		}
-		KRATOS_CATCH("")
 	}
 
 	void CalculateNodalAreaAndNodalMass(ModelPart &rBoundaryModelPart, int sign)
@@ -863,7 +582,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
 		{
-
 			centre += inode->Coordinates();
 		}
 
@@ -906,7 +624,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 				pGeometry[i].FastGetSolutionStepValue(NODAL_MASS) += coeff * nodal_mass;
 			}
 		}
-
 		KRATOS_CATCH("")
 	}
 
@@ -967,7 +684,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 	void CalculateConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
 	{
-
 		double nodalMass;
 		std::size_t slaveNodeId;
 		std::size_t slaveNodeIdOther;
@@ -1291,7 +1007,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 	std::string m_domain_boundary_model_part_name;
 	std::string m_patch_inside_boundary_model_part_name;
 	std::string m_patch_model_part_name;
-	std::string m_type;
 
 	// epsilon
 	//static const double epsilon;

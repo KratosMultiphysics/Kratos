@@ -5,7 +5,8 @@
 //                   license: ChimeraApplication/license.txt
 //
 //  Main authors:    Aditya Ghantasala, https://github.com/adityaghantasala
-//
+//					 Navaneeth K Narayanan
+//					 Rishith Ellath Meethal
 // ==============================================================================
 //
 
@@ -126,14 +127,9 @@ class ApplyChimeraProcessMonolithic : public Process
 														"model_part_inside_boundary_name":"GENERIC_strcuture2_1"
 		            						    	}]
 													 ],
-                    			"type" : "nearest_element",
-                                "IsWeak" : true,
-                                "pressure_coupling" : "all",
-                                "pressure_coupling_node" : 0.0,
                                 "overlap_distance":0.045
             })");
 
-		m_type = m_parameters["type"].GetString();
 		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
 		NumberOfLevels = m_parameters["Chimera_levels"].size();
 
@@ -144,8 +140,7 @@ class ApplyChimeraProcessMonolithic : public Process
 		if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
 			info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
 
-		this->pMpc = MpcDataPointerType(new MpcData(m_type));
-		// this->pMpc = Kratos::make_shared<MpcDataType>(m_type);
+		this->pMpc = MpcDataPointerType(new MpcData("nearest_element"));
 		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
 		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 		this->pMpc->SetName("MPC");
@@ -225,7 +220,7 @@ class ApplyChimeraProcessMonolithic : public Process
 	{
 	}
 
-	void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
+	void ApplyMpcConstraint(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc)
 	{
 
 		//loop over nodes and find the triangle in which it falls, than do interpolation
@@ -237,17 +232,6 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		std::size_t counter = 0;
 
-	//#pragma omp parallel for firstprivate(results, N)
-		//MY NEW LOOP: reset the visited flag
-
-	/*
-	   for (int i = 0; i < n_boundary_nodes; i++)
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
-			Node<3>::Pointer p_boundary_node = *(iparticle.base());
-			p_boundary_node->Set(VISITED, false);
-		}
-    */
 		for (int i = 0; i < n_boundary_nodes; i++)
 		{
 			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
@@ -272,12 +256,8 @@ class ApplyChimeraProcessMonolithic : public Process
 					//Define master slave relation for velocity
 					RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpc, *p_boundary_node, VELOCITY_Z);
 				}
-
-				if (pressure_coupling == "all")
-				{
-					//Defining master slave relation for pressure
-					RemoveMasterSlaveRelationWithNodesAndVariable(pMpc, *p_boundary_node, PRESSURE);
-				}
+				//Defining master slave relation for pressure
+				RemoveMasterSlaveRelationWithNodesAndVariable(pMpc, *p_boundary_node, PRESSURE);
 			}
 
 			// Initialise the boundary nodes dofs to 0 at ever time steps
@@ -288,8 +268,7 @@ class ApplyChimeraProcessMonolithic : public Process
 			if (TDim == 3)
 				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
 
-			if (pressure_coupling == "all")
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
 
 			if (is_found == true)
 			{
@@ -311,14 +290,11 @@ class ApplyChimeraProcessMonolithic : public Process
 						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
 					}
 
-					if (pressure_coupling == "all")
-					{
 						//Interpolation of pressure
 						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
 						//Defining master slave relation for pressure
 						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
 						counter++;
-					}
 				} // end of loop over host element nodes
 
 				// Setting the buffer 1 same buffer 0
@@ -327,74 +303,23 @@ class ApplyChimeraProcessMonolithic : public Process
 				if (TDim == 3)
 					p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0);
 
-				if (pressure_coupling == "all")
-					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
+				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
 			}
 			p_boundary_node->Set(VISITED, true);
 
 		} // end of loop over boundary nodes
 
-		if (pressure_coupling == "one")
-		{
-			Node<3>::Pointer p_boundary_node;
-			if (m_parameters["pressure_coupling_node"].GetDouble() == 0.0)
-			{
-				ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin();
-				p_boundary_node = *(iparticle.base());
-			}
-
-			else
-			{
-				std::size_t node_num = m_parameters["pressure_coupling_node"].GetDouble();
-				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
-			}
-
-			bool NodeCoupled = false;
-			if ((p_boundary_node)->IsDefined(VISITED))
-				NodeCoupled = (p_boundary_node)->Is(VISITED);
-
-			if (!NodeCoupled)
-			{
-				typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-				Element::Pointer pElement;
-				bool is_found = false;
-				is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-				//Initialsing pressure to 0 at every time steps
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
-				if (is_found == true)
-				{
-					Geometry<Node<3>> &geom = pElement->GetGeometry();
-					for (std::size_t i = 0; i < geom.size(); i++)
-					{
-						// Interpolation of pressure
-						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-						// Defining master slave relation for one pressure node
-						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-						counter++;
-					}
-				}
-				// Setting the buffer 1 same buffer 0
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
-
-				KRATOS_INFO("Coordinates of node that are pressure coupled")<<p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
-			}
-			p_boundary_node->Set(VISITED, true);
-
-		} // end of if (pressure_coupling == "one")
-
 		counter /= TDim + 1;
 		KRATOS_INFO("Pressure nodes from") << rBoundaryModelPart.Name() << " is coupled" << counter <<  std::endl;
 	}
 
-	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc, std::string pressure_coupling)
+	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc)
 	{
 		double rtMinvR = 0;
 		DofVectorType slaveDofVector;
 		double R = 0;
 
-		ApplyMpcConstraint(rBoundaryModelPart, pBinLocator, pMpc, pressure_coupling);
+		ApplyMpcConstraint(rBoundaryModelPart, pBinLocator, pMpc);
 		std::vector<VariableComponentType> dofComponentVector = {VELOCITY_X, VELOCITY_Y, VELOCITY_Z};
 
 		// Calculation of Rt*Minv*R and assignment of nodalnormals to the slave dofs
@@ -608,13 +533,10 @@ class ApplyChimeraProcessMonolithic : public Process
 
 			KRATOS_INFO("Formulate Chimera: Calculated Nodal area and nodal mass") << std::endl;
 
-			pMpc->SetIsWeak(m_parameters["IsWeak"].GetBool());
+			pMpc->SetIsWeak(true);
 
-			std::string pr_coupling_patch = m_parameters["pressure_coupling"].GetString();
-			std::string pr_coupling_background = m_parameters["pressure_coupling"].GetString();
-
-			ApplyMpcConstraint(pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
-			ApplyMpcConstraint(pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
+			ApplyMpcConstraint(pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc);
+			ApplyMpcConstraint(pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc);
 			
 			KRATOS_INFO("Patch boundary coupled with background & HoleBoundary  coupled with patch using nearest element approach") << std::endl;
 
@@ -636,19 +558,6 @@ void SetOverlapDistance(double distance)
 	this->m_overlap_distance = distance;
 }
 
-void SetType(std::string type)
-{
-	KRATOS_TRY
-	{
-		if ((type != "nearest_element") && (type != "conservative"))
-			KRATOS_THROW_ERROR("", "Second argument should be either nearest_element or conservative \n", "");
-
-		this->m_type = type;
-		pMpc->SetType(this->m_type);
-	}
-
-	KRATOS_CATCH("")
-}
 
 void CalculateNodalAreaAndNodalMass(ModelPart &rBoundaryModelPart, int sign)
 {
@@ -1116,7 +1025,6 @@ std::string m_patch_boundary_model_part_name;
 std::string m_domain_boundary_model_part_name;
 std::string m_patch_inside_boundary_model_part_name;
 std::string m_patch_model_part_name;
-std::string m_type;
 
 // epsilon
 //static const double epsilon;
