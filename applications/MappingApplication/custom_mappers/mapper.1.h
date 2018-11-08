@@ -13,7 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_H_INCLUDED )
+#if !defined(KRATOS_MAPPER_H_INCLUDED)
 #define  KRATOS_MAPPER_H_INCLUDED
 
 // System includes
@@ -67,6 +67,10 @@ public:
 
     /// Move Constructor
     Mapper(Mapper&&) = delete;
+
+    ///@}
+    ///@name Operators
+    ///@{
 
     /// Copy Assignment Operator
     Mapper& operator=(const Mapper&) = delete;
