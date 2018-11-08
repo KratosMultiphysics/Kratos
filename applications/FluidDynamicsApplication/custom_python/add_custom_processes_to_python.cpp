@@ -118,13 +118,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<MoveRotorProcess, MoveRotorProcess::Pointer, Process>
     (m,"MoveRotorProcess")
     .def(py::init < ModelPart&, const double, const double, const double, const double, const double, const unsigned int >())
-    .def(py::init< ModelPart&, Parameters& >())
+    .def(py::init < ModelPart&, Parameters& >())
     ;
 
-    class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
+    py::class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
     (m,"MassConservationCheckProcess")
-    .def(init < ModelPart&, const bool, const int, const bool, const bool >())
-    .def(init< ModelPart&, Parameters& >())
+    .def(py::init < ModelPart&, const bool, const int, const bool, const bool >())
+    .def(py::init < ModelPart&, Parameters& >())
     ;
 }
 

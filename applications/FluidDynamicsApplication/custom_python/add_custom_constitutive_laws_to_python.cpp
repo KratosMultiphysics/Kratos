@@ -67,12 +67,8 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< NewtonianTwoFluid3DLaw, NewtonianTwoFluid3DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid3DLaw")
     .def( py::init<>() );
 
-    class_< NewtonianTwoFluid2DLaw, NewtonianTwoFluid2DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid2DLaw")
-    .def( init<>() );
-
-    class_< NewtonianTwoFluid3DLaw, NewtonianTwoFluid3DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid3DLaw")
-    .def( init<>() );
-    
+    py::class_< NewtonianTwoFluid2DLaw, NewtonianTwoFluid2DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid2DLaw")
+    .def( py::init<>() );
 }
 
 }  // namespace Python.
