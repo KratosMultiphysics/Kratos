@@ -1,5 +1,29 @@
 {
     "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 2,
+            "model_part_name"       : "mesh_NACA0012_inv",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "mesh_NACA0012_inv"
+            },
+            "design_surface_sub_model_part_name" : "airfoil",
+            "damping" : {
+                "apply_damping" : true,
+                "damping_regions" : [{
+                    "sub_model_part_name"   : "fix_nodes",
+                    "damp_X"                : true,
+                    "damp_Y"                : true,
+                    "damp_Z"                : false,
+                    "damping_function_type" : "cosine",
+                    "damping_radius"        : 0.2
+                }
+            ]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
         "objectives" : [{
                 "identifier" : "drag",
                 "type"       : "minimization",
@@ -14,30 +38,12 @@
             "project_gradient_on_surface_normals" : false
         }],
         "design_variables" : {
-            "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "mesh_NACA0012_inv",
-            "design_surface_sub_model_part_name" : "airfoil",
-            "domain_size"                        : 2,
+            "type" : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "gaussian",
                 "filter_radius"              : 0.3,
                 "max_nodes_in_filter_radius" : 1000,
                 "matrix_free_filtering"      : false
-            },
-            "mesh_motion" : {
-                "apply_mesh_solver" : false
-            },
-            "damping" : {
-                "perform_damping" : true,
-                "damping_regions" : [{
-                        "sub_model_part_name"   : "fix_nodes",
-                        "damp_X"                : true,
-                        "damp_Y"                : true,
-                        "damp_Z"                : false,
-                        "damping_function_type" : "cosine",
-                        "damping_radius"        : 0.2
-                    }
-                ]
             }
         },
         "optimization_algorithm" : {

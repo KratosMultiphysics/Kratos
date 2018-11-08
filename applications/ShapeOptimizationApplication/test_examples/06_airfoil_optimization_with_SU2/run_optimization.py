@@ -58,10 +58,9 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
 # =======================================================================================================
 # Perform optimization
 # =======================================================================================================
+model = Model()
 
-optimization_model_part = ModelPart(parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
-optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
-
+# Create optimizer and perform optimization
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part, CustomSU2Analyzer())
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomSU2Analyzer())
 optimizer.Optimize()
