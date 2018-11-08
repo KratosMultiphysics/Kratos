@@ -1283,7 +1283,8 @@ protected:
         // Find the first entry
         // We iterate over the equation ids until we find the first equation id to be considered
         // We count in which component we find an ID
-        std::size_t last_pos, last_found;
+        std::size_t last_pos = 0;
+        std::size_t last_found = 0;
         std::size_t counter = 0;
         for(std::size_t j=0; j < EquationId.size(); ++j) {
             ++counter;
