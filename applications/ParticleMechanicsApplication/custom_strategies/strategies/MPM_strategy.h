@@ -800,16 +800,15 @@ public:
         //******************SEARCH FOR TRIANGLES************************
         // Initialize shape function vector to be passed to PointLocator function
         Vector N;
+        const int max_result = 1000;
 
         if (m_GeometryElement == "Triangle")
         {
-            const int max_result = 1000;
-
-            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-            SearchStructure.UpdateSearchDatabase();
-
 			#pragma omp parallel
 			{
+                BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+                SearchStructure.UpdateSearchDatabase();
+
                 typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
                 #pragma omp for
@@ -850,13 +849,11 @@ public:
         //******************SEARCH FOR QUADRILATERALS************************
         else if(m_GeometryElement == "Quadrilateral")
         {
-            const int max_result = 1000;
-
-            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-            SearchStructure.UpdateSearchDatabase();
-
 	        #pragma omp parallel
 			{
+                BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+                SearchStructure.UpdateSearchDatabase();
+
                 typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
                 // Loop over the material points
