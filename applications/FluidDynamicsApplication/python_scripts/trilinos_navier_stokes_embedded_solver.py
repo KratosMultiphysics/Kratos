@@ -114,7 +114,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","MPI model reading finished.")
-z
+
     def PrepareModelPart(self):
         super(NavierStokesMPIEmbeddedMonolithicSolver,self).PrepareModelPart()
         ## Construct Trilinos the communicators
