@@ -90,7 +90,7 @@ class TrilinosImportModelPartUtility():
             self.settings["model_import_settings"]["input_filename"].SetString(mpi_input_filename)
 
             ## Read the new generated *.mdpa files
-            if perform_partitioning_in_memory == "file":
+            if not partition_in_memory:
                 KratosMultiphysics.ModelPartIO(mpi_input_filename).ReadModelPart(self.main_model_part)
 
         elif input_type == "rest":
