@@ -28,14 +28,6 @@ class TrilinosImportModelPartUtility():
 
         self.ImportModelPart()
 
-    def ExecutePartitioningAndReadingInMemory(self):
-        warning_msg  = 'Calling "ExecutePartitioningAndReading" which is DEPRECATED\n'
-        warning_msg += 'Please use "ImportModelPart" instead'
-        if (KratosMPI.mpi.rank == 0):
-            KratosMultiphysics.Logger.PrintWarning("TrilinosImportModelPartUtility", warning_msg)
-
-        self.ImportModelPartInMemory()
-
     def ImportModelPart(self):
         input_type = self.settings["model_import_settings"]["input_type"].GetString()
 
