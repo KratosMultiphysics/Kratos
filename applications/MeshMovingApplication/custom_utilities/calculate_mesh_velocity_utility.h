@@ -17,7 +17,6 @@
 
 
 // System includes
-#include<map>
 
 
 // External includes
@@ -84,7 +83,7 @@ public:
                                  Parameters Settings);
 
     /// Destructor.
-    virtual ~CalculateMeshVelocityUtility() {}
+    virtual ~CalculateMeshVelocityUtility() = default;
 
 
     ///@}

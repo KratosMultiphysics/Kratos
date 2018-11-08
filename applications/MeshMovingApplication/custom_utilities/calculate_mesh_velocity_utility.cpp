@@ -13,6 +13,7 @@
 
 
 // System includes
+#include<map>
 
 
 // External includes
@@ -35,9 +36,6 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
         << "nodal-solutionstepvariable!" << std::endl;
     KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(MESH_VELOCITY))
         << "The ModelPart does not have the variable \"MESH_VELOCITY\" as "
-        << "nodal-solutionstepvariable!" << std::endl;
-    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(MESH_ACCELERATION))
-        << "The ModelPart does not have the variable \"MESH_ACCELERATION\" as "
         << "nodal-solutionstepvariable!" << std::endl;
 
     const std::string time_scheme = Settings["time_scheme"].GetString();
@@ -76,6 +74,9 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
 
     // set Generalized-Alpha specific Settings
     if (mIntegrationMethod == generalized_alpha) {
+        KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(MESH_ACCELERATION))
+            << "The ModelPart does not have the variable \"MESH_ACCELERATION\" as "
+            << "nodal-solutionstepvariable!" << std::endl;
 
         // default (Newmark)
         double alpha_m = 0.0;

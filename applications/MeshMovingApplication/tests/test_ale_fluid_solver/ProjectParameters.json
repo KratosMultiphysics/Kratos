@@ -13,7 +13,8 @@
         "solver_type"                 : "Monolithic",
         "ale_settings"                : {
             "solver_type"         : "mesh_solver_structural_similarity",
-            "ale_boundary_parts" : ["NoSlip2D_cylinder"]
+            "ale_boundary_parts"  : ["NoSlip2D_cylinder"],
+            "time_scheme"         : "bdf2"
         },
         "model_import_settings"       : {
             "input_type"     : "mdpa",
