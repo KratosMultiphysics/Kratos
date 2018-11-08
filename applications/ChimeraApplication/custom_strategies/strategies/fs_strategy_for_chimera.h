@@ -379,11 +379,7 @@ public:
 
             for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
-                bool element_is_active = true;
-                if ((itElem)->IsDefined(ACTIVE))
-                    element_is_active = (itElem)->Is(ACTIVE);
-
-                if(true) //if(element_is_active)
+                if(true) 
                 {
 
                     //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);

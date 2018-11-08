@@ -698,7 +698,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
 
                                     for (auto localSlaveEqIdOther : localNodalSlaveEquationIds)
                                     {
-                                        std::vector<std::size_t>::iterator itOther = std::find(localNodalSlaveEquationIds.begin(), localNodalSlaveEquationIds.end(), localSlaveEqIdOther);
                                         int slaveIndexOther = std::distance(localNodalSlaveEquationIds.begin(), it);
                                         double constantOther = mpcData->mSlaveEquationIdConstantsUpdate[slaveEquationIds[slaveIndexOther]];
                                         RHS_Contribution(localMasterEqId) -= LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) * masterI.second * constantOther;
