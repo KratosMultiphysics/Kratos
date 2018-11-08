@@ -8,7 +8,6 @@ from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class python_parameters:
     def __init__(self):
-        self.nodal_results = []
         pass
 
 class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysis):
@@ -19,6 +18,12 @@ class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         self.pp = python_parameters()
         with open("ProjectParameters.json",'r') as parameter_file:
             self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            gid_output_options = self.parameters["output_processes"]["gid_output"][0]["Parameters"]
+            result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+            nodal_results = result_file_configuration["nodal_results"]
+            gauss_point_results = result_file_configuration["gauss_point_results"]
+            self.pp.nodal_results = [nodal_results[i].GetString() for i in range(nodal_results.size())]
+            self.pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
         self.pp.fluid_parameters = self.parameters
 
         super(DEMCoupledFluidDynamicsAnalysis, self).__init__(model, self.parameters)

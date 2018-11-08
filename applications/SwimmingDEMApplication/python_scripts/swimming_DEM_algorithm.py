@@ -248,6 +248,7 @@ class Algorithm(object):
         Add("PostCationConcentration").SetBool(False)
         self.pp.viscosity_modification_type = 0.0
         self.domain_size = 3
+        self.pp.domain_size = 3
         self.pp.type_of_inlet = 'VelocityImposed' # 'VelocityImposed' or 'ForceImposed'
         self.pp.force = Vector(3)
         self.pp.force[0] = 0
@@ -329,14 +330,21 @@ class Algorithm(object):
         self.SetCutsOutput()
         gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
         result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+        write_conditions_option = result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString() == "WriteConditionsFlag"
+        deformed_mesh_option = result_file_configuration["gidpost_flags"]["WriteDeformedMeshFlag"].GetString() == "WriteDeformed"
+        old_gid_output_post_options_dict = {'GiD_PostAscii':'Ascii','GiD_PostBinary':'Binary','GiD_PostAsciiZipped':'AsciiZipped'}
+        old_gid_output_multiple_file_option_dict = {'SingleFile':'Single','MultipleFiles':'Multiples'}
+        post_mode_key = result_file_configuration["gidpost_flags"]["GiDPostMode"].GetString()
+        multiple_files_option_key = result_file_configuration["gidpost_flags"]["MultiFileFlag"].GetString()
+        self.pp.GiDMultiFileFlag = old_gid_output_multiple_file_option_dict[multiple_files_option_key]
         self.swimming_DEM_gid_io = \
         swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-            self.pp.CFD_DEM["problem_name"].GetString(),
-            result_file_configuration["body_output"].GetBool(),
-            result_file_configuration["gidpost_flags"]["GiDPostMode"].GetString(),
-            result_file_configuration["gidpost_flags"]["MultiFileFlag"].GetString(),
-            result_file_configuration["gidpost_flags"]["WriteDeformedMeshFlag"].GetString(),
-            result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString()
+            file_name = self.pp.CFD_DEM["problem_name"].GetString(),
+            vol_output = result_file_configuration["body_output"].GetBool(),
+            post_mode = old_gid_output_post_options_dict[post_mode_key],
+            multifile = old_gid_output_multiple_file_option_dict[multiple_files_option_key],
+            deformed_mesh = deformed_mesh_option,
+            write_conditions = write_conditions_option
             )
 
         self.swimming_DEM_gid_io.initialize_swimming_DEM_results(
