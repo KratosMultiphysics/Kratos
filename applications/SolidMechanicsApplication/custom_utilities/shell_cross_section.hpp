@@ -21,6 +21,7 @@
 #include "includes/constitutive_law.h"
 #include "containers/flags.h"
 #include "custom_utilities/properties_extensions.hpp"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -54,6 +55,8 @@ public:
 	typedef std::vector< Ply > PlyCollection;
 
 	typedef std::size_t SizeType;
+
+        typedef SolidMechanicsMathUtilities<double> MathUtilsType;
 
 	///@name Enums
     ///@{
@@ -828,7 +831,8 @@ public:
     T(1, 0) = s * s;			T(1, 1) =   c * c;				T(1, 2) =   s * c;
     T(2, 0) = 2.0 * s * c;		T(2, 1) = - 2.0 * s * c;		T(2, 2) = c * c - s * s;
 
-    project( T, range(3, 6), range(3, 6) ) = project( T, range(0, 3), range(0, 3) );
+    Matrix H = MathUtilsType::project(T, MathUtilsType::range(0, 3), MathUtilsType::range(0, 3));
+    MathUtilsType::project(T, MathUtilsType::range(3, 6), MathUtilsType::range(3, 6), H);
 
     if(strain_size == 8)
     {
@@ -884,7 +888,8 @@ public:
     T(1, 0) = s * s;		T(1, 1) =   c * c;		T(1, 2) =   2.0 * s * c;
     T(2, 0) = s * c;		T(2, 1) = - s * c;		T(2, 2) = c * c - s * s;
 
-    project( T, range(3, 6), range(3, 6) ) = project( T, range(0, 3), range(0, 3) );
+    Matrix H = MathUtilsType::project(T, MathUtilsType::range(0, 3), MathUtilsType::range(0, 3));
+    MathUtilsType::project(T, MathUtilsType::range(3, 6), MathUtilsType::range(3, 6), H);
 
     if(strain_size == 8)
     {

@@ -1712,6 +1712,59 @@ public:
             return true;
     }
 
+
+  inline static VectorType range(const unsigned int start,  const unsigned int end)
+  {
+    unsigned int size = end-start;
+    if(size<0)
+      KRATOS_ERROR<<" range out of bounds start:"<<start<<" end:"<<end<<std::endl;
+
+    VectorType b(size);
+
+    for(unsigned int i = 0; i<size; ++i)
+      b[i] = start + i;
+
+    return b;
+  }
+
+
+  inline static MatrixType project(const MatrixType& rMatrix, VectorType irange, VectorType jrange)
+  {
+
+    MatrixType A(irange.size(), jrange.size());
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      for(unsigned int j = 0; j<jrange.size(); ++j)
+        A(i,j) = rMatrix(irange[i],jrange[j]);
+
+    return A;
+  }
+
+
+  inline static MatrixType& project(MatrixType& rMatrixA, VectorType irange, VectorType jrange, const MatrixType& rMatrixB)
+  {
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      for(unsigned int j = 0; j<jrange.size(); ++j)
+        rMatrixA(irange[i],jrange[j]) = rMatrixB(i,j);
+
+    return rMatrixA;
+  }
+
+
+  inline static VectorType project(const VectorType& rVector, VectorType irange)
+  {
+
+    VectorType b(irange.size());
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      b[i] = rVector[irange[i]];
+
+    return b;
+  }
+
+
+
 private:
 };// class SolidMechanicsMathUtilities
 }
