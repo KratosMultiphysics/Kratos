@@ -628,13 +628,18 @@ protected:
 
              // Create the auxiliar dof set
              DofsArrayType aux_dof_set;
-             aux_dof_set.reserve(BaseType::mDofSet.size() - mDoFSlaveSet.size());
+             aux_dof_set.reserve(mDoFToSolveSystemSize);
              for (auto& dof : BaseType::mDofSet) {
-                 auto it = mDoFSlaveSet.find(dof);
-                 if (it == mDoFSlaveSet.end())
-                    aux_dof_set.push_back( &dof );
+                 if (dof.EquationId() < BaseType::mEquationSystemSize) {
+                    auto it = mDoFSlaveSet.find(dof);
+                    if (it == mDoFSlaveSet.end())
+                        aux_dof_set.push_back( &dof );
+                 }
              }
              aux_dof_set.Sort();
+
+             KRATOS_ERROR_IF_NOT(aux_dof_set.size() == mDoFToSolveSystemSize) << "Inconsistency (I) in system size: " << mDoFToSolveSystemSize << " vs " << aux_dof_set.size() << "\n Size dof set " << BaseType::mDofSet.size() << " vs Size slave dof set " << mDoFSlaveSet.size() << std::endl;
+             KRATOS_ERROR_IF_NOT(aux_dof_set.size() == rA.size1()) << "Inconsistency (II) in system size: " << rA.size1() << " vs " << aux_dof_set.size() << "\n Size dof set " << BaseType::mDofSet.size() << " vs Size slave dof set " << mDoFSlaveSet.size() << std::endl;
 
             // Provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded())
