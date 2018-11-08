@@ -895,6 +895,9 @@
 				      "NORMAL",
 				      "CONTACT_FORCE",
 *endif
+*if( strcmp(GenData(DOFS),"U-J")==0 )
+						"JACOBIAN",
+*endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",
 *endif
@@ -919,7 +922,15 @@
 *if(strcmp(GenData(DOFS),"U-W")==0)
 				      "WATER_PRESSURE",
 *endif
-				      "VON_MISES_STRESS"
+				      "STRESS_INV_P",
+				      "STRESS_INV_J2",
+				      "STRESS_INV_THETA",
+				      "PLASTIC_STRAIN",
+				      "DELTA_PLASTIC_STRAIN",
+				      "PS",
+				      "PM",
+				      "PT",
+                                      "INCR_SHEAR_PLASTIC"	
 				    ],
 	    "additional_list_files": [
 *for(i=1;i<=GenData(List_Files,INT);i=i+1)
