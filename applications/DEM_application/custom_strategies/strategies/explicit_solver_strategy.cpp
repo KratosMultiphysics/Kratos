@@ -205,13 +205,12 @@ namespace Kratos {
 
         r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY] = 0.0;
 
-        // 5. Finalize Solution Step.
         //FinalizeSolutionStep();
-        KRATOS_WATCH("ExplicitSolverStrategy::Initialize()")
+
         ComputeNodalArea();
 
         KRATOS_CATCH("")
-    }// Initialize()
+    } // Initialize()
 
     void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
 
@@ -252,7 +251,6 @@ namespace Kratos {
 
             Condition::GeometryType& geometry = it->GetGeometry();
             double Element_Area = geometry.Area();
-            KRATOS_WATCH(Element_Area)
 
             for (unsigned int i = 0; i < geometry.size(); i++) { //talking about each of the three nodes of the condition
                 double& node_area = geometry[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
@@ -486,7 +484,7 @@ namespace Kratos {
     void ExplicitSolverStrategy::ForceOperations(ModelPart& r_model_part) {
 
         KRATOS_TRY
-        // 3. Get and Calculate the forces
+
         CleanEnergies();
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
@@ -497,7 +495,7 @@ namespace Kratos {
             CalculateNodalPressuresAndStressesOnWalls();
         }
 
-        // 4. Synchronize (should be just FORCE and TORQUE)
+        // Synchronize (should be just FORCE and TORQUE)
         SynchronizeRHS(r_model_part);
 
         KRATOS_CATCH("")

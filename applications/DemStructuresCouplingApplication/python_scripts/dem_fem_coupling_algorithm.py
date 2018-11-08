@@ -189,9 +189,6 @@ class Algorithm(object):
                 self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.dt)
                 #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
-                if self.dem_solution.time > 1.0:
-                    sescalla
-                    
                 ##### adding DEM elements by the inlet ######
                 if self.dem_solution.DEM_parameters["dem_inlet_option"].GetBool():
                     self.dem_solution.DEM_inlet.CreateElementsFromInletMesh(self.dem_solution.spheres_model_part, self.dem_solution.cluster_model_part, self.dem_solution.creator_destructor)  # After solving, to make sure that neighbours are already set.
