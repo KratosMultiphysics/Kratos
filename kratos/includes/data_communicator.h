@@ -64,106 +64,106 @@ class DataCommunicator
 
     // Reduce operations
 
-    virtual int Sum(int& rLocalValue, const int Root) const
+    virtual int Sum(const int rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
-    virtual double Sum(double& rLocalValue, const int Root) const
+    virtual double Sum(const double rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
-    virtual array_1d<double,3> Sum(array_1d<double,3>& rLocalValue, const int Root) const
+    virtual array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
-    virtual int Min(int& rLocalValue, const int Root) const
+    virtual int Min(const int rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
-    virtual double Min(double& rLocalValue, const int Root) const
+    virtual double Min(const double rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
-    virtual array_1d<double,3> Min(array_1d<double,3>& rLocalValue, const int Root) const
+    virtual array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
-    virtual int Max(int& rLocalValue, const int Root) const
+    virtual int Max(const int rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
-    virtual double Max(double& rLocalValue, const int Root) const
+    virtual double Max(const double rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
-    virtual array_1d<double,3> Max(array_1d<double,3>& rLocalValue, const int Root) const
+    virtual array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
     // Allreduce operations
 
-    virtual int SumAll(int& rLocalValue) const
+    virtual int SumAll(const int rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual double SumAll(double& rLocalValue) const
+    virtual double SumAll(const double rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual array_1d<double,3> SumAll(array_1d<double,3>& rLocalValue) const
+    virtual array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual int MinAll(int& rLocalValue) const
+    virtual int MinAll(const int rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual double MinAll(double& rLocalValue) const
+    virtual double MinAll(const double rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual array_1d<double,3> MinAll(array_1d<double,3>& rLocalValue) const
+    virtual array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual int MaxAll(int& rLocalValue) const
+    virtual int MaxAll(const int rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual double MaxAll(double& rLocalValue) const
+    virtual double MaxAll(const double rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual array_1d<double,3> MaxAll(array_1d<double,3>& rLocalValue) const
+    virtual array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const
     {
         return rLocalValue;
     }
 
     // Scan operations
 
-    virtual int ScanSum(const int& rLocalValue) const
+    virtual int ScanSum(const int rLocalValue) const
     {
         return rLocalValue;
     }
 
-    virtual double ScanSum(const double& rLocalValue) const
+    virtual double ScanSum(const double rLocalValue) const
     {
         return rLocalValue;
     }
@@ -221,6 +221,8 @@ class DataCommunicator
         std::vector<double>& rRecvValues,
         const unsigned int SourceRank) const
     {}
+
+    // Gather operations
 
     ///@}
     ///@name Inquiry
