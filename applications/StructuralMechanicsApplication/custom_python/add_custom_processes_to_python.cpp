@@ -50,7 +50,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<ComputeMomentOfInertiaProcess, ComputeMomentOfInertiaProcess::Pointer, Process>(m,"ComputeMomentOfInertiaProcess")
-        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const Point&, const Point&>())
         ;
 
     py::class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")

@@ -147,7 +147,10 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         self._create_shell_nodes(mp)
         self._create_shell_elements(mp)
 
-        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp)
+        p1 = KratosMultiphysics.Point(1.0, 1.0, 2.5)
+        p2 = KratosMultiphysics.Point(1.0, 1.0, 3.5)
+
+        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp, p1, p2)
         moi_process.Execute()
         moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
 

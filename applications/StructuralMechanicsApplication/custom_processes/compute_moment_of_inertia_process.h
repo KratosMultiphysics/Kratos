@@ -64,8 +64,10 @@ public:
 
     /// Default constructor.
     ComputeMomentOfInertiaProcess(
-        ModelPart& rThisModelPart
-        ):mrThisModelPart(rThisModelPart)
+        ModelPart& rThisModelPart,
+        const Point& rPoint1,
+        const Point& rPoint2
+        ):mrThisModelPart(rThisModelPart), mrPoint1(rPoint1), mrPoint2(rPoint2)
     {
         KRATOS_TRY
 
@@ -190,7 +192,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;              // The main model part
+    ModelPart& mrThisModelPart; // The main model part
+    const Point& mrPoint1;      // Point 1 of the axis of rotation
+    const Point& mrPoint2;      // Point 2 of the axis of rotation
 
     ///@}
     ///@name Private Operators
