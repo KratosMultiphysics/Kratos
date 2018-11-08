@@ -98,7 +98,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<MMGLibray TMMGLibray>
-class MmgProcess
+class KRATOS_API(MESHING_APPLICATION) MmgProcess
     : public Process
 {
 public:

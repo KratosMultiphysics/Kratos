@@ -128,18 +128,13 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ExtractBoundaryNodes( std::string const& NewSubModelPartName )
+    void ExtractBoundaryNodes( std::string const& rBoundarySubModelPartName )
     {
     	KRATOS_TRY;
 
-    	if(mrModelPart.HasSubModelPart(NewSubModelPartName))
-    	{
-    		std::cout << "> Specified name for sub-model part already defined. Skipping extraction of surface nodes!" << std::endl;
-    		return;
-    	}
+        ModelPart& r_boundary_model_part = mrModelPart.GetSubModelPart(rBoundarySubModelPartName);
 
-    	// Create new sub-model part within the given main model part that shall list all surface nodes
-    	mrModelPart.CreateSubModelPart(NewSubModelPartName);
+        KRATOS_ERROR_IF(r_boundary_model_part.Nodes().size() != 0) << "ExtractBoundaryNodes: The boundary model part already has nodes!" << std::endl;
 
     	// Some type-definitions
         typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasherRange<vector<unsigned int>>, KeyComparorRange<vector<unsigned int>> > hashmap;
@@ -150,13 +145,16 @@ public:
         unsigned int domain_size = static_cast<unsigned int>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
 
     	// Fill map that counts number of faces for given set of nodes
-    	for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
+    	for (auto& elem_i : mrModelPart.Elements())
     	{
+            KRATOS_ERROR_IF(elem_i.GetGeometry().Dimension() < domain_size) << "ExtractBoundaryNodes: This function does only work"
+                <<" for solid elements in 3D and surface elements in 2D!" << std::endl;
+
             Element::GeometryType::GeometriesArrayType boundaries;
             if (domain_size==3)
-                boundaries = itElem->GetGeometry().Faces();
+                boundaries = elem_i.GetGeometry().Faces();
             else if (domain_size == 2)
-                boundaries = itElem->GetGeometry().Edges();
+                boundaries = elem_i.GetGeometry().Edges();
 
             for(unsigned int boundary=0; boundary<boundaries.size(); boundary++)
             {
@@ -190,7 +188,7 @@ public:
     	}
 
     	// Add nodes and remove double entries
-    	mrModelPart.GetSubModelPart(NewSubModelPartName).AddNodes(temp_boundary_node_ids);
+    	r_boundary_model_part.AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
     }

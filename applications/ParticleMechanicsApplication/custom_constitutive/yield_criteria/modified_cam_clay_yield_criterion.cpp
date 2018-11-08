@@ -30,7 +30,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
-    :YieldCriterion()
+    :MPMYieldCriterion()
 {
 
 }
@@ -39,7 +39,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :YieldCriterion(pHardeningLaw)
+    :MPMYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -50,7 +50,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer
 
 ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(ModifiedCamClayYieldCriterion const& rOther)
 {
-    YieldCriterion::operator=(rOther);
+    MPMYieldCriterion::operator=(rOther);
     return *this;
 }
 
@@ -58,7 +58,7 @@ ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(Modified
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(ModifiedCamClayYieldCriterion const& rOther)
-    :YieldCriterion(rOther)
+    :MPMYieldCriterion(rOther)
 {
 
 }
@@ -76,18 +76,17 @@ ModifiedCamClayYieldCriterion::~ModifiedCamClayYieldCriterion()
 //************************* CALCULATE YIELD FUNCTION  ******************
 //**********************************************************************
 
-// Compute Yield Condition according to two-invariant Cam-Clay yield criterion 
+// Compute Yield Condition according to two-invariant Cam-Clay yield criterion
 double& ModifiedCamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rOldPreconsolidationPressure)
 {
     double mean_stress_p, deviatoric_q;
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, mean_stress_p, deviatoric_q);
-    deviatoric_q *= std::sqrt(3.0); //Q = sqrt(3) * J2
 
     const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
     double preconsolidation_stress = 0.0;
     preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
-    
+
     // f = (Q/M)² + P (P - P_c)
     rStateFunction = std::pow(deviatoric_q/shear_M, 2);
     rStateFunction += (mean_stress_p * (mean_stress_p - preconsolidation_stress) );
@@ -103,7 +102,6 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vecto
     double mean_stress_p, deviatoric_q;
 
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, mean_stress_p, deviatoric_q);
-    deviatoric_q *= std::sqrt(3.0); //Q = sqrt(3) * J2
 
     const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
@@ -111,9 +109,9 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vecto
     preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
 
     rFirstDerivative.resize(3, false);
-    rFirstDerivative[0] = 2.0 * mean_stress_p - preconsolidation_stress; // (df/dP)
+    rFirstDerivative[0] = 2.0 * mean_stress_p - preconsolidation_stress;     // (df/dP)
     rFirstDerivative[1] = 2.0 * deviatoric_q / std::pow(shear_M, 2);         // (df/dQ)
-    rFirstDerivative[2] = - mean_stress_p;                              // (df/dP_c)
+    rFirstDerivative[2] = - mean_stress_p;                                   // (df/dP_c)
 }
 
 //*******************************CALCULATE SECOND YIELD FUNCTION DERIVATIVE *****************
@@ -123,11 +121,11 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const
     const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
     rSecondDerivative.resize(6, false);
-    rSecondDerivative[0] = 2.0 ;                        // (df²/dP²)  
-    rSecondDerivative[1] = 2.0 / std::pow(shear_M, 2) ; // (df²/dQ²)  
+    rSecondDerivative[0] = 2.0 ;                        // (df²/dP²)
+    rSecondDerivative[1] = 2.0 / std::pow(shear_M, 2) ; // (df²/dQ²)
     rSecondDerivative[2] = 0.0 ;                        // (df²/dP_c²)
-    rSecondDerivative[3] = 0.0 ;                        // (df²/dPdQ)  
-    rSecondDerivative[4] = 0.0 ;                        // (df²/dQdP_c)  
+    rSecondDerivative[3] = 0.0 ;                        // (df²/dPdQ)
+    rSecondDerivative[4] = 0.0 ;                        // (df²/dQdP_c)
     rSecondDerivative[5] =-1.0 ;                        // (df²/dPdP_c)
 
 }
@@ -139,12 +137,12 @@ double ModifiedCamClayYieldCriterion::GetPI()
 
 void ModifiedCamClayYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 void ModifiedCamClayYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, YieldCriterion )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 
