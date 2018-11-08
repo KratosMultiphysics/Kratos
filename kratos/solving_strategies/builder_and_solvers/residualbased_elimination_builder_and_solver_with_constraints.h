@@ -842,12 +842,14 @@ protected:
         IndexType counter = 0;
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
+                const IndexType equation_id = dof.EquationId();
                 auto it = mDoFSlaveSet.find(dof);
                 if (it == mDoFSlaveSet.end()) {
-                    const IndexType equation_id = dof.EquationId();
                     solvable_dof_reorder.insert(IndexIndexPairType(equation_id, counter));
                     master_indices.insert(IndexIndexSetPairType(equation_id, IndexSetType({counter})));
                     ++counter;
+                } else {
+                    master_indices.insert(IndexIndexSetPairType(equation_id, IndexSetType({})));
                 }
             }
         }
@@ -883,8 +885,11 @@ protected:
 
         // Count the row sizes
         SizeType nnz = 0;
-        for (IndexType i = 0; i < master_indices.size(); ++i)
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+            #pragma omp atomic
             nnz += master_indices[i].size();
+        }
 
         rT = CompressedMatrixType(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, nnz);
 
@@ -894,10 +899,10 @@ protected:
 
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Trow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(rT.size1()); i++)
+        for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i)
             Trow_indices[i + 1] = Trow_indices[i] + master_indices[i].size();
 
-        KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[counter] == nnz) << "Nonzero values does not coincide with the row index definition" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[BaseType::mEquationSystemSize] == nnz) << "Nonzero values does not coincide with the row index definition: " << Trow_indices[BaseType::mEquationSystemSize] << " vs " << nnz << std::endl;
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(rT.size1()); ++i) {
@@ -924,156 +929,6 @@ protected:
 
         Timer::Stop("RelationMatrixStructure");
     }
-
-//     /**
-//      * @brief This function is exactly same as the ConstructMatrixStructure() function in base class except that the function has the call to ApplyConstraints function call once the element and conditions compute their equation slave_ids
-//      * @param pScheme The pointer to the integration scheme
-//      * @param rT The global relation matrix
-//      * @param rModelPart The model part to compute
-//     */
-//     virtual void ConstructRelationMatrixStructure(
-//         typename TSchemeType::Pointer pScheme,
-//         TSystemMatrixType& rT,
-//         ModelPart& rModelPart
-//         )
-//     {
-//         // Filling with zero the matrix (creating the structure)
-//         Timer::Start("RelationMatrixStructure");
-//
-//         std::map<IndexType, bool> row_dof_indices; // Must be ordered to avoid problems filling the matrix
-//
-//         IndexSetType aux_master_indices;
-//         std::unordered_map<IndexType, IndexSetType> master_indices;
-//
-//         // We do a pair to know which DoF are pure master MPC
-//         typedef std::pair<IndexType, bool> PairIdBoolType;
-//
-//         // We build aux_master_indices from the inverse of mSlaveMasterDoFRelation
-//         for (auto& slave_set: mSlaveMasterDoFRelation) {
-//             auto& master_indices = slave_set.second;
-//             for (auto& master_id : master_indices) {
-//                 aux_master_indices.insert(master_id);
-//             }
-//         }
-//         master_indices.reserve(mSlaveMasterDoFRelation.size());
-//
-//         // The set containing the solvable DoF that are not a master DoF
-//         typedef std::pair<IndexType, IndexSetType> IndexIndexSetPairType;
-//         for (auto& dof : BaseType::mDofSet) {
-//             const IndexType equation_id = dof.EquationId();
-//             if (equation_id < BaseType::mEquationSystemSize) {
-//                 if (aux_master_indices.find(equation_id) != aux_master_indices.end()) {
-//                     row_dof_indices.insert(PairIdBoolType(equation_id, true));
-//                 } else if (mSlaveMasterDoFRelation.find(equation_id) != mSlaveMasterDoFRelation.end()) {
-//                     row_dof_indices.insert(PairIdBoolType(equation_id, false));
-//                     master_indices.insert(IndexIndexSetPairType(equation_id, IndexSetType({})));
-//                 } else {
-//                     row_dof_indices.insert(PairIdBoolType(equation_id, true));
-//                 }
-//             }
-//         }
-//
-//         // Reserve on the indexes set
-//         for (auto& master_set : master_indices) {
-//             (master_set.second).reserve(3);
-//         }
-//
-//         // Clearing memory
-//         aux_master_indices.clear();
-//
-//         KRATOS_DEBUG_ERROR_IF_NOT(row_dof_indices.size() == BaseType::mEquationSystemSize) << "Inconsistency in the dofs size: " << row_dof_indices.size() << "\t vs \t" << BaseType::mEquationSystemSize << std::endl;
-//
-//         // The process info
-//         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-//
-//         /// Definition of the eqautio id vector type
-//         EquationIdVectorType ids(3, 0);
-//         EquationIdVectorType second_ids(3, 0); // NOTE: Used only on the constraints to take into account the master dofs
-//
-//         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-//         // TODO: OMP
-//         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-//             auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-//             it_const->EquationIdVector(ids, second_ids, r_current_process_info);
-//             for (auto& slave_id : ids) {
-//                 if (slave_id < BaseType::mEquationSystemSize) {
-//                     auto it_slave = mSlaveMasterDoFRelation.find(slave_id);
-//                     if (it_slave != mSlaveMasterDoFRelation.end()) {
-//                         auto& master_set = it_slave->second;
-//                         for (auto& master_id : second_ids) {
-//                             if (master_id < BaseType::mEquationSystemSize) {
-//                                 auto it_master = master_set.find(master_id);
-//                                 if (it_master != master_set.end()) {
-//                                     auto& master_row_indices = master_indices[slave_id];
-//                                     master_row_indices.insert(mSolvableDoFReorder[master_id]);
-//                                 }
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//
-//         KRATOS_DEBUG_ERROR_IF_NOT(mSlaveMasterDoFRelation.size() == master_indices.size()) << "Inconsistency in the master dofs size: " << mSlaveMasterDoFRelation.size() << "\t vs \t" << master_indices.size() << std::endl;
-//
-//         // Count the row sizes
-//         SizeType nnz = 0;
-//         for (auto& to_solve : row_dof_indices) {
-//             if (to_solve.second) {
-//                 ++nnz;
-//             } else {
-//                 nnz += master_indices[to_solve.first].size();
-//             }
-//         }
-//
-//         rT = CompressedMatrixType(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, nnz);
-//
-//         double *Tvalues = rT.value_data().begin();
-//         IndexType *Trow_indices = rT.index1_data().begin();
-//         IndexType *Tcol_indices = rT.index2_data().begin();
-//
-//         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
-//         Trow_indices[0] = 0;
-//         IndexType counter = 0;
-//         for (auto& to_solve : row_dof_indices) {
-//             if (to_solve.second) {
-//                 Trow_indices[counter + 1] = Trow_indices[counter] + 1;
-//             } else {
-//                 Trow_indices[counter + 1] = Trow_indices[counter] + master_indices[to_solve.first].size();
-//             }
-//             ++counter;
-//         }
-//
-//         KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[counter] == nnz) << "Nonzero values does not coincide with the row index definition" << std::endl;
-//
-//         counter = 0;
-//         // TODO: OMP
-//         for (auto& to_solve : row_dof_indices) {
-//             const IndexType row_begin = Trow_indices[counter];
-//             const IndexType row_end = Trow_indices[counter + 1];
-//
-//             IndexType k = row_begin;
-//             if (to_solve.second) {
-//                 Tcol_indices[k] = mSolvableDoFReorder[to_solve.first];
-//                 Tvalues[k] = 1.0;
-//             } else {
-//                 for (auto& index : master_indices[to_solve.first]) {
-//                     Tcol_indices[k] = index;
-//                     Tvalues[k] = 0.0;
-//                     k++;
-//                 }
-//                 master_indices[to_solve.first].clear(); //deallocating the memory
-//             }
-//
-//             std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-//
-//             ++counter;
-//         }
-//
-//         rT.set_filled(BaseType::mEquationSystemSize + 1, nnz);
-//
-//         Timer::Stop("RelationMatrixStructure");
-//     }
 
     /**
      * @brief This function is exactly same as the Build() function in base class except that the function
