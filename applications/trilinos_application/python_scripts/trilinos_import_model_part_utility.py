@@ -68,7 +68,7 @@ class TrilinosImportModelPartUtility():
                         partitioner.Execute()
 
                         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
-                else partition_in_memory:
+                else:
                     # Create a second io that does not reorder the parts while reading from memory
                     serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
 
