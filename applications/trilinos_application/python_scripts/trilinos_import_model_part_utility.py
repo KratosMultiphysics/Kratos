@@ -52,7 +52,7 @@ class TrilinosImportModelPartUtility():
 
             # Select the partitioning method
             if self.settings["model_import_settings"].Has("partition_system"):
-                perform_partitioning_in_memory = self.settings["model_import_settings"]["partition_system"]
+                perform_partitioning_in_memory = self.settings["model_import_settings"]["partition_system"].GetString()
 
             if perform_partitioning == True:
                 KratosMultiphysics.CheckRegisteredApplications("MetisApplication")
