@@ -118,10 +118,9 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     #  @param data_name       string : Name of the data to be imported from from_client
     #  @param from_client     python obj : The client from which data_name has to be imported
-    def ImportData(self, data_name, from_client=None):
+    def ImportData(self, data_conf, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        data_conf = from_client.GetDataConfig(data_name)
         self.io.ImportData(data_conf, from_client)
 
     ## ImportMesh : This function imports the requested surface/volume
