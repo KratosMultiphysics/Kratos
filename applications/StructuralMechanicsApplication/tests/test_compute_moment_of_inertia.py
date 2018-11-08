@@ -6,9 +6,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt, sin, cos, pi, exp, atan
 
-class TestComputeCenterOfGravity(KratosUnittest.TestCase):
+class TestComputeMomentOfInertia(KratosUnittest.TestCase):
     # muting the output
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    #KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) TODO reenable this
 
     def _apply_beam_material_properties(self,mp,dim):
         #define properties
@@ -81,7 +81,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         mp.CreateNewElement(element_name, 3, [3,4,5], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 4, [4,1,5], mp.GetProperties()[1])
 
-    def test_nodal_cog(self):
+    def test_nodal_moi(self):
         dim = 3
         nr_nodes = 4
         current_model = KratosMultiphysics.Model()
@@ -105,15 +105,13 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         elem3.SetValue(KratosMultiphysics.NODAL_MASS,112.234)
         elem4.SetValue(KratosMultiphysics.NODAL_MASS,78.234)
 
-        cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
-        cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp)
+        moi_process.Execute()
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
 
-        self.assertAlmostEqual(2.5688903639, center_of_gravity[0])
-        self.assertAlmostEqual(0.0, center_of_gravity[1])
-        self.assertAlmostEqual(0.0, center_of_gravity[2])
+        # self.assertAlmostEqual(2.5688903639, moment_of_inertia)
 
-    def test_beam_cog(self):
+    def test_beam_moi(self):
         dim = 3
         nr_nodes = 11
         nr_elements = nr_nodes-1
@@ -132,15 +130,13 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         for i in range(nr_elements):
             elem = mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2], mp.GetProperties()[0])
 
-        cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
-        cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp)
+        moi_process.Execute()
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
 
-        self.assertAlmostEqual(0.6, center_of_gravity[0])
-        self.assertAlmostEqual(0.0, center_of_gravity[1])
-        self.assertAlmostEqual(0.0, center_of_gravity[2])
+        # self.assertAlmostEqual(0.6, moment_of_inertia)
 
-    def test_shell_cog(self):
+    def test_shell_moi(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("structural_part_shells")
@@ -151,15 +147,13 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         self._create_shell_nodes(mp)
         self._create_shell_elements(mp)
 
-        cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
-        cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp)
+        moi_process.Execute()
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
 
-        self.assertAlmostEqual(0.0723057, center_of_gravity[0])
-        self.assertAlmostEqual(0.0517395, center_of_gravity[1])
-        self.assertAlmostEqual(0.0269436, center_of_gravity[2])
+        # self.assertAlmostEqual(0.0723057, moment_of_inertia)
 
-    def test_orthotropic_shell_cog(self):
+    def test_orthotropic_shell_moi(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("structural_part_orthotropic_shells")
@@ -170,15 +164,13 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         self._create_shell_nodes(mp)
         self._create_shell_elements(mp)
 
-        cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
-        cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp)
+        moi_process.Execute()
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
 
-        self.assertAlmostEqual(0.0723057, center_of_gravity[0])
-        self.assertAlmostEqual(0.0517395, center_of_gravity[1])
-        self.assertAlmostEqual(0.0269436, center_of_gravity[2])
+        # self.assertAlmostEqual(0.0723057, moment_of_inertia)
 
-    def test_solid_cog(self):
+    def test_solid_moi(self):
         dim = 2
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("structural_part_solids")
@@ -199,13 +191,11 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         mp.CreateNewElement("TotalLagrangianElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
         mp.CreateNewElement("TotalLagrangianElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
 
-        cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
-        cog_process.Execute()
-        center_of_gravity = mp.ProcessInfo[StructuralMechanicsApplication.CENTER_OF_GRAVITY]
+        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp)
+        moi_process.Execute()
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
 
-        self.assertAlmostEqual(0.6416666667, center_of_gravity[0])
-        self.assertAlmostEqual(0.5729166667, center_of_gravity[1])
-        self.assertAlmostEqual(0.0, center_of_gravity[2])
+        # self.assertAlmostEqual(0.6416666667, moment_of_inertia)
 
 if __name__ == '__main__':
     KratosUnittest.main()
