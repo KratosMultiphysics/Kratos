@@ -118,6 +118,12 @@ class MPIDataCommunicator: public DataCommunicator
 
     void MaxAll(array_1d<double,3>& rValue) const override;
 
+    // Scan operations
+
+    int ScanSum(const int& rLocalValue) const override;
+
+    double ScanSum(const double& rLocalValue) const override;
+
     ///@}
     ///@name Access
     ///@{

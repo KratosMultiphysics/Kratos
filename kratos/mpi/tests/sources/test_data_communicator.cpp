@@ -310,6 +310,27 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAll, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(array_max[2], 1.0f*(world_size-1));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSum, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator = DataCommunicator();
+    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+
+    int local_total_int = 1;
+    double local_total_double = 2.0;
+
+    // local version: do nothing
+    int partial_sum_int = serial_communicator.ScanSum(local_total_int);
+    double partial_sum_double = serial_communicator.ScanSum(local_total_double);
+    KRATOS_CHECK_EQUAL(partial_sum_int, local_total_int);
+    KRATOS_CHECK_EQUAL(partial_sum_double, local_total_double);
+
+    // MPI version
+    partial_sum_int = mpi_world_communicator.ScanSum(local_total_int);
+    partial_sum_double = mpi_world_communicator.ScanSum(local_total_double);
+    int mpi_world_rank = mpi_world_communicator.Rank();
+    KRATOS_CHECK_EQUAL(partial_sum_int, mpi_world_rank + 1);
+    KRATOS_CHECK_EQUAL(partial_sum_double, 2.0*(mpi_world_rank + 1) );
+}
 
 }
 }

@@ -110,6 +110,18 @@ class DataCommunicator
 
     virtual void MaxAll(array_1d<double,3>& rValue) const {}
 
+    // Scan operations
+
+    virtual int ScanSum(const int& rLocalValue) const
+    {
+        return rLocalValue;
+    }
+
+    virtual double ScanSum(const double& rLocalValue) const
+    {
+        return rLocalValue;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{

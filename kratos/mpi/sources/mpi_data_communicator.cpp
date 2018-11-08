@@ -161,4 +161,20 @@ void MPIDataCommunicator::MaxAll(array_1d<double,3>& rValue) const
         Internals::MPIDatatype(rValue), MPI_MAX, mComm);
 }
 
+// Scan operations
+
+int MPIDataCommunicator::ScanSum(const int& rLocalValue) const
+{
+    int partial_total;
+    MPI_Scan(&rLocalValue, &partial_total, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    return partial_total;
+}
+
+double MPIDataCommunicator::ScanSum(const double& rLocalValue) const
+{
+    double partial_total;
+    MPI_Scan(&rLocalValue, &partial_total, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    return partial_total;
+}
+
 }
