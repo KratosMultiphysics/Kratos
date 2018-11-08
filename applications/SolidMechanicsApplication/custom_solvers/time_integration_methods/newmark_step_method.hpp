@@ -299,11 +299,11 @@ namespace Kratos
       KRATOS_TRY
 
       // predict step variable from previous and current values
-      // TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-      // const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      // const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
 
-      // CurrentStepVariable  = CurrentVariable-PreviousVariable;
+      CurrentStepVariable  = CurrentVariable-PreviousVariable;
 
       KRATOS_CATCH( "" )
     }
