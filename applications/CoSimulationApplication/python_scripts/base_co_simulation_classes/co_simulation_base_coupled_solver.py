@@ -5,7 +5,7 @@ from CoSimulationApplication import *
 from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 # Other imports
 import co_simulation_data_structure
-cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTRURE__
+cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTURE__
 import collections
 
 ##
@@ -167,9 +167,12 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                 from_solver = self.participating_solvers[input_data["from_solver"].GetString()]
                 data_name = input_data["data_name"].GetString()
                 from_solver_data_conf = from_solver.GetDataConfig(data_name)
-                current_solver_data_conf = solver.GetDataConfig(input_data["settings"]["destination_data"].GetString())
-                if( from_solver_data_conf["dimension"].GetInt() == current_solver_data_conf["dimension"].GetInt() ):
-                    solver.ImportData(data_name, from_solver)
+                solver_data_conf = solver.GetDataConfig(input_data["settings"]["destination_data"].GetString())
+                if(input_data["settings"].Has("mapper_settings")):
+                    solver_data_conf.AddValue("origin_data_config",from_solver_data_conf)
+                    solver_data_conf.AddValue("mapper_settings", input_data["settings"]["mapper_settings"])
+
+                solver.ImportData(solver_data_conf, from_solver)
 
     ## _SynchronizeOutputData : Private Function to synchronize the out put data between the solver
     #                           interface and the remote solver. This assumes that the remote solver
