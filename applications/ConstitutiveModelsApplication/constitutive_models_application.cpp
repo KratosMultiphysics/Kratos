@@ -38,6 +38,26 @@ namespace Kratos {
     KRATOS_REGISTER_VARIABLE(PRESSURE_VARIABLE)
     KRATOS_REGISTER_VARIABLE(PROPERTIES_LAYOUT)
 
+   KRATOS_REGISTER_VARIABLE( ALPHA )
+   KRATOS_REGISTER_VARIABLE( BETA )   
+   KRATOS_REGISTER_VARIABLE( MF )   
+   KRATOS_REGISTER_VARIABLE( CC )   
+   KRATOS_REGISTER_VARIABLE( MM )   
+   KRATOS_REGISTER_VARIABLE( RHOS )   
+   KRATOS_REGISTER_VARIABLE( RHOT )   
+   KRATOS_REGISTER_VARIABLE( KSIS )   
+   KRATOS_REGISTER_VARIABLE( RHOM )   
+   KRATOS_REGISTER_VARIABLE( KSIM )   
+   KRATOS_REGISTER_VARIABLE( PC0 )   
+   KRATOS_REGISTER_VARIABLE( CHIS )   
+   KRATOS_REGISTER_VARIABLE( CHIT )   
+
+   KRATOS_REGISTER_VARIABLE( VOID_RATIO )   
+   KRATOS_REGISTER_VARIABLE( PS )   
+   KRATOS_REGISTER_VARIABLE( PT )   
+   KRATOS_REGISTER_VARIABLE( PM )   
+   KRATOS_REGISTER_VARIABLE( PLASTIC_MULTIPLIER )   
+
     //specific constitutive models variables must be REGISTERED here
 
     //Register Constitutive Laws
@@ -79,6 +99,7 @@ namespace Kratos {
     Serializer::Register( "IsochoricNeoHookeanLnJSquaredModel", mIsochoricNeoHookeanLnJSquaredModel );
     Serializer::Register( "IncompressibleNeoHookeanModel", mIncompressibleNeoHookeanModel );
     Serializer::Register( "BorjaModel", mBorjaModel );
+    Serializer::Register( "TamagniniModel", mTamagniniModel );
     Serializer::Register( "OgdenModel", mOgdenModel );
     Serializer::Register( "IsochoricOgdenModel", mIsochoricOgdenModel );
     Serializer::Register( "HypoElasticModel", mHypoElasticModel );
@@ -90,6 +111,7 @@ namespace Kratos {
     Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
     Serializer::Register( "SimoJ2PlasticityModel", mSimoJ2PlasticityModel );
     Serializer::Register( "CamClayModel", mCamClayModel );
+    Serializer::Register( "GensNovaModel", mGensNovaModel );
     Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
 
     //yield criteria
@@ -108,6 +130,7 @@ namespace Kratos {
     Serializer::Register( "ExponentialDamageHardeningRule", mExponentialDamageHardeningRule );
     Serializer::Register( "ModifiedExponentialDamageHardeningRule", mModifiedExponentialDamageHardeningRule );
     Serializer::Register( "CamClayHardeningRule", mCamClayHardeningRule );
+    Serializer::Register( "GensNovaHardeningRule", mGensNovaHardeningRule );
     Serializer::Register( "SimoJuExponentialDamageModel", mSimoJuExponentialDamageModel );
     Serializer::Register( "SimoJuModifiedExponentialDamageModel", mSimoJuModifiedExponentialDamageModel );
 

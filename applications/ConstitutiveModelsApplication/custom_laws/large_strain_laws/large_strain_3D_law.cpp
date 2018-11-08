@@ -169,6 +169,8 @@ namespace Kratos
 
     if(rThisVariable == DETERMINANT_F){
       rValue = mTotalDeformationDet;
+    } else {
+       rValue = mpModel->GetValue(rThisVariable,rValue);
     }
 
     return rValue;

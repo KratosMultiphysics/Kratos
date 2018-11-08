@@ -1,0 +1,34 @@
+{
+            "model_part_name" : "MaterialDomain",
+            "properties_id"   : 1,
+            "material_name"   : "steel",
+            "constitutive_law": {
+                "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw",
+                "model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.GensNovaModel"
+            },
+            "variables": {
+                "KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 1000000.0,
+                "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 1.0,
+                "KratosMultiphysics.SWELLING_SLOPE": 7.850,
+                "KratosMultiphysics.NORMAL_COMPRESSION_SLOPE": 0.85,
+                "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 160500.0,
+                "KratosMultiphysics.ALPHA_SHEAR": 0.0,
+                "KratosMultiphysics.CRITICAL_STATE_LINE": 1.5,
+                "KratosMultiphysics.ConstitutiveModelsApplication.CHIS": 0.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.CHIT": 0.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.KSIM": 3.70,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PS": 400.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 216.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.RHOS": 12.9533678756,
+                "KratosMultiphysics.ConstitutiveModelsApplication.RHOT": -8.0
+            },
+            "element_type": "Tetrahedra3D4",
+            "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+            "strain": {
+                "deformation_gradient" : [ [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+                "jacobian": 1.0
+            },
+            "echo_level" : 0,
+	    "parametric_analysis_variable": "KSIM",
+	    "parametric_analysis_values": [0, 1.0,  5.0]
+}
