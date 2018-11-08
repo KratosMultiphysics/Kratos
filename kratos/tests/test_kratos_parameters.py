@@ -2,9 +2,10 @@
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
-from KratosMultiphysics import StreamSerializer, SerializerTraceType
+from KratosMultiphysics import FileSerializer, StreamSerializer, SerializerTraceType
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import sys
 
@@ -612,7 +613,28 @@ class TestParameters(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             double_custom.ValidateAndAssignDefaults(null_default)
 
-    def test_serialization(self):
+    def test_file_serialization(self):
+        tmp = Parameters(defaults)
+        check = tmp.WriteJsonString()
+
+        file_name = "parameter_serialization"
+
+        serializer = FileSerializer(file_name, SerializerTraceType.SERIALIZER_NO_TRACE)
+        serializer.Save("ParametersSerialization",tmp)
+        del(tmp)
+        del(serializer)
+        
+
+        #unpickle data - note that here i override "serialized_data"
+        serializer = FileSerializer(file_name,SerializerTraceType.SERIALIZER_NO_TRACE)
+
+        loaded_parameters = Parameters()
+        serializer.Load("ParametersSerialization",loaded_parameters)
+        
+        self.assertEqual(check, loaded_parameters.WriteJsonString())
+        kratos_utils.DeleteFileIfExisting(file_name + ".rest")
+
+    def test_stream_serialization(self):
         tmp = Parameters(defaults)
         check = tmp.WriteJsonString()
 
@@ -638,8 +660,6 @@ class TestParameters(KratosUnittest.TestCase):
         
         self.assertEqual(check, loaded_parameters.WriteJsonString())
 
-
-        
 
 
 if __name__ == '__main__':

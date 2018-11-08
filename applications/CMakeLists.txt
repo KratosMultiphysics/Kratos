@@ -262,7 +262,7 @@ if(${DEM_APPLICATION} MATCHES ON)
 endif(${DEM_APPLICATION} MATCHES ON)
 
 if(${SWIMMING_DEM_APPLICATION} MATCHES ON)
-  add_subdirectory(swimming_DEM_application)
+  add_subdirectory(SwimmingDEMApplication)
 endif(${SWIMMING_DEM_APPLICATION} MATCHES ON)
 
 if(${CONSTITUTIVE_LAWS_APPLICATION} MATCHES ON)
