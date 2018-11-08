@@ -99,7 +99,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
-
+z
     def PrepareModelPart(self):
         super(self.__class__,self).PrepareModelPart()
         ## Construct Trilinos the communicators

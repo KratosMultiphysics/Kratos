@@ -99,14 +99,14 @@ public:
     ///@{
 
     /// Default constructor.
-    MetisDivideHeterogeneousInputInMemoryProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
-        BaseType(rIO,NumberOfPartitions,Dimension,Verbosity,SynchronizeConditions)
+    MetisDivideHeterogeneousInputInMemoryProcess(IO& rIO, IO& rSerialIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
+        BaseType(rIO,NumberOfPartitions,Dimension,Verbosity,SynchronizeConditions), mrSerialIO(rSerialIO)
     {
     }
 
     /// Copy constructor.
     MetisDivideHeterogeneousInputInMemoryProcess(MetisDivideHeterogeneousInputInMemoryProcess const& rOther):
-        BaseType(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension,rOther.mVerbosity,rOther.mSynchronizeConditions)
+        BaseType(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension,rOther.mVerbosity,rOther.mSynchronizeConditions), mrSerialIO(rOther.mrSerialIO)
     {
     }
 
@@ -273,9 +273,9 @@ public:
 
             // Write files
             mrIO.DivideInputToPartitions(
-            streams, mNumberOfPartitions, ColoredDomainGraph,
-            io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-            nodes_all_partitions, elements_all_partitions, conditions_all_partitions
+                streams, mNumberOfPartitions, ColoredDomainGraph,
+                io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
+                nodes_all_partitions, elements_all_partitions, conditions_all_partitions
             );
         }
 
@@ -329,7 +329,8 @@ public:
 #endif
 
         // TODO: Try to come up with a better way to change the buffer.
-        ((ModelPartIO&)mrIO).SwapStreamSource(streams[mpi_rank]);
+        ((ModelPartIO&)mrSerialIO).SwapStreamSource(streams[mpi_rank]);
+        //((ModelPartIO&)mrIO).SwapStreamSource(streams[mpi_rank]);
 
         // Free buffers
         free(mpi_recv_buffer[mpi_rank]);
@@ -430,6 +431,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    IO& mrSerialIO;
 
     ///@}
     ///@name Private Operators

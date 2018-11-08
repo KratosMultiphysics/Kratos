@@ -82,10 +82,10 @@ void AddProcessesToPython(pybind11::module& m)
 
     py::class_<MetisDivideHeterogeneousInputInMemoryProcess, MetisDivideHeterogeneousInputInMemoryProcess::Pointer, Process>(
         m,"MetisDivideHeterogeneousInputInMemoryProcess")
-        .def(py::init<IO&, unsigned int>())
-        .def(py::init<IO&, unsigned int, int>())
-        .def(py::init<IO&, unsigned int, int, int>())
-        .def(py::init<IO&, unsigned int, int, int, bool>())
+        .def(py::init<IO&, IO&, unsigned int>())
+        .def(py::init<IO&, IO&, unsigned int, int>())
+        .def(py::init<IO&, IO&, unsigned int, int, int>())
+        .def(py::init<IO&, IO&, unsigned int, int, int, bool>())
         ;
 
     py::class_<MortonDivideInputToPartitionsProcess, MortonDivideInputToPartitionsProcess::Pointer, Process>(
