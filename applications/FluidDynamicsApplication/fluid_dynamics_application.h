@@ -299,8 +299,8 @@ private:
     const WallCondition<3,3> mWallCondition3D;
 
 	/// Slip condition following BEHR2004
-    const BehrWallCondition<2> mBehrWallCondition2D;
-    const BehrWallCondition<3> mBehrWallCondition3D;
+    const BehrWallCondition<2,2> mBehrWallCondition2D;
+    const BehrWallCondition<3,3> mBehrWallCondition3D;
 
     /// Wall model using Werner-Wengle power law (fractional step version)
     const FSWernerWengleWallCondition<2,2> mFSWernerWengleWallCondition2D;

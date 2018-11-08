@@ -144,6 +144,11 @@ const ConditionDataStruct& data)
     {
         this->ComputeRHSOutletInflowContribution(rhs_gauss, data);
     }
+
+    else if (this->Is(SLIP))
+    {
+        //// PUT BEHR contribution here....
+    }
 }
 
 /// Computes the condition RHS Neumann BC contribution

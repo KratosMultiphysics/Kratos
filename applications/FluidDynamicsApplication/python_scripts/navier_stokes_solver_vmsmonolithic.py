@@ -17,6 +17,7 @@ class StabilizedFormulation(object):
     def __init__(self,settings):
         self.element_name = None
         self.condition_name = "MonolithicWallCondition"
+
         self.process_data = {}
 
         if settings.Has("formulation"):
@@ -184,6 +185,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.stabilization = StabilizedFormulation(self.settings["stabilization"])
         self.element_name = self.stabilization.element_name
         self.condition_name = self.stabilization.condition_name
+        
 
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":

@@ -12,6 +12,11 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 from fluid_solver import FluidSolver
 
+# from KratosMultiphysics.FluidDynamicsApplication import *
+
+
+
+
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
 
@@ -67,6 +72,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
+        
+        # Modify the JSON TODO --------------------------------------------------------------------------------------
+        self.condition_name = "BehrWallCondition"
+
         self.min_buffer_size = 3
 
         # There is only a single rank in OpenMP, we always print
@@ -119,6 +128,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
+
+        self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part, 10, 10)
+        (self.neighbour_search).Execute()
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):

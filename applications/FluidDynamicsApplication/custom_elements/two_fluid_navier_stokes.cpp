@@ -82,7 +82,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     if (TElementData::ElementManagesTimeIntegration){
-        TElementData data;
+        // TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
         if (data.IsCut()){
@@ -121,6 +121,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     data.CalculateDensityAtGaussPoint();
                     if (d_gauss > 0.0){
                         data.CalculateAirMaterialResponse();
+                        // this->CalculateMaterialResponse(data);
                     } else {
                         this->CalculateMaterialResponse(data);
                     }
@@ -144,6 +145,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
                     data.CalculateDensityAtGaussPoint();
                     data.CalculateAirMaterialResponse();
+                    // this->CalculateMaterialResponse(data);
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                     ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
@@ -230,6 +232,38 @@ void TwoFluidNavierStokes<TElementData>::PrintInfo(
     if (this->GetConstitutiveLaw() != nullptr){
         rOStream << "with constitutive law " << std::endl;
         this->GetConstitutiveLaw()->PrintInfo(rOStream);
+    }
+}
+
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVariable,
+                                                    Vector& rFluidStress,
+                                                    const ProcessInfo& rCurrentProcessInfo )
+{
+
+    std::cout << "Function in 2 fluid element was entered" << std::endl;
+    
+    if ( rVariable == FLUID_STRESS ){
+
+        rFluidStress.resize( StrainSize, false );
+
+        KRATOS_WATCH( rFluidStress.size() )
+        KRATOS_WATCH( this->data.ShearStress.size() )
+
+        if ( this->data.ShearStress.size() != 0 ){
+            rFluidStress = this->data.ShearStress;
+        } else {
+            std::cout << "data.ShearStress has size 0 >>> RACE CONDITION " << std::endl;
+            for (unsigned int i = 0; i < rFluidStress.size(); i++){
+                rFluidStress[i] = 0.0;
+            }
+        }
+
+    } else {
+
+        std::cout << "This variable cannot be retrieved" << std::endl;
+
     }
 }
 

@@ -113,6 +113,7 @@ public:
       */
     NavierStokesWallCondition(IndexType NewId = 0):Condition(NewId)
     {
+        std::cout << "Old Condition1" << std::endl;
     }
 
     /// Constructor using an array of nodes
@@ -123,6 +124,7 @@ public:
     NavierStokesWallCondition(IndexType NewId, const NodesArrayType& ThisNodes):
         Condition(NewId,ThisNodes)
     {
+        std::cout << "Old Condition2" << std::endl;
     }
 
     /// Constructor using Geometry
@@ -133,6 +135,7 @@ public:
     NavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry):
         Condition(NewId,pGeometry)
     {
+        std::cout << "Old Condition3" << std::endl;
     }
 
     /// Constructor using Properties
@@ -144,12 +147,14 @@ public:
     NavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
         Condition(NewId,pGeometry,pProperties)
     {
+        std::cout << "Old Condition4" << std::endl;
     }
 
     /// Copy constructor.
     NavierStokesWallCondition(NavierStokesWallCondition const& rOther):
         Condition(rOther)
     {
+        std::cout << "Old Condition5" << std::endl;
     }
 
     /// Destructor.
@@ -287,6 +292,8 @@ public:
     {
         KRATOS_TRY
 
+        std::cout << "Old Condition LHS" << std::endl;
+
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rLeftHandSideMatrix.size1() != MatrixSize)
@@ -308,6 +315,8 @@ public:
                                         ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
+
+        std::cout << "Old Condition RHS" << std::endl;
 
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
@@ -363,6 +372,8 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
+
+        std::cout << "Old Condition Check" << std::endl;
 
         int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
 

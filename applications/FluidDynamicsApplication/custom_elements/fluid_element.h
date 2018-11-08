@@ -247,7 +247,6 @@ public:
         MatrixType &rMassMatrix,
         ProcessInfo &rCurrentProcessInfo) override;
 
-
     /**
      * @brief EquationIdVector Returns the global system rows corresponding to each local row.
      * @param rResult rResult[i] is the global index of local row i (output)

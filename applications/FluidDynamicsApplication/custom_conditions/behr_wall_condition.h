@@ -10,8 +10,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#ifndef BEHR_WALL_CONDITION_H
-#define BEHR_WALL_CONDITION_H
+#ifndef KRATOS_BEHR_WALL_CONDITION_H
+#define KRATOS_BEHR_WALL_CONDITION_H
 
 // System includes
 #include <string>
@@ -27,11 +27,17 @@
 #include "includes/model_part.h"
 #include "includes/serializer.h"
 #include "includes/process_info.h"
+#include "includes/variables.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+
+// Added 
+#include "custom_utilities/fluid_element_utilities.h"
+#include "custom_elements/two_fluid_navier_stokes.h"
+#include "custom_utilities/two_fluid_navier_stokes_data.h"
 
 namespace Kratos
 {
@@ -65,7 +71,7 @@ namespace Kratos
   @see NavierStokes,EmbeddedNavierStokes,ResidualBasedIncrementalUpdateStaticSchemeSlip
  */
 template< unsigned int TDim, unsigned int TNumNodes = TDim >
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) BehrWallCondition : public Condition
+class BehrWallCondition : public Condition
 {
 public:
     ///@name Type Definitions
@@ -119,6 +125,8 @@ public:
 
     typedef array_1d<double, 3> Normal;
 
+    typedef DenseVector<Matrix> ShapeFunctionsGradientsType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -129,9 +137,9 @@ public:
         ElementDataStruct data;
         this->FillElementData(data, rCurrentProcessInfo);condition
       */
-    BehrWallCondition(IndexType NewId = 0):Condition(NewId)
+    BehrWallCondition(IndexType NewId = 0):Condition(NewId), mpParentElement()
     {
-        std::cout << "BEHR" << std::endl;
+        std::cout << "Behr1" << std::endl;
     }
 
     /// Constructor using an array of nodes
@@ -140,9 +148,9 @@ public:
      @param ThisNodes An array containing the nodes of the new condition
      */
     BehrWallCondition(IndexType NewId, const NodesArrayType& ThisNodes):
-        Condition(NewId,ThisNodes)
+        Condition(NewId,ThisNodes), mpParentElement()
     {
-        std::cout << "BEHR" << std::endl;
+        std::cout << "Behr2" << std::endl;
     }
 
     /// Constructor using Geometry
@@ -151,9 +159,9 @@ public:
      @param pGeometry Pointer to a geometry object
      */
     BehrWallCondition(IndexType NewId, GeometryType::Pointer pGeometry):
-        Condition(NewId,pGeometry)
+        Condition(NewId,pGeometry), mpParentElement()
     {
-        std::cout << "BEHR" << std::endl;
+        std::cout << "Behr3" << std::endl;
     }
 
     /// Constructor using Properties
@@ -163,16 +171,17 @@ public:
      @param pProperties Pointer to the element's properties
      */
     BehrWallCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
-        Condition(NewId,pGeometry,pProperties)
+        Condition(NewId,pGeometry,pProperties), mpParentElement()
     {
-        std::cout << "BEHR" << std::endl;
+        // this constructor is used !!!
+        std::cout << "Behr4" << std::endl;
     }
 
     /// Copy constructor.
     BehrWallCondition(BehrWallCondition const& rOther):
-        Condition(rOther)
+        Condition(rOther), mpParentElement()
     {
-        std::cout << "BEHR" << std::endl;
+        std::cout << "Behr5" << std::endl;
     }
 
     /// Destructor.
@@ -245,6 +254,9 @@ public:
     {
         KRATOS_TRY
 
+        std::cout << "COMPUTING local system" << std::endl;
+
+
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rLeftHandSideMatrix.size1() != MatrixSize)
@@ -253,8 +265,7 @@ public:
         if (rRightHandSideVector.size() != MatrixSize)
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
 
-        // Struct to pass around the data
-        ConditionDataStruct data;
+        std::cout << "COMPUTING local system 0" << std::endl;
 
         // Allocate memory needed
         array_1d<double,MatrixSize> rhs_gauss;
@@ -269,32 +280,19 @@ public:
         const double A = norm_2(data.Normal);
         data.Normal /= A;
 
+        std::cout << "COMPUTING local system 1" << std::endl;
+
+        // Computing RHS (no Gauss points needed because constant)
+        CalculateRightHandSide( rRightHandSideVector, rCurrentProcessInfo);
+
+        std::cout << "COMPUTING local system 2" << std::endl;
+
         // Store the outlet inflow prevention constants in the data structure
         data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
         const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
         data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
-        // Gauss point information
-        GeometryType& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const unsigned int NumGauss = IntegrationPoints.size();
-        Vector GaussPtsJDet = ZeroVector(NumGauss);
-        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-        const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-        // Loop on gauss points
-        for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
-        {
-            data.N = row(Ncontainer, igauss);
-            const double J = GaussPtsJDet[igauss];
-            data.wGauss = J * IntegrationPoints[igauss].Weight();
-
-            ComputeGaussPointRHSContribution(rhs_gauss, data);
-            ComputeGaussPointLHSContribution(lhs_gauss, data);
-
-            noalias(rLeftHandSideMatrix) += lhs_gauss;
-            noalias(rRightHandSideVector) += rhs_gauss;
-        }
+        CalculateLeftHandSide( rLeftHandSideMatrix, rCurrentProcessInfo );
 
         KRATOS_CATCH("")
     }
@@ -306,132 +304,11 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        std::cout << "BEHR CONDITION was initilized" << std::endl;
-
-        GeometryType& rGeom = this->GetGeometry();     // one edge or one face
-
-        std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
-        std::vector< Matrix > NodalNormals(TNumNodes);
-
-        // Retrieving the nodal normal vectors and storing them in matrix format
-		for (SizeType i=0; i < TNumNodes; i++){
-			NodeIds[i] = rGeom[i].Id();
-            NodalNormals[i].resize(3,1);
-            for (int j = 0; j < 3; j++)
-            {
-                NodalNormals[i](j,0) = rGeom[i].GetValue(NORMAL)(j);
-            }
-		}
-
-        // Computation of NodalMultMatrix = ( [I] - (na)(na) )
-        std::vector<MatrixType> NodalMultMatrix(TNumNodes);
-
-        const MatrixType auxIdentMatrix = identity_matrix<double>(3);
-        MatrixType auxMatrix = zero_matrix<double>(3,3);
-        
-        for (SizeType i=0; i < TNumNodes; i++){
-            auxMatrix = prod( NodalNormals[i], trans(NodalNormals[i]) );
-            NodalMultMatrix[i] = auxIdentMatrix - auxMatrix;
-        }
-
-        // Finding the parent element
-        // this->FindParentElement();
+                                       ProcessInfo& rCurrentProcessInfo) override;
 
 
-        const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2),0);
-
-        // this->GetGeometry().ShapeFunctionsLocalGradients
-
-        // const ShapeFunctionDerivativesType& DN;
-        
-        KRATOS_CATCH("")
-    }
-
-
-    void Initialize() override
-	{
-		KRATOS_TRY;
-
-        std::cout << "BEHR CONDITION was initilized" << std::endl;
-
-		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
-		if (norm_2(rNormal) == 0.0){
-		    std::cout << "error on condition -> " << this->Id() << std::endl;
-		    KRATOS_THROW_ERROR(std::logic_error, "NORMAL must be calculated before using this condition","");
-		}
-
-		if (mInitializeWasPerformed){
-		        return;
-		}
-
-		mInitializeWasPerformed = true;
-
-		double EdgeLength;
-		array_1d<double,3> Edge;
-		GeometryType& rGeom = this->GetGeometry();
-		WeakPointerVector<Element> ElementCandidates;
-		for (SizeType i = 0; i < TNumNodes; i++){
-
-			WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-
-			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++){
-				ElementCandidates.push_back(rNodeElementCandidates(j));
-			}
-		}
-
-		std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
-		for (SizeType i=0; i < TNumNodes; i++){
-			NodeIds[i] = rGeom[i].Id();
-		}
-
-		std::sort(NodeIds.begin(), NodeIds.end());
-
-		for (SizeType i=0; i < ElementCandidates.size(); i++){
-			GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
-			ElementNodeIds.resize(rElemGeom.PointsNumber());
-
-			for (SizeType j=0; j < rElemGeom.PointsNumber(); j++){
-				ElementNodeIds[j] = rElemGeom[j].Id();
-			}
-
-			std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
-
-			if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
-			{
-				mParentElement = ElementCandidates(i);
-
-				Edge = rElemGeom[1].Coordinates() - rElemGeom[0].Coordinates();
-				mMinEdgeLength = Edge[0]*Edge[0];
-				for (SizeType d=1; d < TDim; d++){
-					mMinEdgeLength += Edge[d]*Edge[d];
-				}
-
-				for (SizeType j=2; j < rElemGeom.PointsNumber(); j++){
-
-					for(SizeType k=0; k < j; k++){
-						Edge = rElemGeom[j].Coordinates() - rElemGeom[k].Coordinates();
-						EdgeLength = Edge[0]*Edge[0];
-
-						for (SizeType d = 1; d < TDim; d++){
-							EdgeLength += Edge[d]*Edge[d];
-						}
-
-						mMinEdgeLength = (EdgeLength < mMinEdgeLength) ? EdgeLength : mMinEdgeLength;
-					}
-				}
-				mMinEdgeLength = sqrt(mMinEdgeLength);
-				return;
-			}
-		}
-
-		std::cout << "error in condition -> " << this->Id() << std::endl;
-		KRATOS_THROW_ERROR(std::logic_error, "Condition cannot find parent element","");
-		KRATOS_CATCH("");
-	}
+	/// Find the condition's parent element.
+	void Initialize() override;
 
 
     /// Calculates the RHS condition contributions
@@ -441,14 +318,8 @@ public:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
+                                ProcessInfo& rCurrentProcessInfo) override;
 
-        noalias(rRightHandSideVector) = ZeroVector(TDim+1);
-
-        KRATOS_CATCH("")
-    }
 
 
     /// Condition check
@@ -617,9 +488,15 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mInitializeWasPerformed;
+    // Struct to pass around the data
+    ConditionDataStruct data;
+
+    bool mInitializeWasPerformed = false;
 	double mMinEdgeLength;
-	ElementWeakPointerType mParentElement;
+	
+    Element* mpParentElement = NULL;
+
+    unsigned int mAdditionalNodeFromParent = 100;
 
     ///@}
     ///@name Serialization

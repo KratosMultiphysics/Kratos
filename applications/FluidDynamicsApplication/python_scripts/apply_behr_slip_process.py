@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 
 def Factory(settings, Model):
+
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return BehrWallCondition(Model, settings["Parameters"])
@@ -32,15 +33,22 @@ class BehrWallCondition(KratosMultiphysics.Process):
         # Mark the nodes and conditions with the appropriate slip flag
         #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         for condition in self.model_part.Conditions: #TODO: this may well not be needed!
+            
             condition.Set(KratosMultiphysics.SLIP, True)
+            
             condition.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
+            # condition.Set(KratosMultiphysics.SLIP, False)
 
         #TODO: Remove the IS_STRUCTURE variable set as soon as the flag SLIP migration is done
         for node in self.model_part.Nodes:
+            
             node.Set(KratosMultiphysics.SLIP, True)
+            
             node.SetValue(KratosMultiphysics.IS_STRUCTURE,1.0)
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
+            
             node.SetValue(KratosMultiphysics.Y_WALL,0.0)
+            # node.Set(KratosMultiphysics.SLIP, False)
 
 
     def ExecuteInitializeSolutionStep(self):
