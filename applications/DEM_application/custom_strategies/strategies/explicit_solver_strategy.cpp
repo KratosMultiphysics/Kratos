@@ -1390,7 +1390,7 @@ namespace Kratos {
         const int number_of_particles = (int) mListOfSphericParticles.size();
         int used_bonds_counter = 0;
 
-        #pragma omp parallel shared(used_bonds_counter)
+        #pragma omp parallel
         {
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
