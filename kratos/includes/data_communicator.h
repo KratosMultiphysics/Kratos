@@ -57,10 +57,6 @@ class DataCommunicator
     virtual ~DataCommunicator() {}
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -194,6 +190,22 @@ class DataCommunicator
 
     virtual void Scatter(
         const std::vector<double>& rSendValues,
+        std::vector<double>& rRecvValues,
+        const unsigned int SourceRank) const
+    {}
+
+    virtual void Scatterv(
+        const std::vector<int>& rSendValues,
+        const std::vector<int>& rSendCounts,
+        const std::vector<int>& rSendOffsets,
+        std::vector<int>& rRecvValues,
+        const unsigned int SourceRank) const
+    {}
+
+    virtual void Scatterv(
+        const std::vector<double>& rSendValues,
+        const std::vector<int>& rSendCounts,
+        const std::vector<int>& rSendOffsets,
         std::vector<double>& rRecvValues,
         const unsigned int SourceRank) const
     {}

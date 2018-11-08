@@ -146,6 +146,20 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<double>& rRecvValues,
         const unsigned int SourceRank) const override;
 
+    void Scatterv(
+        const std::vector<int>& rSendValues,
+        const std::vector<int>& rSendCounts,
+        const std::vector<int>& rSendOffsets,
+        std::vector<int>& rRecvValues,
+        const unsigned int SourceRank) const override;
+
+    void Scatterv(
+        const std::vector<double>& rSendValues,
+        const std::vector<int>& rSendCounts,
+        const std::vector<int>& rSendOffsets,
+        std::vector<double>& rRecvValues,
+        const unsigned int SourceRank) const override;
+
     ///@}
     ///@name Access
     ///@{

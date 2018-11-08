@@ -249,4 +249,30 @@ void MPIDataCommunicator::Scatter(
         SourceRank, mComm);
 }
 
+void MPIDataCommunicator::Scatterv(
+    const std::vector<int>& rSendValues,
+    const std::vector<int>& rSendCounts,
+    const std::vector<int>& rSendOffsets,
+    std::vector<int>& rRecvValues,
+    const unsigned int SourceRank) const
+{
+    MPI_Scatterv(
+        rSendValues.data(), rSendCounts.data(), rSendOffsets.data(), MPI_INT,
+        rRecvValues.data(), rRecvValues.size(), MPI_INT,
+        SourceRank, mComm);
+}
+
+void MPIDataCommunicator::Scatterv(
+    const std::vector<double>& rSendValues,
+    const std::vector<int>& rSendCounts,
+    const std::vector<int>& rSendOffsets,
+    std::vector<double>& rRecvValues,
+    const unsigned int SourceRank) const
+{
+    MPI_Scatterv(
+        rSendValues.data(), rSendCounts.data(), rSendOffsets.data(), MPI_DOUBLE,
+        rRecvValues.data(), rRecvValues.size(), MPI_DOUBLE,
+        SourceRank, mComm);
+}
+
 }

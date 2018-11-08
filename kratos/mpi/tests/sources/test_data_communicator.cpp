@@ -381,7 +381,6 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
     }
 }
 
-
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatter, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator = DataCommunicator();
@@ -423,6 +422,74 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatter, KratosMPICoreFastSuite)
     {
         KRATOS_CHECK_EQUAL(recv_buffer_int[i], 1);
         KRATOS_CHECK_EQUAL(recv_buffer_double[i], 2.0);
+    }
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterv, KratosMPICoreFastSuite)
+{
+    /* send message {0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, ...} (max 6 values per rank)
+     * read only first <rank> values of the message per rank (up to 5 values per rank)
+     * message containing doubles is double of message containing ints
+     */
+    DataCommunicator serial_communicator = DataCommunicator();
+    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<int> send_buffer_int(0);
+    std::vector<double> send_buffer_double(0);
+    std::vector<int> send_sizes(0);
+    std::vector<int> send_offsets(0);
+
+    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
+    auto make_message_distance = [](int rank, int padding) {
+        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
+    };
+
+    const int recv_size = make_message_size(world_rank);
+    std::vector<int> recv_buffer_int(recv_size, -1);
+    std::vector<double> recv_buffer_double(recv_size, -1.0);
+
+    const int message_padding = 1;
+    if (world_rank == send_rank)
+    {
+        const int send_size = make_message_distance(world_size, message_padding);
+        send_buffer_int.resize(send_size);
+        send_buffer_double.resize(send_size);
+        send_sizes.resize(world_size);
+        send_offsets.resize(world_size);
+        int counter = 0;
+        for (int rank = 0; rank < world_size; rank++)
+        {
+            send_sizes[rank] = make_message_size(rank);
+            send_offsets[rank] = make_message_distance(rank, message_padding);
+            for (int i = 0; i < send_sizes[rank] + message_padding; i++, counter++)
+            {
+                send_buffer_int[counter] = rank;
+                send_buffer_double[counter] = 2.0*rank;
+            }
+        }
+    }
+
+    serial_communicator.Scatterv(send_buffer_int, send_sizes, send_offsets, recv_buffer_int, send_rank);
+    serial_communicator.Scatterv(send_buffer_double, send_sizes, send_offsets, recv_buffer_double, send_rank);
+
+    for (int i = 0; i < recv_size; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer_int[i], -1);
+        KRATOS_CHECK_EQUAL(recv_buffer_double[i], -1.0);
+    }
+
+    mpi_world_communicator.Scatterv(send_buffer_int, send_sizes, send_offsets, recv_buffer_int, send_rank);
+    mpi_world_communicator.Scatterv(send_buffer_double, send_sizes, send_offsets, recv_buffer_double, send_rank);
+
+    for (int i = 0; i < recv_size; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer_int[i], world_rank);
+        KRATOS_CHECK_EQUAL(recv_buffer_double[i], 2.0*world_rank);
     }
 }
 
