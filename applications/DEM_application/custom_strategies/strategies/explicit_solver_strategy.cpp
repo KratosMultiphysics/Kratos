@@ -1402,7 +1402,6 @@ namespace Kratos {
             }
 
             int private_counter = 0;
-            used_bonds_counter = 0;
             Element::Pointer p_new_contact_element;
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
