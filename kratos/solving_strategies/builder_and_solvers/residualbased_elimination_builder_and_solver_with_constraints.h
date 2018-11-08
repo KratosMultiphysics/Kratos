@@ -1069,8 +1069,6 @@ protected:
         BaseType::Clear();
 
         mDoFSlaveSet = DofsArrayType();
-        mSolvableDoFReorder.clear();
-        mSlaveMasterDoFRelation.clear();
 
         // Set the flag
         mCleared = true;
@@ -1101,16 +1099,11 @@ private:
     ///@{
 
     TSystemMatrixPointerType mpTMatrix = NULL; /// This is matrix containing the global relation for the constraints
-
-    DofsArrayType mDoFSlaveSet;              /// The set containing the slave DoF of the system
-
+    DofsArrayType mDoFSlaveSet;                /// The set containing the slave DoF of the system
     SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
 
     bool mCleared = true; /// If the system has been reseted
     bool mReassembleLHS = false; /// If the LHS must be reconstructed after computing
-
-    std::unordered_map<IndexType, IndexType> mSolvableDoFReorder; /// The correlation between the global total DoF order and the solvable DoF order
-    std::unordered_map<IndexType, IndexSetType> mSlaveMasterDoFRelation; /// The relation between the slave and the master DoFs
 
     ///@}
     ///@name Private Operators
@@ -1135,55 +1128,18 @@ private:
         typedef std::pair<IndexType, IndexType> IdPairType;
 
         // Add the computation of the global ids of the solvable dofs
-        mSolvableDoFReorder.reserve(mDoFToSolveSystemSize);
         IndexType counter = 0;
         for (auto& dof : BaseType::mDofSet) {
             if (dof.EquationId() < BaseType::mEquationSystemSize) {
                 auto it = mDoFSlaveSet.find(dof);
                 if (it == mDoFSlaveSet.end()) {
-                    mSolvableDoFReorder.insert(IdPairType(dof.EquationId(), counter));
                     ++counter;
                 }
             }
         }
 
         // The total system of equations to be solved
-        mDoFToSolveSystemSize = mSolvableDoFReorder.size();
-
-        /* We fill the relation master slave map */
-        // We don't do a loop in OMP because erase is not a parallel threadsafe operation
-        DofsVectorType dof_list, auxiliar_dof_list;
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        typedef std::pair<IndexType, IndexSetType> IndexIndexSetPairType;
-        auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-        const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-
-        for (int i = 0; i < number_of_constraints; ++i) {
-            auto it_const = r_constraints_array.begin() + i;
-
-            // Gets list of Dof involved on every element
-            it_const->GetDofList(dof_list, auxiliar_dof_list, r_current_process_info);
-            // We remove the slave dofs
-            for (auto& dof : dof_list) {
-                // We add the master dofs to the map of slave dofs relation
-                const IndexType equation_id_dof = dof->EquationId();
-                if (equation_id_dof < BaseType::mEquationSystemSize) {
-                    auto it_relation_dof = mSlaveMasterDoFRelation.find(equation_id_dof);
-                    if ( it_relation_dof == mSlaveMasterDoFRelation.end()) {
-                        IndexSetType dummy_set;
-                        dummy_set.reserve(auxiliar_dof_list.size());
-                        for (auto& auxiliar_dof : auxiliar_dof_list)
-                            dummy_set.insert(auxiliar_dof->EquationId());
-                        mSlaveMasterDoFRelation.insert(IndexIndexSetPairType(equation_id_dof, dummy_set));
-                    } else {
-                        IndexSetType& set = it_relation_dof->second;
-                        for (auto& auxiliar_dof : auxiliar_dof_list)
-                            set.insert(auxiliar_dof->EquationId());
-                    }
-                }
-            }
-        }
+        mDoFToSolveSystemSize = counter;
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
     }
