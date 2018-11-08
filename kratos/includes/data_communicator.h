@@ -16,9 +16,6 @@
 // System includes
 #include <string>
 #include <iostream>
-//#ifdef KRATOS_USING_MPI
-//#include <mpi.h>
-//#endif
 
 // External includes
 
@@ -34,8 +31,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Serial (do-nothing) version of a wrapper class for MPI communication.
+/** @see MPIDataCommunicator for a working distributed memory implementation.
   */
 class DataCommunicator
 {
@@ -122,6 +119,18 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    // Sendrecv operations
+
+    virtual void SendRecv(
+        const std::vector<int>& rSendValues, const unsigned int SendDestination,
+        std::vector<int>& rRecvValues, const unsigned int RecvSource) const
+    {}
+
+    virtual void SendRecv(
+        const std::vector<double>& rSendValues, const unsigned int SendDestination,
+        std::vector<double>& rRecvValues, const unsigned int RecvSource) const
+    {}
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -164,61 +173,8 @@ class DataCommunicator
 
     ///@}
 
-  protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
   private:
-    ///@name Static Member Variables
-    ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 

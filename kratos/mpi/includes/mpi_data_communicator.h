@@ -124,6 +124,16 @@ class MPIDataCommunicator: public DataCommunicator
 
     double ScanSum(const double& rLocalValue) const override;
 
+    // Sendrecv operations
+
+    virtual void SendRecv(
+        const std::vector<int>& rSendValues, const unsigned int SendDestination,
+        std::vector<int>& rRecvValues, const unsigned int RecvSource) const override;
+
+    virtual void SendRecv(
+        const std::vector<double>& rSendValues, const unsigned int SendDestination,
+        std::vector<double>& rRecvValues, const unsigned int RecvSource) const override;
+
     ///@}
     ///@name Access
     ///@{

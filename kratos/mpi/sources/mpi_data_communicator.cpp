@@ -177,4 +177,31 @@ double MPIDataCommunicator::ScanSum(const double& rLocalValue) const
     return partial_total;
 }
 
+
+// Sendrecv operations
+
+void MPIDataCommunicator::SendRecv(
+    const std::vector<int>& rSendValues, const unsigned int SendDestination,
+    std::vector<int>& rRecvValues, const unsigned int RecvSource) const
+{
+    const int send_tag = 0;
+    const int recv_tag = 0;
+    MPI_Sendrecv(
+        rSendValues.data(), rSendValues.size(), MPI_INT, SendDestination, send_tag,
+        rRecvValues.data(), rRecvValues.size(), MPI_INT, RecvSource, recv_tag,
+        mComm, MPI_STATUS_IGNORE);
+}
+
+void MPIDataCommunicator::SendRecv(
+    const std::vector<double>& rSendValues, const unsigned int SendDestination,
+    std::vector<double>& rRecvValues, const unsigned int RecvSource) const
+{
+    const int send_tag = 0;
+    const int recv_tag = 0;
+    MPI_Sendrecv(
+        rSendValues.data(), rSendValues.size(), MPI_DOUBLE, SendDestination, send_tag,
+        rRecvValues.data(), rRecvValues.size(), MPI_DOUBLE, RecvSource, recv_tag,
+        mComm, MPI_STATUS_IGNORE);
+}
+
 }
