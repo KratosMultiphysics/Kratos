@@ -80,43 +80,43 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Reduce operations
 
-    void Sum(int& rValue, const int Root) const override;
+    int Sum(int& rLocalValue, const int Root) const override;
 
-    void Sum(double& rValue, const int Root) const override;
+    double Sum(double& rLocalValue, const int Root) const override;
 
-    void Sum(array_1d<double,3>& rValue, const int Root) const override;
+    array_1d<double,3> Sum(array_1d<double,3>& rLocalValue, const int Root) const override;
 
-    void Min(int& rValue, const int Root) const override;
+    int Min(int& rLocalValue, const int Root) const override;
 
-    void Min(double& rValue, const int Root) const override;
+    double Min(double& rLocalValue, const int Root) const override;
 
-    void Min(array_1d<double,3>& rValue, const int Root) const override;
+    array_1d<double,3> Min(array_1d<double,3>& rLocalValue, const int Root) const override;
 
-    void Max(int& rValue, const int Root) const override;
+    int Max(int& rLocalValue, const int Root) const override;
 
-    void Max(double& rValue, const int Root) const override;
+    double Max(double& rLocalValue, const int Root) const override;
 
-    void Max(array_1d<double,3>& rValue, const int Root) const override;
+    array_1d<double,3> Max(array_1d<double,3>& rLocalValue, const int Root) const override;
 
     // Allreduce operations
 
-    void SumAll(int& rValue) const override;
+    int SumAll(int& rLocalValue) const override;
 
-    void SumAll(double& rValue) const override;
+    double SumAll(double& rLocalValue) const override;
 
-    void SumAll(array_1d<double,3>& rValue) const override;
+    array_1d<double,3> SumAll(array_1d<double,3>& rLocalValue) const override;
 
-    void MinAll(int& rValue) const override;
+    int MinAll(int& rLocalValue) const override;
 
-    void MinAll(double& rValue) const override;
+    double MinAll(double& rLocalValue) const override;
 
-    void MinAll(array_1d<double,3>& rValue) const override;
+    array_1d<double,3> MinAll(array_1d<double,3>& rLocalValue) const override;
 
-    void MaxAll(int& rValue) const override;
+    int MaxAll(int& rLocalValue) const override;
 
-    void MaxAll(double& rValue) const override;
+    double MaxAll(double& rLocalValue) const override;
 
-    void MaxAll(array_1d<double,3>& rValue) const override;
+    array_1d<double,3> MaxAll(array_1d<double,3>& rLocalValue) const override;
 
     // Scan operations
 

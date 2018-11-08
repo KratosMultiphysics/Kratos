@@ -63,29 +63,30 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSum, KratosMPICoreFastSuite)
     MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
     constexpr int root = 0;
 
-    int int_sum = 1;
-    double double_sum = 2.0;
-    array_1d<double,3> array_sum;
-    array_sum[0] = -1.0;
-    array_sum[1] =  0.0;
-    array_sum[2] =  1.0;
+    int local_int = 1;
+    double local_double = 2.0;
+    array_1d<double,3> local_array;
+    local_array[0] = -1.0;
+    local_array[1] =  0.0;
+    local_array[2] =  1.0;
 
     // local version: do nothing
-    serial_communicator.Sum(int_sum, root);
+    int int_sum = serial_communicator.Sum(local_int, root);
     KRATOS_CHECK_EQUAL(int_sum, 1);
 
-    serial_communicator.Sum(double_sum, root);
+    double double_sum = serial_communicator.Sum(local_double, root);
     KRATOS_CHECK_EQUAL(double_sum, 2.0);
 
-    serial_communicator.Sum(array_sum, root);
-    KRATOS_CHECK_EQUAL(array_sum[0], -1.0);
-    KRATOS_CHECK_EQUAL(array_sum[1],  0.0);
-    KRATOS_CHECK_EQUAL(array_sum[2],  1.0);
+    array_1d<double,3> array_sum = serial_communicator.Sum(local_array, root);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        KRATOS_CHECK_EQUAL(local_array[i], array_sum[i]);
+    }
 
     // MPI version
-    mpi_world_communicator.Sum(double_sum, root);
-    mpi_world_communicator.Sum(int_sum, root);
-    mpi_world_communicator.Sum(array_sum, root);
+    int_sum = mpi_world_communicator.Sum(local_int, root);
+    double_sum = mpi_world_communicator.Sum(local_double, root);
+    array_sum = mpi_world_communicator.Sum(local_array, root);
 
     int world_size = mpi_world_communicator.Size();
     int world_rank = mpi_world_communicator.Rank();
@@ -95,9 +96,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSum, KratosMPICoreFastSuite)
 
         KRATOS_CHECK_EQUAL(double_sum, 2.*world_size);
 
-        KRATOS_CHECK_EQUAL(array_sum[0], -1.0*world_size);
-        KRATOS_CHECK_EQUAL(array_sum[1],  0.0);
-        KRATOS_CHECK_EQUAL(array_sum[2],  1.0*world_size);
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            KRATOS_CHECK_EQUAL(array_sum[i], local_array[i]*world_size);
+        }
     }
 }
 
@@ -109,33 +111,34 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMin, KratosMPICoreFastSuite)
 
     int world_rank = mpi_world_communicator.Rank();
 
-    int int_min = world_rank;
-    double double_min = 2.0*world_rank;
-    array_1d<double,3> array_min;
-    array_min[0] = -1.0*world_rank;
-    array_min[1] =  0.0;
-    array_min[2] =  1.0*world_rank;
+    int local_int = world_rank;
+    double local_double = 2.0*world_rank;
+    array_1d<double,3> local_array;
+    local_array[0] = -1.0*world_rank;
+    local_array[1] =  0.0;
+    local_array[2] =  1.0*world_rank;
 
     // local version: do nothing
-    serial_communicator.Min(int_min, root);
-    KRATOS_CHECK_EQUAL(int_min, world_rank);
+    int int_min = serial_communicator.Min(local_int, root);
+    KRATOS_CHECK_EQUAL(int_min, local_int);
 
-    serial_communicator.Min(double_min, root);
-    KRATOS_CHECK_EQUAL(double_min, 2.0*world_rank);
+    double double_min = serial_communicator.Min(local_double, root);
+    KRATOS_CHECK_EQUAL(double_min, local_double);
 
-    serial_communicator.Min(array_min, root);
-    KRATOS_CHECK_EQUAL(array_min[0], -1.0*world_rank);
-    KRATOS_CHECK_EQUAL(array_min[1],  0.0);
-    KRATOS_CHECK_EQUAL(array_min[2],  1.0*world_rank);
+    array_1d<double,3> array_min = serial_communicator.Min(local_array, root);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        KRATOS_CHECK_EQUAL(array_min[i], local_array[i]);
+    }
 
     // MPI version
-    mpi_world_communicator.Min(int_min, root);
-    mpi_world_communicator.Min(double_min, root);
-    mpi_world_communicator.Min(array_min, root);
+    int_min = mpi_world_communicator.Min(local_int, root);
+    double_min = mpi_world_communicator.Min(local_double, root);
+    array_min = mpi_world_communicator.Min(local_array, root);
 
     if (mpi_world_communicator.Rank() == root)
     {
-        KRATOS_CHECK_EQUAL(int_min, 0.0);
+        KRATOS_CHECK_EQUAL(int_min, 0);
 
         KRATOS_CHECK_EQUAL(double_min, 0.0);
 
@@ -154,29 +157,30 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMax, KratosMPICoreFastSuite)
 
     int world_rank = mpi_world_communicator.Rank();
 
-    int int_max = world_rank;
-    double double_max = 2.0*world_rank;
-    array_1d<double,3> array_max;
-    array_max[0] = -1.0*world_rank;
-    array_max[1] =  0.0;
-    array_max[2] =  1.0*world_rank;
+    int local_int = world_rank;
+    double local_double = 2.0*world_rank;
+    array_1d<double,3> local_array;
+    local_array[0] = -1.0*world_rank;
+    local_array[1] =  0.0;
+    local_array[2] =  1.0*world_rank;
 
     // local version: do nothing
-    serial_communicator.Max(int_max, root);
-    KRATOS_CHECK_EQUAL(int_max, world_rank);
+    int int_max = serial_communicator.Max(local_int, root);
+    KRATOS_CHECK_EQUAL(int_max, local_int);
 
-    serial_communicator.Max(double_max, root);
-    KRATOS_CHECK_EQUAL(double_max, 2.0*world_rank);
+    double double_max = serial_communicator.Max(local_double, root);
+    KRATOS_CHECK_EQUAL(double_max, local_double);
 
-    serial_communicator.Max(array_max, root);
-    KRATOS_CHECK_EQUAL(array_max[0], -1.0*world_rank);
-    KRATOS_CHECK_EQUAL(array_max[1],  0.0);
-    KRATOS_CHECK_EQUAL(array_max[2],  1.0*world_rank);
+    array_1d<double,3> array_max = serial_communicator.Max(local_array, root);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        KRATOS_CHECK_EQUAL(array_max[i], local_array[i]);
+    }
 
     // MPI version
-    mpi_world_communicator.Max(int_max, root);
-    mpi_world_communicator.Max(double_max, root);
-    mpi_world_communicator.Max(array_max, root);
+    int_max = mpi_world_communicator.Max(local_int, root);
+    double_max = mpi_world_communicator.Max(local_double, root);
+    array_max = mpi_world_communicator.Max(local_array, root);
 
     if (world_rank == root)
     {
@@ -197,37 +201,40 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAll, KratosMPICoreFastSuite)
     DataCommunicator serial_communicator = DataCommunicator();
     MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
 
-    int int_sum = 1;
-    double double_sum = 2.0;
-    array_1d<double,3> array_sum;
-    array_sum[0] = -1.0;
-    array_sum[1] =  0.0;
-    array_sum[2] =  1.0;
+    int local_int = 1;
+    double local_double = 2.0;
+    array_1d<double,3> local_array;
+    local_array[0] = -1.0;
+    local_array[1] =  0.0;
+    local_array[2] =  1.0;
 
     // local version: do nothing
-    serial_communicator.SumAll(int_sum);
+    int int_sum = serial_communicator.SumAll(local_int);
     KRATOS_CHECK_EQUAL(int_sum, 1);
 
-    serial_communicator.SumAll(double_sum);
+    double double_sum = serial_communicator.SumAll(local_double);
     KRATOS_CHECK_EQUAL(double_sum, 2.0);
 
-    serial_communicator.SumAll(array_sum);
-    KRATOS_CHECK_EQUAL(array_sum[0], -1.0);
-    KRATOS_CHECK_EQUAL(array_sum[1],  0.0);
-    KRATOS_CHECK_EQUAL(array_sum[2],  1.0);
+    array_1d<double,3> array_sum = serial_communicator.SumAll(local_array);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        KRATOS_CHECK_EQUAL(local_array[i], array_sum[i]);
+    }
 
     // MPI version
-    int world_size = mpi_world_communicator.Size();
-    mpi_world_communicator.SumAll(int_sum);
-    KRATOS_CHECK_EQUAL(int_sum, world_size);
+    int_sum = mpi_world_communicator.SumAll(local_int);
+    double_sum = mpi_world_communicator.SumAll(local_double);
+    array_sum = mpi_world_communicator.SumAll(local_array);
 
-    mpi_world_communicator.SumAll(double_sum);
+    int world_size = mpi_world_communicator.Size();
+
+    KRATOS_CHECK_EQUAL(int_sum, world_size);
     KRATOS_CHECK_EQUAL(double_sum, 2.*world_size);
 
-   mpi_world_communicator.SumAll(array_sum);
-   KRATOS_CHECK_EQUAL(array_sum[0], -1.0*world_size);
-   KRATOS_CHECK_EQUAL(array_sum[1],  0.0);
-   KRATOS_CHECK_EQUAL(array_sum[2],  1.0*world_size);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        KRATOS_CHECK_EQUAL(array_sum[i], local_array[i]*world_size);
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAll, KratosMPICoreFastSuite)
@@ -237,33 +244,34 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAll, KratosMPICoreFastSuite)
 
     int world_rank = mpi_world_communicator.Rank();
 
-    int int_min = world_rank;
-    double double_min = 2.0*world_rank;
-    array_1d<double,3> array_min;
-    array_min[0] = -1.0*world_rank;
-    array_min[1] =  0.0;
-    array_min[2] =  1.0*world_rank;
+    int local_int = world_rank;
+    double local_double = 2.0*world_rank;
+    array_1d<double,3> local_array;
+    local_array[0] = -1.0*world_rank;
+    local_array[1] =  0.0;
+    local_array[2] =  1.0*world_rank;
 
     // local version: do nothing
-    serial_communicator.MinAll(int_min);
-    KRATOS_CHECK_EQUAL(int_min, world_rank);
+    int int_min = serial_communicator.MinAll(local_int);
+    KRATOS_CHECK_EQUAL(int_min, local_int);
 
-    serial_communicator.MinAll(double_min);
-    KRATOS_CHECK_EQUAL(double_min, 2.0*world_rank);
+    double double_min = serial_communicator.MinAll(local_double);
+    KRATOS_CHECK_EQUAL(double_min, local_double);
 
-    serial_communicator.MinAll(array_min);
-    KRATOS_CHECK_EQUAL(array_min[0], -1.0*world_rank);
-    KRATOS_CHECK_EQUAL(array_min[1],  0.0);
-    KRATOS_CHECK_EQUAL(array_min[2],  1.0*world_rank);
+    array_1d<double,3> array_min = serial_communicator.MinAll(local_array);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        KRATOS_CHECK_EQUAL(array_min[i], local_array[i]);
+    }
 
     // MPI version
-    mpi_world_communicator.MinAll(int_min);
-    KRATOS_CHECK_EQUAL(int_min, 0.0);
+    int_min = mpi_world_communicator.MinAll(local_int);
+    double_min = mpi_world_communicator.MinAll(local_double);
+    array_min = mpi_world_communicator.MinAll(local_array);
 
-    mpi_world_communicator.MinAll(double_min);
+    KRATOS_CHECK_EQUAL(int_min, 0);
     KRATOS_CHECK_EQUAL(double_min, 0.0);
 
-    mpi_world_communicator.MinAll(array_min);
     int world_size = mpi_world_communicator.Size();
     KRATOS_CHECK_EQUAL(array_min[0], -1.0*(world_size-1));
     KRATOS_CHECK_EQUAL(array_min[1],  0.0);
@@ -277,34 +285,36 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAll, KratosMPICoreFastSuite)
 
     int world_rank = mpi_world_communicator.Rank();
 
-    int int_max = world_rank;
-    double double_max = 2.0*world_rank;
-    array_1d<double,3> array_max;
-    array_max[0] = -1.0*world_rank;
-    array_max[1] =  0.0;
-    array_max[2] =  1.0*world_rank;
+    int local_int = world_rank;
+    double local_double = 2.0*world_rank;
+    array_1d<double,3> local_array;
+    local_array[0] = -1.0*world_rank;
+    local_array[1] =  0.0;
+    local_array[2] =  1.0*world_rank;
 
     // local version: do nothing
-    serial_communicator.MaxAll(int_max);
-    KRATOS_CHECK_EQUAL(int_max, world_rank);
+    int int_max = serial_communicator.MaxAll(local_int);
+    KRATOS_CHECK_EQUAL(int_max, local_int);
 
-    serial_communicator.MaxAll(double_max);
-    KRATOS_CHECK_EQUAL(double_max, 2.0*world_rank);
+    double double_max = serial_communicator.MaxAll(local_double);
+    KRATOS_CHECK_EQUAL(double_max, local_double);
 
-    serial_communicator.MaxAll(array_max);
-    KRATOS_CHECK_EQUAL(array_max[0], -1.0*world_rank);
-    KRATOS_CHECK_EQUAL(array_max[1],  0.0);
-    KRATOS_CHECK_EQUAL(array_max[2],  1.0*world_rank);
+    array_1d<double,3> array_max = serial_communicator.MaxAll(local_array);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        KRATOS_CHECK_EQUAL(array_max[i], local_array[i]);
+    }
 
     // MPI version
+    int_max = mpi_world_communicator.MaxAll(local_int);
+    double_max = mpi_world_communicator.MaxAll(local_double);
+    array_max = mpi_world_communicator.MaxAll(local_array);
+
     int world_size = mpi_world_communicator.Size();
-    mpi_world_communicator.MaxAll(int_max);
     KRATOS_CHECK_EQUAL(int_max, world_size-1);
 
-    mpi_world_communicator.MaxAll(double_max);
     KRATOS_CHECK_EQUAL(double_max, 2.0*(world_size-1));
 
-    mpi_world_communicator.MaxAll(array_max);
     KRATOS_CHECK_EQUAL(array_max[0], 0.0);
     KRATOS_CHECK_EQUAL(array_max[1], 0.0);
     KRATOS_CHECK_EQUAL(array_max[2], 1.0*(world_size-1));
@@ -390,7 +400,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatter, KratosMPICoreFastSuite)
     {
         send_buffer_int.resize(2*world_size);
         send_buffer_double.resize(2*world_size);
-        for (unsigned int i = 0; i < 2*world_size; i++)
+        for (int i = 0; i < 2*world_size; i++)
         {
             send_buffer_int[i] = 1;
             send_buffer_double[i] = 2.0;

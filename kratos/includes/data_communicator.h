@@ -68,44 +68,97 @@ class DataCommunicator
 
     // Reduce operations
 
-    virtual void Sum(int& rValue, const int Root) const {}
+    virtual int Sum(int& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void Sum(double& rValue, const int Root) const {}
+    virtual double Sum(double& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void Sum(array_1d<double,3>& rValue, const int Root) const {}
+    virtual array_1d<double,3> Sum(array_1d<double,3>& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void Min(int& rValue, const int Root) const {}
+    virtual int Min(int& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void Min(double& rValue, const int Root) const {}
+    virtual double Min(double& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void Min(array_1d<double,3>& rValue, const int Root) const {}
+    virtual array_1d<double,3> Min(array_1d<double,3>& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void Max(int& rValue, const int Root) const {}
+    virtual int Max(int& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void Max(double& rValue, const int Root) const {}
+    virtual double Max(double& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void Max(array_1d<double,3>& rValue, const int Root) const {}
-
+    virtual array_1d<double,3> Max(array_1d<double,3>& rLocalValue, const int Root) const
+    {
+        return rLocalValue;
+    }
 
     // Allreduce operations
 
-    virtual void SumAll(int& rValue) const {}
+    virtual int SumAll(int& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void SumAll(double& rValue) const {}
+    virtual double SumAll(double& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void SumAll(array_1d<double,3>& rValue) const {}
+    virtual array_1d<double,3> SumAll(array_1d<double,3>& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void MinAll(int& rValue) const {}
+    virtual int MinAll(int& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void MinAll(double& rValue) const {}
+    virtual double MinAll(double& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void MinAll(array_1d<double,3>& rValue) const {}
+    virtual array_1d<double,3> MinAll(array_1d<double,3>& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void MaxAll(int& rValue) const {}
+    virtual int MaxAll(int& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void MaxAll(double& rValue) const {}
+    virtual double MaxAll(double& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
-    virtual void MaxAll(array_1d<double,3>& rValue) const {}
+    virtual array_1d<double,3> MaxAll(array_1d<double,3>& rLocalValue) const
+    {
+        return rLocalValue;
+    }
 
     // Scan operations
 

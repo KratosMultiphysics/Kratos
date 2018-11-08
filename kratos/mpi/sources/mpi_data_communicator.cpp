@@ -39,126 +39,144 @@ template<> inline MPI_Datatype MPIDatatype<array_1d<double,3>>(const array_1d<do
 
 // Reduce operations
 
-void MPIDataCommunicator::Sum(int& rValue, const int Root) const
+int MPIDataCommunicator::Sum(int& rLocalValue, const int Root) const
 {
-    int local_value(rValue);
-    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_SUM, Root, mComm);
+    int global_value(rLocalValue);
+    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, Root, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::Sum(double& rValue, const int Root) const
+double MPIDataCommunicator::Sum(double& rLocalValue, const int Root) const
 {
-    double local_value(rValue);
-    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_SUM, Root, mComm);
+    double global_value(rLocalValue);
+    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, Root, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::Sum(array_1d<double,3>& rValue, const int Root) const
+array_1d<double,3> MPIDataCommunicator::Sum(array_1d<double,3>& rLocalValue, const int Root) const
 {
-    array_1d<double,3> local_value(rValue);
+    array_1d<double,3> global_value(rLocalValue);
     MPI_Reduce(
-        local_value.data().data(), rValue.data().data(), 3,
-        Internals::MPIDatatype(rValue), MPI_SUM, Root, mComm);
+        rLocalValue.data().data(), global_value.data().data(), 3,
+        Internals::MPIDatatype(rLocalValue), MPI_SUM, Root, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::Min(int& rValue, const int Root) const
+int MPIDataCommunicator::Min(int& rLocalValue, const int Root) const
 {
-    int local_value(rValue);
-    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MIN, Root, mComm);
+    int global_value(rLocalValue);
+    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, Root, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::Min(double& rValue, const int Root) const
+double MPIDataCommunicator::Min(double& rLocalValue, const int Root) const
 {
-    double local_value(rValue);
-    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MIN, Root, mComm);
+    double global_value(rLocalValue);
+    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, Root, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::Min(array_1d<double,3>& rValue, const int Root) const
+array_1d<double,3> MPIDataCommunicator::Min(array_1d<double,3>& rLocalValue, const int Root) const
 {
-    array_1d<double,3> local_value(rValue);
+    array_1d<double,3> global_value(rLocalValue);
     MPI_Reduce(
-        local_value.data().data(), rValue.data().data(), 3,
-        Internals::MPIDatatype(rValue), MPI_MIN, Root, mComm);
+        rLocalValue.data().data(), global_value.data().data(), 3,
+        Internals::MPIDatatype(rLocalValue), MPI_MIN, Root, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::Max(int& rValue, const int Root) const
+int MPIDataCommunicator::Max(int& rLocalValue, const int Root) const
 {
-    int local_value(rValue);
-    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MAX, Root, mComm);
+    int global_value(rLocalValue);
+    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::Max(double& rValue, const int Root) const
+double MPIDataCommunicator::Max(double& rLocalValue, const int Root) const
 {
-    double local_value(rValue);
-    MPI_Reduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MAX, Root, mComm);
+    double global_value(rLocalValue);
+    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::Max(array_1d<double,3>& rValue, const int Root) const
+array_1d<double,3> MPIDataCommunicator::Max(array_1d<double,3>& rLocalValue, const int Root) const
 {
-    array_1d<double,3> local_value(rValue);
+    array_1d<double,3> global_value(rLocalValue);
     MPI_Reduce(
-        local_value.data().data(), rValue.data().data(), 3,
-        Internals::MPIDatatype(rValue), MPI_MAX, Root, mComm);
+        rLocalValue.data().data(), global_value.data().data(), 3,
+        Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
+    return global_value;
 }
 
 // Allreduce operations
 
-void MPIDataCommunicator::SumAll(int& rValue) const
+int MPIDataCommunicator::SumAll(int& rLocalValue) const
 {
-    int local_value(rValue);
-    MPI_Allreduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_SUM, mComm);
+    int global_value(rLocalValue);
+    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::SumAll(double& rValue) const
+double MPIDataCommunicator::SumAll(double& rLocalValue) const
 {
-    double local_value(rValue);
-    MPI_Allreduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_SUM, mComm);
+    double global_value(rLocalValue);
+    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::SumAll(array_1d<double,3>& rValue) const
+array_1d<double,3> MPIDataCommunicator::SumAll(array_1d<double,3>& rLocalValue) const
 {
-    array_1d<double,3> local_value(rValue);
+    array_1d<double,3> global_value(rLocalValue);
     MPI_Allreduce(
-        local_value.data().data(), rValue.data().data(), 3,
-        Internals::MPIDatatype(rValue), MPI_SUM, mComm);
+        rLocalValue.data().data(), global_value.data().data(), 3,
+        Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::MinAll(int& rValue) const
+int MPIDataCommunicator::MinAll(int& rLocalValue) const
 {
-    int local_value(rValue);
-    MPI_Allreduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MIN, mComm);
+    int global_value(rLocalValue);
+    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::MinAll(double& rValue) const
+double MPIDataCommunicator::MinAll(double& rLocalValue) const
 {
-    double local_value(rValue);
-    MPI_Allreduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MIN, mComm);
+    double global_value(rLocalValue);
+    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::MinAll(array_1d<double,3>& rValue) const
+array_1d<double,3> MPIDataCommunicator::MinAll(array_1d<double,3>& rLocalValue) const
 {
-    array_1d<double,3> local_value(rValue);
+    array_1d<double,3> global_value(rLocalValue);
     MPI_Allreduce(
-        local_value.data().data(), rValue.data().data(), 3,
-        Internals::MPIDatatype(rValue), MPI_MIN, mComm);
+        rLocalValue.data().data(), global_value.data().data(), 3,
+        Internals::MPIDatatype(rLocalValue), MPI_MIN, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::MaxAll(int& rValue) const
+int MPIDataCommunicator::MaxAll(int& rLocalValue) const
 {
-    int local_value(rValue);
-    MPI_Allreduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MAX, mComm);
+    int global_value(rLocalValue);
+    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::MaxAll(double& rValue) const
+double MPIDataCommunicator::MaxAll(double& rLocalValue) const
 {
-    double local_value(rValue);
-    MPI_Allreduce(&local_value, &rValue, 1, Internals::MPIDatatype(rValue), MPI_MAX, mComm);
+    double global_value(rLocalValue);
+    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
+    return global_value;
 }
 
-void MPIDataCommunicator::MaxAll(array_1d<double,3>& rValue) const
+array_1d<double,3> MPIDataCommunicator::MaxAll(array_1d<double,3>& rLocalValue) const
 {
-    array_1d<double,3> local_value(rValue);
+    array_1d<double,3> global_value(rLocalValue);
     MPI_Allreduce(
-        local_value.data().data(), rValue.data().data(), 3,
-        Internals::MPIDatatype(rValue), MPI_MAX, mComm);
+        rLocalValue.data().data(), global_value.data().data(), 3,
+        Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
+    return global_value;
 }
 
 // Scan operations
