@@ -147,13 +147,15 @@ class Algorithm(object):
         DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(self.skin_mp, dem_walls_mp, props)
 
     def RunSolutionLoop(self):
+        
         self.dem_solution.step = 0
         self.dem_solution.time = 0.0
         self.dem_solution.time_old_print = 0.0
         self.time_dem   = 0.0
-        self.Dt_structural = self.structural_solution._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
-        
+        self.Dt_structural = self.structural_solution._GetSolver().settings["time_stepping"]["time_step"].GetDouble()        
+
         while self.structural_solution.time < self.structural_solution.end_time:
+
             self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
             self.structural_solution.InitializeSolutionStep()
             self.structural_solution._GetSolver().Predict()
@@ -163,15 +165,16 @@ class Algorithm(object):
             time_final_DEM_substepping = self.structural_solution.time
 
             self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
-            
+
             DemFem.InterpolateStructuralSolutionForDEM().SaveStructuralSolution(self.structural_mp)
             
             DemFem.ComputeDEMFaceLoadUtility().ClearDEMFaceLoads(self.skin_mp)
-            
-            for self.dem_solution.time_dem in self.yield_DEM_time(self.time_dem, time_final_DEM_substepping, self.Dt_DEM):
+
+            for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
                 
                 self.dem_solution.InitializeTimeStep()
                 self.dem_solution.time = self.dem_solution.time + self.dem_solution.dt
+
                 self.dem_solution.step += 1
 
                 self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.dt, self.dem_solution.step)
@@ -217,7 +220,7 @@ class Algorithm(object):
                     self.dem_solution.time_old_print = self.dem_solution.time
 
                 self.dem_solution.FinalizeTimeStep(self.dem_solution.time)
-            
+                        
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
     def ReadDemModelParts(self,
@@ -238,6 +241,7 @@ class Algorithm(object):
         self.structural_solution.Finalize()
 
     def yield_DEM_time(self, current_time, current_time_plus_increment, delta_time):
+        
         current_time += delta_time
 
         tolerance = 0.0001
