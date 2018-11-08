@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import numpy as np
 import time
-import matplotlib.pyplot as plt
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -24,10 +23,22 @@ from pycompss.api.parameter import *
 # Import Monte Carlo library
 import mc as mc
 
-class MonteCarloAnalysis(AnalysisStage):
-    """Main script for Monte Carlo simulations using the pure_diffusion solver"""
 
-    
+'''Adapt the following class depending on the problem, deriving the MonteCarloAnalysis class from the problem of interest'''
+
+'''This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
+-lapl(u) = xi*f,    f= -432*x*(x-1)*y*(y-1)
+                    f= -432*(x**2+y**2-x-y)
+where xi is a Beta(2,6) random variable, and computes statistic of the QoI
+Q = int_(0,1)^2 u(x,y)dxdy
+more details in Section 5.2 of [PKN17]
+
+References:
+[PKN17] M. Pisaroni; S. Krumscheid; F. Nobile : Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; MATHICSE technical report no. 23.2017.
+'''
+class MonteCarloAnalysis(AnalysisStage):
+    '''Main script for Monte Carlo simulations'''
+
     def __init__(self,model,parameters,sample):
         self.sample = sample
         super(MonteCarloAnalysis,self).__init__(model,parameters)
@@ -38,20 +49,19 @@ class MonteCarloAnalysis(AnalysisStage):
         solver = convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
         self.LaplacianSolver = solver
         return self.LaplacianSolver
-
     
     def _GetSimulationName(self):
         return "Monte Carlo Analysis"
 
-
+    ''''''
     def ApplyBoundaryConditions(self):
         super(MonteCarloAnalysis,self).ApplyBoundaryConditions()
-        '''define the forcing function'''
+        '''define the forcing function and apply the stochastic contribute'''
         for node in self.model.GetModelPart("MCLaplacianModelPart").Nodes:
             coord_x = node.X
             coord_y = node.Y
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
-            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)
+            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents an analytical solution
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
             
         
@@ -66,43 +76,6 @@ class MonteCarloAnalysis(AnalysisStage):
 ##################################################
 ######## END OF CLASS MONTECARLOANALYSIS #########
 ##################################################
-
-
-
-# def GenerateStochasticContribute(parameters):
-#     number_samples = 1 # i.e. generate one stochastic variable per time
-
-#     if (parameters["problem_data"].Has("stochastic_pdf")):
-#         stochastic_pdf = parameters["problem_data"]["stochastic_pdf"]
-#         print(stochastic_pdf)
-#     else:
-#         raise Exception('Please provide the "stochastic_pdf" parameter in the .json file')
-
-#     if stochastic_pdf.Has("normal_distribution"):
-#         if stochastic_pdf["normal_distribution"].Has("mean"):
-#             mu = stochastic_pdf["normal_distribution"]["mean"].GetDouble()
-#         else:
-#             raise Exception('Please define the "mean" for the normal distribution in the .json file')            
-#         if stochastic_pdf["normal_distribution"].Has("variance"):
-#             sigma = stochastic_pdf["normal_distribution"]["variance"].GetDouble()
-#         else:
-#             raise Exception('Please define the "variance" for the normal distribution in the .json file')
-#         sample = np.random.normal(mu,sigma,number_samples)
-
-#     elif stochastic_pdf.Has("beta_distribution"):
-#         if stochastic_pdf["beta_distribution"].Has("alpha"):
-#             alpha = stochastic_pdf["beta_distribution"]["alpha"].GetDouble()
-#         else:
-#             raise Exception('Please define the "alpha" for the beta distribution in the .json file')            
-#         if stochastic_pdf["beta_distribution"].Has("beta"):
-#             beta = stochastic_pdf["beta_distribution"]["beta"].GetDouble()
-#         else:
-#             raise Exception('Please define the "beta" for the beta distribution in the .json file')
-#         sample = np.random.beta(alpha,beta,number_samples)
-
-#     else:
-#         raise Exception('Please provide "normal_distribution" or "beta_distribution" in the .json file; at the moment only "normal_distribution" and "beta_distribution" are implemented')
-#     return sample
 
 
 '''
@@ -133,31 +106,6 @@ def EvaluateQuantityOfInterest(simulation):
 
 
 '''
-The following commented execution_task function is analogous to the uncommented execution_task,
-the difference is what the function returns, and we need only the Quantity of Interest (QoI)
-'''
-#@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=4)
-# def execution_task(model_part_file_name, parameter_file_name):
-#     with open(parameter_file_name,'r') as parameter_file:
-#         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-#     local_parameters = parameters # in case there are more parameters file, we rename them
-#     model = KratosMultiphysics.Model()      
-
-#     local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
-#     alpha = 2.0
-#     beta = 6.0
-#     sample = GenerateBetaSample(alpha,beta)
-#     simulation = MonteCarloAnalysis(model,local_parameters, sample)
-#     simulation.Run() 
-#     QoI =  EvaluateQuantityOfInterest(simulation)
-#     KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-#     node_information = []
-#     for node in simulation._GetSolver().main_model_part.Nodes:
-#         node_information.append([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA), node.X, node.Y])
-#     return 1, QoI, node_information, simulation.sample
-
-
-'''
 function executing the problem
 input:
         model_part_file_name : path of the model part file (still to implement how to import in efficient way in a loop where I have different model part files and different ProjectParameters files, thus for now read model part name from the ProjectParameters.json file)
@@ -181,26 +129,13 @@ def execution_task(model_part_file_name, parameter_file_name):
 
 
 '''
-The following is the function implemented with Ramon to compute the mean
-Right now we are using the update_onepass_M function, computed in mc.py
-'''
-# @task(returns=2)
-# def mean_task(*args):
-#     sum_val = 0
-#     amount_elems = 0
-#     for i in range(int(len(args) / 2)):
-#         sum_val = sum_val + (args[2 * i] * args[2 * i + 1])
-#         amount_elems = amount_elems + args[2 * i]
-#     return amount_elems, sum_val / amount_elems
-
-
-'''
 function executing the problem for sample = 1.0
 input:
         model_part_file_name  : path of the model part file
         parameter_file_name   : path of the Project Parameters file
 output:
         ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
+OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
 @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=1)
 def exact_execution_task(model_part_file_name, parameter_file_name):
@@ -255,7 +190,6 @@ if __name__ == '__main__':
     
     number_samples = 10
     Qlist = []
-    run_results = []
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
     ExactExpectedValueQoI = exact_execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
@@ -263,32 +197,6 @@ if __name__ == '__main__':
     for instance in range (0,number_samples):
         Qlist.append(execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name))
         
-    
-    '''The following lines compute the mean using the mean_task function'''
-    # for elem in Qlist:
-        #curr_elem = compss_wait_on(elem[0])
-        # Qlist_aux.append(1)
-        # Qlist_aux.append(elem)
-
-    # chunk_size = 4
-    '''use this second while loop if you want to append at the end of Qlist the mean value you evaluate'''
-    # while len(Qlist_aux) > 2:
-    #     newQlist = Qlist_aux[2*chunk_size:]
-    #     card, val = mean_task(*Qlist_aux[0:2*chunk_size])
-    #     newQlist.append(card)
-    #     newQlist.append(val)
-    #     Qlist_aux = newQlist
-    '''use this second while loop if you want to append at the beginning of Qlist the mean value you evaluate'''
-    # while len(Qlist_aux) > 2:
-    #     card, val = mean_task(*Qlist_aux[0:2*chunk_size])
-    #     newQlist = []
-    #     newQlist.append(card)
-    #     newQlist.append(val)
-    #     newQlist.extend(Qlist_aux[2*chunk_size:])
-    #     Qlist_aux = newQlist
-
-    # print("Size of Qlist_aux: " + str(len(Qlist_aux)) + " " + str(Qlist_aux))
-    # mean = Qlist_aux[1]
 
     '''Compute mean, second moment and sample variance'''
     MC_mean = 0.0
@@ -306,8 +214,8 @@ if __name__ == '__main__':
     print("relative error: ",relative_error)
 
 
-    """ The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
-    Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)"""
+    ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
+    Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
     # model = KratosMultiphysics.Model()
     # sample = 1.0
     # simulation = MonteCarloAnalysis(model,local_parameters,sample)
