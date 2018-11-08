@@ -259,9 +259,9 @@ public:
       // is created using the base class of geometry, then the mpGeometryData 
       // of the geometry is a null pointer and has not any mWorkingSpaceDimension
       if(NumberOfElements()!=0)
-	dimension = (mpElements->begin())->WorkingSpaceDimension();
+	dimension = (mpElements->begin())->GetGeometry().WorkingSpaceDimension();
       else if(NumberOfConditions()!=0)
-	dimension = (mpConditions->begin())->WorkingSpaceDimension();
+	dimension = (mpConditions->begin())->GetGeometry().WorkingSpaceDimension();
       else if(NumberOfNodes()!=0)
 	dimension = (mpNodes->begin())->Dimension();
 
