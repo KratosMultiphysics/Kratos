@@ -15,20 +15,14 @@
 
 /* System includes */
 #include <unordered_set>
-#include <map>
 #include <unordered_map>
 
 /* External includes */
 
 /* Project includes */
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-#include "includes/master_slave_constraint.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/helper_classes_for_constraint_builder.h"
-
-#include "containers/pointer_vector_map.h"
-#include "containers/pointer_hash_map_set.h"
-#include "containers/data_value_container.h"
 #include "input_output/logger.h"
 
 namespace Kratos
