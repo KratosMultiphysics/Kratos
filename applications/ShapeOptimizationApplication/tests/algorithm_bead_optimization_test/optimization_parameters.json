@@ -9,15 +9,7 @@
             },
             "design_surface_sub_model_part_name" : "design_surface",
             "damping" : {
-                "apply_damping" : true,
-                "damping_regions" : [{
-                    "sub_model_part_name"   : "corner_points",
-                    "damp_X"                : true,
-                    "damp_Y"                : true,
-                    "damp_Z"                : true,
-                    "damping_function_type" : "cosine",
-                    "damping_radius"        : 0.15
-                }]
+                "apply_damping" : false
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
@@ -50,6 +42,7 @@
             "bead_height"                 : 0.05,
             "bead_direction"              : [],
             "bead_direction_mode"         : 2,
+            "fix_boundaries"              : ["corner_points"],
             "number_of_filter_iterations" : 1,
             "filter_penalty_term"         : false,
             "penalty_factor"              : 5000.0,

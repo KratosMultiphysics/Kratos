@@ -45,11 +45,11 @@ with open(response_log_filename, 'r') as csvfile:
     resulting_penalty_scaling = float(last_line[10].strip())
 
     # Check against specifications
-    TestCase().assertAlmostEqual(resulting_lagrange_value, 7.64417E-02,5)
-    TestCase().assertAlmostEqual(resulting_objective_value, 4.21705E-04,5)
-    TestCase().assertAlmostEqual(resulting_lambda, 18.4475,4)
-    TestCase().assertAlmostEqual(resulting_penalty_value, 2.46885E-03,5)
-    TestCase().assertAlmostEqual(resulting_penalty_scaling, 3.11349E-05,5)
+    TestCase().assertAlmostEqual(resulting_lagrange_value, 6.53273E-02,5)
+    TestCase().assertAlmostEqual(resulting_objective_value, 4.27490E-04,5)
+    TestCase().assertAlmostEqual(resulting_lambda, 1.85482E+01,5)
+    TestCase().assertAlmostEqual(resulting_penalty_value, 2.19738E-03,5)
+    TestCase().assertAlmostEqual(resulting_penalty_scaling, 3.84871E-05,5)
 
 os.chdir(original_directory)
 
