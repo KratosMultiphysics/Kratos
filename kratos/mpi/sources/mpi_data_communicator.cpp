@@ -316,4 +316,30 @@ void MPIDataCommunicator::Gather(
         DestinationRank, mComm);
 }
 
+void MPIDataCommunicator::Gatherv(
+    const std::vector<int>& rSendValues,
+    std::vector<int>& rRecvValues,
+    const std::vector<int>& rRecvCounts,
+    const std::vector<int>& rRecvOffsets,
+    const unsigned int DestinationRank) const
+{
+    MPI_Gatherv(
+        rSendValues.data(), rSendValues.size(), MPI_INT,
+        rRecvValues.data(), rRecvCounts.data(), rRecvOffsets.data(), MPI_INT,
+        DestinationRank, mComm);
+}
+
+void MPIDataCommunicator::Gatherv(
+    const std::vector<double>& rSendValues,
+    std::vector<double>& rRecvValues,
+    const std::vector<int>& rRecvCounts,
+    const std::vector<int>& rRecvOffsets,
+    const unsigned int DestinationRank) const
+{
+    MPI_Gatherv(
+        rSendValues.data(), rSendValues.size(), MPI_DOUBLE,
+        rRecvValues.data(), rRecvCounts.data(), rRecvOffsets.data(), MPI_DOUBLE,
+        DestinationRank, mComm);
+}
+
 }

@@ -182,6 +182,20 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<double>& rRecvValues,
         const unsigned int DestinationRank) const override;
 
+    void Gatherv(
+        const std::vector<int>& rSendValues,
+        std::vector<int>& rRecvValues,
+        const std::vector<int>& rRecvCounts,
+        const std::vector<int>& rRecvOffsets,
+        const unsigned int DestinationRank) const override;
+
+    void Gatherv(
+        const std::vector<double>& rSendValues,
+        std::vector<double>& rRecvValues,
+        const std::vector<int>& rRecvCounts,
+        const std::vector<int>& rRecvOffsets,
+        const unsigned int DestinationRank) const override;
+
     ///@}
     ///@name Access
     ///@{
