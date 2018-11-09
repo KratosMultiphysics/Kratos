@@ -70,7 +70,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(DPDALPHA)
         self.optimization_model_part.AddNodalSolutionStepVariable(DPDALPHA_MAPPED)
         self.optimization_model_part.AddNodalSolutionStepVariable(DLDALPHA)
-        self.optimization_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
