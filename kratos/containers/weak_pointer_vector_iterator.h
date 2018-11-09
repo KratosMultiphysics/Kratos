@@ -141,8 +141,7 @@ private:
 
     typename BaseType::reference dereference() const
     {
-        typename TDataType::Pointer p( (this->base())->lock() );
-        return *p;
+        return *((this->base())->lock());
     }
 
     ///@}
