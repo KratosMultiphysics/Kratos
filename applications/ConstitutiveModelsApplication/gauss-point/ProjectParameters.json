@@ -7,11 +7,9 @@
                 "model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.GensNovaModel"
             },
             "variables": {
-                "KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 1000000.0,
-                "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 1.0,
-                "KratosMultiphysics.SWELLING_SLOPE": 7.850,
-                "KratosMultiphysics.NORMAL_COMPRESSION_SLOPE": 0.85,
-                "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 160500.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.REFERENCE_PRESSURE": 1000000.0,
+                "KratosMultiphysics.YOUNG_MODULUS": 10000.0,
+                "KratosMultiphysics.POISSON_RATIO": 0.3,
                 "KratosMultiphysics.ALPHA_SHEAR": 0.0,
                 "KratosMultiphysics.CRITICAL_STATE_LINE": 1.5,
                 "KratosMultiphysics.ConstitutiveModelsApplication.CHIS": 0.0,
@@ -30,5 +28,5 @@
             },
             "echo_level" : 0,
 	    "parametric_analysis_variable": "KSIM",
-	    "parametric_analysis_values": [0, 1.0,  5.0]
+	    "parametric_analysis_values": [0, 1.0,  5.0, 10.0]
 }

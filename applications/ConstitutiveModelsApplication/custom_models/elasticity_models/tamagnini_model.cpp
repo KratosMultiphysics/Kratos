@@ -76,15 +76,20 @@ namespace Kratos
       const ModelDataType & rModelData = rVariables.GetModelData();
       const Properties    & rMaterialProperties = rModelData.GetProperties();
 
-      const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
       const double & rAlphaShear = rMaterialProperties[ALPHA_SHEAR];
-      const double & rReferencePressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
-      const double & rOCR = rMaterialProperties[OVER_CONSOLIDATION_RATIO];
-      const double ReferencePressure = rReferencePressure / rOCR;
-      const double & rConstantShearModulus = rMaterialProperties[INITIAL_SHEAR_MODULUS];
+      const double & rYoungModulus = rMaterialProperties[YOUNG_MODULUS];
+      const double & rPoissonRatio = rMaterialProperties[POISSON_RATIO];
+      const double & rReferencePressure = rMaterialProperties[REFERENCE_PRESSURE];
 
       const MatrixType& HenckyStrain = rVariables.Strain.Matrix;
 
+
+
+      double BulkModulus = rYoungModulus / 3.0 / ( 1.0 - 2.0 * rPoissonRatio); 
+      double SwellingSlope = rReferencePressure / BulkModulus;
+      double ConstantShearModulus = rYoungModulus / 2.0 / ( 1.0 + rPoissonRatio);
+
+      
       // 2.a Separate Volumetric and deviatoric part
       double VolumetricHencky;
       MatrixType DeviatoricHencky(3,3);
@@ -98,28 +103,27 @@ namespace Kratos
       double Phi = 1;
 
 
-      if ( -VolumetricHencky > rSwellingSlope) {
-         Phi = -rSwellingSlope * ReferencePressure * exp( -VolumetricHencky / rSwellingSlope - 1.0);
+      if ( -VolumetricHencky > SwellingSlope) {
+         Phi = -SwellingSlope * rReferencePressure * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
-         Phi = -ReferencePressure * VolumetricHencky - ReferencePressure * pow( VolumetricHencky - rSwellingSlope, 2) / 2.0 / rSwellingSlope;
+         Phi = -rReferencePressure * VolumetricHencky - rReferencePressure * pow( VolumetricHencky - SwellingSlope, 2) / 2.0 / SwellingSlope;
       }
-      double ShearModulus = rAlphaShear * ReferencePressure * std::exp( -VolumetricHencky / rSwellingSlope );
-      rStressMatrix += 2.0 * (  rConstantShearModulus + rAlphaShear / rSwellingSlope * Phi) * DeviatoricHencky;
+      rStressMatrix += 2.0 * (  ConstantShearModulus + rAlphaShear / SwellingSlope * Phi) * DeviatoricHencky;
 
 
       // 3.b Compute Volumetric Part
       double Theta = 1; 
-      if ( -VolumetricHencky > rSwellingSlope) {
-         Theta = -ReferencePressure * exp( -VolumetricHencky / rSwellingSlope - 1.0);
+      if ( -VolumetricHencky > SwellingSlope) {
+         Theta = -rReferencePressure * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
-         Theta = -ReferencePressure * ( -VolumetricHencky / rSwellingSlope);
+         Theta = -rReferencePressure * ( -VolumetricHencky / SwellingSlope);
       }
 
 
-      double pressure = ( 1 + rAlphaShear * pow(deviatoricNorm, 2) / rSwellingSlope) * Theta;
+      double Pressure = ( 1 + rAlphaShear * pow(deviatoricNorm, 2) / SwellingSlope) * Theta;
 
       for (unsigned int i = 0; i< 3; i++)
-         rStressMatrix(i,i) += pressure;
+         rStressMatrix(i,i) += Pressure;
 
 
       KRATOS_CATCH("")
@@ -138,12 +142,15 @@ namespace Kratos
       const ModelDataType & rModelData = rVariables.GetModelData();
       const Properties    & rMaterialProperties = rModelData.GetProperties();
 
-      const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
       const double & rAlphaShear = rMaterialProperties[ALPHA_SHEAR];
-      const double & rReferencePressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
-      const double & rOCR = rMaterialProperties[OVER_CONSOLIDATION_RATIO];
-      const double ReferencePressure = rReferencePressure / rOCR;
-      const double & rConstantShearModulus = rMaterialProperties[INITIAL_SHEAR_MODULUS];
+      const double & rYoungModulus = rMaterialProperties[YOUNG_MODULUS];
+      const double & rPoissonRatio = rMaterialProperties[POISSON_RATIO];
+      const double & rReferencePressure = rMaterialProperties[REFERENCE_PRESSURE];
+
+      double BulkModulus = rYoungModulus / 3.0 / ( 1.0 - 2.0 * rPoissonRatio); 
+      double SwellingSlope = rReferencePressure / BulkModulus;
+      double ConstantShearModulus = rYoungModulus / 2.0 / ( 1.0 + rPoissonRatio);
+
 
       // 1. Define some matrices
       Matrix FourthOrderIdentity = ZeroMatrix(6,6);
@@ -172,36 +179,35 @@ namespace Kratos
       SeparateVolumetricAndDeviatoricPart( HenckyStrain, VolumetricHencky, DeviatoricHencky, deviatoricNorm);
 
       double Phi = 1;
-      if ( -VolumetricHencky > rSwellingSlope) {
-         Phi = -rSwellingSlope * ReferencePressure * exp( -VolumetricHencky / rSwellingSlope - 1.0);
+      if ( -VolumetricHencky > SwellingSlope) {
+         Phi = -SwellingSlope * rReferencePressure * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
-         Phi = -ReferencePressure * VolumetricHencky - ReferencePressure * pow( VolumetricHencky - rSwellingSlope, 2) / 2.0 / rSwellingSlope;
+         Phi = -rReferencePressure * VolumetricHencky - rReferencePressure * pow( VolumetricHencky - SwellingSlope, 2) / 2.0 / SwellingSlope;
       }
       double Theta = 1; 
-      if ( -VolumetricHencky > rSwellingSlope) {
-         Theta = -ReferencePressure * exp( -VolumetricHencky / rSwellingSlope - 1.0);
+      if ( -VolumetricHencky > SwellingSlope) {
+         Theta = -rReferencePressure * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
-         Theta = -ReferencePressure * ( -VolumetricHencky / rSwellingSlope);
+         Theta = -rReferencePressure * ( -VolumetricHencky / SwellingSlope);
       }
       double K = 1; 
-      if ( -VolumetricHencky > rSwellingSlope) {
-         K = ReferencePressure / rSwellingSlope  * exp( -VolumetricHencky / rSwellingSlope - 1.0);
+      if ( -VolumetricHencky > SwellingSlope) {
+         K = rReferencePressure / SwellingSlope  * exp( -VolumetricHencky / SwellingSlope - 1.0);
       }   else {
-         K = ReferencePressure / rSwellingSlope;
+         K = rReferencePressure / SwellingSlope;
       }
 
       // bulk modulus part
-      double pressure = -ReferencePressure * std::exp( -VolumetricHencky / rSwellingSlope ) * ( 1 + rAlphaShear * pow(deviatoricNorm, 2) / rSwellingSlope);
-      rConstitutiveMatrix = ( 1 + rAlphaShear / rSwellingSlope * pow(deviatoricNorm,2.0) ) * K * IdentityCross;
+      rConstitutiveMatrix = ( 1 + rAlphaShear / SwellingSlope * pow(deviatoricNorm,2.0) ) * K * IdentityCross;
 
       // Shear modulus part
-      rConstitutiveMatrix += 2.0*(  rConstantShearModulus + rAlphaShear / rSwellingSlope * Phi) *(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
+      rConstitutiveMatrix += 2.0*(  ConstantShearModulus + rAlphaShear / SwellingSlope * Phi) *(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
 
       // coupling part
       Vector StrainVector = ZeroVector(6);
       StrainVector = ConstitutiveModelUtilities::StressTensorToVector( DeviatoricHencky, StrainVector); // then I do not have to divide by 2
 
-      double Modulus = 2.0 * rAlphaShear / rSwellingSlope * Theta; 
+      double Modulus = 2.0 * rAlphaShear / SwellingSlope * Theta; 
 
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
