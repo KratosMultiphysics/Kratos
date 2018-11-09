@@ -30,22 +30,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
-///@{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
+///@addtogroup MeshMovingApplication
 ///@{
 
 ///@}
@@ -66,6 +51,9 @@ public:
 
     typedef std::size_t SizeType;
 
+    ///@name  Enum's
+    ///@{
+
     enum IntegrationMethod{
         bdf1,
         bdf2,
@@ -73,6 +61,8 @@ public:
         newmark,
         bossak
     };
+
+    ///@}
 
     ///@}
     ///@name Life Cycle
@@ -84,7 +74,6 @@ public:
 
     /// Destructor.
     virtual ~CalculateMeshVelocityUtility() = default;
-
 
     ///@}
     ///@name Operators
@@ -108,76 +97,23 @@ public:
     ///@name Access
     ///@{
 
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    // virtual std::string Info() const;
-
-    /// Print information about this object.
-    // virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const;
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
 
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -187,11 +123,6 @@ private:
 
     double mBossakBeta;
     double mBossakGamma;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -205,46 +136,10 @@ private:
     ///@name Private  Access
     ///@{
 
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
     ///@}
 
 }; // Class CalculateMeshVelocityUtility
 
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-// /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                 CalculateMeshVelocityUtility& rThis);
-
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                 const CalculateMeshVelocityUtility& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-
-//     return rOStream;
-// }
 ///@}
 
 ///@} addtogroup block
