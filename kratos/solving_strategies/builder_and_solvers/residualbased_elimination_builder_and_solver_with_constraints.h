@@ -477,6 +477,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    TSystemMatrixPointerType mpTMatrix = NULL; /// This is matrix containing the global relation for the constraints
+    DofsArrayType mDoFSlaveSet;                /// The set containing the slave DoF of the system
+    SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
+
+    bool mCleared = true; /// If the system has been reseted
+    bool mReassembleLHS = false; /// If the LHS must be reconstructed after computing
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -1100,13 +1107,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    TSystemMatrixPointerType mpTMatrix = NULL; /// This is matrix containing the global relation for the constraints
-    DofsArrayType mDoFSlaveSet;                /// The set containing the slave DoF of the system
-    SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
-
-    bool mCleared = true; /// If the system has been reseted
-    bool mReassembleLHS = false; /// If the LHS must be reconstructed after computing
 
     ///@}
     ///@name Private Operators
