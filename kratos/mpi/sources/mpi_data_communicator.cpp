@@ -37,6 +37,28 @@ template<> inline MPI_Datatype MPIDatatype<array_1d<double,3>>(const array_1d<do
 
 // MPIDataCommunicator implementation
 
+// Life cycle
+
+MPIDataCommunicator::MPIDataCommunicator(MPI_Comm TheMPIComm):
+    DataCommunicator(),
+    mComm(TheMPIComm)
+{}
+
+MPIDataCommunicator::MPIDataCommunicator(MPIDataCommunicator const &rOther):
+    DataCommunicator(rOther),
+    mComm(rOther.mComm)
+{}
+
+MPIDataCommunicator::~MPIDataCommunicator()
+{}
+
+// Barrier wrapper
+
+void MPIDataCommunicator::Barrier() const
+{
+    MPI_Barrier(mComm);
+}
+
 // Reduce operations
 
 int MPIDataCommunicator::Sum(const int rLocalValue, const int Root) const
@@ -363,5 +385,50 @@ void MPIDataCommunicator::AllGather(
         rRecvValues.data(), sends_per_rank, MPI_DOUBLE,
         mComm);
 }
+
+// Access
+
+MPI_Comm MPIDataCommunicator::GetMPICommunicator() const
+{
+    return mComm;
+}
+
+// Inquiry
+
+int MPIDataCommunicator::Rank() const
+{
+    int rank;
+    MPI_Comm_rank(mComm, &rank);
+    return rank;
+}
+
+int MPIDataCommunicator::Size() const
+{
+    int size;
+    MPI_Comm_size(mComm, &size);
+    return size;
+}
+
+bool MPIDataCommunicator::IsDistributed() const
+{
+    return true;
+}
+
+// IO
+
+std::string MPIDataCommunicator::Info() const
+{
+    std::stringstream buffer;
+    PrintInfo(buffer);
+    return buffer.str();
+}
+
+void MPIDataCommunicator::PrintInfo(std::ostream &rOStream) const
+{
+    rOStream << "MPIDataCommunicator";
+}
+
+void MPIDataCommunicator::PrintData(std::ostream &rOStream) const
+{}
 
 }

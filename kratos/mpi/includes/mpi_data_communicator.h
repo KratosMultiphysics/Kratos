@@ -38,9 +38,10 @@ template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&);
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-  */
+/// Wrapper for common MPI calls within Kratos.
+/** This class is designed to isolate the Kratos core and applications from direct calls to MPI routines.
+ *  @see DataCommunicator in the KratosCore for the full interface and a serial do-nothing implementation.
+ */
 class MPIDataCommunicator: public DataCommunicator
 {
   public:
@@ -55,28 +56,19 @@ class MPIDataCommunicator: public DataCommunicator
     ///@{
 
     /// Constructor accepting an MPI_Comm object.
-    MPIDataCommunicator(MPI_Comm TheMPIComm)
-    : DataCommunicator()
-    , mComm(TheMPIComm)
-    {}
+    MPIDataCommunicator(MPI_Comm TheMPIComm);
 
     /// Copy constructor.
-    MPIDataCommunicator(MPIDataCommunicator const &rOther)
-    : DataCommunicator(rOther)
-    , mComm(rOther.mComm)
-    {}
+    MPIDataCommunicator(MPIDataCommunicator const &rOther);
 
     /// Destructor.
-    ~MPIDataCommunicator() override {}
+    ~MPIDataCommunicator() override;
 
     ///@}
     ///@name Operations
     ///@{
 
-    void Barrier() const override
-    {
-        MPI_Barrier(mComm);
-    }
+    void Barrier() const override;
 
     // Reduce operations
 
@@ -212,54 +204,30 @@ class MPIDataCommunicator: public DataCommunicator
     /** @note This method does not exist in the base class
      *  as it would introduce a dependency to MPI in the Kratos core.
      */
-    MPI_Comm GetMPICommunicator() const
-    {
-        return mComm;
-    }
+    MPI_Comm GetMPICommunicator() const;
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    int Rank() const override
-    {
-        int rank;
-        MPI_Comm_rank(mComm, &rank);
-        return rank;
-    }
+    int Rank() const override;
 
-    int Size() const override
-    {
-        int size;
-        MPI_Comm_size(mComm, &size);
-        return size;
-    }
+    int Size() const override;
 
-    bool IsDistributed() const override
-    {
-        return true;
-    }
+    bool IsDistributed() const override;
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        PrintInfo(buffer);
-        return buffer.str();
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const override
-    {
-        rOStream << "MPIDataCommunicator";
-    }
+    void PrintInfo(std::ostream &rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const override {}
+    void PrintData(std::ostream &rOStream) const override;
 
     ///@}
 
