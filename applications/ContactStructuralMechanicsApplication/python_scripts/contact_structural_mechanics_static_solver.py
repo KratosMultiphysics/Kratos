@@ -279,8 +279,11 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
                 # We use the elimination builder and solver
-                self.GetComputingModelPart().Set(KM.TO_SPLIT) # We set the flag for some operations
-                builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
+                if self.settings["multi_point_constraints_used"].GetBool():
+                    self.GetComputingModelPart().Set(KM.TO_SPLIT) # We set the flag for some operations
+                    builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+                else:
+                    builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
 
         return builder_and_solver
 

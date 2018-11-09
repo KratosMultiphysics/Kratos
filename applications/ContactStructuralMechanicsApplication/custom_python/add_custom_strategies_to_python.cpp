@@ -48,6 +48,8 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h"
+#include "custom_strategies/custom_builder_and_solvers/contact_residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/custom_builder_and_solvers/contact_residualbased_elimination_builder_and_solver_with_constraints.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -101,6 +103,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
     typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType > ContactResidualBasedBlockBuilderAndSolverType;
     typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverWithConstraintsType > ContactResidualBasedBlockBuilderAndSolverWithConstraintsType;
+    typedef ContactResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedEliminationBuilderAndSolverType;
+    typedef ContactResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType;
 
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
@@ -266,6 +270,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Contact block buiklder and sokver with constraints
     py::class_< ContactResidualBasedBlockBuilderAndSolverWithConstraintsType, ContactResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolverWithConstraints")
+    .def(py::init< LinearSolverType::Pointer > ());
+
+    // Contact elimination builder and solver
+    py::class_< ContactResidualBasedEliminationBuilderAndSolverType, ContactResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedEliminationBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer > ());
+
+    // Contact elimination builder and sokver with constraints
+    py::class_< ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType, ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedEliminationBuilderAndSolverWithConstraints")
     .def(py::init< LinearSolverType::Pointer > ());
 }
 
