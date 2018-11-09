@@ -16,6 +16,7 @@ from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as T
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
+from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
 # Import from Test Factories (with different analysis flows)
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
@@ -51,6 +52,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
     smallSuite.addTest(TGravityApplicationTest('test_execution'))
+    smallSuite.addTest(TSlipBoundaryTest('test_execution'))
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
