@@ -37,7 +37,7 @@ class MeshSolverBase(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type"           : "mesh_solver_structural_similarity",
-            "buffer_size"           : 1,
+            "buffer_size"           : 3,
             "echo_level"            : 0,
             "domain_size"           : -1,
             "model_part_name"       : "",
@@ -141,15 +141,13 @@ class MeshSolverBase(PythonSolver):
         self.get_mesh_motion_solving_strategy().Check()
 
     def GetMinimumBufferSize(self):
-        buffer_size = 0
-        if (self.settings["calculate_mesh_velocities"].GetBool() == True):
-            time_order = self.settings["time_order"].GetInt()
-            if time_order == 1:
-                buffer_size = 2
-            elif time_order == 2:
-                buffer_size = 3
-            else:
-                raise Exception('"time_order" can only be 1 or 2!')
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 1:
+            buffer_size = 2
+        elif time_order == 2:
+            buffer_size = 3
+        else:
+            raise Exception('"time_order" can only be 1 or 2!')
         return max(buffer_size, self.settings["buffer_size"].GetInt())
 
     def MoveMesh(self):

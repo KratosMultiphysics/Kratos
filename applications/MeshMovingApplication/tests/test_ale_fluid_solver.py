@@ -1,17 +1,13 @@
-import KratosMultiphysics as KM
+import KratosMultiphysics as km
+import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.MeshMovingApplication
-
 try:
-    import KratosMultiphysics.FluidDynamicsApplication
     import KratosMultiphysics.ExternalSolversApplication
-    missing_external_dependencies = True
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = False
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+    have_external_solvers = True
+except ImportError:
+    have_external_solvers = False
+
+from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -29,14 +25,14 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
 
-@UnitTest.skipUnless(missing_external_dependencies,"{} is not available".format(missing_application))
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class ALEFluidSolverTest(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
         self.print_output = False
 
-    def test_ALEFluidSolver(self):
+    def testALEFluidSolver(self):
         work_folder = "test_ale_fluid_solver"
         settings_file_name = "ProjectParameters.json"
 
@@ -47,13 +43,13 @@ class ALEFluidSolverTest(UnitTest.TestCase):
             kratos_utilities.DeleteFileIfExisting("test_ale_fluid_solver.post.lst")
 
     def _runTest(self,settings_file_name):
-        model = KM.Model()
+        model = km.Model()
         with open(settings_file_name,'r') as settings_file:
-            settings = KM.Parameters(settings_file.read())
+            settings = km.Parameters(settings_file.read())
 
         # to check the results: add output settings block if needed
         if self.print_output:
-            settings["output_processes"].AddValue("gid_output", KM.Parameters(R'''[{
+            settings["output_processes"].AddValue("gid_output", km.Parameters(R'''[{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "GiDOutputProcess",
@@ -79,7 +75,6 @@ class ALEFluidSolverTest(UnitTest.TestCase):
             }
             }]'''))
 
-        from fluid_dynamics_analysis import FluidDynamicsAnalysis
         analysis = FluidDynamicsAnalysis(model,settings)
         analysis.Run()
 
