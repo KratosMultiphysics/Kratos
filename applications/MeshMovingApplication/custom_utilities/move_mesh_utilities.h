@@ -34,9 +34,11 @@ typedef BaseType::VectorType VectorType;
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                             VectorType &rDetJ0, GeometryType &rGeometry);
 
+KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"CalculateMeshVelocityUtility\"")
 void CalculateMeshVelocities(ModelPart &rMeshModelPart,
                              const int TimeOrder, const double DeltaTime);
 
+KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the \"CalculateMeshVelocityUtility\"")
 void CalculateMeshVelocities(ModelPart* pMeshModelPart,
                              const int TimeOrder, const double DeltaTime);
 
