@@ -15,6 +15,7 @@
 
 // Project includes
 #include "input_output/logger.h"
+#include "includes/parallel_environment.h"
 
 // Module includes
 #include "mpi_environment.h"
@@ -52,6 +53,10 @@ void MPIEnvironment::Initialize()
 
         #endif
     }
+
+    // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
+    ParallelEnvironment& parallel_environment = ParallelEnvironment::GetInstance();
+    parallel_environment.RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), true);
 
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
