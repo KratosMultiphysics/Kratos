@@ -290,25 +290,25 @@ public:
                         }
 
                         // Setting particle element's initial condition
-                        p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
-                        p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
-                        p_element -> SetValue(MP_DENSITY, MP_Density);
-                        p_element -> SetValue(MP_MASS, MP_Mass);
-                        p_element -> SetValue(MP_VOLUME, MP_Volume);
-                        p_element -> SetValue(GAUSS_COORD, xg);
-                        p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
-                        p_element -> SetValue(MP_VELOCITY, MP_Velocity);
-                        p_element -> SetValue(MP_ACCELERATION, MP_Acceleration);
-                        p_element -> SetValue(AUX_MP_VELOCITY, Aux_MP_Velocity);
-                        p_element -> SetValue(AUX_MP_ACCELERATION, Aux_MP_Acceleration);
-                        p_element -> SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
-                        p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
-                        p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
+                        p_element->SetValue(MP_NUMBER, integration_point_per_elements);
+                        p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
+                        p_element->SetValue(MP_DENSITY, MP_Density);
+                        p_element->SetValue(MP_MASS, MP_Mass);
+                        p_element->SetValue(MP_VOLUME, MP_Volume);
+                        p_element->SetValue(GAUSS_COORD, xg);
+                        p_element->SetValue(MP_DISPLACEMENT, MP_Displacement);
+                        p_element->SetValue(MP_VELOCITY, MP_Velocity);
+                        p_element->SetValue(MP_ACCELERATION, MP_Acceleration);
+                        p_element->SetValue(AUX_MP_VELOCITY, Aux_MP_Velocity);
+                        p_element->SetValue(AUX_MP_ACCELERATION, Aux_MP_Acceleration);
+                        p_element->SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
+                        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
+                        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
 
                         if(isMixedFormulation)
                         {
-                            p_element -> SetValue(MP_PRESSURE, MP_Pressure);
-                            p_element -> SetValue(AUX_MP_PRESSURE, Aux_MP_Pressure);
+                            p_element->SetValue(MP_PRESSURE, MP_Pressure);
+                            p_element->SetValue(AUX_MP_PRESSURE, Aux_MP_Pressure);
                         }
 
                         // Add the MP Element to the model part
@@ -427,10 +427,10 @@ public:
      * @param Level of echo for the solution strategy
      * @details
      * {
-     * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic informations
-     * 2 -> Printing linear solver data
-     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * 0->Mute... no echo at all
+     * 1->Printing time and basic informations
+     * 2->Printing linear solver data
+     * 3->Print of debug informations: Echo of stiffness matrix, Dx, b...
      * }
      */
     void SetEchoLevel(const int Level) override
@@ -771,22 +771,22 @@ public:
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 
 			auto element_itr = grid_model_part.Elements().begin() + i;
-			element_itr -> Reset(ACTIVE);
+			element_itr->Reset(ACTIVE);
             if (m_GeometryElement == "Triangle"){
-                element_itr ->GetGeometry()[0].Reset(ACTIVE);
-                element_itr ->GetGeometry()[1].Reset(ACTIVE);
-                element_itr ->GetGeometry()[2].Reset(ACTIVE);
+                element_itr->GetGeometry()[0].Reset(ACTIVE);
+                element_itr->GetGeometry()[1].Reset(ACTIVE);
+                element_itr->GetGeometry()[2].Reset(ACTIVE);
 
                 if (TDim ==3)
                 {
-                    element_itr ->GetGeometry()[3].Reset(ACTIVE);
+                    element_itr->GetGeometry()[3].Reset(ACTIVE);
                 }
             }
             else if (m_GeometryElement == "Quadrilateral"){
-                element_itr ->GetGeometry()[0].Reset(ACTIVE);
-                element_itr ->GetGeometry()[1].Reset(ACTIVE);
-                element_itr ->GetGeometry()[2].Reset(ACTIVE);
-                element_itr ->GetGeometry()[3].Reset(ACTIVE);
+                element_itr->GetGeometry()[0].Reset(ACTIVE);
+                element_itr->GetGeometry()[1].Reset(ACTIVE);
+                element_itr->GetGeometry()[2].Reset(ACTIVE);
+                element_itr->GetGeometry()[3].Reset(ACTIVE);
 
                 if (TDim ==3)
                 {
@@ -814,7 +814,7 @@ public:
 
                 auto element_itr = mpm_model_part.Elements().begin() + i;
 
-                array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
+                array_1d<double,3> xg = element_itr->GetValue(GAUSS_COORD);
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
@@ -825,47 +825,7 @@ public:
                 if (is_found == true)
                 {
                     pelem->Set(ACTIVE);
-                    if (m_GeometryElement == "Triangle")
-                    {
-                        element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                        element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                        element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
-
-                        pelem->GetGeometry()[0].Set(ACTIVE);
-                        pelem->GetGeometry()[1].Set(ACTIVE);
-                        pelem->GetGeometry()[2].Set(ACTIVE);
-
-                        if (TDim ==3)
-                        {
-                            element_itr->GetGeometry()(3) = pelem->GetGeometry()(3);
-                            pelem->GetGeometry()[3].Set(ACTIVE);
-                        }
-                    }
-                    else if(m_GeometryElement == "Quadrilateral")
-                    {
-                        element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                        element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                        element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
-                        element_itr->GetGeometry()(3) = pelem->GetGeometry()(3);
-
-                        pelem->GetGeometry()[0].Set(ACTIVE);
-                        pelem->GetGeometry()[1].Set(ACTIVE);
-                        pelem->GetGeometry()[2].Set(ACTIVE);
-                        pelem->GetGeometry()[3].Set(ACTIVE);
-
-                        if (TDim ==3)
-                        {
-                            element_itr->GetGeometry()(4) = pelem->GetGeometry()(4);
-                            element_itr->GetGeometry()(5) = pelem->GetGeometry()(5);
-                            element_itr->GetGeometry()(6) = pelem->GetGeometry()(6);
-                            element_itr->GetGeometry()(7) = pelem->GetGeometry()(7);
-
-                            pelem->GetGeometry()[4].Set(ACTIVE);
-                            pelem->GetGeometry()[5].Set(ACTIVE);
-                            pelem->GetGeometry()[6].Set(ACTIVE);
-                            pelem->GetGeometry()[7].Set(ACTIVE);
-                        }
-                    }
+                    element_itr->GetGeometry() = pelem->GetGeometry();
                 }
             }
         }
