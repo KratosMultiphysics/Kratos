@@ -115,11 +115,21 @@ class DataCommunicatorContainer
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
-                                DataCommunicatorContainer &rThis);
+                                DataCommunicatorContainer &rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 inline std::ostream &operator<<(std::ostream &rOStream,
-                                const DataCommunicatorContainer &rThis);
+                                const DataCommunicatorContainer &rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 ///@}
 
