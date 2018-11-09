@@ -252,6 +252,16 @@ class DataCommunicator
         const unsigned int DestinationRank) const
     {}
 
+    virtual void AllGather(
+        const std::vector<int>& rSendValues,
+        std::vector<int>& rRecvValues) const
+    {}
+
+    virtual void AllGather(
+        const std::vector<double>& rSendValues,
+        std::vector<double>& rRecvValues) const
+    {}
+
     ///@}
     ///@name Inquiry
     ///@{
