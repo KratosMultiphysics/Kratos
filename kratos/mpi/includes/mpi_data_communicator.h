@@ -238,6 +238,12 @@ class MPIDataCommunicator: public DataCommunicator
     MPI_Comm mComm;
 
     ///@}
+    ///@name Operations
+    ///@{
+
+    void CheckMPIErrorCode(const int ierr, const std::string MPICallName) const;
+
+    ///@}
     ///@name Un accessible methods
     ///@{
 

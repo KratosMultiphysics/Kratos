@@ -64,69 +64,78 @@ void MPIDataCommunicator::Barrier() const
 int MPIDataCommunicator::Sum(const int rLocalValue, const int Root) const
 {
     int global_value(rLocalValue);
-    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, Root, mComm);
+    int ierr = MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
 double MPIDataCommunicator::Sum(const double rLocalValue, const int Root) const
 {
     double global_value(rLocalValue);
-    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, Root, mComm);
+    int ierr = MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
 array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValue, const int Root) const
 {
     array_1d<double,3> global_value(rLocalValue);
-    MPI_Reduce(
+    int ierr = MPI_Reduce(
         rLocalValue.data().data(), global_value.data().data(), 3,
         Internals::MPIDatatype(rLocalValue), MPI_SUM, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
 int MPIDataCommunicator::Min(const int rLocalValue, const int Root) const
 {
     int global_value(rLocalValue);
-    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, Root, mComm);
+    int ierr = MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
 double MPIDataCommunicator::Min(const double rLocalValue, const int Root) const
 {
     double global_value(rLocalValue);
-    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, Root, mComm);
+    int ierr = MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
 array_1d<double,3> MPIDataCommunicator::Min(const array_1d<double,3>& rLocalValue, const int Root) const
 {
     array_1d<double,3> global_value(rLocalValue);
-    MPI_Reduce(
+    int ierr = MPI_Reduce(
         rLocalValue.data().data(), global_value.data().data(), 3,
         Internals::MPIDatatype(rLocalValue), MPI_MIN, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
 int MPIDataCommunicator::Max(const int rLocalValue, const int Root) const
 {
     int global_value(rLocalValue);
-    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
+    int ierr = MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
 double MPIDataCommunicator::Max(const double rLocalValue, const int Root) const
 {
     double global_value(rLocalValue);
-    MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
+    int ierr = MPI_Reduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
 array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValue, const int Root) const
 {
     array_1d<double,3> global_value(rLocalValue);
-    MPI_Reduce(
+    int ierr = MPI_Reduce(
         rLocalValue.data().data(), global_value.data().data(), 3,
         Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
 }
 
@@ -135,69 +144,78 @@ array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValu
 int MPIDataCommunicator::SumAll(const int rLocalValue) const
 {
     int global_value(rLocalValue);
-    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    int ierr = MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
 double MPIDataCommunicator::SumAll(const double rLocalValue) const
 {
     double global_value(rLocalValue);
-    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    int ierr = MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
 array_1d<double,3> MPIDataCommunicator::SumAll(const array_1d<double,3>& rLocalValue) const
 {
     array_1d<double,3> global_value(rLocalValue);
-    MPI_Allreduce(
+    int ierr = MPI_Allreduce(
         rLocalValue.data().data(), global_value.data().data(), 3,
         Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
 int MPIDataCommunicator::MinAll(const int rLocalValue) const
 {
     int global_value(rLocalValue);
-    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, mComm);
+    int ierr = MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
 double MPIDataCommunicator::MinAll(const double rLocalValue) const
 {
     double global_value(rLocalValue);
-    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, mComm);
+    int ierr = MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MIN, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
 array_1d<double,3> MPIDataCommunicator::MinAll(const array_1d<double,3>& rLocalValue) const
 {
     array_1d<double,3> global_value(rLocalValue);
-    MPI_Allreduce(
+    int ierr = MPI_Allreduce(
         rLocalValue.data().data(), global_value.data().data(), 3,
         Internals::MPIDatatype(rLocalValue), MPI_MIN, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
 int MPIDataCommunicator::MaxAll(const int rLocalValue) const
 {
     int global_value(rLocalValue);
-    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
+    int ierr = MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
 double MPIDataCommunicator::MaxAll(const double rLocalValue) const
 {
     double global_value(rLocalValue);
-    MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
+    int ierr = MPI_Allreduce(&rLocalValue, &global_value, 1, Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
 array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalValue) const
 {
     array_1d<double,3> global_value(rLocalValue);
-    MPI_Allreduce(
+    int ierr = MPI_Allreduce(
         rLocalValue.data().data(), global_value.data().data(), 3,
         Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
 }
 
@@ -206,14 +224,16 @@ array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalV
 int MPIDataCommunicator::ScanSum(const int rLocalValue) const
 {
     int partial_total;
-    MPI_Scan(&rLocalValue, &partial_total, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    int ierr = MPI_Scan(&rLocalValue, &partial_total, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Scan");
     return partial_total;
 }
 
 double MPIDataCommunicator::ScanSum(const double rLocalValue) const
 {
     double partial_total;
-    MPI_Scan(&rLocalValue, &partial_total, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    int ierr = MPI_Scan(&rLocalValue, &partial_total, 1, Internals::MPIDatatype(rLocalValue), MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Scan");
     return partial_total;
 }
 
@@ -226,10 +246,11 @@ void MPIDataCommunicator::SendRecv(
 {
     const int send_tag = 0;
     const int recv_tag = 0;
-    MPI_Sendrecv(
+    int ierr = MPI_Sendrecv(
         rSendValues.data(), rSendValues.size(), MPI_INT, SendDestination, send_tag,
         rRecvValues.data(), rRecvValues.size(), MPI_INT, RecvSource, recv_tag,
         mComm, MPI_STATUS_IGNORE);
+    CheckMPIErrorCode(ierr, "MPI_Sendrecv");
 }
 
 void MPIDataCommunicator::SendRecv(
@@ -238,10 +259,11 @@ void MPIDataCommunicator::SendRecv(
 {
     const int send_tag = 0;
     const int recv_tag = 0;
-    MPI_Sendrecv(
+    int ierr = MPI_Sendrecv(
         rSendValues.data(), rSendValues.size(), MPI_DOUBLE, SendDestination, send_tag,
         rRecvValues.data(), rRecvValues.size(), MPI_DOUBLE, RecvSource, recv_tag,
         mComm, MPI_STATUS_IGNORE);
+    CheckMPIErrorCode(ierr, "MPI_Sendrecv");
 }
 
 // Broadcast
@@ -250,14 +272,16 @@ void MPIDataCommunicator::Broadcast(
     std::vector<int>& rBuffer,
     const unsigned int SourceRank) const
 {
-    MPI_Bcast(rBuffer.data(), rBuffer.size(), MPI_INT, SourceRank, mComm);
+    int ierr = MPI_Bcast(rBuffer.data(), rBuffer.size(), MPI_INT, SourceRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Bcast");
 }
 
 void MPIDataCommunicator::Broadcast(
     std::vector<double>& rBuffer,
     const unsigned int SourceRank) const
 {
-    MPI_Bcast(rBuffer.data(), rBuffer.size(), MPI_DOUBLE, SourceRank, mComm);
+    int ierr = MPI_Bcast(rBuffer.data(), rBuffer.size(), MPI_DOUBLE, SourceRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Bcast");
 }
 
 // Scatter operations
@@ -268,10 +292,11 @@ void MPIDataCommunicator::Scatter(
     const unsigned int SourceRank) const
 {
     const int sends_per_rank = rRecvValues.size();
-    MPI_Scatter(
+    int ierr = MPI_Scatter(
         rSendValues.data(), sends_per_rank, MPI_INT,
         rRecvValues.data(), sends_per_rank, MPI_INT,
         SourceRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Scatter");
 }
 
 void MPIDataCommunicator::Scatter(
@@ -280,10 +305,11 @@ void MPIDataCommunicator::Scatter(
     const unsigned int SourceRank) const
 {
     const int sends_per_rank = rRecvValues.size();
-    MPI_Scatter(
+    int ierr = MPI_Scatter(
         rSendValues.data(), sends_per_rank, MPI_DOUBLE,
         rRecvValues.data(), sends_per_rank, MPI_DOUBLE,
         SourceRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Scatter");
 }
 
 void MPIDataCommunicator::Scatterv(
@@ -293,10 +319,11 @@ void MPIDataCommunicator::Scatterv(
     std::vector<int>& rRecvValues,
     const unsigned int SourceRank) const
 {
-    MPI_Scatterv(
+    int ierr = MPI_Scatterv(
         rSendValues.data(), rSendCounts.data(), rSendOffsets.data(), MPI_INT,
         rRecvValues.data(), rRecvValues.size(), MPI_INT,
         SourceRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Scatterv");
 }
 
 void MPIDataCommunicator::Scatterv(
@@ -306,10 +333,11 @@ void MPIDataCommunicator::Scatterv(
     std::vector<double>& rRecvValues,
     const unsigned int SourceRank) const
 {
-    MPI_Scatterv(
+    int ierr = MPI_Scatterv(
         rSendValues.data(), rSendCounts.data(), rSendOffsets.data(), MPI_DOUBLE,
         rRecvValues.data(), rRecvValues.size(), MPI_DOUBLE,
         SourceRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Scatterv");
 }
 
 // Gather operations
@@ -320,10 +348,11 @@ void MPIDataCommunicator::Gather(
     const unsigned int DestinationRank) const
 {
     const int sends_per_rank = rSendValues.size();
-    MPI_Gather(
+    int ierr = MPI_Gather(
         rSendValues.data(), sends_per_rank, MPI_INT,
         rRecvValues.data(), sends_per_rank, MPI_INT,
         DestinationRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Gather");
 }
 
 void MPIDataCommunicator::Gather(
@@ -332,10 +361,11 @@ void MPIDataCommunicator::Gather(
     const unsigned int DestinationRank) const
 {
     const int sends_per_rank = rSendValues.size();
-    MPI_Gather(
+    int ierr = MPI_Gather(
         rSendValues.data(), sends_per_rank, MPI_DOUBLE,
         rRecvValues.data(), sends_per_rank, MPI_DOUBLE,
         DestinationRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Gather");
 }
 
 void MPIDataCommunicator::Gatherv(
@@ -345,10 +375,11 @@ void MPIDataCommunicator::Gatherv(
     const std::vector<int>& rRecvOffsets,
     const unsigned int DestinationRank) const
 {
-    MPI_Gatherv(
+    int ierr = MPI_Gatherv(
         rSendValues.data(), rSendValues.size(), MPI_INT,
         rRecvValues.data(), rRecvCounts.data(), rRecvOffsets.data(), MPI_INT,
         DestinationRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Gatherv");
 }
 
 void MPIDataCommunicator::Gatherv(
@@ -358,10 +389,11 @@ void MPIDataCommunicator::Gatherv(
     const std::vector<int>& rRecvOffsets,
     const unsigned int DestinationRank) const
 {
-    MPI_Gatherv(
+    int ierr = MPI_Gatherv(
         rSendValues.data(), rSendValues.size(), MPI_DOUBLE,
         rRecvValues.data(), rRecvCounts.data(), rRecvOffsets.data(), MPI_DOUBLE,
         DestinationRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Gatherv");
 }
 
 void MPIDataCommunicator::AllGather(
@@ -369,10 +401,11 @@ void MPIDataCommunicator::AllGather(
     std::vector<int>& rRecvValues) const
 {
     const int sends_per_rank = rSendValues.size();
-    MPI_Allgather(
+    int ierr = MPI_Allgather(
         rSendValues.data(), sends_per_rank, MPI_INT,
         rRecvValues.data(), sends_per_rank, MPI_INT,
         mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allgather");
 }
 
 void MPIDataCommunicator::AllGather(
@@ -380,10 +413,11 @@ void MPIDataCommunicator::AllGather(
     std::vector<double>& rRecvValues) const
 {
     const int sends_per_rank = rSendValues.size();
-    MPI_Allgather(
+    int ierr = MPI_Allgather(
         rSendValues.data(), sends_per_rank, MPI_DOUBLE,
         rRecvValues.data(), sends_per_rank, MPI_DOUBLE,
         mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allgather");
 }
 
 // Access
@@ -398,14 +432,16 @@ MPI_Comm MPIDataCommunicator::GetMPICommunicator() const
 int MPIDataCommunicator::Rank() const
 {
     int rank;
-    MPI_Comm_rank(mComm, &rank);
+    int ierr = MPI_Comm_rank(mComm, &rank);
+    CheckMPIErrorCode(ierr, "MPI_Comm_rank");
     return rank;
 }
 
 int MPIDataCommunicator::Size() const
 {
     int size;
-    MPI_Comm_size(mComm, &size);
+    int ierr = MPI_Comm_size(mComm, &size);
+    CheckMPIErrorCode(ierr, "MPI_Comm_size");
     return size;
 }
 
@@ -430,5 +466,12 @@ void MPIDataCommunicator::PrintInfo(std::ostream &rOStream) const
 
 void MPIDataCommunicator::PrintData(std::ostream &rOStream) const
 {}
+
+// Error checking
+
+void MPIDataCommunicator::CheckMPIErrorCode(const int ierr, const std::string MPICallName) const
+{
+    KRATOS_ERROR_IF_NOT(ierr == MPI_SUCCESS) << MPICallName << " failed with error code " << ierr << "." << std::endl;
+}
 
 }
