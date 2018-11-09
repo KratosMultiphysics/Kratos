@@ -17,7 +17,8 @@
 
 
 // System includes
-
+#include<map>
+#include<tuple>
 
 // External includes
 
@@ -43,14 +44,6 @@ namespace Kratos
 class CalculateMeshVelocityUtility
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of CalculateMeshVelocityUtility
-    KRATOS_CLASS_POINTER_DEFINITION(CalculateMeshVelocityUtility);
-
-    typedef std::size_t SizeType;
-
     ///@name  Enum's
     ///@{
 
@@ -63,6 +56,19 @@ public:
     };
 
     ///@}
+
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of CalculateMeshVelocityUtility
+    KRATOS_CLASS_POINTER_DEFINITION(CalculateMeshVelocityUtility);
+
+    typedef std::size_t SizeType;
+
+    typedef std::tuple<IntegrationMethod, SizeType> TupleType;
+
+    typedef std::map<std::string, TupleType> MethodsMapType;
+
 
     ///@}
     ///@name Life Cycle
@@ -119,6 +125,8 @@ private:
 
     ModelPart& mrModelPart;
 
+    static MethodsMapType msAvailableMethods;
+
     IntegrationMethod mIntegrationMethod;
 
     double mBossakBeta;
@@ -131,6 +139,8 @@ private:
     void CalculateMeshVelocitiesBDF(const double DeltaTime);
 
     void CalculateMeshVelocitiesGeneralizedAlpha(const double DeltaTime);
+
+    static const MethodsMapType::const_iterator GetMethodIterator(const std::string& rIntegrationMethod);
 
     ///@}
     ///@name Private  Access

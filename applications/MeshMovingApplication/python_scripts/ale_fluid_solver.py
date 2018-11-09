@@ -255,11 +255,6 @@ class ALEFluidSolver(PythonSolver):
                         info_msg += 'mesh-velocity to "' + str(alpha_fluid) + '" to be consistent with '
                         info_msg += '"alpha" of the fluid'
                         KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
-            else:
-                if self.is_printing_rank:
-                    info_msg  = '"time_scheme" of the fluid could not be determined, '
-                    info_msg += 'mesh-solver uses it\'s default'
-                    KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
 
         elif fluid_solver_type == "fractional_step" or fluid_solver_type == "FractionalStep":
             # currently fractional step always uses BDF2
@@ -270,18 +265,12 @@ class ALEFluidSolver(PythonSolver):
                     info_msg += 'is different from the "time_scheme" used for the '
                     info_msg += 'computation of the mesh-velocity (' + time_scheme_mesh_vel + ')'
                     KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
-            else:
-                mesh_vel_comp_settings.AddEmptyValue("time_scheme").SetString("bdf2")
-                if self.is_printing_rank:
-                    info_msg  = 'setting "time_scheme" of the mesh-solver for the computation '
-                    info_msg += 'of the mesh-velocity to "bdf2" to be consistent with the '
-                    info_msg += '"time_scheme" of the fluid'
-                    KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
-        else:
-            if self.is_printing_rank:
-                info_msg  = 'unknown "solver_type" of the fluid-solver, therefore '
-                info_msg += 'no automatic selection of "time_scheme" for the computation'
-                info_msg += 'of the mesh-velocity performed (mesh-solver uses it\'s default)'
-                KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+
+        if not mesh_vel_comp_settings.Has("time_scheme"):
+            mesh_vel_comp_settings.AddEmptyValue("time_scheme").SetString("UNSPECIFIED")
+            warn_msg  = 'unknown "solver_type" of the fluid-solver, therefore '
+            warn_msg += 'no automatic selection\nof "time_scheme" for the computation '
+            warn_msg += 'of the mesh-velocity performed'
+            KratosMultiphysics.Logger.PrintWarning("::[ALEFluidSolver]::", warn_msg)
 
         return mesh_vel_comp_settings

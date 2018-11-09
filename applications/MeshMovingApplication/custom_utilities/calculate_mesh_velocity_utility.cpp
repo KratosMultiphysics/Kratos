@@ -40,31 +40,7 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
 
     const std::string time_scheme = Settings["time_scheme"].GetString();
 
-    const std::map<std::string, CalculateMeshVelocityUtility::IntegrationMethod>
-    available_integration_methods {
-        {"bdf1",              bdf1},
-        {"bdf2",              bdf2},
-        {"generalized_alpha", generalized_alpha},
-        {"bossak",            generalized_alpha},
-        {"newmark",           generalized_alpha}
-    };
-
-    if (available_integration_methods.find(time_scheme) != available_integration_methods.end()) {
-        mIntegrationMethod = available_integration_methods.at(time_scheme);
-    }
-    else {
-        std::stringstream err_msg;
-
-        err_msg << "The requested integration-method \"" << time_scheme
-                << "\" is not available!\n"
-                << "The following methods are available:" << std::endl;
-
-        for (const auto& avail_method : available_integration_methods) {
-            err_msg << "\t" << avail_method.first << "\n";
-        }
-
-        KRATOS_ERROR << err_msg.str() << std::endl;
-    }
+    mIntegrationMethod = std::get<0>(GetMethodIterator(time_scheme)->second);
 
     const SizeType min_buffer_size = GetMinimumBufferSize(time_scheme);
     const SizeType current_buffer_size = rModelPart.GetBufferSize();
@@ -100,16 +76,10 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
     }
 }
 
-CalculateMeshVelocityUtility::SizeType CalculateMeshVelocityUtility::GetMinimumBufferSize(const std::string& rIntegrationMethod)
+CalculateMeshVelocityUtility::SizeType CalculateMeshVelocityUtility::GetMinimumBufferSize(
+    const std::string& rIntegrationMethod)
 {
-    const std::map<std::string, SizeType> required_buffer_sizes {
-        {"bdf1",              2},
-        {"bdf2",              3},
-        {"generalized_alpha", 2},
-        {"bossak",            2},
-        {"newmark",           2}
-    };
-    return required_buffer_sizes.at(rIntegrationMethod);
+    return std::get<1>(GetMethodIterator(rIntegrationMethod)->second);
 }
 
 void CalculateMeshVelocityUtility::CalculateMeshVelocities()
@@ -194,6 +164,38 @@ void CalculateMeshVelocityUtility::CalculateMeshVelocitiesGeneralizedAlpha(const
 
     mrModelPart.GetCommunicator().SynchronizeVariable(MESH_ACCELERATION);
 }
+
+const CalculateMeshVelocityUtility::MethodsMapType::const_iterator CalculateMeshVelocityUtility::GetMethodIterator(
+    const std::string& rIntegrationMethod)
+{
+    const auto it_method = msAvailableMethods.find(rIntegrationMethod);
+
+    if (it_method != msAvailableMethods.end()) {
+        return it_method;
+    }
+    else {
+        std::stringstream err_msg;
+
+        err_msg << "The requested \"time_scheme\" \"" << rIntegrationMethod
+                << "\" is not available!\n"
+                << "The following options are available:" << std::endl;
+
+        for (const auto& avail_method : msAvailableMethods) {
+            err_msg << "\t" << avail_method.first << "\n";
+        }
+
+        KRATOS_ERROR << err_msg.str() << std::endl;
+    }
+}
+
+// register the available integration-methods
+CalculateMeshVelocityUtility::MethodsMapType CalculateMeshVelocityUtility::msAvailableMethods = {
+    {"bdf1",              TupleType{bdf1,              2}},
+    {"bdf2",              TupleType{bdf2,              3}},
+    {"generalized_alpha", TupleType{generalized_alpha, 2}},
+    {"bossak",            TupleType{generalized_alpha, 2}},
+    {"newmark",           TupleType{generalized_alpha, 2}}
+};
 
 
 }  // namespace Kratos.
