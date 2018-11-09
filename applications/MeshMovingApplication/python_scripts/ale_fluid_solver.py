@@ -66,7 +66,13 @@ class ALEFluidSolver(PythonSolver):
         # to be done before creating the mesh-solver, as it removes some parameters
         self.mesh_vel_comp_settings = self._GetMeshVelocityComputationSettings(solver_settings, mesh_motion_solver_settings)
 
-        # TODO set calculation of MESH-VEL to false => will be removed in next PR
+        # TODO remove this once the mesh-vel-computation is removed from the mesh-solver!
+        # We use the new utility, therefore explicitly setting it to false!
+        if mesh_motion_solver_settings.Has("calculate_mesh_velocities"):
+            mesh_motion_solver_settings.SetBool(False)
+        else:
+            mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
+
         self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(
             model, mesh_motion_solver_settings, parallelism)
 
