@@ -444,6 +444,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         VariableUtils().UpdateCurrentToInitialConfiguration(model_part.Nodes)
 
+        # we set the updated configuration back to the initial configuration
+        # therefore testing against the initial configuration of the reference MP
         for node, node_ref in zip(model_part.Nodes, ref_model_part.Nodes):
             self.assertAlmostEqual(node.X0, node_ref.X0)
             self.assertAlmostEqual(node.Y0, node_ref.Y0)
@@ -490,6 +492,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         VariableUtils().UpdateInitialToCurrentConfiguration(model_part.Nodes)
 
+        # we set the initial configuration to be the same as the current configuration
+        # therefore testing against the current configuration of the reference MP
         for node, node_ref in zip(model_part.Nodes, ref_model_part.Nodes):
             self.assertAlmostEqual(node.X0, node_ref.X)
             self.assertAlmostEqual(node.Y0, node_ref.Y)
