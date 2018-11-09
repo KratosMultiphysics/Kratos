@@ -270,9 +270,15 @@ class ApplyChimeraProcessFractionalStep : public Process
 			// Initialise the boundary nodes dofs to 0 at ever time steps
 			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
 			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
+			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(1) = 0.0;
+			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(1) = 0.0;
 			if (TDim == 3)
+			{
 				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
+				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;				
+			}	
 			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
 
 			if (is_found == true)
 			{
