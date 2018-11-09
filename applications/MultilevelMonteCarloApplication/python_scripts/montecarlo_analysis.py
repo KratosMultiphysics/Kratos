@@ -206,19 +206,19 @@ if __name__ == '__main__':
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
-    model = KratosMultiphysics.Model()
-    sample = 1.0
-    simulation = MonteCarloAnalysis(model,local_parameters,sample)
-    simulation.Run()
-    KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-    error = 0.0
-    L2norm_analyticalsolution = 0.0
-    for node in simulation._GetSolver().main_model_part.Nodes:
-        local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-        error = error + local_error
-        local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-        L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
-    error = np.sqrt(error)
-    L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
-    print("L2 relative error = ", error/L2norm_analyticalsolution)
+    # model = KratosMultiphysics.Model()
+    # sample = 1.0
+    # simulation = MonteCarloAnalysis(model,local_parameters,sample)
+    # simulation.Run()
+    # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
+    # error = 0.0
+    # L2norm_analyticalsolution = 0.0
+    # for node in simulation._GetSolver().main_model_part.Nodes:
+    #     local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+    #     error = error + local_error
+    #     local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+    #     L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
+    # error = np.sqrt(error)
+    # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
+    # print("L2 relative error = ", error/L2norm_analyticalsolution)
    
