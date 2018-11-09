@@ -224,6 +224,18 @@ class DataCommunicator
 
     // Gather operations
 
+    virtual void Gather(
+        const std::vector<int>& rSendValues,
+        std::vector<int>& rRecvValues,
+        const unsigned int DestinationRank) const
+    {}
+
+    virtual void Gather(
+        const std::vector<double>& rSendValues,
+        std::vector<double>& rRecvValues,
+        const unsigned int DestinationRank) const
+    {}
+
     ///@}
     ///@name Inquiry
     ///@{

@@ -290,4 +290,30 @@ void MPIDataCommunicator::Scatterv(
         SourceRank, mComm);
 }
 
+// Gather operations
+
+void MPIDataCommunicator::Gather(
+    const std::vector<int>& rSendValues,
+    std::vector<int>& rRecvValues,
+    const unsigned int DestinationRank) const
+{
+    const int sends_per_rank = rSendValues.size();
+    MPI_Gather(
+        rSendValues.data(), sends_per_rank, MPI_INT,
+        rRecvValues.data(), sends_per_rank, MPI_INT,
+        DestinationRank, mComm);
+}
+
+void MPIDataCommunicator::Gather(
+    const std::vector<double>& rSendValues,
+    std::vector<double>& rRecvValues,
+    const unsigned int DestinationRank) const
+{
+    const int sends_per_rank = rSendValues.size();
+    MPI_Gather(
+        rSendValues.data(), sends_per_rank, MPI_DOUBLE,
+        rRecvValues.data(), sends_per_rank, MPI_DOUBLE,
+        DestinationRank, mComm);
+}
+
 }
