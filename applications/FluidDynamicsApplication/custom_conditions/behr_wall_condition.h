@@ -139,7 +139,7 @@ public:
       */
     BehrWallCondition(IndexType NewId = 0):Condition(NewId), mpParentElement()
     {
-        std::cout << "Behr1" << std::endl;
+        // std::cout << "Behr1" << std::endl;
     }
 
     /// Constructor using an array of nodes
@@ -150,7 +150,7 @@ public:
     BehrWallCondition(IndexType NewId, const NodesArrayType& ThisNodes):
         Condition(NewId,ThisNodes), mpParentElement()
     {
-        std::cout << "Behr2" << std::endl;
+        // std::cout << "Behr2" << std::endl;
     }
 
     /// Constructor using Geometry
@@ -161,7 +161,7 @@ public:
     BehrWallCondition(IndexType NewId, GeometryType::Pointer pGeometry):
         Condition(NewId,pGeometry), mpParentElement()
     {
-        std::cout << "Behr3" << std::endl;
+        // std::cout << "Behr3" << std::endl;
     }
 
     /// Constructor using Properties
@@ -174,14 +174,14 @@ public:
         Condition(NewId,pGeometry,pProperties), mpParentElement()
     {
         // this constructor is used !!!
-        std::cout << "Behr4" << std::endl;
+        // std::cout << "Behr4" << std::endl;
     }
 
     /// Copy constructor.
     BehrWallCondition(BehrWallCondition const& rOther):
         Condition(rOther), mpParentElement()
     {
-        std::cout << "Behr5" << std::endl;
+        // std::cout << "Behr5" << std::endl;
     }
 
     /// Destructor.
@@ -254,9 +254,6 @@ public:
     {
         KRATOS_TRY
 
-        std::cout << "COMPUTING local system" << std::endl;
-
-
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rLeftHandSideMatrix.size1() != MatrixSize)
@@ -264,8 +261,6 @@ public:
 
         if (rRightHandSideVector.size() != MatrixSize)
             rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
-
-        std::cout << "COMPUTING local system 0" << std::endl;
 
         // Allocate memory needed
         array_1d<double,MatrixSize> rhs_gauss;
@@ -280,12 +275,8 @@ public:
         const double A = norm_2(data.Normal);
         data.Normal /= A;
 
-        std::cout << "COMPUTING local system 1" << std::endl;
-
         // Computing RHS (no Gauss points needed because constant)
         CalculateRightHandSide( rRightHandSideVector, rCurrentProcessInfo);
-
-        std::cout << "COMPUTING local system 2" << std::endl;
 
         // Store the outlet inflow prevention constants in the data structure
         data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not

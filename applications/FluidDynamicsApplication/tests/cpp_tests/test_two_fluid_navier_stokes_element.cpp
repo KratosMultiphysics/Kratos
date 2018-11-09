@@ -21,10 +21,15 @@
 #include "spaces/ublas_space.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+#include "utilities/math_utils.h"
+
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
+
+#include "processes/find_nodal_neighbours_process.h"
+#include "utilities/normal_calculation_utils.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -342,10 +347,10 @@ namespace Kratos {
 
 			const Vector solVec = prod(LHS, RHS);
 
-			for (int i = 0; i < 9; i++)
-			{
-				std::cout << "solVec(" << i << ") = " << solVec(i) << std::endl;
-			}
+			// for (int i = 0; i < 9; i++)
+			// {
+			// 	std::cout << "solVec(" << i << ") = " << solVec(i) << std::endl;
+			// }
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -383,6 +388,352 @@ namespace Kratos {
 			KRATOS_CHECK_NEAR(RHS(8), 0.0, 1e-7);		// P   at node 3
 			// std::cout << "\nThe test case finished. End.\n" << std::endl;
 	    }
+
+
+		/** Checks the TwoFluidNavierStokes2D3N element in a hydrostatic case.
+	     *  Checks the computation of the RHS
+	     */
+		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NHydrostaticBehr, FluidDynamicsApplicationFastSuite){
+
+            ModelPart modelPart("TestPart");
+			modelPart.SetBufferSize(3);
+
+			// Variables addition
+			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+			modelPart.AddNodalSolutionStepVariable(DENSITY);
+			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+			modelPart.AddNodalSolutionStepVariable(PRESSURE);
+			modelPart.AddNodalSolutionStepVariable(VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
+            modelPart.AddNodalSolutionStepVariable(NORMAL);
+
+			// Process info creation
+            double delta_time = 0.01;
+			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.0);
+			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
+			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+			Vector bdf_coefs(3);
+			bdf_coefs[0] = 3.0/(2.0*delta_time);
+			bdf_coefs[1] = -2.0/delta_time;
+			bdf_coefs[2] = 0.5*delta_time;
+			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+			// Set the element properties
+			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			pElemProp->SetValue(DENSITY, 1000.0);
+			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+			// Geometry creation
+			modelPart.CreateNewNode(1, 0.0, 2.0, 0.0);
+			modelPart.CreateNewNode(2, 0.0, 1.0, 0.0);
+            modelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+            modelPart.CreateNewNode(4, 1.0, 0.0, 0.0);
+
+            // Creation of elements
+			std::vector<ModelPart::IndexType> elemNodes1 {1, 2, 3};
+            std::vector<ModelPart::IndexType> elemNodes2 {2, 4, 3};
+			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes1, pElemProp);
+            modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 2, elemNodes2, pElemProp);
+            Element::Pointer pElement1 = modelPart.pGetElement(1);
+            Element::Pointer pElement2 = modelPart.pGetElement(2);
+
+            std::vector<ModelPart::IndexType> condNodes1 {1, 2};
+            std::vector<ModelPart::IndexType> condNodes2 {2, 4};
+            modelPart.CreateNewCondition("BehrWallCondition2D2N", 1, condNodes1, pElemProp);
+            modelPart.CreateNewCondition("BehrWallCondition2D2N", 2, condNodes2, pElemProp);
+            Condition::Pointer pCondition1 = modelPart.pGetCondition(1);
+            Condition::Pointer pCondition2 = modelPart.pGetCondition(2);
+
+            Vector elemRHS1 = ZeroVector(9);
+            Vector elemRHS2 = ZeroVector(9);
+            Matrix elemLHS = ZeroMatrix(9,9);
+
+            Vector condRHS1 = ZeroVector(6);
+            Vector condRHS2 = ZeroVector(6);
+            Matrix condLHS = ZeroMatrix(6,6);
+
+			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
+				it_node->FastGetSolutionStepValue(DENSITY) = 1000.0;
+				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
+				it_node->FastGetSolutionStepValue(BODY_FORCE_Y) = -10.0;
+			}
+
+			for(unsigned int i=0; i<3; i++){
+				for(unsigned int k=0; k<2; k++){
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = 0.0;
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.0;
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.0;
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
+				}
+			}
+
+            pElement1->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)    = 10000.0;
+            pElement1->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)    = 20000.0;
+            pElement1->GetGeometry()[2].FastGetSolutionStepValue(PRESSURE)    = 20000.0;
+
+            for(unsigned int i=0; i<3; i++){
+				for(unsigned int k=0; k<2; k++){
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = 0.0;
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.0;
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.0;
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
+				}
+			}
+            
+            pElement2->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)    = 20000.0;
+            pElement2->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)    = 30000.0;
+            pElement2->GetGeometry()[2].FastGetSolutionStepValue(PRESSURE)    = 20000.0;
+
+			pElement1->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
+			pElement1->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -2.0;
+			pElement1->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
+			pElement2->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -2.0;
+			pElement2->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -3.0;
+			pElement2->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
+
+            // Initialization 
+            pElement1->Initialize();
+            pElement2->Initialize();
+
+			FindNodalNeighboursProcess find_nodal_neighbours_process(modelPart);
+			find_nodal_neighbours_process.Execute();
+
+            NormalCalculationUtils find_nodal_normal_utility;
+            find_nodal_normal_utility.CalculateOnSimplex(modelPart, 2);
+
+            pCondition1->Initialize();
+            pCondition2->Initialize();
+
+            // Computing locel contributions
+            pCondition1->CalculateLocalSystem(condLHS, condRHS1, modelPart.GetProcessInfo());
+            pCondition2->CalculateLocalSystem(condLHS, condRHS2, modelPart.GetProcessInfo());
+
+			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
+            pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
+
+            // Assembly of the residual for node 2 (node between the conditions)
+            Vector contriFromElem1 = ZeroVector(3);
+            Vector contriFromElem2 = ZeroVector(3);
+            Vector contriFromCond1 = ZeroVector(3);
+            Vector contriFromCond2 = ZeroVector(3);
+
+            for (unsigned i = 0; i < 3; i++){
+                contriFromElem1[i] = elemRHS1[3+i];
+                contriFromElem2[i] = elemRHS2[0+i];
+
+                contriFromCond1[i] = condRHS1[3+i];
+                contriFromCond2[i] = condRHS2[0+i];
+            }
+
+            // KRATOS_WATCH( contriFromElem1 )
+            // KRATOS_WATCH( contriFromElem2 )
+            // KRATOS_WATCH( contriFromCond1 )
+            // KRATOS_WATCH( contriFromCond2 )
+
+            Vector residualAtNodeTwo = contriFromElem1 + contriFromElem2 + contriFromCond1 + contriFromCond2;
+            Vector normalAtNodeTwo = pElement1->GetGeometry()[1].FastGetSolutionStepValue(NORMAL);
+
+			// KRATOS_WATCH( normalAtNodeTwo )
+
+			Vector tangentialComponent;
+			array_1d<double,3> residualAtNodeTwoVector;
+			array_1d<double,3> normalAtNodeTwoVector;
+
+			tangentialComponent = MathUtils<double>::CrossProduct( residualAtNodeTwo, normalAtNodeTwo );
+
+            // KRATOS_WATCH( sum )
+            std::cout << "tangentialComponent = " << tangentialComponent << std::endl;
+
+			KRATOS_CHECK_NEAR( tangentialComponent[0], 0.0, 1e-7);
+			KRATOS_CHECK_NEAR( tangentialComponent[1], 0.0, 1e-7);
+			KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
+        }
+
+		
+		
+		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NMotionBehr, FluidDynamicsApplicationFastSuite){
+
+            ModelPart modelPart("TestPart");
+			modelPart.SetBufferSize(3);
+			// Motion is applied to the only NON-BOUNDARY node
+			// This is done to generate viscous stress, which were not considered so far
+
+			// Variables addition
+			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+			modelPart.AddNodalSolutionStepVariable(DENSITY);
+			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+			modelPart.AddNodalSolutionStepVariable(PRESSURE);
+			modelPart.AddNodalSolutionStepVariable(VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
+            modelPart.AddNodalSolutionStepVariable(NORMAL);
+
+			// Process info creation
+            double delta_time = 0.01;
+			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.0);
+			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
+			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+			Vector bdf_coefs(3);
+			bdf_coefs[0] = 3.0/(2.0*delta_time);
+			bdf_coefs[1] = -2.0/delta_time;
+			bdf_coefs[2] = 0.5*delta_time;
+			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+
+			// Set the element properties
+			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
+			pElemProp->SetValue(DENSITY, 1000.0);
+			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+			// Geometry creation
+			modelPart.CreateNewNode(1, 0.0, 2.0, 0.0);
+			modelPart.CreateNewNode(2, 0.0, 1.0, 0.0);
+            modelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+            modelPart.CreateNewNode(4, 0.0, 0.0, 0.0);
+
+            // Creation of elements
+			std::vector<ModelPart::IndexType> elemNodes1 {1, 2, 3};
+            std::vector<ModelPart::IndexType> elemNodes2 {2, 4, 3};
+			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes1, pElemProp);
+            modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 2, elemNodes2, pElemProp);
+            Element::Pointer pElement1 = modelPart.pGetElement(1);
+            Element::Pointer pElement2 = modelPart.pGetElement(2);
+
+            std::vector<ModelPart::IndexType> condNodes1 {1, 2};
+            std::vector<ModelPart::IndexType> condNodes2 {2, 4};
+            modelPart.CreateNewCondition("BehrWallCondition2D2N", 1, condNodes1, pElemProp);
+            modelPart.CreateNewCondition("BehrWallCondition2D2N", 2, condNodes2, pElemProp);
+            Condition::Pointer pCondition1 = modelPart.pGetCondition(1);
+            Condition::Pointer pCondition2 = modelPart.pGetCondition(2);
+
+            Vector elemRHS1 = ZeroVector(9);
+            Vector elemRHS2 = ZeroVector(9);
+            Matrix elemLHS = ZeroMatrix(9,9);
+
+            Vector condRHS1 = ZeroVector(6);
+            Vector condRHS2 = ZeroVector(6);
+            Matrix condLHS = ZeroMatrix(6,6);
+
+			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
+				it_node->FastGetSolutionStepValue(DENSITY) = 1000.0;
+				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
+				it_node->FastGetSolutionStepValue(BODY_FORCE_X) = 0.0;
+				it_node->FastGetSolutionStepValue(BODY_FORCE_Y) = 0.0;
+				it_node->FastGetSolutionStepValue(BODY_FORCE_Z) = 0.0;
+			}
+
+			for(unsigned int i=0; i<3; i++){
+				for (unsigned int k = 0; k < 2; k++)
+				{
+					// fixing the mesh
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
+					pElement1->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
+
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
+					pElement2->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
+				}
+			}
+
+			for(unsigned int i=0; i<3; i++){
+				// setting Vx to 0.0
+				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[0]    = 0.0;
+				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.0;
+				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[0] = 0.0;
+				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[0]    = 0.0;
+				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.0;
+				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[0] = 0.0;
+				// setting Vy to 0.0
+				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[1]    = 1.0;
+				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[1] = 1.0;
+				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[1] = 1.0;
+				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[1]    = 1.0;
+				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[1] = 1.0;
+				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[1] = 1.0;
+			}
+
+
+            pElement1->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)    = 10000.0;
+            pElement1->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)    = 10000.0;
+            pElement1->GetGeometry()[2].FastGetSolutionStepValue(PRESSURE)    = 10000.0;
+			pElement2->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)    = 10000.0;
+            pElement2->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)    = 10000.0;
+            pElement2->GetGeometry()[2].FastGetSolutionStepValue(PRESSURE)    = 10000.0;
+
+
+			pElement1->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
+			pElement1->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -2.0;
+			pElement1->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
+			pElement2->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -2.0;
+			pElement2->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -3.0;
+			pElement2->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
+
+            // Initialization 
+            pElement1->Initialize();
+            pElement2->Initialize();
+
+			FindNodalNeighboursProcess find_nodal_neighbours_process(modelPart);
+			find_nodal_neighbours_process.Execute();
+
+            NormalCalculationUtils find_nodal_normal_utility;
+            find_nodal_normal_utility.CalculateOnSimplex(modelPart, 2);
+
+            pCondition1->Initialize();
+            pCondition2->Initialize();
+
+            // Computing locel contributions
+            pCondition1->CalculateLocalSystem(condLHS, condRHS1, modelPart.GetProcessInfo());
+            pCondition2->CalculateLocalSystem(condLHS, condRHS2, modelPart.GetProcessInfo());
+
+			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
+            pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
+
+            // Assembly of the residual for node 2 (node between the conditions)
+            Vector contriFromElem1 = ZeroVector(3);
+            Vector contriFromElem2 = ZeroVector(3);
+            Vector contriFromCond1 = ZeroVector(3);
+            Vector contriFromCond2 = ZeroVector(3);
+
+            for (unsigned i = 0; i < 3; i++){
+                contriFromElem1[i] = elemRHS1[3+i];
+                contriFromElem2[i] = elemRHS2[0+i];
+
+                contriFromCond1[i] = condRHS1[3+i];
+                contriFromCond2[i] = condRHS2[0+i];
+            }
+
+            Vector residualAtNodeTwo = contriFromElem1 + contriFromElem2 + contriFromCond1 + contriFromCond2;
+            Vector normalAtNodeTwo = pElement1->GetGeometry()[1].FastGetSolutionStepValue(NORMAL);
+
+			// KRATOS_WATCH( normalAtNodeTwo )
+
+			Vector tangentialComponent;
+			Vector normalComponent;
+			array_1d<double,3> residualAtNodeTwoVector;
+			array_1d<double,3> normalAtNodeTwoVector;
+
+			tangentialComponent = MathUtils<double>::CrossProduct( residualAtNodeTwo, normalAtNodeTwo );
+			normalComponent = MathUtils<double>::Dot3( residualAtNodeTwo, normalAtNodeTwo ) * normalAtNodeTwo;
+
+            // KRATOS_WATCH( sum )
+            std::cout << "tangentialComponent = " << tangentialComponent << std::endl;
+			std::cout << "normalComponent = " << normalComponent << std::endl;
+
+			KRATOS_CHECK_NEAR( normalComponent[0], -10000.0, 1e-4);
+			KRATOS_CHECK_NEAR( normalComponent[1], 0.0, 1e-4);
+			KRATOS_CHECK_NEAR( normalComponent[2], 0.0, 1e-4);
+        }
 
 	} // namespace Testing
 }  // namespace Kratos.
