@@ -178,6 +178,8 @@ public:
             CalculateDeltaTime(rModelPart);
         }
 
+
+
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Preparing the time values for the first step (where time = initial_time +
@@ -287,9 +289,7 @@ public:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         ElementsArrayType& r_elements = rModelPart.Elements();
 
-        const double safety_factor = 0.5;
-
-        double delta_time = mDeltaTime.Maximum / safety_factor;
+        double delta_time = mDeltaTime.Maximum;
 
         double stable_delta_time = 1000.0;
 
@@ -322,13 +322,7 @@ public:
             if (check_has_all_variables) {
                 const double length = it_node->GetGeometry().Length();
 
-                // compute courant criterion
-                const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
-                const double wavespeed = std::sqrt(bulk_modulus / roh);
-                const double w = 2.0 * wavespeed / length; // frequency
-
-                const double psi = 0.5 * (alpha / w + beta * w); // critical ratio;
-                stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);
+                stable_delta_time = it_node->GetGeometry().Length() * std::sqrt(roh/E);
 
                 if (stable_delta_time > 0.0) {
                     #pragma omp critical
@@ -339,15 +333,9 @@ public:
             }
         }
 
-        stable_delta_time = delta_time * safety_factor;
-
-        if (stable_delta_time < mDeltaTime.Maximum) {
-            r_current_process_info[DELTA_TIME] = stable_delta_time;
-        }
-
-        KRATOS_INFO_IF("ExplicitCentralDifferencesScheme", mDeltaTime.PredictionLevel > 1)
-        << "  [EXPLICIT PREDICTION LEVEL " << mDeltaTime.PredictionLevel << " ] : (computed stable time step = " << stable_delta_time << " s)\n"
-        << "  Using  = " << r_current_process_info[DELTA_TIME] << " s as time step DELTA_TIME)" << std::endl;
+        std::cout << "________________________________________________________________" << std::endl;
+        std::cout << "________________________________________________________________" << std::endl;
+        KRATOS_ERROR_IF (mDeltaTime.Maximum > delta_time) << "chosen time step too big --> use max " << delta_time << std::endl;
 
         KRATOS_CATCH("")
     }

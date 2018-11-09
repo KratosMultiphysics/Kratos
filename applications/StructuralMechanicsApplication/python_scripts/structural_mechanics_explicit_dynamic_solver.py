@@ -39,6 +39,9 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             "fraction_delta_time": 0.9
         }
         """)
+
+        self.dynamic_settings["max_delta_time"].SetDouble(custom_settings["time_stepping"]["time_step"].GetDouble())
+
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
 
