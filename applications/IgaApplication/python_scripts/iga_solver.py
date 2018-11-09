@@ -172,7 +172,8 @@ class IgaSolver(PythonSolver):
     def ImportModelPart(self):
         """This function imports the ModelPart
         """
-        self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+        # check input reader
+        self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
         if not self.is_restarted():
@@ -199,6 +200,9 @@ class IgaSolver(PythonSolver):
                 iga_solution_strategy.SetInitializePerformedFlag(True)
             except AttributeError:
                 pass
+
+        self._set_nurbs_brep_modeler()
+
         self.Check()
         self.print_on_rank_zero("::[IgaSolver]:: ", "Finished initialization.")
 
@@ -297,6 +301,17 @@ class IgaSolver(PythonSolver):
         return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
 
     #### Private functions ####
+
+    def _set_nurbs_brep_modeler(self):
+        """Prepare the nurbs brep modeler and read in the necessary data. """
+        # This function prepares the nurbs brep modeler and reads in the rough geometry data,
+        # which can be used for surface descriptions and integration domains.
+        if self.settings["model_import_settings"]["input_type"].GetString() == "json":
+            geometry_file = open(self.settings["model_import_settings"]["input_type"].GetString() + ".json",'r')
+            geometry_parameters = Parameters( geometry_file.read())
+            self.geometry_reader = IgaApplication.BrepJsonIO()
+
+        self.nurbs_brep_modeler = IgaApplication.NurbsBrepModeler(self.main_model_part)
 
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
