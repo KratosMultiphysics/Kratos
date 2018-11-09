@@ -14,8 +14,9 @@ References:
 function that gives as output a list containing the mesh discretization parameter
 we consider the number of elements of a uniform grid on the same domain to be this parameter
 refinement strategy:
-uniform mesh on level "lev" with h_lev=(1/N0)*2^(-lev)
-i.e. level = 0, h_{lev=0} = 0.25
+uniform mesh on level "lev" with h_lev=h_0*M^(-lev)
+here M = 2
+i.e.    level = 0, h_{lev=0} = 0.25
         level = 1, h_{lev=1} = 0.2/2 = 0.125
         level = 2, h_{lev=2} = 0.2/4 = 0.0625
         ...
@@ -26,11 +27,11 @@ def Nf_law(lev):
     M  = 2.
     NFF = (N0*np.power(M,lev))
     Nf2 = 2*NFF**2
-    # Nobile wrote the following:
-    # N0 = 5.
-    # M  = 2.
-    # NFF = (N0*np.power(M,lev))
-    # Nf2 = NFF**2
+    '''in [PNL17] it is exploited the following:
+    N0 = 5.
+    M  = 2.
+    NFF = (N0*np.power(M,lev))
+    Nf2 = NFF**2'''
     '''
     NFF is the number of elements on a boundary line
     Nf2 is the number of triangular elements in the square domain (approximately, if mesh non uniform)
@@ -128,6 +129,7 @@ def compute_tolerance_i(settings_ML,iE,iter_def):
 
 '''
 function computing the problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma] using least squares fit
+we consider level > 0 to compute calpha,alpha,cbeta,beta for robustness reasons
 see [PNL17] pp.7-8
 '''
 def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
@@ -136,14 +138,14 @@ def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
     '''##################### MEAN - alpha ########################################
     NUMPY: linear fit
     why not considered also M_{L=0}?'''
-    pa = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(bias_ratesLS[1::]),1) # in [PNL17] not used level = 0
+    pa = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(bias_ratesLS[1::]),1)
     alpha   = -pa[0]
     C1      = 2**pa[1]
 
     '''##################### VAR - beta ##########################################
     NUMPY: linear fit
     why not considered also M_{L=0}?'''
-    pb          = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(variance_ratesLS[1::]),1) # in [PNL17] not used level = 0
+    pb          = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(variance_ratesLS[1::]),1)
     beta        = -pb[0]
     C2          = 2**pb[1]
 
