@@ -39,6 +39,8 @@ namespace Kratos
     {
     public:
 
+        //using Kratos::NurbsBrepModeler;
+
         /// Pointer definition of KratosNurbsBrepApplication
         KRATOS_CLASS_POINTER_DEFINITION(BrepEdge);
 
@@ -109,7 +111,12 @@ namespace Kratos
 
         bool IsCouplingEdge();
 
-        std::vector<Node<3>> GetGeometryIntegrationNodes();
+       void GetGeometryIntegration(ModelPart& rModelPart, 
+           const std::string& rType,
+           const std::string& rName,
+           const int& rPropertiesId,
+           const int& rShapeFunctionDerivativesOrder,
+           std::vector<std::string> rVariables);
 
         ///Constructor
         BrepEdge(

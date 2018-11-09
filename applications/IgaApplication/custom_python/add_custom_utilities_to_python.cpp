@@ -23,6 +23,9 @@
 #include "custom_utilities/node_curve_geometry_3d.h"
 #include "custom_utilities/node_surface_geometry_3d.h"
 
+#include "custom_utilities/brep_json_io.h"
+#include "custom_utilities/nurbs_brep_modeler.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -849,6 +852,14 @@ void AddCustomUtilitiesToPython(
     RegisterIntegrationPoint1(m, "IntegrationPoint1");
     RegisterIntegrationPoint2(m, "IntegrationPoint2");
     RegisterIntegrationPoints(m, "IntegrationPoints");
+
+    py::class_<BrepJsonIO, typename BrepJsonIO::Pointer>(m, "BrepJsonIO");
+
+    py::class_<NurbsBrepModeler, typename NurbsBrepModeler::Pointer>(m, "NurbsBrepModeler")
+        .def(py::init<ModelPart&>())
+        .def("ImportGeometry", &NurbsBrepModeler::ImportGeometry)
+        .def("ImportModelPart", &NurbsBrepModeler::ImportModelPart)
+        ;
 }
 
 } // namespace Python

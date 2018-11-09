@@ -41,7 +41,7 @@ namespace Kratos
     {
         int number_poles = rControlPoints.size();
 
-        m_geometry = Kratos::make_unique<CurveGeometry2D>(
+        m_geometry = Kratos::make_unique<ANurbs::CurveGeometry2D>(
             rDegree, number_poles, rIsRational);
 
         for (int i = 0; i < rKnotVector.size() - 2; ++i)
@@ -59,7 +59,7 @@ namespace Kratos
             }
         }
 
-        m_curve = Kratos::make_unique<Curve2D>(m_geometry, rActiveRange[0], rActiveRange[1]);
+        m_curve = Kratos::make_unique<ANurbs::Curve2D>(m_geometry, rActiveRange[0], rActiveRange[1]);
     }
 
 }  // namespace Kratos.

@@ -14,7 +14,6 @@
 
 namespace Kratos
 {
-    using namespace ANurbs;
     ///@name Kratos Classes
     ///@{
     class BrepTrimmingCurve
@@ -58,8 +57,8 @@ namespace Kratos
         int m_trim_index;
         bool m_curve_direction;
 
-        std::shared_ptr<CurveGeometry2D> m_geometry;
-        std::shared_ptr<Curve2D> m_curve;
+        std::shared_ptr<ANurbs::CurveGeometry2D> m_geometry;
+        std::shared_ptr<ANurbs::Curve2D> m_curve;
         ///@}
         ///@name Un accessible methods 
         ///@{

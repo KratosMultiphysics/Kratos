@@ -29,13 +29,56 @@ namespace Kratos
             return false;
     }
 
-    std::vector<Node<3>> BrepEdge::GetGeometryIntegrationNodes()
+    void BrepEdge::GetGeometryIntegration(ModelPart& rModelPart, 
+        const std::string& rType,
+        const std::string& rName,
+        const int& rPropertiesId,
+        const int& rShapeFunctionDerivativesOrder,
+        std::vector<std::string> rVariables)
     {
-        std::vector<Node<3>> integration_nodes;
+        auto spans = m_node_curve_geometry_3d->Spans();
 
+        Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
 
+        for (int i = 0; i < spans.size(); ++i)
+        {
+            ANurbs::Interval<double> domain(spans[i].T0(), spans[i].T1());
 
-        return integration_nodes;
+            int number_of_points = m_node_curve_geometry_3d->Degree() + 1;
+            auto integration_points = ANurbs::IntegrationPoints<double>::Points1(number_of_points, domain);
+
+            ANurbs::CurveShapeEvaluator<double> shape(m_node_curve_geometry_3d->Degree(), rShapeFunctionDerivativesOrder);
+
+            for (int j = 0; j < integration_points.size(); ++j)
+            {
+                Vector local_coordinates(1);
+                local_coordinates[0] = integration_points[j].t;
+
+                shape.Compute(m_node_curve_geometry_3d->Knots(), integration_points[j].t);
+
+                Element::GeometryType::PointsArrayType non_zero_control_points;
+                std::vector<Node<3>::Pointer> cps;
+                std::vector<int> cp_ids;
+                for (int m = shape.FirstNonzeroPole(); m < shape.LastNonzeroPole() + 1; ++m)
+                {
+                    cp_ids.push_back(m_node_curve_geometry_3d->Node(m)->Id());
+                    cps.push_back(m_node_curve_geometry_3d->Node(m));
+                    non_zero_control_points.push_back(m_node_curve_geometry_3d->Node(m));
+                }
+
+                if (rType == "element")
+                {
+                    int id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+                    auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, this_property);
+
+                }
+                if (rType == "condition")
+                {
+                    int id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+                    auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, this_property);
+                }
+            }
+        }
     }
 
     ///Constructor

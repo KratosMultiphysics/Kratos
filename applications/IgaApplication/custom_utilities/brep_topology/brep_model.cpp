@@ -21,6 +21,25 @@
 
 namespace Kratos
 {
+    bool BrepModel::GetIntegrationDomain(ModelPart& rModelPart, int& brep_id,
+        const std::string& rType,
+        const std::string& rName,
+        const int& rPropertiesId,
+        const int& rShapeFunctionDerivativesOrder,
+        std::vector<std::string> rVariables)
+    {
+        bool success = false;
+        for (int i = 0; i < m_brep_edges.size(); ++i)
+        {
+            if (m_brep_edges[i].Id() == brep_id)
+            {
+                return success;
+                m_brep_edges[i].GetGeometryIntegration(rModelPart, rType, rName, rPropertiesId, rShapeFunctionDerivativesOrder, rVariables);
+            }
+        }
+        return success;
+    }
+
     // --------------------------------------------------------------------------
     std::vector<BrepFace>& BrepModel::GetFaceVector()
     {

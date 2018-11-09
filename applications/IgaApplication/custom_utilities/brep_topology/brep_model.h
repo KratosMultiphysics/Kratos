@@ -2,11 +2,17 @@
 #define  KRATOS_BREP_MODEL_H_INCLUDED
 
 // System includes
+#include <vector>
 
 // Project includes
+#include "iga_application.h"
+#include "iga_application_variables.h"
+
 #include "brep_face.h"
 #include "brep_edge.h"
 #include "brep_vertex.h"
+
+//#include "..\nurbs_brep_modeler.h"
 
 namespace Kratos
 {
@@ -20,11 +26,20 @@ namespace Kratos
     public:
         ///@name Type Definitions
         ///@{
-        KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
+        //KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
 
         ///@}
         ///@name Life Cycle 
         ///@{
+
+        bool GetIntegrationDomain(
+            ModelPart& rModelPart, 
+            int& brep_id, 
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
 
         std::vector<BrepFace>&   GetFaceVector();
         std::vector<BrepEdge>&   GetEdgeVector();
@@ -33,7 +48,7 @@ namespace Kratos
         /// Constructor
         BrepModel::BrepModel(
             int& brep_id,
-            double model_tolerance,
+            double& model_tolerance,
             std::vector<BrepFace>& faces,
             std::vector<BrepEdge>& edges,
             std::vector<BrepVertex>& vertices)
