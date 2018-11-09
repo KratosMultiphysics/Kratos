@@ -141,6 +141,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
+        .def("FlagNodesInRadius", &GeometryUtilities::FlagNodesInRadius)
         ;
 
     // ========================================================================
