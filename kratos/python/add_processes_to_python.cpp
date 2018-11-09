@@ -68,6 +68,25 @@ namespace Python
 {
 typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
+// Discontinuous distance computation auxiliar functions
+template<std::size_t TDim>
+void CalculateEmbeddedVariableFromSkinDouble(
+    CalculateDiscontinuousDistanceToSkinProcess<TDim> &rDiscDistProcess,
+    const Variable<double> &rVariable,
+    const Variable<double> &rEmbeddedVariable)
+{
+    rDiscDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
+}
+
+template<std::size_t TDim>
+void CalculateEmbeddedVariableFromSkinArray(
+    CalculateDiscontinuousDistanceToSkinProcess<TDim> &rDiscDistProcess,
+    const Variable<array_1d<double,3>> &rVariable,
+    const Variable<array_1d<double,3>> &rEmbeddedVariable)
+{
+    rDiscDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
+}
+
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -257,14 +276,18 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    // Discontinuous distance computation methods
+    // Discontinuous distance computation methods        
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
-            .def(py::init<ModelPart&, ModelPart&>())
-            ;
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
+        ;
 
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
-            .def(py::init<ModelPart&, ModelPart&>())
-            ;
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<3>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<3>)
+        ;
 
     // Continuous distance computation methods
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
