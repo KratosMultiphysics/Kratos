@@ -31,7 +31,7 @@ DataCommunicatorContainer::~DataCommunicatorContainer()
 void DataCommunicatorContainer::Register(const std::string Name, const DataCommunicator& rPrototype)
 {
     auto found = mpDataCommunicators.find(Name);
-    if (found != mpDataCommunicators.end())
+    if (found == mpDataCommunicators.end())
     {
         DataCommunicator* p_data_communicator = new DataCommunicator(rPrototype);
         mpDataCommunicators.emplace(Name, p_data_communicator);
@@ -73,28 +73,11 @@ void DataCommunicatorContainer::PrintInfo(std::ostream &rOStream) const
 
 void DataCommunicatorContainer::PrintData(std::ostream &rOStream) const
 {
-    rOStream << "Size: " << mpDataCommunicators.size() << std::endl;
+    rOStream << "Number of DataCommunicators: " << mpDataCommunicators.size() << std::endl;
     for (auto it_prototype = mpDataCommunicators.begin(); it_prototype != mpDataCommunicators.end(); ++it_prototype)
     {
-        rOStream << it_prototype->first << ": " << *(it_prototype->second) << std::endl;
+        rOStream << "\"" <<  it_prototype->first << "\": " << *(it_prototype->second) << std::endl;
     }
-}
-
-inline std::istream &operator>>(std::istream &rIStream,
-                                DataCommunicatorContainer &rThis)
-{
-    return rIStream;
-}
-
-/// output stream function
-inline std::ostream &operator<<(std::ostream &rOStream,
-                                const DataCommunicatorContainer &rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
 }
 
 }
