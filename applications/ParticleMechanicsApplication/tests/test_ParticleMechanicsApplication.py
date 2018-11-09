@@ -19,6 +19,7 @@ from particle_mechanics_test_factory import GravityApplicationTest as TGravityAp
 from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
 # Import from Test Factories (with different analysis flows)
+from test_generate_mpm_particle             import TestGenerateMPMParticle            as TTestGenerateMPMParticle
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
 from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
 from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
@@ -28,7 +29,7 @@ def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
-    "small", "nighlty" and "all"
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -46,6 +47,7 @@ def AssembleTestSuites():
     ## These tests are executed by the continuous integration tool
     smallSuite = suites['small']
 
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestGenerateMPMParticle]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))
