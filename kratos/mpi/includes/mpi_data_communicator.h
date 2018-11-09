@@ -56,7 +56,7 @@ class MPIDataCommunicator: public DataCommunicator
     ///@{
 
     /// Constructor accepting an MPI_Comm object.
-    MPIDataCommunicator(MPI_Comm TheMPIComm);
+    MPIDataCommunicator(MPI_Comm MPIComm);
 
     /// Copy constructor.
     MPIDataCommunicator(MPIDataCommunicator const &rOther);
@@ -67,6 +67,8 @@ class MPIDataCommunicator: public DataCommunicator
     ///@}
     ///@name Operations
     ///@{
+
+    DataCommunicator::UniquePointer Clone() const override;
 
     void Barrier() const override;
 

@@ -60,6 +60,11 @@ class DataCommunicator
     ///@name Operations
     ///@{
 
+    virtual DataCommunicator::UniquePointer Clone() const
+    {
+        return Kratos::make_unique<DataCommunicator>();
+    }
+
     virtual void Barrier() const {}
 
     // Reduce operations

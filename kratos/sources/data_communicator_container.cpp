@@ -20,22 +20,17 @@ DataCommunicatorContainer::DataCommunicatorContainer()
 {}
 
 DataCommunicatorContainer::~DataCommunicatorContainer()
-{
-    for (auto it_prototype = mpDataCommunicators.begin(); it_prototype != mpDataCommunicators.end(); ++it_prototype)
-    {
-        delete it_prototype->second;
-        it_prototype->second = nullptr;
-    }
-}
+{}
 
-void DataCommunicatorContainer::Register(const std::string Name, const DataCommunicator& rPrototype)
+void DataCommunicatorContainer::Register(const std::string Name, DataCommunicator& rPrototype)
 {
     auto found = mpDataCommunicators.find(Name);
     if (found == mpDataCommunicators.end())
     {
-        DataCommunicator* p_data_communicator = new DataCommunicator(rPrototype);
-        mpDataCommunicators.emplace(Name, p_data_communicator);
-        KratosComponents<DataCommunicator>::Add(Name, *p_data_communicator);
+        auto result = mpDataCommunicators.emplace(Name, rPrototype.Clone());
+        // result.first returns the created pair, pair_iterator->second the cloned prototype (which is a UniquePointer)
+        auto pair_iterator = result.first;
+        KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
     }
     else {
         KRATOS_WARNING("DataCommunicatorContainer")
@@ -76,7 +71,7 @@ void DataCommunicatorContainer::PrintData(std::ostream &rOStream) const
     rOStream << "Number of DataCommunicators: " << mpDataCommunicators.size() << std::endl;
     for (auto it_prototype = mpDataCommunicators.begin(); it_prototype != mpDataCommunicators.end(); ++it_prototype)
     {
-        rOStream << "\"" <<  it_prototype->first << "\": " << *(it_prototype->second) << std::endl;
+        rOStream << "  \"" <<  it_prototype->first << "\": " << *(it_prototype->second);
     }
 }
 

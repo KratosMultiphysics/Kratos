@@ -39,9 +39,9 @@ template<> inline MPI_Datatype MPIDatatype<array_1d<double,3>>(const array_1d<do
 
 // Life cycle
 
-MPIDataCommunicator::MPIDataCommunicator(MPI_Comm TheMPIComm):
+MPIDataCommunicator::MPIDataCommunicator(MPI_Comm MPIComm):
     DataCommunicator(),
-    mComm(TheMPIComm)
+    mComm(MPIComm)
 {}
 
 MPIDataCommunicator::MPIDataCommunicator(MPIDataCommunicator const &rOther):
@@ -51,6 +51,11 @@ MPIDataCommunicator::MPIDataCommunicator(MPIDataCommunicator const &rOther):
 
 MPIDataCommunicator::~MPIDataCommunicator()
 {}
+
+DataCommunicator::UniquePointer MPIDataCommunicator::Clone() const
+{
+    return Kratos::make_unique<MPIDataCommunicator>(mComm);
+}
 
 // Barrier wrapper
 

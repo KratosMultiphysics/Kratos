@@ -59,7 +59,7 @@ class DataCommunicatorContainer
     ///@name Operations
     ///@{
 
-    void Register(const std::string Name, const DataCommunicator& rPrototype);
+    void Register(const std::string Name, DataCommunicator& rPrototype);
 
     ///@}
     ///@name Access
@@ -93,7 +93,7 @@ class DataCommunicatorContainer
     ///@name Member Variables
     ///@{
 
-    std::unordered_map<std::string, DataCommunicator*> mpDataCommunicators;
+    std::unordered_map<std::string, DataCommunicator::UniquePointer> mpDataCommunicators;
 
     ///@}
     ///@name Un accessible methods
