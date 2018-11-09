@@ -6,6 +6,7 @@
 
 # Common build directory
 cmake_build/*
+cmake_build_debug/*
 !cmake_build/example_configure.bat.do_not_touch
 !cmake_build/example_configure.sh.do_not_touch
 packaging/*
