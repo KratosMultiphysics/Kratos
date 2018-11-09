@@ -10,8 +10,8 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_DATA_COMMUNICATOR_CONTAINER_H_INCLUDED
-#define KRATOS_DATA_COMMUNICATOR_CONTAINER_H_INCLUDED
+#ifndef KRATOS_PARALLEL_ENVIRONMENT_H_INCLUDED
+#define KRATOS_PARALLEL_ENVIRONMENT_H_INCLUDED
 
 // System includes
 #include <string>
@@ -32,46 +32,47 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A container class for DataCommunicator pointers.
-/** This class is intended to be used to hold the prototypes for the registration of DataCommunicators.
+/// Holder for general data related to MPI (or suitable serial equivalents for non-MPI runs).
+/** This class manages a registry of DataCommunicators, which can be used to perform MPI communication.
  *  @see DataCommunicator, MPIDataCommunicator.
  */
-class DataCommunicatorContainer
+class ParallelEnvironment
 {
   public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DataCommunicatorContainer
-    KRATOS_CLASS_POINTER_DEFINITION(DataCommunicatorContainer);
+    /// Pointer definition of ParallelEnvironment
+    KRATOS_CLASS_POINTER_DEFINITION(ParallelEnvironment);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
-    DataCommunicatorContainer();
-
-    /// Destructor.
-    ~DataCommunicatorContainer();
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void Register(const std::string Name, DataCommunicator& rPrototype);
+    enum class ParallelMode { Serial, Parallel, NotSet };
 
     ///@}
     ///@name Access
     ///@{
 
-    DataCommunicator& Get(const std::string Name) const;
+    static ParallelEnvironment& GetInstance();
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void RegisterDataCommunicator(
+        const std::string Name,
+        const DataCommunicator& rPrototype,
+        bool MakeDefault = false);
+
+    DataCommunicator& GetDataCommunicator(const std::string Name) const;
+
+    DataCommunicator& GetDefaultDataCommunicator() const;
+
+    void SetDefaultDataCommunicator(const std::string Name);
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    bool Has(const std::string Name) const;
+    bool HasDataCommunicator(const std::string Name) const;
 
     ///@}
     ///@name Input and output
@@ -90,24 +91,33 @@ class DataCommunicatorContainer
 
   private:
 
+    ///@name Private Life Cycle
+    ///@{
+
+    /// Internal constructor.
+    ParallelEnvironment();
+
+    ///@}
     ///@name Member Variables
     ///@{
 
-    std::unordered_map<std::string, DataCommunicator::UniquePointer> mpDataCommunicators;
+    std::unordered_map<std::string, DataCommunicator::UniquePointer> mDataCommunicators;
+
+    std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator mDefaultCommunicator;
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    DataCommunicatorContainer &operator=(DataCommunicatorContainer const &rOther) = delete;
+    ParallelEnvironment &operator=(ParallelEnvironment const &rOther) = delete;
 
     /// Copy constructor.
-    DataCommunicatorContainer(DataCommunicatorContainer const &rOther) = delete;
+    ParallelEnvironment(ParallelEnvironment const &rOther) = delete;
 
     ///@}
 
-}; // Class DataCommunicatorContainer
+}; // Class ParallelEnvironment
 
 ///@}
 ///@name Input and output
@@ -115,14 +125,14 @@ class DataCommunicatorContainer
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
-                                DataCommunicatorContainer &rThis)
+                                ParallelEnvironment &rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 inline std::ostream &operator<<(std::ostream &rOStream,
-                                const DataCommunicatorContainer &rThis)
+                                const ParallelEnvironment &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -137,4 +147,4 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_DATA_COMMUNICATOR_CONTAINER_H_INCLUDED  defined
+#endif // KRATOS_PARALLEL_ENVIRONMENT_H_INCLUDED  defined
