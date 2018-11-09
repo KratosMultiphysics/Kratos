@@ -44,11 +44,6 @@ MPIDataCommunicator::MPIDataCommunicator(MPI_Comm MPIComm):
     mComm(MPIComm)
 {}
 
-MPIDataCommunicator::MPIDataCommunicator(MPIDataCommunicator const &rOther):
-    DataCommunicator(rOther),
-    mComm(rOther.mComm)
-{}
-
 MPIDataCommunicator::~MPIDataCommunicator()
 {}
 

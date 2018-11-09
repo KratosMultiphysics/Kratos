@@ -50,9 +50,6 @@ class DataCommunicator
     /// Default constructor.
     DataCommunicator() {}
 
-    /// Copy constructor.
-    DataCommunicator(DataCommunicator const &rOther) {};
-
     /// Destructor.
     virtual ~DataCommunicator() {}
 
@@ -313,6 +310,9 @@ class DataCommunicator
 
     ///@name Un accessible methods
     ///@{
+
+    /// Copy constructor.
+    DataCommunicator(DataCommunicator const &rOther) = delete;
 
     /// Assignment operator.
     DataCommunicator &operator=(DataCommunicator const &rOther) = delete;

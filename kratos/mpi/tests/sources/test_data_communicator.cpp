@@ -25,17 +25,17 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
+    DataCommunicator serial_communicator;
 
     KRATOS_CHECK_EQUAL(serial_communicator.Rank(), 0);
     KRATOS_CHECK_EQUAL(serial_communicator.Size(), 1);
 
-    MPIDataCommunicator mpi_self_communicator = MPIDataCommunicator(MPI_COMM_SELF);
+    MPIDataCommunicator mpi_self_communicator(MPI_COMM_SELF);
 
     KRATOS_CHECK_EQUAL(mpi_self_communicator.Rank(), 0);
     KRATOS_CHECK_EQUAL(mpi_self_communicator.Size(), 1);
 
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     int world_rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD,&world_rank);
@@ -47,9 +47,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(MPICommRetrieval, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_self_communicator = MPIDataCommunicator(MPI_COMM_SELF);
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_self_communicator(MPI_COMM_SELF);
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     KRATOS_CHECK_EQUAL(MPIEnvironment::GetMPICommunicator(serial_communicator), MPI_COMM_SELF);
     KRATOS_CHECK_EQUAL(MPIEnvironment::GetMPICommunicator(mpi_self_communicator), MPI_COMM_SELF);
@@ -59,8 +59,8 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommRetrieval, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSum, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     constexpr int root = 0;
 
     int local_int = 1;
@@ -105,8 +105,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSum, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMin, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     constexpr int root = 0;
 
     int world_rank = mpi_world_communicator.Rank();
@@ -151,8 +151,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMin, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMax, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     constexpr int root = 0;
 
     int world_rank = mpi_world_communicator.Rank();
@@ -198,8 +198,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMax, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAll, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     int local_int = 1;
     double local_double = 2.0;
@@ -239,8 +239,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAll, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAll, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     int world_rank = mpi_world_communicator.Rank();
 
@@ -280,8 +280,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAll, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAll, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     int world_rank = mpi_world_communicator.Rank();
 
@@ -322,8 +322,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAll, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSum, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     int local_total_int = 1;
     double local_total_double = 2.0;
@@ -344,8 +344,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSum, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
@@ -383,8 +383,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcast, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
@@ -426,8 +426,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcast, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatter, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
@@ -474,8 +474,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterv, KratosMPICoreFastSuite)
      * read only first <rank> values of the message per rank (up to 5 values per rank)
      * message containing doubles is double of message containing ints
      */
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
@@ -538,8 +538,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterv, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGather, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
@@ -588,8 +588,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGather, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherv, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
@@ -670,8 +670,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherv, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGather, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator = DataCommunicator();
-    MPIDataCommunicator mpi_world_communicator = MPIDataCommunicator(MPI_COMM_WORLD);
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();

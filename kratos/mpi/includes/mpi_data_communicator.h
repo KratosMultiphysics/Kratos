@@ -58,9 +58,6 @@ class MPIDataCommunicator: public DataCommunicator
     /// Constructor accepting an MPI_Comm object.
     MPIDataCommunicator(MPI_Comm MPIComm);
 
-    /// Copy constructor.
-    MPIDataCommunicator(MPIDataCommunicator const &rOther);
-
     /// Destructor.
     ~MPIDataCommunicator() override;
 
@@ -248,6 +245,9 @@ class MPIDataCommunicator: public DataCommunicator
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    /// Copy constructor.
+    MPIDataCommunicator(MPIDataCommunicator const &rOther) = delete;
 
     /// Assignment operator.
     MPIDataCommunicator &operator=(MPIDataCommunicator const &rOther) = delete;
