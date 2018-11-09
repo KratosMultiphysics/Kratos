@@ -250,6 +250,10 @@ namespace Kratos {
         void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();
         virtual void ComputeNewNeighboursHistoricalData();
+        virtual void CreateContactElements();
+        void InitializeContactElements();
+        // void ContactInitializeSolutionStep();
+        void PrepareContactElementsForPrinting();
         virtual void ComputeNewRigidFaceNeighboursHistoricalData();
         virtual void SearchRigidFaceNeighbours();
         void DoubleHierarchyMethod();
@@ -286,6 +290,9 @@ namespace Kratos {
         DenseVector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
+        virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
+            return r_model_part.Elements();
+        }
 
 
         void SaveOldDataParticles()
