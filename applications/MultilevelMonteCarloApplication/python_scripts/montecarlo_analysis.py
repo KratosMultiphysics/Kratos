@@ -37,7 +37,7 @@ References:
 [PKN17] M. Pisaroni; S. Krumscheid; F. Nobile : Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; MATHICSE technical report no. 23.2017.
 '''
 class MonteCarloAnalysis(AnalysisStage):
-    '''Main script for Monte Carlo simulations'''
+    '''Main analysis stage for Monte Carlo simulations'''
 
     def __init__(self,model,parameters,sample):
         self.sample = sample
