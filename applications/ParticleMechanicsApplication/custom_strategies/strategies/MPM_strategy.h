@@ -826,7 +826,33 @@ public:
                 {
                     pelem->Set(ACTIVE);
                     element_itr->GetGeometry() = pelem->GetGeometry();
+                    if (m_GeometryElement == "Triangle")
+                    {
+                        element_itr->GetGeometry()[0].Set(ACTIVE);
+                        element_itr->GetGeometry()[1].Set(ACTIVE);
+                        element_itr->GetGeometry()[2].Set(ACTIVE);
+                        if (TDim ==3)
+                        {
+                            element_itr->GetGeometry()[3].Set(ACTIVE);
+                        }
+                    }
+                    else if(m_GeometryElement == "Quadrilateral")
+                    {
+                        element_itr->GetGeometry()[0].Set(ACTIVE);
+                        element_itr->GetGeometry()[1].Set(ACTIVE);
+                        element_itr->GetGeometry()[2].Set(ACTIVE);
+                        element_itr->GetGeometry()[3].Set(ACTIVE);
+                        if (TDim ==3)
+                        {
+                            element_itr->GetGeometry()[4].Set(ACTIVE);
+                            element_itr->GetGeometry()[5].Set(ACTIVE);
+                            element_itr->GetGeometry()[6].Set(ACTIVE);
+                            element_itr->GetGeometry()[7].Set(ACTIVE);
+                        }
+                    }
                 }
+                else KRATOS_ERROR << "Search element failed! There could be some particles outside the Background Grid domain" << std::endl;
+
             }
         }
     }
