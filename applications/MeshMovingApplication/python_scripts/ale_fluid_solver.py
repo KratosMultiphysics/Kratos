@@ -207,10 +207,11 @@ class ALEFluidSolver(PythonSolver):
         # selecting the time-integration for the MESH_VELOCITY to be consistent
         # with the fluid time-integration
         # by now the parameters of the FluidSolver have been validated, which means
-        # that the time-integration method used by the fluid can be querried
+        # that the time-integration method used by the fluid can be queried
 
         mesh_vel_comp_settings = KratosMultiphysics.Parameters("""{ }""")
 
+        # copying the parameters related to the mesh-vel computation
         if mesh_motion_settings.Has("time_scheme"):
             mesh_vel_comp_settings.AddValue("time_scheme", mesh_motion_settings["time_scheme"])
             mesh_motion_settings.RemoveValue("time_scheme")
