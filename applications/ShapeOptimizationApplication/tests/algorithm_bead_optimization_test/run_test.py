@@ -47,7 +47,7 @@ with open(response_log_filename, 'r') as csvfile:
     # Check against specifications
     TestCase().assertAlmostEqual(resulting_lagrange_value, 7.64417E-02,5)
     TestCase().assertAlmostEqual(resulting_objective_value, 4.21705E-04,5)
-    TestCase().assertAlmostEqual(resulting_lambda, 18.447460,6)
+    TestCase().assertAlmostEqual(resulting_lambda, 18.4475,4)
     TestCase().assertAlmostEqual(resulting_penalty_value, 2.46885E-03,5)
     TestCase().assertAlmostEqual(resulting_penalty_scaling, 3.11349E-05,5)
 
