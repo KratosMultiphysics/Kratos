@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
-import KratosMultiphysics.MeshMovingApplication
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Other imports
 from python_solver import PythonSolver
@@ -38,6 +38,7 @@ class ALEFluidSolver(PythonSolver):
 
         ## Creating the fluid solver
         self.fluid_solver = self._CreateFluidSolver(solver_settings, parallelism)
+        self.is_printing_rank = self.fluid_solver._IsPrintingRank()
 
         ## Creating the mesh-motion solver
         if not mesh_motion_solver_settings.Has("echo_level"):
@@ -62,24 +63,26 @@ class ALEFluidSolver(PythonSolver):
             raise Exception('"ale_boundary_parts" has to be provided as a list!')
         mesh_motion_solver_settings.RemoveValue("ale_boundary_parts")
 
+        # to be done before creating the mesh-solver, as it removes some parameters
+        self.mesh_vel_comp_settings = self._GetMeshVelocityComputationSettings(solver_settings, mesh_motion_solver_settings)
+
+        # TODO remove this once the mesh-vel-computation is removed from the mesh-solver!
+        # We use the new utility, therefore explicitly setting it to false!
+        if mesh_motion_solver_settings.Has("calculate_mesh_velocities"):
+            mesh_motion_solver_settings.SetBool(False)
+        else:
+            mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
+
         self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(
             model, mesh_motion_solver_settings, parallelism)
 
         # Getting the min_buffer_size from both solvers
         # and assigning it to the fluid_solver, bcs this one handles the model_part
-        self.fluid_solver.min_buffer_size = max(self.fluid_solver.GetMinimumBufferSize(),
-                                                self.mesh_motion_solver.GetMinimumBufferSize())
-
-        self.is_printing_rank = self.fluid_solver._IsPrintingRank()
-
-        # TODO once the different computations of the Mehs-Vel are implemented,
-        # check if the time schemes are consistent (in fluid and for the computation
-        # of the MESH_VELOCITY)
-        # Then also the computation of the mesh-vel will be in a utility
-        if (self.mesh_motion_solver.settings["calculate_mesh_velocities"].GetBool() == False
-            and self.is_printing_rank):
-            info_msg = "Mesh velocities are not being computed in the Mesh solver!"
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+        self.fluid_solver.min_buffer_size = max( [ self.fluid_solver.GetMinimumBufferSize(),
+                                                   self.mesh_motion_solver.GetMinimumBufferSize(),
+                                                   KratosMeshMoving.CalculateMeshVelocityUtility.
+                                                   GetMinimumBufferSize(self.mesh_vel_comp_settings[
+                                                       "time_scheme"].GetString()) ] )
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Construction finished")
@@ -87,6 +90,14 @@ class ALEFluidSolver(PythonSolver):
     def AddVariables(self):
         self.mesh_motion_solver.AddVariables()
         self.fluid_solver.AddVariables()
+
+        # Adding Variables used for computation of Mesh-Velocity
+        time_scheme = self.mesh_vel_comp_settings["time_scheme"].GetString()
+        main_model_part = self.model[self.settings["model_part_name"].GetString()]
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        if not time_scheme.startswith("bdf"): # bdfx does not need MESH_ACCELERATION
+            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION)
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Variables Added")
 
@@ -109,6 +120,10 @@ class ALEFluidSolver(PythonSolver):
 
         self.mesh_motion_solver.Initialize()
         self.fluid_solver.Initialize()
+
+        self.calc_mesh_vel_util = KratosMeshMoving.CalculateMeshVelocityUtility(
+            self.mesh_motion_solver.GetComputingModelPart(),
+            self.mesh_vel_comp_settings)
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Finished initialization")
@@ -142,6 +157,8 @@ class ALEFluidSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         self.mesh_motion_solver.SolveSolutionStep()
+
+        self.calc_mesh_vel_util.CalculateMeshVelocities()
 
         self._ApplyALEBoundaryCondition()
 
@@ -185,3 +202,85 @@ class ALEFluidSolver(PythonSolver):
                 KratosMultiphysics.MESH_VELOCITY,
                 KratosMultiphysics.VELOCITY,
                 mp.GetCommunicator().LocalMesh().Nodes)
+
+    def _GetMeshVelocityComputationSettings(self, fluid_settings, mesh_motion_settings):
+        # selecting the time-integration for the MESH_VELOCITY to be consistent
+        # with the fluid time-integration
+        # by now the parameters of the FluidSolver have been validated, which means
+        # that the time-integration method used by the fluid can be querried
+
+        mesh_vel_comp_settings = KratosMultiphysics.Parameters("""{ }""")
+
+        if mesh_motion_settings.Has("time_scheme"):
+            mesh_vel_comp_settings.AddValue("time_scheme", mesh_motion_settings["time_scheme"])
+            mesh_motion_settings.RemoveValue("time_scheme")
+        if mesh_motion_settings.Has("alpha_m"):
+            mesh_vel_comp_settings.AddValue("alpha_m", mesh_motion_settings["alpha_m"])
+            mesh_motion_settings.RemoveValue("alpha_m")
+        if mesh_motion_settings.Has("alpha_f"):
+            mesh_vel_comp_settings.AddValue("alpha_f", mesh_motion_settings["alpha_f"])
+            mesh_motion_settings.RemoveValue("alpha_f")
+
+        fluid_solver_type = fluid_settings["solver_type"].GetString()
+        if fluid_solver_type == "monolithic" or fluid_solver_type == "Monolithic":
+            if fluid_settings.Has("time_scheme"):
+                time_scheme_fluid = fluid_settings["time_scheme"].GetString()
+                alpha_fluid = fluid_settings["alpha"].GetDouble()
+                if mesh_vel_comp_settings.Has("time_scheme"):
+                    time_scheme_mesh_vel = mesh_vel_comp_settings["time_scheme"].GetString()
+                    if time_scheme_fluid != time_scheme_mesh_vel and self.is_printing_rank:
+                        info_msg  = '"time_scheme" of the fluid (' + time_scheme_fluid
+                        info_msg += ') is different from the "time_scheme" used for the '
+                        info_msg += 'computation of the mesh-velocity (' + time_scheme_mesh_vel + ')'
+                        KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+                else:
+                    mesh_vel_comp_settings.AddValue("time_scheme", fluid_settings["time_scheme"])
+                    if self.is_printing_rank:
+                        info_msg  = 'setting "time_scheme" of the mesh-solver for the computation of the '
+                        info_msg += 'mesh-velocity to "' + time_scheme_fluid + '" to be consistent with the '
+                        info_msg += '"time_scheme" of the fluid'
+                        KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+                if mesh_vel_comp_settings.Has("alpha_m"):
+                    alpha_mesh_vel = mesh_vel_comp_settings["alpha_"].GetDouble()
+                    if abs(alpha_fluid-alpha_mesh_vel) > 1e-12 and self.is_printing_rank:
+                        info_msg  = '"alpha" of the fluid (' + str(alpha_fluid)
+                        info_msg += ') is different from the "alpha_m" used for the '
+                        info_msg += 'computation of the mesh-velocity (' + str(alpha_mesh_vel) + ')'
+                        KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+                else:
+                    mesh_vel_comp_settings.AddValue("alpha_m", fluid_settings["alpha"])
+                    if self.is_printing_rank:
+                        info_msg  = 'setting "alpha_m" of the mesh-solver for the computation of the '
+                        info_msg += 'mesh-velocity to "' + str(alpha_fluid) + '" to be consistent with '
+                        info_msg += '"alpha" of the fluid'
+                        KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+            else:
+                if self.is_printing_rank:
+                    info_msg  = '"time_scheme" of the fluid could not be determined, '
+                    info_msg += 'mesh-solver uses it\'s default'
+                    KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+
+        elif fluid_solver_type == "fractional_step" or fluid_solver_type == "FractionalStep":
+            # currently fractional step always uses BDF2
+            if mesh_vel_comp_settings.Has("time_scheme"):
+                time_scheme_mesh_vel = mesh_vel_comp_settings["time_scheme"].GetString()
+                if time_scheme_mesh_vel != "bdf2" and self.is_printing_rank:
+                    info_msg  = '"time_scheme" of the fluid (bdf2) '
+                    info_msg += 'is different from the "time_scheme" used for the '
+                    info_msg += 'computation of the mesh-velocity (' + time_scheme_mesh_vel + ')'
+                    KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+            else:
+                mesh_vel_comp_settings.AddEmptyValue("time_scheme").SetString("bdf2")
+                if self.is_printing_rank:
+                    info_msg  = 'setting "time_scheme" of the mesh-solver for the computation '
+                    info_msg += 'of the mesh-velocity to "bdf2" to be consistent with the '
+                    info_msg += '"time_scheme" of the fluid'
+                    KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+        else:
+            if self.is_printing_rank:
+                info_msg  = 'unknown "solver_type" of the fluid-solver, therefore '
+                info_msg += 'no automatic selection of "time_scheme" for the computation'
+                info_msg += 'of the mesh-velocity performed (mesh-solver uses it\'s default)'
+                KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+
+        return mesh_vel_comp_settings
