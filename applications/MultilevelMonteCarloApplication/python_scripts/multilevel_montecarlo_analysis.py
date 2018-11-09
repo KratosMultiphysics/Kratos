@@ -24,7 +24,7 @@ from pycompss.api.parameter import *
 import cmlmc as mlmc
 
 class MultilevelMonteCarloAnalysis(AnalysisStage):
-    '''Main script for MultilevelMonte Carlo simulations using the pure_diffusion solver'''
+    '''Main analysis stage for MultilevelMonte Carlo simulations'''
 
 
     def __init__(self,model,parameters,sample):
@@ -37,72 +37,24 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
         solver = convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
         self.LaplacianSolver = solver
         return self.LaplacianSolver
-
     
     def _GetSimulationName(self):
         return "Multilevel Monte Carlo Analysis"
-
     
-    def ApplyBoundaryConditions(self):
-        super(MultilevelMonteCarloAnalysis,self).ApplyBoundaryConditions()
-        ## define the forcing function
+    '''Introduce here the stochasticity in the right hand side defining the forcing function and apply the stochastic contribute'''
+    def ModifyInitialProperties(self):
         for node in self.model.GetModelPart("MLMCLaplacianModelPart").Nodes:
             coord_x = node.X
             coord_y = node.Y
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
-            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)
+            forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents an analytical solution
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
-        # print("SAMPLE = ",self.sample)
-            '''need to use SetSolutionStepValue and not SetValue (equivalent for GetSolutionStepValue and GetValue) because in custom_elements and custom_conditions I use this function
-            Set/GetValue uses less memory and is always used for element and conditions
-            Set/GetSolutionStepValue uses more memory, and allows to memorize values stored in the nodes in case of buffer > 1 (e.g. sol_{i-1}, sol_{i-2} remain stored there to evaluate sol_{i})
-            if I use SetValue, I need to use GetValue (the same for the other)
-            node.SetValue(Poisson.FORCING,node.GetSolutionStepValue(Poisson.FORCING)*sample)'''
-            
 
     
     
 ###########################################################
 ######## END OF CLASS MULTILEVELMONTECARLOANALYSIS ########
 ###########################################################
-
-
-
-# def GenerateStochasticContribute(parameters):
-#     number_samples = 1 # i.e. generate one stochastic variable per time
-
-#     if (parameters["problem_data"].Has("stochastic_pdf")):
-#         stochastic_pdf = parameters["problem_data"]["stochastic_pdf"]
-#         print(stochastic_pdf)
-#     else:
-#         raise Exception('Please provide the "stochastic_pdf" parameter in the .json file')
-
-#     if stochastic_pdf.Has("normal_distribution"):
-#         if stochastic_pdf["normal_distribution"].Has("mean"):
-#             mu = stochastic_pdf["normal_distribution"]["mean"].GetDouble()
-#         else:
-#             raise Exception('Please define the "mean" for the normal distribution in the .json file')
-#         if stochastic_pdf["normal_distribution"].Has("variance"):
-#             sigma = stochastic_pdf["normal_distribution"]["variance"].GetDouble()
-#         else:
-#             raise Exception('Please define the "variance" for the normal distribution in the .json file')
-#         sample = np.random.normal(mu,sigma,number_samples)
-
-#     elif stochastic_pdf.Has("beta_distribution"):
-#         if stochastic_pdf["beta_distribution"].Has("alpha"):
-#             alpha = stochastic_pdf["beta_distribution"]["alpha"].GetDouble()
-#         else:
-#             raise Exception('Please define the "alpha" for the beta distribution in the .json file')
-#         if stochastic_pdf["beta_distribution"].Has("beta"):
-#             beta = stochastic_pdf["beta_distribution"]["beta"].GetDouble()
-#         else:
-#             raise Exception('Please define the "beta" for the beta distribution in the .json file')
-#         sample = np.random.beta(alpha,beta,number_samples)
-
-#     else:
-#         raise Exception('Please provide "normal_distribution" or "beta_distribution" in the .json file; at the moment only "normal_distribution" and "beta_distribution" are implemented')
-#     return sample
-
 
 
 '''
@@ -204,29 +156,29 @@ if __name__ == '__main__':
     # if len(argv) == 2: # ProjectParameters is being passed from outside
     #     parameter_file_name = argv[1]
     # else: # using default name
-    #     parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level0/ProjectParameters.json"
+    #     parameter_file_name = "../tests/Level0/ProjectParameters.json"
 
     '''
     set the ProjectParameters.json path in the parameter_file_name list
     '''
     parameter_file_name =[]
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level0/ProjectParameters.json")
+    parameter_file_name.append("../tests/Level0/ProjectParameters.json")
     with open(parameter_file_name[0],'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters_0 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level1/ProjectParameters.json")
+    parameter_file_name.append("../tests/Level1/ProjectParameters.json")
     with open(parameter_file_name[1],'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters_1 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level2/ProjectParameters.json")
+    parameter_file_name.append("../tests/Level2/ProjectParameters.json")
     with open(parameter_file_name[2],'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters_2 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level3/ProjectParameters.json")
+    parameter_file_name.append("../tests/Level3/ProjectParameters.json")
     with open(parameter_file_name[3],'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters_3 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level4/ProjectParameters.json")
+    parameter_file_name.append("../tests/Level4/ProjectParameters.json")
     with open(parameter_file_name[4],'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters_4 = parameters # in case there are more parameters file, we rename them
@@ -389,7 +341,7 @@ if __name__ == '__main__':
         # current_level = len(number_samples) - 1                          #
         # or                                                               #
         # current_level = len(difference_value) - 1                        #
-        ####################################################################'''
+        #################################################################'''
 
         '''compute new theta splitting,
         since we updated the number of levels we have a new M_l
@@ -491,8 +443,7 @@ if __name__ == '__main__':
         ratesLS = mlmc.compute_ratesLS(mean_difference_QoI,variance_difference_QoI,mean_time_ML,nDoF[0:L_opt+1])
 
         '''compute Bayesian VAR V^c[Y_l]
-        I compute from zero, since I have new ratesLS
-        also Nobile computes each time from zero the Bayesian variance in "var_estim"'''
+        I compute from zero, since I have new ratesLS'''
         BayesianVariance = mlmc.EstimateBayesianVariance(mean_difference_QoI,variance_difference_QoI,settings_ML_simulation,ratesLS,nDoF,number_samples,L_opt)
         print("updated Bayesian Variance estimated = ", BayesianVariance)
 
@@ -502,11 +453,10 @@ if __name__ == '__main__':
 
         L_old = L_opt
 
-        '''in [PNL17] go out of the cycle if: i) iter >= iE_cmlmc
+        '''go out of the cycle if: i) iter >= iE_cmlmc
                                              ii) TErr < tolerance_iter'''
-        if iter_MLMC >= iE_cmlmc:
-            if (TErr < tol_i):
-                convergence = True
+        if iter_MLMC >= iE_cmlmc and TErr < tol_i:
+            convergence = True
         else:
             iter_MLMC = iter_MLMC + 1
 
