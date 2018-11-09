@@ -488,7 +488,7 @@ class Solution(object):
         self.time = self.time + self.dt
         self.step += 1
 
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
 
     def SaveOldDataParticles(self):
         self.solver.SaveOldDataParticles()
