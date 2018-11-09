@@ -255,7 +255,7 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
             rFluidStress = this->data.ShearStress;
         } else {
             std::cout << "data.ShearStress has size 0 >>> RACE CONDITION " << std::endl;
-            for (unsigned int i = 0; i < rFluidStress.size(); i++){
+             for (unsigned int i = 0; i < rFluidStress.size(); i++){
                 rFluidStress[i] = 0.0;
             }
         }
@@ -265,6 +265,8 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
         std::cout << "This variable cannot be retrieved" << std::endl;
 
     }
+
+    std::cout << "Function in 2 fluid element was exitted" << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

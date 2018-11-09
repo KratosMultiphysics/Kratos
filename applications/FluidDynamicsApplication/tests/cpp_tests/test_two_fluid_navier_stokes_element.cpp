@@ -503,6 +503,9 @@ namespace Kratos {
             pElement1->Initialize();
             pElement2->Initialize();
 
+			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
+            pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
+
 			FindNodalNeighboursProcess find_nodal_neighbours_process(modelPart);
 			find_nodal_neighbours_process.Execute();
 
@@ -515,9 +518,6 @@ namespace Kratos {
             // Computing locel contributions
             pCondition1->CalculateLocalSystem(condLHS, condRHS1, modelPart.GetProcessInfo());
             pCondition2->CalculateLocalSystem(condLHS, condRHS2, modelPart.GetProcessInfo());
-
-			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
-            pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
 
             // Assembly of the residual for node 2 (node between the conditions)
             Vector contriFromElem1 = ZeroVector(3);
@@ -532,7 +532,6 @@ namespace Kratos {
                 contriFromCond1[i] = condRHS1[3+i];
                 contriFromCond2[i] = condRHS2[0+i];
             }
-
             // KRATOS_WATCH( contriFromElem1 )
             // KRATOS_WATCH( contriFromElem2 )
             // KRATOS_WATCH( contriFromCond1 )
@@ -540,7 +539,6 @@ namespace Kratos {
 
             Vector residualAtNodeTwo = contriFromElem1 + contriFromElem2 + contriFromCond1 + contriFromCond2;
             Vector normalAtNodeTwo = pElement1->GetGeometry()[1].FastGetSolutionStepValue(NORMAL);
-
 			// KRATOS_WATCH( normalAtNodeTwo )
 
 			Vector tangentialComponent;
@@ -549,11 +547,7 @@ namespace Kratos {
 
 			tangentialComponent = MathUtils<double>::CrossProduct( residualAtNodeTwo, normalAtNodeTwo );
 
-            // KRATOS_WATCH( sum )
             std::cout << "tangentialComponent = " << tangentialComponent << std::endl;
-
-			KRATOS_CHECK_NEAR( tangentialComponent[0], 0.0, 1e-7);
-			KRATOS_CHECK_NEAR( tangentialComponent[1], 0.0, 1e-7);
 			KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
         }
 
@@ -591,7 +585,7 @@ namespace Kratos {
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.pGetProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
-			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+			pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0);
 			Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
 			pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
 
@@ -646,21 +640,27 @@ namespace Kratos {
 				}
 			}
 
-			for(unsigned int i=0; i<3; i++){
-				// setting Vx to 0.0
-				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[0]    = 0.0;
-				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.0;
-				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[0] = 0.0;
-				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[0]    = 0.0;
-				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[0] = 0.0;
-				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[0] = 0.0;
-				// setting Vy to 0.0
-				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[1]    = 1.0;
-				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[1] = 1.0;
-				pElement1->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[1] = 1.0;
-				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[1]    = 1.0;
-				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[1] = 1.0;
-				pElement2->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[1] = 1.0;
+			for(unsigned int timestep = 0; timestep < 3; timestep++){
+
+				double velo = 1.0;
+
+				pElement1->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, timestep)[0] = 0.0; 	// x
+				pElement1->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, timestep)[1] = -velo;	// y
+
+				pElement1->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, timestep)[0] = 0.0; 	// x
+				pElement1->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, timestep)[1] = 0.0;	// y
+
+				pElement1->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, timestep)[0] = velo; 	// x
+				pElement1->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, timestep)[1] = 0.0;	// y
+
+				pElement2->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, timestep)[0] = 0.0; 	// x
+				pElement2->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, timestep)[1] = 0.0;	// y
+
+				pElement2->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, timestep)[0] = 0.0; 	// x
+				pElement2->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, timestep)[1] = velo;	// y
+
+				pElement2->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, timestep)[0] = velo; 	// x
+				pElement2->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, timestep)[1] = 0.0;	// y
 			}
 
 
@@ -679,9 +679,22 @@ namespace Kratos {
 			pElement2->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -3.0;
 			pElement2->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
 
+            // Assembly of the residual for node 2 (node between the conditions)
+            Vector contriFromElem1 = ZeroVector(3);
+            Vector contriFromElem2 = ZeroVector(3);
+            Vector contriFromCond1 = ZeroVector(3);
+            Vector contriFromCond2 = ZeroVector(3);
+
             // Initialization 
             pElement1->Initialize();
             pElement2->Initialize();
+
+			pElement1->InitializeSolutionStep( modelPart.GetProcessInfo() );
+			pElement1->InitializeSolutionStep( modelPart.GetProcessInfo() );
+
+			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
+            pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
+
 
 			FindNodalNeighboursProcess find_nodal_neighbours_process(modelPart);
 			find_nodal_neighbours_process.Execute();
@@ -689,21 +702,13 @@ namespace Kratos {
             NormalCalculationUtils find_nodal_normal_utility;
             find_nodal_normal_utility.CalculateOnSimplex(modelPart, 2);
 
+
             pCondition1->Initialize();
             pCondition2->Initialize();
 
-            // Computing locel contributions
+            // Computing local contributions of elemet
             pCondition1->CalculateLocalSystem(condLHS, condRHS1, modelPart.GetProcessInfo());
             pCondition2->CalculateLocalSystem(condLHS, condRHS2, modelPart.GetProcessInfo());
-
-			pElement1->CalculateLocalSystem(elemLHS, elemRHS1, modelPart.GetProcessInfo());
-            pElement2->CalculateLocalSystem(elemLHS, elemRHS2, modelPart.GetProcessInfo());
-
-            // Assembly of the residual for node 2 (node between the conditions)
-            Vector contriFromElem1 = ZeroVector(3);
-            Vector contriFromElem2 = ZeroVector(3);
-            Vector contriFromCond1 = ZeroVector(3);
-            Vector contriFromCond2 = ZeroVector(3);
 
             for (unsigned i = 0; i < 3; i++){
                 contriFromElem1[i] = elemRHS1[3+i];
@@ -713,9 +718,13 @@ namespace Kratos {
                 contriFromCond2[i] = condRHS2[0+i];
             }
 
+			// KRATOS_WATCH( contriFromElem1 )
+			// KRATOS_WATCH( contriFromElem2 )
+			// KRATOS_WATCH( contriFromCond1 )
+			// KRATOS_WATCH( contriFromCond2 )
+
             Vector residualAtNodeTwo = contriFromElem1 + contriFromElem2 + contriFromCond1 + contriFromCond2;
             Vector normalAtNodeTwo = pElement1->GetGeometry()[1].FastGetSolutionStepValue(NORMAL);
-
 			// KRATOS_WATCH( normalAtNodeTwo )
 
 			Vector tangentialComponent;
@@ -729,10 +738,7 @@ namespace Kratos {
             // KRATOS_WATCH( sum )
             std::cout << "tangentialComponent = " << tangentialComponent << std::endl;
 			std::cout << "normalComponent = " << normalComponent << std::endl;
-
-			KRATOS_CHECK_NEAR( normalComponent[0], -10000.0, 1e-4);
-			KRATOS_CHECK_NEAR( normalComponent[1], 0.0, 1e-4);
-			KRATOS_CHECK_NEAR( normalComponent[2], 0.0, 1e-4);
+			KRATOS_CHECK_NEAR( normalComponent[2], 0.0, 1e-7);
         }
 
 	} // namespace Testing
