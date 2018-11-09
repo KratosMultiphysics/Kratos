@@ -244,7 +244,7 @@ if __name__ == '__main__':
                 time_ML[level] = np.append(time_ML[level],time_MLi)
                 
             else:
-                for cycle_level in range (0,level+1):
+                for cycle_level in range (level-1,level+1):
                     run_results.append(execution_task(parameter_file_name[cycle_level], sample))
                   
                 time_MLi = time.time() - start_time_ML
@@ -377,7 +377,7 @@ if __name__ == '__main__':
                     difference_QoI[level] = np.append(difference_QoI[level],run_results[-1])
                     time_ML[level] = np.append(time_ML[level],time_MLi)
                 else:
-                    for cycle_level in range (0,level+1):
+                    for cycle_level in range (level-1,level+1):
                         run_results.append(execution_task(parameter_file_name[cycle_level], sample))
                     time_MLi = time.time() - start_time_ML
                     # difference_QoI[level].append(run_results[-1] - run_results[-2])
