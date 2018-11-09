@@ -231,6 +231,8 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.HasProperties(1), False)
         model_part.AddProperties(Properties(1))
         self.assertEqual(model_part.HasProperties(1), True)
+        random_sub_model_part = model_part.CreateSubModelPart("RandomSubModelPart")
+        self.assertEqual(random_sub_model_part.HasProperties(1), False)
 
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.GetProperties()[1].Id, 1)
