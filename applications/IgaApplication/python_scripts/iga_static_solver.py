@@ -38,23 +38,5 @@ class StaticIgaSolver(iga_solver.IgaSolver):
         super(StaticIgaSolver, self).Initialize() # The mechanical solver is created here.
         self.print_on_rank_zero("::[StaticIgaSolver]:: ", "Finished initialization.")
 
-    def Solve(self):
-        super(StaticIgaSolver, self).Solve()
-
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-
-    def _create_iga_solution_strategy(self):
-        analysis_type = self.settings["analysis_type"].GetString()
-        if analysis_type == "linear":
-            iga_solution_strategy = self._create_linear_strategy()
-        elif analysis_type == "non_linear":
-            if(self.settings["line_search"].GetBool() == False):
-                iga_solution_strategy = self._create_newton_raphson_strategy()
-            else:
-                iga_solution_strategy = self._create_line_search_strategy()
-        else:
-            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"linear\", \"non_linear\""
-            raise Exception(err_msg)
-        return iga_solution_strategy
