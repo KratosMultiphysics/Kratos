@@ -4,27 +4,26 @@
 #include <cmath>
 
 // Project includes
-#include "DEM_KDEM_Rankine_CL.h"
+#include "DEM_KDEM_CamClay_CL.h"
 #include "custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos {
 
-    DEMContinuumConstitutiveLaw::Pointer DEM_KDEM_Rankine::Clone() const {
-        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM_Rankine(*this));
+    DEMContinuumConstitutiveLaw::Pointer DEM_KDEM_CamClay::Clone() const {
+        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM_CamClay(*this));
         return p_clone;
     }
 
-    void DEM_KDEM_Rankine::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Rankine to Properties " << pProp->Id() << std::endl;
+    void DEM_KDEM_CamClay::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_CamClay to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_KDEM_Rankine::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
+    void DEM_KDEM_CamClay::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
         if (failure_type == 0) {
-            double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
 
             Matrix average_stress_tensor = ZeroMatrix(3,3);
             for (int i = 0; i < 3; i++) {
@@ -36,17 +35,36 @@ namespace Kratos {
             Vector principal_stresses(3);
             noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(average_stress_tensor);
 
-            for (int i=0; i<3; i++) {
-                if(principal_stresses[i] > tension_limit) {
-                    failure_type = 4;
-                    break;
-                }
-            }
-        }
+            Properties& element1_props = element1->GetProperties();
+            Properties& element2_props = element2->GetProperties();
 
+            // Preconsolidation pressure
+            const double p_c = 0.5 * (element1_props[DEM_PRECONSOLIDATION_PRESSURE] + element2_props[DEM_PRECONSOLIDATION_PRESSURE]);
+            
+            // p and q computation
+            const double p = 0.333333333333333333333 * (principal_stresses[0] + principal_stresses[1] + principal_stresses[2]);
+            
+            const double q = sqrt(0.5 * ((principal_stresses[0] - principal_stresses[1]) * (principal_stresses[0] - principal_stresses[1])
+                                       + (principal_stresses[1] - principal_stresses[2]) * (principal_stresses[1] - principal_stresses[2])
+                                       + (principal_stresses[2] - principal_stresses[0]) * (principal_stresses[2] - principal_stresses[0])));
+
+            // slope of the straight line function
+            const double M = 0.5 * (element1_props[DEM_M_CAMCLAY_SLOPE] + element2_props[DEM_M_CAMCLAY_SLOPE]);;
+            
+            // straight line function value
+            const double straight_line_function_value = M * p;
+
+            // ellipsoid function value
+            const double ellipsoid_function_value = M * M * p * (p - p_c) + q * q;
+            
+            // choosing the necessary branch
+            double cam_clay_function_value = straight_line_function_value < ellipsoid_function_value ? straight_line_function_value : ellipsoid_function_value;
+
+            if (cam_clay_function_value > 0) failure_type = 4;
+        }
     }
 
-    void DEM_KDEM_Rankine::CalculateNormalForces(double LocalElasticContactForce[3],
+    void DEM_KDEM_CamClay::CalculateNormalForces(double LocalElasticContactForce[3],
             const double kn_el,
             double equiv_young,
             double indentation,
@@ -64,12 +82,10 @@ namespace Kratos {
 
         if (indentation >= 0.0) { //COMPRESSION This response is the same for broken or intact bonds!
             LocalElasticContactForce[2] = kn_el * indentation;
-        }
-        else {
+        } else {
             if (failure_type > 0) {
                 LocalElasticContactForce[2] = 0.0;
-            }
-            else {
+            } else {
                 LocalElasticContactForce[2] = kn_el * indentation;
             }
         }
@@ -77,7 +93,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void DEM_KDEM_Rankine::CalculateTangentialForces(double OldLocalElasticContactForce[3],
+    void DEM_KDEM_CamClay::CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
             double LocalCoordSystem[3][3],
@@ -105,10 +121,13 @@ namespace Kratos {
 
         if (failure_type == 0) {
             if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
-                AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
+                AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce,
+                                                           LocalElasticExtraContactForce,
+                                                           element1->mNeighbourElasticExtraContactForces[i_neighbour_count],
+                                                           LocalCoordSystem,
+                                                           kt_el, calculation_area,  element1, element2);
             }
-        }
-        else {
+        } else {
             LocalElasticExtraContactForce[0] = 0.0;
             LocalElasticExtraContactForce[1] = 0.0;
 
@@ -116,9 +135,7 @@ namespace Kratos {
             const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
             double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
 
-            if (Frictional_ShearForceMax < 0.0) {
-                Frictional_ShearForceMax = 0.0;
-            }
+            if (Frictional_ShearForceMax < 0.0) Frictional_ShearForceMax = 0.0;
 
             if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)) {
                 LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
@@ -130,10 +147,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    bool DEM_KDEM_Rankine::CheckRequirementsOfStressTensor() {
-
-        return true;
-
-    }
+    bool DEM_KDEM_CamClay::CheckRequirementsOfStressTensor() { return true;}
 
 } // namespace Kratos
