@@ -51,7 +51,7 @@ class IgaSolver(PythonSolver):
             "model_part_name" : "",
             "domain_size" : -1,
             "echo_level": 0,
-            "buffer_size": 2,
+            "buffer_size": 1,
             "analysis_type": "non_linear",
             "model_import_settings": {
                 "input_type": "json",
@@ -69,7 +69,6 @@ class IgaSolver(PythonSolver):
             "block_builder": true,
             "clear_storage": false,
             "move_mesh_flag": true,
-            "multi_point_constraints_used": true,
             "convergence_criterion": "residual_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -83,8 +82,8 @@ class IgaSolver(PythonSolver):
                 "scaling": false,
                 "verbosity": 1
             },
-            "problem_domain_sub_model_part_list": ["solid"],
-            "processes_sub_model_part_list": [""],
+            #"problem_domain_sub_model_part_list": ["solid"],
+            #"processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []
@@ -108,13 +107,9 @@ class IgaSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        self.print_on_rank_zero("::[IgaSolver]:: ", "Construction finished")
+        self._set_nurbs_brep_modeler()
 
-        # Set if the analysis is restarted
-        if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
-        else:
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+        self.print_on_rank_zero("::[IgaSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
@@ -176,10 +171,9 @@ class IgaSolver(PythonSolver):
         self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        if not self.is_restarted():
-            # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
-            self._set_and_fill_buffer()
+        # Check and prepare computing model part and import constitutive laws.
+        self._execute_after_reading()
+        self._set_and_fill_buffer()
 
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]::", "ModelPart prepared for Solver.")
 
@@ -191,17 +185,7 @@ class IgaSolver(PythonSolver):
             self.Clear()
         iga_solution_strategy = self.get_iga_solution_strategy()
         iga_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        if not self.is_restarted():
-            iga_solution_strategy.Initialize()
-        else:
-            # SetInitializePerformedFlag is not a member of SolvingStrategy but
-            # is used by ResidualBasedNewtonRaphsonStrategy.
-            try:
-                iga_solution_strategy.SetInitializePerformedFlag(True)
-            except AttributeError:
-                pass
-
-        self._set_nurbs_brep_modeler()
+        iga_solution_strategy.Initialize()
 
         self.Check()
         self.print_on_rank_zero("::[IgaSolver]:: ", "Finished initialization.")
@@ -226,20 +210,20 @@ class IgaSolver(PythonSolver):
         self.get_iga_solution_strategy().FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
-        dt = self.ComputeDeltaTime()
+        dt = self._ComputeDeltaTime()
         new_time = current_time + dt
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.main_model_part.CloneTimeStep(new_time)
 
         return new_time
 
-    def ComputeDeltaTime(self):
+    def _ComputeDeltaTime(self):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
-        if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
-            raise Exception("The ComputingModelPart was not created yet!")
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        # if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
+        #     raise Exception("The ComputingModelPart was not created yet!")
+        return self.main_model_part#.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -295,11 +279,6 @@ class IgaSolver(PythonSolver):
             materials_imported = False
         return materials_imported
 
-    def is_restarted(self):
-        # this function avoids the long call to ProcessInfo and is also safer
-        # in case the detection of a restart is changed later
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-
     #### Private functions ####
 
     def _set_nurbs_brep_modeler(self):
@@ -314,16 +293,16 @@ class IgaSolver(PythonSolver):
         self.nurbs_brep_modeler = IgaApplication.NurbsBrepModeler(self.main_model_part)
 
     def _execute_after_reading(self):
-        """Prepare computing model part and import constitutive laws. """
-        # Auxiliary parameters object for the CheckAndPepareModelProcess
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddValue("model_part_name",self.settings["model_part_name"])
-        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # Assign mesh entities from domain and process sub model parts to the computing model part.
-        import check_and_prepare_model_process_structural
-        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
+        # """Prepare computing model part and import constitutive laws. """
+        # # Auxiliary parameters object for the CheckAndPepareModelProcess
+        # params = KratosMultiphysics.Parameters("{}")
+        # params.AddValue("model_part_name",self.settings["model_part_name"])
+        # params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
+        # params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+        # params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+        # # Assign mesh entities from domain and process sub model parts to the computing model part.
+        # import check_and_prepare_model_process_structural
+        # check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
 
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
@@ -393,8 +372,8 @@ class IgaSolver(PythonSolver):
         return conv_params
 
     def _create_convergence_criterion(self):
-        import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
+        import base_convergence_criteria_factory
+        convergence_criterion = base_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
