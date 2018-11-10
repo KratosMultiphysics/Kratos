@@ -290,25 +290,25 @@ public:
                         }
 
                         // Setting particle element's initial condition
-                        p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
-                        p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
-                        p_element -> SetValue(MP_DENSITY, MP_Density);
-                        p_element -> SetValue(MP_MASS, MP_Mass);
-                        p_element -> SetValue(MP_VOLUME, MP_Volume);
-                        p_element -> SetValue(GAUSS_COORD, xg);
-                        p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
-                        p_element -> SetValue(MP_VELOCITY, MP_Velocity);
-                        p_element -> SetValue(MP_ACCELERATION, MP_Acceleration);
-                        p_element -> SetValue(AUX_MP_VELOCITY, Aux_MP_Velocity);
-                        p_element -> SetValue(AUX_MP_ACCELERATION, Aux_MP_Acceleration);
-                        p_element -> SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
-                        p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
-                        p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
+                        p_element->SetValue(MP_NUMBER, integration_point_per_elements);
+                        p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
+                        p_element->SetValue(MP_DENSITY, MP_Density);
+                        p_element->SetValue(MP_MASS, MP_Mass);
+                        p_element->SetValue(MP_VOLUME, MP_Volume);
+                        p_element->SetValue(GAUSS_COORD, xg);
+                        p_element->SetValue(MP_DISPLACEMENT, MP_Displacement);
+                        p_element->SetValue(MP_VELOCITY, MP_Velocity);
+                        p_element->SetValue(MP_ACCELERATION, MP_Acceleration);
+                        p_element->SetValue(AUX_MP_VELOCITY, Aux_MP_Velocity);
+                        p_element->SetValue(AUX_MP_ACCELERATION, Aux_MP_Acceleration);
+                        p_element->SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
+                        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
+                        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
 
                         if(isMixedFormulation)
                         {
-                            p_element -> SetValue(MP_PRESSURE, MP_Pressure);
-                            p_element -> SetValue(AUX_MP_PRESSURE, Aux_MP_Pressure);
+                            p_element->SetValue(MP_PRESSURE, MP_Pressure);
+                            p_element->SetValue(AUX_MP_PRESSURE, Aux_MP_Pressure);
                         }
 
                         // Add the MP Element to the model part
@@ -427,10 +427,10 @@ public:
      * @param Level of echo for the solution strategy
      * @details
      * {
-     * 0 -> Mute... no echo at all
-     * 1 -> Printing time and basic informations
-     * 2 -> Printing linear solver data
-     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * 0->Mute... no echo at all
+     * 1->Printing time and basic informations
+     * 2->Printing linear solver data
+     * 3->Print of debug informations: Echo of stiffness matrix, Dx, b...
      * }
      */
     void SetEchoLevel(const int Level) override
@@ -758,34 +758,35 @@ public:
      * element.
      *
      * STEPS:
-     * 1) all the elements are set to be INACTIVE
-     * 2) a serching is performed and the grid elements which contain at least a MP are set to be ACTIVE
+     * 1) All the elements are set to be INACTIVE
+     * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
      *
     */
     virtual void SearchElement(
         ModelPart& grid_model_part,
         ModelPart& mpm_model_part)
     {
+        // Reset elements to inactive
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 
 			auto element_itr = grid_model_part.Elements().begin() + i;
-			element_itr -> Reset(ACTIVE);
+			element_itr->Reset(ACTIVE);
             if (m_GeometryElement == "Triangle"){
-                element_itr ->GetGeometry()[0].Reset(ACTIVE);
-                element_itr ->GetGeometry()[1].Reset(ACTIVE);
-                element_itr ->GetGeometry()[2].Reset(ACTIVE);
+                element_itr->GetGeometry()[0].Reset(ACTIVE);
+                element_itr->GetGeometry()[1].Reset(ACTIVE);
+                element_itr->GetGeometry()[2].Reset(ACTIVE);
 
                 if (TDim ==3)
                 {
-                    element_itr ->GetGeometry()[3].Reset(ACTIVE);
+                    element_itr->GetGeometry()[3].Reset(ACTIVE);
                 }
             }
             else if (m_GeometryElement == "Quadrilateral"){
-                element_itr ->GetGeometry()[0].Reset(ACTIVE);
-                element_itr ->GetGeometry()[1].Reset(ACTIVE);
-                element_itr ->GetGeometry()[2].Reset(ACTIVE);
-                element_itr ->GetGeometry()[3].Reset(ACTIVE);
+                element_itr->GetGeometry()[0].Reset(ACTIVE);
+                element_itr->GetGeometry()[1].Reset(ACTIVE);
+                element_itr->GetGeometry()[2].Reset(ACTIVE);
+                element_itr->GetGeometry()[3].Reset(ACTIVE);
 
                 if (TDim ==3)
                 {
@@ -797,110 +798,61 @@ public:
             }
 		}
 
-        //******************SEARCH FOR TRIANGLES************************
-        // Initialize shape function vector to be passed to PointLocator function
+        // Search background grid and make element active
         Vector N;
+        const int max_result = 1000;
 
-        if (m_GeometryElement == "Triangle")
+        #pragma omp parallel
         {
-            const int max_result = 1000;
-
             BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
-			#pragma omp parallel
-			{
-                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
-                #pragma omp for
-                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
+            #pragma omp for
+            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
-                    auto element_itr = mpm_model_part.Elements().begin() + i;
+                auto element_itr = mpm_model_part.Elements().begin() + i;
 
-                    array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
-                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                array_1d<double,3> xg = element_itr->GetValue(GAUSS_COORD);
+                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-                    Element::Pointer pelem;
+                Element::Pointer pelem;
 
-                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
+                // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
 
-                    if (is_found == true)
+                if (is_found == true)
+                {
+                    pelem->Set(ACTIVE);
+                    element_itr->GetGeometry() = pelem->GetGeometry();
+                    if (m_GeometryElement == "Triangle")
                     {
-                        pelem->Set(ACTIVE);
-
-                        element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                        element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                        element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
-
-                        pelem->GetGeometry()[0].Set(ACTIVE);
-                        pelem->GetGeometry()[1].Set(ACTIVE);
-                        pelem->GetGeometry()[2].Set(ACTIVE);
-
+                        element_itr->GetGeometry()[0].Set(ACTIVE);
+                        element_itr->GetGeometry()[1].Set(ACTIVE);
+                        element_itr->GetGeometry()[2].Set(ACTIVE);
                         if (TDim ==3)
                         {
-                            element_itr->GetGeometry()(3) = pelem->GetGeometry()(3);
-                            pelem->GetGeometry()[3].Set(ACTIVE);
+                            element_itr->GetGeometry()[3].Set(ACTIVE);
+                        }
+                    }
+                    else if(m_GeometryElement == "Quadrilateral")
+                    {
+                        element_itr->GetGeometry()[0].Set(ACTIVE);
+                        element_itr->GetGeometry()[1].Set(ACTIVE);
+                        element_itr->GetGeometry()[2].Set(ACTIVE);
+                        element_itr->GetGeometry()[3].Set(ACTIVE);
+                        if (TDim ==3)
+                        {
+                            element_itr->GetGeometry()[4].Set(ACTIVE);
+                            element_itr->GetGeometry()[5].Set(ACTIVE);
+                            element_itr->GetGeometry()[6].Set(ACTIVE);
+                            element_itr->GetGeometry()[7].Set(ACTIVE);
                         }
                     }
                 }
-		    }
-        }
+                else KRATOS_ERROR << "Search element failed! There could be some particles outside the Background Grid domain" << std::endl;
 
-        //******************SEARCH FOR QUADRILATERALS************************
-        else if(m_GeometryElement == "Quadrilateral")
-        {
-            const int max_result = 1000;
-
-            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-            SearchStructure.UpdateSearchDatabase();
-
-	        #pragma omp parallel
-			{
-                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
-
-                // Loop over the material points
-                #pragma omp for
-                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-                    auto element_itr = mpm_model_part.Elements().begin() + i;
-
-                    array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
-                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                    Element::Pointer pelem;
-
-                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
-
-                    if (is_found == true)
-                    {
-                        pelem->Set(ACTIVE);
-
-                        element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                        element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                        element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
-                        element_itr->GetGeometry()(3) = pelem->GetGeometry()(3);
-
-                        pelem->GetGeometry()[0].Set(ACTIVE);
-                        pelem->GetGeometry()[1].Set(ACTIVE);
-                        pelem->GetGeometry()[2].Set(ACTIVE);
-                        pelem->GetGeometry()[3].Set(ACTIVE);
-
-                        if (TDim ==3)
-                        {
-                            element_itr->GetGeometry()(4) = pelem->GetGeometry()(4);
-                            element_itr->GetGeometry()(5) = pelem->GetGeometry()(5);
-                            element_itr->GetGeometry()(6) = pelem->GetGeometry()(6);
-                            element_itr->GetGeometry()(7) = pelem->GetGeometry()(7);
-
-                            pelem->GetGeometry()[4].Set(ACTIVE);
-                            pelem->GetGeometry()[5].Set(ACTIVE);
-                            pelem->GetGeometry()[6].Set(ACTIVE);
-                            pelem->GetGeometry()[7].Set(ACTIVE);
-                        }
-                    }
-                }
             }
         }
     }

@@ -39,11 +39,7 @@
             "input_filename" : "gravity_tests/dynamic_gravity_application_test_Grid"
         },
         "particle_per_element"               : 1,
-        "pressure_dofs"                      : false,
-        "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
-        }
+        "pressure_dofs"                      : false
     },
     "processes"        : {
         "constraints_process_list" : [{
