@@ -727,21 +727,21 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
             if ( CompleteNodalSigma[nnode].size1() != 3 ){
                 CompleteNodalSigma[nnode].resize(3,1);
             }
-            CompleteNodalSigma[nnode](0,0) = -ShearStressOfElement[0] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](1,0) = -ShearStressOfElement[1] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](2,0) = -ShearStressOfElement[2]; // no pressure in shear component
+            CompleteNodalSigma[nnode](0,0) = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](1,0) = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2]; // no pressure in shear component
         }
     } else if ( TNumNodes == 3 ){
         for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
             if ( CompleteNodalSigma[nnode].size1() != 6 ){
                 CompleteNodalSigma[nnode].resize(6,1);
             }
-            CompleteNodalSigma[nnode](0,0) = -ShearStressOfElement[0] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](1,0) = -ShearStressOfElement[1] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](2,0) = -ShearStressOfElement[2] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](3,0) = -ShearStressOfElement[3]; // no pressure in shear component
-            CompleteNodalSigma[nnode](4,0) = -ShearStressOfElement[4]; // no pressure in shear component
-            CompleteNodalSigma[nnode](5,0) = -ShearStressOfElement[5]; // no pressure in shear component
+            CompleteNodalSigma[nnode](0,0) = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](1,0) = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](3,0) = ShearStressOfElement[3]; // no pressure in shear component
+            CompleteNodalSigma[nnode](4,0) = ShearStressOfElement[4]; // no pressure in shear component
+            CompleteNodalSigma[nnode](5,0) = ShearStressOfElement[5]; // no pressure in shear component
         }
     }
 
@@ -789,7 +789,7 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
     for (unsigned int entry = 0; entry < 3; entry++){
 
         for (unsigned int node = 0; node < TNumNodes; node++){
-            rRightHandSideVector(entry + node*(TNumNodes+1) ) = -NodalEntriesRHS[node](entry,0);
+            rRightHandSideVector(entry + node*(TNumNodes+1) ) = NodalEntriesRHS[node](entry,0);
         }
     }
 
