@@ -3,7 +3,7 @@ import KratosMultiphysics.MeshMovingApplication
 
 try:
     import KratosMultiphysics.FluidDynamicsApplication
-    import KratosMultiphysics.ExternalSolversApplication
+    from fluid_dynamics_analysis import FluidDynamicsAnalysis
     missing_external_dependencies = True
     missing_application = ''
 except ImportError as e:
@@ -79,7 +79,6 @@ class ALEFluidSolverTest(UnitTest.TestCase):
             }
             }]'''))
 
-        from fluid_dynamics_analysis import FluidDynamicsAnalysis
         analysis = FluidDynamicsAnalysis(model,settings)
         analysis.Run()
 
