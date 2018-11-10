@@ -74,6 +74,5 @@
 "PostStressStrainOption"           : false,
 "PostRollingResistanceMoment"      : false,
 "post_vtk_option"                  : false,
-"MeanRadius"                       : 0.0001,
 "problem_name"                     : "DEFAULT"
 }

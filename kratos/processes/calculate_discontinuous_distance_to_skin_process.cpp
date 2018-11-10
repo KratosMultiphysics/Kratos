@@ -355,6 +355,22 @@ namespace Kratos
 		}
 	}
 
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateEmbeddedVariableFromSkin(
+		const Variable<double> &rVariable,
+		const Variable<double> &rEmbeddedVariable)
+	{
+		this->CalculateEmbeddedVariableFromSkinSpecialization<double>(rVariable, rEmbeddedVariable);
+	}
+
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateEmbeddedVariableFromSkin(
+		const Variable<array_1d<double,3>> &rVariable,
+		const Variable<array_1d<double,3>> &rEmbeddedVariable)
+	{
+		this->CalculateEmbeddedVariableFromSkinSpecialization<array_1d<double,3>>(rVariable, rEmbeddedVariable);
+	}
+
 	template<>
 	Plane3D CalculateDiscontinuousDistanceToSkinProcess<2>::SetIntersectionPlane(
 		const std::vector<array_1d<double,3>> &rIntPtsVector)

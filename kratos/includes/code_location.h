@@ -48,7 +48,7 @@ namespace Kratos
 
             return *this;
         }
-			
+
 
 		///@name Operations
 		///@{
@@ -128,7 +128,7 @@ namespace Kratos
 #endif
 
 
-#define KRATOS_CODE_LOCATION CodeLocation(__FILE__, KRATOS_CURRENT_FUNCTION, __LINE__)
+#define KRATOS_CODE_LOCATION Kratos::CodeLocation(__FILE__, KRATOS_CURRENT_FUNCTION, __LINE__)
 
 
   ///@} addtogroup block

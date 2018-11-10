@@ -110,7 +110,7 @@ namespace Kratos {
 
         if (r_process_info[CONTACT_MESH_OPTION] == 1) {
             CreateContactElements();
-            InitializeContactElements();
+            BaseType::InitializeContactElements();
         }
 
         r_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(NEIGHBOUR_IDS);
@@ -185,6 +185,7 @@ namespace Kratos {
         const int time_step = r_process_info[TIME_STEPS];
         const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % BaseType::GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
+        const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
 
         if (r_process_info[SEARCH_CONTROL] > 0) {
 
@@ -225,15 +226,17 @@ namespace Kratos {
                 MarkNewSkinParticles();
 
                 r_process_info[SEARCH_CONTROL] = 2;
-                //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
-                if (r_process_info[CONTACT_MESH_OPTION] == 1) {
-                    CreateContactElements();
-                    InitializeContactElements();
-                }
-                //}
             } else {
                 r_process_info[SEARCH_CONTROL] = 1;
             }
+
+            //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
+            if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+                CreateContactElements();
+                BaseType::InitializeContactElements();
+            }
+            //}
+
         }
         //Synch this var.
         r_model_part.GetCommunicator().MaxAll(r_process_info[SEARCH_CONTROL]);
@@ -408,68 +411,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     } //CreateContactElements
 
-    void ContinuumExplicitSolverStrategy::InitializeContactElements() {
-        KRATOS_TRY
-        //CONTACT MODEL PART
-        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        DenseVector<unsigned int> contact_element_partition;
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
-
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
-
-            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                (it_contact)->Initialize();
-            } //loop over CONTACT ELEMENTS
-        }// loop threads OpenMP
-
-        KRATOS_CATCH("")
-    }
-
-    void ContinuumExplicitSolverStrategy::ContactInitializeSolutionStep() {
-        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
-
-        DenseVector<unsigned int> contact_element_partition;
-
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
-
-            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                (it_contact)->InitializeSolutionStep(r_process_info);
-            } //loop over CONTACT ELEMENTS
-
-        }// loop threads OpenMP
-
-    } //Contact_InitializeSolutionStep
-
-    void ContinuumExplicitSolverStrategy::PrepareContactElementsForPrinting() {
-
-        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-
-        DenseVector<unsigned int> contact_element_partition;
-
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
-
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
-            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
-
-            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
-                Element* raw_p_contact_element = &(*it_contact);
-                ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (raw_p_contact_element);
-                p_bond->PrepareForPrinting();
-            } //loop over CONTACT ELEMENTS
-        }// loop threads OpenMP
-        //Important TODO: renumber all id's to avoid repetition across partitions
-    } //PrepareContactElementsForPrinting
-
     void ContinuumExplicitSolverStrategy::SetCoordinationNumber(ModelPart& r_model_part) {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
@@ -577,7 +518,7 @@ namespace Kratos {
 
         p_creator_destructor->MarkDistantParticlesForErasing(r_model_part);
 
-        if (r_process_info[CONTACT_MESH_OPTION] == 1) {
+        if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
             p_creator_destructor->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
             p_creator_destructor->DestroyContactElements(*mpContact_model_part);
         }

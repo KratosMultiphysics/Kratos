@@ -57,7 +57,7 @@ namespace Kratos
         * Checks the correct work of the thickness compute for solid shells
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSolidShellThicknessCompute, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SolidShellThicknessCompute, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
