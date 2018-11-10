@@ -5,6 +5,7 @@ from KratosMultiphysics import Matrix
 from KratosMultiphysics import Serializer, SerializerTraceType
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import sys
 
@@ -626,10 +627,7 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertEqual(check, loaded_parameters.WriteJsonString())
 
-        import os
-        os.remove('parameters_serialization.rest')
-
-        
+        kratos_utils.DeleteFileIfExisting(file_name + ".rest")
 
 
 if __name__ == '__main__':
