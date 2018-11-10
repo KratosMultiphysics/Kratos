@@ -58,7 +58,7 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
         double alpha_m = 0.0;
         double alpha_f = 0.0;
 
-        // setting mAlphaF and mAlphaM
+        // setting alpha_m and alpha_f
         if (time_scheme == "generalized_alpha") {
             alpha_m = Settings["alpha_m"].GetDouble();
             alpha_f = Settings["alpha_f"].GetDouble();
@@ -155,7 +155,7 @@ void CalculateMeshVelocityUtility::CalculateMeshVelocitiesGeneralizedAlpha(const
         auto&       r_mesh_a0 = it_node->FastGetSolutionStepValue(MESH_ACCELERATION);
 
         const auto& r_mesh_u1 = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-        const auto& r_mesh_v1 = it_node->FastGetSolutionStepValue(MESH_VELOCITY, 1);
+        const auto& r_mesh_v1 = it_node->FastGetSolutionStepValue(MESH_VELOCITY,     1);
         const auto& r_mesh_a1 = it_node->FastGetSolutionStepValue(MESH_ACCELERATION, 1);
 
         r_mesh_v0 = const_u * (r_mesh_u0 - r_mesh_u1) + const_v * r_mesh_v1 + const_a * r_mesh_a1;
