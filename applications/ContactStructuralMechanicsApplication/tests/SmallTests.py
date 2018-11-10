@@ -21,6 +21,9 @@ class SimplePatchTestThreeDMeshTying(TestFactory):
 class ALMHyperSimplePatchTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test"
 
+class ALMHyperSimplePatchTestWithEliminationContact(TestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination"
+
 class ALMHyperSimpleSlopePatchTestContact(TestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
 
