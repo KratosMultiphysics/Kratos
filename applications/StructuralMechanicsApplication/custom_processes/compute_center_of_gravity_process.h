@@ -6,11 +6,12 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Philipp Bucher
+//                   Salman Yousaf
 //
 
-#if !defined(KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS)
-#define KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS
+#if !defined(KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS)
+#define KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS
 
 // System includes
 
@@ -38,31 +39,31 @@ namespace Kratos
 ///@{
 
 /**
- * @class TotalStructuralMassProcess
+ * @class ComputeCenterOfGravityProcess
  *
  * @ingroup StructuralMechanicsApplication
  *
- * @brief This method computes the total mass of a structure
- * @details It takes into account the nodal-mass, beam, shells and solid elements
+ * @brief This method computes the center of gravity
+ * @details It takes into account all elements in the ModelPart
  *
- * @author Vicente Mataix Ferrandiz
+ * @author Philipp Bucher, Salman Yousaf
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalStructuralMassProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeCenterOfGravityProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TotalStructuralMassProcess
-    KRATOS_CLASS_POINTER_DEFINITION(TotalStructuralMassProcess);
+    /// Pointer definition of ComputeCenterOfGravityProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ComputeCenterOfGravityProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TotalStructuralMassProcess(
+    ComputeCenterOfGravityProcess(
         ModelPart& rThisModelPart
         ):mrThisModelPart(rThisModelPart)
     {
@@ -72,7 +73,7 @@ public:
     }
 
     /// Destructor.
-    ~TotalStructuralMassProcess() override
+    ~ComputeCenterOfGravityProcess() override
     = default;
 
     ///@}
@@ -106,8 +107,6 @@ public:
 
     void Execute() override;
 
-    static double CalculateElementMass(Element& rElement, const std::size_t DomainSize);
-
     ///@}
     ///@name Access
     ///@{
@@ -125,13 +124,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "TotalStructuralMassProcess";
+        return "ComputeCenterOfGravityProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "TotalStructuralMassProcess";
+        rOStream << "ComputeCenterOfGravityProcess";
     }
 
     /// Print object's data.
@@ -217,15 +216,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    TotalStructuralMassProcess& operator=(TotalStructuralMassProcess const& rOther) = delete;
+    ComputeCenterOfGravityProcess& operator=(ComputeCenterOfGravityProcess const& rOther) = delete;
 
     /// Copy constructor.
-    TotalStructuralMassProcess(TotalStructuralMassProcess const& rOther) = delete;
+    ComputeCenterOfGravityProcess(ComputeCenterOfGravityProcess const& rOther) = delete;
 
 
     ///@}
 
-}; // Class TotalStructuralMassProcess
+}; // Class ComputeCenterOfGravityProcess
 
 ///@}
 
@@ -239,11 +238,11 @@ private:
 
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   TotalStructuralMassProcess& rThis);
+//                                   ComputeCenterOfGravityProcess& rThis);
 //
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const TotalStructuralMassProcess& rThis)
+//                                   const ComputeCenterOfGravityProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -253,4 +252,4 @@ private:
 // }
 
 }
-#endif /* KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS defined */
+#endif /* KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS defined */
