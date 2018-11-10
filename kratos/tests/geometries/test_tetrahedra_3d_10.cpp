@@ -69,47 +69,47 @@ namespace{
 
   // /// Tests
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10EdgesNumber, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10EdgesNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 6);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10FacesNumber, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10FacesNumber, KratosCoreGeometriesFastSuite) {
     Geometry<NodeType>::Pointer geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EQUAL(geom->FacesNumber(), 4);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Volume, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Volume, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_NEAR(geom->Volume(), 1.0 / 6.0, TOLERANCE);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10MinEdgeLength, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10MinEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MinEdgeLength(), "Calling base class 'MinEdgeLength' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10MaxEdgeLength, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10MaxEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MaxEdgeLength(), "Calling base class 'MaxEdgeLength' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageEdgeLength, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->AverageEdgeLength(), "Calling base class 'AverageEdgeLength' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Circumradius, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Circumradius, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Circumradius(), "Calling base class 'Circumradius' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Inradius, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Inradius, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Inradius(), "Calling base class 'Inradius' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10IsInside, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10IsInside, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateCurvedTetrahedra3D10();
     Point PointInside(0.1, 0.1, 0.1);
     Point PointOutside(0.5, 0.5, 0.0);
@@ -124,7 +124,7 @@ namespace{
     KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10DeterminantOfJacobianArray1, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     Vector JacobianDeterminants;
     geom->DeterminantOfJacobian(JacobianDeterminants, GeometryData::GI_GAUSS_2);
@@ -132,18 +132,18 @@ namespace{
         KRATOS_CHECK_NEAR(JacobianDeterminants[i], 1.0, TOLERANCE);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10IntegrationPointsNumber, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10IntegrationPointsNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     KRATOS_CHECK_EQUAL(geom->IntegrationPointsNumber(), 4);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10DeterminantOfJacobianIndex1, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     for (unsigned g = 0; g < geom->IntegrationPointsNumber(); ++g)
       KRATOS_CHECK_NEAR(geom->DeterminantOfJacobian(g), 1.0, TOLERANCE);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10ShapeFunctionsValues, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     array_1d<double, 3> coord(3);
     coord[0] = 1.0 / 2.0;
@@ -162,7 +162,7 @@ namespace{
     CrossCheckShapeFunctionsValues(*geom);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10ShapeFunctionsLocalGradients, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     TestAllShapeFunctionsLocalGradients(*geom);
   }

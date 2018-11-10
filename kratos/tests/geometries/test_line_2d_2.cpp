@@ -59,13 +59,13 @@ namespace Testing {
     /**
      * Test an overlaping box and line (line has only one node in the box) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2XIntersectionBoxSingleNodeInside, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2XIntersectionBoxSingleNodeInside, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
         Point point_1(0.5, -0.1, 0.0);
         Point point_2(1.5, 0.1, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
     }
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2YIntersectionBoxSingleNodeInside, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2YIntersectionBoxSingleNodeInside, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitYDirectionLine2D2();
         Point point_1(-0.1, 0.5, 0.0);
         Point point_2(0.1, 1.5, 0.0);
@@ -75,13 +75,13 @@ namespace Testing {
     /**
      * Test an overlaping box and line (line has both nodes in the box) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2XIntersectionBoxTwoNodesInside, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2XIntersectionBoxTwoNodesInside, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
         Point point_1(-0.5, -0.1, 0.0);
         Point point_2(1.5, 0.1, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
     }
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2YIntersectionBoxTwoNodesInside, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2YIntersectionBoxTwoNodesInside, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitYDirectionLine2D2();
         Point point_1(-0.1, -0.5, 0.0);
         Point point_2(0.1, 1.5, 0.0);
@@ -91,7 +91,7 @@ namespace Testing {
     /**
      * Test an intersection with another line
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherLine, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherLine, KratosCoreGeometriesFastSuite) {
         auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
         Point::Pointer point_1 = Point::Pointer(new Point(0.5, 0.5, 0.0));
         Point::Pointer point_2 = Point::Pointer(new Point(0.5, -0.5, 0.0));
@@ -102,7 +102,7 @@ namespace Testing {
     /**
      * Test an intersection with another parallel line
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherParallelLine, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
         auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
         Point::Pointer point_1 = Point::Pointer(new Point(0.0, 0.5, 0.0));
         Point::Pointer point_2 = Point::Pointer(new Point(0.5, 0.5, 0.0));
@@ -113,7 +113,7 @@ namespace Testing {
     /**
      * Test a box inside a line HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideX, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideX, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
         Point point_1(0.25, -0.1, 0.0);
         Point point_2(0.75, 0.1, 0.0);
@@ -123,7 +123,7 @@ namespace Testing {
     /**
      * Test a box inside a line HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideY, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideY, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitYDirectionLine2D2();
         Point point_1(-0.1,0.25, 0.0);
         Point point_2(0.1, 0.75, 0.0);
@@ -132,7 +132,7 @@ namespace Testing {
     /**
      * Test a non overlaping box HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2NoIntersectionBox, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2NoIntersectionBox, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
         Point point_1(1, 1, 0.0);
         Point point_2(2, 2, 0.0);

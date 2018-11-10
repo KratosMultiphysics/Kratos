@@ -57,52 +57,52 @@ namespace {
 
   // /// Tests
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6EdgesNumber, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6EdgesNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6FacesNumber, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6FacesNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EQUAL(geom->FacesNumber(), 3);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Area, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Area, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Volume, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Volume, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
 	}
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6MinEdgeLength, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6MinEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MinEdgeLength(), "Calling base class 'MinEdgeLength' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6MaxEdgeLength, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6MaxEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MaxEdgeLength(), "Calling base class 'MaxEdgeLength' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6AverageEdgeLength, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6AverageEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->AverageEdgeLength(), "Calling base class 'AverageEdgeLength' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Circumradius, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Circumradius, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Circumradius(), "Calling base class 'Circumradius' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Inradius, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6Inradius, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Inradius(), "Calling base class 'Inradius' method instead of derived class one.");
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6IsInside, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6IsInside, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateCurvedTriangle2D6();
     Point PointInside(0.1, 0.1);
     Point PointOutside(0.5, 0.5);
@@ -115,7 +115,7 @@ namespace {
     KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6DeterminantOfJacobianArray1, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     Vector JacobianDeterminants;
     geom->DeterminantOfJacobian(JacobianDeterminants, GeometryData::GI_GAUSS_2);
@@ -123,18 +123,18 @@ namespace {
         KRATOS_CHECK_NEAR(JacobianDeterminants[i], 1.0, TOLERANCE);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6IntegrationPointsNumber, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6IntegrationPointsNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     KRATOS_CHECK_EQUAL(geom->IntegrationPointsNumber(), 3);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6DeterminantOfJacobianIndex1, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     for (unsigned g = 0; g < geom->IntegrationPointsNumber(); ++g)
       KRATOS_CHECK_NEAR(geom->DeterminantOfJacobian(g), 1.0, TOLERANCE);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6ShapeFunctionsValues, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     array_1d<double, 3> coord(3);
     coord[0] = 1.0 / 2.0;
@@ -149,7 +149,7 @@ namespace {
     CrossCheckShapeFunctionsValues(*geom);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6ShapeFunctionsLocalGradients, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D6ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTriangle2D6();
     TestAllShapeFunctionsLocalGradients(*geom);
   }

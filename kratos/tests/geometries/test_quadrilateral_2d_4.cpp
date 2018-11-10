@@ -29,13 +29,6 @@ namespace Kratos
 {
 namespace Testing
 {
-    ///@name Type Definitions
-    ///@{
-
-    typedef Node<3> NodeType;
-
-    ///@}
-
     /// Factory functions
 
     /** Generates a sample Quadrilateral2D4
@@ -92,8 +85,8 @@ namespace Testing
 
     /** Test a box and quadrilateral HasIntersection which should give true
      */
-    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4NodeBoxIntersection, KratosCoreFastSuite) {
-        auto geom = GenerateRightQuadrilateral2D4<NodeType>();
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4NodeBoxIntersection, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
         Point point_1 (-0.3, 0.8, 0.0);
         Point point_2 ( 0.2, 1.5, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
@@ -111,8 +104,8 @@ namespace Testing
         KRATOS_CHECK(geom->HasIntersection(point_7, point_8));
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4EdgeBoxIntersection, KratosCoreFastSuite) {
-        auto geom = GenerateDiagQuadrilateral2D4<NodeType>();
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4EdgeBoxIntersection, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateDiagQuadrilateral2D4<Node<3>>();
         Point point_1 ( 0.2, 0.2, 0.0 );
         Point point_2 ( 1.0, 1.0, 0.0 );
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
@@ -130,8 +123,8 @@ namespace Testing
         KRATOS_CHECK(geom->HasIntersection(point_7, point_8));
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4BoxNoIntersection, KratosCoreFastSuite) {
-        auto geom = GenerateDiagQuadrilateral2D4<NodeType>();
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4BoxNoIntersection, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateDiagQuadrilateral2D4<Node<3>>();
         Point point_1 ( 0.7, 0.4, 0.0 );
         Point point_2 ( 1.0, 1.2, 0.0 );
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
@@ -140,8 +133,8 @@ namespace Testing
     /** Tests the PointLocalCoordinates for Quadrilateral2D4.
      * Tests the PointLocalCoordinates for Quadrilateral2D4.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4PointLocalCoordinates, KratosCoreFastSuite) {
-        auto geom = GenerateRightQuadrilateral2D4<NodeType>();
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
 
         Point TestPointA(1.0, 1.0, 0.0);
         Point TestPointB(0.5, 0.5, 0.0);
@@ -162,8 +155,8 @@ namespace Testing
         KRATOS_CHECK_NEAR(TestResultB[2], 0.0, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsValues, KratosCoreFastSuite) {
-      auto geom = GenerateRightQuadrilateral2D4<NodeType>();
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
       array_1d<double, 3> coord(3);
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 4.0;
@@ -175,8 +168,8 @@ namespace Testing
       CrossCheckShapeFunctionsValues(*geom);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsLocalGradients, KratosCoreFastSuite) {
-        auto geom = GenerateRightQuadrilateral2D4<NodeType>();
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
         TestAllShapeFunctionsLocalGradients(*geom);
     }
 

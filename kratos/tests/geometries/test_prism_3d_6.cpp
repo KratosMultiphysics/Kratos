@@ -61,7 +61,7 @@ namespace Testing {
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6EdgesNumber, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6EdgesNumber, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
         KRATOS_CHECK_EQUAL(geomRegular->EdgesNumber(), 9);
@@ -70,7 +70,7 @@ namespace Testing {
     /** Checks if the number of faces is correct.
      * Checks if the number of faces is correct.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6FacesNumber, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6FacesNumber, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
         KRATOS_CHECK_EQUAL(geomRegular->FacesNumber(), 5);
@@ -79,7 +79,7 @@ namespace Testing {
     /** Checks if the characteristic length of the prism is calculated correctly.
      * Checks if the characteristic length of the prism is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6Length, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6Length, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
         KRATOS_CHECK_NEAR(geomRegular->Length(), 0.264567, TOLERANCE);
@@ -88,7 +88,7 @@ namespace Testing {
     /** Checks if the area of the prism is calculated correctly.
      * Checks if the area of the prism is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6Area, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6Area, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
         KRATOS_CHECK_NEAR(geomRegular->Area(),  0.5, TOLERANCE);
@@ -98,7 +98,7 @@ namespace Testing {
      * Checks if the volume of the prism is calculated correctly.
      * For prism 3D6 'volume()' call defaults to 'area()'
      */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6Volume, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6Volume, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D6();
 
         KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
@@ -112,7 +112,7 @@ namespace Testing {
     * A Point over a vertex of the prism: Expected result TRUE
     * A Point over an edge of the prism: Expected result TRUE
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6IsInside, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6IsInside, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
 
         Point PointInside(0.1666, 0.1666, 0.1666);
@@ -132,7 +132,7 @@ namespace Testing {
     * prism. The centre of the prism is selected due to its known
     * solution.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6PointLocalCoordinates, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
 
         // Compute the global coordinates of the centre
@@ -149,7 +149,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6ShapeFunctionsValues, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
         array_1d<double, 3> coord(3);
         coord[0] = 1.0 / 2.0;
@@ -163,7 +163,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.015625, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6ShapeFunctionsLocalGradients, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
         Matrix gradient;
 
@@ -206,7 +206,7 @@ namespace Testing {
     /** Tests the area using 'GI_GAUSS_1' integration method.
     * Tests the area using 'GI_GAUSS_1' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint1, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint1, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
 
         const double expected_vol = 0.5;
@@ -218,7 +218,7 @@ namespace Testing {
     /** Tests the area using 'GI_GAUSS_2' integration method.
     * Tests the area using 'GI_GAUSS_2' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint2, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint2, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
 
         const double expected_vol = 0.5;
@@ -230,7 +230,7 @@ namespace Testing {
     /** Tests the area using 'GI_GAUSS_3' integration method.
     * Tests the area using 'GI_GAUSS_3' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint3, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint3, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
 
         const double expected_vol = 0.5;
@@ -242,7 +242,7 @@ namespace Testing {
     /** Tests the area using 'GI_GAUSS_4' integration method.
     * Tests the area using 'GI_GAUSS_4' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint4, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint4, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
 
         const double expected_vol = 0.5;
@@ -254,7 +254,7 @@ namespace Testing {
     /** Tests the area using 'GI_GAUSS_5' integration method.
     * Tests the area using 'GI_GAUSS_5' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint5, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6GaussPoint5, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRegularPrism3D6();
 
         const double expected_vol = 0.5;

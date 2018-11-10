@@ -31,26 +31,24 @@ namespace Kratos
 {
     namespace Testing 
     {
+        ///@}
         ///@name Type Definitions
         ///@{
         
-        typedef Node<3> NodeType;
         typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-        ///@}
-
+        
         /// Tests
        
         /** Checks if the area of the triangle is calculated correctly using Heron equation.
          * Checks if the area of the triangle is calculated correctly using Heron equation.
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(LineJacobianTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(LineJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
-            NodeType::Pointer PointA = GeneratePoint<NodeType>();
-            NodeType::Pointer PointB = GeneratePoint<NodeType>();
+            Node<3>::Pointer PointA = GeneratePoint<Node<3>>();
+            Node<3>::Pointer PointB = GeneratePoint<Node<3>>();
             
-            auto geom = Line2D2<NodeType>(PointA,PointB);
+            auto geom = Line2D2<Node<3>>(PointA,PointB);
 
             IntegrationMethod ThisMethod = geom.GetDefaultIntegrationMethod();
             
@@ -67,13 +65,13 @@ namespace Kratos
          * Checks if It gives you the absolute value of a given value
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(TriangleJacobianTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TriangleJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
-            NodeType::Pointer PointA = GeneratePoint<NodeType>();
-            NodeType::Pointer PointB = GeneratePoint<NodeType>();
-            NodeType::Pointer PointC = GeneratePoint<NodeType>();
+            Node<3>::Pointer PointA = GeneratePoint<Node<3>>();
+            Node<3>::Pointer PointB = GeneratePoint<Node<3>>();
+            Node<3>::Pointer PointC = GeneratePoint<Node<3>>();
             
-            auto geom = Triangle3D3<NodeType>(PointA,PointB,PointC);
+            auto geom = Triangle3D3<Node<3>>(PointA,PointB,PointC);
 
             IntegrationMethod ThisMethod = geom.GetDefaultIntegrationMethod();
             
@@ -90,14 +88,14 @@ namespace Kratos
          * Checks if It gives you the minimum value of a given value
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(QuadrilateralJacobianTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(QuadrilateralJacobianTest, KratosNonRectangularJacobianFastSuite) 
         {
-            NodeType::Pointer PointA = NodeType::Pointer(new NodeType(1, 0.1, 0.2, 0.3));
-            NodeType::Pointer PointB = NodeType::Pointer(new NodeType(2, 0.4, 0.25, 0.35));
-            NodeType::Pointer PointC = NodeType::Pointer(new NodeType(3, 0.4, 0.55, 0.3));
-            NodeType::Pointer PointD = NodeType::Pointer(new NodeType(4, 0.15, 0.45, 0.45));
+            Node<3>::Pointer PointA = Node<3>::Pointer(new Node<3>(1, 0.1, 0.2, 0.3));
+            Node<3>::Pointer PointB = Node<3>::Pointer(new Node<3>(2, 0.4, 0.25, 0.35));
+            Node<3>::Pointer PointC = Node<3>::Pointer(new Node<3>(3, 0.4, 0.55, 0.3));
+            Node<3>::Pointer PointD = Node<3>::Pointer(new Node<3>(4, 0.15, 0.45, 0.45));
             
-            auto geom = Quadrilateral3D4<NodeType>(PointA,PointB,PointC,PointD);
+            auto geom = Quadrilateral3D4<Node<3>>(PointA,PointB,PointC,PointD);
 
             IntegrationMethod ThisMethod = geom.GetDefaultIntegrationMethod();
             

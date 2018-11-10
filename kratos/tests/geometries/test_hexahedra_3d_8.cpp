@@ -84,7 +84,7 @@ namespace Kratos {
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8EdgesNumber, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8EdgesNumber, KratosCoreGeometriesFastSuite) {
       auto geomRegLen1 = GenerateOriginCenterLen1Hexahedra3D8();
       auto geomRegLen2 = GenerateOriginCenterLen2Hexahedra3D8();
 
@@ -95,7 +95,7 @@ namespace Kratos {
     /** Checks if the number of faces is correct.
      * Checks if the number of faces is correct.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8FacesNumber, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8FacesNumber, KratosCoreGeometriesFastSuite) {
       auto geomRegLen1 = GenerateOriginCenterLen1Hexahedra3D8();
       auto geomRegLen2 = GenerateOriginCenterLen2Hexahedra3D8();
 
@@ -106,7 +106,7 @@ namespace Kratos {
     /** Checks if the characteristic length of the hexahedra is calculated correctly.
      * Checks if the characteristic length of the hexahedra is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8Length, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8Length, KratosCoreGeometriesFastSuite) {
       auto geomRegLen1 = GenerateOriginCenterLen1Hexahedra3D8();
       auto geomRegLen2 = GenerateOriginCenterLen2Hexahedra3D8();
 
@@ -117,7 +117,7 @@ namespace Kratos {
     /** Checks if the area of the hexahedra is calculated correctly.
      * Checks if the area of the hexahedra is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8Area, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8Area, KratosCoreGeometriesFastSuite) {
       auto geomRegLen1 = GenerateOriginCenterLen1Hexahedra3D8();
       auto geomRegLen2 = GenerateOriginCenterLen2Hexahedra3D8();
 
@@ -129,7 +129,7 @@ namespace Kratos {
      * Checks if the volume of the hexahedra is calculated correctly.
      * For hexahedra 3D8 'volume()' call defaults to 'area()'
      */
-    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8Volume, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8Volume, KratosCoreGeometriesFastSuite) {
       auto geomRegLen1 = GenerateOriginCenterLen1Hexahedra3D8();
       auto geomRegLen2 = GenerateOriginCenterLen2Hexahedra3D8();
 
@@ -140,7 +140,7 @@ namespace Kratos {
     /**
      * This test performs the check of the box intersection method
      */
-    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8BoxIntersection, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8BoxIntersection, KratosCoreGeometriesFastSuite) {
       auto hexahedron = GenerateOriginCenterLen1Hexahedra3D8();
 
       //hexahedron inside the box
@@ -164,7 +164,7 @@ namespace Kratos {
     * A Point over a vertex of the hexahedra: Expected result TRUE
     * A Point over an edge of the hexahedra: Expected result TRUE
     */
-    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8IsInside, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8IsInside, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateOriginCenterLen1Hexahedra3D8();
 
         Point PointInside(0.4999, 0.4999, 0.4999);
@@ -184,7 +184,7 @@ namespace Kratos {
     * hexahedra. The baricentre of the hexahedra is selected due to its known
     * solution.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8PointLocalCoordinates, KratosCoreFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateOriginCenterLen2Hexahedra3D8();
 
         // Compute the global coordinates of the baricentre
@@ -253,7 +253,7 @@ namespace Kratos {
         KRATOS_CHECK_NEAR(local_coords_outside_point(2), 1.0, TOLERANCE);
     }
 
-  KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShapeFunctionsValues, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
       auto geom = GenerateOriginCenterLen2Hexahedra3D8();
       array_1d<double, 3> coord(3);
       coord[0] = 1.0 / 2.0;
@@ -270,7 +270,7 @@ namespace Kratos {
       CrossCheckShapeFunctionsValues(*geom);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShapeFunctionsLocalGradients, KratosCoreFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
       auto geom = GenerateOriginCenterLen2Hexahedra3D8();
       TestAllShapeFunctionsLocalGradients(*geom);
   }

@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:     BSD License
-//               Kratos default license: kratos/license.txt
+//  			 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -716,10 +716,10 @@ namespace Kratos
             double neg_area = 0.0;
             for (unsigned int i=0; i<n_gauss_neg; ++i) {
                 neg_area += negative_side_weights(i);
-            }
+			}
 
             const double tot_area = 2.0*1.0/2.0;
             KRATOS_CHECK_NEAR(pos_area+neg_area, tot_area, tolerance);
-        }
-    }   // namespace Testing.
+		}
+	}   // namespace Testing.
 }  // namespace Kratos.
