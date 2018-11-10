@@ -150,7 +150,7 @@ class MeshSolverBase(PythonSolver):
                 buffer_size = 3
             else:
                 raise Exception('"time_order" can only be 1 or 2!')
-        return max(buffer_size, self.settings["buffer_size"].GetInt())
+        return max(buffer_size, self.settings["buffer_size"].GetInt(), self.mesh_model_part.GetBufferSize())
 
     def MoveMesh(self):
         self.get_mesh_motion_solving_strategy().MoveMesh()
