@@ -234,140 +234,10 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         ModelPart& rModelPart
         ) override
     {
-        KRATOS_TRY;
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
-
-        DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
-
-        typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
-
-        // Declaring temporal variables
-        DofsArrayType dof_temp_all, dof_temp_solvable, dof_temp_slave;
-
-        // We assign an empty dof array to our dof sets
-        BaseType::mDofSet = DofsArrayType(); /// This corresponds with all the DoF of the system
-        mDoFSlaveSet = DofsArrayType();    /// This corresponds with the slave (the ones not solved after compacting the system using MPC)
-
-        /**
-         * Here we declare three sets.
-         * - The global set: Contains all the DoF of the system
-         * - The slave set: The DoF that are not going to be solved, due to MPC formulation
-         */
-        set_type dof_global_set, dof_global_slave_set;
-
-        #pragma omp parallel firstprivate(dof_list, second_dof_list)
-        {
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-            // We cleate the temporal set and we reserve some space on them
-            set_type dofs_tmp_set, dof_temp_slave_set;
-            dofs_tmp_set.reserve(20000);
-            dof_temp_slave_set.reserve(200);
-
-            // Gets the array of elements from the modeler
-            ElementsArrayType& r_elements_array = rModelPart.Elements();
-            const int number_of_elements = static_cast<int>(r_elements_array.size());
-            #pragma omp for schedule(guided, 512) nowait
-            for (int i = 0; i < number_of_elements; ++i) {
-                auto it_elem = r_elements_array.begin() + i;
-
-                // Gets list of Dof involved on every element
-                pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-            }
-
-            // Gets the array of conditions from the modeler
-            ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
-            const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-            #pragma omp for  schedule(guided, 512) nowait
-            for (int i = 0; i < number_of_conditions; ++i) {
-                auto it_cond = r_conditions_array.begin() + i;
-
-                // Gets list of Dof involved on every element
-                pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-            }
-
-            // Gets the array of constraints from the modeler
-            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-            const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-            #pragma omp for  schedule(guided, 512) nowait
-            for (int i = 0; i < number_of_constraints; ++i) {
-                auto it_const = r_constraints_array.begin() + i;
-
-                // Gets list of Dof involved on every element
-                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
-                dof_temp_slave_set.insert(dof_list.begin(), dof_list.end());
-            }
-
-            // We merge all the sets in one thread
-            #pragma omp critical
-            {
-                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
-                dof_global_slave_set.insert(dof_temp_slave_set.begin(), dof_temp_slave_set.end());
-            }
-        }
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-
-        /// We transfer the temporal sets to our DoF set
-        dof_temp_all.reserve(dof_global_set.size());
-        for (auto& dof : dof_global_set) {
-            dof_temp_all.push_back( dof.get() );
-        }
-        dof_temp_all.Sort();
-        BaseType::mDofSet = dof_temp_all;
-
-        dof_temp_slave.reserve(dof_global_slave_set.size());
-        for (auto& dof : dof_global_slave_set) {
-            dof_temp_slave.push_back( dof.get() );
-        }
-        dof_temp_slave.Sort();
-        mDoFSlaveSet = dof_temp_slave;
-
-        // Throws an exception if there are no Degrees Of Freedom involved in the analysis
-        KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", mDoFSlaveSet.size() == 0) << "No slave degrees of freedom to solve!" << std::endl;
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
-
-        BaseType::mDofSetIsInitialized = true;
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
-
-#ifdef USE_LOCKS_IN_ASSEMBLY
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
-
-        if (BaseType::mLockArray.size() != 0) {
-            for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
-                omp_destroy_lock(&BaseType::mLockArray[i]);
-            }
-        }
-        BaseType::mLockArray.resize(BaseType::mDofSet.size());
-
-        for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
-            omp_init_lock(&BaseType::mLockArray[i]);
-        }
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
-#endif
-
-    // If reactions are to be calculated, we check if all the dofs have reactions defined
-    // This is tobe done only in debug mode
-    #ifdef KRATOS_DEBUG
-        if(BaseType::GetCalculateReactionsFlag()) {
-            for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
-                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " << std::endl
-                    << "Node : " << dof_iterator->Id()<< std::endl
-                    << "Dof : " << (*dof_iterator) << std::endl << "Not possible to calculate reactions." << std::endl;
-            }
-        }
-    #endif
-
-        KRATOS_CATCH("");
+        if(rModelPart.MasterSlaveConstraints().size() > 0)
+            SetUpDofSetWithConstraints(pScheme, rModelPart);
+        else
+            BaseType::SetUpDofSet(pScheme, rModelPart);
     }
 
     /**
@@ -601,6 +471,153 @@ protected:
         "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
+     * @details Equivalent to the ResidualBasedEliminationBuilderAndSolver but with constraints. The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SetUpDofSetWithConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        )
+    {
+        KRATOS_TRY;
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
+
+        DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
+
+        typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
+
+        // Declaring temporal variables
+        DofsArrayType dof_temp_all, dof_temp_solvable, dof_temp_slave;
+
+        // We assign an empty dof array to our dof sets
+        BaseType::mDofSet = DofsArrayType(); /// This corresponds with all the DoF of the system
+        mDoFSlaveSet = DofsArrayType();    /// This corresponds with the slave (the ones not solved after compacting the system using MPC)
+
+        /**
+         * Here we declare three sets.
+         * - The global set: Contains all the DoF of the system
+         * - The slave set: The DoF that are not going to be solved, due to MPC formulation
+         */
+        set_type dof_global_set, dof_global_slave_set;
+
+        #pragma omp parallel firstprivate(dof_list, second_dof_list)
+        {
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // We cleate the temporal set and we reserve some space on them
+            set_type dofs_tmp_set, dof_temp_slave_set;
+            dofs_tmp_set.reserve(20000);
+            dof_temp_slave_set.reserve(200);
+
+            // Gets the array of elements from the modeler
+            ElementsArrayType& r_elements_array = rModelPart.Elements();
+            const int number_of_elements = static_cast<int>(r_elements_array.size());
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < number_of_elements; ++i) {
+                auto it_elem = r_elements_array.begin() + i;
+
+                // Gets list of Dof involved on every element
+                pScheme->GetElementalDofList(*(it_elem.base()), dof_list, r_current_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+            }
+
+            // Gets the array of conditions from the modeler
+            ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+            const int number_of_conditions = static_cast<int>(r_conditions_array.size());
+            #pragma omp for  schedule(guided, 512) nowait
+            for (int i = 0; i < number_of_conditions; ++i) {
+                auto it_cond = r_conditions_array.begin() + i;
+
+                // Gets list of Dof involved on every element
+                pScheme->GetConditionDofList(*(it_cond.base()), dof_list, r_current_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+            }
+
+            // Gets the array of constraints from the modeler
+            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+            const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+            #pragma omp for  schedule(guided, 512) nowait
+            for (int i = 0; i < number_of_constraints; ++i) {
+                auto it_const = r_constraints_array.begin() + i;
+
+                // Gets list of Dof involved on every element
+                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+                dof_temp_slave_set.insert(dof_list.begin(), dof_list.end());
+            }
+
+            // We merge all the sets in one thread
+            #pragma omp critical
+            {
+                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+                dof_global_slave_set.insert(dof_temp_slave_set.begin(), dof_temp_slave_set.end());
+            }
+        }
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+
+        /// We transfer the temporal sets to our DoF set
+        dof_temp_all.reserve(dof_global_set.size());
+        for (auto& dof : dof_global_set) {
+            dof_temp_all.push_back( dof.get() );
+        }
+        dof_temp_all.Sort();
+        BaseType::mDofSet = dof_temp_all;
+
+        dof_temp_slave.reserve(dof_global_slave_set.size());
+        for (auto& dof : dof_global_slave_set) {
+            dof_temp_slave.push_back( dof.get() );
+        }
+        dof_temp_slave.Sort();
+        mDoFSlaveSet = dof_temp_slave;
+
+        // Throws an exception if there are no Degrees Of Freedom involved in the analysis
+        KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
+        KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", mDoFSlaveSet.size() == 0) << "No slave degrees of freedom to solve!" << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
+
+        BaseType::mDofSetIsInitialized = true;
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+
+#ifdef USE_LOCKS_IN_ASSEMBLY
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
+
+        if (BaseType::mLockArray.size() != 0) {
+            for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
+                omp_destroy_lock(&BaseType::mLockArray[i]);
+            }
+        }
+        BaseType::mLockArray.resize(BaseType::mDofSet.size());
+
+        for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
+            omp_init_lock(&BaseType::mLockArray[i]);
+        }
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+#endif
+
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+    #ifdef KRATOS_DEBUG
+        if(BaseType::GetCalculateReactionsFlag()) {
+            for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " << std::endl
+                    << "Node : " << dof_iterator->Id()<< std::endl
+                    << "Dof : " << (*dof_iterator) << std::endl << "Not possible to calculate reactions." << std::endl;
+            }
+        }
+    #endif
+
+        KRATOS_CATCH("");
     }
 
     /**
