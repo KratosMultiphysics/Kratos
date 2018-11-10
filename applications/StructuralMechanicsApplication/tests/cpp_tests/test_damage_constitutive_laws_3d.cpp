@@ -110,6 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
+    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -221,6 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
+    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);

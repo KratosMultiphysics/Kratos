@@ -70,7 +70,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
 
     /// Pointer definition of ReadMaterialProcess
     KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -169,7 +169,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief This method assigns the properties to the model parts
      * @param Data The parameters containing all the configurations of the materials
@@ -191,6 +191,13 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param rLine Component name in materials json file
      */
     void TrimComponentName(std::string& rLine);
+
+
+    /**
+     * @brief Checks if the materials are assigned uniquely to the modelparts
+     * @param Materials The parameters containing the properties of the materials
+     */
+    void CheckUniqueMaterialAssignment(Parameters Materials);
 
 
     ///@}

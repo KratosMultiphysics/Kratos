@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author Julio Marti
 //
 
-// External includes 
+// External includes
 #include <pybind11/pybind11.h>
 
 
@@ -25,15 +25,15 @@
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
 
-    class_<RadFaceUtilities>(m,"RadFaceUtilities").def(init<>())
+    py::class_<RadFaceUtilities>(m,"RadFaceUtilities").def(init<>())
     .def("ConditionModelPart",&RadFaceUtilities::ConditionModelPart)
     ;
 
