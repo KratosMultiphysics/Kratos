@@ -1,26 +1,28 @@
 {
     "problem_data"     : {
-        "problem_name"  : "static_line_load_2D_quad_test",
+        "problem_name"  : "dynamic_gravity_application_test",
         "parallel_type" : "OpenMP",
         "start_time"    : 0.0,
         "end_time"      : 1.0,
         "echo_level"    : 0
     },
     "solver_settings"  : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "Dynamic",
         "model_part_name"                    : "MPM_Material",
         "domain_size"                        : 2,
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "newmark",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "beam_tests/cantilever_beam/static_line_load_2D_quad_test_Body"
+            "input_filename" : "gravity_tests/dynamic_gravity_application_test_Body"
         },
         "material_import_settings"           : {
-            "materials_filename" : "beam_tests/cantilever_beam/static_line_load_2D_quad_test_materials.json"
+            "materials_filename" : "gravity_tests/dynamic_gravity_application_test_materials.json"
         },
         "time_stepping"                      : {
-            "time_step" : 1.1
+            "time_step" : 0.05
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
@@ -31,12 +33,12 @@
         "max_iteration"                      : 10,
         "geometry_element"                   : "Quadrilateral",
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"],
         "grid_model_import_settings"         : {
             "input_type"     : "mdpa",
-            "input_filename" : "beam_tests/cantilever_beam/static_line_load_2D_quad_test_Grid"
+            "input_filename" : "gravity_tests/dynamic_gravity_application_test_Grid"
         },
-        "particle_per_element"               : 4,
+        "particle_per_element"               : 1,
         "pressure_dofs"                      : false
     },
     "processes"        : {
@@ -51,41 +53,40 @@
                 "interval"        : [0.0,"End"]
             }
         }],
-        "loads_process_list"       : [{
-            "python_module" : "assign_vector_by_direction_to_condition_process",
-            "kratos_module" : "KratosMultiphysics",
-            "check"         : "DirectorVectorNonZero direction",
+        "gravity"                  : [{
+            "python_module" : "assign_gravity_to_particle_process",
+            "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+            "process_name"  : "AssignGravityToParticleProcess",
             "Parameters"    : {
-                "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
-                "variable_name"   : "LINE_LOAD",
-                "modulus"         : 100.0,
-                "direction"       : [0.0,-1,0.0],
-                "interval"        : [0.0,"End"]
+                "model_part_name" : "MPM_Material",
+                "variable_name"   : "MP_VOLUME_ACCELERATION",
+                "modulus"         : 9.81,
+                "direction"       : [0.0,-1.0,0.0]
             }
         }],
         "list_other_processes": [{
-            "python_module"   : "from_json_check_result_process",
-            "kratos_module" : "KratosMultiphysics",
+            "python_module"   : "mpm_from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
             "help"                  : "",
-            "process_name"          : "FromJsonCheckResultProcess",
+            "process_name"          : "ParticleMPMFromJsonCheckResultProcess",
             "Parameters"            : {
-                "check_variables"  : ["DISPLACEMENT"],
-                "input_file_name"  : "beam_tests/cantilever_beam/static_line_load_2D_quad_test_results.json",
-                "model_part_name"  : "LineLoad2D_Load_on_lines_Auto1",
-                "time_frequency"   : 1.0
+                "check_variables"  : ["MP_DISPLACEMENT","MP_VELOCITY","MP_ACCELERATION"],
+                "input_file_name"  : "gravity_tests/dynamic_gravity_application_test_results.json",
+                "model_part_name"  : "MPM_Material",
+                "time_frequency"   : 0.09
             }
         }]
     },
     "print_output_process" : [{
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
+        "python_module"   : "mpm_json_output_process",
+        "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
         "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
+        "process_name"          : "ParticleMPMJsonOutputProcess",
         "Parameters"            : {
-            "output_variables"  : ["DISPLACEMENT"],
-            "output_file_name"  : "beam_tests/cantilever_beam/static_line_load_2D_quad_test_results.json",
-            "model_part_name"   : "LineLoad2D_Load_on_lines_Auto1",
-            "time_frequency"    : 1.0
+            "gauss_points_output_variables"  : ["MP_DISPLACEMENT","MP_VELOCITY","MP_ACCELERATION"],
+            "output_file_name"               : "gravity_tests/dynamic_gravity_application_test_results.json",
+            "model_part_name"                : "MPM_Material",
+            "time_frequency"                 : 0.09
         }
     }]
 }

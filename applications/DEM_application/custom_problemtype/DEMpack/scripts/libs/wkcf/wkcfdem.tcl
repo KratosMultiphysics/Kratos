@@ -937,12 +937,17 @@ proc ::wkcf::WritePostProcessData {fileid} {
     set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "PostNodalArea                    = [::wkcf::TranslateToBinary $PrintOrNot]"
 
+    # Write Dem Bond Elem Force
     puts $fileid "# Results on bond elements"
+	set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
+	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
+	puts $fileid "PostLocalContactForce            = [::wkcf::TranslateToBinary $PrintOrNot]"
+
     if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 		# PostStressStrainOnSpheres
 		puts $fileid "PostStressStrainOption           = [::wkcf::TranslateToBinary [::xmlutils::setXml $cxpathtoDEMresults//i.DEM-Stresses dv]]"
 
-		# Write all Dem Bond Elem Properties
+		# Write Dem Bond Elem Properties For Continuum
 		set basexpath "DEM//c.DEM-Results//c.DEM-BondElem"
 		set ilist [::xmlutils::setXmlContainerIds $basexpath "Item"]
 		set kxpath "Applications/DEM"
@@ -954,10 +959,6 @@ proc ::wkcf::WritePostProcessData {fileid} {
 		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-ContactTau"
 		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
 		puts $fileid "PostContactTau                   = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
-		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-		puts $fileid "PostLocalContactForce            = [::wkcf::TranslateToBinary $PrintOrNot]"
 
 		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-FailureCrit"
 		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
@@ -1324,8 +1325,13 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
 	puts $fileid "\"PostStressStrainOption\"           : [::wkcf::TranslateToBinaryJson [::xmlutils::setXml $cxpathtoDEMresults//i.DEM-Stresses dv]],"
    }
 
+    # Write Dem Bond Elem Force
+    set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
+    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
+    puts $fileid "\"PostLocalContactForce\"            : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
+
    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-       # Write all Dem Bond Elem Properties
+       # Write Dem Bond Elem Properties For Continuum
        set basexpath "DEM//c.DEM-Results//c.DEM-BondElem"
        set ilist [::xmlutils::setXmlContainerIds $basexpath "Item"]
        set kxpath "Applications/DEM"
@@ -1337,10 +1343,6 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
        set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-ContactTau"
        set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
        puts $fileid "\"PostContactTau\"                   : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
-
-       set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
-       set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-       puts $fileid "\"PostLocalContactForce\"            : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
 
        set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-FailureCrit"
        set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
@@ -1794,16 +1796,12 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
     #puts $fileid "DontSearchUntilFailure           = \"$DSUF\""
 
     # Contact Mesh Option
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set CMO [::xmlutils::setXml "$rootid//c.DEM-Results//i.DEM-ShowBondElements" dv]
 	if {$CMO eq "Yes"} {
 	    puts $fileid "ContactMeshOption                = \"ON\""
 	} else {
 	    puts $fileid "ContactMeshOption                = \"OFF\""
 	}
-    } else {
-	puts $fileid "ContactMeshOption                = \"OFF\""
-    }
 
     # Output file Type
     if {"Fluid" in $ActiveAppList} {
@@ -2366,16 +2364,12 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     #puts $fileid "\"DontSearchUntilFailure\"           : \"$DSUF\""
 
     # Contact Mesh Option
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set CMO [::xmlutils::setXml "$rootid//c.DEM-Results//i.DEM-ShowBondElements" dv]
 	if {$CMO eq "Yes"} {
 	    puts $fileid "\"ContactMeshOption\"                : true,"
 	} else {
 	    puts $fileid "\"ContactMeshOption\"                : false,"
 	}
-    } else {
-	puts $fileid "\"ContactMeshOption\"                : false,"
-    }
 
     # Output file Type
     if {"Fluid" in $ActiveAppList} {
@@ -3644,7 +3638,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.DragConstantZ"
 		    set dragconstantz [::xmlutils::setXml $cxpath dv]
 	    }
-	}
+
         #Imposed velocity tables
 	    if {$imposed_velocity_X=="FromATable"} {
 			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameVx" dv]
@@ -3767,6 +3761,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	        GiD_File fprintf $demfemchannel "End Table"
 	        GiD_File fprintf $demfemchannel ""
 	    }
+	}
 	    # Write mesh properties for this group
 	    GiD_File fprintf $demfemchannel "%s" "Begin SubModelPart $demfem_ref_to_props_number \/\/ DEM-FEM-Wall. Group name: $cgroupid"
 	    GiD_File fprintf $demfemchannel "  Begin SubModelPartData // DEM-FEM-Wall. Group name: $cgroupid"
@@ -3895,6 +3890,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
             GiD_File fprintf $demfemchannel "  End SubModelPartConditions"
         }
         GiD_File fprintf $demfemchannel "  Begin SubModelPartTables"
+	if {$type_of_motion=="FreeMotion"} {
         if {$TableNumberVX>0} {
 			GiD_File fprintf $demfemchannel "  $TableNumberVX"
 		}
@@ -3931,6 +3927,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
         if {$TableNumberMZ>0} {
 			GiD_File fprintf $demfemchannel "  $TableNumberMZ"
 		}
+	}
         GiD_File fprintf $demfemchannel "  End SubModelPartTables"
 	    #
 	    GiD_File fprintf $demfemchannel "End SubModelPart"
