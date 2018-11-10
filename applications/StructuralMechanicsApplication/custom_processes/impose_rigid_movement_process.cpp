@@ -10,13 +10,16 @@
 //
 
 // System includes
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#include <ctime>
+#endif
 
 // External includes
 
 // Project includes
-#include "utilities/openmp_utils.h"
 #include "custom_processes/impose_rigid_movement_process.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -32,6 +35,8 @@ ImposeRigidMovementProcess::ImposeRigidMovementProcess(
         "new_model_part_name"         : "Rigid_Movement_ModelPart",
         "master_variable_name"        : "DISPLACEMENT",
         "slave_variable_name"         : "",
+        "relation"                    : 1.0,
+        "constant"                    : 0.0,
         "master_node_id"              : 0
     })" );
 
@@ -133,16 +138,16 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     const SizeType number_of_double_variables = master_double_list_variables.size();
     const SizeType number_of_components_variables = master_components_list_variables.size();
 
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<ConstraintContainerType> constraints_buffer(num_threads);
+    // We get the relation and constant
+    const double relation = mThisParameters["relation"].GetDouble();
+    const double constant = mThisParameters["constant"].GetDouble();
 
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
-    #pragma omp parallel
+    #pragma omp parallel firstprivate(relation, constant)
     {
-        const int thread_id = OpenMPUtils::ThisThread();
+        ConstraintContainerType constraints_buffer;
 
         // If we master node ID is zero then we get the first node of the model part
         NodeType::Pointer p_master_node = (master_node_id == 0) ? *(rigid_model_part.Nodes().begin()).base() : root_model_part.pGetNode(master_node_id);
@@ -151,23 +156,21 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
             auto it_node = nodes_array.begin() + i;
             if (it_node->Id() != p_master_node->Id()) {
                 for (IndexType i_var = 0; i_var < number_of_double_variables; ++i_var) {
-                    auto constraint = r_clone_constraint.Create(constraint_id + (i * number_of_double_variables + i_var) + 1, *p_master_node, master_double_list_variables[i_var], *it_node, slave_double_list_variables[i_var], 1.0, 0.0);
-                    (constraints_buffer[thread_id]).insert((constraints_buffer[thread_id]).begin(), constraint);
+                    auto constraint = r_clone_constraint.Create(constraint_id + (i * number_of_double_variables + i_var) + 1, *p_master_node, master_double_list_variables[i_var], *it_node, slave_double_list_variables[i_var], relation, constant);
+                    (constraints_buffer).insert((constraints_buffer).begin(), constraint);
                 }
                 for (IndexType i_var = 0; i_var < number_of_components_variables; ++i_var) {
-                    auto constraint = r_clone_constraint.Create(constraint_id + (i * number_of_components_variables + i_var) + 1, *p_master_node, master_components_list_variables[i_var], *it_node, slave_components_list_variables[i_var], 1.0, 0.0);
-                    (constraints_buffer[thread_id]).insert((constraints_buffer[thread_id]).begin(), constraint);
+                    auto constraint = r_clone_constraint.Create(constraint_id + (i * number_of_components_variables + i_var) + 1, *p_master_node, master_components_list_variables[i_var], *it_node, slave_components_list_variables[i_var], relation, constant);
+                    (constraints_buffer).insert((constraints_buffer).begin(), constraint);
                 }
             }
         }
 
         // We transfer
-        #pragma omp single
+        #pragma omp critical
         {
-            for( auto& constraint_buffer : constraints_buffer) {
-                rigid_model_part.AddMasterSlaveConstraints(constraint_buffer.begin(),constraint_buffer.end());
-                mrThisModelPart.AddMasterSlaveConstraints(constraint_buffer.begin(),constraint_buffer.end());
-            }
+            rigid_model_part.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
+            mrThisModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
         }
     }
 
