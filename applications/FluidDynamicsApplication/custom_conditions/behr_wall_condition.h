@@ -275,7 +275,6 @@ public:
         const double A = norm_2(data.Normal);
         data.Normal /= A;
 
-        // Computing RHS (no Gauss points needed because constant)
         CalculateRightHandSide( rRightHandSideVector, rCurrentProcessInfo);
 
         // Store the outlet inflow prevention constants in the data structure

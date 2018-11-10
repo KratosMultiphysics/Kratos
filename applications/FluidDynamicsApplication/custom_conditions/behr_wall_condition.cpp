@@ -270,7 +270,7 @@ void BehrWallCondition<TDim,TNumNodes>::Initialize()
 	}
 
 	mInitializeWasPerformed = true;
-	double EdgeLength;
+	// double EdgeLength;
 	array_1d<double,3> Edge;
 	GeometryType& rGeom = this->GetGeometry();
 	WeakPointerVector<Element> ElementCandidates;
@@ -382,47 +382,158 @@ template<unsigned int TDim, unsigned int TNumNodes>
 void BehrWallCondition<TDim,TNumNodes>::CalculateLeftHandSide(  MatrixType& rLeftHandSideMatrix,
                                                                 ProcessInfo& rCurrentProcessInfo)
 {
-    // KRATOS_TRY
+    KRATOS_TRY
     
-    // GeometryType& rGeom = this->GetGeometry();     // one edge or one face
+    GeometryType& rGeom = this->GetGeometry();     // one edge or one face
 
-    // std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
-    // std::vector< Matrix > NodalNormals(TNumNodes);
+    std::vector< Matrix > NodalNormals(TNumNodes);
 
-    // // Retrieving the nodal normal vectors and storing them in matrix format
-	// for (SizeType i=0; i < TNumNodes; i++){
-	// 	NodeIds[i] = rGeom[i].Id();
-    //     NodalNormals[i].resize(3,1);
+    // Retrieving the nodal normal vectors and storing them in matrix format
+	for (SizeType nnode = 0; nnode < TNumNodes; nnode++){
 
-    //     double sum = 0.0;
-    //     for (int j = 0; j < 3; j++)
-    //     {
-    //         NodalNormals[i](j,0) = rGeom[i].FastGetSolutionStepValue(NORMAL)(j);
-    //         sum += NodalNormals[i](j,0)*NodalNormals[i](j,0);
-    //     }
-    //     // normalization
-    //     for (int j = 0; j < 3; j++)
-    //     {
-    //         NodalNormals[i](j,0) /= sqrt(sum);
-    //     }
+        NodalNormals[nnode].resize(3,1);
 
-	// }
+        double sum = 0.0;
+        for (int j = 0; j < 3; j++){
+            NodalNormals[nnode](j,0) = rGeom[nnode].FastGetSolutionStepValue(NORMAL)(j);
+            sum += NodalNormals[nnode](j,0)*NodalNormals[nnode](j,0);
+        }
+        for (int j = 0; j < 3; j++){
+            NodalNormals[nnode](j,0) /= sqrt(sum);
+        }
+    }
 
-    // // KRATOS_WATCH( NodalNormals )
+    // KRATOS_WATCH( NodalNormals )
 
-    // // Computation of NodalMultMatrix = ( [I] - (na)(na) )
-    // std::vector<MatrixType> NodalMultMatrix(TNumNodes);
-    // const MatrixType auxIdentMatrix = identity_matrix<double>(3);
-    // MatrixType auxMatrix = zero_matrix<double>(3,3);
+    MatrixType BaseLHSMatrix = zero_matrix<double>( TNumNodes*(TNumNodes+1) , TNumNodes*(TNumNodes+1) );
+    MatrixType ProjectionLHSMatrix = zero_matrix<double>( TNumNodes*(TNumNodes+1) , TNumNodes*(TNumNodes+1) );
+    MatrixType BaseLHSMatrixGPcontribution = zero_matrix<double>( TNumNodes*(TNumNodes+1) , TNumNodes*(TNumNodes+1) );
+
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const unsigned int NumGauss = IntegrationPoints.size();
+    Vector GaussPtsJDet = ZeroVector(NumGauss);
+    rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
+    const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+    // Loop on gauss points
+    if ( TNumNodes == 2 ){
+        for(unsigned int igauss = 0; igauss < NumGauss; igauss++) {
+        
+            BaseLHSMatrixGPcontribution = ZeroMatrix(6, 6);
+            data.N = row(Ncontainer, igauss);
+            const double J = GaussPtsJDet[igauss];
+            data.wGauss = J * IntegrationPoints[igauss].Weight();
+
+            BaseLHSMatrixGPcontribution(0,2) = data.Normal[0]*data.N[0]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(1,2) = data.Normal[1]*data.N[0]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(3,2) = data.Normal[0]*data.N[0]*data.N[1]*data.wGauss;
+            BaseLHSMatrixGPcontribution(4,2) = data.Normal[1]*data.N[0]*data.N[1]*data.wGauss;
+
+            BaseLHSMatrixGPcontribution(0,5) = data.Normal[0]*data.N[1]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(1,5) = data.Normal[1]*data.N[1]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(3,5) = data.Normal[0]*data.N[1]*data.N[1]*data.wGauss;
+            BaseLHSMatrixGPcontribution(4,5) = data.Normal[1]*data.N[1]*data.N[1]*data.wGauss;
+
+            BaseLHSMatrix += BaseLHSMatrixGPcontribution;
+        }
+    } else if (TNumNodes == 3){
+        for( unsigned int igauss = 0; igauss < NumGauss; igauss++){
+            
+            BaseLHSMatrixGPcontribution = ZeroMatrix(12, 12);
+            data.N = row(Ncontainer, igauss);
+            const double J = GaussPtsJDet[igauss];
+            data.wGauss = J * IntegrationPoints[igauss].Weight();
+
+            BaseLHSMatrixGPcontribution(0,3) = data.Normal[0]*data.N[0]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(1,3) = data.Normal[1]*data.N[0]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(2,3) = data.Normal[2]*data.N[0]*data.N[0]*data.wGauss;
+
+            BaseLHSMatrixGPcontribution(4,3) = data.Normal[0]*data.N[0]*data.N[1]*data.wGauss;
+            BaseLHSMatrixGPcontribution(5,3) = data.Normal[1]*data.N[0]*data.N[1]*data.wGauss;
+            BaseLHSMatrixGPcontribution(6,3) = data.Normal[2]*data.N[0]*data.N[1]*data.wGauss;
+
+            BaseLHSMatrixGPcontribution(8,3) = data.Normal[0]*data.N[0]*data.N[2]*data.wGauss;
+            BaseLHSMatrixGPcontribution(9,3) = data.Normal[1]*data.N[0]*data.N[2]*data.wGauss;
+            BaseLHSMatrixGPcontribution(10,3)= data.Normal[2]*data.N[0]*data.N[2]*data.wGauss;
+            // -------------------------------------------------------------------------------
+            BaseLHSMatrixGPcontribution(0,7) = data.Normal[0]*data.N[1]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(1,7) = data.Normal[1]*data.N[1]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(2,7) = data.Normal[2]*data.N[1]*data.N[0]*data.wGauss;
+
+            BaseLHSMatrixGPcontribution(4,7) = data.Normal[0]*data.N[1]*data.N[1]*data.wGauss;
+            BaseLHSMatrixGPcontribution(5,7) = data.Normal[1]*data.N[1]*data.N[1]*data.wGauss;
+            BaseLHSMatrixGPcontribution(6,7) = data.Normal[2]*data.N[1]*data.N[1]*data.wGauss;
+
+            BaseLHSMatrixGPcontribution(8,7) = data.Normal[0]*data.N[1]*data.N[2]*data.wGauss;
+            BaseLHSMatrixGPcontribution(9,7) = data.Normal[1]*data.N[1]*data.N[2]*data.wGauss;
+            BaseLHSMatrixGPcontribution(10,7)= data.Normal[2]*data.N[1]*data.N[2]*data.wGauss;
+            // -------------------------------------------------------------------------------
+            BaseLHSMatrixGPcontribution(0,11) = data.Normal[0]*data.N[2]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(1,11) = data.Normal[1]*data.N[2]*data.N[0]*data.wGauss;
+            BaseLHSMatrixGPcontribution(2,11) = data.Normal[2]*data.N[2]*data.N[0]*data.wGauss;
+
+            BaseLHSMatrixGPcontribution(4,11) = data.Normal[0]*data.N[2]*data.N[1]*data.wGauss;
+            BaseLHSMatrixGPcontribution(5,11) = data.Normal[1]*data.N[2]*data.N[1]*data.wGauss;
+            BaseLHSMatrixGPcontribution(6,11) = data.Normal[2]*data.N[2]*data.N[1]*data.wGauss;
+
+            BaseLHSMatrixGPcontribution(8,11) = data.Normal[0]*data.N[2]*data.N[2]*data.wGauss;
+            BaseLHSMatrixGPcontribution(9,11) = data.Normal[1]*data.N[2]*data.N[2]*data.wGauss;
+            BaseLHSMatrixGPcontribution(10,11)= data.Normal[2]*data.N[2]*data.N[2]*data.wGauss;
+
+            BaseLHSMatrix += BaseLHSMatrixGPcontribution;
+        }
+    }
+
+    // KRATOS_WATCH( BaseLHSMatrix )
+
+    // Computation of NodalMultMatrix = ( [I] - (na)(na) ) for each node
+    std::vector<MatrixType> NodalMultMatrix(TNumNodes);
+    const MatrixType auxIdentMatrix = identity_matrix<double>(3);
+    MatrixType auxMatrix = zero_matrix<double>(3,3);
     
-    // for (SizeType i=0; i < TNumNodes; i++){
-    //     auxMatrix = prod( NodalNormals[i], trans(NodalNormals[i]) );
-    //     NodalMultMatrix[i] = auxIdentMatrix - auxMatrix;
+    for (SizeType nnode=0; nnode < TNumNodes; nnode++){
+        auxMatrix = prod( NodalNormals[nnode], trans(NodalNormals[nnode]) );
+        NodalMultMatrix[nnode] = auxIdentMatrix - auxMatrix;
+    }
+
+    // KRATOS_WATCH( NodalMultMatrix )
+
+    for(unsigned int nnode = 0; nnode < TNumNodes; nnode++){
+        for( unsigned int i = 0; i < 3; i++){
+            for( unsigned int j = 0; j < 3; j++){
+
+                unsigned int istart = nnode * (TNumNodes+1);
+                unsigned int jstart = nnode * (TNumNodes+1);
+                ProjectionLHSMatrix(istart + i, jstart + j) = NodalMultMatrix[nnode](i,j);
+
+            }
+        }
+    }
+
+    // KRATOS_WATCH( ProjectionLHSMatrix )
+
+    rLeftHandSideMatrix = prod( ProjectionLHSMatrix, BaseLHSMatrixGPcontribution );
+
+    // KRATOS_WATCH( rLeftHandSideMatrix );
+
+    KRATOS_CATCH("");
+
+    //     data.N = row(Ncontainer, igauss);
+    //     const double J = GaussPtsJDet[igauss];
+    //     const double wGauss = J * IntegrationPoints[igauss].Weight();
+
+    //     Nvert(2,0) = data.N[0];
+    //     Nvert(5,0) = data.N[1];
+
+    //     Nhori(0,2) = data.N[0];
+    //     Nhori(0,5) = data.N[1];
+
+    //     lhs_gauss = prod( Nvert, Nhori );
+
+    //     lhs_gauss = prod( BaseLHSMatrix, lhs_gauss );
+
+    //     noalias(rLeftHandSideMatrix) += wGauss * lhs_gauss * 0.0;
     // }
-
-    // MatrixType MultTimesNormal = zero_matrix<double>(3,1);
-    // MatrixType BaseLHSMatrix = zero_matrix<double>(rLeftHandSideMatrix.size1(),rLeftHandSideMatrix.size2());
-
 
     // for (unsigned int nnodes = 0; nnodes < TNumNodes; nnodes++){
     //     // assignment of the normal vector for the current node
@@ -548,9 +659,6 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
         }
 	}
 
-    // KRATOS_WATCH( NodalNormals )
-
-
     // Computation of NodalMultMatrix = ( [I] - (na)(na) ) (for all nodes)
     std::vector<MatrixType> NodalProjectionMatrix(TNumNodes);
     const MatrixType auxIdentMatrix = identity_matrix<double>(3);
@@ -560,9 +668,6 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
         auxMatrix = prod( NodalNormals[nnode], trans(NodalNormals[nnode]) );
         NodalProjectionMatrix[nnode] = auxIdentMatrix - auxMatrix;
     }
-
-    // KRATOS_WATCH( NodalProjectionMatrix )
-
 
     // FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal, voigt_normal_projection_matrix)
     MatrixType normalVoigtMatrix = zero_matrix<double>(3,3);
@@ -598,13 +703,20 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
 
     // checking for existance of the parent
     if (mpParentElement != NULL){
-        std::cout << mpParentElement->Info() << std::endl;    ////   PROBLEM
+        // std::cout << mpParentElement->Info() << std::endl;    ////   PROBLEM
     } else {
-        std::cout << "NULL was found..." << std::endl;
+        // std::cout << "NULL was found..." << std::endl;
     }
     
-    // linearization in terms of the ShearStress ( not considered as f(u^{i+1} )
     VectorType ShearStressOfElement(3, 0.0);
+    ShearStressOfElement = ZeroVector(3);
+
+    // linearization in terms of the ShearStress ( not considered as f(u^{i+1} )
+    if (TNumNodes == 3 ){
+        ShearStressOfElement.resize(6, false);
+        ShearStressOfElement = ZeroVector(6);
+    }
+    
     mpParentElement->Calculate( FLUID_STRESS, ShearStressOfElement, rCurrentProcessInfo );
 
     // adding PRESSURE to the viscous shear stresses
@@ -615,25 +727,23 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
             if ( CompleteNodalSigma[nnode].size1() != 3 ){
                 CompleteNodalSigma[nnode].resize(3,1);
             }
-            CompleteNodalSigma[nnode](0,0) = ShearStressOfElement[0] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](1,0) = ShearStressOfElement[1] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2]; // no pressure in shear component
+            CompleteNodalSigma[nnode](0,0) = -ShearStressOfElement[0] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](1,0) = -ShearStressOfElement[1] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](2,0) = -ShearStressOfElement[2]; // no pressure in shear component
         }
     } else if ( TNumNodes == 3 ){
         for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
             if ( CompleteNodalSigma[nnode].size1() != 6 ){
                 CompleteNodalSigma[nnode].resize(6,1);
             }
-            CompleteNodalSigma[nnode](0,0) = ShearStressOfElement[0] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](1,0) = ShearStressOfElement[1] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](3,0) = ShearStressOfElement[3]; // no pressure in shear component
-            CompleteNodalSigma[nnode](4,0) = ShearStressOfElement[4]; // no pressure in shear component
-            CompleteNodalSigma[nnode](5,0) = ShearStressOfElement[5]; // no pressure in shear component
+            CompleteNodalSigma[nnode](0,0) = -ShearStressOfElement[0] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](1,0) = -ShearStressOfElement[1] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](2,0) = -ShearStressOfElement[2] + rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode](3,0) = -ShearStressOfElement[3]; // no pressure in shear component
+            CompleteNodalSigma[nnode](4,0) = -ShearStressOfElement[4]; // no pressure in shear component
+            CompleteNodalSigma[nnode](5,0) = -ShearStressOfElement[5]; // no pressure in shear component
         }
     }
-
-    // KRATOS_WATCH( CompleteNodalSigma )
 
     // retrieving Gauss integration point data
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
@@ -652,7 +762,7 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
             NodalEntriesRHS[nnode].resize(TNumNodes+1, 1);
         }
 
-        NodalEntriesRHS[nnode] = zero_matrix<double>(TNumNodes+1, 1);
+        NodalEntriesRHS[nnode] = zero_matrix<double>(3, 1);
         // Loop on gauss points
         for(unsigned int igauss = 0; igauss<NumGauss; igauss++){
 
@@ -672,10 +782,11 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
             
             NodalEntriesRHS[nnode] += ( data.wGauss * data.N(nnode) * CompleteSigmaInterpolated );
         }
+
         NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], NodalEntriesRHS[nnode] );
     }
 
-    for (unsigned int entry = 0; entry < TNumNodes+1; entry++){
+    for (unsigned int entry = 0; entry < 3; entry++){
 
         for (unsigned int node = 0; node < TNumNodes; node++){
             rRightHandSideVector(entry + node*(TNumNodes+1) ) = -NodalEntriesRHS[node](entry,0);
