@@ -70,6 +70,28 @@ Begin SubModelPart Contact_Part
     End SubModelPartConditions
 End SubModelPart
 
+Begin SubModelPart Contact_Part_1
+    Begin SubModelPartNodes
+        3
+        4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Contact_Part_2
+    Begin SubModelPartNodes
+        5
+        6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
 Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
     Begin SubModelPartNodes
          1

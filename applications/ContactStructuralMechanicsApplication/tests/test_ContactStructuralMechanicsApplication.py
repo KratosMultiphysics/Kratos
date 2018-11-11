@@ -35,23 +35,24 @@ from SmallTests import SimplestPatchTestThreeDQuadTriMeshTying as TSimplestPatch
 from SmallTests import SimplePatchTestThreeDMeshTying          as TSimplePatchTestThreeDMeshTying
 
 # ALM frictionless tests
-from SmallTests import ALMHyperSimplePatchTestContact                      as TALMHyperSimplePatchTestContact
-from SmallTests import ALMHyperSimplePatchTestWithEliminationContact       as TALMHyperSimplePatchTestWithEliminationContact
-from SmallTests import ALMHyperSimpleSlopePatchTestContact                 as TALMHyperSimpleSlopePatchTestContact
-from SmallTests import ALMTwoDPatchComplexGeomTestContact                  as TALMTwoDPatchComplexGeomTestContact
-from SmallTests import ALMTwoDPatchComplexGeomSlopeTestContact             as TALMTwoDPatchComplexGeomSlopeTestContact
-from SmallTests import ALMSimplePatchTestContact                           as TALMSimplePatchTestContact
-from SmallTests import ALMSimpleSlopePatchTestContact                      as TALMSimpleSlopePatchTestContact
-from SmallTests import ALMSimplePatchNotMatchingATestContact               as TALMSimplePatchNotMatchingATestContact
-from SmallTests import ALMSimplePatchNotMatchingBTestContact               as TALMSimplePatchNotMatchingBTestContact
-from SmallTests import ALMThreeDSimplestPatchMatchingTestContact           as TALMThreeDSimplestPatchMatchingTestContact
-from SmallTests import ALMThreeDSimplestPatchTestTriQuadContact            as TALMThreeDSimplestPatchTestTriQuadContact
-from SmallTests import ALMThreeDSimplestPatchTestQuadTriContact            as TALMThreeDSimplestPatchTestQuadTriContact
-from SmallTests import ALMThreeDSimplestPatchMatchingAdaptativeTestContact as TALMThreeDSimplestPatchMatchingAdaptativeTestContact
-from SmallTests import ALMThreeDSimplestPatchMatchingSlopeTestContact      as TALMThreeDSimplestPatchMatchingSlopeTestContact
-from SmallTests import ALMThreeDPatchComplexGeomTestContact                as TALMThreeDPatchComplexGeomTestContact
-from SmallTests import ALMThreeDPatchMatchingTestContact                   as TALMTThreeDPatchMatchingTestContact
-from SmallTests import ALMThreeDPatchNotMatchingTestContact                as TALMThreeDPatchNotMatchingTestContact
+from SmallTests import ALMHyperSimplePatchTestContact                              as TALMHyperSimplePatchTestContact
+from SmallTests import ALMHyperSimplePatchTestWithEliminationContact               as TALMHyperSimplePatchTestWithEliminationContact
+from SmallTests import ALMHyperSimplePatchTestWithEliminationWithConstraintContact as TALMHyperSimplePatchTestWithEliminationWithConstraintContact
+from SmallTests import ALMHyperSimpleSlopePatchTestContact                         as TALMHyperSimpleSlopePatchTestContact
+from SmallTests import ALMTwoDPatchComplexGeomTestContact                          as TALMTwoDPatchComplexGeomTestContact
+from SmallTests import ALMTwoDPatchComplexGeomSlopeTestContact                     as TALMTwoDPatchComplexGeomSlopeTestContact
+from SmallTests import ALMSimplePatchTestContact                                   as TALMSimplePatchTestContact
+from SmallTests import ALMSimpleSlopePatchTestContact                              as TALMSimpleSlopePatchTestContact
+from SmallTests import ALMSimplePatchNotMatchingATestContact                       as TALMSimplePatchNotMatchingATestContact
+from SmallTests import ALMSimplePatchNotMatchingBTestContact                       as TALMSimplePatchNotMatchingBTestContact
+from SmallTests import ALMThreeDSimplestPatchMatchingTestContact                   as TALMThreeDSimplestPatchMatchingTestContact
+from SmallTests import ALMThreeDSimplestPatchTestTriQuadContact                    as TALMThreeDSimplestPatchTestTriQuadContact
+from SmallTests import ALMThreeDSimplestPatchTestQuadTriContact                    as TALMThreeDSimplestPatchTestQuadTriContact
+from SmallTests import ALMThreeDSimplestPatchMatchingAdaptativeTestContact         as TALMThreeDSimplestPatchMatchingAdaptativeTestContact
+from SmallTests import ALMThreeDSimplestPatchMatchingSlopeTestContact              as TALMThreeDSimplestPatchMatchingSlopeTestContact
+from SmallTests import ALMThreeDPatchComplexGeomTestContact                        as TALMThreeDPatchComplexGeomTestContact
+from SmallTests import ALMThreeDPatchMatchingTestContact                           as TALMTThreeDPatchMatchingTestContact
+from SmallTests import ALMThreeDPatchNotMatchingTestContact                        as TALMThreeDPatchNotMatchingTestContact
 
 # Components ALM frictionless tests
 from SmallTests import ComponentsALMHyperSimpleTrianglePatchTestContact              as TComponentsALMHyperSimpleTrianglePatchTestContact
@@ -146,6 +147,7 @@ def AssembleTestSuites():
     # ALM frictionless tests
     smallSuite.addTest(TALMHyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationContact('test_execution'))
+    smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
     smallSuite.addTest(TALMHyperSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TALMTwoDPatchComplexGeomTestContact('test_execution'))
     smallSuite.addTest(TALMTwoDPatchComplexGeomSlopeTestContact('test_execution'))
@@ -267,6 +269,7 @@ def AssembleTestSuites():
             TSimplePatchTestThreeDMeshTying,
             TALMHyperSimplePatchTestContact,
             TALMHyperSimplePatchTestWithEliminationContact,
+            TALMHyperSimplePatchTestWithEliminationWithConstraintContact,
             TALMHyperSimpleSlopePatchTestContact,
             TALMTwoDPatchComplexGeomTestContact,
             TALMTwoDPatchComplexGeomSlopeTestContact,
