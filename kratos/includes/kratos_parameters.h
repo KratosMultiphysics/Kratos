@@ -110,7 +110,11 @@ private:
          * @details This adds one to the current iterator
          * @return The next iterator
          */
-        iterator_adaptor& operator++();
+        iterator_adaptor& operator++()
+        {
+            mValueIterator++;
+            return *this;
+        }
 
         /**
          * @brief operator ++int
@@ -118,35 +122,56 @@ private:
          * @param int N increment of iterations
          * @return The +N iterator
          */
-        iterator_adaptor operator++(int);
+        iterator_adaptor operator++(int)
+        {
+            iterator_adaptor tmp(*this);
+            operator++();
+            return tmp;
+        }
 
         /**
          * @brief operator ==
          * @details This operator check if the iterator is equal to another given iterator
          * @return True if equal, false otherwise
          */
-        bool operator==(const iterator_adaptor& rhs) const;
+        bool operator==(const iterator_adaptor& rhs) const
+        {
+            return mValueIterator == rhs.mValueIterator;
+        }
 
         /**
          * @brief operator !=
          * @details This operator check if the iterator is not equal to another given iterator
          * @return True if not equal, false otherwise
          */
-        bool operator!=(const iterator_adaptor& rhs) const;
+        bool operator!=(const iterator_adaptor& rhs) const
+        {
+            return mValueIterator != rhs.mValueIterator;
+        }
 
         /**
          * @brief operator*
          * @details This operator returns the pointer of a given iterator
          * @return The Pointer of the given iterator
          */
-        Parameters& operator*() const;
+        Parameters& operator*() const
+        {
+            if (mValueIterator != mrValue.end())
+                mpParameters->mpValue = &(*mValueIterator);
+            return *mpParameters;
+        }
 
         /**
          * @brief operator ->
          * @details This operator acces to the pointer of the Parameter
          * @return The pointer of the parameter
          */
-        Parameters* operator->() const;
+        Parameters* operator->() const
+        {
+            if (mValueIterator != mrValue.end())
+                mpParameters->mpValue = &(*mValueIterator);
+            return mpParameters.get();
+        }
 
         ///@}
         ///@name Operations
@@ -156,19 +181,28 @@ private:
          * @brief This method returns the base iterator
          * @return The base iterator
          */
-        value_iterator& base();
+        value_iterator& base()
+        {
+            return mValueIterator;
+        }
 
         /**
          * @brief This method returns the base iterator (const)
          * @return The base iterator (const)
          */
-        value_iterator const& base() const;
+        value_iterator const& base() const
+        {
+            return mValueIterator;
+        }
 
         /**
          * @brief This method returns the key of the current Parameter iterator
          * @return The key (name) of the Parameter iterator
          */
-        const std::string name();
+        const std::string name()
+        {
+            return mValueIterator.key();
+        }
 
         ///@}
     };
@@ -222,7 +256,11 @@ private:
          * @details This adds one to the current iterator
          * @return The next iterator (const)
          */
-        const_iterator_adaptor& operator++();
+        const_iterator_adaptor& operator++()
+        {
+            mValueIterator++;
+            return *this;
+        }
 
         /**
          * @brief operator ++int
@@ -230,35 +268,56 @@ private:
          * @param int N increment of iterations
          * @return The +N iterator (const)
          */
-        const_iterator_adaptor operator++(int);
+        const_iterator_adaptor operator++(int)
+        {
+            const_iterator_adaptor tmp(*this);
+            operator++();
+            return tmp;
+        }
 
         /**
          * @brief operator ==
          * @details This operator check if the iterator is equal to another given iterator
          * @return True if equal, false otherwise
          */
-        bool operator==(const const_iterator_adaptor& rhs) const;
+        bool operator==(const const_iterator_adaptor& rhs) const
+        {
+            return mValueIterator == rhs.mValueIterator;
+        }
 
         /**
          * @brief operator !=
          * @details This operator check if the iterator is not equal to another given iterator
          * @return True if not equal, false otherwise
          */
-        bool operator!=(const const_iterator_adaptor& rhs) const;
+        bool operator!=(const const_iterator_adaptor& rhs) const
+        {
+            return mValueIterator != rhs.mValueIterator;
+        }
 
         /**
          * @brief operator*
          * @details This operator returns the pointer of a given iterator
          * @return The Pointer of the given iterator
          */
-        const Parameters& operator*() const;
+        const Parameters& operator*() const
+        {
+            if (mValueIterator != mrValue.cend())
+                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
+            return *mpParameters;
+        }
 
         /**
          * @brief operator ->
          * @details This operator acces to the pointer of the Parameter
          * @return The pointer of the parameter
          */
-        const Parameters* operator->() const;
+        const Parameters* operator->() const
+        {
+            if (mValueIterator != mrValue.cend())
+                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
+            return mpParameters.get();
+        }
 
         ///@}
         ///@name Operations
@@ -268,19 +327,28 @@ private:
          * @brief This method returns the base iterator
          * @return The base iterator
          */
-        value_iterator& base();
+        value_iterator& base()
+        {
+            return mValueIterator;
+        }
 
         /**
          * @brief This method returns the base iterator (const)
          * @return The base iterator (const)
          */
-        value_iterator const& base() const;
+        value_iterator const& base() const
+        {
+            return mValueIterator;
+        }
 
         /**
          * @brief This method returns the key of the current Parameter iterator
          * @return The key (name) of the Parameter iterator
          */
-        const std::string name();
+        const std::string name()
+        {
+            return mValueIterator.key();
+        }
 
         ///@}
     };
