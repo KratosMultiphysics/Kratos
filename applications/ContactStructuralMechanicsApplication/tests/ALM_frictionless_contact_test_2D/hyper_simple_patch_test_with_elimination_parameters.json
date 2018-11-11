@@ -21,7 +21,8 @@
         },
         "contact_settings":
         {
-            "mortar_type"                    : "ALMContactFrictionless"
+            "mortar_type"                    : "ALMContactFrictionless",
+            "use_mixed_ulm_solver"           : true
         },
         "time_stepping"                      : {
             "time_step" : 1.1

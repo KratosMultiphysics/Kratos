@@ -277,7 +277,8 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
             else:
                     # We use the elimination builder and solver
                     if self.settings["multi_point_constraints_used"].GetBool():
-                        self.GetComputingModelPart().Set(KM.TO_SPLIT) # We set the flag for some operations
+                        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+                            self.GetComputingModelPart().Set(KM.TO_SPLIT) # We set the flag for some operations
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
                     else:
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)

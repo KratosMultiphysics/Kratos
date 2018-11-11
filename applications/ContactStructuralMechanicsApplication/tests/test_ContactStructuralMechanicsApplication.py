@@ -56,6 +56,7 @@ from SmallTests import ALMThreeDPatchNotMatchingTestContact                as TA
 # Components ALM frictionless tests
 from SmallTests import ComponentsALMHyperSimpleTrianglePatchTestContact              as TComponentsALMHyperSimpleTrianglePatchTestContact
 from SmallTests import ComponentsALMHyperSimplePatchTestContact                      as TComponentsALMHyperSimplePatchTestContact
+from SmallTests import ComponentsALMHyperSimplePatchTestWithEliminationContact       as TComponentsALMHyperSimplePatchTestWithEliminationContact
 from SmallTests import ComponentsALMHyperSimpleSlopePatchTestContact                 as TComponentsALMHyperSimpleSlopePatchTestContact
 from SmallTests import ComponentsALMTwoDPatchComplexGeomTestContact                  as TComponentsALMTwoDPatchComplexGeomTestContact
 from SmallTests import ComponentsALMTwoDPatchComplexGeomSlopeTestContact             as TComponentsALMTwoDPatchComplexGeomSlopeTestContact
@@ -164,6 +165,7 @@ def AssembleTestSuites():
     # Components ALM frictionless tests
     smallSuite.addTest(TComponentsALMHyperSimpleTrianglePatchTestContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimplePatchTestContact('test_execution'))
+    smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TComponentsALMTwoDPatchComplexGeomTestContact('test_execution'))
     smallSuite.addTest(TComponentsALMTwoDPatchComplexGeomSlopeTestContact('test_execution'))
@@ -282,6 +284,7 @@ def AssembleTestSuites():
             TALMThreeDPatchNotMatchingTestContact,
             TComponentsALMHyperSimpleTrianglePatchTestContact,
             TComponentsALMHyperSimplePatchTestContact,
+            TComponentsALMHyperSimplePatchTestWithEliminationContact,
             TComponentsALMHyperSimpleSlopePatchTestContact,
             TComponentsALMTwoDPatchComplexGeomTestContact,
             TComponentsALMTwoDPatchComplexGeomSlopeTestContact,
