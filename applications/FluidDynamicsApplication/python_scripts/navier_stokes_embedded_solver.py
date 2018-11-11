@@ -77,7 +77,7 @@ class EmbeddedFormulation(object):
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
         if formulation_settings["is_slip"].GetBool():
             self.process_info_data[KratosCFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
-            
+
     def _SetUpClassicEmbeddedAusasNavierStokes(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "embedded_ausas_navier_stokes",
@@ -347,7 +347,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian2DLaw()
 
     def _set_embedded_formulation(self):
-        # Set the SLIP elemental flag 
+        # Set the SLIP elemental flag
         if (self.settings["formulation"]["is_slip"].GetBool()):
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, True, self.GetComputingModelPart().Elements)
         else:
