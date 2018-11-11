@@ -145,7 +145,7 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
-    #pragma omp parallel firstprivate(relation, constant)
+    #pragma omp parallel
     {
         ConstraintContainerType constraints_buffer;
 
