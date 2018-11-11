@@ -56,7 +56,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class Parameters
+class KRATOS_API(KRATOS_CORE) Parameters
 {
 private:
     ///@name Nested clases
