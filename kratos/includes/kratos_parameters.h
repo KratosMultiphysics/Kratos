@@ -18,7 +18,8 @@
 // System includes
 
 // External includes
-#include "json/json.hpp" // Import nlohmann json library
+#include "json/json.hpp" // Import forward declaration nlohmann json library
+// #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
 #include "includes/serializer.h"
@@ -73,7 +74,7 @@ private:
         ///@name Type Definitions
         ///@{
 
-        using value_iterator = nlohmann::json::iterator; /// Iterator definition
+        using value_iterator = nlohmann::detail::iter_impl<nlohmann::json>; /// Iterator definition
 
         ///@}
         ///@name Member Variables
@@ -218,7 +219,8 @@ private:
     {
         ///@name Type Definitions
         ///@{
-        using value_iterator = nlohmann::json::const_iterator; /// Iterator definition
+
+        using value_iterator = nlohmann::detail::iter_impl<const nlohmann::json>; /// Iterator definition
 
         ///@}
         ///@name Member Variables
@@ -373,8 +375,8 @@ public:
     using const_iterator = const_iterator_adaptor;
 
     /// Iterators from nlohmann::json
-    typedef nlohmann::json::iterator json_iterator;
-    typedef nlohmann::json::const_iterator json_const_iterator;
+    typedef nlohmann::detail::iter_impl<nlohmann::json> json_iterator;
+    typedef nlohmann::detail::iter_impl<const nlohmann::json> json_const_iterator;
     typedef nlohmann::detail::iteration_proxy<json_iterator> json_iteration_proxy;
     typedef nlohmann::detail::iteration_proxy<json_const_iterator> json_const_iteration_proxy;
 
