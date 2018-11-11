@@ -173,29 +173,20 @@ public:
         }
 
         // We do now the loop over the dofs
-        int free_id = 0;
-        int fix_id = BaseType::mDofSet.size();
-
         for (auto& i_dof : BaseType::mDofSet) {
-            if (i_dof.IsFixed())
-                i_dof.SetEquationId(--fix_id);
-            else {
+            if (i_dof.IsFree()) {
                 node_id = i_dof.Id();
                 auto it = set_nodes_with_lm_associated.find(node_id);
                 if (it != set_nodes_with_lm_associated.end()) {
                     auto& aux_set = it->second;
                     if (aux_set.find((i_dof.GetVariable()).Key()) != aux_set.end()) {
-                        i_dof.SetEquationId(--fix_id);
-                    } else {
-                        i_dof.SetEquationId(free_id++);
+                        i_dof.FixDof();
                     }
-                } else {
-                    i_dof.SetEquationId(free_id++);
                 }
             }
         }
 
-        BaseType::mEquationSystemSize = fix_id;
+        BaseType::SetUpSystem(rModelPart);
     }
 
     ///@}
