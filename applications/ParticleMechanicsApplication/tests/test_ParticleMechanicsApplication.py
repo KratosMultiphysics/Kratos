@@ -20,6 +20,7 @@ from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTes
 
 # Import from Test Factories (with different analysis flows)
 from test_generate_mpm_particle             import TestGenerateMPMParticle            as TTestGenerateMPMParticle
+from test_search_mpm_particle               import TestSearchMPMParticle              as TTestSearchMPMParticle
 from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
 from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
 from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
@@ -48,6 +49,7 @@ def AssembleTestSuites():
     smallSuite = suites['small']
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestGenerateMPMParticle]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPMParticle]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))
