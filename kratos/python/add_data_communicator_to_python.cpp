@@ -51,6 +51,7 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("ScanSum", (double (DataCommunicator::*)(const double) const) &DataCommunicator::ScanSum)
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
+    .def("IsDistributed", &DataCommunicator::IsDistributed)
     .def("__str__", PrintObject<DataCommunicator>);
 }
 
