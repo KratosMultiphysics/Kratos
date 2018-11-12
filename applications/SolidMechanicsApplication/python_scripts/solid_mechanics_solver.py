@@ -338,7 +338,7 @@ class MechanicalSolver(object):
         # Import constitutive laws
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
-            print("   Constitutive law was successfully imported.")
+            print("   Constitutive law was successfully imported in solid_mechanics_solver.")
         else:
             print("   Constitutive law was not imported.")
 
