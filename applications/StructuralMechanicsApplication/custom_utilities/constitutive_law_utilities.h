@@ -302,9 +302,31 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rMatrixCompression The Stress Vector
      */
     static void SpectralDecomposition(
-        const array_1d<double, VoigtSize>& rStressVector,
-        array_1d<double, VoigtSize>& rStressVectorTension,
-        array_1d<double, VoigtSize>& rStressVectorCompression
+        const BoundedVectorType& rStressVector,
+        BoundedVectorType& rStressVectorTension,
+        BoundedVectorType& rStressVectorCompression
+        );
+
+    /**
+     * @brief This computes the linear plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     */
+    static MatrixType CalculateLinearPlasticDeformationGradientIncrement(
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement
+        );
+
+    /**
+     * @brief This computes the exponential plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     */
+    static MatrixType CalculateExponentialPlasticDeformationGradientIncrement(
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const MatrixType& rRe
         );
 
   private:

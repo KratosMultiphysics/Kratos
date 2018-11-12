@@ -13,21 +13,17 @@
 #if !defined(KRATOS_SCALING_SOLVER_H_INCLUDED )
 #define  KRATOS_SCALING_SOLVER_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
+#include <cmath>
+#include <complex>
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
+#include "includes/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/openmp_utils.h"
-
 
 namespace Kratos
 {
@@ -51,12 +47,20 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class ScalingSolver
+ * @ingroup KratosCore
+ * @brief This solvers rescales in order to improve the conditioning of the system
+ * @details Rescales the matrix, and uses a given linear solver
+ * @author Riccardo Rossi
+ * @tparam TSparseSpaceType The sparse space definition
+ * @tparam TDenseSpaceType The dense space definition
+ * @tparam TReordererType The reorder considered
+ */
 template<class TSparseSpaceType, class TDenseSpaceType,
          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class ScalingSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType,  TReordererType>
+class ScalingSolver
+    : public LinearSolver<TSparseSpaceType, TDenseSpaceType,  TReordererType>
 {
 public:
     ///@name Type Definitions
@@ -65,13 +69,20 @@ public:
     /// Pointer definition of ScalingSolver
     KRATOS_CLASS_POINTER_DEFINITION(ScalingSolver);
 
+    /// Definition of the base type
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
+    /// The definition of the spaces (sparse matrix)
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
+    /// The definition of the spaces (vector)
     typedef typename TSparseSpaceType::VectorType VectorType;
 
+    /// The definition of the spaces (dense matrix)
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+
+    /// The definition of the linear solver factory type
+    typedef LinearSolverFactory<TSparseSpaceType,TDenseSpaceType> LinearSolverFactoryType;
 
     ///@}
     ///@name Life Cycle
@@ -82,40 +93,37 @@ public:
     {
     }
 
-    ScalingSolver(typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer p_linear_solver,
-                  bool symmetric_scaling )
+    /**
+     * @brief Constructor without parameters
+     * @param pLinearSolver The linear solver to be scaled
+     * @param SymmetricScaling If the scaling is symmetric (true by default)
+     */
+    ScalingSolver(
+        typename BaseType::Pointer pLinearSolver,
+        const bool SymmetricScaling = true
+        ) : BaseType (),
+            mpLinearSolver(pLinearSolver),
+            mSymmetricScaling(SymmetricScaling)
     {
-        msymmetric_scaling = true;
-        mp_linear_solver = p_linear_solver;
     }
-    
-    ScalingSolver(Parameters settings,
-                  typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer p_linear_solver
-                   ): BaseType ()
+
+    /**
+     * @brief Constructor with parameters
+     * @param ThisParameters The configuration parameters of the linear solver
+     */
+    ScalingSolver(Parameters ThisParameters)
+        : BaseType ()
     {
         KRATOS_TRY
 
-//only include validation with c++11 since raw_literals do not exist in c++03
-#if __cplusplus >= 201103L
+        KRATOS_ERROR_IF_NOT(ThisParameters.Has("solver_type")) << "Solver_type must be specified to construct the ScalingSolver" << std::endl;
 
-        Parameters default_parameters( R"(
-{
-"tolerance" : 1.0e-6,
-"maximum_iterations" : 200,
-"symmetric_scaling" : true
-}  )" );
+        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters);
 
-        //now validate agains defaults -- this also ensures no type mismatch
-        settings.ValidateAndAssignDefaults(default_parameters);
-#endif
-        BaseType::mTolerance = settings["tolerance"].GetDouble();
-        BaseType::mMaxIterationsNumber = settings["maximum_iterations"].GetInt();
-        msymmetric_scaling = settings["symmetric_scaling"].GetBool();
+        mSymmetricScaling = ThisParameters.Has("symmetric_scaling") ? ThisParameters["symmetric_scaling"].GetBool() : true;
         
         KRATOS_CATCH("")
     }
-
-
 
     /// Copy constructor.
     ScalingSolver(const ScalingSolver& Other) : BaseType(Other) {}
@@ -147,7 +155,7 @@ public:
     */
     bool AdditionalPhysicalDataIsNeeded() override
     {
-        return mp_linear_solver->AdditionalPhysicalDataIsNeeded();
+        return mpLinearSolver->AdditionalPhysicalDataIsNeeded();
     }
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
@@ -164,12 +172,12 @@ public:
         ModelPart& r_model_part
     ) override
     {
-        mp_linear_solver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
+        mpLinearSolver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
     }
 
     void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        mp_linear_solver->InitializeSolutionStep(rA,rX,rB);
+        mpLinearSolver->InitializeSolutionStep(rA,rX,rB);
     }
 
     /** This function is designed to be called at the end of the solve step.
@@ -180,7 +188,7 @@ public:
     */
     void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        mp_linear_solver->FinalizeSolutionStep(rA,rX,rB);
+        mpLinearSolver->FinalizeSolutionStep(rA,rX,rB);
     }
 
     /** This function is designed to clean up all internal data in the solver.
@@ -189,7 +197,7 @@ public:
      */
     void Clear() override
     {
-        mp_linear_solver->Clear();
+        mpLinearSolver->Clear();
     }
 
     /** Normal solve method.
@@ -211,7 +219,7 @@ public:
         GetScalingWeights(rA,scaling_vector);
 
         //scale system
-        if(msymmetric_scaling == false)
+        if(mSymmetricScaling == false)
         {
             KRATOS_THROW_ERROR(std::logic_error,"not yet implemented","")
         }
@@ -219,7 +227,7 @@ public:
         {
             #pragma omp parallel for
             for(int i=0; i< static_cast<int>(scaling_vector.size()); i++)
-                scaling_vector[i] = sqrt(scaling_vector[i]);
+                scaling_vector[i] = sqrt(std::abs(scaling_vector[i]));
 
             SymmetricScaling(rA,scaling_vector);
 
@@ -233,10 +241,10 @@ public:
 
 
         //solve the problem
-        bool is_solved = mp_linear_solver->Solve(rA,rX,rB);
+        bool is_solved = mpLinearSolver->Solve(rA,rX,rB);
 
         //backscale the solution
-        if(msymmetric_scaling == true)
+        if(mSymmetricScaling == true)
         {
             #pragma omp parallel for
             for(int i=0; i< static_cast<int>(scaling_vector.size()); i++)
@@ -266,7 +274,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Composite Linear Solver. Uses internally the following linear solver " << mp_linear_solver->Info();
+        buffer << "Composite Linear Solver. Uses internally the following linear solver " << mpLinearSolver->Info();
         return  buffer.str();
     }
 
@@ -335,8 +343,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer mp_linear_solver;
-    bool msymmetric_scaling;
+    typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer mpLinearSolver;
+    bool mSymmetricScaling;
 
     ///@}
     ///@name Private Operators
@@ -453,11 +461,11 @@ private:
         {
             row_size= *(row_it+1)-*row_it;
             row_it++;
-            double t = typename TDenseSpaceType::DataType();
+            double t = 0.0;
 
             for(int i = 0; i<row_size; i++)
             {
-                double tmp = *value_begin;
+                double tmp = std::abs(*value_begin);
                 t += tmp*tmp;
                 value_begin++;
             }

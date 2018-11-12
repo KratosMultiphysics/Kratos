@@ -49,8 +49,9 @@ namespace Kratos {
                 const int delta_option,
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
-                SpatialSearch::Pointer pSpSearch)
-        : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch) {
+                SpatialSearch::Pointer pSpSearch,
+                Parameters strategy_parameters)
+        : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch, strategy_parameters) {
             BaseType::GetParticleCreatorDestructor() = p_creator_destructor;
         }
 
@@ -67,10 +68,7 @@ namespace Kratos {
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi);
         void ComputeNewNeighboursHistoricalData() override;
         void ComputeNewRigidFaceNeighboursHistoricalData() override;
-        void CreateContactElements();
-        void InitializeContactElements();
-        void ContactInitializeSolutionStep();
-        void PrepareContactElementsForPrinting();
+        void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
         double ComputeCoordinationNumber(double& standard_dev);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
@@ -103,10 +101,6 @@ namespace Kratos {
         }
 
         virtual void Reassign_Ids(ModelPart& mcontacts_model_part) {
-        }
-
-        virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
-            return r_model_part.Elements();
         }
 
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) override {

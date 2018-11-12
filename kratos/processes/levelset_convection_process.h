@@ -165,7 +165,7 @@ public:
     /// Destructor.
     ~LevelSetConvectionProcess() override 
     {
-        mrBaseModelPart.GetOwnerModel().DeleteModelPart("DistanceConvectionPart");
+        mrBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
     }
 
     ///@}
@@ -351,7 +351,7 @@ protected:
 
         KRATOS_TRY
 
-        Model& current_model = rBaseModelPart.GetOwnerModel();
+        Model& current_model = rBaseModelPart.GetModel();
 
         if(current_model.HasModelPart("DistanceConvectionPart"))
             current_model.DeleteModelPart("DistanceConvectionPart");

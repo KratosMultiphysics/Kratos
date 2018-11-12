@@ -16,9 +16,8 @@ class MapperTestsBase(object):
         cls.input_file_origin      = "MapperTests_mdpa/MappingApplication_test_geometry_tri"
         cls.input_file_destination = "MapperTests_mdpa/MappingApplication_test_geometry_quad"
 
-        cls.current_model = KratosMultiphysics.Model()
-        cls.model_part_origin = cls.current_model.CreateModelPart("origin")
-        cls.model_part_destination = cls.current_model.CreateModelPart("destination")
+        cls.model_part_origin = KratosMultiphysics.ModelPart("origin")
+        cls.model_part_destination = KratosMultiphysics.ModelPart("destination")
 
         # list of variables involved in the Mapper-Tests
         cls.variables_list_scalar = [
@@ -46,10 +45,10 @@ class MapperTestsBase(object):
         of the ModelParts
         In the base-class only reads the ModelParts
         '''
-        model_part_io = KratosMultiphysics.ModelPartIO(
+        model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(
             cls.input_file_origin).ReadModelPart(
             cls.model_part_origin)
-        model_part_io = KratosMultiphysics.ModelPartIO(
+        model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(
             cls.input_file_destination).ReadModelPart(
             cls.model_part_destination)
 

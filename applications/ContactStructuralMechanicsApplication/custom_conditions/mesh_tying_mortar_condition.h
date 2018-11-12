@@ -181,13 +181,6 @@ public:
     /// Destructor.
     ~MeshTyingMortarCondition() override;
 
-    /**
-     * Flags related to the element computation
-     */
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-
     ///@}
     ///@name Operators
     ///@{
@@ -456,8 +449,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Flags  mCalculationFlags;                                      /// Calculation flags
-
     MortarConditionMatrices mrThisMortarConditionMatrices;         /// The mortar operators
 
     IndexType mIntegrationOrder;                                   /// The integration order to consider
@@ -520,7 +511,9 @@ protected:
     void CalculateConditionSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeLHS = true,
+        const bool ComputeRHS = true
         );
 
     /**
@@ -687,14 +680,12 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.save("CalculationFlags", mCalculationFlags);
         rSerializer.save("IntegrationOrder", mIntegrationOrder);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.load("CalculationFlags", mCalculationFlags);
         rSerializer.load("IntegrationOrder", mIntegrationOrder);
     }
 

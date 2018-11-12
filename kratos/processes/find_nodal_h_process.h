@@ -46,6 +46,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct FindNodalHSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
+
 /** 
  * @class FindNodalHProcess
  * @ingroup KratosCore 
@@ -73,7 +83,7 @@ public:
     
     /// The definition of the node iterator
     typedef ModelPart::NodeIterator NodeIterator;
-    
+
     /// Pointer definition of FindNodalHProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindNodalHProcess);
 

@@ -324,11 +324,13 @@ protected:
                 mrModelPartOrigin, mrModelPartDestination,
                 rOriginVariable, rDestinationVariable,
                 MappingOptions, UseTranspose);
+
         mpMappingOperationUtility->ExecuteMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
                 rOriginVariable, rDestinationVariable,
                 MappingOptions, UseTranspose);
+
         mpMappingOperationUtility->FinalizeMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,

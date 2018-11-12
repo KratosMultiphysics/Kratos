@@ -261,7 +261,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
     )
 {
     // We compute the NODAL_H
-    auto find_h_process = FindNodalHProcess<true>(mrDestinationMainModelPart);
+    auto find_h_process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(mrDestinationMainModelPart);
     find_h_process.Execute();
 
     // We initialize some values
