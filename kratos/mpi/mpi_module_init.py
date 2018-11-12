@@ -1,8 +1,6 @@
 from __future__ import absolute_import
 import sys
 
-from KratosMPI import * # this should probably use the RTLD flags too (since this is related to loading OpenMPI itself)
-
 if sys.platform.startswith('linux'):
     # Note: from Python 3.3 onwards, dll load flags are available from module os
     # from Python 3.6 onwards, module DLFCN no longer exists
@@ -14,11 +12,13 @@ if sys.platform.startswith('linux'):
         import DLFCN as dl
         dll_load_flags = dl.RTLD_NOW | dl.RTLD_GLOBAL
     sys.setdlopenflags(dll_load_flags)
+    from KratosMPI import *
     import mpipython
     sys.setdlopenflags(flags)
 else:
+    from KratosMPI import *
     import mpipython
+
 
 mpi = mpipython.GetMPIInterface()
 
-Hello()
