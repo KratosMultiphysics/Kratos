@@ -40,6 +40,8 @@ PYBIND11_MODULE(KratosMPI, m)
 
     // Initialize MPI when loading this module
     MPIEnvironment::Initialize();
+    // Configure Kratos::ParallelEnvironment for MPI runs on module load
+    MPIEnvironment::InitializeKratosParallelEnvironment();
 
     // Define a callback to finalize MPI on module cleanup
     auto cleanup_callback = []() {

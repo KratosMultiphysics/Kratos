@@ -43,6 +43,12 @@ bool IsFinalized();
  */
 MPI_Comm GetMPICommunicator(const DataCommunicator& rDataCommunicator);
 
+/// Set up Kratos for an MPI run.
+/** This initializes the "World" DataCommunicator (a wrapper for MPI_COMM_WOLRD)
+ *  and makes it the default communicator for Kratos.
+ */
+void InitializeKratosParallelEnvironment();
+
 }
 }
 
