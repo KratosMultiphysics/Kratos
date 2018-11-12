@@ -12,6 +12,17 @@ from . import KratosLoader
 # import core library (Kratos.so)
 from Kratos import *
 
+# Configure the parallel environment.
+# This is done before initializing the kernel to ensure that MPI and the parallel DataCommunicator
+# are initialized
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--using-mpi", help="Configure Kratos for an MPI run.", action="store_true")
+args = parser.parse_args()
+
+if args.using_mpi:
+    import KratosMultiphysics.mpi
+
 KratosGlobals = kratos_globals.KratosGlobals(
     Kernel(), inspect.stack()[1], KratosLoader.kratos_applications)
 
@@ -48,6 +59,5 @@ def CheckForPreviousImport():
 def CheckRegisteredApplications(*applications):
     for app in applications:
        if not KratosGlobals.Kernel.IsImported(app):
-           import __main__           
-           raise Exception("Application "+ app + " was not imported in the main script ("+__main__.__file__+")") 
-       
+           import __main__
+           raise Exception("Application "+ app + " was not imported in the main script ("+__main__.__file__+")")
