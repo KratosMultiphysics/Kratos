@@ -80,7 +80,7 @@ private:
         ///@name Member Variables
         ///@{
 
-        value_iterator mValueIterator;                   /// Our iterator
+        std::size_t mDistance = 0;                       /// The iterator distance
         nlohmann::json& mrValue;                         /// The original container
         std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
@@ -94,13 +94,13 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mDistance(std::distance(pValue->begin(), itValue)), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just iterator)
          * @param itValue The iterator to adapt
          */
-        iterator_adaptor(const iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator), mrValue(itValue.mrValue),  mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage())) {}
+        iterator_adaptor(const iterator_adaptor& itValue) : mDistance(itValue.mDistance), mrValue(itValue.mrValue),  mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage())) {}
 
         ///@}
         ///@name Operators
@@ -113,7 +113,7 @@ private:
          */
         iterator_adaptor& operator++()
         {
-            mValueIterator++;
+            ++mDistance;
             return *this;
         }
 
@@ -137,7 +137,7 @@ private:
          */
         bool operator==(const iterator_adaptor& rhs) const
         {
-            return mValueIterator == rhs.mValueIterator;
+            return mDistance == rhs.mDistance;
         }
 
         /**
@@ -147,7 +147,7 @@ private:
          */
         bool operator!=(const iterator_adaptor& rhs) const
         {
-            return mValueIterator != rhs.mValueIterator;
+            return mDistance != rhs.mDistance;
         }
 
         /**
@@ -157,8 +157,10 @@ private:
          */
         Parameters& operator*() const
         {
-            if (mValueIterator != mrValue.end())
-                mpParameters->mpValue = &(*mValueIterator);
+            auto it = GetCurrentIterator();
+            if (it != mrValue.end()) {
+                mpParameters->mpValue = &(*it);
+            }
             return *mpParameters;
         }
 
@@ -169,8 +171,10 @@ private:
          */
         Parameters* operator->() const
         {
-            if (mValueIterator != mrValue.end())
-                mpParameters->mpValue = &(*mValueIterator);
+            auto it = GetCurrentIterator();
+            if (it != mrValue.end()) {
+                mpParameters->mpValue = &(*it);
+            }
             return mpParameters.get();
         }
 
@@ -179,21 +183,15 @@ private:
         ///@{
 
         /**
-         * @brief This method returns the base iterator
-         * @return The base iterator
+         * @brief This method returs the current iterator
+         * @return The current iterator
          */
-        value_iterator& base()
+        inline value_iterator GetCurrentIterator() const
         {
-            return mValueIterator;
-        }
-
-        /**
-         * @brief This method returns the base iterator (const)
-         * @return The base iterator (const)
-         */
-        value_iterator const& base() const
-        {
-            return mValueIterator;
+            auto it = mrValue.begin();
+            for (std::size_t i = 0; i < mDistance; ++i)
+                it++;
+            return it;
         }
 
         /**
@@ -202,7 +200,8 @@ private:
          */
         const std::string name()
         {
-            return mValueIterator.key();
+            auto it = GetCurrentIterator();
+            return it.key();
         }
 
         ///@}
@@ -226,7 +225,7 @@ private:
         ///@name Member Variables
         ///@{
 
-        value_iterator mValueIterator;                   /// Our iterator
+        std::size_t mDistance = 0;                       /// The iterator distance
         nlohmann::json& mrValue;                         /// The original container
         std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
@@ -240,14 +239,14 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) : mDistance(std::distance(pValue->cbegin(), itValue)), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just constant iterator)
          * @param itValue The iterator to adapt
          * @todo Use copy constructor in the following method
          */
-        const_iterator_adaptor(const const_iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator), mrValue(itValue.mrValue), mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage()))  {}
+        const_iterator_adaptor(const const_iterator_adaptor& itValue) : mDistance(itValue.mDistance), mrValue(itValue.mrValue), mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage()))  {}
 
         ///@}
         ///@name Operators
@@ -260,7 +259,7 @@ private:
          */
         const_iterator_adaptor& operator++()
         {
-            mValueIterator++;
+            ++mDistance;
             return *this;
         }
 
@@ -284,7 +283,7 @@ private:
          */
         bool operator==(const const_iterator_adaptor& rhs) const
         {
-            return mValueIterator == rhs.mValueIterator;
+            return mDistance == rhs.mDistance;
         }
 
         /**
@@ -294,7 +293,7 @@ private:
          */
         bool operator!=(const const_iterator_adaptor& rhs) const
         {
-            return mValueIterator != rhs.mValueIterator;
+            return mDistance != rhs.mDistance;
         }
 
         /**
@@ -304,8 +303,9 @@ private:
          */
         const Parameters& operator*() const
         {
-            if (mValueIterator != mrValue.cend())
-                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
+            auto it = GetCurrentIterator();
+            if (it != mrValue.cend())
+                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*it));
             return *mpParameters;
         }
 
@@ -316,8 +316,9 @@ private:
          */
         const Parameters* operator->() const
         {
-            if (mValueIterator != mrValue.cend())
-                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
+            auto it = GetCurrentIterator();
+            if (it != mrValue.cend())
+                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*it));
             return mpParameters.get();
         }
 
@@ -326,21 +327,15 @@ private:
         ///@{
 
         /**
-         * @brief This method returns the base iterator
-         * @return The base iterator
+         * @brief This method returs the current iterator
+         * @return The current iterator
          */
-        value_iterator& base()
+        inline value_iterator GetCurrentIterator() const
         {
-            return mValueIterator;
-        }
-
-        /**
-         * @brief This method returns the base iterator (const)
-         * @return The base iterator (const)
-         */
-        value_iterator const& base() const
-        {
-            return mValueIterator;
+            auto it = mrValue.cbegin();
+            for (std::size_t i = 0; i < mDistance; ++i)
+                it++;
+            return it;
         }
 
         /**
@@ -349,7 +344,8 @@ private:
          */
         const std::string name()
         {
-            return mValueIterator.key();
+            auto it = GetCurrentIterator();
+            return it.key();
         }
 
         ///@}
