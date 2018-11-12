@@ -20,8 +20,8 @@
 
 #include "pfem_solid_mechanics_application_variables.h"
 
-
 #include "custom_utilities/stress_invariants_utilities.hpp"
+
 namespace Kratos
 {
 
@@ -86,6 +86,7 @@ namespace Kratos
 
    bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
    {
+//std::cout<<"CalculateReturnMapping"<<std::endl;
       rReturnMappingVariables.IncrementalPlasticShearStrain = 0.0;
 
       bool PlasticityActive = false;
@@ -284,7 +285,7 @@ namespace Kratos
 
          for (unsigned int j = 3; j < 6; ++j)
             aux  += 2.0*pow(PlasticMultiplier*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2);
-         rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( aux);
+         rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt(2/3*aux);
 
          PlasticityActive = true;
       }
@@ -704,7 +705,7 @@ namespace Kratos
       for (unsigned int j = 3; j < 6; ++j)
          aux += 2.0*pow(Gamma*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2);
 
-      rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( aux);
+      rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( 2/3*aux);
 
       /* if (iter > 60) { // STUPID FUNCION
          std::cout << "   RRMM ITER " << iter << " NORM " << ResidualNorm << std::endl;
@@ -846,6 +847,7 @@ namespace Kratos
 
 
       //2- Check for yield Condition (at the beggining)
+				//std::cout<<"//2- Check for yield Condition (at the beggining) START"<<std::endl;
       this->CalculateKirchhoffStressVector( PreviousElasticLeftCauchyGreen, PreviousStressVector);
       rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, PreviousStressVector, rReturnMappingVariables.DeltaGamma );
 
@@ -854,18 +856,25 @@ namespace Kratos
          //THE INITIAL TENSIONAL STATE MAY BE OUTSIDE THE YIELD SURFACE?? (yes and no: no if you don't do nothing strange, however, if you apply LSInterpolation or change constant parameters during the simulation YES)
       }
       rReturnMappingVariables.DeltaBeta = 0;
+      
+				//std::cout<<"//2- Check for yield Condition (at the beggining) END"<<std::endl;
 
       //3. Compute an Elastic Trial State
-      ExplicitStressUpdateInformation  StressUpdateInformation;
+				//std::cout<<"//3. Compute an Elastic Trial State START"<<std::endl;
+				//std::cout<<"  rIncrementalDeformationGradient"<<rIncrementalDeformationGradient<<std::endl;
 
+      ExplicitStressUpdateInformation  StressUpdateInformation;
       this->CalculateOneExplicitStep(rIncrementalDeformationGradient, PreviousElasticLeftCauchyGreen, rReturnMappingVariables, rNewElasticLeftCauchyGreen, NewStressVector, false, StressUpdateInformation);
 
       double ElasticTrialStateFunction;
       ElasticTrialStateFunction = mpYieldCriterion->CalculateYieldCondition( ElasticTrialStateFunction, NewStressVector, PlasticVariables.EquivalentPlasticStrain);
 
+				//std::cout<<"//3. Compute an Elastic Trial State END"<<std::endl;
+
       //4a. COMPLETELY ELASTIC STEP
       if ( ElasticTrialStateFunction <= Tolerance)   {
          PlasticityActive = false;
+				//std::cout<<"//4a. COMPLETELY ELASTIC STEP"<<std::endl;
       }
 
       //4b. SOME PART OF THE STEP IS PLASTIC
@@ -877,7 +886,6 @@ namespace Kratos
             //2b.1 Transition from elastic to plastic
             //std::cout << " ELASTIC AND PLASTIC STEP " << std::endl;
             this->CalculateExplicitSolutionWithChange( rIncrementalDeformationGradient, PreviousElasticLeftCauchyGreen, rReturnMappingVariables, rNewElasticLeftCauchyGreen, NewStressVector, Tolerance);
-
          }
          else {         
 
@@ -894,7 +902,6 @@ namespace Kratos
                //std::cout << " PLASTIC STEP " << std::endl;
                //2c. 2 Completedly ELastoPlastic Step 
                this->CalculateExplicitSolution( rIncrementalDeformationGradient, PreviousElasticLeftCauchyGreen, rReturnMappingVariables, rNewElasticLeftCauchyGreen, NewStressVector, true, Tolerance);
-
             }
          }
 
@@ -1004,11 +1011,8 @@ namespace Kratos
          DeltaGamma = rDrift;
          DeltaGamma /= ( H + MathUtils<double>::Dot(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD)));
 
-
-
          Vector MuyAuxiliar = -DeltaGamma*AuxiliarDerivatives.PlasticPotentialD/ 2.0;
          UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor( MuyAuxiliar);
-
 
          CorrectedLeftCauchyGreen =  prod((UpdateMatrix), rNewElasticLeftCauchyGreen);
          CorrectedLeftCauchyGreen =  prod( CorrectedLeftCauchyGreen, trans(UpdateMatrix));
@@ -1024,7 +1028,7 @@ namespace Kratos
          for (unsigned int j = 3; j < 6; ++j)
             aux += 2.0*pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2);
 
-         rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( aux);
+         rReturnMappingVariables.IncrementalPlasticShearStrain += sqrt( 2/3*aux);
 
 
 
@@ -1096,6 +1100,8 @@ namespace Kratos
 
       ElasticStrainVector = ConvertCauchyGreenTensorToHenckyStrain( prod(rDeltaDeformationGradient, trans(rDeltaDeformationGradient)) );
 
+				//std::cout<<"AuxiliarDerivatives: "<<AuxiliarDerivatives.YieldFunctionD<<" "<<AuxiliarDerivatives.PlasticPotentialD<<" "<<AuxiliarDerivatives.PlasticPotentialDD<<std::endl;
+				//std::cout<<"H: "<<H<<std::endl<<std::endl;
 
       Vector auxVector;
       auxVector = prod(ElasticMatrix, ElasticStrainVector) ;
@@ -1106,6 +1112,7 @@ namespace Kratos
 
       double auxDenominador = H + MathUtils<double>::Dot( AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD));
 
+			//plastic multiplier
       DeltaGamma /= auxDenominador;
 
       if (DeltaGamma < 0 )
@@ -1154,7 +1161,7 @@ namespace Kratos
       for (unsigned int i = 3; i < 6; ++i)
          rNewPlasticShearStrain += 2.0*pow( DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i)/2.0, 2);
 
-      rNewPlasticShearStrain = sqrt( rNewPlasticShearStrain );
+      rNewPlasticShearStrain = sqrt( 2/3*rNewPlasticShearStrain );
 
 
    }
@@ -1203,27 +1210,16 @@ namespace Kratos
             Denominador  += pow(rNewStressVector(i), 2);
          }
          rStressUpdateInformation.StressErrorMeasure = 1.0* pow( rStressUpdateInformation.StressErrorMeasure/Denominador, 0.5);
-
-
       } 
       else  {
-
          rNewElasticLeftCauchyGreen = prod( rPreviousElasticLeftCauchyGreen, trans( rDeformationGradient) );
          rNewElasticLeftCauchyGreen = prod( rDeformationGradient, rNewElasticLeftCauchyGreen );
 
          rStressUpdateInformation.StressErrorMeasure = 0.0;
 
          this->CalculateKirchhoffStressVector( rNewElasticLeftCauchyGreen, rNewStressVector);
-
       }
-
-
    }
-
-
-
-
-
 
    // EXPLICIT PART: Compute the Elasto-plastic part with adaptive substepping
    void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Matrix& rIncrementalDeformationGradient, const Matrix& rPreviousElasticCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, const double& rTolerance)
@@ -1299,6 +1295,11 @@ namespace Kratos
          TimeStep *= 0.9* (pow( rTolerance / (StressUpdateInformation.StressErrorMeasure+ 1e-8), 0.5 ));
          TimeStep = std::max(TimeStep, MinTimeStep);
          TimeStep = std::min(TimeStep, MaxTimeStep);
+/*         
+std::cout<<"rTolerance: "<<rTolerance<<std::endl;
+std::cout<<"StressErrorMeasure: "<<StressUpdateInformation.StressErrorMeasure<<std::endl;
+std::cout<<"actual time step: "<<TimeStep<<std::endl;
+*/
       }
 
 
@@ -1342,9 +1343,7 @@ namespace Kratos
          this->ComputeSubstepIncrementalDeformationGradient( rDeformationGradient, 0.0, HalfPosition, HalfPositionDeformationGradient);
 
          this->CalculateOneExplicitStep( HalfPositionDeformationGradient, rPreviousElasticLeftCauchyGreen, rReturnMappingVariables, HalfPositionElasticCauchyGreen, rNewStressVector, false, StressUpdateInformation);  
-
          HalfPositionStateFunction = mpYieldCriterion->CalculateYieldCondition( HalfPositionStateFunction, rNewStressVector, rReturnMappingVariables.DeltaGamma);
-
 
          if ( HalfPositionStateFunction < 0.0)  {
             InitialStateFunction = HalfPositionStateFunction;
@@ -1362,7 +1361,6 @@ namespace Kratos
          }
 
       }
-      //std::cout << " Half Position Found " << HalfPosition << " SF " << HalfStateFunction << std::endl;
 
       // COMPUTE ELASTIC STEP;
 
@@ -1408,26 +1406,24 @@ namespace Kratos
 
       this->CalculateKirchhoffStressVector( rHenckyStrain, StressVector);
 
-      this->CalculatePlasticPotentialDerivatives(StressVector, rAuxiliarDerivatives.PlasticPotentialD, rAuxiliarDerivatives.PlasticPotentialDD);
+      this->CalculatePlasticPotentialDerivatives(StressVector, rAuxiliarDerivatives.PlasticPotentialD, rAuxiliarDerivatives.PlasticPotentialDD, rAlpha);
 
       mpYieldCriterion->CalculateYieldFunctionDerivative(StressVector, rAuxiliarDerivatives.YieldFunctionD, rAlpha);
 
-      // in order to program things only once
+      // set plastic potential derivatives equal to yield surface derivatives if zero matrices are obtained
       if ( rAuxiliarDerivatives.PlasticPotentialD.size() == 1 ) {
-         rAuxiliarDerivatives.PlasticPotentialD = rAuxiliarDerivatives.YieldFunctionD;
-         if ( rAuxiliarDerivatives.PlasticPotentialDD.size1() == 1) {
+				rAuxiliarDerivatives.PlasticPotentialD = rAuxiliarDerivatives.YieldFunctionD;
+				if ( rAuxiliarDerivatives.PlasticPotentialDD.size1() == 1) {
             //mpYieldCriterion->CalculateYieldFunctionSecondDerivative( StressVector, rAuxiliarDerivatives.PlasticPotentialDD, rAlpha);
 
-            if ( rAuxiliarDerivatives.PlasticPotentialDD.size1() == 1) {
-               rAuxiliarDerivatives.PlasticPotentialDD = ZeroMatrix(6,6);
-            }
-         }
+					if ( rAuxiliarDerivatives.PlasticPotentialDD.size1() == 1) {
+						rAuxiliarDerivatives.PlasticPotentialDD = ZeroMatrix(6,6);
+					}
+        }
       }
       else
       {
       } 
-
-
    }
 
    //***************** CalculateStress From LEFT CAUCHY GREEN MATRIX **************
@@ -1437,7 +1433,6 @@ namespace Kratos
       Vector ElasticHenckyStrainVector;
       ElasticHenckyStrainVector = ConvertCauchyGreenTensorToHenckyStrain( rElasticLeftCauchyGreen); 
       this->CalculateKirchhoffStressVector(ElasticHenckyStrainVector, rNewStressVector);
-
    }
 
    // IDEM IN MATRIX FORM
@@ -1579,7 +1574,6 @@ namespace Kratos
          AuxiliarDerivativesStructure AuxiliarDerivatives;
          this->UpdateDerivatives(ElasticStrainVector, AuxiliarDerivatives, rAlpha);
 
-
          // ADD the second derivative in the Elastic Matrix
          if ( StressIntTechnique == 2) // IMPLICIT CASE
          {
@@ -1598,7 +1592,6 @@ namespace Kratos
          }
 
          // MATRIX 1.
-
          double H;
          this->ComputePlasticHardeningParameter(ElasticStrainVector, rAlpha, H);
 

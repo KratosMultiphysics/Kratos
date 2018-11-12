@@ -62,7 +62,7 @@ namespace Kratos
         Vector YieldFunctionD;
         
         Matrix PlasticPotentialDD;
-     };
+    };
 
     struct ExplicitStressUpdateInformation
     {
@@ -70,7 +70,30 @@ namespace Kratos
         double NewEquivalentPlasticStrain;
         double IncrementPlasticStrain;
         double DeltaDeltaPlastic;
+        
+        double NewPlasticShearStrain;
+        double IncVolPlasticStrain;
+        
+        double NewEquivalentPlasticStrainCum;
+        
+        PlasticVariablesType PlasticVariablesUpdate;
+        
+    public:
 
+        void clear()
+        {
+					StressErrorMeasure = 0;
+					NewEquivalentPlasticStrain = 0;
+					IncrementPlasticStrain = 0;
+					DeltaDeltaPlastic = 0;
+					
+					NewPlasticShearStrain = 0;
+					IncVolPlasticStrain = 0;
+					
+					NewEquivalentPlasticStrainCum = 0;
+					
+					PlasticVariablesUpdate.clear();
+				}
     };
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
       KRATOS_CLASS_POINTER_DEFINITION( NonAssociativeExplicitPlasticFlowRule );
@@ -125,14 +148,12 @@ namespace Kratos
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
 
-
     virtual void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rLeftCauchyGreenMatrix, const double& rAlpha, Matrix& rElasticMatrix);
 
     virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix)
     {
 	    KRATOS_THROW_ERROR( std::logic_error, "calling not the base class but another function in FlowRule ... illegal operation!!", "" )
     };
-
 
     virtual Matrix ComputeKirchhoffStressMatrix( const Matrix & rLeftCauchyGreenMatrix);
 
@@ -198,12 +219,12 @@ namespace Kratos
 
     virtual void CalculateKirchhoffStressVector(const Vector& rElasticHenckyStrain, Vector& rNewStressVector)
     {
-	KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
+			KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
     virtual void ComputePlasticHardeningParameter(const Vector& rStressVector, const double& rAlpha, double& rH)
     {
-	KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
+			KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
     Matrix ConvertHenckyStrainToCauchyGreenTensor(const Vector& rElasticHenckyStrain);
@@ -212,16 +233,14 @@ namespace Kratos
 
     void UpdateDerivatives(const Vector& rHenckyElasticStrain, AuxiliarDerivativesStructure & rAuxiliarDerivatives, const double& EquivalentPlasticStrian) ;
 
-    virtual void CalculatePlasticPotentialDerivatives(const Vector& rPrincipalStress, Vector& rFirstDerivative, Matrix& rSecondDerivative)
+    virtual void CalculatePlasticPotentialDerivatives(const Vector& rPrincipalStress, Vector& rFirstDerivative, Matrix& rSecondDerivative, const double& rAlpha)
     {
-	KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
+			KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
     void ComputeSubstepIncrementalDeformationGradient(const Matrix& rDeformationGradient, const double& rReferenceConfiguration, const double& rFinalConfiguration, Matrix& rIncrementalDeformationGradient);
 
-
     void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, ExplicitStressUpdateInformation& rStressUpdateInformation);
-
 
     void CalculateExplicitSolutionWithChange(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector,  const double& rTolerance);
 
@@ -232,13 +251,9 @@ namespace Kratos
 
     void UpdateRadialReturnVariables(RadialReturnVariables& rReturnMappingVariables, const ExplicitStressUpdateInformation& rStressUpdateInformation);
 
-
-
     void ReturnStressToYieldSurface4( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
 
     void ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
-
-
 
     void PerformSomeSortOfLineSearch( Vector& rHenckyElastic, double& rGamma, double& rAlpha, const Vector& rHenckyTrialElastic, const double& rAlphaTrial, double& rReidualNorm, const double& rPreviousError,  const Vector& rDeltaX);
 
