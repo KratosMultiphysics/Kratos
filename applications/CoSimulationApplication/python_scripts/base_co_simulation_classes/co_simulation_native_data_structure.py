@@ -1,6 +1,7 @@
 import json
 
 
+## To pass the parameters to different objects.
 class Parameters(dict):
     __init__(self, text_stream):
         self.parameters = json.load(test_stream)
@@ -42,3 +43,7 @@ class Parameters(dict):
                         warnings.warn(warning_msg, Warning)
 
         return output
+
+## To store all the meshes imported or to be exported.
+class Model(object):
+    pass
