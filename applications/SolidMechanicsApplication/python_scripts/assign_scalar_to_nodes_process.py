@@ -47,7 +47,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             if(custom_settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
 
-
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -106,6 +105,13 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.constrained = self.settings["constrained"].GetBool()
 
 
+    def ExecuteInitialAssignment(self):
+        self.AssignValueProcess.Execute()
+        # initial assignment no time integration
+        #if( self.fix_time_integration ):
+        #    for node in self.model_part.Nodes:
+        #        self.TimeIntegrationMethod.Assign(node)
+
     def GetVariables(self):
         nodal_variables = [self.settings["variable_name"].GetString()]
         return nodal_variables
@@ -143,12 +149,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                     process.Execute()
 
             if( self.interval_string == "initial" ):
-                self.AssignValueProcess.Execute()
-
-                if( self.fix_time_integration ):
-                    for node in self.model_part.Nodes:
-                        self.TimeIntegrationMethod.Assign(node)
-
+                self.ExecuteInitialAssignment()
 
     def ExecuteInitializeSolutionStep(self):
 

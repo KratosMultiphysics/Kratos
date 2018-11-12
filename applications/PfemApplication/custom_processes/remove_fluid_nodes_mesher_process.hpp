@@ -174,7 +174,7 @@ class RemoveFluidNodesMesherProcess
     {
       if(in->Is(TO_ERASE)){
         any_node_removed = true;
-        std::cout<<" TO_ERASE "<<in->Id()<<std::endl;
+        std::cout<<" TO_ERASE "<<in->Id()<<" "<<in->Coordinates()<<std::endl;
       }
 
       if( in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(TO_ERASE) )
@@ -228,7 +228,7 @@ class RemoveFluidNodesMesherProcess
                   in->Set(TO_ERASE);
                   any_node_removed = true;
                   ++inside_nodes_removed;
-                  std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+                  std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<in->Coordinates()<<std::endl;
                 }
               }
             }
@@ -637,7 +637,7 @@ class RemoveFluidNodesMesherProcess
 
           for(unsigned int i=0; i<NumberOfNodes; ++i)
           {
-            if((rGeometry[i].IsNot(RIGID) && rGeometry[i].IsNot(SOLID))){
+            if((rGeometry[i].IsNot(RIGID) && rGeometry[i].IsNot(SOLID) && rGeometry[i].IsNot(INLET))){
               LayerNodes.push_back(rGeometry(i));
             }
           }

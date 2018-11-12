@@ -1460,11 +1460,6 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateStabilizationTau(ElementD
     double element_size = rGeometry.AverageEdgeLength();
 
     rVariables.Tau = (element_size * element_size * TimeStep) / ( Density * mean_velocity * TimeStep * element_size + Density * element_size * element_size +  8.0 * Viscosity * TimeStep );
-
-  if( mean_velocity == 0.0 ){
-
-    rVariables.Tau = 0;
-
   }
 
   KRATOS_CATCH( "" )
