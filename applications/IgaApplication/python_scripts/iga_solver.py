@@ -75,6 +75,7 @@ class IgaSolver(PythonSolver):
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
+            "solver_type": "static",
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
                 "max_iteration": 500,
@@ -82,8 +83,6 @@ class IgaSolver(PythonSolver):
                 "scaling": false,
                 "verbosity": 1
             },
-            #"problem_domain_sub_model_part_list": ["solid"],
-            #"processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : []
