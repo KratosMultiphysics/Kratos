@@ -1060,6 +1060,11 @@ public:
                       const ProcessInfo& rCurrentProcessInfo);
 
 
+		virtual void SetPlasticVariables( const double& rInitialPreconPressure, const double& rInitialBonding); 
+		virtual void GetHardeningParameters( double& rPreconPressure, double& rBonding); 
+		virtual const double GetBonding();
+		virtual const double GetPreconPressure();
+
 
     //*** OUTDATED METHODS: ***//
 
