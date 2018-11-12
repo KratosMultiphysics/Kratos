@@ -228,7 +228,7 @@
             <Item id="DEM-ParticleTemperature" pid="Particle Temperature" dv="No" ivalues="No,Yes" values="No,Yes" help=""/>
             <Item id="DEM-ParticleHeatFlux" pid="Particle HeatFlux" dv="No" ivalues="No,Yes" values="No,Yes" help=""/>
         </Container>
-            <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" dv="No" ivalues="Yes,No" values="Yes,No" help="Activate this option to display the particle bonds at postprocessing stage"/>
+        <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" dv="No" ivalues="Yes,No" values="Yes,No" help="Activate this option to display the particle bonds at postprocessing stage"/>
         <Container id="DEM-BondElem" pid="On bond elements" DEM-ShowBondElements="Yes" help="Results on bond elements">
             <Item id="DEM-ContactSigma" pid="Contact sigma" dv="No" ivalues="Yes,No" values="Yes,No" help="Normal stress on contact"/>
             <Item id="DEM-ContactTau" pid="Contact tau" dv="No" ivalues="Yes,No" values="Yes,No" help="Tangential stress on contact"/>
@@ -245,7 +245,7 @@
             <Item id="MinX" pid="Min X" DEM-VTrap="Yes" dv="-100.0" help="Min X"/>
             <Item id="MinY" pid="Min Y" DEM-VTrap="Yes" dv="-100.0" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
             <Item id="MinZ" pid="Min Z" DEM-VTrap="Yes" dv="-100.0" help="Min Z"/>
-            <Item id="DEM-VelTrapGraphExportFreq" pid="Printing time step (s)" DEM-VTrap="Yes" dv="1e0" help="Printing delta time for the velocity trap" />
+            <Item id="DEM-VelTrapGraphExportFreq" pid="Printing time step (s)" DEM-VTrap="Yes" dv="1e-3" help="Printing delta time for the velocity trap" />
         </Container>
         <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess additional options" open="0">
             <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format. Choose Binary or Ascii. Ascii takes more hard disk space, but is human readable"/>
