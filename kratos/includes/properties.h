@@ -15,17 +15,13 @@
 #if !defined(KRATOS_PROPERTIES_H_INCLUDED )
 #define  KRATOS_PROPERTIES_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <cstddef>
 #include <unordered_map>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -33,7 +29,6 @@
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
-
 
 namespace Kratos
 {
@@ -114,7 +109,7 @@ public:
     Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
 
     /// Default of properties with subproperties
-    Properties(IndexType NewId, PropertiesContainerType SubPropetiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropetiesList) {}
+    Properties(IndexType NewId, PropertiesContainerType SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
 
     /// Copy constructor.
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList) {}
@@ -349,7 +344,7 @@ public:
      */
     PropertiesContainerType& GetSubProperties()
     {
-        return SubPropetiesList();
+        return SubPropertiesList();
     }
 
     /**
@@ -358,16 +353,16 @@ public:
      */
     PropertiesContainerType const& GetSubProperties() const
     {
-        return SubPropetiesList();
+        return SubPropertiesList();
     }
 
     /**
      * @brief This method set the whole list of subproperties
-     * @param rSubPropetiesList The list of subproperties
+     * @param rSubPropertiesList The list of subproperties
      */
-    void SetSubProperties(PropertiesContainerType& rSubPropetiesList)
+    void SetSubProperties(PropertiesContainerType& rSubPropertiesList)
     {
-        mSubPropertiesList = rSubPropetiesList;
+        mSubPropertiesList = rSubPropertiesList;
     }
 
     ///@}
@@ -396,7 +391,7 @@ public:
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
      */
-    PropertiesContainerType& SubPropetiesList()
+    PropertiesContainerType& SubPropertiesList()
     {
         return mSubPropertiesList;
     }
@@ -423,7 +418,7 @@ public:
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
      */
-    PropertiesContainerType const& SubPropetiesList() const
+    PropertiesContainerType const& SubPropertiesList() const
     {
         return mSubPropertiesList;
     }
@@ -554,7 +549,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
-        rSerializer.save("SubPropetiesList", mSubPropertiesList);
+        rSerializer.save("SubPropertiesList", mSubPropertiesList);
     }
 
     void load(Serializer& rSerializer) override
@@ -562,7 +557,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
-        rSerializer.load("SubPropetiesList", mSubPropertiesList);
+        rSerializer.load("SubPropertiesList", mSubPropertiesList);
     }
 
     ///@}
@@ -615,5 +610,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_PROPERTIES_H_INCLUDED  defined
-
-
