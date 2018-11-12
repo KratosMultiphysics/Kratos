@@ -87,6 +87,7 @@ namespace Kratos
 
    void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
    {
+			std::cout<<std::endl<<"  Calculate Kirchhoff material response "<<std::endl;
 
       //-----------------------------//
 
@@ -98,11 +99,11 @@ namespace Kratos
 
       const ProcessInfo&  CurrentProcessInfo = rValues.GetProcessInfo();
 
-      const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
-      const double&   DeterminantF          = rValues.GetDeterminantF();
+      const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF(); //determinant of total assumed def gradient F
+      const double&   DeterminantF          = rValues.GetDeterminantF(); //total assumend def gradient F
 
       const GeometryType&  DomainGeometry   = rValues.GetElementGeometry ();
-      const Vector&        ShapeFunctions   = rValues.GetShapeFunctionsValues ();
+      const Vector&        ShapeFunctions   = rValues.GetShapeFunctionsValues (); // weights of element nodes for gauss point
 
       //Vector& StrainVector                  = rValues.GetStrainVector();
       Vector& StressVector                  = rValues.GetStressVector();
@@ -153,14 +154,17 @@ namespace Kratos
       //5.-Calculate Total Kirchhoff stress
       Matrix StressMatrix = ZeroMatrix(3,3);    
       Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen; 
+      
+std::cout<< "    Delta_F : " << ElasticVariables.DeformationGradientF <<std::endl;
+std::cout<< "    b_n :     " << NewElasticLeftCauchyGreen <<std::endl;
+
 
       if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       {
-         this->CalculateOnlyDeviatoricPart( ElasticVariables.DeformationGradientF ); // in UP this is FBar
-         mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, StressMatrix, NewElasticLeftCauchyGreen);
-         this->CorrectDomainPressure( StressMatrix, ElasticVariables); // adds Pressure in UP
+        this->CalculateOnlyDeviatoricPart( ElasticVariables.DeformationGradientF ); // in UP this is FBar
+        mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, StressMatrix, NewElasticLeftCauchyGreen);
+        this->CorrectDomainPressure( StressMatrix, ElasticVariables); // adds Pressure in UP
       }
-
 
       if ( fabs(StressMatrix(0,0) ) > 1e-5) {
          if ( StressMatrix(0,0) == (StressMatrix(0,0)-StressMatrix(0,0)) ) {
@@ -225,6 +229,7 @@ namespace Kratos
          mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
 
          mElasticLeftCauchyGreen = NewElasticLeftCauchyGreen;
+         std::cout<<std::endl<< "  ... MATERIAL RESPONSE FINALIZED ... " <<std::endl<<std::endl;
 
          // moved to HyperElastic3DLaw::UpdateInvernalVariables that is called at FinalizeMaterialResponse just after it arribes here.
          /*ElasticVariables.DeformationGradientF = DeformationGradientF; 
@@ -306,22 +311,24 @@ namespace Kratos
 
    double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
    {
-
-
       // POST-PROCESS LOTS OF VARIABLES. ONLY IF DEFINED IN THE APPROPIATE FILE
-      if ( (rThisVariable==VOLUMETRIC_PLASTIC) || (rThisVariable==INCR_SHEAR_PLASTIC) || (rThisVariable==PLASTIC_STRAIN)  )
+      if ( (rThisVariable==VOLUMETRIC_PLASTIC) || (rThisVariable==INCR_SHEAR_PLASTIC) || (rThisVariable==PLASTIC_STRAIN) )
       {
 
          const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+         //volumetric plastic strain
          if ( rThisVariable==VOLUMETRIC_PLASTIC) {
             rValue = InternalVariables.EquivalentPlasticStrain; 
          }
+         //plastic shear strain
          else if (rThisVariable==PLASTIC_STRAIN) {
             rValue = InternalVariables.DeltaPlasticStrain;
          }
+         //incremental plastic shear strain
          else {
             rValue = InternalVariables.EquivalentPlasticStrainOld;
          }
+
 
          return rValue;
       }
@@ -381,7 +388,6 @@ namespace Kratos
             }
          }
       }
-
       else if (rThisVariable==PRECONSOLIDATION) 
       {
          rValue = 0.0;
@@ -397,7 +403,7 @@ namespace Kratos
          double G = YoungModulus/ 2.0 / ( 1.0 + PoissonCoef);
          rValue = K + 4.0*G / 3.0;
       }
-   else if ( ( rThisVariable== YOUNG_MODULUS) || (rThisVariable==EQUIVALENT_YOUNG_MODULUS) )
+			else if ( ( rThisVariable== YOUNG_MODULUS) || (rThisVariable==EQUIVALENT_YOUNG_MODULUS) )
       {
          rValue = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
       }
@@ -494,7 +500,7 @@ namespace Kratos
 
    void NonLinearHenckyElasticPlastic3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables & rElasticVariables)
    {
-
+//std::cout<<"noCORR"<<std::endl;
    }
 
 
@@ -510,7 +516,7 @@ namespace Kratos
 
    void NonLinearHenckyElasticPlastic3DLaw::CalculateOnlyDeviatoricPart( Matrix& rIncrementalDeformationGradient)
    {
-
+//std::cout<<"noDEVONLY"<<std::endl;
    }
    //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
    //************************************************************************************
