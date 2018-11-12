@@ -22,6 +22,17 @@ class ComputeBodyShearForceProcess(ComputeDragProcess):
     The specific implementation for the output of body fitted drag forces
     over obstacles in fluid dynamics problems.
     """
+    def __init__(self, model, params ):
+        """
+        For finding out moment of shear force on a structure with centre given 
+        """
+        if params.Has("centre"):
+            self.centreX = params["centre"][0].GetDouble()
+            self.centreY = params["centre"][1].GetDouble()
+            self.centreZ = params["centre"][2].GetDouble()
+            params.RemoveValue("centre")
+        super(ComputeBodyShearForceProcess,self).__init__(model,params)
+
     def _GetFileHeader(self):
         header  = '# Shear Force for the model part ' + self.params["model_part_name"].GetString() + '\n'
         header += '# Time Shear Force(N) \n'
@@ -32,7 +43,8 @@ class ComputeBodyShearForceProcess(ComputeDragProcess):
         KratosMultiphysics.Logger.PrintInfo("ComputeBodyShearForceProcess","Current time: " + result_msg)
 
     def _GetCorrespondingDragForce(self):
-        return KratosCFD.DragUtilities().CalculateBodyNormalForce(self.model_part) #its shear force, not pressure
+        KratosMultiphysics.Logger.PrintInfo("ComputeBodyShearForceProcess","COMPUTING SHEAR FORCE:")
+        return KratosCFD.DragUtilities().CalculateBodyShearForce(self.model_part,self.centreX, self.centreY, self.centreZ) #its shear force, not pressure
     
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]

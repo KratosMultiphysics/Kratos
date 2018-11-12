@@ -106,7 +106,7 @@ namespace Kratos
     * @param rModelPart reference to the model part in where the drag is to be computed
     * @return An array containing the drag force value.
     */
-    double CalculateBodyNormalForce(ModelPart &rModelPart);
+    double CalculateBodyShearForce(ModelPart &rModelPart,double,double, double);
 
 
     /**

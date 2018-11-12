@@ -679,6 +679,9 @@ public:
     double SumHistoricalNodeVectorVariableDotWithNormal(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart,
+        double centreX,
+        double centreY,
+        double centreZ,
         const unsigned int rBuffStep = 0
         );
     

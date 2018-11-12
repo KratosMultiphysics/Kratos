@@ -360,10 +360,20 @@ array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
 double VariableUtils::SumHistoricalNodeVectorVariableDotWithNormal(
     const Variable<array_1d<double, 3> >& rVar,
     ModelPart& rModelPart,
+    double centreX,
+    double centreY,
+    double centreZ,
     const unsigned int rBuffStep
     )
 {
     KRATOS_TRY
+    KRATOS_INFO("printing so that we reached here");
+    
+    array_1d<double, 3> centre ;
+    centre[0]=centreX;
+    centre[1]=centreY;
+    centre[2]=centreZ;
+
     double sum_value = 0;
     #pragma omp parallel
     {
@@ -371,11 +381,18 @@ double VariableUtils::SumHistoricalNodeVectorVariableDotWithNormal(
         #pragma omp for
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
             NodesContainerType::iterator it_node = rModelPart.NodesBegin() + k;
-            //KRATOS_INFO("NORMAL TO NODES")<<it_node->Id()<<".........."<<it_node->GetSolutionStepValue(NORMAL)<<std::endl;
             double temp = MathUtils<double>::Dot(it_node->GetSolutionStepValue(rVar, rBuffStep),it_node->GetSolutionStepValue(NORMAL));
             array_1d<double, 3> normalForce = temp* it_node->GetSolutionStepValue(NORMAL);
-            array_1d<double, 3> ShearForce = it_node->GetSolutionStepValue(rVar, rBuffStep)-normalForce;
-            temp = sqrt(ShearForce[0]*ShearForce[0]+ShearForce[1]*ShearForce[1]+ShearForce[2]*ShearForce[2]);
+            Vector ShearForce = it_node->GetSolutionStepValue(rVar, rBuffStep)-normalForce;
+            array_1d<double, 3> NodalCordinates = it_node->Coordinates();
+            
+            Vector rVector;
+            rVector[0] = NodalCordinates[0]-centre[0];
+            rVector[1] = NodalCordinates[1]-centre[1];
+            rVector[2] = NodalCordinates[2]-centre[2];
+
+            array_1d<double, 3> MomentOfShearForce =  MathUtils<double>::CrossProduct(rVector,ShearForce);
+            temp = rVector[2];
             private_sum_value += temp;
         }
         #pragma omp atomic
