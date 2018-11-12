@@ -113,7 +113,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
     def ImportModelPart(self):
         # Check that both thermal solvers have a different model part name. If
-        # both model part names coincide the solver will fail to acces them. This 
+        # both model part names coincide the solver will fail to acces them. This
         # is the case if the default one in the convection diffusion is taken.
         fluid_thermal_model_part_name = self.settings["fluid_domain_solver_settings"]["thermal_solver_settings"]["model_part_name"].GetString()
         solid_thermal_model_part_name = self.settings["solid_domain_solver_settings"]["thermal_solver_settings"]["model_part_name"].GetString()
