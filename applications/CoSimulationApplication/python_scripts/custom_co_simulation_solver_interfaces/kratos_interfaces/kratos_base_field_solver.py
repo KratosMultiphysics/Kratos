@@ -16,7 +16,6 @@ import co_simulation_tools as tools
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
     def __init__(self, solver_name, cosim_solver_settings):
         super(KratosBaseFieldSolver, self).__init__(solver_name, cosim_solver_settings)
-        self.model = KratosMultiphysics.Model()
 
         input_file_name = self.cosim_solver_settings["settings"]["input_file"].GetString()
         if not input_file_name.endswith(".json"):
