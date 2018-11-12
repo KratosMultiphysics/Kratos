@@ -36,15 +36,20 @@
 
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/casm_cem_hardening_law.hpp"
 
 //yield criteria
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/casm_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/casm_cem_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_casm_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_casm_cem_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
 
@@ -52,6 +57,8 @@
 
 
 //constitutive laws
+#include "custom_constitutive/borja_hencky_casm_axisym_2D_law.hpp"
+#include "custom_constitutive/borja_hencky_casm_cem_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
@@ -98,6 +105,16 @@ namespace Kratos
       // class_< MaterialsContainer >( "MaterialsContainer", init<>() )
       // 	.def( "PushBack", Push_Back_Constitutive_Laws )
 
+		class_<BorjaHenckyCasmCemPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "BorjaHenckyCasmCemPlasticAxisym2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+		class_<BorjaHenckyCasmPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "BorjaHenckyCasmPlasticAxisym2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
     class_<BorjaHenckyCamClayPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "BorjaHenckyCamClayPlastic3DLaw",
       init<>() )
