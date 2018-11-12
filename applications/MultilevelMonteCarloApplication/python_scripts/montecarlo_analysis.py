@@ -172,7 +172,7 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "../tests/Level0/ProjectParameters.json"
+        parameter_file_name = "../tests/Level2/ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -193,7 +193,7 @@ if __name__ == '__main__':
     MC_second_moment = 0.0
     for i in range (0,number_samples):
         nsam = i+1
-        MC_mean, MC_second_moment, MC_variance = mc.update_onepass_M(Qlist[i], MC_mean, MC_second_moment, nsam)
+        MC_mean, MC_second_moment, MC_variance = mc.update_onepass_M_VAR(Qlist[i], MC_mean, MC_second_moment, nsam)
     '''Evaluation of the relative error between the computed mean value and the expected value of the QoI'''
     relative_error = compare_mean(MC_mean,ExactExpectedValueQoI)
     # print("Values QoI:",Qlist)

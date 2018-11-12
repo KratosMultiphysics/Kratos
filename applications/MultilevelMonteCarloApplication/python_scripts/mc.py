@@ -14,7 +14,7 @@ M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
 M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
 s_n^2 = M_{2,n} / (n-1)
 '''
-def update_onepass_M(sample, old_mean, old_M2, nsam):
+def update_onepass_M_VAR(sample, old_mean, old_M2, nsam):
     delta = np.subtract(sample, old_mean)
     if nsam == 1:
         new_mean = sample

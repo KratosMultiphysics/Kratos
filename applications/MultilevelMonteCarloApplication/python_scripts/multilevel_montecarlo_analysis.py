@@ -294,7 +294,7 @@ if __name__ == '__main__':
     for level in range (0,L_screening+1):    
         for i in range(0,number_samples[level]):
             nsam = i+1
-            mean_time_ML[level],second_moment_time_ML[level],variance_time_ML[level] = mlmc.update_onepass_M(time_ML[level][i],mean_time_ML[level],second_moment_time_ML[level],nsam)
+            mean_time_ML[level],second_moment_time_ML[level],variance_time_ML[level] = mlmc.update_onepass_M_VAR(time_ML[level][i],mean_time_ML[level],second_moment_time_ML[level],nsam)
     # print("list time ML",time_ML)
     print("mean time ML",mean_time_ML)
     print("sample variance time ML",variance_time_ML)
@@ -460,7 +460,7 @@ if __name__ == '__main__':
         else:
             iter_MLMC = iter_MLMC + 1
 
-        
+    print("rates computed through LS = ",ratesLS)        
     relative_error = compare_mean(mean_mlmc_QoI,ExactExpectedValueQoI)
     # mean_mlmc_QoI = compss_wait_on(mean_mlmc_QoI)
     # ExactExpectedValueQoI = compss_wait_on(ExactExpectedValueQoI)
