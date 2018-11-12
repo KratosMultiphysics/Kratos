@@ -26,6 +26,8 @@ class GiDOutputProcess(Process):
             "gauss_point_results": [],
             "additional_list_files": []
         },
+        "CPT_post_process": false,
+        "int_data_post_process": false,
         "point_data_configuration": []
     }''')
 
@@ -247,6 +249,9 @@ class GiDOutputProcess(Process):
 
     def PrintOutput(self):
 
+        print("")
+        print("::[Gid_Output_Process]:: Start printing output files")
+
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
 
@@ -283,6 +288,8 @@ class GiDOutputProcess(Process):
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
+
+        print("::[Gid_Output_Process]:: End printing output files")
 
 
     def ExecuteFinalize(self):
