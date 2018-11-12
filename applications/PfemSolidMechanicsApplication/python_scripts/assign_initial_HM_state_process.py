@@ -25,7 +25,8 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
          "constant_water_pressure" : -0.0,
          "top_surface_load_bool": false,
          "top_surface_load": 0.0,
-         "top_water_pressure": 0.0
+         "top_water_pressure": 0.0,
+         "top_ref_levelY": 0.0
         }
         """)
         
@@ -58,6 +59,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
         params.AddValue("top_surface_load_bool",self.settings["top_surface_load_bool"])
         params.AddValue("top_surface_load",self.settings["top_surface_load"])
         params.AddValue("top_water_pressure",self.settings["top_water_pressure"])
+        params.AddValue("top_ref_levelY",self.settings["top_ref_levelY"])
         initial_state_process = KratosPFEMSolid.SetMechanicalInitialStateProcess(self.model_part, self.settings)
         initial_state_process.Execute()
 
