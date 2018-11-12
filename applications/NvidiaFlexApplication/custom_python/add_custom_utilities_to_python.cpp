@@ -14,20 +14,20 @@ namespace Kratos {
 
     namespace Python {
 
-        using namespace pybind11;
+        namespace py = pybind11;
 
         void AddCustomUtilitiesToPython(pybind11::module& m) {
 
-        class_<FlexWrapper, FlexWrapper::Pointer>(m, "FlexWrapper")
-            .def(init<ModelPart&, ModelPart&, ParticleCreatorDestructor&, Parameters>())
+        py::class_<FlexWrapper, FlexWrapper::Pointer>(m, "FlexWrapper")
+            .def(py::init<ModelPart&, ModelPart&, ParticleCreatorDestructor&, Parameters>())
             .def("UpdateFlex", &FlexWrapper::UpdateFlex)
             .def("TransferDataFromFlexToKratos", &FlexWrapper::TransferDataFromFlexToKratos)
             .def("SolveTimeSteps", &FlexWrapper::SolveTimeSteps)
             ;
 
-        class_<NvidiaFlexPreUtilities, NvidiaFlexPreUtilities::Pointer >(m, "NvidiaFlexPreUtilities")
-        .def(init<>())
-        .def(init<ModelPart&>())
+        py::class_<NvidiaFlexPreUtilities, NvidiaFlexPreUtilities::Pointer >(m, "NvidiaFlexPreUtilities")
+        .def(py::init<>())
+        .def(py::init<ModelPart&>())
         .def("RemoveSpheresInitiallyIndentedWithFEM", &NvidiaFlexPreUtilities::RemoveSpheresInitiallyIndentedWithFEM)
         ;
 

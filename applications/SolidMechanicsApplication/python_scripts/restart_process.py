@@ -139,7 +139,7 @@ class RestartProcess(KratosMultiphysics.Process):
         # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
         # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-        serializer = KratosMultiphysics.Serializer(current_restart_path, self.serializer_flag)
+        serializer = KratosMultiphysics.FileSerializer(current_restart_path, self.serializer_flag)
 
         serializer.Save(self.model_part.Name, self.model_part)
 
