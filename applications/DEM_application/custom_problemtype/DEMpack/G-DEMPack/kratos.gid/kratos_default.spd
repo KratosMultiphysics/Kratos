@@ -314,6 +314,10 @@
             <Item id="PotentialEnergyReferencePointY" pid="Potential Energy Reference Point Y" DEM-ComputeEnergy="Yes" dv="0.0" help="Potential Energy Reference Point Y"/>
             <Item id="PotentialEnergyReferencePointZ" pid="Potential Energy Reference Point Z" DEM-ComputeEnergy="Yes" dv="0.0" help="Potential Energy Reference Point Z"/>
         </Container>
+        <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" dv="No" ivalues="Yes,No" values="Yes,No" help="Activate this option to display the particle bonds at postprocessing stage"/>
+        <Container id="DEM-BondElem" pid="On bond elements" DEM-ShowBondElements="Yes" help="Results on bond elements">
+            <Item id="DEM-LocalContactForce" pid="Local contact force" dv="No" ivalues="Yes,No" values="Yes,No" help="Displays the local contact forces between particles"/>
+        </Container>
         <Container id="DEM-VelocityTrap" pid="Velocity trap" icon="cube.gif" help="If activated, this option creates a Box in which some measurements are done: average velocity of the particles, entering flux of particles, entering flux of mass,..." class="Tab">
             <Item id="UseVelocityTrap" pid="Activate velocity trap" dv="No" state="normal" class="DEM-VTrap" ivalues="No,Yes" icon="active.gif" values="Not active,Active" help="If activated, this option creates a Box in which some measurements are done: average velocity of the particles, entering flux of particles, entering flux of mass,..."/>
             <Item id="MaxX" pid="Max X" DEM-VTrap="Yes" dv="100.0" help="Max X"/>
