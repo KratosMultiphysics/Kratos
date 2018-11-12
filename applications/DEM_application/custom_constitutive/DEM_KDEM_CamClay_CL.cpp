@@ -62,89 +62,6 @@ namespace Kratos {
         }
     }
 
-    void DEM_KDEM_CamClay::CalculateNormalForces(double LocalElasticContactForce[3],
-            const double kn_el,
-            double equiv_young,
-            double indentation,
-            double calculation_area,
-            double& acumulated_damage,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            int i_neighbour_count,
-            int time_steps) {
-
-        KRATOS_TRY
-
-        //Firstly, we check that the bond is not broken (it can break in any state of forces or indentations, because breakage depends on the stress tensor)
-        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-
-        if (indentation >= 0.0) { //COMPRESSION This response is the same for broken or intact bonds!
-            LocalElasticContactForce[2] = kn_el * indentation;
-        } else {
-            if (failure_type > 0) {
-                LocalElasticContactForce[2] = 0.0;
-            } else {
-                LocalElasticContactForce[2] = kn_el * indentation;
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void DEM_KDEM_CamClay::CalculateTangentialForces(double OldLocalElasticContactForce[3],
-            double LocalElasticContactForce[3],
-            double LocalElasticExtraContactForce[3],
-            double LocalCoordSystem[3][3],
-            double LocalDeltDisp[3],
-            const double kt_el,
-            const double equiv_shear,
-            double& contact_sigma,
-            double& contact_tau,
-            double indentation,
-            double calculation_area,
-            double& failure_criterion_state,
-            SphericContinuumParticle* element1,
-            SphericContinuumParticle* element2,
-            int i_neighbour_count,
-            bool& sliding,
-            int search_control,
-            DenseVector<int>& search_control_vector,
-            const ProcessInfo& r_process_info) {
-
-        KRATOS_TRY
-
-        int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-        LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
-        LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
-
-        if (failure_type == 0) {
-            if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) {
-                AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce,
-                                                           LocalElasticExtraContactForce,
-                                                           element1->mNeighbourElasticExtraContactForces[i_neighbour_count],
-                                                           LocalCoordSystem,
-                                                           kt_el, calculation_area,  element1, element2);
-            }
-        } else {
-            LocalElasticExtraContactForce[0] = 0.0;
-            LocalElasticExtraContactForce[1] = 0.0;
-
-            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-            const double equiv_tg_of_fri_ang = 0.5 * (element1->GetTgOfFrictionAngle() + element2->GetTgOfFrictionAngle());
-            double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
-
-            if (Frictional_ShearForceMax < 0.0) Frictional_ShearForceMax = 0.0;
-
-            if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)) {
-                LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
-                LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[1];
-                sliding = true;
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-    
     double DEM_KDEM_CamClay::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
         Properties& element1_props = element1->GetProperties();
@@ -178,7 +95,4 @@ namespace Kratos {
                         
         return max_local_distance;
     }
-
-    bool DEM_KDEM_CamClay::CheckRequirementsOfStressTensor() { return true;}
-
 } // namespace Kratos

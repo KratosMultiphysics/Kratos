@@ -178,7 +178,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
     
-    py::class_<DEM_KDEM_CamClay, DEM_KDEM_CamClay::Pointer, DEM_KDEM>(m, "DEM_KDEM_CamClay")
+    py::class_<DEM_KDEM_CamClay, DEM_KDEM_CamClay::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_CamClay")
         .def(py::init<>())
         ;
 
