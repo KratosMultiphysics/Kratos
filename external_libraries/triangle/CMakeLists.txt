@@ -29,6 +29,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(TRIANGLE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(TRIANGLE_LIBRARIES triangle)
 
-message("*****************************************************************************-------------******** ${TRIANGLE_INCLUDE_DIR}" )
+message("**********************************************************************")
+message("Triangle Include: ${TRIANGLE_INCLUDE_DIR}")
 
 # install(TARGETS triangle DESTINATION libs )
