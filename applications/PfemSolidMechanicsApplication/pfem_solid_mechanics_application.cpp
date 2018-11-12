@@ -182,11 +182,13 @@ namespace Kratos
 
     // Material postprocess + invariants
     KRATOS_REGISTER_VARIABLE( PRECONSOLIDATION )
+    KRATOS_REGISTER_VARIABLE( BONDING )
     KRATOS_REGISTER_VARIABLE( STRESS_INV_P )
     KRATOS_REGISTER_VARIABLE( STRESS_INV_J2 )
     KRATOS_REGISTER_VARIABLE( STRESS_INV_THETA )
     KRATOS_REGISTER_VARIABLE( VOLUMETRIC_PLASTIC )
     KRATOS_REGISTER_VARIABLE( INCR_SHEAR_PLASTIC )
+    KRATOS_REGISTER_VARIABLE( INCR_VOL_PLASTIC )
 
     KRATOS_REGISTER_VARIABLE( M_MODULUS )
 
@@ -258,6 +260,8 @@ namespace Kratos
 
 
     //Register Constitutive Laws
+    Serializer::Register("BorjaHenckyCasmPlasticAxisym2DLaw", mBorjaHenckyCasmPlasticAxisym2DLaw);
+    Serializer::Register("BorjaHenckyCasmCemPlasticAxisym2DLaw", mBorjaHenckyCasmCemPlasticAxisym2DLaw);
     Serializer::Register("BorjaHenckyCamClayPlastic3DLaw", mBorjaHenckyCamClayPlastic3DLaw);
     Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
     Serializer::Register("BorjaHenckyCamClayPlasticPlaneStrain2DLaw", mBorjaHenckyCamClayPlasticPlaneStrain2DLaw);
@@ -276,14 +280,19 @@ namespace Kratos
     Serializer::Register("TrescaExplicitFlowRule", mTrescaExplicitFlowRule);
     Serializer::Register("J2ExplicitFlowRule", mJ2ExplicitFlowRule);
     Serializer::Register("BorjaCamClayExplicitFlowRule", mBorjaCamClayExplicitFlowRule);
+    Serializer::Register("BorjaCasmExplicitFlowRule", mBorjaCasmExplicitFlowRule);
+    Serializer::Register("BorjaCasmCemExplicitFlowRule", mBorjaCasmCemExplicitFlowRule);
 
     //Register Yield Criterion
     Serializer::Register("J2YieldCriterion", mJ2YieldCriterion);
     Serializer::Register("TrescaYieldCriterion", mTrescaYieldCriterion);
     Serializer::Register("CamClayYieldCriterion", mCamClayYieldCriterion);
+    Serializer::Register("CasmYieldCriterion", mCasmYieldCriterion);
+    Serializer::Register("CasmCemYieldCriterion", mCasmCemYieldCriterion);
 
     //Register Hardening Laws
     Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
+    Serializer::Register("CasmCemHardeningLaw", mCasmCemHardeningLaw);
 
   }
   

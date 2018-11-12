@@ -78,19 +78,26 @@
 
 // yield Criteria
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/casm_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/casm_cem_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
 
 //flow rule
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_casm_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_casm_cem_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
 
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/casm_cem_hardening_law.hpp"
 
 //constitutive laws
+#include "custom_constitutive/borja_hencky_casm_axisym_2D_law.hpp"
+#include "custom_constitutive/borja_hencky_casm_cem_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
@@ -316,14 +323,16 @@ namespace Kratos
     const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
 
 
-    const BorjaHenckyCamClayPlastic3DLaw                        mBorjaHenckyCamClayPlastic3DLaw;
-    const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
-    const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
-    const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
-    const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
-    const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
-    const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
-    const HenckyTresca3DLaw                                                              mHenckyTresca3DLaw;
+		const BorjaHenckyCasmCemPlasticAxisym2DLaw                mBorjaHenckyCasmCemPlasticAxisym2DLaw;
+		const BorjaHenckyCasmPlasticAxisym2DLaw                   mBorjaHenckyCasmPlasticAxisym2DLaw;
+    const BorjaHenckyCamClayPlastic3DLaw                      mBorjaHenckyCamClayPlastic3DLaw;
+    const BorjaHenckyCamClayPlasticAxisym2DLaw                mBorjaHenckyCamClayPlasticAxisym2DLaw;
+    const BorjaHenckyCamClayPlasticPlaneStrain2DLaw           mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
+    const HenckyJ2PlasticPlaneStrain2DLaw                     mHenckyJ2PlasticPlaneStrain2DLaw;
+    const HenckyJ2PlasticAxisym2DLaw                          mHenckyJ2PlasticAxisym2DLaw;
+    const HenckyTrescaPlasticAxisym2DLaw                      mHenckyTrescaPlasticAxisym2DLaw;
+    const HenckyTrescaPlasticPlaneStrain2DLaw               	mHenckyTrescaPlasticPlaneStrain2DLaw;
+    const HenckyTresca3DLaw                                   mHenckyTresca3DLaw;
 
     const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
     const HenckyPlasticUPJ2PlaneStrain2DLaw                   mHenckyPlasticUPJ2PlaneStrain2DLaw;
@@ -334,14 +343,19 @@ namespace Kratos
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
     const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
     const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
-
+    const BorjaCasmExplicitFlowRule      		 mBorjaCasmExplicitFlowRule;
+    const BorjaCasmCemExplicitFlowRule       mBorjaCasmCemExplicitFlowRule;
 
 
     const J2YieldCriterion                   mJ2YieldCriterion;
     const TrescaYieldCriterion               mTrescaYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
+    const CasmYieldCriterion              	 mCasmYieldCriterion;
+    const CasmCemYieldCriterion              mCasmCemYieldCriterion;
 
-    const CamClayHardeningLaw       mCamClayHardeningLaw;
+
+    const CamClayHardeningLaw       				 mCamClayHardeningLaw;
+    const CasmCemHardeningLaw       				 mCasmCemHardeningLaw;
 
 
     ///@} 
