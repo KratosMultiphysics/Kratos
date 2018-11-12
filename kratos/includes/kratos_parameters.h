@@ -94,13 +94,13 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mDistance(std::distance(pValue->begin(), itValue)), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot);
 
         /**
          * @brief Default constructor (just iterator)
          * @param itValue The iterator to adapt
          */
-        iterator_adaptor(const iterator_adaptor& itValue) : mDistance(itValue.mDistance), mrValue(itValue.mrValue),  mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage())) {}
+        iterator_adaptor(const iterator_adaptor& itValue);
 
         ///@}
         ///@name Operators
@@ -111,11 +111,7 @@ private:
          * @details This adds one to the current iterator
          * @return The next iterator
          */
-        iterator_adaptor& operator++()
-        {
-            ++mDistance;
-            return *this;
-        }
+        iterator_adaptor& operator++();
 
         /**
          * @brief operator ++int
@@ -123,60 +119,35 @@ private:
          * @param int N increment of iterations
          * @return The +N iterator
          */
-        iterator_adaptor operator++(int)
-        {
-            iterator_adaptor tmp(*this);
-            operator++();
-            return tmp;
-        }
+        iterator_adaptor operator++(int);
 
         /**
          * @brief operator ==
          * @details This operator check if the iterator is equal to another given iterator
          * @return True if equal, false otherwise
          */
-        bool operator==(const iterator_adaptor& rhs) const
-        {
-            return mDistance == rhs.mDistance;
-        }
+        bool operator==(const iterator_adaptor& rhs) const;
 
         /**
          * @brief operator !=
          * @details This operator check if the iterator is not equal to another given iterator
          * @return True if not equal, false otherwise
          */
-        bool operator!=(const iterator_adaptor& rhs) const
-        {
-            return mDistance != rhs.mDistance;
-        }
+        bool operator!=(const iterator_adaptor& rhs) const;
 
         /**
          * @brief operator*
          * @details This operator returns the pointer of a given iterator
          * @return The Pointer of the given iterator
          */
-        Parameters& operator*() const
-        {
-            auto it = GetCurrentIterator();
-            if (it != mrValue.end()) {
-                mpParameters->mpValue = &(*it);
-            }
-            return *mpParameters;
-        }
+        Parameters& operator*() const;
 
         /**
          * @brief operator ->
          * @details This operator acces to the pointer of the Parameter
          * @return The pointer of the parameter
          */
-        Parameters* operator->() const
-        {
-            auto it = GetCurrentIterator();
-            if (it != mrValue.end()) {
-                mpParameters->mpValue = &(*it);
-            }
-            return mpParameters.get();
-        }
+        Parameters* operator->() const;
 
         ///@}
         ///@name Operations
@@ -186,23 +157,13 @@ private:
          * @brief This method returs the current iterator
          * @return The current iterator
          */
-        inline value_iterator GetCurrentIterator() const
-        {
-            auto it = mrValue.begin();
-            for (std::size_t i = 0; i < mDistance; ++i)
-                it++;
-            return it;
-        }
+        inline value_iterator GetCurrentIterator() const;
 
         /**
          * @brief This method returns the key of the current Parameter iterator
          * @return The key (name) of the Parameter iterator
          */
-        const std::string name()
-        {
-            auto it = GetCurrentIterator();
-            return it.key();
-        }
+        const std::string name();
 
         ///@}
     };
@@ -239,14 +200,14 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) : mDistance(std::distance(pValue->cbegin(), itValue)), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot);
 
         /**
          * @brief Default constructor (just constant iterator)
          * @param itValue The iterator to adapt
          * @todo Use copy constructor in the following method
          */
-        const_iterator_adaptor(const const_iterator_adaptor& itValue) : mDistance(itValue.mDistance), mrValue(itValue.mrValue), mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage()))  {}
+        const_iterator_adaptor(const const_iterator_adaptor& itValue);
 
         ///@}
         ///@name Operators
@@ -257,11 +218,7 @@ private:
          * @details This adds one to the current iterator
          * @return The next iterator (const)
          */
-        const_iterator_adaptor& operator++()
-        {
-            ++mDistance;
-            return *this;
-        }
+        const_iterator_adaptor& operator++();
 
         /**
          * @brief operator ++int
@@ -269,58 +226,35 @@ private:
          * @param int N increment of iterations
          * @return The +N iterator (const)
          */
-        const_iterator_adaptor operator++(int)
-        {
-            const_iterator_adaptor tmp(*this);
-            operator++();
-            return tmp;
-        }
+        const_iterator_adaptor operator++(int);
 
         /**
          * @brief operator ==
          * @details This operator check if the iterator is equal to another given iterator
          * @return True if equal, false otherwise
          */
-        bool operator==(const const_iterator_adaptor& rhs) const
-        {
-            return mDistance == rhs.mDistance;
-        }
+        bool operator==(const const_iterator_adaptor& rhs) const;
 
         /**
          * @brief operator !=
          * @details This operator check if the iterator is not equal to another given iterator
          * @return True if not equal, false otherwise
          */
-        bool operator!=(const const_iterator_adaptor& rhs) const
-        {
-            return mDistance != rhs.mDistance;
-        }
+        bool operator!=(const const_iterator_adaptor& rhs) const;
 
         /**
          * @brief operator*
          * @details This operator returns the pointer of a given iterator
          * @return The Pointer of the given iterator
          */
-        const Parameters& operator*() const
-        {
-            auto it = GetCurrentIterator();
-            if (it != mrValue.cend())
-                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*it));
-            return *mpParameters;
-        }
+        const Parameters& operator*() const;
 
         /**
          * @brief operator ->
          * @details This operator acces to the pointer of the Parameter
          * @return The pointer of the parameter
          */
-        const Parameters* operator->() const
-        {
-            auto it = GetCurrentIterator();
-            if (it != mrValue.cend())
-                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*it));
-            return mpParameters.get();
-        }
+        const Parameters* operator->() const;
 
         ///@}
         ///@name Operations
@@ -330,23 +264,13 @@ private:
          * @brief This method returs the current iterator
          * @return The current iterator
          */
-        inline value_iterator GetCurrentIterator() const
-        {
-            auto it = mrValue.cbegin();
-            for (std::size_t i = 0; i < mDistance; ++i)
-                it++;
-            return it;
-        }
+        inline value_iterator GetCurrentIterator() const;
 
         /**
          * @brief This method returns the key of the current Parameter iterator
          * @return The key (name) of the Parameter iterator
          */
-        const std::string name()
-        {
-            auto it = GetCurrentIterator();
-            return it.key();
-        }
+        const std::string name();
 
         ///@}
     };

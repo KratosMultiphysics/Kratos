@@ -24,6 +24,182 @@
 namespace Kratos
 {
 
+Parameters::iterator_adaptor::iterator_adaptor(Parameters::iterator_adaptor::value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mDistance(std::distance(pValue->begin(), itValue)), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::iterator_adaptor::iterator_adaptor(const Parameters::iterator_adaptor& itValue) : mDistance(itValue.mDistance), mrValue(itValue.mrValue),  mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage())) {}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::iterator_adaptor& Parameters::iterator_adaptor::operator++()
+{
+    ++mDistance;
+    return *this;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::iterator_adaptor Parameters::iterator_adaptor::operator++(int)
+{
+    iterator_adaptor tmp(*this);
+    operator++();
+    return tmp;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool Parameters::iterator_adaptor::operator==(const Parameters::iterator_adaptor& rhs) const
+{
+    return mDistance == rhs.mDistance;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool Parameters::iterator_adaptor::operator!=(const Parameters::iterator_adaptor& rhs) const
+{
+    return mDistance != rhs.mDistance;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters& Parameters::iterator_adaptor::operator*() const
+{
+    auto it = GetCurrentIterator();
+    if (it != mrValue.end()) {
+        mpParameters->mpValue = &(*it);
+    }
+    return *mpParameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters* Parameters::iterator_adaptor::operator->() const
+{
+    auto it = GetCurrentIterator();
+    if (it != mrValue.end()) {
+        mpParameters->mpValue = &(*it);
+    }
+    return mpParameters.get();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+inline Parameters::iterator_adaptor::value_iterator Parameters::iterator_adaptor::GetCurrentIterator() const
+{
+    auto it = mrValue.begin();
+    for (std::size_t i = 0; i < mDistance; ++i)
+        it++;
+    return it;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const std::string Parameters::iterator_adaptor::name()
+{
+    auto it = GetCurrentIterator();
+    return it.key();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::const_iterator_adaptor::const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) : mDistance(std::distance(pValue->cbegin(), itValue)), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::const_iterator_adaptor::const_iterator_adaptor(const const_iterator_adaptor& itValue) : mDistance(itValue.mDistance), mrValue(itValue.mrValue), mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage()))  {}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::const_iterator_adaptor& Parameters::const_iterator_adaptor::operator++()
+{
+    ++mDistance;
+    return *this;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Parameters::const_iterator_adaptor Parameters::const_iterator_adaptor::operator++(int)
+{
+    const_iterator_adaptor tmp(*this);
+    operator++();
+    return tmp;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool Parameters::const_iterator_adaptor::operator==(const Parameters::const_iterator_adaptor& rhs) const
+{
+    return mDistance == rhs.mDistance;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool Parameters::const_iterator_adaptor::operator!=(const Parameters::const_iterator_adaptor& rhs) const
+{
+    return mDistance != rhs.mDistance;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters& Parameters::const_iterator_adaptor::operator*() const
+{
+    auto it = GetCurrentIterator();
+    if (it != mrValue.cend())
+        mpParameters->mpValue = const_cast<nlohmann::json*>(&(*it));
+    return *mpParameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters* Parameters::const_iterator_adaptor::operator->() const
+{
+    auto it = GetCurrentIterator();
+    if (it != mrValue.cend())
+        mpParameters->mpValue = const_cast<nlohmann::json*>(&(*it));
+    return mpParameters.get();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+inline Parameters::const_iterator_adaptor::value_iterator Parameters::const_iterator_adaptor::GetCurrentIterator() const
+{
+    auto it = mrValue.cbegin();
+    for (std::size_t i = 0; i < mDistance; ++i)
+        it++;
+    return it;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const std::string Parameters::const_iterator_adaptor::name()
+{
+    auto it = GetCurrentIterator();
+    return it.key();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters::Parameters()
 {
     mpRoot = nullptr;
