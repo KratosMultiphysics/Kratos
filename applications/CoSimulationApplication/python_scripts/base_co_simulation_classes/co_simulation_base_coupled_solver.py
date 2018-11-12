@@ -49,8 +49,8 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
         # With this setting the coupling can start later
         self.start_coupling_time = 0.0
-        if "start_coupling_time" in self.settings:
-            self.start_coupling_time = self.settings["start_coupling_time"]
+        if self.settings.Has("start_coupling_time"):
+           self.start_coupling_time = self.settings["start_coupling_time"].GetDouble()
         if self.start_coupling_time > 0.0:
             self.coupling_started = False
         else:
