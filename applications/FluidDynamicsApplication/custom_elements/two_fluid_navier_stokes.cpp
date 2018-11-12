@@ -255,6 +255,13 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
             rFluidStress = this->data.ShearStress;
         } else {
             std::cout << "data.ShearStress has size 0 >>> RACE CONDITION " << std::endl;
+
+            if ( data.IsAir() ) { std::cout << " element is AIR " << std::endl; }
+            else { std::cout << " element is WATER " << std::endl; }
+
+            if ( data.IsCut() ) { std::cout << " element is CUT " << std::endl; }
+            else { std::cout << " element is NOT cut " << std::endl; }
+            
              for (unsigned int i = 0; i < rFluidStress.size(); i++){
                 rFluidStress[i] = 0.0;
             }
@@ -305,6 +312,10 @@ void TwoFluidNavierStokes<TElementData>::CalculateMaterialResponse(TElementData 
         rData.CalculateAirMaterialResponse();
     } else {
         FluidElement<TElementData>::CalculateMaterialResponse(rData);
+
+        rData.ShearStress.resize(3);
+
+        rData.CalculateAirMaterialResponse();   // New >>> Idea: Write the ShearStress
     }
 }
 

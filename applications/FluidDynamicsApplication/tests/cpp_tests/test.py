@@ -21,3 +21,9 @@ Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NHydrostaticBehr")
 
 print(" Element with BEHR2004 in dynamic case ---- below ----- ")
 Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NMotionBehr") 
+
+print(" Element with BEHR2004 in dynamic case ---- below ----- ")
+Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NMotionBehr2") 
+
+print(" Element with BEHR2004 in 3D dynamic case ---- below ----- ")
+Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NMotionBehr3") 

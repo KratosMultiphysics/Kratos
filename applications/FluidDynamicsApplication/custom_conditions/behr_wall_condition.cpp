@@ -711,7 +711,7 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
     VectorType ShearStressOfElement(3, 0.0);
     ShearStressOfElement = ZeroVector(3);
 
-    // linearization in terms of the ShearStress ( not considered as f(u^{i+1} )
+    // linearization in terms of the ShearStress ( not considered as f(u^{i+1}) )
     if (TNumNodes == 3 ){
         ShearStressOfElement.resize(6, false);
         ShearStressOfElement = ZeroVector(6);
@@ -739,9 +739,9 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
             CompleteNodalSigma[nnode](0,0) = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
             CompleteNodalSigma[nnode](1,0) = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
             CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](3,0) = ShearStressOfElement[3]; // no pressure in shear component
-            CompleteNodalSigma[nnode](4,0) = ShearStressOfElement[4]; // no pressure in shear component
-            CompleteNodalSigma[nnode](5,0) = ShearStressOfElement[5]; // no pressure in shear component
+            CompleteNodalSigma[nnode](3,0) = ShearStressOfElement[3];  // no pressure in shear component
+            CompleteNodalSigma[nnode](4,0) = ShearStressOfElement[4];  // no pressure in shear component
+            CompleteNodalSigma[nnode](5,0) = ShearStressOfElement[5];  // no pressure in shear component
         }
     }
 
@@ -763,8 +763,9 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
         }
 
         NodalEntriesRHS[nnode] = zero_matrix<double>(3, 1);
+        
         // Loop on gauss points
-        for(unsigned int igauss = 0; igauss<NumGauss; igauss++){
+        for(unsigned int igauss = 0; igauss < NumGauss; igauss++){
 
             data.N = row(Ncontainer, igauss);
             const double J = GaussPtsJDet[igauss];
