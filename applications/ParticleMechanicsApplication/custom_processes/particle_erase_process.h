@@ -106,7 +106,6 @@ public:
     {
         KRATOS_TRY;
 
-		
         mr_model_part.RemoveElements( TO_ERASE );
         int num_element = mr_model_part.NumberOfElements();
 		KRATOS_WATCH(num_element);

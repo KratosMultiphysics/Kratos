@@ -853,6 +853,11 @@ public:
                         }
                     }
                 }
+                else{
+                    element_itr->GetGeometry().clear();
+                    element_itr->Reset(ACTIVE);
+                    element_itr->Set(TO_ERASE);
+                }
             }
         }
     }
