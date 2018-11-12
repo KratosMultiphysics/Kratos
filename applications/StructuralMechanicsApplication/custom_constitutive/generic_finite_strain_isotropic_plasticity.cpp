@@ -72,10 +72,10 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         }
 
         // We get some variables
-        double& r_threshold = this->GetThreshold();
-        double& r_plastic_dissipation = this->GetPlasticDissipation();
+        double r_threshold = this->GetThreshold();
+        double r_plastic_dissipation = this->GetPlasticDissipation();
         Vector plastic_strain;
-        Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+        Matrix r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
         BoundedArrayType predictive_stress_vector;
         if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
@@ -126,10 +126,10 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             this->SetNonConvPlasticDissipation(r_plastic_dissipation);
             this->SetNonConvPlasticDeformationGradient(r_plastic_deformation_gradient); // TODO: This is not properly updated!!!
             this->SetNonConvThreshold(r_threshold);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 noalias(tangent_tensor) = r_constitutive_matrix;
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         } else { // Plastic case
             // while loop backward euler
@@ -141,11 +141,11 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             this->SetNonConvPlasticDissipation(r_plastic_dissipation);
             this->SetNonConvPlasticDeformationGradient(r_plastic_deformation_gradient);
             this->SetNonConvThreshold(r_threshold);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff); // this modifies the ConstitutiveMatrix
                 noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         }
     }
@@ -199,10 +199,10 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         }
 
         // We get some variables
-        double& r_threshold = this->GetThreshold();
-        double& r_plastic_dissipation = this->GetPlasticDissipation();
+        double r_threshold = this->GetThreshold();
+        double r_plastic_dissipation = this->GetPlasticDissipation();
         Vector plastic_strain;
-        Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+        Matrix r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
         // We backup the deformation gradient
         const double& det_deformation_gradient_backup = rValues.GetDeterminantF();
@@ -254,10 +254,10 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             this->SetNonConvPlasticDissipation(r_plastic_dissipation);
             this->SetNonConvPlasticDeformationGradient(r_plastic_deformation_gradient); // TODO: This is not properly updated!!!
             this->SetNonConvThreshold(r_threshold);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 noalias(tangent_tensor) = r_constitutive_matrix;
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         } else { // Plastic case
             // while loop backward euler
@@ -269,11 +269,11 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             this->SetNonConvPlasticDissipation(r_plastic_dissipation);
             this->SetNonConvPlasticDeformationGradient(r_plastic_deformation_gradient);
             this->SetNonConvThreshold(r_threshold);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2); // this modifies the ConstitutiveMatrix
                 noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         }
     }
@@ -538,6 +538,10 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
     )
 {
     if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        // Calculate the stress vector
+        Vector stress_vector;
+        this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, stress_vector);
+
         // The plastic deformation gradient
         const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
@@ -550,8 +554,8 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
         Vector plastic_strain;
         this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
 
-        const Vector& r_stress_vector = rParameterValues.GetStressVector();
-        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, mUniaxialStress, plastic_strain, 0.0, rParameterValues, rValue);
+        // Compute the equivalent plastic strain
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(stress_vector, mUniaxialStress, plastic_strain, 0.0, rParameterValues, rValue);
 
         // We revert the deformation gradient
         rParameterValues.SetDeterminantF(deformation_gradient_determinant_backup);

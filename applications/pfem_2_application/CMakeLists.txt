@@ -26,8 +26,6 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_velocity_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_pressure_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_pressure_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_pressure_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_pressure_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/autoslip_inlet_3d.cpp
 )
 
@@ -37,6 +35,11 @@ pybind11_add_module(KratosPFEM2Application MODULE THIN_LTO ${KRATOS_QUIET_WATER_
 #add_library(KratosPFEM2Application SHARED ${KratosPFEM2Application})
 target_link_libraries(KratosPFEM2Application KratosCore )
 set_target_properties(KratosPFEM2Application PROPERTIES PREFIX "")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosPFEM2Application)
+endif(USE_COTIRE MATCHES ON)
+
 install(TARGETS KratosPFEM2Application DESTINATION libs )
 
 

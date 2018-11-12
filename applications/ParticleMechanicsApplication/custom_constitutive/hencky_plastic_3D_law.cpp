@@ -300,16 +300,14 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         for (unsigned int i = 0; i<3; ++i)
             hencky_main_strain_matrix(i,i) = hencky_main_strain_vector[i];
 
-        Matrix new_elastic_left_cauchy_green = hencky_main_strain_matrix;
-
-        this->CalculatePrincipalStressTrial(ElasticVariables, rValues, ReturnMappingVariables, new_elastic_left_cauchy_green, stress_matrix );
+        this->CalculatePrincipalStressTrial(ElasticVariables, rValues, ReturnMappingVariables, hencky_main_strain_matrix, stress_matrix );
 
         //Attention!!
         /*  When I call the return mapping function NewElasticLeftCauchyGreen represents the Hencky strain in matrix form.
             When the return mapping is finished NewElasticLeftCauchyGreen is the NEW elastic left cauchy green tensor.
             If and only if GetElasticLeftCachyGreen is a protected member of the flow rule that I am using.
             Otherwise a public member of the flow rule base class has to be added as in this case.*/
-        mpMPMFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, stress_matrix, new_elastic_left_cauchy_green);
+        mpMPMFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, stress_matrix, hencky_main_strain_matrix);
 
         mPlasticRegion = 0;
         if( ReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION) )

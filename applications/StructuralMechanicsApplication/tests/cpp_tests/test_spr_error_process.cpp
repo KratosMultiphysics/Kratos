@@ -197,7 +197,7 @@ namespace Kratos
         * Test triangle 
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSPRErrorProcess1, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SPRErrorProcess1, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
@@ -246,7 +246,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSPRErrorProcess2, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SPRErrorProcess2, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
