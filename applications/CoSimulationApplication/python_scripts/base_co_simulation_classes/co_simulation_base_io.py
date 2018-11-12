@@ -10,9 +10,10 @@ class CoSimulationBaseIO(object):
     ## The constructor
     #
     #  @param self            The object pointer.
-    def __init__(self, settings):
+    def __init__(self, model, settings):
         self.echo_level = 0
         self.settings = settings
+        self.model = model
 
     ## ImportData :  used to import data from other solvers
     #                Follow EXAMPLE implementation below.
