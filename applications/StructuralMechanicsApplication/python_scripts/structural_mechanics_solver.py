@@ -81,6 +81,7 @@ class MechanicalSolver(PythonSolver):
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
+                "symmetric_scaling": true,
                 "verbosity": 1
             },
             "problem_domain_sub_model_part_list": ["solid"],

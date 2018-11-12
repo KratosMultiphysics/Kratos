@@ -14,6 +14,8 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/serializer.h"
+#include "includes/file_serializer.h"
+#include "includes/stream_serializer.h"
 #include "geometries/point.h"
 
 namespace Kratos {
@@ -25,7 +27,7 @@ namespace Kratos {
         template<typename TObjectType>
         void SaveAndLoadObjects(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
         {
-            Serializer serializer;
+            StreamSerializer serializer;
 
             const std::string tag_string("TestString");
 
@@ -167,7 +169,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtr, KratosCoreFastSuite)
         {
-            Serializer serializer;
+            StreamSerializer serializer;
 
             const std::string tag_string("TestString");
             const std::string tag_string_2("TestString2");
