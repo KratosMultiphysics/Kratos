@@ -19,6 +19,7 @@
 
 // Project includes
 #include "mapper_utilities.h"
+#include "includes/stream_serializer.h"
 #include "mapping_application_variables.h"
 
 namespace Kratos
@@ -303,7 +304,7 @@ void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerTyp
             MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer(
                 (*rpMapperInterfaceInfosContainer)[i_rank], rpRefInterfaceInfo );
 
-            Kratos::Serializer serializer;
+            Kratos::StreamSerializer serializer;
             serializer.save("interface_infos", interface_infos_serializer);
 
             const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
@@ -338,7 +339,7 @@ void DeserializeMapperInterfaceInfosFromBuffer(
 
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
         if (i_rank != static_cast<IndexType>(CommRank)) {
-            Kratos::Serializer serializer;
+            Kratos::StreamSerializer serializer;
 
             const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
             p_serializer_buffer->write(rRecvBuffer[i_rank].data(), rRecvBuffer[i_rank].size());
