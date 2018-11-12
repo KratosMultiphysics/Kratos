@@ -37,7 +37,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
         if parameter_name == "processes":
             # Adding the Chimera Process to the list of processes
             chimera_params = self.project_parameters["chimera"][0]
-            main_model_part = self.model["MainModelPart"]
+            main_model_part = self.model["FluidModelPart"]
             domain_size = main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
 
             print("domain size is",domain_size)
