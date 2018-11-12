@@ -853,8 +853,6 @@ public:
                         }
                     }
                 }
-                else KRATOS_ERROR << "Search element failed! There could be some particles outside the Background Grid domain" << std::endl;
-
             }
         }
     }
