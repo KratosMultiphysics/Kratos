@@ -21,6 +21,7 @@
 #include "includes/properties.h"
 
 
+
 namespace Kratos
 {
 ///@addtogroup ApplicationNameApplication
@@ -52,6 +53,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) HardeningLaw
 {
 public:
 
+	///@name Type Definitions
+	///@{
+	
 	struct Parameters
 	{
 	private:
@@ -156,226 +160,291 @@ public:
 
 	// /// Destructor.
 	// virtual ~Parameters() {};
-
-	  
 	};
 
 
-    ///@name Type Definitions
-    ///@{
+	struct PlasticVariables
+	{	
+		//added for cemented CASM-model
+		double EquivalentPlasticStrain;
+		double DeltaEqPlasticStrain;
+		double PlasticShearStrain;
+		double DeltaPlasticShearStrain;
+		double PreconsolidationPressure;
+		double Bonding;
 
-    typedef const Properties*   PropertiesPointer;
+	public:
 
-
-    /// Pointer definition of HardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( HardeningLaw );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
-    HardeningLaw(){ mpProperties = NULL; };
-
-    /// Copy constructor.
-    HardeningLaw(HardeningLaw const& rOther)
-    :mpProperties(rOther.mpProperties)
-    {};
-
-    /// Assignment operator.
-    HardeningLaw& operator=(HardeningLaw const& rOther)
-    {
-      //this assignment operator do not exists for const Properties::Pointer
-      //for this reason mpProperties is a const Properties*
-      mpProperties = rOther.mpProperties;
-      return *this;
-    };
-
-    /// Destructor.
-    virtual ~HardeningLaw() {};
+		void clear()
+		{
+			EquivalentPlasticStrain = 0;
+			DeltaEqPlasticStrain = 0;
+			PlasticShearStrain = 0;
+			DeltaPlasticShearStrain = 0;
+			PreconsolidationPressure = 0;
+			Bonding = 0;
+		}
 
 
-    ///@}
-    ///@name Operators
-    ///@{
+		void print()
+		{
+			std::cout<<" Plastic Variables "<<std::endl;
+			std::cout<<"  EquivalentPlasticStrain: "		<<EquivalentPlasticStrain<<std::endl;
+			std::cout<<"  DeltaEqPlasticStrain: "				<<DeltaEqPlasticStrain<<std::endl;
+			std::cout<<"  PlasticShearStrain: "					<<PlasticShearStrain<<std::endl;
+			std::cout<<"  DeltaPlasticShearStrain: "		<<DeltaPlasticShearStrain<<std::endl;
+			std::cout<<"  PreconsolidationPressure: "		<<PreconsolidationPressure<<std::endl;
+			std::cout<<"  Bonding: "										<<Bonding<<std::endl;
+		}
+		
+	private:
 
-    /**
-     * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this hardening law
-     */
-    virtual HardeningLaw::Pointer Clone() const
-    {
-      HardeningLaw::Pointer p_clone(new HardeningLaw(*this));
-      return p_clone;
-    }
+      friend class Serializer;
 
-    ///@}
-    ///@name Operations
-    ///@{
-    void InitializeMaterial (const Properties& rMaterialProperties)
+      // A private default constructor necessary for serialization
+      
+      void save(Serializer& rSerializer) const
+      {
+				rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
+				rSerializer.save("DeltaEqPlasticStrain",DeltaEqPlasticStrain);
+				rSerializer.save("PlasticShearStrain",PlasticShearStrain);
+				rSerializer.save("DeltaPlasticShearStrain",DeltaPlasticShearStrain);
+				rSerializer.save("PreconsolidationPressure",PreconsolidationPressure);
+				rSerializer.save("Bonding",Bonding);
+      };
+
+      void load(Serializer& rSerializer)
+      {
+				rSerializer.load("EquivalentPlasticStrain",EquivalentPlasticStrain);
+				rSerializer.load("DeltaEqPlasticStrain",DeltaEqPlasticStrain);
+				rSerializer.load("PlasticShearStrain",PlasticShearStrain);
+				rSerializer.load("DeltaPlasticShearStrain",DeltaPlasticShearStrain);
+				rSerializer.load("PreconsolidationPressure",PreconsolidationPressure);
+				rSerializer.load("Bonding",Bonding);
+      };
+	};
+
+	typedef const Properties*	PropertiesPointer;
+	typedef PlasticVariables	PlasticVariablesType;
+
+	/// Pointer definition of HardeningLaw
+	KRATOS_CLASS_POINTER_DEFINITION( HardeningLaw );
+
+	///@}
+	///@name Life Cycle
+	///@{
+
+	/// Default constructor.
+	HardeningLaw(){ mpProperties = NULL; };
+
+	/// Copy constructor.
+	HardeningLaw(HardeningLaw const& rOther)
+	:mpProperties(rOther.mpProperties)
+	{};
+
+	/// Assignment operator.
+	HardeningLaw& operator=(HardeningLaw const& rOther)
+	{
+		//this assignment operator do not exists for const Properties::Pointer
+		//for this reason mpProperties is a const Properties*
+		mpProperties = rOther.mpProperties;
+		return *this;
+	};
+
+	/// Destructor.
+	virtual ~HardeningLaw() {};
+
+
+	///@}
+	///@name Operators
+	///@{
+
+	/**
+	 * Clone function (has to be implemented by any derived class)
+	 * @return a pointer to a new instance of this hardening law
+	 */
+	virtual HardeningLaw::Pointer Clone() const
+	{
+		HardeningLaw::Pointer p_clone(new HardeningLaw(*this));
+		return p_clone;
+	}
+
+	///@}
+	///@name Operations
+	///@{
+	void InitializeMaterial (const Properties& rMaterialProperties)
 	{
 	  SetProperties(rMaterialProperties);
 	}
 
 
-    void SetProperties (const Properties& rMaterialProperties)
+	void SetProperties (const Properties& rMaterialProperties)
 	{
 	  mpProperties = (PropertiesPointer)(&rMaterialProperties);
 	}
 
 
-    const Properties& GetProperties()
+	const Properties& GetProperties()
 	{
 	  return *mpProperties;
 	}
 
-
-    virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
+	virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
   
-    virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues){ return rIsotropicHardening; };
+	virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues){ return rIsotropicHardening; };
 
-    virtual double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues){ return rKinematicHardening; };
+	virtual double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues){ return rKinematicHardening; };
+	
 
+	virtual double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues){ return rDeltaHardening; };
 
-    virtual double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues){ return rDeltaHardening; };
+	virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues){ return rDeltaIsotropicHardening; };
 
-    virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues){ return rDeltaIsotropicHardening; };
+	virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const Parameters& rValues){ return rDeltaKinematicHardening; };
 
-    virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const Parameters& rValues){ return rDeltaKinematicHardening; };
+	virtual double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const Parameters& rValues){ return rDeltaThermalHardening; };
 
-    virtual double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const Parameters& rValues){ return rDeltaThermalHardening; };
-
-    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double rTemperature = 0.0) {return rHardening; };
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    // /// Turn back information as a string.
-    // virtual std::string Info() const;
-
-    // /// Print information about this object.
-    // virtual void PrintInfo(std::ostream& rOStream) const;
-
-    // /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const; 
+	virtual double& CalculateHardening(double& rHardening, const double& rAlpha, const double rTemperature = 0.0) {return rHardening; };
+	
+	
+	virtual double& CalculateHardening(double& rHardening, const double& rAlpha, const double& rBeta, const double& rAlphaCum, const double& rBetaCum, const double rTemperature = 0.0) {return rHardening; };
+	
+	virtual double& CalculateBonding(double& rHardening, const double& rAlpha, const double& rBeta, const double& rAlphaCum, const double& rBetaCum, const double rTemperature = 0.0) {return rHardening; };
+	
+	virtual Vector& CalculateHardening(Vector& rHardening, const double& rAlpha, const double& rBeta, const double& rAlphaCum, const double& rBetaCum, const double rTemperature = 0.0) {return rHardening; };
+	
+	virtual void CalculateHardening(PlasticVariablesType& rPlasticVariables, const double& rDeltaAlpha, const double& rDeltaBeta) { };
+	
+	///@}
+	///@name Access
+	///@{
 
 
-    ///@}
-    ///@name Friends
-    ///@{
+	///@}
+	///@name Inquiry
+	///@{
 
 
-    ///@}
+	///@}
+	///@name Input and output
+	///@{
+
+	// /// Turn back information as a string.
+	// virtual std::string Info() const;
+
+	// /// Print information about this object.
+	// virtual void PrintInfo(std::ostream& rOStream) const;
+
+	// /// Print object's data.
+	// virtual void PrintData(std::ostream& rOStream) const; 
+
+
+	///@}
+	///@name Friends
+	///@{
+
+
+	///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
+	///@name Protected static Member Variables
+	///@{
 
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+	///@}
+	///@name Protected member Variables
+	///@{
 
-    PropertiesPointer mpProperties;
-     
-    ///@}
-    ///@name Protected Operators
-    ///@{
+	PropertiesPointer mpProperties;
+	 
+	///@}
+	///@name Protected Operators
+	///@{
 
-    virtual double CalculateThermalReferenceEffect(const double &rTemperature){ return 1; };
+	virtual double CalculateThermalReferenceEffect(const double &rTemperature){ return 1; };
 
-    virtual double CalculateThermalCurrentEffect(const double &rTemperature){ return 1; };
+	virtual double CalculateThermalCurrentEffect(const double &rTemperature){ return 1; };
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
+	///@}
+	///@name Protected Operations
+	///@{
 
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
+	///@}
+	///@name Protected  Access
+	///@{
 
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
+	///@}
+	///@name Protected Inquiry
+	///@{
 
 
-    ///@}
+	///@}
+	///@name Protected LifeCycle
+	///@{
+
+
+	///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
+	///@name Static Member Variables
+	///@{
 
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+	///@}
+	///@name Member Variables
+	///@{
 
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+	///@}
+	///@name Private Operators
+	///@{
 
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+	///@}
+	///@name Private Operations
+	///@{
 
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+	///@}
+	///@name Private  Access
+	///@{
 
 
-    ///@}
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
+	///@}
+	///@name Serialization
+	///@{
+	friend class Serializer;
 
-    // A private default constructor necessary for serialization
+	// A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const
-    {
-      //Properties can not be stored in serializer
-      //because Properties have a ConstitutiveLaw pointer
-      //when the constitutive law pointer is called to be saved 
-      //a recursive call is done if properties are saved.
-      //rSerializer.save("Properties",mpProperties);
-    };
+	virtual void save(Serializer& rSerializer) const
+	{
+		//Properties can not be stored in serializer
+		//because Properties have a ConstitutiveLaw pointer
+		//when the constitutive law pointer is called to be saved 
+		//a recursive call is done if properties are saved.
+		//rSerializer.save("Properties",mpProperties);
+	};
 
-    virtual void load(Serializer& rSerializer)
-    {
-      //Properties* pProperties;
-      //rSerializer.load("Properties",pProperties);
-      //mpProperties = pProperties;
-    };
+	virtual void load(Serializer& rSerializer)
+	{
+		//Properties* pProperties;
+		//rSerializer.load("Properties",pProperties);
+		//mpProperties = pProperties;
+	};
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
+	///@}
+	///@name Private Inquiry
+	///@{
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+	///@}
+	///@name Un accessible methods
+	///@{
 
-    ///@}
+	///@}
 
 }; // Class HardeningLaw
 
