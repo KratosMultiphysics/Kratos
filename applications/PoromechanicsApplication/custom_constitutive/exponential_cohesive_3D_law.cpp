@@ -112,7 +112,7 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
 
     rVariables.YieldStress = MaterialProperties[YIELD_STRESS];
     const double FractureEnergy = MaterialProperties[FRACTURE_ENERGY];
-    
+
     const double ShearStrain2 = StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1];
     const double PositiveNormalStrain = this->MacaulayBrackets(StrainVector[2]);
     const double TotalStrain2 = PositiveNormalStrain*PositiveNormalStrain+ShearStrain2;
@@ -120,7 +120,7 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     const double CurveFittingParameter = 1.0; // TODO
     const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,CurveFittingParameter);
     rVariables.CriticalDisplacement = FractureThoughness / (std::exp(1.0) * rVariables.YieldStress); // TODO (Should CriticalDisplacement be calculated with FractureEnergy?)
-    
+
     rVariables.PenaltyStiffness = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement;
 
     const double MinusNormalStrain = -1.0*StrainVector[2];
@@ -162,130 +162,14 @@ void ExponentialCohesive3DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMa
                                                         ConstitutiveLawVariables& rVariables,
                                                         Parameters& rValues)
 {
-    // TODO: seguir
-
     const Vector& StrainVector = rValues.GetStrainVector();
 
-    if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
-    {
-        if(rVariables.LoadingFlag) // Loading
-        {
-            rConstitutiveMatrix(0,0) = rVariables.YieldStress/((1.0-rVariables.DamageThreshold)*rVariables.CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
-                                        StrainVector[0]*StrainVector[0]/(rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable) );
-            rConstitutiveMatrix(1,1) = rVariables.YieldStress/((1.0-rVariables.DamageThreshold)*rVariables.CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
-                                        StrainVector[1]*StrainVector[1]/(rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable) );
-            rConstitutiveMatrix(2,2) = rVariables.YieldStress/((1.0-rVariables.DamageThreshold)*rVariables.CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
-                                        StrainVector[2]*StrainVector[2]/(rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable) );
+    array_1d<double,3> WeightedStrain = prod(rVariables.WeightMatrix,StrainVector);
 
-            rConstitutiveMatrix(0,1) = -rVariables.YieldStress*StrainVector[0]*StrainVector[1]/( (1.0-rVariables.DamageThreshold)*
-                                        rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable );
-            rConstitutiveMatrix(0,2) = -rVariables.YieldStress*StrainVector[0]*StrainVector[2]/( (1.0-rVariables.DamageThreshold)*
-                                        rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable );
-            rConstitutiveMatrix(1,2) = -rVariables.YieldStress*StrainVector[1]*StrainVector[2]/( (1.0-rVariables.DamageThreshold)*
-                                        rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable );
-            rConstitutiveMatrix(1,0) = rConstitutiveMatrix(0,1);
-            rConstitutiveMatrix(2,0) = rConstitutiveMatrix(0,2);
-            rConstitutiveMatrix(2,1) = rConstitutiveMatrix(1,2);
-        }
-        else // Unloading
-        {
-            rConstitutiveMatrix(0,0) = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold);
-            rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
-            rConstitutiveMatrix(2,2) = rConstitutiveMatrix(0,0);
-
-            rConstitutiveMatrix(0,1) = 0.0;
-            rConstitutiveMatrix(0,2) = 0.0;
-            rConstitutiveMatrix(1,2) = 0.0;
-            rConstitutiveMatrix(1,0) = 0.0;
-            rConstitutiveMatrix(2,0) = 0.0;
-            rConstitutiveMatrix(2,1) = 0.0;
-        }
-    }
-    else // Contact between interfaces
-    {
-        if(rVariables.LoadingFlag) // Loading
-        {
-            rConstitutiveMatrix(0,0) = rVariables.YieldStress/((1.0-rVariables.DamageThreshold)*rVariables.CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
-                                        StrainVector[0]*StrainVector[0]/(rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable) );
-            rConstitutiveMatrix(1,1) = rVariables.YieldStress/((1.0-rVariables.DamageThreshold)*rVariables.CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
-                                        StrainVector[1]*StrainVector[1]/(rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable) );
-            rConstitutiveMatrix(2,2) = rVariables.YoungModulus/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-
-            rConstitutiveMatrix(0,1) = -rVariables.YieldStress*StrainVector[0]*StrainVector[1]/( (1.0-rVariables.DamageThreshold)*
-                                        rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable );
-            if(StrainVector[0] > 1.0e-20)
-            {
-                rConstitutiveMatrix(0,2) = -rVariables.YieldStress*StrainVector[0]*StrainVector[2]/( (1.0-rVariables.DamageThreshold)*
-                                            rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable ) -
-                                            rVariables.YoungModulus*rVariables.FrictionCoefficient/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-            }
-            else if(StrainVector[0] < -1.0e-20)
-            {
-                rConstitutiveMatrix(0,2) = -rVariables.YieldStress*StrainVector[0]*StrainVector[2]/( (1.0-rVariables.DamageThreshold)*
-                                            rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable ) +
-                                            rVariables.YoungModulus*rVariables.FrictionCoefficient/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-            }
-            else
-            {
-                rConstitutiveMatrix(0,2) = 0.0;
-            }
-            if(StrainVector[1] > 1.0e-20)
-            {
-                rConstitutiveMatrix(1,2) = -rVariables.YieldStress*StrainVector[1]*StrainVector[2]/( (1.0-rVariables.DamageThreshold)*
-                                            rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable ) -
-                                            rVariables.YoungModulus*rVariables.FrictionCoefficient/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-            }
-            else if(StrainVector[1] < -1.0e-20)
-            {
-                rConstitutiveMatrix(1,2) = -rVariables.YieldStress*StrainVector[1]*StrainVector[2]/( (1.0-rVariables.DamageThreshold)*
-                                            rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*rVariables.CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable ) +
-                                            rVariables.YoungModulus*rVariables.FrictionCoefficient/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-            }
-            else
-            {
-                rConstitutiveMatrix(1,2) = 0.0;
-            }
-            rConstitutiveMatrix(1,0) = rConstitutiveMatrix(0,1);
-            rConstitutiveMatrix(2,0) = 0.0;
-            rConstitutiveMatrix(2,1) = 0.0;
-        }
-        else // Unloading
-        {
-            rConstitutiveMatrix(0,0) = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold);
-            rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
-            rConstitutiveMatrix(2,2) = rVariables.YoungModulus/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-
-            rConstitutiveMatrix(0,1) = 0.0;
-            if(StrainVector[0] > 1.0e-20)
-            {
-                rConstitutiveMatrix(0,2) = -rVariables.YoungModulus*rVariables.FrictionCoefficient/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-            }
-            else if(StrainVector[0] < -1.0e-20)
-            {
-                rConstitutiveMatrix(0,2) = rVariables.YoungModulus*rVariables.FrictionCoefficient/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-            }
-            else
-            {
-                rConstitutiveMatrix(0,2) = 0.0;
-            }
-            if(StrainVector[1] > 1.0e-20)
-            {
-                rConstitutiveMatrix(1,2) = -rVariables.YoungModulus*rVariables.FrictionCoefficient/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-            }
-            else if(StrainVector[1] < -1.0e-20)
-            {
-                rConstitutiveMatrix(1,2) = rVariables.YoungModulus*rVariables.FrictionCoefficient/(rVariables.DamageThreshold*rVariables.CriticalDisplacement);
-            }
-            else
-            {
-                rConstitutiveMatrix(1,2) = 0.0;
-            }
-            rConstitutiveMatrix(1,0) = 0.0;
-            rConstitutiveMatrix(2,0) = 0.0;
-            rConstitutiveMatrix(2,1) = 0.0;
-        }
-    }
-
+    noalias(rConstitutiveMatrix) = rVariables.LoadingFunction*std::exp(1.0)*rVariables.YieldStress/(rVariables.CriticalDisplacement*rVariables.CriticalDisplacement)
+                                    * 1.0/mStateVariable*std::exp(-mStateVariable/rVariables.CriticalDisplacement)*outer_prod(WeightedStrain,WeightedStrain)
+                                    + std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement*std::exp(-mStateVariable/rVariables.CriticalDisplacement)*rVariables.WeightMatrix
+                                    + rVariables.PenaltyStiffness*rVariables.CompressionMatrix;
 }
 
 //----------------------------------------------------------------------------------------
@@ -294,48 +178,10 @@ void ExponentialCohesive3DLaw::ComputeStressVector(Vector& rStressVector,
                                                 ConstitutiveLawVariables& rVariables,
                                                 Parameters& rValues)
 {
-    // TODO
-
     const Vector& StrainVector = rValues.GetStrainVector();
 
-    if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
-    {
-        rStressVector[0] = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold) * StrainVector[0];
-        rStressVector[1] = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold) * StrainVector[1];
-        rStressVector[2] = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold) * StrainVector[2];
-    }
-    else // Contact between interfaces
-    {
-        // Note: StrainVector[2] < 0.0
-        rStressVector[2] = rVariables.YoungModulus/(rVariables.DamageThreshold*rVariables.CriticalDisplacement)*StrainVector[2];
-
-        if(StrainVector[0] > 1.0e-20)
-        {
-            rStressVector[0] = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold)*StrainVector[0] - rVariables.FrictionCoefficient*rStressVector[2];
-        }
-        else if(StrainVector[0] < -1.0e-20)
-        {
-            rStressVector[0] = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold)*StrainVector[0] + rVariables.FrictionCoefficient*rStressVector[2];
-        }
-        else
-        {
-            rStressVector[0] = 0.0;
-        }
-
-        if(StrainVector[1] > 1.0e-20)
-        {
-            rStressVector[1] = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold)*StrainVector[1] - rVariables.FrictionCoefficient*rStressVector[2];
-        }
-        else if(StrainVector[1] < -1.0e-20)
-        {
-            rStressVector[1] = rVariables.YieldStress/(rVariables.CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-rVariables.DamageThreshold)*StrainVector[1] + rVariables.FrictionCoefficient*rStressVector[2];
-        }
-        else
-        {
-            rStressVector[1] = 0.0;
-        }
-    }
-
+    noalias(rStressVector) = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement*std::exp(-mStateVariable/rVariables.CriticalDisplacement)*prod(rVariables.WeightMatrix,StrainVector)
+                                + rVariables.PenaltyStiffness*prod(rVariables.CompressionMatrix,StrainVector);
 }
 
 } // Namespace Kratos
