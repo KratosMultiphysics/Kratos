@@ -19,9 +19,9 @@
 // External includes
 
 // Project includes
-#include "mesh_moving_application.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/mesh_moving_variables.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -42,11 +42,13 @@ void CalculateMeshVelocities(ModelPart* pMeshModelPart,
 
 void MoveMesh(const ModelPart::NodesContainerType &rNodes);
 
+KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"Kratos.VariableUtils.UpdateCurrentToInitialConfiguration\"")
 void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 
 ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
+KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"Kratos.VariableUtils.UpdateInitialToCurrentConfiguration\"")
 void UpdateReferenceMesh(ModelPart &rModelPart);
 
 } // namespace Move Mesh Utilities.

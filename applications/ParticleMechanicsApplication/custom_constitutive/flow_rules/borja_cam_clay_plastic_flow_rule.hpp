@@ -124,8 +124,8 @@ public:
     unsigned int GetPlasticRegion() override;
 
     void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
-    
-    void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
+
+    void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
 
     ///@}
     ///@name Operators
@@ -184,7 +184,7 @@ protected:
     double mStateFunction;
     Vector mStateFunctionFirstDerivative ;
     Vector mStateFunctionSecondDerivative;
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -206,18 +206,18 @@ protected:
 
     void InitializeMaterialParameters();
 
-    void CalculatePrincipalStressVector(Vector& rPrincipalStrain, Vector& rPrincipalStress);
+    void CalculatePrincipalStressVector(const Vector& rPrincipalStrain, Vector& rPrincipalStress);
 
     void CalculateMeanStress(const double& rVolumetricStrain, const double& rDeviatoricStrain, double& rMeanStress);
 
     void CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
-    
+
     void CalculatePrincipalStrainFromStrainInvariants(Vector& rPrincipalStrain, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Vector& rDirectionVector);
 
     void CalculateStrainInvariantsFromPrincipalStrain(const Vector& rPrincipalStrain, double& rVolumetricStrain, double& rDeviatoricStrain, Vector& rDeviatoricStrainVector);
-    
+
     bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStress, Vector& rPrincipalStrain, unsigned int& region, Vector& rPrincipalStressUpdated);
- 
+
     void CalculateLHSMatrix(Matrix& rLHSMatrix, const Vector& rPrincipalStressVector, const Vector& rUnknownVector, const double& rK_p);
 
     void CalculateHessianMatrix_2x2(Matrix& rHessianMatrix);
@@ -233,7 +233,7 @@ protected:
     void UpdateStateVariables(const Vector rPrincipalStress, const double rAlpha = 0.0, const double rConsistencyParameter = 0.0);
 
     double GetPI();
-  
+
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access
@@ -342,4 +342,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED  defined
