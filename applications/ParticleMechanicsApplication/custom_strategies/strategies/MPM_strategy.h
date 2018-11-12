@@ -764,7 +764,9 @@ public:
     */
     virtual void SearchElement(
         ModelPart& grid_model_part,
-        ModelPart& mpm_model_part)
+        ModelPart& mpm_model_part,
+        const unsigned int MaxNumberOfResults = 1000,
+        const double Tolerance = 1.0e-5)
     {
         // Reset elements to inactive
         #pragma omp parallel for
@@ -820,7 +822,7 @@ public:
                 Element::Pointer pelem;
 
                 // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
+                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                 if (is_found == true)
                 {
