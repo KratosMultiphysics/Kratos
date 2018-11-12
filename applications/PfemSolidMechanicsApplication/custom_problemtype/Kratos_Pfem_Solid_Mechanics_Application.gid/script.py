@@ -53,10 +53,6 @@ import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
 
-# import python utilities
-import Interpret_CPT_Data           as CPT_Data
-import Interpret_InterestingData   as Interesting_Data
-
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -66,6 +62,14 @@ import Interpret_InterestingData   as Interesting_Data
 # Import input
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+# import python utilities
+cptBool = ProjectParameters["output_configuration"]["CPT_post_process"].GetBool()
+intDataBool = ProjectParameters["output_configuration"]["int_data_post_process"].GetBool()
+if(cptBool):
+    import Interpret_CPT_Data           as CPT_Data
+if(intDataBool):
+    import Interpret_InterestingData   as Interesting_Data
 
 #set echo level
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
@@ -133,7 +137,7 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
 
 
 #print model_part and properties
-if(echo_level>=1):
+if(echo_level>=2):
     print("")
     print(main_model_part)
     for properties in main_model_part.Properties:
@@ -211,12 +215,14 @@ if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
         cond_file.close()
 
 # create CPT Interpreter
-cptTest = CPT_Data.InterpretCPTData(main_model_part, problem_path, 0.031, -0.02)
-cptTest.Initialize(0)
+if(cptBool):
+    cptTest = CPT_Data.InterpretCPTData(main_model_part, problem_path, 0.031, -0.02)
+    cptTest.Initialize(0)
 
 # create Interesting_Data Interpreter
-interestingData = Interesting_Data.InterpretInterestingData(main_model_part, problem_path)
-interestingData.Initialize(0)
+if(intDataBool):
+    interestingData = Interesting_Data.InterpretInterestingData(main_model_part, problem_path)
+    interestingData.Initialize(0)
 
 #### Output settings end ####
 
@@ -275,7 +281,8 @@ while(time < end_time):
     gid_output.ExecuteInitializeSolutionStep()
 #
     # update velocity for CPt interpreter
-    cptTest.UpdateCPTVelocity(10000)
+    if(cptBool):
+        cptTest.UpdateCPTVelocity(10000)
 
 
     # solve time step
@@ -296,8 +303,10 @@ while(time < end_time):
     gid_output.ExecuteFinalizeSolutionStep()
 #
     # write output for user-defined interpreters
-    cptTest.SetStepResult()
-    interestingData.SetStepResults()
+    if(cptBool):
+        cptTest.SetStepResult()
+    if(intDataBool):
+        interestingData.SetStepResults()
 
     # processes to be executed at the end of the solution step
     for process in list_of_processes:

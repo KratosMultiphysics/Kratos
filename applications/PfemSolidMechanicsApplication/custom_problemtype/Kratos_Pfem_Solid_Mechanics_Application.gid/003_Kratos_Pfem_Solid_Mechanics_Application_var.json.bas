@@ -176,7 +176,7 @@
         "process_name"    : "RemeshDomainsProcess",
         "Parameters"      : {
 	    "model_part_name"       : "Main_Domain",
-            "meshing_control_type"  : "step",
+            "meshing_control_type"  : "time",
             "meshing_frequency"     : 0.0,
             "meshing_before_output" : true,
 	    "meshing_domains" : [
@@ -288,8 +288,10 @@
                                         "STRESS_INV_J2",
                                         "STRESS_INV_THETA",
                                         "INCR_SHEAR_PLASTIC",
+                                        "INCR_VOL_PLASTIC",
                                         "PLASTIC_STRAIN",
                                         "PRECONSOLIDATION",
+                                        "BONDING",
                                         "VOLUMETRIC_PLASTIC",
                                         "TOTAL_CAUCHY_STRESS",
                                         "DARCY_FLOW",
@@ -665,7 +667,11 @@
              "constant_vertical_stress":    *GenData(SY),
              "constant_water_pressure":     *GenData(WP)
 *else 
-             "gravity_active":   true
+             "gravity_active":              true,
+             "top_surface_load_bool":       true,
+             "top_surface_load":            -130,
+             "top_water_pressure":          -100,
+             "top_ref_levelY":               0.0
 *endif
              }
          }
@@ -911,12 +917,11 @@
 				      "CAUCHY_STRESS_TENSOR",
 				      "GREEN_LAGRANGE_STRAIN_TENSOR",
                   "INCR_SHEAR_PLASTIC",
+                  "INCR_VOL_PLASTIC",
                   "PLASTIC_STRAIN",
                   "PRECONSOLIDATION",
+                  "BONDING",
                   "VOLUMETRIC_PLASTIC",
-                  "STRESS_INV_P",
-                  "STRESS_INV_J2",
-                  "STRESS_INV_THETA",
 *endif
 *if(strcmp(GenData(DOFS),"U-W")==0)
 				      "WATER_PRESSURE",
@@ -926,7 +931,9 @@
                   "DARCY_FLOW",
                   "PERMEABILITY_TENSOR",
 *endif
-				      "VON_MISES_STRESS"
+				      "STRESS_INV_P",
+                  "STRESS_INV_J2",
+                  "STRESS_INV_THETA"
 				    ],
 	    "additional_list_files": [
 *for(i=1;i<=GenData(List_Files,INT);i=i+1)
@@ -938,6 +945,8 @@
 *end
 	    			 ]
         },
+        "CPT_post_process": *tcl(string tolower *GenData(CPT_PostProcess)),
+        "int_data_post_process": false,
         "point_data_configuration"  : []
     }
 
