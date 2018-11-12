@@ -12,9 +12,7 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "geometries/plane_3d.h"
@@ -23,19 +21,21 @@
 #include "utilities/intersection_utilities.h"
 #include "utilities/plane_approximation_utility.h"
 
-
 namespace Kratos
 {
-	CalculateDiscontinuousDistanceToSkinProcess::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
+	template<std::size_t TDim>
+	CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(ModelPart& rVolumePart, ModelPart& rSkinPart)
 		: mFindIntersectedObjectsProcess(rVolumePart, rSkinPart), mrSkinPart(rSkinPart), mrVolumePart(rVolumePart)
 	{
 	}
 
-	CalculateDiscontinuousDistanceToSkinProcess::~CalculateDiscontinuousDistanceToSkinProcess()
+	template<std::size_t TDim>
+	CalculateDiscontinuousDistanceToSkinProcess<TDim>::~CalculateDiscontinuousDistanceToSkinProcess()
 	{
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::Initialize()
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Initialize()
 	{
 		// Initialize the intersected objects process
 		mFindIntersectedObjectsProcess.Initialize();
@@ -44,8 +44,7 @@ namespace Kratos
 		const double initial_distance = 1.0;
 
 		#pragma omp parallel for
-		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k)
-		{
+		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfNodes()); ++k) {
 			ModelPart::NodesContainerType::iterator itNode = mrVolumePart.NodesBegin() + k;
 			itNode->Set(TO_SPLIT, false);
 			itNode->GetSolutionStepValue(DISTANCE) = initial_distance;
@@ -53,15 +52,14 @@ namespace Kratos
 
 		// Reset the Elemental distance to 1.0 which is the maximum distance in our normalized space.
 		// Also initialize the embedded velocity of the fluid element and the TO_SPLIT flag.
-		array_1d<double,4> ElementalDistances;
-		ElementalDistances[0] = initial_distance;
-		ElementalDistances[1] = initial_distance;
-		ElementalDistances[2] = initial_distance;
-		ElementalDistances[3] = initial_distance;
+		constexpr std::size_t num_nodes = TDim + 1;
+		array_1d<double,num_nodes> ElementalDistances;
+		for (unsigned int i_node = 0; i_node < num_nodes; ++i_node) {
+			ElementalDistances[i_node] = initial_distance;
+		}
 
 		#pragma omp parallel for
-		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k)
-		{
+		for (int k = 0; k< static_cast<int> (mrVolumePart.NumberOfElements()); ++k) {
 			ModelPart::ElementsContainerType::iterator itElement = mrVolumePart.ElementsBegin() + k;
 			itElement->Set(TO_SPLIT, false);
 			itElement->SetValue(EMBEDDED_VELOCITY, ZeroVector(3));
@@ -69,34 +67,38 @@ namespace Kratos
 		}
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::FindIntersections()
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::FindIntersections()
 	{
 		mFindIntersectedObjectsProcess.FindIntersections();
 	}
 
-	std::vector<PointerVector<GeometricalObject>>& CalculateDiscontinuousDistanceToSkinProcess::GetIntersections()
+	template<std::size_t TDim>
+	std::vector<PointerVector<GeometricalObject>>& CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetIntersections()
 	{
 		return mFindIntersectedObjectsProcess.GetIntersections();
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
 		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
 
-		#pragma omp parallel for
-		for (int i = 0; i < number_of_elements; ++i)
-		{
+		#pragma omp parallel for schedule(dynamic)
+		for (int i = 0; i < number_of_elements; ++i) {
 			CalculateElementalDistances(*(r_elements[i]), rIntersectedObjects[i]);
 		}
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::Clear()
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Clear()
 	{
 		mFindIntersectedObjectsProcess.Clear();
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::Execute()
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Execute()
 	{
 		this->Initialize();
 		this->FindIntersections();
@@ -104,22 +106,28 @@ namespace Kratos
 	}
 
 	/// Turn back information as a string.
-	std::string CalculateDiscontinuousDistanceToSkinProcess::Info() const {
+	template<std::size_t TDim>
+	std::string CalculateDiscontinuousDistanceToSkinProcess<TDim>::Info() const {
 		return "CalculateDiscontinuousDistanceToSkinProcess";
 	}
 
 	/// Print information about this object.
-	void CalculateDiscontinuousDistanceToSkinProcess::PrintInfo(std::ostream& rOStream) const
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::PrintInfo(std::ostream& rOStream) const
 	{
 		rOStream << Info();
 	}
 
 	/// Print object's data.
-	void CalculateDiscontinuousDistanceToSkinProcess::PrintData(std::ostream& rOStream) const
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::PrintData(std::ostream& rOStream) const
 	{
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects)
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateElementalDistances(
+		Element& rElement1,
+		PointerVector<GeometricalObject>& rIntersectedObjects)
 	{
 		if (rIntersectedObjects.empty()) {
 			rElement1.Set(TO_SPLIT, false);
@@ -127,12 +135,13 @@ namespace Kratos
 		}
 
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
-		constexpr int number_of_tetrahedra_points = 4;
+		constexpr int number_of_tetrahedra_points = TDim + 1;
 		constexpr double epsilon = std::numeric_limits<double>::epsilon();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
 
-		if(elemental_distances.size() != number_of_tetrahedra_points)
+		if(elemental_distances.size() != number_of_tetrahedra_points){
 			elemental_distances.resize(number_of_tetrahedra_points, false);
+		}
 
 		// Compute the number of intersected edges
 		std::vector<unsigned int> cut_edges_vector;
@@ -144,7 +153,6 @@ namespace Kratos
 		const bool is_intersection = (n_cut_edges < rElement1.GetGeometry().WorkingSpaceDimension()) ? false : true;
 
 		if (is_intersection){
-
 			// If there are more than 3 intersected edges, compute the least squares plane approximation
 			// by using the ComputePlaneApproximation utility. Otherwise, the distance is computed using
 			// the plane defined by the 3 intersection points.
@@ -162,8 +170,8 @@ namespace Kratos
 					elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 				}
 			} else {
-				// Create a plane with the 3 intersection points
-				Plane3D plane(int_pts_vector[0], int_pts_vector[1], int_pts_vector[2]);
+				// Create a plane with the 3 intersection points (or 2 in 2D)
+				Plane3D plane = SetIntersectionPlane(int_pts_vector);
 
 				// Compute the distance to the intersection plane
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
@@ -187,33 +195,13 @@ namespace Kratos
 		rElement1.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
 	}
 
-	double CalculateDiscontinuousDistanceToSkinProcess::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon)
-	{
-		double result_distance = std::numeric_limits<double>::max();
-		for (auto triangle : rIntersectedObjects.GetContainer()) {
-			auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[NodeIndex]);
-			if (std::abs(result_distance) > distance)
-			{
-				if (distance < Epsilon) {
-					result_distance = -Epsilon;
-				}
-				else {
-					result_distance = distance;
-					Plane3D plane(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2]);
-					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[NodeIndex]) < 0)
-						result_distance = -result_distance;
-				}
-			}
-		}
-		return result_distance;
-	}
-
-	unsigned int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgesIntersections(
-		Element& rElement1,
+	template<std::size_t TDim>
+	unsigned int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgesIntersections(
+		Element& rElement1, 
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		std::vector<unsigned int> &rCutEdgesVector,
-      	std::vector<array_1d <double,3> > &rIntersectionPointsArray){
-
+      	std::vector<array_1d <double,3> > &rIntersectionPointsArray)
+	{
 		auto &r_geometry = rElement1.GetGeometry();
 		const auto r_edges_container = r_geometry.Edges();
 		const std::size_t n_edges = r_geometry.EdgesNumber();
@@ -236,7 +224,6 @@ namespace Kratos
 
 				// There is intersection
 				if (int_id == 1){
-
 					// Check if there is a close intersection (repeated intersection point)
 					bool is_repeated = false;
 					for (auto aux_pt : aux_pts){
@@ -273,12 +260,13 @@ namespace Kratos
 		return n_cut_edges;
 	}
 
-	int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgeIntersection(
-		const Element::GeometryType& rIntObjGeometry,
-		const Element::NodeType& rEdgePoint1,
-		const Element::NodeType& rEdgePoint2,
-		Point& rIntersectionPoint){
-
+	template<std::size_t TDim>
+	int CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeEdgeIntersection(
+		const Element::GeometryType& rIntObjGeometry, 
+		const Element::NodeType& rEdgePoint1, 
+		const Element::NodeType& rEdgePoint2, 
+		Point& rIntersectionPoint)
+	{
 		int intersection_flag = 0;
 		const auto work_dim = rIntObjGeometry.WorkingSpaceDimension();
 		if (work_dim == 2){
@@ -294,18 +282,19 @@ namespace Kratos
 		return intersection_flag;
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::ComputeIntersectionNormal(
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputeIntersectionNormal(
 		Element::GeometryType& rGeometry,
 		const Vector& rElementalDistances,
-		array_1d<double,3>& rNormal){
-
+		array_1d<double,3>& rNormal)
+	{
 		double volume;
-		array_1d<double,4> N;
-		BoundedMatrix<double,4,3> DN_DX;
+		array_1d<double,TDim+1> N;
+		BoundedMatrix<double,TDim+1,TDim> DN_DX;
 		GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, volume);
 
 		rNormal = ZeroVector(3);
-		for (std::size_t comp = 0; comp < 3; ++comp){
+		for (std::size_t comp = 0; comp < TDim; ++comp){
 			for (std::size_t i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node){
 				rNormal(comp) += DN_DX(i_node,comp)*rElementalDistances[i_node];
 			}
@@ -313,27 +302,29 @@ namespace Kratos
 		rNormal /= norm_2(rNormal);
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::ComputePlaneApproximation(
-		const Element& rElement1,
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::ComputePlaneApproximation(
+		const Element& rElement1, 
 		const std::vector< array_1d<double,3> >& rPointsCoord,
 		array_1d<double,3>& rPlaneBasePointCoords,
-		array_1d<double,3>& rPlaneNormal){
-
+		array_1d<double,3>& rPlaneNormal)
+	{
 		const auto work_dim = rElement1.GetGeometry().WorkingSpaceDimension();
 		if (work_dim == 2){
-			PlaneApproximationUtility<2>::ComputePlaneApproximation(rPointsCoord,rPlaneBasePointCoords,rPlaneNormal);
+			PlaneApproximationUtility<2>::ComputePlaneApproximation(rPointsCoord, rPlaneBasePointCoords, rPlaneNormal);
 		} else if (work_dim == 3){
-			PlaneApproximationUtility<3>::ComputePlaneApproximation(rPointsCoord,rPlaneBasePointCoords,rPlaneNormal);
+			PlaneApproximationUtility<3>::ComputePlaneApproximation(rPointsCoord, rPlaneBasePointCoords, rPlaneNormal);
 		} else {
 			KRATOS_ERROR << "Working space dimension value equal to " << work_dim << ". Check your skin geometry implementation." << std::endl;
 		}
 	}
 
-	void CalculateDiscontinuousDistanceToSkinProcess::CorrectDistanceOrientation(
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CorrectDistanceOrientation(
 		Element::GeometryType& rGeometry,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
-		Vector& rElementalDistances){
-
+		Vector& rElementalDistances)
+	{
 		// Check the obtained intersection orientation (normal as distance gradient)
 		array_1d<double,3> distance_normal;
 		ComputeIntersectionNormal(rGeometry, rElementalDistances, distance_normal);
@@ -346,7 +337,7 @@ namespace Kratos
 			const auto &r_int_obj_geom = r_int_obj.GetGeometry();
 
 			array_1d<double, 3> r_int_obj_normal;
-			MathUtils<double>::CrossProduct(r_int_obj_normal, r_int_obj_geom[1]-r_int_obj_geom[0], r_int_obj_geom[2]-r_int_obj_geom[0]);
+			ComputeIntersectionNormalFromGeometry(r_int_obj_geom, r_int_obj_normal);
 			r_int_obj_normal /= norm_2(r_int_obj_normal);
 
 			if (inner_prod(r_int_obj_normal, distance_normal) < 0.0){
@@ -358,10 +349,65 @@ namespace Kratos
 
 		// Negative votes win. Switch the distance values
 		if (n_neg > n_pos){
-			for (std::size_t i_node = 0; i_node < 4; ++i_node){
+			for (std::size_t i_node = 0; i_node < TDim + 1; ++i_node){
 				rElementalDistances[i_node] *= -1.0;
 			}
 		}
 	}
+
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateEmbeddedVariableFromSkin(
+		const Variable<double> &rVariable,
+		const Variable<double> &rEmbeddedVariable)
+	{
+		this->CalculateEmbeddedVariableFromSkinSpecialization<double>(rVariable, rEmbeddedVariable);
+	}
+
+	template<std::size_t TDim>
+	void CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateEmbeddedVariableFromSkin(
+		const Variable<array_1d<double,3>> &rVariable,
+		const Variable<array_1d<double,3>> &rEmbeddedVariable)
+	{
+		this->CalculateEmbeddedVariableFromSkinSpecialization<array_1d<double,3>>(rVariable, rEmbeddedVariable);
+	}
+
+	template<>
+	Plane3D CalculateDiscontinuousDistanceToSkinProcess<2>::SetIntersectionPlane(
+		const std::vector<array_1d<double,3>> &rIntPtsVector)
+	{
+		// Since the Plane3D object only works in 3D, in 2D we set the intersection 
+		// plane by extruding the intersection point 0 in the z-direction.
+		array_1d<double,3> z_coord_pt = rIntPtsVector[0];
+		z_coord_pt[2] = 1.0;
+		return Plane3D(rIntPtsVector[0], rIntPtsVector[1], z_coord_pt);
+	}
+
+	template<>
+	Plane3D CalculateDiscontinuousDistanceToSkinProcess<3>::SetIntersectionPlane(
+		const std::vector<array_1d<double,3>> &rIntPtsVector)
+	{
+		return Plane3D(rIntPtsVector[0], rIntPtsVector[1], rIntPtsVector[2]);
+	}
+
+	template<>
+	void inline CalculateDiscontinuousDistanceToSkinProcess<2>::ComputeIntersectionNormalFromGeometry(
+		const Element::GeometryType &rGeometry,
+		array_1d<double,3> &rIntObjNormal)
+	{
+		rIntObjNormal[0] = rGeometry[0].Y() - rGeometry[1].Y();
+		rIntObjNormal[1] = rGeometry[1].X() - rGeometry[0].X();
+		rIntObjNormal[2] = 0.0;
+	}
+
+	template<>
+	void inline CalculateDiscontinuousDistanceToSkinProcess<3>::ComputeIntersectionNormalFromGeometry(
+		const Element::GeometryType &rGeometry,
+		array_1d<double,3> &rIntObjNormal)
+	{
+		MathUtils<double>::CrossProduct(rIntObjNormal, rGeometry[1]-rGeometry[0], rGeometry[2]-rGeometry[0]);
+	}
+
+	template class Kratos::CalculateDiscontinuousDistanceToSkinProcess<2>;
+	template class Kratos::CalculateDiscontinuousDistanceToSkinProcess<3>;
 
 }  // namespace Kratos.

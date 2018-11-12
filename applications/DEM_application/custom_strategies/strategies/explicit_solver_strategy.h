@@ -107,16 +107,17 @@ namespace Kratos {
         }
 
         ExplicitSolverStrategy(ExplicitSolverSettings& settings,
-                const double max_delta_time,
-                const int n_step_search,
-                const double safety_factor,
-                const int delta_option,
-                ParticleCreatorDestructor::Pointer p_creator_destructor,
-                DEM_FEM_Search::Pointer p_dem_fem_search,
-                SpatialSearch::Pointer pSpSearch,
-                const bool do_search_balls = true)
-        /*:
-        BaseType(*(settings.r_model_part), true)*/ {
+                                const double max_delta_time,
+                                const int n_step_search,
+                                const double safety_factor,
+                                const int delta_option,
+                                ParticleCreatorDestructor::Pointer p_creator_destructor,
+                                DEM_FEM_Search::Pointer p_dem_fem_search,
+                                SpatialSearch::Pointer pSpSearch,
+                                Parameters strategy_parameters,
+                                const bool do_search_balls = true) {
+
+            mParameters = strategy_parameters;
             mDeltaOption = delta_option;
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
@@ -146,7 +147,11 @@ namespace Kratos {
             mpInlet_model_part = &(*(settings.inlet_model_part));
             if (mpInlet_model_part == NULL)
                 KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor", "")
-            }
+
+            if(mParameters["RemoveBallsInitiallyTouchingWalls"].GetBool()) mRemoveBallsInitiallyTouchingWallsOption = true;
+            else mRemoveBallsInitiallyTouchingWallsOption = false;
+
+        }
 
         /// Destructor.
         virtual ~ExplicitSolverStrategy() {
@@ -224,6 +229,7 @@ namespace Kratos {
         void InitializeFEMElements();
         //void InitializeRigidBodyElements();
         void InitializeFEMWallsAsRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part);
+        void MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart);
         void ComputeNodalArea();
         void ComputeNormalPressureVectorField();
         virtual void CalculateConditionsRHSAndAdd();
@@ -239,6 +245,10 @@ namespace Kratos {
         void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();
         virtual void ComputeNewNeighboursHistoricalData();
+        virtual void CreateContactElements();
+        void InitializeContactElements();
+        // void ContactInitializeSolutionStep();
+        void PrepareContactElementsForPrinting();
         virtual void ComputeNewRigidFaceNeighboursHistoricalData();
         virtual void SearchRigidFaceNeighbours();
         void DoubleHierarchyMethod();
@@ -275,9 +285,14 @@ namespace Kratos {
         DenseVector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
+        virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
+            return r_model_part.Elements();
+        }
 
     protected:
 
+        Parameters mParameters;
+        bool mRemoveBallsInitiallyTouchingWallsOption;
         VectorResultElementsContainerType mResults;
         VectorDistanceType mResultsDistances;
         RadiusArrayType mArrayOfAmplifiedRadii;

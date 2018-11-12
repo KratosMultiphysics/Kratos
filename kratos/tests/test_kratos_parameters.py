@@ -2,8 +2,10 @@
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
+from KratosMultiphysics import Serializer, SerializerTraceType
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import sys
 
@@ -128,13 +130,13 @@ four_levels = """{
     "double_value": 2.0,
     "bool_value": true,
     "string_value": "hello",
-    "level1": { 
+    "level1": {
         "level2": {
             "level3": {
                 "level4": {
                 }
             }
-        } 
+        }
     }
 }"""
 
@@ -143,14 +145,14 @@ four_levels_variation = """{
     "double_value": 2.0,
     "bool_value": true,
     "string_value": "hello",
-    "level1": { 
+    "level1": {
         "a":11.0,
         "level2": {
             "level3": {
                 "level4": {
                 }
             }
-        } 
+        }
     }
 }"""
 
@@ -159,14 +161,14 @@ four_levels_wrong_variation = """{
     "double_value": "hi",
     "bool_value": true,
     "string_value": "hello",
-    "level1": { 
+    "level1": {
         "a":11.0,
         "level2": {
             "level3": {
                 "level4": {
                 }
             }
-        } 
+        }
     }
 }"""
 
@@ -175,7 +177,7 @@ four_levels_defaults = """{
     "double_value": 2.0,
     "bool_value": true,
     "string_value": "hello",
-    "level1": { 
+    "level1": {
         "a":1.0,
         "level2": {
             "b":2.0,
@@ -185,16 +187,16 @@ four_levels_defaults = """{
                     "d":4.0
                 }
             }
-        } 
+        }
     }
 }"""
 
-class TestParameters(KratosUnittest.TestCase):    
+class TestParameters(KratosUnittest.TestCase):
 
     def setUp(self):
         self.kp = Parameters(json_string)
         self.compact_expected_output = """{"int_value":10,"double_value":2.0,"bool_value":true,"string_value":"hello","level1":{"list_value":[3,"hi",false],"tmp":5.0}}"""
-        
+
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
@@ -294,11 +296,11 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertTrue( kp.IsEquivalentTo(defaults_params) )
         self.assertFalse( kp_variation.IsEquivalentTo(defaults_params) )
-        
+
         self.assertTrue( kp.HasSameKeysAndTypeOfValuesAs(defaults_params) )
         self.assertTrue( kp_variation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
         self.assertFalse( kp_wrong_wariation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
-        
+
     def test_validation_succeds_error_on_first_level(self):
         kp = Parameters(wrong_lev2)
         defaults_params = Parameters(defaults)
@@ -315,63 +317,63 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(kp.PrettyPrintJsonString(), expected_validation_output)
 
         self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0)  # not 2, since kp overwrites the defaults
-        
+
     def test_add_value(self):
         kp = Parameters("{}")
         kp.AddEmptyValue("new_double").SetDouble(1.0)
-        
+
         self.assertTrue(kp.Has("new_double"))
         self.assertEqual(kp["new_double"].GetDouble(), 1.0)
-        
+
     def test_iterators(self):
         kp = Parameters(json_string)
-        
+
         #iteration by range
         nitems = 0
         for iterator in kp:
             nitems = nitems + 1
         self.assertEqual(nitems, 5)
-            
+
         #iteration by items
         for key,value in kp.items():
             #print(value.PrettyPrintJsonString())
             self.assertEqual(kp[key].PrettyPrintJsonString(), value.PrettyPrintJsonString())
             #print(key,value)
-            
+
         #testing values
         expected_values = ['10', '2.0', 'true', '"hello"', '{"list_value":[3,"hi",false],"tmp":5.0}']
         counter = 0
-        
+
         for value in kp.values():
             self.assertEqual(value.WriteJsonString(), expected_values[counter])
             counter += 1
 
         #testing values
-        expected_keys = ['int_value', 'double_value', 'bool_value', 'string_value', 'level1'] 
+        expected_keys = ['int_value', 'double_value', 'bool_value', 'string_value', 'level1']
         counter = 0
         for key in kp.keys():
             self.assertEqual(key, expected_keys[counter])
-            counter += 1 
+            counter += 1
 
     def test_remove_value(self):
         kp = Parameters(json_string)
         self.assertTrue(kp.Has("int_value"))
         self.assertTrue(kp.Has("level1"))
-                         
+
         kp.RemoveValue("int_value")
         kp.RemoveValue("level1")
-        
+
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
 
     def test_is_methods(self):
         # This method checks all the "IsXXX" Methods
         tmp = Parameters("""{
-            "int_value" : 10,   
-            "double_value": 2.0,   
-            "bool_value" : true,   
+            "int_value" : 10,
+            "double_value": 2.0,
+            "bool_value" : true,
             "string_value" : "hello",
-            "vector_value" : [5,3,4], 
+            "vector_value" : [5,3,4],
             "matrix_value" : [[1,2],[3,6]]
         }""") # if you add more values to this, make sure to add the corresponding in the loop
 
@@ -380,7 +382,7 @@ class TestParameters(KratosUnittest.TestCase):
 
             if val_type == "int":
                 self.assertTrue(tmp[key].IsInt())
-            else:                    
+            else:
                 self.assertFalse(tmp[key].IsInt())
 
             if val_type == "double":
@@ -406,16 +408,16 @@ class TestParameters(KratosUnittest.TestCase):
             if val_type == "matrix":
                 self.assertTrue(tmp[key].IsMatrix())
             else:
-                self.assertFalse(tmp[key].IsMatrix())   
+                self.assertFalse(tmp[key].IsMatrix())
 
     def test_get_methods(self):
         # This method checks all the "GetXXX" Methods if they throw an error
         tmp = Parameters("""{
-            "int_value" : 10,   
-            "double_value": 2.0,   
-            "bool_value" : true,   
+            "int_value" : 10,
+            "double_value": 2.0,
+            "bool_value" : true,
             "string_value" : "hello",
-            "vector_value" : [5.2,-3.1,4.33], 
+            "vector_value" : [5.2,-3.1,4.33],
             "matrix_value" : [[1,2],[3,4],[5,6]]
         }""") # if you add more values to this, make sure to add the corresponding in the loop
 
@@ -423,26 +425,26 @@ class TestParameters(KratosUnittest.TestCase):
             val_type = key[:-6] # removing "_value"
 
             # Int and Double are checked tgth bcs both internally call "IsNumber"
-            if val_type == "int" or val_type == "double": 
+            if val_type == "int" or val_type == "double":
                 if val_type == "int":
                     self.assertEqual(tmp[key].GetInt(),10)
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetInt()
-            
+
             if val_type == "double" or val_type == "int":
                 if val_type == "double":
                     self.assertEqual(tmp[key].GetDouble(),2.0)
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetDouble()
-            
+
             if val_type == "bool":
                 self.assertEqual(tmp[key].GetBool(),True)
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetBool()
-            
+
             if val_type == "string":
                 self.assertEqual(tmp[key].GetString(),"hello")
             else:
@@ -468,8 +470,8 @@ class TestParameters(KratosUnittest.TestCase):
                 self.assertEqual(A[2,1],6.0)
             else:
                 with self.assertRaises(RuntimeError):
-                    tmp[key].GetMatrix()   
-        
+                    tmp[key].GetMatrix()
+
     def test_vector_interface(self):
         # Read and check Vectors from a Parameters-Object
         tmp = Parameters("""{
@@ -483,15 +485,15 @@ class TestParameters(KratosUnittest.TestCase):
                                 [2,3,{"key":3}],
                                 [true,2],
                                 [2,3,true],
-                                [5,"string",2] 
+                                [5,"string",2]
             ]
-        }""")      
+        }""")
 
         # Check the IsVector Method
         for i in range(tmp["valid_vectors"].size()):
             valid_vector = tmp["valid_vectors"][i]
             self.assertTrue(valid_vector.IsVector())
-        
+
         for i in range(tmp["false_vectors"].size()):
             false_vector = tmp["false_vectors"][i]
             self.assertFalse(false_vector.IsVector())
@@ -504,7 +506,7 @@ class TestParameters(KratosUnittest.TestCase):
         # Check that the errors of the GetVector method are thrown correctly
         for i in range(tmp["false_vectors"].size()):
             false_vector = tmp["false_vectors"][i]
-            with self.assertRaises(RuntimeError):        
+            with self.assertRaises(RuntimeError):
                 false_vector.GetVector()
 
         # Manually assign and check a Vector
@@ -536,15 +538,15 @@ class TestParameters(KratosUnittest.TestCase):
                                  [[2,1.5,3.3] , [3,{"key":3},2]],
                                  [[2,1.5,3.3] , [5,false,2]],
                                  [[2,1.5,3.3] , [[2,3],1,2]],
-                                 [[2,1.5,3.3] , ["string",2,9]] 
+                                 [[2,1.5,3.3] , ["string",2,9]]
             ]
         }""")
-        
+
         # Check the IsMatrix Method
         for i in range(tmp["valid_matrices"].size()):
             valid_matrix = tmp["valid_matrices"][i]
             self.assertTrue(valid_matrix.IsMatrix())
-            
+
         for i in range(tmp["false_matrices"].size()):
             false_matrix = tmp["false_matrices"][i]
             self.assertFalse(false_matrix.IsMatrix())
@@ -557,7 +559,7 @@ class TestParameters(KratosUnittest.TestCase):
         # Check that the errors of the GetMatrix method are thrown correctly
         for i in range(tmp["false_matrices"].size()):
             false_matrix = tmp["false_matrices"][i]
-            with self.assertRaises(RuntimeError):        
+            with self.assertRaises(RuntimeError):
                 false_matrix.GetMatrix()
 
         # Manually assign and check a Matrix
@@ -571,9 +573,9 @@ class TestParameters(KratosUnittest.TestCase):
 
         tmp.AddEmptyValue("matrix_value")
         tmp["matrix_value"].SetMatrix(mat)
-        
+
         self.assertTrue(tmp["matrix_value"].IsMatrix())
-        
+
         A2 = tmp["matrix_value"].GetMatrix()
         self.assertEqual(A2[0,0],1.0)
         self.assertEqual(A2[0,1],2.0)
@@ -583,7 +585,7 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertEqual(A2[2,1],6.0)
 
     def test_null_vs_null_validation(self):
-            
+
         # supplied settings
         null_custom = Parameters("""{
         "parameter": null
@@ -593,12 +595,11 @@ class TestParameters(KratosUnittest.TestCase):
         null_default = Parameters("""{
         "parameter": null
         }""")
-        
+
         #this should NOT raise, hence making the test to pass
         null_custom.ValidateAndAssignDefaults(null_default)
 
     def test_double_vs_null_validation(self):
-            
         # supplied settings
         double_custom = Parameters("""{
         "parameter": 0.0
@@ -612,7 +613,22 @@ class TestParameters(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             double_custom.ValidateAndAssignDefaults(null_default)
 
-        
-        
+    def test_serialization(self):
+        tmp = Parameters(defaults)
+        check = tmp.WriteJsonString()
+
+        file_name = "parameters_serialization"
+        serializer_flag = SerializerTraceType.SERIALIZER_NO_TRACE
+        Serializer(file_name, serializer_flag).Save("ParametersSerialization",tmp)
+        tmp = 0
+
+        loaded_parameters = Parameters()
+        Serializer(file_name, serializer_flag).Load("ParametersSerialization",loaded_parameters)
+
+        self.assertEqual(check, loaded_parameters.WriteJsonString())
+
+        kratos_utils.DeleteFileIfExisting(file_name + ".rest")
+
+
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -19,9 +19,9 @@
 // External includes
 
 // Project includes
-#include "mesh_moving_application.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/mesh_moving_variables.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -44,7 +44,7 @@ void MoveMesh(const ModelPart::NodesContainerType &rNodes);
 
 void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 
-std::unique_ptr<ModelPart> GenerateMeshPart(ModelPart &rModelPart,
+ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
 void UpdateReferenceMesh(ModelPart &rModelPart);

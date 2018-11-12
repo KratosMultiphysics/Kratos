@@ -125,7 +125,7 @@ class MeshControllerWithSolver(MeshController) :
                 "help"          : "This process fixes the selected components of a given vector variable without modifying the value of the variable.",
                 "process_name"  : "FixVectorVariableProcess",
                 "Parameters"    : {
-                    "model_part_name"      : \""""+str(optimization_model_part.Name)+""".auto_surface_nodes",
+                    "model_part_name"      : \""""+str(optimization_model_part.Name)+""".auto_surface_nodes\",
                     "variable_name"        : "MESH_DISPLACEMENT",
                     "constrained"          : [true,true,true]
                 }

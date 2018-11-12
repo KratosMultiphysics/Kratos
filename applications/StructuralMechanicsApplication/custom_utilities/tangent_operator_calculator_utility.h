@@ -51,7 +51,7 @@ namespace Kratos
  compuestos mediante la teoría de mezclas serie/paralelo" X. Martinez, S. Oller y E. Barbero.
  * @authors Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtility
+class TangentOperatorCalculatorUtility
 {
 public:
     ///@name Type Definitions
@@ -311,13 +311,10 @@ public:
         Flags& cl_options = rValues.GetOptions();
 
         // In order to avoid recursivity...
-        const bool back_flag = cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         pConstitutiveLaw->CalculateMaterialResponse(rValues, rStressMeasure);
-
-        // We set back
-        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, back_flag);
     }
 
     /**

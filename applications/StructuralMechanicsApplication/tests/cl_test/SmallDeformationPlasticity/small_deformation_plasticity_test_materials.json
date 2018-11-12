@@ -1,0 +1,31 @@
+{
+    "properties" : [{
+        "model_part_name" : "Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                 "name"              : "SmallStrainIsotropicPlasticity3DVonMisesVonMises",
+				 "yield_surface"     : "VonMises",
+				 "plastic_potential" : "VonMises"
+            },
+            "Variables"        : {
+                "DENSITY"                   : 7850.0,
+                "YOUNG_MODULUS"             : 206900000000.0,
+                "POISSON_RATIO"             : 0.29,
+				"FRACTURE_ENERGY"           : 0.25e4,
+				"YIELD_STRESS_COMPRESSION"  : 3.0e6,
+				"YIELD_STRESS_TENSION"      : 3.0e6,
+				"HARDENING_CURVE"           : 4,
+				"MAXIMUM_STRESS_POSITION"   : 0.2,
+				"MAXIMUM_STRESS"            : 3.5e6,
+				"FRICTION_ANGLE"            : 32.0,
+				"DILATANCY_ANGLE"           : 32.0,
+				"VISCOUS_PARAMETER"         : 1.5,
+				"DELAY_TIME"                :     1.0,
+				"PLASTIC_STRAIN_INDICATORS" : [5e-10, 8e-10],
+				"CURVE_FITTING_PARAMETERS" : [3e6, 5e9, -2e13,-6e17]
+            },
+            "Tables"           : {}
+        }
+    }]
+}
