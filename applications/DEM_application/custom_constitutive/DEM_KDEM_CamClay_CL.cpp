@@ -27,9 +27,7 @@ namespace Kratos {
 
             Matrix average_stress_tensor = ZeroMatrix(3,3);
             for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    average_stress_tensor(i,j) = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));
-                }
+                for (int j = 0; j < 3; j++) average_stress_tensor(i,j) = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));
             }
 
             Vector principal_stresses(3);
@@ -58,7 +56,7 @@ namespace Kratos {
             const double ellipsoid_function_value = M * M * p * (p - p_c) + q * q;
             
             // choosing the necessary branch
-            double cam_clay_function_value = straight_line_function_value < ellipsoid_function_value ? straight_line_function_value : ellipsoid_function_value;
+            const double cam_clay_function_value = straight_line_function_value < ellipsoid_function_value ? straight_line_function_value : ellipsoid_function_value;
 
             if (cam_clay_function_value > 0) failure_type = 4;
         }
@@ -145,6 +143,40 @@ namespace Kratos {
         }
 
         KRATOS_CATCH("")
+    }
+    
+    double DEM_KDEM_CamClay::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+
+        Properties& element1_props = element1->GetProperties();
+        Properties& element2_props = element2->GetProperties();
+        const double mean_preconsolidation_pressure = 1e6 * 0.5*(element1_props[DEM_PRECONSOLIDATION_PRESSURE] + element2_props[DEM_PRECONSOLIDATION_PRESSURE]);
+        
+        // calculation of equivalent young modulus
+        const double myYoung = element1->GetYoung();
+        const double other_young = element2->GetYoung();
+        const double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
+
+        const double my_radius = element1->GetRadius();
+        const double other_radius = element2->GetRadius();
+        
+        double calculation_area = 0;
+        Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
+        GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
+        
+        const double radius_sum = my_radius + other_radius;
+        const double initial_delta = element1->GetInitialDelta(i);
+        const double initial_dist = radius_sum - initial_delta;
+
+        const double kn_el = equiv_young * calculation_area / initial_dist;
+        const double max_normal_force = mean_preconsolidation_pressure * calculation_area;
+
+        const double max_local_distance_by_force = max_normal_force / kn_el;
+        const double max_local_distance_by_radius = 0.05 * radius_sum;
+        
+        // avoid error in special cases with too high tensile
+        const double max_local_distance = max_local_distance_by_force > max_local_distance_by_radius? max_local_distance_by_radius : max_local_distance_by_force;
+                        
+        return max_local_distance;
     }
 
     bool DEM_KDEM_CamClay::CheckRequirementsOfStressTensor() { return true;}

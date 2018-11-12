@@ -54,6 +54,8 @@ namespace Kratos {
                 int search_control,
                 DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
+        
+        double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 
         virtual bool CheckRequirementsOfStressTensor() override;
 
