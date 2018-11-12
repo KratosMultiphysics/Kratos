@@ -56,7 +56,7 @@ void MPIEnvironment::Initialize()
 
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
     ParallelEnvironment& parallel_environment = ParallelEnvironment::GetInstance();
-    parallel_environment.RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), true);
+    parallel_environment.RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
 
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);

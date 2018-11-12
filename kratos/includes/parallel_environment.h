@@ -45,7 +45,8 @@ class ParallelEnvironment
     /// Pointer definition of ParallelEnvironment
     KRATOS_CLASS_POINTER_DEFINITION(ParallelEnvironment);
 
-    enum class ParallelMode { Serial, Parallel, NotSet };
+    constexpr static bool MakeDefault = true;
+    constexpr static bool DoNotMakeDefault = false;
 
     ///@}
     ///@name Access
@@ -60,7 +61,7 @@ class ParallelEnvironment
     void RegisterDataCommunicator(
         const std::string Name,
         const DataCommunicator& rPrototype,
-        bool MakeDefault = false);
+        bool Default = DoNotMakeDefault);
 
     DataCommunicator& GetDataCommunicator(const std::string Name) const;
 

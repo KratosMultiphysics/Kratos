@@ -18,7 +18,7 @@ namespace Kratos {
 
 ParallelEnvironment::ParallelEnvironment()
 {
-    RegisterDataCommunicator("Serial", DataCommunicator(), true);
+    RegisterDataCommunicator("Serial", DataCommunicator(), MakeDefault);
 }
 
 ParallelEnvironment& ParallelEnvironment::GetInstance()
@@ -31,7 +31,7 @@ ParallelEnvironment& ParallelEnvironment::GetInstance()
 void ParallelEnvironment::RegisterDataCommunicator(
     const std::string Name,
     const DataCommunicator& rPrototype,
-    bool MakeDefault)
+    bool Default)
 {
     auto found = mDataCommunicators.find(Name);
     if (found == mDataCommunicators.end())
@@ -41,7 +41,7 @@ void ParallelEnvironment::RegisterDataCommunicator(
         auto pair_iterator = result.first;
         KratosComponents<DataCommunicator>::Add(Name, *(pair_iterator->second));
 
-        if (MakeDefault)
+        if (Default == MakeDefault)
         {
             mDefaultCommunicator = pair_iterator;
         }
