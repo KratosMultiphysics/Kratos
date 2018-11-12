@@ -24,7 +24,7 @@ class CoSimulationBaseSolver(object):
             "solver_type" : "",
             "io_settings":{},
             "settings" : {},
-            "data" : {},
+            "data" : [],
             "echo_level" : 0
         }
         """)
@@ -33,7 +33,8 @@ class CoSimulationBaseSolver(object):
         self.cosim_solver_settings.ValidateAndAssignDefaults(default_setting)
         self.SetEchoLevel( self.cosim_solver_settings["echo_level"].IsInt() )
         self.data_list = self._GetDataList()
-
+        self.geo_names = self._GetGeoNames()
+        self.model = cs_data_structure.Model() ## Where all the meshes are stored.
         # This is the map of all the geometries that a solver can have
         self.geometry_map = {}
         self.io_is_initialized = False
@@ -41,7 +42,7 @@ class CoSimulationBaseSolver(object):
 
     ## Initialize : Initialize function for the solver class. Necessary
     #               initialization of the variables and objects to be done here.
-    #  @param self                      The object pointer.
+    #  @param self                      The object pointer. especially the geometries
     def Initialize(self):
         pass
 
@@ -54,7 +55,7 @@ class CoSimulationBaseSolver(object):
         if self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is already initialized!')
 
-        self.io = io_factory.CreateIO(self._GetIOName(), self.cosim_solver_settings["io_settings"])
+        self.io = io_factory.CreateIO(self.model, self._GetIOName(), self.cosim_solver_settings["io_settings"])
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
@@ -118,6 +119,8 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     #  @param data_name       string : Name of the data to be imported from from_client
     #  @param from_client     python obj : The client from which data_name has to be imported
+    #                         Default is None that means, the solver imports the mesh from itself,
+    #                         that is the actual solver for which this acts as an alias
     def ImportData(self, data_conf, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
@@ -128,7 +131,9 @@ class CoSimulationBaseSolver(object):
     #
     #  @param self            The object pointer.
     #  @param mesh_name       string : Name of the mesh to be imported from from_client
-    #  @param from_client     python obj : The client from which data_name has to be imported
+    #  @param from_client     python obj : The client from which data_name has to be imported.
+    #                         Default is None that means, the solver imports the mesh from itself,
+    #                         that is the actual solver for which this acts as an alias
     def ImportMesh(self, mesh_name, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
@@ -138,6 +143,9 @@ class CoSimulationBaseSolver(object):
     #               to_client
     #
     #  @param self            The object pointer.
+    #  @param to_client       The client to which the data is to be exported
+    #                         Default is None that means, the solver imports the mesh from itself,
+    #                         that is the actual solver for which this acts as an alias
     def ExportData(self, data_name, to_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
@@ -147,6 +155,9 @@ class CoSimulationBaseSolver(object):
     #               to to_client
     #
     #  @param self            The object pointer.
+    #  @param to_client       The client to which the Mesh is to be exported
+    #                         Default is None that means, the solver imports the mesh from itself,
+    #                         that is the actual solver for which this acts as an alias
     def ExportMesh(self, mesh_name, to_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
@@ -196,9 +207,11 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     def _GetDataList(self):
         data_list = {}
-        for data_name, data_def in self.cosim_solver_settings["data"].items():
-            data_conf = self._MakeDataConfig(data_def)
-            data_list[data_name] = data_conf
+        num_data = self.cosim_solver_settings["data"].size()
+        for i in range(num_data):
+            data_conf = self.cosim_solver_settings["data"][i]
+            data_conf = self._MakeDataConfig(data_conf)
+            data_list[data_conf["name"].GetString()] = data_conf
 
         return data_list
 
@@ -214,18 +227,14 @@ class CoSimulationBaseSolver(object):
         }
         """)
         custom_config.ValidateAndAssignDefaults(default_config)
-        if custom_config["format"].GetString() == "list" :
-            default_config = cs_data_structure.Parameters("""
-            {
-                "name" : "default",
-                "format":"list",
-                "dimension" : 0,
-                "size" : 0,
-                "geometry_name" : "",
-                "location_on_mesh":"",
-                "data":[]
-            }
-            """)
-            custom_config.ValidateAndAssignDefaults(default_config)
 
         return custom_config
+
+    def _GetGeoNames(self):
+        geo_name_list = []
+        for name, data in self.data_list.items():
+            mesh_name = data["geometry_name"].GetString()
+            if(mesh_name not in geo_name_list):
+                geo_name_list.append( mesh_name )
+        return geo_name_list
+
