@@ -115,6 +115,11 @@ public:
 
     void Execute() override
     {
+        KRATOS_WARNING("SetMPICommunicatorProcess")
+            << "Calling deprecated process SetMPICommunicatorProcess.\n"
+            << "Please use ModelPartCommunicatorUtilities::SetMPICommunicator(ModelPart) instead."
+            << std::endl;
+
         VariablesList * mVariables_List = &mrModelPart.GetNodalSolutionStepVariablesList();
         mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator(mVariables_List)));
     }
