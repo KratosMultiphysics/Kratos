@@ -853,9 +853,6 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("RelationMatrixStructure");
 
-        std::map<IndexType, bool> row_dof_indices; // Must be ordered to avoid problems filling the matrix
-
-        IndexSetType aux_master_indices;
         std::unordered_map<IndexType, IndexType> solvable_dof_reorder;
         std::unordered_map<IndexType, IndexSetType> master_indices;
 
@@ -976,7 +973,7 @@ protected:
         TSystemMatrixType& rTMatrix = *mpTMatrix;
 
         // We compute only once (or if cleared)
-        if (BaseType::GetReshapeMatrixFlag() || mCleared) {
+        if (mCleared) {
             mCleared = false;
 
             // Contributions to the system
