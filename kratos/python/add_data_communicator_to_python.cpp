@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "add_data_communicator_to_python.h"
 #include "includes/define_python.h"
 #include "includes/data_communicator.h"
 
