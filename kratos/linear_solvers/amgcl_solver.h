@@ -14,14 +14,10 @@
 #if !defined(KRATOS_AMGCL_SOLVER )
 #define  KRATOS_AMGCL_SOLVER
 
-// #ifndef AMGCL_PARAM_MISSING
-// #define AMGCL_PARAM_MISSING(name) std::cout << "unset AMGCL parameter with name " << name <<std::endl;
-// #endif
-// KRATOS_ERROR << , #name)
-// Unknown parameter action
 #ifndef AMGCL_PARAM_UNKNOWN
+#include "input_output/logger.h"
 #  define AMGCL_PARAM_UNKNOWN(name)                                            \
-      std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
+    Kratos::Logger("AMGCL") << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING << "Unknown parameter " << name << std::endl
 #endif
 
 // System includes
@@ -256,17 +252,17 @@ public:
                mUseAMGPreconditioning = false;
         }
 
-        if(ThisParameters["preconditioner_type"].GetString() == "relaxation") //this implies not using. Use a relaxation sweep as preconditioning. Relaxation type is taken from smoother_type 
+        if(ThisParameters["preconditioner_type"].GetString() == "relaxation") //this implies not using. Use a relaxation sweep as preconditioning. Relaxation type is taken from smoother_type
         {
             mAMGCLParameters.put("precond.type", ThisParameters["smoother_type"].GetString());
         }
-        
+
 
         // Validate if values are admissible
         std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
         std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres", "bicgstab_with_gmres_fallback","idrs"};
         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
-        
+
 
 
         std::stringstream msg;
@@ -316,11 +312,11 @@ public:
             mAMGCLParameters.put("precond.relax.type", ThisParameters["smoother_type"].GetString());
             mAMGCLParameters.put("precond.coarsening.type",  ThisParameters["coarsening_type"].GetString());
 
-            
+
 
             int max_levels = ThisParameters["max_levels"].GetInt();
             if(max_levels >= 0)
-                mAMGCLParameters.put("precond.max_levels",  max_levels); 
+                mAMGCLParameters.put("precond.max_levels",  max_levels);
 
             mAMGCLParameters.put("precond.npre",  ThisParameters["pre_sweeps"].GetInt());
             mAMGCLParameters.put("precond.npost",  ThisParameters["post_sweeps"].GetInt());
@@ -333,7 +329,7 @@ public:
             mUseBlockMatricesIfPossible = false;
             ThisParameters["use_block_matrices_if_possible"].SetBool(false);
         }
-        
+
 
 
     }
@@ -440,15 +436,15 @@ public:
         ) override
     {
         // Initial checks
-        KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA) != TSparseSpaceType::Size2(rA) ) << "matrix A is not square! sizes are " 
+        KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA) != TSparseSpaceType::Size2(rA) ) << "matrix A is not square! sizes are "
             << TSparseSpaceType::Size1(rA) << " and " << TSparseSpaceType::Size2(rA) << std::endl;
-        KRATOS_ERROR_IF(TSparseSpaceType::Size(rX)  != TSparseSpaceType::Size1(rA)) << "size of x does not match the size of A. x size is " << TSparseSpaceType::Size(rX) 
+        KRATOS_ERROR_IF(TSparseSpaceType::Size(rX)  != TSparseSpaceType::Size1(rA)) << "size of x does not match the size of A. x size is " << TSparseSpaceType::Size(rX)
             << " matrix size is " << TSparseSpaceType::Size1(rA) << std::endl;
-        KRATOS_ERROR_IF(TSparseSpaceType::Size(rB) != TSparseSpaceType::Size1(rA)) << "size of b does not match the size of A. b size is " << TSparseSpaceType::Size(rB) 
+        KRATOS_ERROR_IF(TSparseSpaceType::Size(rB) != TSparseSpaceType::Size1(rA)) << "size of b does not match the size of A. b size is " << TSparseSpaceType::Size(rB)
             << " matrix size is " << TSparseSpaceType::Size1(rA) << std::endl;
 
         // Set block size
-        
+
         if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
             mAMGCLParameters.put("precond.coarsening.aggr.eps_strong",0.0);
             mAMGCLParameters.put("precond.coarsening.aggr.block_size",mBlockSize);
