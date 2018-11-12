@@ -35,7 +35,6 @@
 
 
 // Application includes
-#include "fluid_dynamics_application_variables.h"
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"

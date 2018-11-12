@@ -45,10 +45,9 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 raise Exception('Conflicting settings specified, please remove "decimal_places"')
             decimal_places = params["decimal_places"].GetInt()
             params.RemoveValue("decimal_places")
-            warning  = 'Deprecated setting found: "decimal_places".\n'
-            warning += 'Please specify "tolerance" and "relative_tolerance" instead'
-            warning = '\n::[CompareTwoFilesCheckProcess]:: W-A-R-N-I-N-G: You have specified "decimal_places", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            warning =  'W-A-R-N-I-N-G: You have specified "decimal_places", '
+            warning += 'which is deprecated and will be removed soon.\n'
+            warning += 'Please specify "tolerance" and "relative_tolerance" instead!'
             KratosMultiphysics.Logger.PrintWarning("CompareTwoFilesCheckProcess", warning)
             tol = 0.1**decimal_places
             params.AddEmptyValue("tolerance").SetDouble(tol)

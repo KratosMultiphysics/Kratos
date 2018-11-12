@@ -34,7 +34,7 @@ double GetFromProperty(const Properties& rThisProperties, Variable<double>& rVar
 double TotalStructuralMassProcess::CalculateElementMass(Element& rElement, const std::size_t DomainSize)
 {
     // We get the element geometry
-    GeometryType& r_this_geometry = rElement.GetGeometry();
+    auto& r_this_geometry = rElement.GetGeometry();
     const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
     const std::size_t number_of_nodes = r_this_geometry.size();
 
@@ -91,11 +91,11 @@ void TotalStructuralMassProcess::Execute()
     double total_mass = 0.0;
 
     // Now we iterate over the elements to calculate the total mass
-    ElementsArrayType& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
+    auto& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
 
     // Making this loop omp-parallel requires locking all the geometries & nodes, which
     // is most probably not worth the effort
-    for(auto& elem_i : elements_array){
+    for (auto& elem_i : elements_array) {
         total_mass += CalculateElementMass(elem_i, domain_size);
     }
 
@@ -107,7 +107,7 @@ void TotalStructuralMassProcess::Execute()
 
     KRATOS_INFO(info_stream.str()) << total_mass << std::endl;
     KRATOS_INFO("Hint")  << "Check variable NODAL_MASS in the process info in "
-                         << "order to access to it in any moment" << std::endl;
+                         << "order to access to it at any moment" << std::endl;
 
     mrThisModelPart.GetProcessInfo()[NODAL_MASS] = total_mass;
 
