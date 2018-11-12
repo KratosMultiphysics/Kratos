@@ -203,7 +203,7 @@ if __name__ == '__main__':
     # print("\n L2 relative error = ", error/L2norm_analyticalsolution,"\n")
     
     '''define setting parameters of the ML simulation'''
-    settings_ML_simulation = [0.1, 0.1, 1.25, 1.15, 0.25, 0.1, 1.0, 10, 2]
+    settings_ML_simulation = [0.1, 0.1, 1.25, 1.15, 0.25, 0.1, 1.0, 25, 2]
     '''
     k0   = settings_ML_simulation[0] # Certainty Parameter 0 rates
     k1   = settings_ML_simulation[1] # Certainty Parameter 1 rates
@@ -271,7 +271,7 @@ if __name__ == '__main__':
     for level in range (0,L_screening+1):
         for i in range(0,number_samples[level]):
             nsam = i+1
-            mean_difference_QoI[level],second_moment_difference_QoI[level],variance_difference_QoI[level] = mlmc.update_onepass_M(difference_QoI[level][i],mean_difference_QoI[level],second_moment_difference_QoI[level],nsam)
+            mean_difference_QoI[level],second_moment_difference_QoI[level],variance_difference_QoI[level] = mlmc.update_onepass_M_VAR(difference_QoI[level][i],mean_difference_QoI[level],second_moment_difference_QoI[level],nsam)
     # print("list Y_l",difference_QoI)
     print("mean Y_l",mean_difference_QoI)
     print("sample variance Y_l",variance_difference_QoI)
@@ -299,7 +299,7 @@ if __name__ == '__main__':
     print("mean time ML",mean_time_ML)
     print("sample variance time ML",variance_time_ML)
 
-    '''compute nDoF: number degrees of freedom for each mesh'''
+    '''compute mesh parameter for each mesh, calling nDoF with a little abuse of notation'''
     nDoF = []
     for level in range (0,L_max + 1):
         nDoF.append(mlmc.Nf_law(level))
@@ -347,8 +347,9 @@ if __name__ == '__main__':
         since we updated the number of levels we have a new M_l
         theta_i is a scalar'''
         theta_i = mlmc.theta_model(ratesLS,tol_i,nDoF[L_opt])
-        if not((theta_i > 0.0) or (theta_i < 1.0)):
+        if theta_i < 0.0 or theta_i > 1.0:
             raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
+        print("splitting parameter theta = ",theta_i)
 
         '''compute number of samples according to bayesian variance and theta splitting parameters'''
         number_samples, difference_number_samples, previous_number_samples = mlmc.compute_number_samples(L_opt,BayesianVariance,ratesLS,theta_i,tol_i,nDoF,number_samples,settings_ML_simulation)
@@ -405,7 +406,7 @@ if __name__ == '__main__':
         for level in range (0,L_opt+1):
             for i in range(0,difference_number_samples[level]):
                 nsam = previous_number_samples[level] + (i+1)
-                mean_difference_QoI[level],second_moment_difference_QoI[level],variance_difference_QoI[level] = mlmc.update_onepass_M(
+                mean_difference_QoI[level],second_moment_difference_QoI[level],variance_difference_QoI[level] = mlmc.update_onepass_M_VAR(
                     difference_QoI[level][previous_number_samples[level]+i],mean_difference_QoI[level],second_moment_difference_QoI[level],nsam)
         
         print("updated mean Y_l",mean_difference_QoI)
@@ -428,7 +429,7 @@ if __name__ == '__main__':
         for level in range (0,L_opt+1):
             for i in range(0,difference_number_samples[level]):
                 nsam = previous_number_samples[level] + (i+1)
-                mean_time_ML[level],second_moment_time_ML[level],variance_time_ML[level] = mlmc.update_onepass_M(
+                mean_time_ML[level],second_moment_time_ML[level],variance_time_ML[level] = mlmc.update_onepass_M_VAR(
                     time_ML[level][previous_number_samples[level]+i],mean_time_ML[level],second_moment_time_ML[level],nsam)
         
         print("updated mean time ML",mean_time_ML)

@@ -120,10 +120,12 @@ def compute_tolerance_i(settings_ML,iE,iter_def):
     r1 = settings_ML[2]
     r2 = settings_ML[3]
     tolF = settings_ML[5]
-    if iter_def <= iE:
+    if iter_def < iE:
         tol = (r1**(iE-iter_def) * r2**(-1))*tolF
-    else:
+    elif iter_def > iE:
         tol = (r2**(iE-iter_def) * r2**(-1))*tolF
+    else:
+        tol = tolF
     return tol
 
 
@@ -163,10 +165,10 @@ def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
 function computing the splitting parameter theta \in (0,1)
 see [PNL17] pp. 5-6,8-11
 '''
-def theta_model(ratesLS,toll,nDoF):
+def theta_model(ratesLS,tol,nDoF):
     Calpha = ratesLS[0]
     alpha = ratesLS[1]
-    theta_i = 1.0 - (Calpha * (nDoF)**(-alpha))/toll
+    theta_i = 1.0 - (Calpha * (nDoF)**(-alpha))/tol
     return theta_i
 
 
@@ -208,7 +210,7 @@ def compute_levels(tol,nsam,ratesLS,ndof_all,BayesianVariance,mean,variance,sett
             raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
 
         Wtot = coeff1 * coeff2
-        # print("print level and correspondent cost",lev,Wtot)
+        print("print level and correspondent cost",lev,Wtot)
         if Wtot < Wmin:
             Wmin = Wtot
             Lopt_local = lev
@@ -245,6 +247,7 @@ def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,se
     coeff3 = np.sum(np.sqrt(np.multiply(model_cost,BayesianVariance)))
        
     opt_number_samples = np.multiply(coeff1*coeff3,coeff2)
+    print("optimal number of samples computed = ",opt_number_samples)
     
     for i in range (0,len(opt_number_samples)):
         opt_number_samples[i] = np.ceil(opt_number_samples[i])
