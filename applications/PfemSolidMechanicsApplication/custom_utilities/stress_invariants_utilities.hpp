@@ -94,7 +94,7 @@ namespace Kratos
                Lode = std::asin( -Lode) / 3.0;
             }
 
-            //std::cout << " THISLODE " << Lode << " Stress;atrox " << StressTensor << " Stress " << rStress << 
+            //std::cout << " P " << I1 << " J " << J2 << " LODE " << Lode << " Stress;atrox " << StressTensor << " Stress " << rStress << std::endl;
          }
 
          static inline void CalculateDerivativeVectors( const Vector rStress, Vector& C1, Vector& C2)
@@ -130,6 +130,8 @@ namespace Kratos
          static inline void CalculateDerivativeVectors( const Vector rStress, Vector& C1, Vector& C2, Vector& C3)
          {
             // COPY
+            
+            // C1 = d_p/d_sig = [1/3  1/3  1/3  0  0  0]^T
             C1 = ZeroVector(6);
             for (unsigned int i = 0; i < 3; i++)
                C1(i) = 1.0/3.0;
@@ -137,6 +139,7 @@ namespace Kratos
             double I1, J2;
             CalculateStressInvariants( rStress, I1, J2);
 
+			// C2 = d_J/d_sig = 1/2J*[s_11  s_22  s_33  2sig_12  2sig_23  2sig_31]^T
             C2 = ZeroVector(6);
 
             for (unsigned int i = 0; i < 3; i++)
@@ -154,6 +157,7 @@ namespace Kratos
                return; 
             }
 
+			// C3 = d_J3/d_sig = ...
             C3 = ZeroVector(6);
 
             Vector ShearStress = rStress;
@@ -171,6 +175,8 @@ namespace Kratos
             for (unsigned int i = 0; i < 3; ++i)
                C3(i) += pow(J2, 2.0) / 3.0;
 
+			//std::cout << " C3 [ " << C3(0) << " " << C3(1) << " " << C3(2) << " " << C3(3) << " " << C3(4) << " " << C3(5) << " ] " << std::endl;
+
             Matrix Aux, ShearStressM;
             ShearStressM = MathUtils<double>::StressVectorToTensor( ShearStress);
             Aux = prod(  ShearStressM, ShearStressM);
@@ -179,6 +185,8 @@ namespace Kratos
                Aux(i,i) -= 1.0/3.0 * 2.0*pow( J2 , 2.0);
 
             C3 = MathUtils<double>::StrainTensorToVector( Aux, 6);
+            
+            //std::cout << " C3 [ " << C3(0) << " " << C3(1) << " " << C3(2) << " " << C3(3) << " " << C3(4) << " " << C3(5) << " ] " << std::endl;
 
 
          }
