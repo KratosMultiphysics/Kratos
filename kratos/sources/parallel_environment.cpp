@@ -102,6 +102,7 @@ void ParallelEnvironment::PrintData(std::ostream &rOStream) const
     {
         rOStream << "  \"" <<  it_prototype->first << "\": " << *(it_prototype->second);
     }
+    rOStream << "Default communicator: \"" << mDefaultCommunicator->first << "\": " << *(mDefaultCommunicator->second);
 }
 
 }
