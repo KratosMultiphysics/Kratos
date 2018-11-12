@@ -143,7 +143,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "components_wise_variable" : "DISPLACEMENT"
+            "components_wise_variable" : "SCALAR_VARIABLE_OR_COMPONENT"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
