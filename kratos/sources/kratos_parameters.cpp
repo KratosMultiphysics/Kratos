@@ -14,7 +14,7 @@
 // System includes
 
 // External includes
-// #include "json/json.hpp" // Import nlohmann json library
+#include "json/json.hpp" // Import nlohmann json library
 
 // Project includes
 #include "includes/kratos_parameters.h"

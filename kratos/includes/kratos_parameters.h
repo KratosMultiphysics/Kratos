@@ -18,8 +18,7 @@
 // System includes
 
 // External includes
-#include "json/json.hpp" // Import forward declaration nlohmann json library
-// #include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
+#include "json/json_fwd.hpp" // Import forward declaration nlohmann json library
 
 // Project includes
 #include "includes/serializer.h"
