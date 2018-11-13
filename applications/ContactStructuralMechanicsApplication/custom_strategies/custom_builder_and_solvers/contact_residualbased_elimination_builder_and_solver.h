@@ -91,7 +91,7 @@ public:
     typedef std::size_t IndexType;
 
     /// Index set definition
-    typedef std::unordered_set<IndexType> SetIndexType;
+    typedef std::unordered_set<IndexType> IndexSetType;
 
     ///@}
     ///@name Enum's
@@ -136,7 +136,7 @@ public:
          */
 
         // We create a set of dofs of the displacement slave dofs with LM associated
-        std::unordered_map<IndexType, SetIndexType> set_nodes_with_lm_associated;
+        std::unordered_map<IndexType, IndexSetType> set_nodes_with_lm_associated;
         if (rModelPart.HasSubModelPart("Contact"))
             set_nodes_with_lm_associated.reserve(rModelPart.GetSubModelPart("Contact").NumberOfNodes());
         // Allocating auxiliar parameters
@@ -145,7 +145,7 @@ public:
         for (auto& i_dof : BaseType::mDofSet) {
             node_id = i_dof.Id();
             if (IsLMDof(i_dof))
-                set_nodes_with_lm_associated.insert({node_id, SetIndexType({})});
+                set_nodes_with_lm_associated.insert({node_id, IndexSetType({})});
         }
 
         // Auxiliar keys

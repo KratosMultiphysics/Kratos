@@ -77,12 +77,29 @@ public:
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+    typedef typename BaseType::NodeType NodeType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::ElementsArrayType ElementsArrayType;
+    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
-    /// The node type
-    typedef Node<3> NodeType;
+    /// General containers type definitions
+    typedef ModelPart::MasterSlaveConstraintContainerType ConstraintContainerType;
 
-    /// The definition of the dof type
-    typedef typename ModelPart::DofType DofType;
+    /// Additional definitions
+    typedef typename BaseType::ElementsContainerType ElementsContainerType;
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+
+    /// DoF types definition
+    typedef typename BaseType::DofType DofType;
+    typedef typename BaseType::DofPointerType DofPointerType;
+
+    /// The DoF pointer vector type definition
+    typedef std::vector<typename DofType::Pointer> DofPointerVectorType;
 
     /// The size type
     typedef std::size_t SizeType;
@@ -91,7 +108,7 @@ public:
     typedef std::size_t IndexType;
 
     /// Index set definition
-    typedef std::unordered_set<IndexType> SetIndexType;
+    typedef std::unordered_set<IndexType> IndexSetType;
 
     ///@}
     ///@name Enum's
@@ -137,6 +154,25 @@ public:
             BaseSetUpSystem(rModelPart);
     }
 
+    /**
+     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
+     * and condition its Dofs.
+     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * way the matrix and RHS are built
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SetUpDofSet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        ) override
+    {
+        if(rModelPart.MasterSlaveConstraints().size() > 0)
+            SetUpDofSetWithConstraints(pScheme, rModelPart);
+        else
+            BaseType::SetUpDofSet(pScheme, rModelPart);
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -166,6 +202,114 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
+     * @details Equivalent to the ResidualBasedEliminationBuilderAndSolver but with constraints. The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SetUpDofSetWithConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        )
+    {
+        KRATOS_TRY;
+
+        // Reorder constrains
+        IndexType constraint_id = 1;
+        for (auto& constrain : rModelPart.MasterSlaveConstraints()) {
+            constrain.SetId(constraint_id);
+            ++constraint_id;
+        }
+
+        // Auxiliar dofs lists
+        DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
+
+        // Contributions to the system
+        LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
+
+        // Reference constraint
+        const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+
+        #pragma omp parallel firstprivate(transformation_matrix, constant_vector, dof_list, second_dof_list)
+        {
+            // Current process info
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+            // A buffer to store auxiliar constraints
+            ConstraintContainerType constraints_buffer;
+
+            // Gets the array of constraints from the modeler
+            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+            const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+            #pragma omp for  schedule(guided, 512) nowait
+            for (int i = 0; i < number_of_constraints; ++i) {
+                auto it_const = r_constraints_array.begin() + i;
+
+                // Gets list of Dof involved on every element
+                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+                it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+
+                DofPointerVectorType slave_dofs, master_dofs;
+                bool create_lm_constraint = false;
+                // Slave DoFs
+                for (auto& p_dof : dof_list) {
+                    if (IsDisplacementDof(*p_dof)) {
+                        const IndexType node_id = p_dof->Id();
+                        const auto& r_variable = p_dof->GetVariable();
+                        auto pnode = rModelPart.pGetNode(node_id);
+                        if (r_variable == DISPLACEMENT_X) {
+                            slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+                        } else if (r_variable == DISPLACEMENT_Y) {
+                            slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+                        } else if (r_variable == DISPLACEMENT_Z) {
+                            slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                        }
+                    }
+                }
+                // Master DoFs
+                for (auto& p_dof : second_dof_list) {
+                    if (IsDisplacementDof(*p_dof)) {
+                        const IndexType node_id = p_dof->Id();
+                        const auto& r_variable = p_dof->GetVariable();
+                        auto pnode = rModelPart.pGetNode(node_id);
+                        if (r_variable == DISPLACEMENT_X) {
+                            master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+                        } else if (r_variable == DISPLACEMENT_Y) {
+                            master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+                        } else if (r_variable == DISPLACEMENT_Z) {
+                            master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                        }
+                    }
+                }
+
+                // We check if we create constraints
+                if ((slave_dofs.size() == dof_list.size()) &&
+                    (master_dofs.size() == second_dof_list.size())) {
+                    create_lm_constraint = true;
+                }
+
+                // We create the new constraint
+                if (create_lm_constraint) {
+                    auto p_constraint = r_clone_constraint.Create(constraint_id + i + 1, master_dofs, slave_dofs, transformation_matrix, constant_vector);
+                    (constraints_buffer).insert((constraints_buffer).begin(), p_constraint);
+                }
+            }
+
+            // We transfer
+            #pragma omp critical
+            {
+                rModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
+            }
+        }
+
+        // Calling base SetUpDofSetWithConstraints
+        BaseType::SetUpDofSetWithConstraints(pScheme, rModelPart);
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
     ///@name Protected  Access
@@ -236,7 +380,7 @@ private:
          */
 
         // We create a set of dofs of the displacement slave dofs with LM associated
-        std::unordered_map<IndexType, SetIndexType> set_nodes_with_lm_associated;
+        std::unordered_map<IndexType, IndexSetType> set_nodes_with_lm_associated;
         if (rModelPart.HasSubModelPart("Contact"))
             set_nodes_with_lm_associated.reserve(rModelPart.GetSubModelPart("Contact").NumberOfNodes());
         // Allocating auxiliar parameters
@@ -245,7 +389,7 @@ private:
         for (auto& i_dof : BaseType::mDofSet) {
             node_id = i_dof.Id();
             if (IsLMDof(i_dof))
-                set_nodes_with_lm_associated.insert({node_id, SetIndexType({})});
+                set_nodes_with_lm_associated.insert({node_id, IndexSetType({})});
         }
 
         // Auxiliar keys
