@@ -43,6 +43,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
+#include "utilities/generate_embedded_skin_utility.h"
 #include "utilities/geometry_tester.h"
 #include "utilities/cutting_utility.h"
 
@@ -464,6 +465,11 @@ void AddUtilitiesToPython(pybind11::module& m)
     py::class_< ActivationUtilities >(m,"ActivationUtilities")
         .def(py::init< >())
         .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
+        ;
+
+    py::class_< GenerateEmbeddedSkinUtility>(m,"GenerateEmbeddedSkinUtility")
+        .def(py::init< ModelPart&, ModelPart&, const std::string >())
+        .def("Execute", &GenerateEmbeddedSkinUtility::Execute)
         ;
 
     py::class_< GeometryTesterUtility>(m,"GeometryTesterUtility")
