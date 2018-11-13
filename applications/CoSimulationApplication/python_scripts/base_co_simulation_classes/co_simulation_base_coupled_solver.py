@@ -235,3 +235,20 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             conv_accelerators.append(accelerator)
 
         return conv_accelerators
+
+    ## _GetConvergenceCriteria : Private Function to make convergence criteria objects list
+    #
+    #  @param self            The object pointer.
+    #  @param conv_acc_settings dict: setting of the convergence criteria to be make
+    def _GetConvergenceCriteria(self, conv_criteria_settings):
+        conv_criteria = []
+        import base_co_simulation_classes.co_simulation_base_convergence_criteria as criteria
+        num_criteria = conv_criteria_settings.size()
+        for i in range(num_criteria):
+            criteria_setting = conv_criteria_settings[i]
+            solver_name = criteria_setting["solver"].GetString()
+            solver = self.participating_solvers[solver_name]
+            criteria = criteria.Create(criteria_setting, solver)
+            conv_criteria.append(criteria)
+
+        return conv_criteria
