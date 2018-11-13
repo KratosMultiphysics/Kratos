@@ -102,8 +102,6 @@ public:
     virtual void Execute() 
     {
 		KRATOS_TRY
-		
-		std::cout<<"----AddNodesOfInterestProcess::Execute()----echo: "<<mEchoLevel<<std::endl;
 
 		if( this->mEchoLevel > 0 ){
 			std::cout<<" [ ADD NODES OF INTEREST : "<<std::endl;
@@ -413,10 +411,10 @@ protected:
 	    std::cout << "-----------------Sizes: " << NodesArray1DVariableArray.size() << std::endl;
 	    std::cout << "-----------------Sizes: " << NodesVectorVariableArray.size() << std::endl;
 	    std::cout << "-----------------Sizes: " << NodesMatrixVariableArray.size() << std::endl << std::endl;
-	    std::cout << "-----------------Sizes: " << ElementDoubleVariableArray.size() << std::endl;
-	    std::cout << "-----------------Sizes: " << ElementArray1DVariableArray.size() << std::endl;
-	    std::cout << "-----------------Sizes: " << ElementVectorVariableArray.size() << std::endl;
-	    std::cout << "-----------------Sizes: " << ElementMatrixVariableArray.size() << std::endl;
+	    std::cout << "-----------------Sizes: " << mrRemesh.Refine->ConditionalMeshingNodeVariables.DoubleVariables.size() << std::endl;
+	    std::cout << "-----------------Sizes: " << mrRemesh.Refine->ConditionalMeshingNodeVariables.Array1DVariables.size() << std::endl;
+	    std::cout << "-----------------Sizes: " << mrRemesh.Refine->ConditionalMeshingNodeVariables.VectorVariables.size() << std::endl;
+	    std::cout << "-----------------Sizes: " << mrRemesh.Refine->ConditionalMeshingNodeVariables.MatrixVariables.size() << std::endl;
 */
 	    double Area         = 0;
 		double ElementArea  = 0;
@@ -427,23 +425,18 @@ protected:
 		std::fill( NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0);
   
 		//Array1D
-		for(unsigned int i = 0; i < mrRemesh.Refine->ConditionalMeshingGaussVariables.Array1DVariables.size(); i++)
-		{			  
+		for(unsigned int i = 0; i < mrRemesh.Refine->ConditionalMeshingGaussVariables.Array1DVariables.size(); i++)  
 			NodesArray1DVariableArray[i].clear();
-		}
 
 		//Vector
 		for(unsigned int i = 0; i < mrRemesh.Refine->ConditionalMeshingGaussVariables.VectorVariables.size(); i++)
-		{			  
-			NodesVectorVariableArray[i] = ZeroVector(); //¿value?
-		}
+			NodesVectorVariableArray[i] = ZeroVector(3);
 
 		//Matrix
 		for(unsigned int i = 0; i < mrRemesh.Refine->ConditionalMeshingGaussVariables.MatrixVariables.size(); i++)
-		{	
-			NodesMatrixVariableArray[i] = ZeroMatrix(); //¿value?
-		}
-
+			NodesMatrixVariableArray[i] = ZeroMatrix(3);
+		
+		
 
 		//loop over neighbouring elements: obtain weighted results
 		for(unsigned int ne=0; ne < neighb_elems.size(); ne++)
@@ -457,9 +450,17 @@ protected:
 			{			  
 				//elemental value
 				neighb_elems[ne].GetValueOnIntegrationPoints(*(mrRemesh.Refine->ConditionalMeshingGaussVariables.DoubleVariables[it]), ElementDoubleVariableArray, CurrentProcessInfo);   
+
+				//add weighted element value
 				for(unsigned int j = 0; j < integration_points_number; j++)
 				{
-					NodesDoubleVariableArray[it] += ElementDoubleVariableArray[j] * ElementArea/double(integration_points_number);
+					NodesDoubleVariableArray[it] += ElementDoubleVariableArray[j] * ElementArea/integration_points_number;			
+					/* //print
+					std::cout<<ElementDoubleVariableArray[j]<<std::endl;
+					std::cout<<ElementArea/double(integration_points_number)<<std::endl;
+					std::cout<<ElementDoubleVariableArray[j] * ElementArea/double(integration_points_number)<<std::endl;
+					std::cout<<NodesDoubleVariableArray[it]<<std::endl<<std::endl;
+					// */
 				}
 			}
 
@@ -471,16 +472,13 @@ protected:
 				
 				//check size of NodesMatrixVariableArray[it] and resize
 				if(NodesArray1DVariableArray[it].size() != ElementArray1DVariableArray[0].size())
-				{
-					//NodesMatrixVariableArray[it] = ZeroMatrix(ElementMatrixVariableArray[0].size1(), ElementMatrixVariableArray[0].size2());
 					NodesArray1DVariableArray[it].resize( ElementArray1DVariableArray[0].size(), true);
-				}
 				
+				//add weighted element value
 				for(unsigned int j = 0; j < integration_points_number; j++)
 				{
-					//std::cout << "!!!!!!!!!! ARRAY " << NodesArray1DVariableArray[it].size() << std::endl;
-					//std::cout << "!!!!!!!!!! ARRAY element " << ElementArray1DVariableArray[it].size() << std::endl;
-					NodesArray1DVariableArray[it] += ElementArray1DVariableArray[j] * ElementArea/double(integration_points_number);
+					MultiSkalarArray1D(&(ElementArray1DVariableArray[j]), ElementArea/integration_points_number);
+					NodesArray1DVariableArray[it] += ElementArray1DVariableArray[j];
 				}
 			}
 
@@ -492,16 +490,13 @@ protected:
 				
 				//check size of NodesMatrixVariableArray[it] and resize
 				if(NodesVectorVariableArray[it].size() != ElementVectorVariableArray[0].size())
-				{
-					//NodesMatrixVariableArray[it] = ZeroMatrix(ElementMatrixVariableArray[0].size1(), ElementMatrixVariableArray[0].size2());
 					NodesVectorVariableArray[it].resize( ElementVectorVariableArray[0].size(), true);
-				}
 				
+				//add weighted elemental value
 				for(unsigned int j = 0; j < integration_points_number; j++)
 				{
-					//std::cout << "!!!!!!!!!! VECTOR " << NodesVectorVariableArray[it].size() << std::endl;
-					//std::cout << "!!!!!!!!!! VECTOR element " << ElementVectorVariableArray[it].size() << std::endl;
-					NodesVectorVariableArray[it] += ElementVectorVariableArray[j] * ElementArea/double(integration_points_number);
+					MultiSkalarVector(&(ElementVectorVariableArray[j]), ElementArea/integration_points_number);
+					NodesVectorVariableArray[it] += ElementVectorVariableArray[j];
 				}
 			}
 			
@@ -513,17 +508,18 @@ protected:
 				
 				//check size of NodesMatrixVariableArray[it] and resize
 				if(NodesMatrixVariableArray[it].size1() != ElementMatrixVariableArray[0].size1() && NodesMatrixVariableArray[it].size2() != ElementMatrixVariableArray[0].size2())
-				{
-					//NodesMatrixVariableArray[it] = ZeroMatrix(ElementMatrixVariableArray[0].size1(), ElementMatrixVariableArray[0].size2());
 					NodesMatrixVariableArray[it].resize( ElementMatrixVariableArray[0].size1() , ElementMatrixVariableArray[0].size2(), true);
-				}
 				
+				//add weighted elemental value
 				for(unsigned int j = 0; j < integration_points_number; j++)
 				{
-					//std::cout << "!!!!!!!!!! MATRIX " << NodesMatrixVariableArray[it].size1() << " " << NodesMatrixVariableArray[it].size2() << std::endl;
-					//std::cout << "!!!!!!!!!! MATRIX element " << ElementMatrixVariableArray[j].size1() << " " << ElementMatrixVariableArray[j].size2() << std::endl;
-					//MathUtils<double>::AddMatrix(NodesMatrixVariableArray[it], ElementMatrixVariableArray[j], 0, 0);
-					NodesMatrixVariableArray[it] += ElementMatrixVariableArray[j] * ElementArea/double(integration_points_number);
+					MultiSkalarMatrix(&(ElementMatrixVariableArray[j]), ElementArea/integration_points_number);
+					NodesMatrixVariableArray[it] += ElementMatrixVariableArray[j];
+					
+					/*/print result
+					ConvertMatrixToString(&(NodesMatrixVariableArray[it]), auxString);
+					std::cout<<auxString<<std::endl<<std::endl;
+					*/
 				}
 			}
 		}
@@ -541,7 +537,7 @@ protected:
 			//loop over nodal data array1D Variables
 			for(unsigned int i = 0; i < NodesArray1DVariableArray.size(); i++ )
 			{
-				NodesArray1DVariableArray[i] /= Area;
+				MultiSkalarArray1D(&(NodesArray1DVariableArray[i]), (1/Area));
 				ConvertArray1DToString(&(NodesArray1DVariableArray[i]), auxString);
 				nodalData += auxString;
 			}
@@ -549,7 +545,7 @@ protected:
 			//loop over nodal data vector Variables
 			for(unsigned int i = 0; i < NodesVectorVariableArray.size(); i++ )
 			{
-				NodesVectorVariableArray[i] /= Area;
+				MultiSkalarVector(&(NodesVectorVariableArray[i]), (1/Area));
 				ConvertVectorToString(&(NodesVectorVariableArray[i]), auxString);
 				nodalData += auxString;
 			}
@@ -557,7 +553,7 @@ protected:
 			//loop over nodal data matrix Variables
 			for(unsigned int i = 0; i < NodesMatrixVariableArray.size(); i++ )
 			{
-				NodesMatrixVariableArray[i] /= Area;
+				MultiSkalarMatrix(&(NodesMatrixVariableArray[i]), (1/Area));
 				ConvertMatrixToString(&(NodesMatrixVariableArray[i]), auxString);
 				nodalData += auxString;
 			}
@@ -610,6 +606,36 @@ protected:
 		{
 			for (int j = 0; j < (*mat).size2(); j++)
 				output += (std::to_string((*mat)(i,j)) + " ");
+		}
+	}
+	
+	//*******************************************************************************************
+    //*******************************************************************************************
+
+	void MultiSkalarArray1D(array_1d<double,3>* array1D, double skalar)
+	{
+		for (int i = 0; i < (*array1D).size(); i++)
+			(*array1D)[i] = (*array1D)[i] * skalar;
+	}
+	
+	//*******************************************************************************************
+    //*******************************************************************************************
+
+	void MultiSkalarVector(Vector* vec, double skalar)
+	{
+		for (int i = 0; i < (*vec).size(); i++)
+			(*vec)[i] = (*vec)[i] * skalar;
+	}
+	
+	//*******************************************************************************************
+    //*******************************************************************************************
+
+	void MultiSkalarMatrix(Matrix* mat, double skalar)
+	{
+		for (int i = 0; i < (*mat).size1(); i++)
+		{
+			for (int j = 0; j < (*mat).size2(); j++)
+				(*mat)(i,j) = (*mat)(i,j) * skalar;
 		}
 	}
 	
