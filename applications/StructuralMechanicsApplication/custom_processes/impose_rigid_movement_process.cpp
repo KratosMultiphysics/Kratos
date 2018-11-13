@@ -10,15 +10,11 @@
 //
 
 // System includes
-#ifdef _OPENMP
-#include <omp.h>
-#else
-#include <ctime>
-#endif
 
 // External includes
 
 // Project includes
+#include "utilities/openmp_utils.h"
 #include "custom_processes/impose_rigid_movement_process.h"
 
 namespace Kratos
@@ -145,7 +141,7 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     // Reference constraint
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
-    #pragma omp parallel firstprivate(relation, constant)
+    #pragma omp parallel
     {
         ConstraintContainerType constraints_buffer;
 
