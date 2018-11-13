@@ -1,13 +1,13 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import pre_calculated_fluid_algorithm
-BaseAlgorithm = pre_calculated_fluid_algorithm.Algorithm
 import h5py
+import pre_calculated_fluid_algorithm
+BaseAnalysis = pre_calculated_fluid_algorithm.PreCalculatedFluidAnalysis
 
-class Algorithm(BaseAlgorithm):
+class TJunctionAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, varying_parameters)
+        BaseAnalysis.__init__(self, varying_parameters)
         final_time = self.pp.CFD_DEM.AddEmptyValue("FinalTime").GetDouble()
         L = 0.0048 # the channel width
         center_x = 0.0044
@@ -18,15 +18,15 @@ class Algorithm(BaseAlgorithm):
 
     def PerformFinalOperations(self, time = None):
         self.particles_loader.RecordParticlesInBox(self.bbox_watcher)
-        BaseAlgorithm.PerformFinalOperations(self, time)
+        BaseAnalysis.PerformFinalOperations(self, time)
 
     def PerformZeroStepInitializations(self):
-        BaseAlgorithm.PerformZeroStepInitializations(self)
+        BaseAnalysis.PerformZeroStepInitializations(self)
         import hdf5_io_tools
         self.particles_loader = hdf5_io_tools.ParticleHistoryLoader(self.all_model_parts.Get('SpheresPart'), self.disperse_phase_solution.watcher, self.pp, self.main_path)
 
     def FluidSolve(self, time = 'None', solve_system = True):
-        BaseAlgorithm.FluidSolve(self, time, solve_system)
+        BaseAnalysis.FluidSolve(self, time, solve_system)
         self.particles_loader.UpdateListOfAllParticles()
 
     def ModifyResultsFolderName(self, time):

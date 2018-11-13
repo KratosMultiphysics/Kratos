@@ -1,17 +1,17 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.DEMApplication import *
-import swimming_DEM_analysis
 import swimming_DEM_procedures as SDP
 import math
 import numpy as np
-BaseAlgorithm = swimming_DEM_analysis.Algorithm
+import swimming_DEM_analysis
+BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 from matplotlib import pyplot as plt
 import pylab
 
-class Algorithm(BaseAlgorithm):
+class MarineRainAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = dict()):
-        BaseAlgorithm.__init__(self, varying_parameters)
+        BaseAnalysis.__init__(self, varying_parameters)
         self.pp.CFD_DEM.do_search_neighbours = False
         self.pp.CFD_DEM.vorticity_calculation_type = 0
         self.pp.CFD_DEM.do_impose_flow_from_field = True

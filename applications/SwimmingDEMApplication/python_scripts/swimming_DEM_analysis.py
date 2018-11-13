@@ -12,6 +12,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
+from analysis_stage import AnalysisStage
+
 import CFD_DEM_coupling
 import swimming_DEM_procedures as SDP
 import swimming_DEM_gid_output
@@ -66,7 +68,7 @@ class SDEMLogger(object):
         #you might want to specify some extra behavior here.
         pass
 
-class Algorithm(object):
+class SwimmingDEMAnalysis(AnalysisStage):
     def __enter__ (self):
         # sys.stdout = SDEMLogger()
         return self
@@ -74,7 +76,7 @@ class Algorithm(object):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, model, varying_parameters = Parameters("{}")):
+    def __init__(self, model, parameters = Parameters("{}")):
         sys.stdout = SDEMLogger()
         self.StartTimer()
         self.model = model
@@ -85,7 +87,7 @@ class Algorithm(object):
 
         self.pp = self.fluid_solution.pp
 
-        self.SetCouplingParameters(varying_parameters)
+        self.SetCouplingParameters(parameters)
 
         self.SetDispersePhaseAlgorithm()
         self.disperse_phase_solution.coupling_algorithm = weakref.proxy(self)
@@ -104,6 +106,7 @@ class Algorithm(object):
         self.cluster_model_part = self.disperse_phase_solution.cluster_model_part
         self.rigid_face_model_part = self.disperse_phase_solution.rigid_face_model_part
         self.DEM_inlet_model_part = self.disperse_phase_solution.DEM_inlet_model_part
+        super(SwimmingDEMAnalysis, self).__init__(model, self.pp.fluid_parameters)
 
     def SetFluidAlgorithm(self):
         import eulerian_fluid_ready_for_coupling
@@ -130,7 +133,7 @@ class Algorithm(object):
 
         self.pp.CFD_DEM.ValidateAndAssignDefaults(dem_defaults)
 
-    def SetCouplingParameters(self, varying_parameters):
+    def SetCouplingParameters(self, parameters):
 
         # First, read the parameters generated from the interface
         self.ReadDispersePhaseAndCouplingParameters()
@@ -139,7 +142,7 @@ class Algorithm(object):
         self.SetBetaParameters()
 
         # Third, set the parameters fed to the particular case that you are running
-        self.SetCustomBetaParameters(varying_parameters)
+        self.SetCustomBetaParameters(parameters)
 
         # Finally adjust some of the parameters for consistency
         #   This function should be reduced to a minimum since,
@@ -1092,3 +1095,7 @@ class Algorithm(object):
 
     def GetReturnValue(self):
         return 0.0
+
+    # To-do: for the moment, provided for compatibility
+    def _CreateSolver(self):
+        return self.fluid_solution._CreateSolver()

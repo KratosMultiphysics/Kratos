@@ -1,18 +1,18 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import swimming_DEM_analysis
 import swimming_DEM_procedures as SDP
 import math
-BaseAlgorithm = swimming_DEM_analysis.Algorithm
+import swimming_DEM_analysis
+BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 import h5py
 
-class Algorithm(BaseAlgorithm):
+class PreCalculatedFluidAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, varying_parameters)
+        BaseAnalysis.__init__(self, varying_parameters)
         # self.fluid_loader_counter = self.GetFluidLoaderCounter()
 
     def SetBetaParameters(self):
-        BaseAlgorithm.SetBetaParameters(self)
+        BaseAnalysis.SetBetaParameters(self)
         Add = self.pp.CFD_DEM.AddEmptyValue
         Add("fluid_already_calculated").SetBool(True)
         Add("alpha").SetDouble(0.01)
@@ -23,7 +23,7 @@ class Algorithm(BaseAlgorithm):
         Add("do_write_results_to_hdf5").SetBool(True)
 
     def PerformZeroStepInitializations(self):
-        BaseAlgorithm.PerformZeroStepInitializations(self)
+        BaseAnalysis.PerformZeroStepInitializations(self)
         n_nodes = len(self.fluid_model_part.Nodes)
         self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").SetString('/mesh_' + str(n_nodes) + '_nodes.hdf5')
         self.SetFluidLoader()
@@ -37,11 +37,11 @@ class Algorithm(BaseAlgorithm):
 
     def FluidSolve(self, time = 'None', solve_system = True):
         if not self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
-            BaseAlgorithm.FluidSolve(self, time, solve_system = solve_system)
+            BaseAnalysis.FluidSolve(self, time, solve_system = solve_system)
             if self.pp.CFD_DEM["do_write_results_to_hdf5"].GetBool():
                 self.fluid_loader.FillFluidDataStep()
         else:
-            BaseAlgorithm.FluidSolve(self, time, solve_system = False)
+            BaseAnalysis.FluidSolve(self, time, solve_system = False)
             if not self.stationarity:
                 self.fluid_loader.LoadFluid(time)
 

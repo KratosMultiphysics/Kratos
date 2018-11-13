@@ -7,9 +7,9 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import main_script
 
-BaseAlgorithm = main_script.Solution
+BaseAnalysis = main_script.Solution
 
-class Solution(BaseAlgorithm):
+class Solution(BaseAnalysis):
 
     def __init__(self, model, pp):
         self.pp = pp
@@ -42,7 +42,7 @@ class Solution(BaseAlgorithm):
                                                      self.procedures)
 
     def SelectTranslationalScheme(self):
-        translational_scheme = BaseAlgorithm.SelectTranslationalScheme(self)
+        translational_scheme = BaseAnalysis.SelectTranslationalScheme(self)
         translational_scheme_name = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
 
         if translational_scheme is None:
@@ -56,7 +56,7 @@ class Solution(BaseAlgorithm):
             return translational_scheme
 
     def SelectRotationalScheme(self):
-        rotational_scheme = BaseAlgorithm.SelectRotationalScheme(self)
+        rotational_scheme = BaseAnalysis.SelectRotationalScheme(self)
         translational_scheme_name = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
         rotational_scheme_name = self.pp.CFD_DEM["RotationalIntegrationScheme"].GetString()
 

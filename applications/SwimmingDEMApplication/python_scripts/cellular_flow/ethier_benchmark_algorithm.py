@@ -1,19 +1,20 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.DEMApplication import *
-import swimming_DEM_analysis
 import swimming_DEM_procedures as SDP
 import math
 import numpy as np
 import time as timer
-BaseAlgorithm = swimming_DEM_analysis.Algorithm
+import swimming_DEM_analysis
+BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
-class Algorithm(BaseAlgorithm):
+
+class EthierBenchmarkAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, varying_parameters)
+        BaseAnalysis.__init__(self, varying_parameters)
 
     def SetBetaParameters(self):
-        BaseAlgorithm.SetBetaParameters(self)
+        BaseAnalysis.SetBetaParameters(self)
         Add = self.pp.CFD_DEM.AddEmptyValue
         Add("field_identifier").SetString('ethier')
         Add("pressure_grad_recovery_type")
@@ -25,7 +26,7 @@ class Algorithm(BaseAlgorithm):
         Add("print_VECTORIAL_ERROR_option").SetBool(True)
 
     def SetCustomBetaParameters(self, custom_parameters):
-        BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
+        BaseAnalysis.SetCustomBetaParameters(self, custom_parameters)
         self.pp.CFD_DEM.size_parameter = self.pp.CFD_DEM["size_parameter"].GetDouble()
         self.field_identifier = self.pp.CFD_DEM["field_identifier"].GetString()
         self.mesh_tag = self.pp.CFD_DEM["mesh_tag"].GetString()
@@ -53,7 +54,7 @@ class Algorithm(BaseAlgorithm):
         model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
 
     def AddExtraVariables(self, run_code = ''):
-        BaseAlgorithm.AddExtraVariables(self, self.run_code)
+        BaseAnalysis.AddExtraVariables(self, self.run_code)
 
     def GetParticlesResultsCounter(self):
         return SDP.Counter()

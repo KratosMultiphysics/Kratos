@@ -2,14 +2,14 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.DEMApplication import *
 import ethier_benchmark_algorithm
-BaseAlgorithm = ethier_benchmark_algorithm.Algorithm
+BaseAnalysis = ethier_benchmark_algorithm.EthierBenchmarkAnalysis
 
-class Algorithm(BaseAlgorithm):
+class ProductOfSinesBenchmarkAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, varying_parameters)
+        BaseAnalysis.__init__(self, varying_parameters)
 
     def SetBetaParameters(self):
-        BaseAlgorithm.SetBetaParameters(self)
+        BaseAnalysis.SetBetaParameters(self)
         Add = self.pp.CFD_DEM.AddEmptyValue
         Add("field_period").SetDouble(1.0)
 

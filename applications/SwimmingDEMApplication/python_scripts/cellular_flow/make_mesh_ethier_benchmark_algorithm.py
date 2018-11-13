@@ -1,19 +1,18 @@
 from KratosMultiphysics import *
 import ethier_benchmark_algorithm
-BaseAlgorithm = ethier_benchmark_algorithm.Algorithm
+BaseAnalysis = ethier_benchmark_algorithm.EthierBenchmarkAnalysis
 
-
-class Algorithm(BaseAlgorithm):
+class EthierBenchmarkMakeMeshAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, varying_parameters)
+        BaseAnalysis.__init__(self, varying_parameters)
 
     def SetBetaParameters(self):
-        BaseAlgorithm.SetBetaParameters(self)
+        BaseAnalysis.SetBetaParameters(self)
         self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type")
         self.pp.CFD_DEM.AddEmptyValue("size_parameter").SetInt(1)
 
     def SetCustomBetaParameters(self, custom_parameters): # TO DO: remove and make all calls to .size_parameter calls to Parameters object
-        BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
+        BaseAnalysis.SetCustomBetaParameters(self, custom_parameters)
         self.pp.CFD_DEM.size_parameter = self.pp.CFD_DEM["size_parameter"].GetInt()
 
     def ReadFluidModelParts(self):

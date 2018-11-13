@@ -2,14 +2,14 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from DEM_procedures import KratosPrint as Say
-import pre_calculated_fluid_algorithm
-BaseAlgorithm = pre_calculated_fluid_algorithm.Algorithm
 import numpy as np
 import math
+import pre_calculated_fluid_algorithm
+BaseAnalysis = pre_calculated_fluid_algorithm.PreCalculatedFluidAnalysis
 
-class Algorithm(BaseAlgorithm):
+class RotatingAleAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, varying_parameters)
+        BaseAnalysis.__init__(self, varying_parameters)
         self.SetRotator()
         self.time_full_flow = 0.05
         self.inlet_group_number = 4
@@ -19,7 +19,7 @@ class Algorithm(BaseAlgorithm):
         self.rotator = MeshRotationUtility(self.pp.CFD_DEM)
 
     def SetBetaParameters(self):
-        BaseAlgorithm.SetBetaParameters(self)
+        BaseAnalysis.SetBetaParameters(self)
         self.pp.CFD_DEM.AddEmptyValue("ALE_option").SetBool(True)
         Add = self.pp.CFD_DEM.AddEmptyValue
         Add("steps_per_average_step").SetInt(1)
@@ -34,7 +34,7 @@ class Algorithm(BaseAlgorithm):
             self.projection_module.UpdateDatabase(self.h_min)
 
     def AssessStationarity(self):
-        # BaseAlgorithm.AssessStationarity(self)
+        # BaseAnalysis.AssessStationarity(self)
         if self.time > self.pp.CFD_DEM["stationary_start_time"].GetDouble():
            self.stationarity = True
 
@@ -68,7 +68,7 @@ class Algorithm(BaseAlgorithm):
                                                                     self.main_path,
                                                                     averager)
         else:
-            BaseAlgorithm.SetFluidLoader(self)
+            BaseAnalysis.SetFluidLoader(self)
 
     def FluidSolve(self, time='None', solve_system=True):
         self.SetInletVelocity(time)
@@ -79,7 +79,7 @@ class Algorithm(BaseAlgorithm):
             self.fluid_loader.averager.PerformAverage(reference_time = time)
             self.pp.CFD_DEM["averaging_has_already_been_done"].SetBool(True)
 
-        BaseAlgorithm.FluidSolve(self, time, solve_system)
+        BaseAnalysis.FluidSolve(self, time, solve_system)
 
         if rotated_stationary_flow_option and not solve_system:
             self.rotator.RotateFluidVelocities(time)

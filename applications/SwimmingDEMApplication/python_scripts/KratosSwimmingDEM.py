@@ -7,7 +7,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import sys
-
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication   import *
@@ -15,16 +14,19 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
-class Solution:
+from swimming_DEM_analysis import SwimmingDEMAnalysis
+
+class SwimmingDEMAnalysisWithFlush(SwimmingDEMAnalysis):
+    def __init__(self, model, algorithm = None, parameters=Parameters("{}")):
+        super(SwimmingDEMAnalysisWithFlush, self).__init__(model, parameters)
+
     def __enter__ (self):
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, model, algorithm = None, varying_parameters = Parameters("{}")):
-
-        self.model = model
+"""     self.model = model
         if algorithm == None:
             import swimming_DEM_analysis
             self.alg = swimming_DEM_analysis.Algorithm(model, varying_parameters)
@@ -32,8 +34,9 @@ class Solution:
             self.alg = algorithm.Algorithm(model, varying_parameters)
 
     def Run(self):
-        return self.alg.Run()
+        return self.alg.Run() """
 
 if __name__=="__main__":
     model = Model()
-    Solution(model).Run()
+    simulation = SwimmingDEMAnalysisWithFlush(model=model)
+    simulation.Run()

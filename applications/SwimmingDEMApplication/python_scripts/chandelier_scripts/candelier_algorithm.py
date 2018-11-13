@@ -1,7 +1,6 @@
 from KratosMultiphysics import *
 import swimming_DEM_procedures as SDP
 import swimming_DEM_analysis
-BaseAlgorithm = swimming_DEM_analysis.Algorithm
 import math
 import chandelier as ch
 import chandelier_parameters as ch_pp
@@ -12,10 +11,12 @@ def Cross(a, b):
     c2 = a[0]*b[1] - a[1]*b[0]
     return Vector([c0, c1, c2])
 
+import swimming_DEM_analysis
+BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
-class Algorithm(BaseAlgorithm):
+class CandelierBenchmarkAnalysis(BaseAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, model, varying_parameters)
+        BaseAnalysis.__init__(self, model, varying_parameters)
 
     def GetVelocityRelativeToMovingFrame(self, r_rel, v_glob):
         cross_omega_r = Cross(self.frame_angular_vel, r_rel)
@@ -40,7 +41,7 @@ class Algorithm(BaseAlgorithm):
         return SDP.Counter(self.pp.CFD_DEM["debug_tool_cycle"].GetInt(), 1, is_dead = 1)
 
     def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
-        BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
+        BaseAnalysis.SetCustomBetaParameters(self, custom_parameters)
         ch_pp.include_history_force = bool(self.pp.CFD_DEM["basset_force_type"].GetInt())
         ch.sim = ch.AnalyticSimulator(ch_pp)
         self.frame_angular_vel = Vector([0, 0, self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()])

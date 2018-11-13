@@ -1,17 +1,17 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import swimming_DEM_analysis
 import swimming_DEM_procedures as SDP
 import math
-BaseAlgorithm = swimming_DEM_analysis.Algorithm
+import swimming_DEM_analysis
+BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
-class Algorithm(BaseAlgorithm):
+class ColloidsAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = dict()):
-        BaseAlgorithm.__init__(self, varying_parameters)
+        BaseAnalysis.__init__(self, varying_parameters)
         self.cation_concentration_counter = self.GetCationConcentrationCounter()
 
     def SetBetaParameters(self):
-        BaseAlgorithm.SetBetaParameters(self)
+        BaseAnalysis.SetBetaParameters(self)
         self.pp.CFD_DEM.alpha = 0.01
         self.pp["TranslationalIntegrationScheme"].GetString() = 'TerminalVelocityScheme'
         self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)
