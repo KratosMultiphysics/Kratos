@@ -426,6 +426,7 @@ class RefineElementsInEdgesMesherProcess
       pNode->Set(BOUNDARY,false);
       pNode->Set(FREE_SURFACE,false);
       pNode->Set(RIGID,false);
+      pNode->Set(INLET,false);
 
       //set variables
       this->SetNewNodeVariables(rModelPart, pNode);

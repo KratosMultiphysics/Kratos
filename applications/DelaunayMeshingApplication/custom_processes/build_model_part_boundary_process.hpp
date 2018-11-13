@@ -710,6 +710,7 @@ namespace Kratos
                 {
                   //if no neighbour is present => the face is free surface
                   unsigned int rigid_nodes = 0;
+                  unsigned int inlet_nodes = 0;
                   unsigned int free_surface_nodes = 0;
                   for(unsigned int j=1; j<=NumberNodesInFace; ++j)
                   {
@@ -717,6 +718,9 @@ namespace Kratos
                     if(rModelPart.Is(FLUID)){
                       if(rElementGeometry[lpofa(j,iface)].Is(RIGID) || rElementGeometry[lpofa(j,iface)].Is(SOLID)){
                         ++rigid_nodes;
+                      }
+                      else if(rElementGeometry[lpofa(j,iface)].Is(INLET)){
+                        ++inlet_nodes;
                       }
                       else{
                         ++free_surface_nodes;
@@ -726,7 +730,7 @@ namespace Kratos
                   }
 
                   if(rModelPart.Is(FLUID)){
-                    if( (free_surface_nodes>0 && rigid_nodes>0) || rigid_nodes==0 ){
+                    if( (free_surface_nodes>0 && (rigid_nodes>0 || inlet_nodes>0)) || (rigid_nodes==0 && inlet_nodes==0) ){
                       for(unsigned int j=1; j<=NumberNodesInFace; ++j)
                       {
                         rElementGeometry[lpofa(j,iface)].Set(FREE_SURFACE,true);
@@ -832,6 +836,7 @@ namespace Kratos
 		  {
 		    //if no neighbour is present => the face is free surface
                     unsigned int rigid_nodes = 0;
+                    unsigned int inlet_nodes = 0;
                     unsigned int free_surface_nodes = 0;
                     for(unsigned int j=1; j<=NumberNodesInFace; ++j)
                     {
@@ -839,6 +844,9 @@ namespace Kratos
                       if(rModelPart.Is(FLUID)){
                         if(rElementGeometry[lpofa(j,iface)].Is(RIGID) || rElementGeometry[lpofa(j,iface)].Is(SOLID)){
                           ++rigid_nodes;
+                        }
+                        else if(rElementGeometry[lpofa(j,iface)].Is(INLET)){
+                          ++inlet_nodes;
                         }
                         else{
                           ++free_surface_nodes;
@@ -848,7 +856,7 @@ namespace Kratos
                     }
 
                     if(rModelPart.Is(FLUID)){
-                      if( (free_surface_nodes>0 && rigid_nodes>0) || rigid_nodes==0 ){
+                      if( (free_surface_nodes>0 && (rigid_nodes>0 || inlet_nodes>0)) || (rigid_nodes==0 && inlet_nodes==0) ){
                         for(unsigned int j=1; j<=NumberNodesInFace; ++j)
                         {
                           rElementGeometry[lpofa(j,iface)].Set(FREE_SURFACE,true);
