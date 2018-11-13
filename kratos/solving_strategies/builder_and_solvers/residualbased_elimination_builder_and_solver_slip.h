@@ -105,6 +105,8 @@ public:
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > ResidualBasedEliminationBuilderAndSolverType;
+
     typedef typename BaseType::TSchemeType TSchemeType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -139,7 +141,7 @@ public:
     explicit ResidualBasedEliminationBuilderAndSolverSlip(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters
-        ) : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver, ThisParameters)
+        ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -163,7 +165,7 @@ public:
      */
     ResidualBasedEliminationBuilderAndSolverSlip(
         typename TLinearSolver::Pointer pNewLinearSystemSolver, unsigned int dim, TVariableType const& Var_x, TVariableType const& Var_y, TVariableType const& Var_z)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
+        : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
         , mdim(dim), mrVar_x(Var_x), mrVar_y(Var_y), mrVar_z(Var_z)
     {
 
