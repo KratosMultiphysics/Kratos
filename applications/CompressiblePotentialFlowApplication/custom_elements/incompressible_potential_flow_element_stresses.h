@@ -401,19 +401,35 @@ public:
             Matrix lhs_plus_minus = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_minus_plus = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_minus_minus = ZeroMatrix(NumNodes,NumNodes);
-            
-            bounded_matrix<double, 2, 1 > n;
+            Matrix lhs_plus_rhs = ZeroMatrix(NumNodes,Dim);
+            Matrix lhs_minus_rhs = ZeroMatrix(NumNodes,Dim);
+            Matrix forcing_sigma_plus =ZeroMatrix(NumNodes,Dim);
+            Matrix forcing_sigma_minus = ZeroMatrix(NumNodes,Dim); 
+            Matrix forcing_sigma_aux =ZeroMatrix(NumNodes,Dim);
 
+            Vector sigma(Dim);
+
+            Vector n(Dim);
+            Vector shape_func(NumNodes);
+            for (unsigned int i = 0; i<NumNodes; i++)
+                shape_func(i) = data.N(i);
             Matrix lhs_penalty_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_penalty_negative = ZeroMatrix(NumNodes,NumNodes);
-            n(0,0)=0;
-            n(1,0)=1;
+            n(0)=0;
+            n(1)=1;
             sigma_shape_func(0,0)=1.0;
             sigma_shape_func(1,1)=1.0;
-            Matrix normal_gradient=prod(data.DN_DX,n);
-            // double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
+            Vector normal_gradient=prod(n,sigma_shape_func);
 
-            double n_parameter=rCurrentProcessInfo[INITIAL_PENALTY];;
+            for (unsigned int i = 0; i<NumNodes; ++i){
+                for (unsigned int j= 0; j<Dim; ++j){
+                    forcing_sigma_aux(i,j)=data.N(i)*normal_gradient(j);
+                }
+            }
+
+            // double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
+      
+            double n_parameter=rCurrentProcessInfo[INITIAL_PENALTY];
             
             lhs_sigma_sigma=n_parameter*data.vol*sigma_shape_func;
             for(unsigned int i=0; i<nsubdivisions; ++i)
@@ -423,12 +439,15 @@ public:
                     // noalias(lhs_penalty_positive) += Volumes[i] * prod(normal_gradient,trans(normal_gradient));
                     noalias(lhs_plus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
                     noalias(lhs_sigma_plus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
+
+                    noalias(forcing_sigma_plus) += Volumes[i]*forcing_sigma_aux;
                 }
                 else{
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data); //K--
                     // noalias(lhs_penalty_negative) += Volumes[i] * prod(normal_gradient,trans(normal_gradient));
                     noalias(lhs_minus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
                     noalias(lhs_sigma_minus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
+                    noalias(forcing_sigma_minus) += Volumes[i]*forcing_sigma_aux;
                 }
             }
             
@@ -436,6 +455,8 @@ public:
             lhs_plus_minus = prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));   
             lhs_minus_plus = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
             lhs_minus_minus = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));
+            lhs_plus_rhs = prod(lhs_plus_sigma,lhs_sigma_sigma);
+            lhs_minus_rhs = prod(lhs_minus_sigma,lhs_sigma_sigma);
             
             if(kutta_element)
             {
@@ -443,10 +464,10 @@ public:
                 {
                     for(unsigned int j=0; j<NumNodes; ++j)
                     {
-                        rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j);//+penalty*lhs_penalty_positive(i,j); 
+                        rLeftHandSideMatrix(i,j)                   =  (1.0-1.0/n_parameter)*lhs_positive(i,j)+lhs_plus_plus(i,j); 
                         rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
                         
-                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j);//+penalty*lhs_penalty_negative(i,j);
+                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0-1.0/n_parameter)*lhs_negative(i,j)+lhs_minus_minus(i,j);
                         rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                     }
                 }
@@ -493,8 +514,36 @@ public:
                 }
             }
             Vector split_element_values(NumNodes*2);
+            Vector split_plus(NumNodes);
+            Vector split_minus(NumNodes);
+            Vector split_prev_plus(NumNodes);
+            Vector split_prev_minus(NumNodes);
+            Vector residual_sigma(Dim);
+            Vector sigma_aux(Dim);
+            Vector residual_sigma_prev(Dim);
+            Vector rhs_sigma(NumNodes*2);
+            Vector rhs_sigma_plus(NumNodes);
+            Vector rhs_sigma_minus(NumNodes);
+
             GetValuesOnSplitElement(split_element_values, data.distances);
-            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
+            
+            for (unsigned int i = 0; i<NumNodes; ++i){
+                split_plus(i) = split_element_values(i);
+                split_minus(i)= split_element_values(i+NumNodes);
+            }   
+
+
+            residual_sigma = -prod(lhs_sigma_plus,split_plus) - prod(lhs_sigma_minus,split_minus);//-prod(lhs_sigma_sigma,trans(sigma));
+     
+            rhs_sigma_plus=prod(lhs_plus_rhs,residual_sigma);//+prod(forcing_sigma_plus,trans(sigma));
+            rhs_sigma_minus=prod(lhs_minus_rhs,residual_sigma);//+prod(forcing_sigma_minus,trans(sigma));
+            
+            for (unsigned int i = 0; i < NumNodes; ++i){
+                rhs_sigma(i) = rhs_sigma_plus(i);
+                rhs_sigma(i+NumNodes) = rhs_sigma_minus(i);
+            }     
+            
+            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values)+rhs_sigma;
         }
         
     }
@@ -521,6 +570,83 @@ public:
 
         if (this->Is(MARKER) && active == true)
             CheckWakeCondition();
+
+        // ElementalData<NumNodes,Dim> data;
+
+        // //calculate shape functions
+        // GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+        // constexpr unsigned int nvolumes = 3*(Dim-1);
+        // bounded_matrix<double,NumNodes, Dim > Points;
+        // array_1d<double,nvolumes> Volumes;
+        // bounded_matrix<double, nvolumes, NumNodes > GPShapeFunctionValues;
+        // array_1d<double,nvolumes> PartitionsSign;
+        // std::vector<Matrix> GradientsValue(nvolumes);
+        // bounded_matrix<double,nvolumes, 2> NEnriched;
+        
+        // for(unsigned int i=0; i<GradientsValue.size(); ++i)
+        //     GradientsValue[i].resize(2,Dim,false);
+        
+        
+        
+        // for(unsigned int i = 0; i<NumNodes; ++i)
+        // {
+        //     const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
+        //     for(unsigned int k = 0; k<Dim; ++k)
+        //     {
+        //         Points(i, k) = coords[k];
+        //     }
+        // }
+        
+        // const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(Points,
+        //                                                                                 data.DN_DX,
+        //                                                                                 data.distances,
+        //                                                                                 Volumes, 
+        //                                                                                 GPShapeFunctionValues, 
+        //                                                                                 PartitionsSign, 
+        //                                                                                 GradientsValue, 
+        //                                                                                 NEnriched);
+        // Matrix sigma_shape_func = ZeroMatrix(Dim,Dim);
+        // Matrix lhs_sigma_plus = ZeroMatrix(Dim,NumNodes);
+        // Matrix lhs_sigma_minus = ZeroMatrix(Dim,NumNodes);
+        // Matrix lhs_sigma_sigma = ZeroMatrix(Dim,Dim);
+        // sigma_shape_func(0,0)=1.0;
+        // sigma_shape_func(1,1)=1.0;
+       
+        // Vector split_element_values(NumNodes*2);
+        // Vector split_plus(NumNodes);
+        // Vector split_minus(NumNodes);
+        // Vector residual_sigma(Dim);
+        // Vector sigma_aux(Dim);
+        // Vector sigma(Dim);
+        // double n_parameter=2.0;
+        // for (unsigned int i = 0; i<Dim;++i){             
+        //     residual_sigma(i) = GetGeometry()[i].FastGetSolutionStepValue(Y2);
+        // }
+        // // std::cout<<residual_sigma<<std::endl;
+        // GetValuesOnSplitElement(split_element_values, data.distances);
+        
+        // for (unsigned int i = 0; i<NumNodes; ++i){
+        //     split_plus(i) = split_element_values(i);
+        //     split_minus(i)= split_element_values(i+NumNodes);
+        // }   
+
+        // lhs_sigma_sigma=n_parameter*data.vol*sigma_shape_func;
+        // for(unsigned int i=0; i<nsubdivisions; ++i)
+        //     {
+        //         if(PartitionsSign[i] > 0){
+        //             noalias(lhs_sigma_plus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
+        //         }
+        //         else{
+        //             noalias(lhs_sigma_minus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
+        //         }
+        // }
+        // sigma_aux=prod(lhs_sigma_plus, split_plus) + prod(lhs_sigma_minus,split_minus)-residual_sigma;
+        // sigma=prod(lhs_sigma_sigma,sigma_aux);
+        // for (unsigned int i = 0; i<Dim;++i){             
+        //     this -> GetGeometry()[i].FastGetSolutionStepValue(Y1) = sigma(i);
+        // }
+
     }
 
     /**
