@@ -71,8 +71,8 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
             }
         }
 
-        mBossakBeta = std::pow((1.0 + alpha_f - alpha_m), 2) * 0.25;
-        mBossakGamma = 0.5 + alpha_f - alpha_m;
+        mbeta = std::pow((1.0 + alpha_f - alpha_m), 2) * 0.25;
+        mgamma = 0.5 + alpha_f - alpha_m;
     }
 }
 
@@ -143,9 +143,9 @@ void CalculateMeshVelocityUtility::CalculateMeshVelocitiesGeneralizedAlpha(const
 {
     const int num_local_nodes = mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
-    const double const_u = mBossakGamma / (DeltaTime * mBossakBeta);
-    const double const_v = 1.0 - mBossakGamma / mBossakBeta;
-    const double const_a = DeltaTime * (1.0 - mBossakGamma / (2.0 * mBossakBeta));
+    const double const_u = mgamma / (DeltaTime * mbeta);
+    const double const_v = 1.0 - mgamma / mbeta;
+    const double const_a = DeltaTime * (1.0 - mgamma / (2.0 * mbeta));
 
     #pragma omp parallel for
     for (int i=0; i<num_local_nodes; i++) {
@@ -159,7 +159,7 @@ void CalculateMeshVelocityUtility::CalculateMeshVelocitiesGeneralizedAlpha(const
         const auto& r_mesh_a1 = it_node->FastGetSolutionStepValue(MESH_ACCELERATION, 1);
 
         r_mesh_v0 = const_u * (r_mesh_u0 - r_mesh_u1) + const_v * r_mesh_v1 + const_a * r_mesh_a1;
-        r_mesh_a0 = (1.0 / (DeltaTime * mBossakGamma)) * (r_mesh_v0 - r_mesh_v1) - ((1 - mBossakGamma) / mBossakGamma) * r_mesh_a1;
+        r_mesh_a0 = (1.0 / (DeltaTime * mgamma)) * (r_mesh_v0 - r_mesh_v1) - ((1 - mgamma) / mgamma) * r_mesh_a1;
     }
 
     mrModelPart.GetCommunicator().SynchronizeVariable(MESH_ACCELERATION);

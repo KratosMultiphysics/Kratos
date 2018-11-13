@@ -129,8 +129,8 @@ private:
 
     IntegrationMethod mIntegrationMethod;
 
-    double mBossakBeta;
-    double mBossakGamma;
+    double mbeta;
+    double mgamma;
 
     ///@}
     ///@name Private Operations
