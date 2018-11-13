@@ -1,6 +1,7 @@
 import warnings
 import co_simulation_data_structure
 cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTURE__
+import math
 ## Class contains definition of colors. This is to be used as a struct
 #
 # Example usage print(bcolors.HEADER + "This is a header in header color" + bcolor.ENDC)
@@ -31,3 +32,64 @@ def ImportDataStructure(parameters_file_name):
         cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTURE__
 
     return cs_data_structure
+
+
+def InnterProduct(list_one, list_two):
+    result = 0.0
+    num_entries = len(list_one)
+    if(len(list_one) == len(list_two)):
+        for i in range(num_entries):
+            component_one = list_one[i]
+            component_two = list_two[i]
+            result += component_one * component_two
+
+    return result
+
+## CalculateNorm : Calculates the two norm of the list (residual) passed in
+#                       Variants of this class can use numpy for calculating this norm.
+#
+#  @param self            The object pointer
+#  @param residual_list   The list of the residual
+def CalculateNorm(residual_list): ## Can use numpy here.
+    norm = 0.0
+    num_entries = len(residual_list)
+    for residual in residual_list:
+        norm += residual * residual
+
+    norm = math.sqrt(norm)/num_entries
+    return norm
+
+
+## GetDataAsList : Converts the data as a python list.
+#                       variants of this class can use numpy array
+#
+#  @param self            The object pointer
+def GetDataAsList(solver, data_name):
+    data = []
+    data_def = solver.data_list[data_name]
+    data_mesh = solver.model[data_def["geometry_name"].GetString()]
+    data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
+    for node in data_mesh.Nodes:
+        data_value = node.GetSolutionStepValue(data_variable,0)
+        for value in data_value:
+            data.append(value)
+
+    return data
+
+## ApplyUpdateToData : Converts the data as a python list.
+#                       variants of this class can use numpy array
+#
+#  @param self            The object pointer
+def ApplyUpdateToData(solver, data_name, update):
+    data_def = solver.data_list[data_name]
+    data_mesh = solver.model[data_def["geometry_name"].GetString()]
+    data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
+    index = 0
+
+    for node in data_mesh.Nodes:
+        updated_value = []
+        value = node.GetSolutionStepValue(data_variable,0)
+        for i, value_i in enumerate(value):
+            updated_value.append(value_i + update[index])
+        node.SetSolutionStepValue(data_variable, updated_value)
+        index = index + 1
