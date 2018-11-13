@@ -179,8 +179,8 @@ void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
         const Vector& rShapeFunctionsValues)
 {
     mDeterminantF0                = 1;
-    mInverseDeformationGradientF0 = identity_matrix<double> (3);
-    mElasticLeftCauchyGreen       = identity_matrix<double> (3);
+    mInverseDeformationGradientF0 = IdentityMatrix(3);
+    mElasticLeftCauchyGreen       = IdentityMatrix(3);
 
     mPlasticRegion = 0;
 
@@ -247,7 +247,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
     PlasticMaterialResponseVariables PlasticVariables;
-    ElasticVariables.Identity = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = IdentityMatrix( 3 );
 
     ElasticVariables.SetElementGeometry(domain_geometry);
     ElasticVariables.SetShapeFunctionsValues(shape_functions);

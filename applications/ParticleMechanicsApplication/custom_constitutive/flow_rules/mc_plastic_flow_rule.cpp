@@ -568,7 +568,7 @@ void MCPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVari
     //Elastoplastic constitutive matrix
     if (rReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION))
     {
-        Matrix t = identity_matrix<double> (6);
+        Matrix t = IdentityMatrix(6);
         Matrix aux_T = ZeroMatrix(3,3);
         Matrix aux_T_inv = ZeroMatrix(3,3);
 

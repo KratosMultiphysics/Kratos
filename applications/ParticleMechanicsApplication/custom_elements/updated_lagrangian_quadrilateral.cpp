@@ -147,7 +147,7 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
-    mDeformationGradientF0 = identity_matrix<double> (dimension);
+    mDeformationGradientF0 = IdentityMatrix(dimension);
 
     // Compute initial jacobian matrix and inverses
     Matrix J0 = ZeroMatrix(dimension, dimension);
@@ -434,7 +434,7 @@ void UpdatedLagrangianQuadrilateral::CalculateKinematics(GeneralVariables& rVari
 
     // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix I = identity_matrix<double>(dimension);
+    Matrix I = IdentityMatrix(dimension);
     Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     gradient_displacement = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
@@ -1149,7 +1149,7 @@ Matrix& UpdatedLagrangianQuadrilateral::CalculateCurrentDisp(Matrix & rCurrentDi
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    rCurrentDisp = zero_matrix<double>( number_of_nodes, dimension);
+    rCurrentDisp = ZeroMatrix( number_of_nodes, dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
