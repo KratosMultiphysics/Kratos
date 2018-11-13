@@ -84,6 +84,10 @@ class ComponentsALMHyperSimplePatchTestWithEliminationContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination"
 
+class ComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact(TestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hyper_simple_patch_test_with_elimination_with_constraints"
+
 class ComponentsALMHyperSimpleSlopePatchTestContact(TestFactory):
     frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"

@@ -55,22 +55,23 @@ from SmallTests import ALMThreeDPatchMatchingTestContact                        
 from SmallTests import ALMThreeDPatchNotMatchingTestContact                        as TALMThreeDPatchNotMatchingTestContact
 
 # Components ALM frictionless tests
-from SmallTests import ComponentsALMHyperSimpleTrianglePatchTestContact              as TComponentsALMHyperSimpleTrianglePatchTestContact
-from SmallTests import ComponentsALMHyperSimplePatchTestContact                      as TComponentsALMHyperSimplePatchTestContact
-from SmallTests import ComponentsALMHyperSimplePatchTestWithEliminationContact       as TComponentsALMHyperSimplePatchTestWithEliminationContact
-from SmallTests import ComponentsALMHyperSimpleSlopePatchTestContact                 as TComponentsALMHyperSimpleSlopePatchTestContact
-from SmallTests import ComponentsALMTwoDPatchComplexGeomTestContact                  as TComponentsALMTwoDPatchComplexGeomTestContact
-from SmallTests import ComponentsALMTwoDPatchComplexGeomSlopeTestContact             as TComponentsALMTwoDPatchComplexGeomSlopeTestContact
-from SmallTests import ComponentsALMSimplePatchTestContact                           as TComponentsALMSimplePatchTestContact
-from SmallTests import ComponentsALMSimpleSlopePatchTestContact                      as TComponentsALMSimpleSlopePatchTestContact
-from SmallTests import ComponentsALMSimplePatchNotMatchingATestContact               as TComponentsALMSimplePatchNotMatchingATestContact
-from SmallTests import ComponentsALMSimplePatchNotMatchingBTestContact               as TComponentsALMSimplePatchNotMatchingBTestContact
-from SmallTests import ComponentsALMThreeDSimplestPatchMatchingTestContact           as TComponentsALMThreeDSimplestPatchMatchingTestContact
-from SmallTests import ComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact as TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact
-from SmallTests import ComponentsALMThreeDSimplestPatchMatchingSlopeTestContact      as TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact
-from SmallTests import ComponentsALMThreeDPatchComplexGeomTestContact                as TComponentsALMThreeDPatchComplexGeomTestContact
-from SmallTests import ComponentsALMThreeDPatchMatchingTestContact                   as TComponentsALMTThreeDPatchMatchingTestContact
-from SmallTests import ComponentsALMThreeDPatchNotMatchingTestContact                as TComponentsALMThreeDPatchNotMatchingTestContact
+from SmallTests import ComponentsALMHyperSimpleTrianglePatchTestContact                      as TComponentsALMHyperSimpleTrianglePatchTestContact
+from SmallTests import ComponentsALMHyperSimplePatchTestContact                              as TComponentsALMHyperSimplePatchTestContact
+from SmallTests import ComponentsALMHyperSimplePatchTestWithEliminationContact               as TComponentsALMHyperSimplePatchTestWithEliminationContact
+from SmallTests import ComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact as TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact
+from SmallTests import ComponentsALMHyperSimpleSlopePatchTestContact                         as TComponentsALMHyperSimpleSlopePatchTestContact
+from SmallTests import ComponentsALMTwoDPatchComplexGeomTestContact                          as TComponentsALMTwoDPatchComplexGeomTestContact
+from SmallTests import ComponentsALMTwoDPatchComplexGeomSlopeTestContact                     as TComponentsALMTwoDPatchComplexGeomSlopeTestContact
+from SmallTests import ComponentsALMSimplePatchTestContact                                   as TComponentsALMSimplePatchTestContact
+from SmallTests import ComponentsALMSimpleSlopePatchTestContact                              as TComponentsALMSimpleSlopePatchTestContact
+from SmallTests import ComponentsALMSimplePatchNotMatchingATestContact                       as TComponentsALMSimplePatchNotMatchingATestContact
+from SmallTests import ComponentsALMSimplePatchNotMatchingBTestContact                       as TComponentsALMSimplePatchNotMatchingBTestContact
+from SmallTests import ComponentsALMThreeDSimplestPatchMatchingTestContact                   as TComponentsALMThreeDSimplestPatchMatchingTestContact
+from SmallTests import ComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact         as TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact
+from SmallTests import ComponentsALMThreeDSimplestPatchMatchingSlopeTestContact              as TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact
+from SmallTests import ComponentsALMThreeDPatchComplexGeomTestContact                        as TComponentsALMThreeDPatchComplexGeomTestContact
+from SmallTests import ComponentsALMThreeDPatchMatchingTestContact                           as TComponentsALMTThreeDPatchMatchingTestContact
+from SmallTests import ComponentsALMThreeDPatchNotMatchingTestContact                        as TComponentsALMThreeDPatchNotMatchingTestContact
 
 # ALM frictionless tests
 from SmallTests import ALMHyperSimplePatchFrictionalTestContact                      as TALMHyperSimplePatchFrictionalTestContact
@@ -168,6 +169,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TComponentsALMHyperSimpleTrianglePatchTestContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimplePatchTestContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationContact('test_execution'))
+    smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimpleSlopePatchTestContact('test_execution'))
     smallSuite.addTest(TComponentsALMTwoDPatchComplexGeomTestContact('test_execution'))
     smallSuite.addTest(TComponentsALMTwoDPatchComplexGeomSlopeTestContact('test_execution'))
@@ -288,6 +290,7 @@ def AssembleTestSuites():
             TComponentsALMHyperSimpleTrianglePatchTestContact,
             TComponentsALMHyperSimplePatchTestContact,
             TComponentsALMHyperSimplePatchTestWithEliminationContact,
+            TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact,
             TComponentsALMHyperSimpleSlopePatchTestContact,
             TComponentsALMTwoDPatchComplexGeomTestContact,
             TComponentsALMTwoDPatchComplexGeomSlopeTestContact,
