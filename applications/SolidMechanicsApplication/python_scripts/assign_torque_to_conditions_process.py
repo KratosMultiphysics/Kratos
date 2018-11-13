@@ -71,9 +71,8 @@ class AssignModulusAndDirectionToConditionsProcess(BaseProcess.AssignModulusAndD
 
         self.CreateAssignmentProcess(params)
 
-        if( self.IsInsideInterval() and self.interval_string == "initial" ):
+        if( self.IsInsideInterval() and (self.interval_string == "initial" or self.interval_string == "start") ):
             self.AssignValueProcess.Execute()
-
 
     #
     def CreateAssignmentProcess(self, params):

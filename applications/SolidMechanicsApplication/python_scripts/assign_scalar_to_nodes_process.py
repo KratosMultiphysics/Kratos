@@ -74,6 +74,8 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.interval_string = "custom"
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
             self.interval_string = "initial"
+        elif( self.interval[0] < 0 ):
+            self.interval_string = "start"
 
         ## set the value
         self.value_is_numeric = False
@@ -148,7 +150,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                 for process in self.FixDofsProcesses:
                     process.Execute()
 
-            if( self.interval_string == "initial" ):
+            if( self.interval_string == "initial" or self.interval_string == "start" ):
                 self.ExecuteInitialAssignment()
 
     def ExecuteInitializeSolutionStep(self):

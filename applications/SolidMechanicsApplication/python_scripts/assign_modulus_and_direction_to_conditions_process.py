@@ -72,7 +72,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         self.interval_string = "custom"
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
             self.interval_string = "initial"
-
+        elif( self.interval[0] < 0 ):
+            self.interval_string = "start"
 
         ##check normalized direction
         direction   = []
@@ -141,7 +142,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         self.CreateAssignmentProcess(params)
 
         self.SetCurrentTime()
-        if( self.IsInsideInterval() and self.interval_string == "initial" ):
+        if( self.IsInsideInterval() and (self.interval_string == "initial" or self.interval_string == "start") ):
             self.AssignValueProcess.Execute()
 
 
