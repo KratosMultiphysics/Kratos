@@ -107,8 +107,8 @@
             "model_part_name"                : "MPM_Material",
             "time_frequency"                 : 0.09
         }
-    }],
-    "print_output_process" : [{
+    },
+    {
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "",
