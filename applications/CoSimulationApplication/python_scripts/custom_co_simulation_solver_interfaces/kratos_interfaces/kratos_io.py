@@ -66,9 +66,6 @@ class KratosIo(CoSimulationBaseIO):
                     mapper_settings["mapper_type"].SetString(data_config["mapper_settings"]["type"].GetString())
                     origin_geo = from_solver.model[origin_geo_name]
                     dest_geo = self.model[dest_geo_name]
-                    print("origin_geo :: ",origin_geo)
-                    print("dest_geo :: ",dest_geo)
-
                     mapper = self.SetupMapper(origin_geo, dest_geo, mapper_settings)
 
                 flags = data_config["mapper_settings"]["flags"]
