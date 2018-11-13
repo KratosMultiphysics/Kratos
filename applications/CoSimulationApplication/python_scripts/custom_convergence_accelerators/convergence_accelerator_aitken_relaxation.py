@@ -88,17 +88,18 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
                 denominator = 1.0
             self.current_alpha = -self.alpha_old * numerator/denominator
             print( cs_tools.bcolors.BLUE + "\tAitken: Doing relaxation with factor = " + cs_tools.bcolors.ENDC, self.current_alpha )
-            if self.current_alpha > 2:
-                self.current_alpha = 2
+            if self.current_alpha > self.alpha_max:
+                self.current_alpha = self.alpha_max
                 print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches upper bound: 2" + cs_tools.bcolors.ENDC)
-            elif self.current_alpha < -2:
-                self.current_alpha = -2
+            elif self.current_alpha < -self.alpha_max:
+                self.current_alpha = -self.alpha_max
                 print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches lower bound: -2" + cs_tools.bcolors.ENDC)
             self.update = [data * self.current_alpha for data in self.R[0]]
             self.alpha_old = self.current_alpha
 
     def InitializeSolutionStep(self):
         self.iteration = 0
+        self.alpha_old = self.initial_alpha
         self.data_prev_iter = self.data_current_iter
 
     def FinalizeSolutionStep(self):
