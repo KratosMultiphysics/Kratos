@@ -36,7 +36,7 @@ namespace Kratos
 /** This class manages a registry of DataCommunicators, which can be used to perform MPI communication.
  *  @see DataCommunicator, MPIDataCommunicator.
  */
-class ParallelEnvironment
+class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 {
   public:
     ///@name Type Definitions
