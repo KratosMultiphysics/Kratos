@@ -571,8 +571,10 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
-        .def(py::init<Parameters, Model&>())
-        ;
+    .def(py::init<Model&>())
+    .def(py::init<Parameters, Model&>())
+    .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
+    ;
 
     // SubModelParts List Utility
     py::class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")

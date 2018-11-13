@@ -59,11 +59,14 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@name Type Definitions
     ///@{
 
+    /// Definition of the index type
     typedef std::size_t IndexType;
 
-    //typedef std::size_t SizeType;
+    /// Definition of the size type
+    typedef std::size_t SizeType;
 
-    //typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
+    /// Definition of the mesh id (always zero)
+    static constexpr IndexType mesh_id = 0;
 
     ///@}
     ///@name Pointer Definitions
@@ -75,18 +78,42 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@name Life Cycle
     ///@{
 
-    ReadMaterialsUtility(Parameters Params, Model& rModel);
+    /**
+     * @brief Default constructor
+     * @param rModel The model containing the problem to solve
+     */
+    ReadMaterialsUtility(Model& rModel);
 
+    /**
+     * @brief Constructor reading directly from file, via parameters
+     * @param Params The configuration parameters telling where the configuration file can be found
+     * @param rModel The model containing the problem to solve
+     */
+    ReadMaterialsUtility(
+        Parameters Params,
+        Model& rModel
+        );
+
+    /**
+     * @brief Constructor reading directly from file, via text
+     * @param Params The string telling where the configuration file can be found
+     * @param rModel The model containing the problem to solve
+     */
     ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
 
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This reads the properties from parameters
+     * @param Params The configuration parameters defining the properties
+     */
+    void ReadMaterials(Parameters Params);
 
     ///@}
     ///@name Access
