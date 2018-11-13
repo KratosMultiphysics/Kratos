@@ -6,7 +6,8 @@ try:
     import KratosMultiphysics.ExternalSolversApplication
 except ImportError:
     pass
-
+import time
+import sys
 from analysis_stage import AnalysisStage
 
 class FluidDynamicsAnalysis(AnalysisStage):
@@ -112,6 +113,46 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
     def _GetSimulationName(self):
         return "Fluid Dynamics Analysis"
+
+class FluidDynamicsAnalysisWithFlush(FluidDynamicsAnalysis):
+
+    def __init__(self,model,project_parameters,flush_frequency=10.0):
+        super(FluidDynamicsAnalysisWithFlush,self).__init__(model,project_parameters)
+        self.flush_frequency = flush_frequency
+        self.last_flush = time.time()
+
+    def ModifyInitialGeometry(self):
+        # Set the initial distance field
+        # init_h = 1.0
+        # for node in self._GetSolver().GetComputingModelPart().Nodes:
+        #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.X - init_h)
+
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            distance = node.X - 1.0
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, distance)
+
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            if node.Y > 0.999:
+                nFix = node.Id
+                break
+
+        # Fix velocity in the bottom right corner
+        # v_zero = KratosMultiphysics.Vector(3,0.0)
+        # self._GetSolver().GetComputingModelPart().GetNode(nFix).Fix(KratosMultiphysics.VELOCITY_X)
+        # self._GetSolver().GetComputingModelPart().GetNode(nFix).Fix(KratosMultiphysics.VELOCITY_Y)
+        # self._GetSolver().GetComputingModelPart().GetNode(nFix).SetSolutionStepValue(KratosMultiphysics.VELOCITY, v_zero)
+        self._GetSolver().GetComputingModelPart().GetNode(nFix).Fix(KratosMultiphysics.PRESSURE)
+        self._GetSolver().GetComputingModelPart().GetNode(nFix).SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0.0)
+
+
+    def FinalizeSolutionStep(self):
+        super(FluidDynamicsAnalysisWithFlush,self).FinalizeSolutionStep()
+
+        if self.parallel_type == "OpenMP":
+            now = time.time()
+            if now - self.last_flush > self.flush_frequency:
+                sys.stdout.flush()
+                self.last_flush = now
 
 if __name__ == '__main__':
     from sys import argv

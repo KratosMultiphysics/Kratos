@@ -5,13 +5,15 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication
 
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from fluid_dynamics_analysis import FluidDynamicsAnalysisWithFlush
 import time
+import sys
 
 class python_parameters:
     def __init__(self):
         pass
 
-class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysis):
+class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysisWithFlush):
 
     def __init__(self, model, parameters=None,flush_frequency=10.0):
 

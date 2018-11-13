@@ -72,9 +72,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
-        
+
         # Modify the JSON TODO --------------------------------------------------------------------------------------
-        self.condition_name = "BehrWallCondition"
+        #self.condition_name = "BehrWallCondition"
 
         self.min_buffer_size = 3
 
