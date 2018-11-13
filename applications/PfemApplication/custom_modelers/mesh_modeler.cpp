@@ -148,10 +148,8 @@ namespace Kratos
     //Refine and Remove nodes processes
     ////////////////////////////////////////////////////////////
     if( mPreMeshingProcesses.size() )
-      for(unsigned int i=0; i<mPreMeshingProcesses.size(); i++){
-         std::cout<<mPreMeshingProcesses[i]<<std::endl;
-	      mPreMeshingProcesses[i]->Execute();
-      }
+      for(unsigned int i=0; i<mPreMeshingProcesses.size(); i++)
+	    mPreMeshingProcesses[i]->Execute();
     ////////////////////////////////////////////////////////////
 
     KRATOS_CATCH( "" )
@@ -169,10 +167,8 @@ namespace Kratos
     //Rebuild Boundary processes
     ////////////////////////////////////////////////////////////
     if( mPostMeshingProcesses.size() )
-      for(unsigned int i=0; i<mPostMeshingProcesses.size(); i++){
-         std::cout<<mPostMeshingProcesses[i]<<std::endl;
-	      mPostMeshingProcesses[i]->Execute();
-      }
+      for(unsigned int i=0; i<mPostMeshingProcesses.size(); i++)
+	    mPostMeshingProcesses[i]->Execute();
     ////////////////////////////////////////////////////////////
 
  

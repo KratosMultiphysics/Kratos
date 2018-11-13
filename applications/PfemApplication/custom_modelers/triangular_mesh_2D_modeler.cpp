@@ -29,8 +29,6 @@ namespace Kratos
   {
 
     KRATOS_TRY
-
-    std::cout<<"-----TriangularMesh2DModeler::Generate()-----"<<std::endl;
  
     this->StartEcho(rModelPart,"PFEM Remesh");
     
