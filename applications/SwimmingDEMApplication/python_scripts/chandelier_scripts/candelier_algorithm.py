@@ -1,7 +1,7 @@
 from KratosMultiphysics import *
 import swimming_DEM_procedures as SDP
-import swimming_DEM_algorithm
-BaseAlgorithm = swimming_DEM_algorithm.Algorithm
+import swimming_DEM_analysis
+BaseAlgorithm = swimming_DEM_analysis.Algorithm
 import math
 import chandelier as ch
 import chandelier_parameters as ch_pp

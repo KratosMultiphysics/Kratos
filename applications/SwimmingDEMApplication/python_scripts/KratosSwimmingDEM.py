@@ -26,8 +26,8 @@ class Solution:
 
         self.model = model
         if algorithm == None:
-            import swimming_DEM_algorithm
-            self.alg = swimming_DEM_algorithm.Algorithm(model, varying_parameters)
+            import swimming_DEM_analysis
+            self.alg = swimming_DEM_analysis.Algorithm(model, varying_parameters)
         else:
             self.alg = algorithm.Algorithm(model, varying_parameters)
 

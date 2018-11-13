@@ -1,12 +1,12 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.DEMApplication import *
-import swimming_DEM_algorithm
+import swimming_DEM_analysis
 import swimming_DEM_procedures as SDP
 import math
 import numpy as np
 import time as timer
-BaseAlgorithm = swimming_DEM_algorithm.Algorithm
+BaseAlgorithm = swimming_DEM_analysis.Algorithm
 
 class Algorithm(BaseAlgorithm):
     def __init__(self, varying_parameters = Parameters("{}")):

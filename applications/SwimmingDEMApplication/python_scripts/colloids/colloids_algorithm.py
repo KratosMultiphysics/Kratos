@@ -1,9 +1,9 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-import swimming_DEM_algorithm
+import swimming_DEM_analysis
 import swimming_DEM_procedures as SDP
 import math
-BaseAlgorithm = swimming_DEM_algorithm.Algorithm
+BaseAlgorithm = swimming_DEM_analysis.Algorithm
 
 class Algorithm(BaseAlgorithm):
     def __init__(self, varying_parameters = dict()):

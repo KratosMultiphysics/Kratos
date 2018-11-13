@@ -5,13 +5,13 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import swimming_DEM_algorithm
+import swimming_DEM_analysis
 import swimming_DEM_procedures as SDP
 import variables_management as vars_man
 
 sys.path.insert(0,'')
 #import DEM_explicit_solver_var as DEM_parameters
-BaseAlgorithm = swimming_DEM_algorithm.Algorithm
+BaseAlgorithm = swimming_DEM_analysis.Algorithm
 
 class Algorithm(BaseAlgorithm):
 
