@@ -244,7 +244,7 @@ Vector&  HyperElasticUP3DLaw::CalculateVolumetricPressureFactors (const Material
     double Pressure = 0;
     Pressure = this->CalculateVolumetricPressure( rElasticVariables, Pressure );
 
-    if(rFactors.size()!=3) rFactors.resize(3);
+    if(rFactors.size()!=3) rFactors.resize(3,false);
 
     rFactors[0] =  1.0;
     rFactors[1] =  2.0;

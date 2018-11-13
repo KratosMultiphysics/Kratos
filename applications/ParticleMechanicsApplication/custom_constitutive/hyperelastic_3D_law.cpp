@@ -443,7 +443,7 @@ Vector&  HyperElastic3DLaw::CalculateVolumetricPressureFactors (const MaterialRe
 {
     double BulkModulus = rElasticVariables.LameLambda + (2.0/3.0) * rElasticVariables.LameMu;
 
-    if(rFactors.size()!=3) rFactors.resize(3);
+    if(rFactors.size()!=3) rFactors.resize(3,false);
 
     //(ln(J))
     rFactors[0] =  1.0;
