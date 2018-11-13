@@ -176,7 +176,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
                 model_part.CreateNewElement("UpdatedLagrangian3D8N", 2, [2,9,10,3,6,11,12,7], model_part.GetProperties()[1])
 
 
-    def _search_background_element(self, current_model, new_coordinate, max_num_results = 1000, specific_tolerance = 1.e-5):
+    def _move_and_search_element(self, current_model, new_coordinate, max_num_results = 1000, specific_tolerance = 1.e-5):
         # Get model part
         material_model_part = current_model.GetModelPart("dummy_name")
         grid_model_part     = current_model.GetModelPart("Background_Grid")
@@ -211,15 +211,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=2, geometry_element="Triangle", is_structured=True)
 
         new_coordinate = [0.5, 0.5, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3])
 
         new_coordinate = [0.50001, 0.50001, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,3,5])
 
         new_coordinate = [1.00001, 1.00001, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleTriangle3DStructured(self):
@@ -227,27 +227,27 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=True)
 
         new_coordinate = [0.5, 0.25, 0.20]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
         new_coordinate = [0.90, 0.55, 0.90]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,8,4,6])
 
         new_coordinate = [0.10, 0.90, 0.55]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [4,8,3,7])
 
         new_coordinate = [0.90, 0.90, 0.55]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,5,3,8])
 
         new_coordinate = [0.50, 0.50, 0.50]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [8,3,2,4])
 
         new_coordinate = [1.0001, 1.0001, 1.0001]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleQuadrilateral2DStructured(self):
@@ -255,15 +255,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=True)
 
         new_coordinate = [-0.11111, 0.12345, 1.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
         new_coordinate = [0.6, 0.12345, 1.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,9,10,3])
 
         new_coordinate = [1.00001, 1.00001, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleQuadrilateral3DStructured(self):
@@ -271,15 +271,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=True)
 
         new_coordinate = [0.5, 0.25, 0.20]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4,5,6,7,8])
 
         new_coordinate = [0.7, 0.35, 0.3]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,9,10,3,6,11,12,7])
 
         new_coordinate = [0.50001, 0.50001, 0.50001]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleTriangle2DUnstructured(self):
@@ -287,15 +287,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=2, geometry_element="Triangle", is_structured=False)
 
         new_coordinate = [1.31967, 1.85246, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3])
 
         new_coordinate = [1.72951, 0.491803, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,3,5])
 
         new_coordinate = [3.00001, 3.00001, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
 
@@ -304,15 +304,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False)
 
         new_coordinate = [1.31967, 1.85246, 1.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
         new_coordinate = [1.72951, 0.491803, 0.1]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,3,5,4])
 
         new_coordinate = [3.00001, 3.00001, 1.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleQuadrilateral2DUnstructured(self):
@@ -320,15 +320,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=False)
 
         new_coordinate = [-0.11111, 0.12345, 1.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
         new_coordinate = [0.6, 0.12345, 1.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,9,10,3])
 
         new_coordinate = [1.00001, 1.00001, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleQuadrilateral3DUnstructured(self):
@@ -336,15 +336,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=False)
 
         new_coordinate = [0.5, 0.25, 0.20]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4,5,6,7,8])
 
         new_coordinate = [0.7, 0.35, 0.3]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,9,10,3,6,11,12,7])
 
         new_coordinate = [0.70001, 0.20001, 1.20001]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleTriangle2DUnstructuredFine(self):
@@ -352,15 +352,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=2, geometry_element="Triangle", is_structured=False, is_fine=True)
 
         new_coordinate = [1.31967e-7, 1.85246e-7, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3])
 
         new_coordinate = [1.72951e-7, 0.491803e-7, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,3,5])
 
         new_coordinate = [3.00001e-7, 3.00001e-7, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleTriangle3DUnstructuredFine(self):
@@ -368,15 +368,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=3, geometry_element="Triangle", is_structured=False, is_fine=True)
 
         new_coordinate = [1.31967e-7, 1.85246e-7, 1.0e-7]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
         new_coordinate = [1.72951e-7, 0.491803e-7, 0.1e-7]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,3,5,4])
 
         new_coordinate = [3.00001e-7, 3.00001e-7, 1.0e-7]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleQuadrilateral2DUnstructuredFine(self):
@@ -384,15 +384,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=2, geometry_element="Quadrilateral", is_structured=False, is_fine=True)
 
         new_coordinate = [-0.11111e-7, 0.12345e-7, 1.0e-7]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4])
 
         new_coordinate = [0.6e-7, 0.12345e-7, 1.0e-7]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,9,10,3])
 
         new_coordinate = [1.00001e-7, 1.00001e-7, 0.0]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
     def test_SearchMPMParticleQuadrilateral3DUnstructuredFine(self):
@@ -400,15 +400,15 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
         self._generate_particle_element(current_model, dimension=3, geometry_element="Quadrilateral", is_structured=False, is_fine=True)
 
         new_coordinate = [0.5e-7, 0.25e-7, 0.20e-7]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [1,2,3,4,5,6,7,8])
 
         new_coordinate = [0.7e-7, 0.35e-7, 0.3e-7]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model, [2,9,10,3,6,11,12,7])
 
         new_coordinate = [0.70001e-7, 0.20001e-7, 1.20001e-7]
-        self._search_background_element(current_model, new_coordinate)
+        self._move_and_search_element(current_model, new_coordinate)
         self._check_connectivity(current_model)
 
 if __name__ == '__main__':
