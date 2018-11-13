@@ -40,6 +40,7 @@
 
 //MiddleMeshing processes
 #include "custom_processes/refine_mesh_elements_on_size_process.hpp"
+#include "custom_processes/cpt_refine_mesh_elements_on_size_process.hpp"
 #include "custom_processes/print_output_mesh_process.hpp"
 
 //PostMeshing processes
@@ -139,7 +140,12 @@ namespace Kratos
 	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
 	 )
 	;
-
+      
+      class_<CptRefineMeshElementsOnSizeProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "SetElementsToRefineOnSizeCPT", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+	 )
+	;
       class_<RefineMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
       	 "RefineMeshBoundary", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
