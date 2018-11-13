@@ -1,0 +1,110 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time"   : 10.0,
+        "echo_level" : 1,
+        "data_structure" : "kratos"
+    },
+    "coupled_solver_settings" :
+    {
+        "name" : "mok_fsi",
+        "solver_type" : "gauss_seidel_loose_coupling",
+        "echo_level" : 1,
+        "start_coupling_time" : 2,
+        "participants":
+        [
+        {
+            "name": "fluid",
+            "input_data_list": [
+                {
+                    "from_solver" : "structure",
+                    "data_name"   : "DISPLACEMENT",
+                    "settings"    : {
+                        "destination_data":"MESH_DISPLACEMENT",
+                        "mapper_settings":{
+                               "type":"nearest_neighbor",
+                               "flags":[]
+                        }
+                    }
+                }
+            ],
+            "output_data_list": [
+                {
+                    "data_name"   : "REACTION"
+                }
+            ]
+        },
+        {
+            "name": "structure",
+            "input_data_list": [
+                {
+                    "from_solver" : "fluid",
+                    "data_name"   : "REACTION",
+                    "settings"   : {
+                        "destination_data":"POINT_LOAD",
+                        "mapper_settings":{
+                               "type":"nearest_neighbor",
+                               "flags":["swap_sign"]
+                        }
+                    }
+                }
+            ],
+            "output_data_list": [
+                {
+                    "data_name"   : "DISPLACEMENT"
+                }
+            ]
+        }
+        ]
+    },        
+    "solvers" :
+        {
+            "fluid":
+            {
+                "solver_type" : "kratos_fluid",
+                "settings":{
+                    "working_directory" : ".",
+                    "input_file"  : "ProjectParametersCFD.json"
+                },
+                "io_settings" : {
+                    "io_type"     : "kratos"
+                },
+                "data" : [
+                    {
+                        "name": "MESH_DISPLACEMENT",
+                        "geometry_name" : "NoSlip2D_FSI",
+                        "dimension"       : 3
+                    },
+                    {
+                        "name": "REACTION",
+                        "geometry_name" : "NoSlip2D_FSI",
+                        "dimension"       : 3
+                    }
+                ]
+            },
+            "structure" :
+            {
+                "solver_type" : "kratos_structural",
+                "settings":{
+                    "working_directory" : ".",
+                    "input_file"  : "ProjectParametersCSM.json"
+                },
+                "io_settings" : {
+                    "io_type"     : "kratos_field"
+                },
+                "data" : [
+                    {
+                        "name": "DISPLACEMENT",
+                        "geometry_name" : "GENERIC_FSI",
+                        "dimension"       : 3
+                    },
+                    {
+                        "name": "POINT_LOAD",
+                        "geometry_name" : "GENERIC_FSI",
+                        "dimension"       : 3
+                    }
+                ]
+            }
+        }
+}
