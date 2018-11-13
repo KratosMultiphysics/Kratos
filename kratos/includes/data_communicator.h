@@ -81,6 +81,18 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    virtual void Sum(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const
+    {}
+
+    virtual void Sum(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const
+    {}
+
     virtual int Min(const int rLocalValue, const int Root) const
     {
         return rLocalValue;
@@ -96,6 +108,18 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    virtual void Min(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const
+    {}
+
+    virtual void Min(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const
+    {}
+
     virtual int Max(const int rLocalValue, const int Root) const
     {
         return rLocalValue;
@@ -110,6 +134,18 @@ class DataCommunicator
     {
         return rLocalValue;
     }
+
+    virtual void Max(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const
+    {}
+
+    virtual void Max(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const
+    {}
 
     // Allreduce operations
 
@@ -128,6 +164,16 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    virtual void SumAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const
+    {}
+
+    virtual void SumAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const
+    {}
+
     virtual int MinAll(const int rLocalValue) const
     {
         return rLocalValue;
@@ -143,6 +189,16 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    virtual void MinAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const
+    {}
+
+    virtual void MinAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const
+    {}
+
     virtual int MaxAll(const int rLocalValue) const
     {
         return rLocalValue;
@@ -157,6 +213,16 @@ class DataCommunicator
     {
         return rLocalValue;
     }
+
+    virtual void MaxAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const
+    {}
+
+    virtual void MaxAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const
+    {}
 
     // Scan operations
 

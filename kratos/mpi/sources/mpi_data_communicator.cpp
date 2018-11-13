@@ -87,6 +87,30 @@ array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValu
     return global_value;
 }
 
+void MPIDataCommunicator::Sum(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Reduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        MPI_SUM, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
+}
+
+void MPIDataCommunicator::Sum(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Reduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        MPI_SUM, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
+}
+
 int MPIDataCommunicator::Min(const int rLocalValue, const int Root) const
 {
     int global_value(rLocalValue);
@@ -113,6 +137,30 @@ array_1d<double,3> MPIDataCommunicator::Min(const array_1d<double,3>& rLocalValu
     return global_value;
 }
 
+void MPIDataCommunicator::Min(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Reduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        MPI_MIN, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
+}
+
+void MPIDataCommunicator::Min(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Reduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        MPI_MIN, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
+}
+
 int MPIDataCommunicator::Max(const int rLocalValue, const int Root) const
 {
     int global_value(rLocalValue);
@@ -137,6 +185,30 @@ array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValu
         Internals::MPIDatatype(rLocalValue), MPI_MAX, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
     return global_value;
+}
+
+void MPIDataCommunicator::Max(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Reduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        MPI_MAX, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
+}
+
+void MPIDataCommunicator::Max(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Reduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        MPI_MAX, Root, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
 
 // Allreduce operations
@@ -167,6 +239,28 @@ array_1d<double,3> MPIDataCommunicator::SumAll(const array_1d<double,3>& rLocalV
     return global_value;
 }
 
+void MPIDataCommunicator::SumAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Allreduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
+}
+
+void MPIDataCommunicator::SumAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Allreduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
+}
+
 int MPIDataCommunicator::MinAll(const int rLocalValue) const
 {
     int global_value(rLocalValue);
@@ -193,6 +287,28 @@ array_1d<double,3> MPIDataCommunicator::MinAll(const array_1d<double,3>& rLocalV
     return global_value;
 }
 
+void MPIDataCommunicator::MinAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Allreduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        MPI_MIN, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
+}
+
+void MPIDataCommunicator::MinAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Allreduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        MPI_MIN, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
+}
+
 int MPIDataCommunicator::MaxAll(const int rLocalValue) const
 {
     int global_value(rLocalValue);
@@ -217,6 +333,28 @@ array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalV
         Internals::MPIDatatype(rLocalValue), MPI_MAX, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
     return global_value;
+}
+
+void MPIDataCommunicator::MaxAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Allreduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        MPI_MAX, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
+}
+
+void MPIDataCommunicator::MaxAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const
+{
+    const int message_size = rLocalValues.size();
+    int ierr = MPI_Allreduce(
+        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        MPI_MAX, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
 }
 
 // Scan operations

@@ -77,17 +77,47 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
+    void Sum(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const override;
+
+    void Sum(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const override;
+
     int Min(const int rLocalValue, const int Root) const override;
 
     double Min(const double rLocalValue, const int Root) const override;
 
     array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
+    void Min(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const override;
+
+    void Min(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const override;
+
     int Max(const int rLocalValue, const int Root) const override;
 
     double Max(const double rLocalValue, const int Root) const override;
 
     array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
+
+    void Max(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues,
+        const int Root) const override;
+
+    void Max(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues,
+        const int Root) const override;
 
     // Allreduce operations
 
@@ -97,17 +127,41 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const override;
 
+    void SumAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const override;
+
+    void SumAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const override;
+
     int MinAll(const int rLocalValue) const override;
 
     double MinAll(const double rLocalValue) const override;
 
     array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const override;
 
+    void MinAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const override;
+
+    void MinAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const override;
+
     int MaxAll(const int rLocalValue) const override;
 
     double MaxAll(const double rLocalValue) const override;
 
     array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const override;
+
+    void MaxAll(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rGlobalValues) const override;
+
+    void MaxAll(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rGlobalValues) const override;
 
     // Scan operations
 
