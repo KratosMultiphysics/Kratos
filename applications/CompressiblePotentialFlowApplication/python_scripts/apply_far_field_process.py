@@ -38,6 +38,19 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         #KratosMultiphysics.VariableUtils().SetVectorVar(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity, self.model_part.Conditions)
         for cond in self.model_part.Conditions:
             cond.SetValue(CompressiblePotentialFlowApplication.VELOCITY_INFINITY, self.velocity_infinity)
+            npos=0
+            nneg=0
+            # for node in cond.GetNodes():
+            #     distance=node.GetSolutionStepValue(CompressiblePotentialFlowApplication.WAKE_DISTANCE)
+            #     if distance<0:
+            #         npos += 1
+            #     else:
+            #         nneg += 1
+            # if not (npos*nneg==0):
+            #     cond.Set(KratosMultiphysics.STRUCTURE,False)
+            # else:
+            #     cond.Set(KratosMultiphysics.STRUCTURE,False)
+                
 
         #select the first node
         for node in self.model_part.Nodes:

@@ -250,25 +250,66 @@ public:
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                               VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override
-    {
-        if (rLeftHandSideMatrix.size1() != TNumNodes)
-            rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-        if (rRightHandSideVector.size() != TNumNodes)
-            rRightHandSideVector.resize(TNumNodes, false);
-        rLeftHandSideMatrix.clear();
+    {        
+        if (this->IsNot(STRUCTURE)){
+            if (rLeftHandSideMatrix.size1() != TNumNodes)
+                rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+            if (rRightHandSideVector.size() != TNumNodes)
+                rRightHandSideVector.resize(TNumNodes, false);
+            rLeftHandSideMatrix.clear();
+            
+            array_1d<double, 3> An;
+            if (TDim == 2)
+                CalculateNormal2D(An);
+            else
+                CalculateNormal3D(An);
+
+            const IncompressiblePotentialWallCondition &r_this = *this;
+            const array_1d<double, 3> &v = r_this.GetValue(VELOCITY_INFINITY);
+            const double value = -inner_prod(v, An) / static_cast<double>(TNumNodes);
+           
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+                rRightHandSideVector[i] = value;
+        }     
+        else{
+            if (rLeftHandSideMatrix.size1() !=2* TNumNodes)
+                rLeftHandSideMatrix.resize(2*TNumNodes,2*TNumNodes,false);
+            if (rRightHandSideVector.size() != 2*TNumNodes)
+                rRightHandSideVector.resize(2*TNumNodes,false);
+            rLeftHandSideMatrix.clear(); 
+
+            array_1d<double, 3> An;
+            if (TDim == 2)
+                CalculateNormal2D(An);
+            else
+                CalculateNormal3D(An);
+
+            const array_1d<double, 3> &v = this-> GetValue(VELOCITY_INFINITY);
+            const double value = -inner_prod(v, An) / static_cast<double>(TNumNodes);
+
+            array_1d<double,TNumNodes> distances;
+            GetWakeDistances(distances);
+
+            //positive part
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                if(distances[i] > 0)
+                    rRightHandSideVector[i] = value;
+                else
+                    rRightHandSideVector[i] = 0;
+            }
+
+            //negative part - sign is opposite to the previous case
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                if(distances[i] < 0)
+                    rRightHandSideVector[TNumNodes+i] = value;
+                else
+                    rRightHandSideVector[TNumNodes+i] = 0;
+            }           
+        }
         
-        array_1d<double, 3> An;
-        if (TDim == 2)
-            CalculateNormal2D(An);
-        else
-            CalculateNormal3D(An);
 
-        const IncompressiblePotentialWallCondition &r_this = *this;
-        const array_1d<double, 3> &v = r_this.GetValue(VELOCITY_INFINITY);
-        const double value = -inner_prod(v, An) / static_cast<double>(TNumNodes);
-
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-            rRightHandSideVector[i] = value;
     }
 
     /// Check that all data required by this condition is available and reasonable
@@ -318,11 +359,38 @@ public:
         void EquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo) override
         {
-            if (rResult.size() != TNumNodes)
-                rResult.resize(TNumNodes, false);
+            if (this->IsNot(STRUCTURE)){
+                if (rResult.size() != TNumNodes)
+                    rResult.resize(TNumNodes, false);
 
-            for (unsigned int i = 0; i < TNumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                for (unsigned int i = 0; i < TNumNodes; i++)
+                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+            }
+            else {
+                if (rResult.size() != 2*TNumNodes)
+                    rResult.resize(2*TNumNodes, false);
+
+                array_1d<double,TNumNodes> distances;
+                GetWakeDistances(distances);
+
+                //positive part
+                for (unsigned int i = 0; i < TNumNodes; i++)
+                {
+                    if(distances[i] > 0)
+                        rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    else
+                        rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL).EquationId();
+                }
+
+                //negative part - sign is opposite to the previous case
+                for (unsigned int i = 0; i < TNumNodes; i++)
+                {
+                    if(distances[i] < 0)
+                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    else
+                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL).EquationId();
+                }  
+            }
         }
 
 
@@ -334,12 +402,38 @@ public:
         void GetDofList(DofsVectorType& ConditionDofList,
                                 ProcessInfo& CurrentProcessInfo) override
         {
-            if (ConditionDofList.size() != TNumNodes)
+           if (this->IsNot(STRUCTURE)){
+                if (ConditionDofList.size() != TNumNodes)
                 ConditionDofList.resize(TNumNodes);
 
-            for (unsigned int i = 0; i < TNumNodes; i++)
-                ConditionDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                for (unsigned int i = 0; i < TNumNodes; i++)
+                    ConditionDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+            }
+            else {
+                 if (ConditionDofList.size() != 2*TNumNodes)
+                ConditionDofList.resize(2*TNumNodes);
 
+                array_1d<double,TNumNodes> distances;
+                GetWakeDistances(distances);
+
+                //positive part
+                for (unsigned int i = 0; i < TNumNodes; i++)
+                {
+                    if(distances[i] > 0)
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    else
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                }
+
+                //negative part - sign is opposite to the previous case
+                for (unsigned int i = 0; i < TNumNodes; i++)
+                {
+                    if(distances[i] < 0)
+                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    else
+                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                }
+            }
         }
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
@@ -351,6 +445,11 @@ public:
         }
 
 
+        void GetWakeDistances(array_1d<double,TNumNodes>& distances)
+        {
+            for(unsigned int i = 0; i<TNumNodes; i++)
+                distances[i] = GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE);
+        }
 
 
 
