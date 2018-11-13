@@ -67,7 +67,7 @@ private:
      * @brief This nested class can be used to adapt a Parameter iterator
      * @author Riccardo Rossi
      */
-    class iterator_adaptor
+    class KRATOS_API(KRATOS_CORE) iterator_adaptor
         : public std::iterator<std::forward_iterator_tag, Parameters>
     {
         ///@name Type Definitions
@@ -173,7 +173,7 @@ private:
      * @brief This nested class can be used to adapt a Parameter constant iterator
      * @author Riccardo Rossi
      */
-    class const_iterator_adaptor
+    class KRATOS_API(KRATOS_CORE) const_iterator_adaptor
         : public std::iterator<std::forward_iterator_tag, Parameters>
     {
         ///@name Type Definitions
