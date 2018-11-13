@@ -9,7 +9,7 @@ eg : "name_in_JSON" : "python module(file) name"
 available_coupled_solvers = {
     "gauss_seidel_strong_coupling"  : "gauss_seidel_iterative_strong_coupling_solver",
     "jacobi"                        : "jacobi_iterative_strong_coupled_solver",
-    "staggered"                     : "staggered_loose_coupled_solver",
+    "gauss_seidel_loose_coupling"   : "gauss_seidel_loose_coupling_solver",
 }
 
 
