@@ -48,8 +48,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test triangle
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalH1, KratosNodalHFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalH1, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -120,8 +119,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test tetrahedra
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalH2, KratosNodalHFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalH2, KratosCoreFastSuite)
         {
             Model current_model;
             
