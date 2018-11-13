@@ -25,7 +25,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/process_info.cpp;
-    # ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
@@ -59,6 +58,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/generate_embedded_skin_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/brute_force_point_locator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
