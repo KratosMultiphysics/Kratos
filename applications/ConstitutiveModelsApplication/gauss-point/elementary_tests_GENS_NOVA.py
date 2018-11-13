@@ -81,8 +81,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         #
         XX = 0.0*self.parameters.GetStrainVector()
         
-        sigma_v = -150.0
-        k0 = 0.5
+        sigma_v = -100.0
+        k0 = 1.0
         sigma_h = sigma_v * k0
 
         for iteracio in range(0, 200):
@@ -472,7 +472,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
     def _OpenOutputFile(self):
         import os.path
 
-        return;
         problem_path = os.getcwd()
         self.csv_path = os.path.join(problem_path, "GaussPoint.csv")
 
@@ -498,9 +497,10 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
     def _WriteThisToFile(self, t, stress, strain):
 
-        return;
-        self.material_law.WriteToFile()
-        return;
+        import numpy as np
+        strainV = strain[0]+strain[1]+strain[2];
+        J = np.exp(strainV);
+        stress = J * stress;
 
         line = str(t) + " , "
         for st in stress:
@@ -509,8 +509,16 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         for st in strain:
             line = line + str(st) + " , "
 
-        line = line[:-2]
-        line = line + "\n"
+        ps = 0;
+        ps = self.material_law.GetValue( KratosMultiphysics.ConstitutiveModelsApplication.PS, ps)
+        pt = 0;
+        pt = self.material_law.GetValue( KratosMultiphysics.ConstitutiveModelsApplication.PT, pt)
+        pm = 0;
+        pm = self.material_law.GetValue( KratosMultiphysics.ConstitutiveModelsApplication.PM, pm)
+
+        line = line + str(ps) + " , " + str(pt) + " , " + str(pm)
+
+        line = line + " \n"
         csv_file = open(self.csv_path, "a")
         csv_file.write(line)
         csv_file.close()
