@@ -64,7 +64,7 @@ class TestFlags(KratosUnittest.TestCase):
         node1 = self.model_part.GetNode(1)
         node2 = self.model_part.CreateNewNode(2, 1.0, 1.0, 1.0)
 
-        # the AND of two flags is always nothing
+        # the AND of two named flags is always nothing
         node1.Set(TO_SPLIT & TO_ERASE)
 
         self.assertTrue(node1.IsNotDefined(TO_SPLIT))
