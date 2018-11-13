@@ -52,14 +52,7 @@ void AuxiliarModelPartUtilities::RemoveElementAndBelongings(
 
     mrModelPart.RemoveElement(ElementId, ThisIndex);
     mrModelPart.RemoveConditions(IdentifierFlag);
-
-    // TODO: Add OMP
-    for(std::size_t i=0; i<r_array_nodes.size(); ++i) {
-        auto it_node = r_array_nodes.begin() + i;
-        if (it_node->Is(IdentifierFlag)) {
-            mrModelPart.RemoveNode(it_node->Id(), ThisIndex);
-        }
-    }
+    mrModelPart.RemoveNodes(IdentifierFlag);
 }
 
 /***********************************************************************************/
@@ -193,14 +186,7 @@ void AuxiliarModelPartUtilities::RemoveConditionAndBelongings(IndexType Conditio
 
     mrModelPart.RemoveCondition(ConditionId, ThisIndex);
     mrModelPart.RemoveElements(IdentifierFlag);
-
-    // TODO: Add OMP
-    for(std::size_t i=0; i<r_array_nodes.size(); ++i) {
-        auto it_node = r_array_nodes.begin() + i;
-        if (it_node->Is(IdentifierFlag)) {
-            mrModelPart.RemoveNode(it_node->Id(), ThisIndex);
-        }
-    }
+    mrModelPart.RemoveNodes(IdentifierFlag);
 }
 
 /***********************************************************************************/
