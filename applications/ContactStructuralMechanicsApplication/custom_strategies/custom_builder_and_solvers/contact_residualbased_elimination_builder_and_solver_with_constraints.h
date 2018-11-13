@@ -216,92 +216,95 @@ protected:
     {
         KRATOS_TRY;
 
-        // Reorder constrains
-        IndexType constraint_id = 1;
-        for (auto& constrain : rModelPart.MasterSlaveConstraints()) {
-            constrain.SetId(constraint_id);
-            ++constraint_id;
-        }
-
-        // Auxiliar dofs lists
-        DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
-
-        // Contributions to the system
-        LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-
-        // Reference constraint
-        const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
-
-        #pragma omp parallel firstprivate(transformation_matrix, constant_vector, dof_list, second_dof_list)
-        {
-            // Current process info
-            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-            // A buffer to store auxiliar constraints
-            ConstraintContainerType constraints_buffer;
-
-            // Gets the array of constraints from the modeler
-            auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-            const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-            #pragma omp for  schedule(guided, 512) nowait
-            for (int i = 0; i < number_of_constraints; ++i) {
-                auto it_const = r_constraints_array.begin() + i;
-
-                // Gets list of Dof involved on every element
-                it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-                it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-
-                DofPointerVectorType slave_dofs, master_dofs;
-                bool create_lm_constraint = false;
-                // Slave DoFs
-                for (auto& p_dof : dof_list) {
-                    if (IsDisplacementDof(*p_dof)) {
-                        const IndexType node_id = p_dof->Id();
-                        const auto& r_variable = p_dof->GetVariable();
-                        auto pnode = rModelPart.pGetNode(node_id);
-                        if (r_variable == DISPLACEMENT_X) {
-                            slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-                        } else if (r_variable == DISPLACEMENT_Y) {
-                            slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
-                        } else if (r_variable == DISPLACEMENT_Z) {
-                            slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
-                        }
-                    }
-                }
-                // Master DoFs
-                for (auto& p_dof : second_dof_list) {
-                    if (IsDisplacementDof(*p_dof)) {
-                        const IndexType node_id = p_dof->Id();
-                        const auto& r_variable = p_dof->GetVariable();
-                        auto pnode = rModelPart.pGetNode(node_id);
-                        if (r_variable == DISPLACEMENT_X) {
-                            master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-                        } else if (r_variable == DISPLACEMENT_Y) {
-                            master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
-                        } else if (r_variable == DISPLACEMENT_Z) {
-                            master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
-                        }
-                    }
-                }
-
-                // We check if we create constraints
-                if ((slave_dofs.size() == dof_list.size()) &&
-                    (master_dofs.size() == second_dof_list.size())) {
-                    create_lm_constraint = true;
-                }
-
-                // We create the new constraint
-                if (create_lm_constraint) {
-                    auto p_constraint = r_clone_constraint.Create(constraint_id + i + 1, master_dofs, slave_dofs, transformation_matrix, constant_vector);
-                    (constraints_buffer).insert((constraints_buffer).begin(), p_constraint);
-                }
+        // We are going to enforce the existence of constraints for LM for each displacement dof
+        if (rModelPart.NodesBegin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER)) {
+            // Reorder constrains
+            IndexType constraint_id = 1;
+            for (auto& constrain : rModelPart.MasterSlaveConstraints()) {
+                constrain.SetId(constraint_id);
+                ++constraint_id;
             }
 
-            // We transfer
-            #pragma omp critical
+            // Auxiliar dofs lists
+            DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
+
+            // Contributions to the system
+            LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
+            LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
+
+            // Reference constraint
+            const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+
+            #pragma omp parallel firstprivate(transformation_matrix, constant_vector, dof_list, second_dof_list)
             {
-                rModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
+                // Current process info
+                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+                // A buffer to store auxiliar constraints
+                ConstraintContainerType constraints_buffer;
+
+                // Gets the array of constraints from the modeler
+                auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
+                const int number_of_constraints = static_cast<int>(r_constraints_array.size());
+                #pragma omp for  schedule(guided, 512) nowait
+                for (int i = 0; i < number_of_constraints; ++i) {
+                    auto it_const = r_constraints_array.begin() + i;
+
+                    // Gets list of Dof involved on every element
+                    it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
+                    it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+
+                    DofPointerVectorType slave_dofs, master_dofs;
+                    bool create_lm_constraint = false;
+                    // Slave DoFs
+                    for (auto& p_dof : dof_list) {
+                        if (IsDisplacementDof(*p_dof)) {
+                            const IndexType node_id = p_dof->Id();
+                            const auto& r_variable = p_dof->GetVariable();
+                            auto pnode = rModelPart.pGetNode(node_id);
+                            if (r_variable == DISPLACEMENT_X) {
+                                slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+                            } else if (r_variable == DISPLACEMENT_Y) {
+                                slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+                            } else if (r_variable == DISPLACEMENT_Z) {
+                                slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                            }
+                        }
+                    }
+                    // Master DoFs
+                    for (auto& p_dof : second_dof_list) {
+                        if (IsDisplacementDof(*p_dof)) {
+                            const IndexType node_id = p_dof->Id();
+                            const auto& r_variable = p_dof->GetVariable();
+                            auto pnode = rModelPart.pGetNode(node_id);
+                            if (r_variable == DISPLACEMENT_X) {
+                                master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+                            } else if (r_variable == DISPLACEMENT_Y) {
+                                master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+                            } else if (r_variable == DISPLACEMENT_Z) {
+                                master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                            }
+                        }
+                    }
+
+                    // We check if we create constraints
+                    if ((slave_dofs.size() == dof_list.size()) &&
+                        (master_dofs.size() == second_dof_list.size())) {
+                        create_lm_constraint = true;
+                    }
+
+                    // We create the new constraint
+                    if (create_lm_constraint) {
+                        auto p_constraint = r_clone_constraint.Create(constraint_id + i + 1, master_dofs, slave_dofs, transformation_matrix, constant_vector);
+                        (constraints_buffer).insert((constraints_buffer).begin(), p_constraint);
+                    }
+                }
+
+                // We transfer
+                #pragma omp critical
+                {
+                    rModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
+                }
             }
         }
 
