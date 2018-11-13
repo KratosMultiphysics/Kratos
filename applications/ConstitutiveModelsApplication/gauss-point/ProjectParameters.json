@@ -13,12 +13,12 @@
                 "KratosMultiphysics.ALPHA_SHEAR": 0.0,
                 "KratosMultiphysics.CRITICAL_STATE_LINE": 1.5,
                 "KratosMultiphysics.ConstitutiveModelsApplication.CHIS": 0.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.CHIT": 0.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.KSIM": 3.70,
+                "KratosMultiphysics.ConstitutiveModelsApplication.CHIT": 1.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.KSIM": 8.0,
                 "KratosMultiphysics.ConstitutiveModelsApplication.PS": 400.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 216.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.RHOS": 12.9533678756,
-                "KratosMultiphysics.ConstitutiveModelsApplication.RHOT": -8.0
+                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 100.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.RHOS": 14.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.RHOT": -18.0
             },
             "element_type": "Tetrahedra3D4",
             "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
@@ -27,6 +27,7 @@
                 "jacobian": 1.0
             },
             "echo_level" : 0,
-	    "parametric_analysis_variable": "KSIM",
-	    "parametric_analysis_values": [0, 1.0,  5.0, 10.0]
+	    "parametric_analysis_variable": "PT",
+	    "parametric_analysis_values": [40.0 ],
+	    "initial_stress_state": [-150.0, -150.0, -150.0]
 }
