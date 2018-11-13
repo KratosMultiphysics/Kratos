@@ -106,9 +106,11 @@ public:
     {
         KRATOS_TRY;
 
+        int initial_num_element = mr_model_part.NumberOfElements();
         mr_model_part.RemoveElements( TO_ERASE );
         int num_element = mr_model_part.NumberOfElements();
-		KRATOS_WATCH(num_element);
+
+        KRATOS_INFO("ParticleEraseProcess") << "WARNING: " << num_element - initial_num_element << " particle elements has been erased.";
 
         KRATOS_CATCH("");
     }
