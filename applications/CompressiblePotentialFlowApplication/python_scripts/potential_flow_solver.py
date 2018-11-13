@@ -71,7 +71,7 @@ class LaplacianSolver(PythonSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY, 2.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,2.0)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
         
@@ -104,7 +104,7 @@ class LaplacianSolver(PythonSolver):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
-        if self.settings["problem_type"].GetString() == "incompressible" or self.settings["problem_type"].GetString() == "incompressible_stresses":
+        if self.settings["problem_type"].GetString() == "incompressible":
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
                 self.main_model_part, 
@@ -143,7 +143,7 @@ class LaplacianSolver(PythonSolver):
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             #here it would be the place to import restart data if required
             print(self.settings["model_import_settings"]["input_filename"].GetString())
-            IOdir='./Meshes/'+self.settings["model_import_settings"]["input_filename"].GetString()
+            IOdir=self.settings["model_import_settings"]["input_filename"].GetString()
             KratosMultiphysics.ModelPartIO(IOdir).ReadModelPart(self.main_model_part)
             
             throw_errors = False
