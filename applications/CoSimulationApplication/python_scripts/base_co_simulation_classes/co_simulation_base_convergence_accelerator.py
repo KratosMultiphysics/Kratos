@@ -12,13 +12,9 @@ import co_simulation_tools as tools
 # This Class servers as a base class for all the Convergence accelerator techniques
 # used in co simulation.
 class CoSimulationBaseConvergenceAccelerator(object):
-    def __init__(self, settings):
+    def __init__(self, settings, solver):
+        self.solver = solver
         self.settings = settings
-        default_settings = {}
-        default_settings["data_list"] = list # MANDATORY
-        default_settings["settings"] = {}
-        self.settings = tools.ValidateAndAssignInputParameters(default_settings, self.settings, False)
-
         self.echo_level = 0
 
     ## Initialize : Initialize function for the accelerator class. Necessary
