@@ -433,7 +433,6 @@ class Solution(object):
             self.AfterSolveOperations()
 
             self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
-            #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
             ##### adding DEM elements by the inlet ######
             if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -477,7 +476,7 @@ class Solution(object):
 
 
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
 
     def UpdateTimeInOneModelPart(self):
         pass

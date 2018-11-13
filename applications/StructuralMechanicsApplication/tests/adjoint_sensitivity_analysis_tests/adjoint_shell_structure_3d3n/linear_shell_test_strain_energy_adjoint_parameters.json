@@ -1,9 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
@@ -12,6 +9,11 @@
         "solver_settings"                  : {
         "solver_type"                  : "adjoint_static",
         "analysis_type"                : "linear",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
         "scheme_settings" : {
@@ -43,6 +45,7 @@
             "materials_filename" : "StructuralMaterials.json"
         }
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -98,7 +101,7 @@
             "tolerance"            : 1e-5,
             "time_frequency"   : -2.0
         }
-    }],
+    }]},
     "_json_output_process" : [
     {
         "python_module" : "json_output_process",
@@ -111,15 +114,5 @@
             "model_part_name"  : "Structure",
             "time_frequency"   : -2.0
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    }]
 }

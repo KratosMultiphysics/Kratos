@@ -81,6 +81,7 @@ class MechanicalSolver(PythonSolver):
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
+                "symmetric_scaling": true,
                 "verbosity": 1
             },
             "problem_domain_sub_model_part_list": ["solid"],
@@ -417,9 +418,11 @@ class MechanicalSolver(PythonSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        import linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
+            return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
+        else:
+            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
@@ -429,7 +432,7 @@ class MechanicalSolver(PythonSolver):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
-            if self.settings["multi_point_constraints_used"].GetBool():
+            if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
                 raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver

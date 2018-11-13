@@ -187,7 +187,7 @@ public:
     */
     virtual ~ResidualBasedEulerianConvectionDiffusionStrategy() 
     {
-        Model& current_model = mrModelPart.GetOwnerModel();
+        Model& current_model = mrModelPart.GetModel();
         current_model.DeleteModelPart("ConvDiffPart");
     }
 
@@ -398,7 +398,7 @@ protected:
 
   virtual void GenerateMeshPart(int dimension)
   {
-    Model& current_model = mrModelPart.GetOwnerModel();
+    Model& current_model = mrModelPart.GetModel();
     if(current_model.HasModelPart("ConvDiffPart"))
         current_model.DeleteModelPart("ConvDiffPart");
         

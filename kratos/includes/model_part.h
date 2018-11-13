@@ -272,7 +272,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    KRATOS_DEPRECATED_MESSAGE("Old style Modelpart constructor will be removed on nov 1 2018") 
+    KRATOS_DEPRECATED_MESSAGE("Old style Modelpart constructor will be removed on nov 1 2018")
         ModelPart(std::string const& NewName, Model& rOwnerModel);
 
 
@@ -314,9 +314,9 @@ public:
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
 
     //this function returns the "Owner" Model
-    Model& GetOwnerModel()
+    Model& GetModel()
     {
-        return mrOwnerModel;
+        return mrModel;
     }
 
     ///ATTENTION: this function does not touch the coordinates of the nodes.
@@ -795,6 +795,17 @@ public:
     /** Inserts a properties in the current mesh.
      */
     void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
+
+    /** Returns if the Properties corresponding to it's identifier exists */
+    bool HasProperties(IndexType PropertiesId, IndexType ThisIndex = 0) const
+    {
+        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { //property does exist
+            return true;
+        }
+
+        return false;
+    }
 
     /** Returns the Properties::Pointer  corresponding to it's identifier */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
@@ -1560,7 +1571,7 @@ private:
 
     SubModelPartsContainerType mSubModelParts;
 
-    Model& mrOwnerModel;
+    Model& mrModel;
 
     ///@}
     ///@name Private Operators
