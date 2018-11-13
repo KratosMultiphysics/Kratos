@@ -765,7 +765,7 @@ public:
     virtual void SearchElement(
         ModelPart& grid_model_part,
         ModelPart& mpm_model_part,
-        const unsigned int MaxNumberOfResults = 1000,
+        const std::size_t MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5)
     {
         // Reset elements to inactive
@@ -854,6 +854,9 @@ public:
                     }
                 }
                 else{
+                    KRATOS_INFO("MPM_Strategy.SearchElement") << "WARNING: Search Element for Particle " << element_itr->Id()
+                        << " is failed. Geometry is cleared." << std::endl;
+
                     element_itr->GetGeometry().clear();
                     element_itr->Reset(ACTIVE);
                     element_itr->Set(TO_ERASE);
