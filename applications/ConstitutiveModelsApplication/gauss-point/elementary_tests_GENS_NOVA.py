@@ -16,6 +16,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         self.size_parametric_analysis = 0;
 
+        self.plot = False
         super(KratosUnittest.TestCase, self).__init__(*args, **kwargs)
 
 
@@ -37,8 +38,9 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self._compute_strain_driven_problem(IncrementalF, NumberIncrements)
             Pressure, DeviatoricQ = self._calculate_invariants()
 
-        import matplotlib.pyplot as plt
-        plt.show()
+        if ( self.plot):
+            import matplotlib.pyplot as plt
+            plt.show()
 
 
     # Triaxial test at gauss point
@@ -56,8 +58,9 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
             self._test_TriaxialCompression()
     
-        import matplotlib.pyplot as plt
-        plt.show(block=True)
+        if ( self.plot):
+            import matplotlib.pyplot as plt
+            plt.show(block=True)
 
     # driver of the triaxial compression
     def _test_TriaxialCompression(self):
@@ -74,16 +77,17 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
         import numpy as np
-        import matplotlib.pyplot as plt
+        if ( self.plot):
+            import matplotlib.pyplot as plt
 
         #isotropic compression
         #
         #
         XX = 0.0*self.parameters.GetStrainVector()
         
-        sigma_v = -100.0
-        k0 = 1.0
-        sigma_h = sigma_v * k0
+        sigma_v = self.initial_stress_state[1]
+        sigma_h = self.initial_stress_state[0]
+        sigma_h2 = self.initial_stress_state[2]
 
         for iteracio in range(0, 200):
             stress = self.parameters.GetStressVector()
@@ -227,27 +231,28 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             DevStress[t] = stress[1]-stress[0]
             DevStress[t] *= -1.0
 
-        plt.subplot(2,2,1)
-        plt.plot(VolStress, DevStress)
-        plt.xlabel('pressure')
-        plt.ylabel('DevStress')
+        if ( self.plot):
+            plt.subplot(2,2,1)
+            plt.plot(VolStress, DevStress)
+            plt.xlabel('pressure')
+            plt.ylabel('DevStress')
 
-        plt.subplot(2,2,2)
-        plt.plot(DevStrain, DevStress )
-        plt.xlabel('DevStrain')
-        plt.ylabel('DevStress')
+            plt.subplot(2,2,2)
+            plt.plot(DevStrain, DevStress )
+            plt.xlabel('DevStrain')
+            plt.ylabel('DevStress')
 
-        
-        plt.subplot(2,2,3)
-        plt.plot(VolStress, VolStrain)
-        plt.xlabel('pressure')
-        plt.ylabel('VolStrain')
 
-        plt.subplot(2,2,4)
-        plt.plot(DevStrain, VolStrain)
-        plt.xlabel('DevStrain')
-        plt.ylabel('VolStrain')
-        plt.show(block=False)
+            plt.subplot(2,2,3)
+            plt.plot(VolStress, VolStrain)
+            plt.xlabel('pressure')
+            plt.ylabel('VolStrain')
+
+            plt.subplot(2,2,4)
+            plt.plot(DevStrain, VolStrain)
+            plt.xlabel('DevStrain')
+            plt.ylabel('VolStrain')
+            plt.show(block=False)
 
 
     def _compute_strain_driven_problem(self, IncrF, nIncr):
@@ -289,11 +294,12 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self._WriteThisToFile(step, stress, strain)
 
         if (nIncr > 2):
-           
-           import matplotlib.pyplot as plt
-           plt.figure(1)
-           plt.plot(pp, qq)
-           plt.show(block=False)
+
+            if (self.plot):
+               import matplotlib.pyplot as plt
+               plt.figure(1)
+               plt.plot(pp, qq)
+               plt.show(block=False)
 
     def _compute_determinant(self, A):
 
@@ -331,6 +337,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         parameter_file = open("ProjectParameters.json", 'r')
         settings = KratosMultiphysics.Parameters(parameter_file.read() )
+        parameter_file.close()
         self.model_part = KratosMultiphysics.ModelPart(settings["model_part_name"].GetString())
         self.echo_level = settings["echo_level"].GetInt()
 
@@ -428,6 +435,10 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             for i in range(0, self.size_parametric_analysis):
                 value = settings["parametric_analysis_values"][i].GetDouble()
                 self.parametric_analysis_values.append(value)
+        self.initial_stress_state = [];
+        for i in range(0, 3):
+            value = settings["initial_stress_state"][i].GetDouble()
+            self.initial_stress_state.append(value)
 
 
     def _GetItemFromModule(self,my_string):
