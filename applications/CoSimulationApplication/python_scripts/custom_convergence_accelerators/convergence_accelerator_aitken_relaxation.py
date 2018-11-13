@@ -6,86 +6,127 @@
 try :
     import numpy as np
 except ModuleNotFoundError:
-    print(tools.bcolors.FAIL + 'Numpy is not available ! '+ tools.bcolors.ENDC)
-    exit()
+    print(cs_tools.bcolors.FAIL + 'Numpy is not available ! Using python default lists for computation'+ cs_tools.bcolors.ENDC)
 
-from co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
-import co_simulation_tools as tools
+from base_co_simulation_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
+import co_simulation_tools as cs_tools
+data_structure = cs_tools.cs_data_structure
+
 from copy import deepcopy
 from collections import deque
+import math
 
-def Create(settings):
-    accelerator = AitkenAccelerator(settings)
+def Create(settings, solver):
+    accelerator = AitkenAccelerator(settings, solver)
     return accelerator
 
 
 ## Class Aitken.
 # This class contains the implementation of Aitken relaxation and helper functions.
-# Reference: Ulrich Küttler et al., "Fixed-point fluid–structure interaction solvers with dynamic relaxation"
+# Reference: Ulrich Küttler et al., "Fixed-point fluid–structurce interaction solvers with dynamic relaxation"
 class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     ## The constructor.
     # @param init_alpha Initial relaxation factor in the first time step.
     # @param init_alpha_max Maximum relaxation factor for the first iteration in each time step
-    def __init__( self, settings ):
-        super(AitkenAccelerator, self).__init__(settings)
-        default_settings = {}
-        default_settings["data_list"] = list    #MANDATORY
-        default_settings["settings"] = dict    #MANDATORY
-        self.settings = tools.ValidateAndAssignInputParameters(default_settings, self.settings, False)
+    def __init__( self, settings, solver ):
+        super(AitkenAccelerator, self).__init__(settings, solver)
+        default_settings = self._GetDefaultSettings()
+        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
         self.R = deque( maxlen = 2 )
-        self.init_alpha_max = 0.4
-        self.alpha_old = self.init_alpha_max
+        self.alpha_max = self.settings["settings"]["alpha_max"].GetDouble()
+        self.initial_alpha = self.settings["settings"]["initial_alpha"].GetDouble()
+        self.alpha_old = self.initial_alpha
+        self.current_alpha = self.initial_alpha
+        self.data_name = self.settings["data"]["data_name"].GetString()
+
+        self.iteration = 0
+
+        self.data_prev_iter = []
+        self.data_current_iter = []
+
+        self.residual = []
+        self.update = []
+
+    def _GetDefaultSettings(self):
+        default_setting = data_structure.Parameters("""
+            {
+                "type"          : "aitken",
+                "data" : {
+                        "solver"   : "fluid",
+                        "data_name"     : ""
+                },
+                "settings":{
+                    "initial_alpha" : 0.2,
+                    "alpha_max" : 2.0
+                }
+            }
+        """)
+        return default_setting
+
 
     ## ComputeUpdate(r, x)
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
-    def ComputeUpdate( self, r, x ):
-        self.R.appendleft( deepcopy(r) )
-        k = len( self.R ) - 1
+    def _ComputeUpdatedRelaxFactor( self ):
+        self.R.appendleft( deepcopy(self.residual) )
         ## For the first iteration, do relaxation only
-        if k == 0:
-            alpha = min( self.alpha_old, self.init_alpha_max )
-            print( tools.bcolors.BLUE + "Aitken: Doing relaxation in the first iteration with initial factor = " + tools.bcolors.ENDC, alpha)
-            return alpha * r
+        if self.iteration == 0:
+            alpha = self.initial_alpha
+            print( cs_tools.bcolors.BLUE + "\tAitken: Doing relaxation in the first iteration with initial factor = " , alpha, cs_tools.bcolors.ENDC)
+            self.current_alpha = alpha
+            self.update = [data * self.current_alpha for data in self.R[0]]
         else:
-            r_diff = self.R[0] - self.R[1]
-            numerator = np.inner( self.R[1], r_diff )
-            denominator = np.inner( r_diff, r_diff )
-            alpha = -self.alpha_old * numerator/denominator
-            print( tools.bcolors.BLUE + "Aitken: Doing relaxation with factor = " + tools.bcolors.ENDC, alpha )
-            if alpha > 2:
-                alpha = 2
-                print(tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches upper bound: 2" + tools.bcolors.ENDC)
-            elif alpha < -2:
-                alpha = -2
-                print(tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches lower bound: -2" + tools.bcolors.ENDC)
-            delta_x = alpha * self.R[0]
-        self.alpha_old = alpha
+            r_diff = self._Difference(self.R[0] , self.R[1])
+            numerator = cs_tools.InnterProduct( self.residual, r_diff )
+            denominator = cs_tools.InnterProduct( r_diff, r_diff )
+            print("#############################")
+            print("Numerator :: ", numerator)
+            print("Denominator :: ", denominator)
+            print("#############################")
+            if(abs(denominator)<1E-15):
+                denominator = 1.0
+            self.current_alpha = -self.alpha_old * numerator/denominator
+            print( cs_tools.bcolors.BLUE + "\tAitken: Doing relaxation with factor = " + cs_tools.bcolors.ENDC, self.current_alpha )
+            if self.current_alpha > 2:
+                self.current_alpha = 2
+                print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches upper bound: 2" + cs_tools.bcolors.ENDC)
+            elif self.current_alpha < -2:
+                self.current_alpha = -2
+                print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches lower bound: -2" + cs_tools.bcolors.ENDC)
+            self.update = [data * self.current_alpha for data in self.R[0]]
+            self.alpha_old = self.current_alpha
 
-        return delta_x
+    def InitializeSolutionStep(self):
+        self.iteration = 0
+        self.data_prev_iter = self.data_current_iter
 
-    ## FinalizeNonLinearIteration : Function initializes the non linear iteration (coupling iteration)
+    def FinalizeSolutionStep(self):
+        pass
+
+    ## InitializeNonLinearIteration : Function initializes the non linear iteration (coupling iteration)
     #                               Called at the beginning of the nonlinear iteration (coupling iteration)
     #
     #  @param self            The object pointer.
     def InitializeNonLinearIteration(self):
-        self._ComputeResidual()
-        self.ComputeUpdate()
-        pass
+        self.data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
+        self._CalculateResidual()
+        self._ComputeUpdatedRelaxFactor()
+        self._ApplyRelaxationToData()
 
     ## FinalizeNonLinearIteration : Function finalizes the non linear iteration (coupling iteration)
     #                               Called at the end of the nonlinear iteration (coupling iteration)
     #
     #  @param self            The object pointer.
     def FinalizeNonLinearIteration(self):
-        pass
+        self.data_prev_iter = self.data_current_iter
+        self.iteration = self.iteration + 1
 
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
     #  @param self            The object pointer.
     def PrintInfo(self):
-        print(tools.bcolors.HEADER + "This is an object of Aitken relaxation accelerator. Initial alpha is ", self.init_alpha_max, ", current alpha is : ", self.alpha_old,""+tools.bcolors.ENDC )
+        print(cs_tools.bcolors.HEADER + "This is an object of Aitken relaxation accelerator. Initial alpha is ", self.init_alpha_max, ", current alpha is : ", self.alpha_old,""+cs_tools.bcolors.ENDC )
 
     ## Check : Function to Check the setup of the convergence accelerator
     #
@@ -99,5 +140,27 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     def _Name(self):
         return "aitken"
 
-    def _ComputeResidual(self):
-        pass
+    ## _CalculateResidual : Calculates residual of the data specified in the settings
+    #                       Numpy can be used in the variants of this class.
+    #                       residual = data_in_current_iter - data_in_previous_iter
+    #
+    #  @param self            The object pointer
+    def _CalculateResidual(self):
+        self.residual = []
+        if(self.iteration == 0):
+            self.residual = self.data_current_iter
+            return
+
+        self.residual = self._Difference(self.data_current_iter , self.data_prev_iter)
+
+    def _ApplyRelaxationToData(self):
+        cs_tools.ApplyUpdateToData(self.solver, self.data_name, self.update)
+
+    def _Difference(self, list_one, list_two):
+        diff = []
+        if(len(list_one) == len(list_two)):
+            for i in range(len(list_one)):
+                diff.append(list_one[i] - list_two[i])
+
+        return diff
+
