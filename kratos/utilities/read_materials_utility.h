@@ -111,9 +111,9 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
 
     /**
      * @brief This reads the properties from parameters
-     * @param Params The configuration parameters defining the properties
+     * @param MaterialData The configuration parameters defining the properties
      */
-    void ReadMaterials(Parameters Params);
+    void ReadMaterials(Parameters MaterialData);
 
     ///@}
     ///@name Access
