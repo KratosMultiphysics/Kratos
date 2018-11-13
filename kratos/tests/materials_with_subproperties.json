@@ -6,9 +6,7 @@
             "constitutive_law" : {
                 "name" : "HyperElastic3DLaw",
                 "name_after_merge_rule_of_mixtures" : "RuleOfMixturesLaw",
-                "combination_factors"      : [0.4, 0.3, 0.3 ],
-                "material_rotation_angles" : [ 0,   45,  90 ],
-                "other_features..."        : [null,null,null]
+                "combination_factors"      : [0.4, 0.3, 0.3 ]
             },
             "Variables"        : {
                 "THICKNESS"     : null,
