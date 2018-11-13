@@ -99,14 +99,19 @@ public:
      * @param ThisParameters Configuration parameters
      */
     explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(Parameters ThisParameters)
-        : BaseType(),
-          mpRotationTool(Kratos::make_shared<RotationToolType>(ThisParameters.Has("domain_size") ? ThisParameters["domain_size"].GetInt() : 3, ThisParameters.Has("block_size") ? ThisParameters["block_size"].GetInt() : 3, IS_STRUCTURE, 0.0))
+        : BaseType()
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "domain_size" : 3,
+            "block_size" : 3
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        const int domain_size = ThisParameters["domain_size"].GetInt();
+        const int block_size = ThisParameters["block_size"].GetInt();
+        mpRotationTool = Kratos::make_shared<RotationToolType>(domain_size, block_size, IS_STRUCTURE, 0.0);
     }
 
     /// Constructor.
