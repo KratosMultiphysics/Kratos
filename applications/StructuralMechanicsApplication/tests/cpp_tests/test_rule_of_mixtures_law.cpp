@@ -59,10 +59,6 @@ Parameters GetTwoLayersParameters()
                 "combination_factors"      : [0.4, 0.6 ]
             },
             "Variables"        : {
-                "THICKNESS"     : null,
-                "DENSITY"       : null,
-                "YOUNG_MODULUS" : null,
-                "POISSON_RATIO" : null
             },
             "Tables"           : {}
         },
@@ -112,10 +108,6 @@ Parameters GetThreeLayersParameters()
                 "combination_factors"      : [0.4, 0.3, 0.3 ]
             },
             "Variables"        : {
-                "THICKNESS"     : null,
-                "DENSITY"       : null,
-                "YOUNG_MODULUS" : null,
-                "POISSON_RATIO" : null
             },
             "Tables"           : {}
         },
