@@ -13,8 +13,8 @@ for size in irregular_mesh_sizes.union(regular_mesh_n_points):
     for derivatives_type in derivatives_types:
         varying_parameters['material_acceleration_calculation_type'] = derivatives_type
         varying_parameters['laplacian_calculation_type'] = derivatives_type
-        import pouliot_benchmark_2D_algorithm
-        with pouliot_benchmark_2D_algorithm.Algorithm(varying_parameters) as algorithm:
+        import pouliot_benchmark_2D_analysis
+        with pouliot_benchmark_2D_analysis.Algorithm(varying_parameters) as algorithm:
             try:
                 test = script.Solution(algorithm, varying_parameters)
                 test.Run()

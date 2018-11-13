@@ -54,9 +54,9 @@ simulation_id = 0
 for field in field_identifiers:
     varying_parameters['field_identifier'] = field
     if field == 'ethier':
-        import ethier_benchmark_algorithm as algorithm
+        import ethier_benchmark_analysis as algorithm
     elif field == 'sines':
-        import product_of_sines_benchmark_algorithm as algorithm
+        import product_of_sines_benchmark_analysis as algorithm
         varying_parameters['field_period'] = 2.0
     runner = case_runner.CaseRunner(
         main_path=os.getcwd(),

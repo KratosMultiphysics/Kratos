@@ -2,7 +2,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import rotating_ale_algorithm
+import rotating_ale_analysis
 
 import json
 
@@ -41,7 +41,7 @@ varying_parameters["time_steps_per_analytic_processing_step"] = 1000
 
 parameters = Parameters(json.dumps(varying_parameters))
 
-with script.Solution(rotating_ale_algorithm, parameters) as test:
+with script.Solution(rotating_ale_analysis, parameters) as test:
     test.Run()
 
 print('\n****************************************')

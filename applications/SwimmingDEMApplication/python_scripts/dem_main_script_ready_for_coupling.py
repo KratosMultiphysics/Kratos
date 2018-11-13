@@ -79,7 +79,7 @@ class Solution(BaseAnalysis):
         super(Solution, self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
 
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
-        self.coupling_algorithm.ReadDispersePhaseModelParts()
+        self.coupling_analysis.ReadDispersePhaseModelParts()
 
     def GetParticleHistoryWatcher(self):
         watcher_type = self.pp.CFD_DEM["full_particle_history_watcher"].GetString()

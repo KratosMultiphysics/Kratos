@@ -83,14 +83,14 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.main_path = os.getcwd()
 
         self.SetFluidAlgorithm()
-        self.fluid_solution.coupling_algorithm = weakref.proxy(self)
+        self.fluid_solution.coupling_analysis = weakref.proxy(self)
 
         self.pp = self.fluid_solution.pp
 
         self.SetCouplingParameters(parameters)
 
         self.SetDispersePhaseAlgorithm()
-        self.disperse_phase_solution.coupling_algorithm = weakref.proxy(self)
+        self.disperse_phase_solution.coupling_analysis = weakref.proxy(self)
 
         self.procedures = weakref.proxy(self.disperse_phase_solution.procedures)
         self.report = DEM_procedures.Report()
@@ -114,8 +114,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.fluid_solution.main_path = self.main_path
 
     def SetDispersePhaseAlgorithm(self):
-        import dem_main_script_ready_for_coupling as DEM_algorithm
-        self.disperse_phase_solution = DEM_algorithm.Solution(self.model, self.pp)
+        import dem_main_script_ready_for_coupling as DEM_analysis
+        self.disperse_phase_solution = DEM_analysis.Solution(self.model, self.pp)
 
     def ReadDispersePhaseAndCouplingParameters(self):
 

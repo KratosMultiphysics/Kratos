@@ -12,8 +12,8 @@ def RunCase(varying_parameters):
     import sys
     import ProjectParameters as pp
     import DEM_explicit_solver_var as DEM_parameters
-    import marine_rain_algorithm
-    with marine_rain_algorithm.Algorithm(varying_parameters) as algorithm:
+    import marine_rain_analysis
+    with marine_rain_analysis.Algorithm(varying_parameters) as algorithm:
         try:
             test = script.Solution(algorithm)
             test.Run()
@@ -22,7 +22,7 @@ def RunCase(varying_parameters):
             print(error)
     del pp
     del DEM_parameters
-    del marine_rain_algorithm
+    del marine_rain_analysis
     del sys
 
 varying_parameters['time_window'] = t_w

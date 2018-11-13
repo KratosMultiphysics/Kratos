@@ -22,8 +22,8 @@ for size in irregular_mesh_sizes.union(regular_mesh_n_points):
         varying_parameters['laplacian_calculation_type'] = derivatives_type
         parameters = Parameters(json.dumps(varying_parameters))
 
-        import make_mesh_ethier_benchmark_algorithm
-        with make_mesh_ethier_benchmark_algorithm.Algorithm(parameters) as algorithm:
+        import make_mesh_ethier_benchmark_analysis
+        with make_mesh_ethier_benchmark_analysis.Algorithm(parameters) as algorithm:
             try:
                 test = script.Solution(algorithm, parameters)
                 test.Run()
