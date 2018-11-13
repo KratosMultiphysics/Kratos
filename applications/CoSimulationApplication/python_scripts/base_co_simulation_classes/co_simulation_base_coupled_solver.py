@@ -229,9 +229,13 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param conv_acc_settings dict: setting of the convergence accelerator to be make
     def _GetConvergenceAccelerators(self, conv_acc_settings):
         conv_accelerators = []
+        num_acceleratos = conv_acc_settings.size()
         import custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as factory
-        for accelerator_settings in conv_acc_settings:
-            accelerator = factory.CreateConvergenceAccelerator(accelerator_settings)
+        for i in range(num_acceleratos):
+            accelerator_settings = conv_acc_settings[i]
+            solver_name = accelerator_settings["data"]["solver"].GetString()
+            solver = self.participating_solvers[solver_name]
+            accelerator = factory.CreateConvergenceAccelerator(accelerator_settings, solver)
             conv_accelerators.append(accelerator)
 
         return conv_accelerators
