@@ -71,9 +71,9 @@ ReadMaterialsUtility::ReadMaterialsUtility(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::ReadMaterials(Parameters Params)
+void ReadMaterialsUtility::ReadMaterials(Parameters MaterialData)
 {
-    GetPropertyBlock(Params);
+    GetPropertyBlock(MaterialData);
 }
 
 /***********************************************************************************/
