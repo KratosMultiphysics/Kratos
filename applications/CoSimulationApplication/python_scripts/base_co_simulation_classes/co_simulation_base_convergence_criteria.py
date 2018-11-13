@@ -15,7 +15,9 @@ class CoSimulationConvergenceCriteria(object):
     #  @param settings: setting of the convergence criteria
     #  @param solver: solver to which convergence criteria is to be attached
     def __init__(self, settings, solver):
+        default_settings = self._GetDefaultSettings()
         self.settings = settings
+        self.settings.ValidateAndAssignDefaults(default_settings)
         self.solver = solver
         self.echo_level = 3
         self.data_name = self.settings["data_name"].GetString()
@@ -27,6 +29,17 @@ class CoSimulationConvergenceCriteria(object):
 
         self.data_prev_iter = []
         self.data_current_iter = []
+
+    def _GetDefaultSettings(self):
+        default_setting = data_structure.Parameters("""
+            {
+                "solver"        : "",
+                "data_name"     : "",
+                "abs_tolerance" : 1e-5,
+                "rel_tolerance" : 1e-5
+            }
+        """)
+        return default_setting
 
     ## Initialize : Initialize function of the class
     #                   To be called once at the beginning of the simulation.
@@ -62,14 +75,14 @@ class CoSimulationConvergenceCriteria(object):
     #  @param self            The object pointer.
     def InitializeNonLinearIteration(self):
         # storing the data for residual calculation
-        self.data_prev_iter = self._GetDataAsList()
+        self.data_prev_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
 
     ## FinalizeNonLinearIteration : FinalizeNonLinearIteration function of the class.
     #                           To be called once at the end of the non-linear coupling iteration.
     #
     #  @param self            The object pointer.
     def FinalizeNonLinearIteration(self):
-        self.data_current_iter = self._GetDataAsList()
+        self.data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
         self.iteration = self.iteration + 1
 
 
@@ -79,7 +92,7 @@ class CoSimulationConvergenceCriteria(object):
     #  @param self            The object pointer.
     def IsConverged(self):
         residual_list = self._CalculateResidual()
-        abs_residual_norm = self._CalculateNorm(residual_list)
+        abs_residual_norm = cs_tools.CalculateNorm(residual_list)
         if(abs_residual_norm == 0):
             abs_residual_norm = 1.0
         if(self.iteration == 1):
@@ -134,21 +147,6 @@ class CoSimulationConvergenceCriteria(object):
     def _Name(self):
         return self.__class__.__name__
 
-
-    ## _GetDataAsList : Converts the data as a python list.
-    #                       variants of this class can use numpy array
-    #
-    #  @param self            The object pointer
-    def _GetDataAsList(self):
-        data = []
-        data_def = self.solver.data_list[self.data_name]
-        data_mesh = self.solver.model[data_def["geometry_name"].GetString()]
-        for node in data_mesh.Nodes:
-            data.append(node.GetSolutionStepValue(self.data_variable,0))
-
-        return data
-
-
     ## _CalculateResidual : Calculates residual of the data specified in the settings
     #                       Numpy can be used in the variants of this class.
     #                       residual = data_in_current_iter - data_in_previous_iter
@@ -160,20 +158,3 @@ class CoSimulationConvergenceCriteria(object):
             residual.append(self.data_current_iter[i] - self.data_prev_iter[i])
 
         return residual
-
-
-    ## _CalculateNorm : Calculates the two norm of the list (residual) passed in
-    #                       Variants of this class can use numpy for calculating this norm.
-    #
-    #  @param self            The object pointer
-    #  @param residual_list   The list of the residual
-    def _CalculateNorm(self, residual_list): ## Can use numpy here.
-        norm = 0.0
-        num_entries = 0
-        for residual in residual_list:
-            for component in residual:
-                num_entries += 1
-                norm += component * component
-
-        norm = math.sqrt(norm)/num_entries
-        return norm
