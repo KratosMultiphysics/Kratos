@@ -113,13 +113,29 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
      */
-    ResidualBasedBlockBuilderAndSolver(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
+    explicit ResidualBasedBlockBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
     {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
 
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief Default constructor.
+     */
+    explicit ResidualBasedBlockBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver)
+        : BaseType(pNewLinearSystemSolver)
+    {
     }
 
     /** Destructor.
