@@ -976,6 +976,23 @@ protected:
         if (mCleared) {
             mCleared = false;
 
+            // Auxiliar set to reorder master DoFs
+            std::unordered_map<IndexType, IndexType> solvable_dof_reorder;
+
+            // Filling with "ones"
+            typedef std::pair<IndexType, IndexType> IndexIndexPairType;
+            IndexType counter = 0;
+            for (auto& dof : BaseType::mDofSet) {
+                if (dof.EquationId() < BaseType::mEquationSystemSize) {
+                    const IndexType equation_id = dof.EquationId();
+                    auto it = mDoFSlaveSet.find(dof);
+                    if (it == mDoFSlaveSet.end()) {
+                        solvable_dof_reorder.insert(IndexIndexPairType(equation_id, counter));
+                        ++counter;
+                    }
+                }
+            }
+
             // Contributions to the system
             LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
             LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
@@ -1004,6 +1021,11 @@ protected:
                         it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
 
                         it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
+
+                        // Reassign reordered dofs to the master side
+                        for (auto& id : master_equation_id) {
+                            id = solvable_dof_reorder[id];
+                        }
 
                         // Assemble the constraint contribution
                     #ifdef USE_LOCKS_IN_ASSEMBLY
