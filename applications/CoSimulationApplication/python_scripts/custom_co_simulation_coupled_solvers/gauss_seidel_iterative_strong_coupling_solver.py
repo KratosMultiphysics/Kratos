@@ -23,35 +23,37 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
             self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
 
         ### Making the convergence accelerator for this strategy
-        #self.convergence_accelerators = self._GetConvergenceAccelerators(self.settings["convergence_accelerators"])
+        self.convergence_accelerators_list = self._GetConvergenceAccelerators(self.settings["convergence_accelerators"])
 
         ### Creating the convergence criterion
         self.convergence_criteria_list = self._GetConvergenceCriteria(self.settings["convergence_criteria_settings"]["data_list"])
 
     def Initialize(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).Initialize()
-        #self.convergence_accelerator.Initialize()
+        for conv_acceleraror in self.convergence_accelerators_list:
+            conv_acceleraror.Initialize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Initialize()
 
     def Finalize(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).Finalize()
-        #self.convergence_accelerator.Finalize()
+        for conv_acceleraror in self.convergence_accelerators_list:
+            conv_acceleraror.Finalize()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.Finalize()
 
 
     def InitializeSolutionStep(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).InitializeSolutionStep()
-        #for accelerator in self.convergence_accelerators:
-            #accelerator.InitializeSolutionStep()
+        for accelerator in self.convergence_accelerators_list:
+            accelerator.InitializeSolutionStep()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).FinalizeSolutionStep()
-        #for accelerator in self.convergence_accelerators:
-            #accelerator.FinalizeSolutionStep()
+        for accelerator in self.convergence_accelerators_list:
+            accelerator.FinalizeSolutionStep()
         for conv_criteria in self.convergence_criteria_list:
             conv_criteria.FinalizeSolutionStep()
 
@@ -63,8 +65,8 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                                         tools.bcolors.MEGENTA + "Coupling iteration: ", tools.bcolors.BOLD + str(iteration+1) +
                                         " / " + tools.bcolors.BLUE + str(self.num_coupling_iterations) + tools.bcolors.ENDC)
 
-                #for accelerator in self.convergence_accelerators:
-                    #accelerator.InitializeNonLinearIteration()
+                for accelerator in self.convergence_accelerators_list:
+                    accelerator.InitializeNonLinearIteration()
                 for conv_criteria in self.convergence_criteria_list:
                     conv_criteria.InitializeNonLinearIteration()
 
@@ -74,8 +76,8 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                     solver.SolveSolutionStep()
                     self._SynchronizeOutputData(solver_name)
 
-                #for accelerator in self.convergence_accelerators:
-                    #accelerator.FinalizeNonLinearIteration()
+                for accelerator in self.convergence_accelerators_list:
+                    accelerator.FinalizeNonLinearIteration()
                 for conv_criteria in self.convergence_criteria_list:
                     conv_criteria.FinalizeNonLinearIteration()
 
@@ -86,9 +88,6 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                     if self.echo_level > 0:
                         print(tools.bcolors.GREEN + "### CONVERGENCE WAS ACHIEVED ###" + tools.bcolors.ENDC )
                     break
-                else:
-                    #self.convergence_accelerator.ComputeUpdate()
-                    pass
 
                 if iteration+1 >= self.num_coupling_iterations and self.echo_level > 0:
                     print("\t"+tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + tools.bcolors.ENDC)
