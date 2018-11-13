@@ -38,7 +38,7 @@ namespace Kratos
             for (const_iterator i = rOther.mData.begin(); i != rOther.mData.end(); ++i) {
             bool variable_already_exist = false;
                 for (iterator j = mData.begin(); j != mData.end(); ++j) {
-                    if (i->first->Key() == j->first->Key()) {
+                    if (i->first == j->first) {
                         variable_already_exist = true;
                         j->second = i->first->Clone(i->second);
                     }
@@ -51,7 +51,7 @@ namespace Kratos
             for (const_iterator i = rOther.mData.begin(); i != rOther.mData.end(); ++i) {
             bool variable_already_exist = false;
                 for (iterator j = mData.begin(); j != mData.end(); ++j) {
-                    if (i->first->Key() == j->first->Key()) {
+                    if (i->first == j->first) {
                         variable_already_exist = true;
                     }
                 }
