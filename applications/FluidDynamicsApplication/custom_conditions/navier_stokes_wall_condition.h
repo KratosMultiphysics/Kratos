@@ -214,6 +214,14 @@ public:
         return pNewCondition;
     }
 
+    /**
+     * @brief Initializes the condition by finding the parent element
+     * @comment The parent element is needed to retrieve the viscous stress for the BEHR2004 slip condition
+     */
+    void Initialize() override;
+
+
+
     /// Calculates the LHS and RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
@@ -276,6 +284,19 @@ public:
 
             noalias(rLeftHandSideMatrix) += lhs_gauss;
             noalias(rRightHandSideVector) += rhs_gauss;
+        }
+
+        // Adding the BEHR2004 contribution if a slip BC is detected
+        if (this->Is(SLIP)){
+
+            MatrixType rBehrSlipLeftHandSideMatrix = ZeroMatrix(MatrixSize,MatrixSize);
+            VectorType rBehrSlipRightHandSideVector = ZeroVector(MatrixSize); 
+
+            CalculateBehrSlipLeftHandSideContribution(rBehrSlipLeftHandSideMatrix, rCurrentProcessInfo, data); 
+            CalculateBehrSlipRightHandSideContribution(rBehrSlipRightHandSideVector, rCurrentProcessInfo, data);
+
+            noalias(rLeftHandSideMatrix) += rBehrSlipLeftHandSideMatrix;
+            noalias(rRightHandSideVector) += rBehrSlipRightHandSideVector; 
         }
 
         KRATOS_CATCH("")
@@ -533,6 +554,13 @@ private:
     ///@name Member Variables
     ///@{
 
+    Element* mpParentElement = NULL;
+
+    bool mInitializeWasPerformed = false;
+
+    MatrixType mLeftHandSideMatrix;
+
+    bool mHasBehrSlipLeftHandSideMatrix = false;
 
     ///@}
     ///@name Serialization
@@ -559,6 +587,32 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Computes the left-hand side contribution for the BEHR2004 slip condition
+     * This specific implementation of the slip condition avoids spurious velocities 
+     * at points were the normal directions of the adjacent boundary geometries do not 
+     * coincide
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
+     * @param rDataStruct reference to a struct to hand over data
+     */
+    void CalculateBehrSlipLeftHandSideContribution( MatrixType& rLeftHandSideMatrix,
+                                                    ProcessInfo& rCurrentProcessInfo, 
+                                                    ConditionDataStruct& rDataStruct );
+
+
+    /**
+     * @brief Computes the right-hand side contribution for the BEHR2004 slip condition
+     * This specific implementation of the slip condition avoids spurious velocities 
+     * at points were the normal directions of the adjacent boundary geometries do not 
+     * coincide
+     * @param rRightHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
+     * @param rDataStruct reference to a struct to hand over data
+     */
+    void CalculateBehrSlipRightHandSideContribution(    VectorType& rRightHandSideVector,
+                                                        ProcessInfo& rCurrentProcessInfo,
+                                                        ConditionDataStruct& rDataStruct );
 
     ///@}
     ///@name Private  Access
