@@ -286,23 +286,23 @@ namespace Kratos
 
             // Residual Based Adjoint Static Scheme Type
             typedef ResidualBasedAdjointStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointStaticSchemeType;
-            class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, BaseSchemeType>
+            py::class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, BaseSchemeType>
             (m, "ResidualBasedAdjointStaticScheme")
-            .def(init<AdjointResponseFunction::Pointer>())
+            .def(py::init<AdjointResponseFunction::Pointer>())
             ;
 
             // Residual Based Adjoint Steady Scheme Type
             typedef ResidualBasedAdjointSteadyScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointSteadySchemeType;
-            class_<ResidualBasedAdjointSteadySchemeType, typename ResidualBasedAdjointSteadySchemeType::Pointer, ResidualBasedAdjointStaticSchemeType>
+            py::class_<ResidualBasedAdjointSteadySchemeType, typename ResidualBasedAdjointSteadySchemeType::Pointer, ResidualBasedAdjointStaticSchemeType>
             (m, "ResidualBasedAdjointSteadyScheme")
-            .def(init<AdjointResponseFunction::Pointer>())
+            .def(py::init<AdjointResponseFunction::Pointer>())
             ;
 
             // Residual Based Adjoint Bossak Scheme Type
             typedef ResidualBasedAdjointBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointBossakSchemeType;
-            class_<ResidualBasedAdjointBossakSchemeType, typename ResidualBasedAdjointBossakSchemeType::Pointer, BaseSchemeType>
+            py::class_<ResidualBasedAdjointBossakSchemeType, typename ResidualBasedAdjointBossakSchemeType::Pointer, BaseSchemeType>
             (m, "ResidualBasedAdjointBossakScheme")
-            .def(init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
+            .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
             ;
 
             //********************************************************************

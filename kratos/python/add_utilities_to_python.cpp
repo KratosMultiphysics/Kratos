@@ -616,8 +616,8 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
         ;
 
-    class_<SensitivityBuilder>(m, "SensitivityBuilder")
-        .def(init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
+    py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
+        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
         .def("Initialize", &SensitivityBuilder::Initialize)
         .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
 

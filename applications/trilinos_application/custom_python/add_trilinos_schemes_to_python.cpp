@@ -241,6 +241,7 @@ void  AddSchemes(pybind11::module& m)
     py::class_<TrilinosResidualBasedAdjointBossakSchemeType, typename TrilinosResidualBasedAdjointBossakSchemeType::Pointer, TrilinosBaseSchemeType>
         (m, "TrilinosResidualBasedAdjointBossakScheme")
         .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
+    ;
 
 }
 
