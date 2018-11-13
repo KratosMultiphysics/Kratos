@@ -113,8 +113,6 @@ public:
     {
 		KRATOS_TRY
 
-		std::cout<<"----RemoveMeshNodesProcess::Execute()----echo: "<<mEchoLevel<<std::endl;
-
 		if( mEchoLevel > 0 ){
 			std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
 			std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes().size()<<std::endl;
@@ -701,6 +699,8 @@ private:
 		//***SIZES :::: parameters do define the tolerance in mesh size: 
 		double size_for_distance_inside       = 1.0 * mrRemesh.Refine->CriticalRadius; //compared with element radius
 		double size_for_distance_boundary     = 1.5 * size_for_distance_inside; //compared with element radius
+		size_for_distance_inside *= size_for_distance_inside;
+        size_for_distance_boundary *= size_for_distance_boundary;
 
 		bool any_node_removed = false;
 

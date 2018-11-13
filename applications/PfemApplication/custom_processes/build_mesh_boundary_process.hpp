@@ -103,8 +103,6 @@ namespace Kratos
     {
 		KRATOS_TRY
 
-		std::cout<<"----BuildMeshBoundaryProcess::Execute()----"<<std::endl;
-
 		bool success=false;
 
 		boost::timer auxiliary;

@@ -97,8 +97,6 @@ public:
     {
 		KRATOS_TRY
 
-		std::cout<<"----GenerateNewNodesProcess::Execute()----"<<std::endl;
-
 		if( mEchoLevel > 0 )
 			std::cout<<" [ GENERATE NEW NODES: "<<std::endl;
 

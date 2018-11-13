@@ -96,8 +96,6 @@ public:
     {
 		KRATOS_TRY
 
-		std::cout<<"----RefineMeshElementsOnSizeProcess::Execute()----"<<std::endl;
-
 		if( mEchoLevel > 0 ){
 			std::cout<<" [ SELECT ELEMENTS TO REFINE : "<<std::endl;
 			//std::cout<<"   refine selection "<<std::endl;
@@ -118,7 +116,7 @@ public:
 		unsigned int refine_on_threshold = 0;
       
 		int id = 0;
-
+	
 		// 
 		if(mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ELEMENTS) && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) )
 		{

@@ -97,8 +97,6 @@ public:
     {
 		KRATOS_TRY
 
-		std::cout<<"----RefineMeshElementsOnThresholdProcess::Execute()----echo: "<<mEchoLevel<<std::endl;
-
 		if( ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) ||  mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) ) && (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ELEMENTS_ON_THRESHOLD) ) )
 		{
 			SetNodesToRefine();

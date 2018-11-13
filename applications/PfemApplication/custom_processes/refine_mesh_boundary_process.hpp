@@ -103,8 +103,6 @@ public:
     {
 		KRATOS_TRY
 
-		std::cout<<"----RefineMeshBoundaryProcess::Execute()----echo: "<<mEchoLevel<<std::endl;
-
 		if( this->mEchoLevel > 0 ){
 			std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
 			std::cout<<"  "<<mrModelPart.NumberOfNodes()<<" Nodes and "<<mrModelPart.NumberOfConditions()<<" Conditions "<<std::endl;
@@ -274,8 +272,14 @@ public:
     {
 		KRATOS_TRY
 		
+//std::cout<<pCondition->GetValue(MASTER_ELEMENTS)<<std::endl;
+//std::cout<<pCondition->GetValue(MASTER_ELEMENTS).size()<<std::endl;
+//std::cout<<pCondition->GetValue(MASTER_ELEMENTS).back()<<std::endl;
+
 		if( pCondition->GetValue(MASTER_ELEMENTS).size() > 0 )
 		{
+			//get MASTER element of the condition (corresponding element where the condition is 'attached')
+			//and calculate averaged threshold value
 			Element::ElementType& MasterElement = pCondition->GetValue(MASTER_ELEMENTS).back();
 	
 			std::vector<double> Value;
@@ -294,7 +298,7 @@ public:
 			//calculate condition length between the two points
 			double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
 	
-			// set refine if both threshold value & minimal face size are reached
+			// set refine if both threshold value (of corresponding) & minimal face size are reached
 			if( threshold_value > mrRemesh.Refine->ReferenceThreshold && face_size > critical_size )
 			{
 				return true;
@@ -336,8 +340,8 @@ public:
 
 		bool refine_condition = false;
       
-		// THRESHOLD VALUE INSERT: 2.5 * 3.0 * critical_mesh_size
-		double size_for_threshold_face  = 2.5 * mrRemesh.Refine->CriticalSide; 
+		// THRESHOLD VALUE INSERT: 2.5 * 3.0 * critical_mesh_size; lluis: 6.5 * mrRe...
+		double size_for_threshold_face  = 2.0 * mrRemesh.Refine->CriticalSide; 
 
 		if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) )
 		{
@@ -347,8 +351,8 @@ public:
 
 		if( refine_condition )
 		{
-			//check a the critical distance to not refine without limits
-			double size_for_boundary_threshold = mrRemesh.Refine->CriticalSide;
+			//check a the critical distance to not refine without limits; lluis: 6.5 * mrRe...
+			double size_for_boundary_threshold = 2.0 * mrRemesh.Refine->CriticalSide;
 			refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_threshold);
 
 			if( refine_condition ){
@@ -359,8 +363,8 @@ public:
 
 		refine_condition = false;
       
-		// DISTANCE VALUE INSERT: 3.5 * 3.0 * critical_mesh_size
-		double size_for_boundary_face   = 2.0 * mrRemesh.Refine->CriticalSide;
+		// DISTANCE VALUE INSERT: 3.5 * 3.0 * critical_mesh_size; lluis: 5.5 * mrRe...
+		double size_for_boundary_face   = 3.5 * mrRemesh.Refine->CriticalSide;
 
 		if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) )
 		{
@@ -397,7 +401,8 @@ public:
 	
 			contact_active = mModelerUtilities.CheckContactActive(pCondition->GetGeometry(), contact_semi_active, semi_active_nodes);
 	
-			double factor = 3.50;
+			//FACTOR: 3.5; lluis: 2.5
+			double factor = 2.5;
 	
 			if( contact_semi_active )
 			{
@@ -406,22 +411,22 @@ public:
 	
 				curved_contact = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), contact_normals);
 
-				//FACTOR VALUE INSERT plane contact transition: 2.0
-				factor = 2.0;
+				//FACTOR VALUE INSERT plane contact transition: 2.0; lluis: 1.5
+				factor = 1.5;
 
 				//FACTOR VALUE INSERT curved contact transition: 0.75
 				if( curved_contact ){
-					factor = 0.5;
+					factor = 0.75;
 				}
 	        
 				if( contact_active ){
 
-					//FACTOR VALUE INSERT plane contact: 1.5
-					factor = 1.5;
+					//FACTOR VALUE INSERT plane contact: 1.5; lluis: 1.0
+					factor = 1.0;
 				  
-					//FACTOR VALUE INSERT curved contact: 0.5
+					//FACTOR VALUE INSERT curved contact: 0.5; lluis: 0.65
 					if( curved_contact ){
-						factor = 0.25;
+						factor = 0.65;
 					}
 				}
 			}
@@ -747,6 +752,10 @@ public:
 		// loop over conditions of the model part
 		for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
 	    {
+			
+//std::cout<<i_cond->Info()<<std::endl;
+//std::cout<<i_cond->GetGeometry()<<std::endl<<std::endl;
+
 			// reset refining flags fo false
 			refine_candidate = false;
 			i_cond->Set(TO_REFINE, false);
@@ -767,6 +776,7 @@ public:
 			// check condition in box for refining candidate
 			if( refine_candidate )
 			{
+//std::cout<<mrRemesh.Refine->RefiningBoxSetFlag<<std::endl;
 				if (mrRemesh.Refine->RefiningBoxSetFlag == true ){
 					refine_candidate = mModelerUtilities.CheckConditionInBox(*(i_cond.base()), *(mrRemesh.Refine->RefiningBox), rCurrentProcessInfo);
 				}
@@ -872,6 +882,7 @@ public:
 				pNode->SetBufferSize(rModelPart.GetBufferSize());
 
 				//generating the dofs
+				//fix the dof if all nodes of old condition are fixed as well
 				for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); i_dof++)
 				{
 					NodeType::DofType& rDof = *i_dof;
@@ -940,7 +951,7 @@ public:
 		pNode->Y0() = pNode->Y() - Displacement[1];
 		pNode->Z0() = pNode->Z() - Displacement[2];
 
-		//set contact force
+		//clear contact force if not both old condition nodes had cantact force != 0
 		unsigned int count = 0;
 		for( unsigned int i = 0; i<rGeometry.size(); i++ )
 	    {

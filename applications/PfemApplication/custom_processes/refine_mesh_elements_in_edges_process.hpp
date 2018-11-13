@@ -97,8 +97,6 @@ public:
     {
 		KRATOS_TRY
 
-		std::cout<<"----RefineMeshElementsInEdgesProcess::Execute()----"<<std::endl;
-
 		if( ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) || mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) ) )
 		{
 			//0.- Clean locally used flags
