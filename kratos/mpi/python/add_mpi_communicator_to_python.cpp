@@ -16,6 +16,7 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
+#include "includes/define_python.h"
 #include "add_mpi_communicator_to_python.h"
 #include "mpi/includes/mpi_communicator.h"
 
@@ -27,11 +28,7 @@ void AddMPICommunicatorToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<MPICommunicator, Communicator>(m,"MPICommunicator")
-    .def("__str__", [](const MPICommunicator& self){
-        std::stringstream ss;
-        self.PrintInfo(ss);
-        return ss.str();
-    })
+    .def("__str__", PrintObject<MPICommunicator>);
     ;
 }
 

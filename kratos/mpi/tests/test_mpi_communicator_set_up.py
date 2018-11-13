@@ -12,11 +12,11 @@ class TestMPICommunicatorSetUp(UnitTest.TestCase):
         model_part = self.model.CreateModelPart("Test_model_part",1)
 
         # I'd do more complex tests, but this one should work in serial too (JC)
-        self.assertNotEqual(model_part.GetCommunicator().__str__(), "MPICommunicator")
+        self.assertNotRegex(model_part.GetCommunicator().__str__(), "MPICommunicator")
 
         MPI.ModelPartCommunicatorUtilities.SetMPICommunicator(model_part)
 
-        self.assertEqual(model_part.GetCommunicator().__str__(), "MPICommunicator")
+        self.assertRegex(model_part.GetCommunicator().__str__(), "MPICommunicator")
 
 if __name__ == "__main__":
     UnitTest.main()

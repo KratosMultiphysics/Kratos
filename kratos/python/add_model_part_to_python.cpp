@@ -728,6 +728,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<array_1d<double,3> > )
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Vector> )
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
+        .def("__str__", PrintObject<Communicator>);
         ;
 
         py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
