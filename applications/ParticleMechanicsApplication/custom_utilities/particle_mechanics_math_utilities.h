@@ -114,14 +114,14 @@ public:
         {
             // Vector y
             for(unsigned int i=iteration; i<dim; i++)
-                y(i)= Help(i,iteration);
+                y[i]= Help(i,iteration);
 
 
             // Helpvalue l
             double normy=0.0;
 
             for(unsigned int i=iteration; i<dim; i++)
-                normy += y(i)*y(i);
+                normy += y[i]*y[i];
 
             normy= std::sqrt(normy);
 
@@ -141,12 +141,12 @@ public:
                 if(i==iteration)
                     e=1;
 
-                w(i)= 1/(2*l)*(y(i)-k*e);
+                w[i]= 1/(2*l)*(y[i]-k*e);
             }
 
             for(unsigned int i=iteration; i<dim; i++)
                 for(unsigned int j=iteration; j<dim; j++)
-                    HelpQ[iteration](i,j)= unity(i,j)- 2*w(i)*w(j);
+                    HelpQ[iteration](i,j)= unity(i,j)- 2*w[i]*w[j];
 
 
             for(unsigned int i=iteration; i<dim; i++)
@@ -272,10 +272,10 @@ public:
 
         for(unsigned int i=0; i<dim; i++)
         {
-            Result(i)= HelpA(i,i);
+            Result[i]= HelpA(i,i);
 
-            if(std::abs(Result(i)) <rZeroTolerance)
-                Result(i)=0.0;
+            if(std::abs(Result[i]) <rZeroTolerance)
+                Result[i]=0.0;
         }
 
         return Result;
@@ -502,7 +502,7 @@ public:
         }
 
         for(unsigned int i=0; i<Help.size1(); i++)
-            rEigenValues(i)= Help(i,i);
+            rEigenValues[i]= Help(i,i);
 
     }
 
