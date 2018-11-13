@@ -23,8 +23,6 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-#include "structural_mechanics_application_variables.h"
-
 /* ELEMENTS */
 #include "custom_elements/rocco_ring_element.hpp"
 
