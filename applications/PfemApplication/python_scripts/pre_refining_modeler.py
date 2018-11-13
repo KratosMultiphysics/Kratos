@@ -75,7 +75,7 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
     def SetPreMeshingProcesses(self):
 
         # process to add nodes of interest
-        if(1==0):
+        if(1==1):
             add_nodes_process = KratosPfem.AddNodesOfInterest(self.model_part, self.MeshingParameters, self.echo_level)
             self.mesher.SetPreMeshingProcess(add_nodes_process)
 
@@ -83,9 +83,9 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
         refine_mesh_elements = KratosPfem.SetElementNodesToRefineOnThreshold(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPreMeshingProcess(refine_mesh_elements)
 
-
-        refine_edge_elements = KratosPfem.SetElementEdgesToRefine(self.model_part,self.MeshingParameters,self.echo_level)
-        self.mesher.SetPreMeshingProcess(refine_edge_elements)
+		# process to refine elements in edges
+        #refine_edge_elements = KratosPfem.SetElementEdgesToRefine(self.model_part,self.MeshingParameters,self.echo_level)
+        #self.mesher.SetPreMeshingProcess(refine_edge_elements)
         
 
         refine_mesh_boundary = KratosPfem.RefineMeshBoundary(self.model_part, self.MeshingParameters, self.echo_level)            
@@ -109,7 +109,7 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         if( refining_options.Is(KratosPfem.ModelerUtilities.REFINE_ADD_NODES) ):
-            select_refine_elements = KratosPfem.SetElementsToRefineOnSize(self.model_part, self.MeshingParameters, self.echo_level)
+            select_refine_elements = KratosPfem.SetElementsToRefineOnSizeCPT(self.model_part, self.MeshingParameters, self.echo_level)
             self.mesher.SetPostMeshingProcess(select_refine_elements)
 
 
