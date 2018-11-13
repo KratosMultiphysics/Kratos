@@ -9,10 +9,6 @@
                 "combination_factors"      : [0.4, 0.3, 0.3 ]
             },
             "Variables"        : {
-                "THICKNESS"     : null,
-                "DENSITY"       : null,
-                "YOUNG_MODULUS" : null,
-                "POISSON_RATIO" : null
             },
             "Tables"           : {}
         },
