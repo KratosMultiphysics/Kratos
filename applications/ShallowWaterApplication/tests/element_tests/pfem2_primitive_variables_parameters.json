@@ -2,9 +2,9 @@
     "problem_data"         : {
         "problem_name"         : "pfem2_primitive_variables",
         "domain_size"          : 2,
-        "echo_level"           : 1,
+        "echo_level"           : 0,
         "start_time"           : 0.0,
-        "end_time"             : 1.0,
+        "end_time"             : 0.5,
         "parallel_type"        : "OpenMP",
         "number_of_threads"    : 1
     },
@@ -119,38 +119,34 @@
                 "value"           : "z"
             }
         }],
-        "json_check_process"          : [{
+        "json_output_and_check_process" : [{
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "from_json_check_result_process",
-            "process_name"    : "FromJsonCheckResultProcess",
             "Parameters"      : {
                 "model_part_name" : "main_model_part",
                 "check_variables" : ["HEIGHT"],
-                "input_file_name" : "element_tests/test_elements_square_domain.json",
+                "input_file_name" : "element_tests/test_pfem2_primitive_element.json",
                 "time_frequency"  : 0.5
             }
         }]
     },
     "copy_the_process_into___processes___to_generate_or check_the_results_file" : {
-        "json_output_process"         : [{
+        "json_output_and_check_process" : [{
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "json_output_process",
-            "process_name"    : "JsonOutputProcess",
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "output_variables" : ["HEIGHT"],
-                "output_file_name" : "element_tests/test_elements_square_domain.json",
+                "output_file_name" : "element_tests/test_pfem2_primitive_element.json",
                 "time_frequency"   : 0.5
             }
-        }],
-        "json_check_process"          : [{
+        },{
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "from_json_check_result_process",
-            "process_name"    : "FromJsonCheckResultProcess",
             "Parameters"      : {
                 "model_part_name" : "main_model_part",
                 "check_variables" : ["HEIGHT"],
-                "input_file_name" : "element_tests/test_elements_square_domain.json",
+                "input_file_name" : "element_tests/test_pfem2_primitive_element.json",
                 "time_frequency"  : 0.5
             }
         }]
