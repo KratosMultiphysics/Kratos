@@ -1152,11 +1152,12 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 	)
 {
 	rIntegratedStress.resize(6);
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	double friction_angle = this->GetProperties()[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double sigma_t = properties[YIELD_STRESS_T];
+	double friction_angle = properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 
 	KRATOS_WARNING_IF("friction_angle", friction_angle < 1e-24) << "Friction Angle not defined, assumed equal to 32deg" << std::endl;
 	KRATOS_ERROR_IF(sigma_c < 1e-24) << "Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa " << std::endl;
@@ -1227,10 +1228,11 @@ void FemDem3DElement::RankineCriterion(
 	Vector PrincipalStressVector = ZeroVector(3);
 	this->CalculatePrincipalStresses(PrincipalStressVector, StressVector);
 
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 	const double c_max = std::abs(sigma_t);
 	KRATOS_ERROR_IF(sigma_c < 1e-24) << "Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa " << std::endl;
 	KRATOS_ERROR_IF(sigma_t < 1e-24) << "Yield stress in tension not defined, include YIELD_STRESS_T in .mdpa" << std::endl;
@@ -1270,11 +1272,12 @@ void FemDem3DElement::DruckerPragerCriterion(
 	int cont,
 	double l_char)
 {
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	double friction_angle = this->GetProperties()[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double sigma_t = properties[YIELD_STRESS_T];
+	double friction_angle = properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 
 	KRATOS_WARNING_IF("friction_angle", friction_angle < 1e-24) << "Friction Angle not defined, assumed equal to 32deg" << std::endl;
 	KRATOS_ERROR_IF(sigma_c < 1e-24) << "Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa " << std::endl;
@@ -1292,7 +1295,6 @@ void FemDem3DElement::DruckerPragerCriterion(
 	const double J2 = CalculateJ2Invariant(Deviator);
 	const double A = 1.00 / (Gt * E / (l_char * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < 0.0) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
-
 
 	double f, CFL = 0.0, TEN0 = 0.0;
 	// Check DruckerPrager criterion
@@ -1337,10 +1339,11 @@ void FemDem3DElement::SimoJuCriterion(
 	Vector PrincipalStressVector = ZeroVector(3);
 	this->CalculatePrincipalStresses(PrincipalStressVector, StressVector);
 
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 	const double n = std::abs(sigma_c / sigma_t);
 	const double c_max = std::abs(sigma_c) / std::sqrt(E);
 
@@ -1401,10 +1404,11 @@ void FemDem3DElement::RankineFragileLaw(
 	Vector PrincipalStressVector = ZeroVector(3);
 	this->CalculatePrincipalStresses(PrincipalStressVector, StressVector);
 
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 	const double c_max = std::abs(sigma_t);
 
 	const double  A = 1.00 / (Gt * E / (l_char * std::pow(sigma_c, 2)) - 0.5);

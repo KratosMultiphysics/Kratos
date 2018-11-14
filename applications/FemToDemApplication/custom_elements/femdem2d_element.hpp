@@ -115,7 +115,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	double GetThreshold() { return mThreshold; }
 
 	void SetConvergedDamage(double af) { mDamage = af; }
-	double Get_Convergeddamage() { return mDamage; }
+	double GetConvergedDamage() { return mDamage; }
 
 	void SetConverged_f_sigma(double af) { mF_sigma = af; }
 	double GetConverged_f_sigma() { return mF_sigma; }
@@ -133,19 +133,19 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void Set_NonConvergeddamage(double af) { mNonConvergedDamage = af; }
 	double Get_NonConvergeddamage() { return mNonConvergedDamage; }
 
-	void Set_NonConvergedf_sigma(double af, int cont) { mNonConvergedFsigmas[cont] = af; }
+	void SetNonConvergedEquivalentStress(double af, int cont) { mNonConvergedFsigmas[cont] = af; }
 	double GetNonConvergedEquivalentStress(int cont) { return mNonConvergedFsigmas[cont]; }
 
-	void Set_NonConvergedf_sigma(double af) { mNonConvergedFsigma = af; }
+	void SetNonConvergedEquivalentStress(double af) { mNonConvergedFsigma = af; }
 	double GetNonConvergedEquivalentStress() { return mNonConvergedFsigma; }
 
 	void ResetNonConvergedVars()
 	{
 		this->Set_NonConvergeddamage(0.0);
-		this->Set_NonConvergedf_sigma(0.0);
+		this->SetNonConvergedEquivalentStress(0.0);
 		for (unsigned int cont = 0; cont < 3; cont++) {
 			this->Set_NonConvergeddamages(0, cont);
-			this->Set_NonConvergedf_sigma(0, cont);
+			this->SetNonConvergedEquivalentStress(0, cont);
 		}
 	}
 
