@@ -99,7 +99,7 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
 
     def test_GenerateMPMParticleTriangle2D16P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=16, expected_num_particle=16)
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=12, expected_num_particle=12)
 
     def test_GenerateMPMParticleTriangle3D1P(self):
         current_model = KratosMultiphysics.Model()
@@ -115,7 +115,7 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
 
     def test_GenerateMPMParticleTriangle3D16P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=16, expected_num_particle=16)
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=12, expected_num_particle=24)
 
     def test_GenerateMPMParticleQuadrilateral2D1P(self):
         current_model = KratosMultiphysics.Model()
