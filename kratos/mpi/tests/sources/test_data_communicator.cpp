@@ -57,6 +57,18 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommRetrieval, KratosMPICoreFastSuite)
     KRATOS_CHECK_NOT_EQUAL(MPIEnvironment::GetMPICommunicator(mpi_world_communicator), MPI_COMM_SELF);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosMPICoreFastSuite)
+{
+    // This should work always
+    KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("Serial"), true);
+    const DataCommunicator& r_serial = KratosComponents<DataCommunicator>::Get("Serial");
+    KRATOS_CHECK_EQUAL(r_serial.IsDistributed(), false);
+    // This assumes running Kratos with mpi
+    KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("World"), true);
+    const DataCommunicator& r_world = KratosComponents<DataCommunicator>::Get("World");
+    KRATOS_CHECK_EQUAL(r_world.IsDistributed(), true);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSum, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
