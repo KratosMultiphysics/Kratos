@@ -23,6 +23,8 @@
 #include "includes/variables.h"
 
 #include "custom_elements/iga_truss_element.h"
+#include "custom_elements/iga_edge_cable_element.h"
+#include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
 
 namespace Kratos {
@@ -161,6 +163,8 @@ private:
     ///@{
 
     const IgaTrussElement mIgaTrussElement;
+    const IgaEdgeCableElement mIgaEdgeCableElement;
+    const IgaMembraneElement mIgaMembraneElement;
     const ShellKLDiscreteElement mShellKLDiscreteElement;
 
     ///@}
