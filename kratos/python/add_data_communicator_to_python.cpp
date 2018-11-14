@@ -87,6 +87,23 @@ std::vector<TValue> VectorScatterWrapper(
     return message;
 }
 
+template<class TValue>
+std::vector<TValue> VectorGatherWrapper(
+    DataCommunicator& rSelf,
+    void (DataCommunicator::*pGatherMethod)(const std::vector<TValue>&, std::vector<TValue>&, const int) const,
+    const std::vector<TValue>& rSourceValues,
+    const int DestinationRank)
+{
+    int message_size = rSourceValues.size();
+    std::vector<TValue> gathered_values;
+    if (rSelf.Rank() == DestinationRank)
+    {
+        gathered_values.resize(message_size*rSelf.Size());
+    }
+    (rSelf.*pGatherMethod)(rSourceValues, gathered_values, DestinationRank);
+    return gathered_values;
+}
+
 void AddDataCommunicatorToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -184,6 +201,13 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     })
     .def("ScatterDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int SourceRank) {
         return VectorScatterWrapper<double>(rSelf, &DataCommunicator::Scatter, rSourceMessage, SourceRank);
+    })
+    // Gather
+    .def("GatherInts",[](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage, const int DestinationRank) {
+        return VectorGatherWrapper<int>(rSelf, &DataCommunicator::Gather, rSourceMessage, DestinationRank);
+    })
+    .def("GatherDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int DestinationRank) {
+        return VectorGatherWrapper<double>(rSelf, &DataCommunicator::Gather, rSourceMessage, DestinationRank);
     })
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
