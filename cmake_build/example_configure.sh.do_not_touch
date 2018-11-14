@@ -24,8 +24,6 @@ rm -rf CMakeFiles\
 cmake ..                                                                            \
 -DCMAKE_C_COMPILER=/usr/bin/gcc                                                     \
 -DCMAKE_CXX_COMPILER=/usr/bin/g++                                                   \
--DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 "                           \
--DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 "                                          \
 -DBOOST_ROOT="${HOME}/boost"                                                        \
 -DPYTHON_EXECUTABLE="/usr/bin/python3"                                              \
 -DCMAKE_BUILD_TYPE=Release                                                          \
@@ -36,17 +34,6 @@ cmake ..                                                                        
 -DSOLID_MECHANICS_APPLICATION=ON                                                    \
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                                \
 -DFLUID_DYNAMICS_APPLICATION=ON                                                     \
--DMESH_MOVING_APPLICATION=ON                                                        \
--DFSI_APPLICATION=ON                                                                \
--DDEM_APPLICATION=OFF                                                               \
--DSWIMMING_DEM_APPLICATION=OFF                                                      \
--DMIXED_ELEMENT_APPLICATION=OFF                                                     \
--DSHAPE_OPTIMIZATION_APPLICATION=OFF                                                \
--DTOPOLOGY_OPTIMIZATION_APPLICATION=OFF                                             \
--DMETIS_APPLICATION=OFF                                                             \
--DPARMETIS_ROOT_DIR="/home/youruser/compiled_libraries/ParMetis-3.1.1"              \
--DTRILINOS_APPLICATION=OFF                                                          \
--DTRILINOS_ROOT="/home/youruser/compiled_libraries/trilinos-10.2.0"                 \
 -DINSTALL_EMBEDDED_PYTHON=ON
 
 # decomment this to have it verbose

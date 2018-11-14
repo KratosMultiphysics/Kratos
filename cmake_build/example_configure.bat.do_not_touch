@@ -7,9 +7,8 @@ cls
 :: you may want to decomment this the first time you compile
 del CMakeCache.txt
 
-cmake -G "Visual Studio 14 2015 Win64"                                              ^
+cmake -G "Visual Studio 15 2017 Win64"                                              ^
 -DCMAKE_BUILD_TYPE=Release                                                          ^
--DCMAKE_CXX_FLAGS=" -D_SCL_SECURE_NO_WARNINGS "                                     ^
 -DBOOST_ROOT="C:\boost_1_59_0"                                                      ^
 -DPYTHON_EXECUTABLE="C:\Python33\python.exe"                                        ^
 -DLAPACK_LIBRARIES="C:\external_libraries\liblapack.lib"                            ^
@@ -21,11 +20,6 @@ cmake -G "Visual Studio 14 2015 Win64"                                          
 -DSOLID_MECHANICS_APPLICATION=ON                                                    ^
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                                ^
 -DFLUID_DYNAMICS_APPLICATION=ON                                                     ^
--DMESH_MOVING_APPLICATION=ON                                                                ^
--DFSI_APPLICATION=ON                                                                ^
--DDEM_APPLICATION=OFF                                                               ^
--DSWIMMING_DEM_APPLICATION=OFF                                                      ^
 -DINSTALL_PYTHON_FILES=ON                                                           ^
 -DINSTALL_EMBEDDED_PYTHON=ON                                                        ^
--DEXCLUDE_ITSOL=ON                                                                  ^
 ..
