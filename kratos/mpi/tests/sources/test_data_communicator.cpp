@@ -14,8 +14,9 @@
 #include "mpi.h"
 
 #include "includes/data_communicator.h"
-#include "mpi/includes/mpi_data_communicator.h"
+#include "includes/kratos_components.h"
 #include "mpi/mpi_environment.h"
+#include "mpi/includes/mpi_data_communicator.h"
 
 #include "testing/testing.h"
 
@@ -63,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosMPICoreFas
     KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("Serial"), true);
     const DataCommunicator& r_serial = KratosComponents<DataCommunicator>::Get("Serial");
     KRATOS_CHECK_EQUAL(r_serial.IsDistributed(), false);
-    // This assumes running Kratos with mpi
+    // This assumes running Kratos with mpi (this should be the case, since this test's suite is part of the MPI core)
     KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("World"), true);
     const DataCommunicator& r_world = KratosComponents<DataCommunicator>::Get("World");
     KRATOS_CHECK_EQUAL(r_world.IsDistributed(), true);

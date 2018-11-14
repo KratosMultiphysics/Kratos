@@ -51,6 +51,25 @@ std::vector<TValue> VectorAllReduceWrapper(
     return reduced_values;
 }
 
+template<class TValue>
+std::vector<TValue> VectorBroadcastWrapper(
+    DataCommunicator& rSelf,
+    void (DataCommunicator::*pBroadcastMethod)(std::vector<TValue>&, const unsigned int) const,
+    const std::vector<TValue>& rSourceValues,
+    const int SourceRank)
+{
+    std::vector<int> message_size(1);
+    if (rSelf.Rank() == SourceRank)
+    {
+        message_size[0] = rSourceValues.size();
+    }
+    rSelf.Broadcast(message_size,SourceRank);
+
+    std::vector<TValue> buffer(message_size[0]);
+    (rSelf.*pBroadcastMethod)(buffer, SourceRank);
+    return buffer;
+}
+
 void AddDataCommunicatorToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -81,10 +100,10 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("Max", (int (DataCommunicator::*)(const int, const int) const) &DataCommunicator::Max)
     .def("Max", (double (DataCommunicator::*)(const double, const int) const) &DataCommunicator::Max)
     .def("Max", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&, const int) const) &DataCommunicator::Max)
-    .def("MaxInts", [](DataCommunicator& rSelf, const std::vector<int>& rLocalValues, const int Root) {
+    .def("MaxInts", [](DataCommunicator& rSelf, const std::vector<int>& rLocalValues, const unsigned int Root) {
         return VectorReduceWrapper<int>(rSelf, &DataCommunicator::Max, rLocalValues, Root);
     })
-    .def("MaxDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rLocalValues, const int Root) {
+    .def("MaxDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rLocalValues, const unsigned int Root) {
         return VectorReduceWrapper<double>(rSelf, &DataCommunicator::Max, rLocalValues, Root);
     })
     // Allreduce sum
@@ -126,6 +145,13 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("ScanSumDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rLocalValues) {
         // I use the same wrapper as in Allreduce, since the two methods have the same signature
         return VectorAllReduceWrapper<double>(rSelf, &DataCommunicator::ScanSum, rLocalValues);
+    })
+    // Broadcast
+    .def("BroadcastInts", [](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage, const int SourceRank) {
+        return VectorBroadcastWrapper<int>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
+    })
+    .def("BroadcastDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int SourceRank) {
+        return VectorBroadcastWrapper<double>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
     })
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
