@@ -140,12 +140,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) 
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) 
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }

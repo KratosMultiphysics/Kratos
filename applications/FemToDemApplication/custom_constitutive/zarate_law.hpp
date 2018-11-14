@@ -28,7 +28,7 @@ class ZarateLaw : public LinearElasticPlaneStrain2DLaw
 		* Clone function (has to be implemented by any derived class)
 		* @return a pointer to a new instance of this constitutive law
 		*/
-	ConstitutiveLaw::Pointer Clone() const;
+	ConstitutiveLaw::Pointer Clone();
 
 	/**
 		* Copy constructor.
@@ -49,7 +49,7 @@ class ZarateLaw : public LinearElasticPlaneStrain2DLaw
   private:
 	friend class Serializer;
 
-	virtual void save(Serializer &rSerializer) const
+	virtual void save(Serializer &rSerializer)
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElasticPlaneStrain2DLaw)
 	}

@@ -40,7 +40,7 @@ ZarateLaw::ZarateLaw(const ZarateLaw &rOther)
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer ZarateLaw::Clone() const
+ConstitutiveLaw::Pointer ZarateLaw::Clone() 
 {
 	ZarateLaw::Pointer p_clone(new ZarateLaw(*this));
 	return p_clone;
