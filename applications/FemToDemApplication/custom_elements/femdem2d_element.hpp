@@ -49,9 +49,9 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 
 	// *************** Methods Alejandro Cornejo ***************
 	//**********************************************************
-	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo);
-	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo);
-	void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
+	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
+	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
+	void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo) override;
 	void CalculateConstitutiveMatrix(Matrix &rConstitutiveMatrix, const double &rYoungModulus,
 									 const double &rPoissonCoefficient);
 
@@ -63,21 +63,21 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 
 	void CalculatePrincipalStress(Vector &PrincipalStressVector, const Vector StressVector);
 
-	void FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
+	void FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo) override;
 
-	void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable, std::vector<Vector> &rOutput, const ProcessInfo &rCurrentProcessInfo);
-	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput, const ProcessInfo &rCurrentProcessInfo);
+	void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable, std::vector<Vector> &rOutput, const ProcessInfo &rCurrentProcessInfo) override;
+	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput, const ProcessInfo &rCurrentProcessInfo) override;
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-							  ProcessInfo &rCurrentProcessInfo);
+							  ProcessInfo &rCurrentProcessInfo) override;
 
 	void AverageVector(Vector &rAverageVector, const Vector &v, const Vector &w);
 
 	void GetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues,
-									 const ProcessInfo &rCurrentProcessInfo);
+									 const ProcessInfo &rCurrentProcessInfo) override;
 
 	void GetValueOnIntegrationPoints(const Variable<Vector> &rVariable,
 									 std::vector<Vector> &rValues,
-									 const ProcessInfo &rCurrentProcessInfo);
+									 const ProcessInfo &rCurrentProcessInfo) override;
 
 	void Get2MaxValues(Vector &MaxValues, double a, double b, double c);
 	void Get2MinValues(Vector &MaxValues, double a, double b, double c);

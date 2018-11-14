@@ -54,6 +54,9 @@ class FEMDEM_Solution:
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
         # Initialize the "flag" RADIUS in all the nodes
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+
+        # Initialize IP variables to zero
+        self.InitializeIntegrationPointsVariables()
         
         self.SpheresModelPart = self.DEM_Solution.spheres_model_part
         self.DEMParameters = self.DEM_Solution.DEM_parameters
@@ -907,3 +910,11 @@ class FEMDEM_Solution:
             node.SetValue(KratosFemDem.IS_DEM, True)
 
 #============================================================================================================================
+
+    def InitializeIntegrationPointsVariables(self):
+
+        for elem in self.FEM_Solution.main_model_part.Elements:
+            elem.SetValue(KratosFemDem.STRESS_THRESHOLD, 0.0)
+            elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
+            elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
+            elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
