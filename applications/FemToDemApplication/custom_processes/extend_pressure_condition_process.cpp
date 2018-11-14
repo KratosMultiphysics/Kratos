@@ -188,13 +188,9 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
 
             if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
                 (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
-                //std::cout << "Condicion eliminada en 3: " << (*it)->Id() << "  " << Id1 << "  " << Id2 << std::endl;
-                //mr_model_part.RemoveCondition((*it)->Id());
                 ToEraseConditionsId.push_back((*it)->Id());
             } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
                        (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
-                //std::cout << "Condicion eliminada en 3: " << (*it)->Id() << "  " << Id1 << "  " << Id2 << std::endl;
-                //mr_model_part.RemoveCondition((*it)->Id());
                 ToEraseConditionsId.push_back((*it)->Id());
             }
         }
@@ -296,7 +292,6 @@ void ExtendPressureConditionProcess<2>::Execute()
     mNodePressureIdContainer.clear();
 
     for (IndexType i = 0; i < ToEraseConditionsId.size(); ++i) {
-        KRATOS_WATCH(ToEraseConditionsId[i])
         mr_model_part.RemoveConditionFromAllLevels(ToEraseConditionsId[i]);
     }
     ToEraseConditionsId.clear();
