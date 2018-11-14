@@ -171,6 +171,53 @@ std::vector<TValue> VectorGatherWrapper(
 }
 
 template<class TValue>
+std::vector<std::vector<TValue>> VectorGathervWrapper(
+    DataCommunicator& rSelf,
+    void (DataCommunicator::*pGathervMethod)(const std::vector<TValue>&, std::vector<TValue>&, const std::vector<int>&, const std::vector<int>&, const int) const,
+    const std::vector<TValue>& rSourceValues,
+    const int DestinationRank)
+{
+    std::vector<int> message_sizes_send(1, rSourceValues.size());
+    std::vector<int> message_lenghts;
+    const int rank = rSelf.Rank();
+    const int size = rSelf.Size();
+    if (rank == DestinationRank)
+    {
+        message_lenghts.resize(size);
+    }
+    rSelf.Gather(message_sizes_send, message_lenghts, DestinationRank);
+
+    std::vector<int> message_offsets;
+    std::vector<TValue> gathered_message;
+    if (rank == DestinationRank)
+    {
+        message_offsets.resize(size);
+        int message_size = 0;
+        for (int i = 0; i < size; i++)
+        {
+            message_offsets[message_size];
+            message_size += message_lenghts[size];
+        }
+        gathered_message.resize(message_size);
+    }
+    rSelf.Gatherv(rSourceValues, gathered_message, message_lenghts, message_offsets, DestinationRank);
+
+    std::vector<std::vector<TValue>> gathered_values;
+    if (rank == DestinationRank)
+    {
+        for (int i = 0, counter = 0; i < size; i++)
+        {
+            gathered_values[i].resize(message_lenghts[i]);
+            for (int j = 0; j < message_lenghts[i]; j++, counter++)
+            {
+                gathered_values[i][j] = gathered_message[counter];
+            }
+        }
+    }
+    return gathered_values;
+}
+
+template<class TValue>
 std::vector<TValue> VectorAllGatherWrapper(
     DataCommunicator& rSelf,
     void (DataCommunicator::*pMethod)(const std::vector<TValue>&, std::vector<TValue>&) const,
@@ -298,6 +345,13 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     })
     .def("GatherDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int DestinationRank) {
         return VectorGatherWrapper<double>(rSelf, &DataCommunicator::Gather, rSourceMessage, DestinationRank);
+    })
+    // Gatherv
+    .def("GathervInts",[](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage, const int DestinationRank) {
+        return VectorGathervWrapper<int>(rSelf, &DataCommunicator::Gatherv, rSourceMessage, DestinationRank);
+    })
+    .def("GathervDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int DestinationRank) {
+        return VectorGathervWrapper<double>(rSelf, &DataCommunicator::Gatherv, rSourceMessage, DestinationRank);
     })
     // AllGather
     .def("AllGatherInts",[](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage) {
