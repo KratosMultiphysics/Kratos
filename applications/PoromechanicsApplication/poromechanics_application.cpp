@@ -179,23 +179,24 @@ void KratosPoromechanicsApplication::Register()
 
 
     //Register Constitutive Laws
-    Serializer::Register("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
-    Serializer::Register("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive3DLaw",mExponentialCohesive3DLaw);
 
-    Serializer::Register( "LocalDamageFlowRule", mLocalDamageFlowRule );
-    Serializer::Register( "NonlocalDamageFlowRule", mNonlocalDamageFlowRule );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "LocalDamageFlowRule", mLocalDamageFlowRule );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "NonlocalDamageFlowRule", mNonlocalDamageFlowRule );
 
-    Serializer::Register("SimoJuLocalDamage3DLaw",mSimoJuLocalDamage3DLaw);
-    Serializer::Register("SimoJuLocalDamagePlaneStrain2DLaw",mSimoJuLocalDamagePlaneStrain2DLaw);
-    Serializer::Register("SimoJuLocalDamagePlaneStress2DLaw",mSimoJuLocalDamagePlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamage3DLaw",mSimoJuLocalDamage3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamagePlaneStrain2DLaw",mSimoJuLocalDamagePlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamagePlaneStress2DLaw",mSimoJuLocalDamagePlaneStress2DLaw);
 
-    Serializer::Register("SimoJuNonlocalDamage3DLaw",mSimoJuNonlocalDamage3DLaw);
-    Serializer::Register("SimoJuNonlocalDamagePlaneStrain2DLaw",mSimoJuNonlocalDamagePlaneStrain2DLaw);
-    Serializer::Register("SimoJuNonlocalDamagePlaneStress2DLaw",mSimoJuNonlocalDamagePlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuNonlocalDamage3DLaw",mSimoJuNonlocalDamage3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuNonlocalDamagePlaneStrain2DLaw",mSimoJuNonlocalDamagePlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuNonlocalDamagePlaneStress2DLaw",mSimoJuNonlocalDamagePlaneStress2DLaw);
 
-    Serializer::Register("ModifiedMisesNonlocalDamage3DLaw",mModifiedMisesNonlocalDamage3DLaw);
-    Serializer::Register("ModifiedMisesNonlocalDamagePlaneStrain2DLaw",mModifiedMisesNonlocalDamagePlaneStrain2DLaw);
-    Serializer::Register("ModifiedMisesNonlocalDamagePlaneStress2DLaw",mModifiedMisesNonlocalDamagePlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamage3DLaw",mModifiedMisesNonlocalDamage3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStrain2DLaw",mModifiedMisesNonlocalDamagePlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ModifiedMisesNonlocalDamagePlaneStress2DLaw",mModifiedMisesNonlocalDamagePlaneStress2DLaw);
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )

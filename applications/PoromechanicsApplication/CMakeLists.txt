@@ -25,6 +25,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/exponential_cohesive_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_plane_stress_2D_law.cpp

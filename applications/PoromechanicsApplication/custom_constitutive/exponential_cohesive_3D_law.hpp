@@ -76,12 +76,17 @@ public:
 protected:
 
     // Member Variables
+    double mDamageVariable;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
     void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
+
+    void ComputeDamageVariable(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+
+    void ComputeCriticalDisplacement(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
     void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                     ConstitutiveLawVariables& rVariables,

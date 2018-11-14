@@ -78,6 +78,8 @@ void ExponentialCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValu
         {
             mStateVariable = Variables.EquivalentStrain;
         }
+
+        this->ComputeDamageVariable(Variables,rValues);
     }
 }
 
@@ -87,11 +89,7 @@ double& ExponentialCohesive3DLaw::GetValue( const Variable<double>& rThisVariabl
 {
     if(rThisVariable == DAMAGE_VARIABLE)
     {
-        double Damage = 0.0;
-
-        // TODO: Calculate damage
-
-        rValue = Damage;
+        rValue = mDamageVariable;
     }
     else if(rThisVariable == STATE_VARIABLE )
     {
@@ -111,16 +109,7 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
 
     rVariables.YieldStress = MaterialProperties[YIELD_STRESS];
-    const double FractureEnergy = MaterialProperties[FRACTURE_ENERGY];
-
-    const double ShearStrain2 = StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1];
-    const double PositiveNormalStrain = this->MacaulayBrackets(StrainVector[2]);
-    const double TotalStrain2 = PositiveNormalStrain*PositiveNormalStrain+ShearStrain2;
-    const double ModeMixingRatio = ShearStrain2 / TotalStrain2;
-    const double CurveFittingParameter = 1.0; // TODO
-    const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,CurveFittingParameter);
-    rVariables.CriticalDisplacement = FractureThoughness / (std::exp(1.0) * rVariables.YieldStress); // TODO (Should CriticalDisplacement be calculated with FractureEnergy?)
-
+    this->ComputeCriticalDisplacement(rVariables,rValues);
     rVariables.PenaltyStiffness = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement;
 
     const double MinusNormalStrain = -1.0*StrainVector[2];
@@ -128,7 +117,7 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     noalias(rVariables.CompressionMatrix) = ZeroMatrix(3,3);
     rVariables.CompressionMatrix(2,2) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
 
-    const double WeightingParameter = 1.0; // TODO
+    const double WeightingParameter = 1.0; // TODO ?
     rVariables.WeightMatrix.resize(3,3);
     noalias(rVariables.WeightMatrix) = ZeroMatrix(3,3);
     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter;
@@ -154,6 +143,39 @@ void ExponentialCohesive3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables&
     const Vector& StrainVector = rValues.GetStrainVector();
     const array_1d<double,3> Aux = prod(rVariables.WeightMatrix,StrainVector);
     rVariables.EquivalentStrain = std::sqrt(inner_prod(StrainVector,Aux));
+}
+
+//----------------------------------------------------------------------------------------
+
+void ExponentialCohesive3DLaw::ComputeDamageVariable(ConstitutiveLawVariables& rVariables,
+                                                        Parameters& rValues)
+{
+    mDamageVariable = 1.0 - std::exp(-mStateVariable/rVariables.CriticalDisplacement)*(1.0+mStateVariable/rVariables.CriticalDisplacement);
+
+    if(mDamageVariable <= 1.0e-11)
+        mDamageVariable = 0.0;
+    else if(mDamageVariable > 1.0)
+        mDamageVariable = 1.0;
+}
+
+//----------------------------------------------------------------------------------------
+
+void ExponentialCohesive3DLaw::ComputeCriticalDisplacement(ConstitutiveLawVariables& rVariables,
+                                                            Parameters& rValues)
+{
+    const Vector& StrainVector = rValues.GetStrainVector();
+    const Properties& MaterialProperties = rValues.GetMaterialProperties();
+
+    const double FractureEnergy = MaterialProperties[FRACTURE_ENERGY];
+    const double ShearStrain2 = StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1];
+    const double PositiveNormalStrain = this->MacaulayBrackets(StrainVector[2]);
+    const double TotalStrain2 = PositiveNormalStrain*PositiveNormalStrain+ShearStrain2;
+    const double ModeMixingRatio = ShearStrain2 / TotalStrain2;
+    const double CurveFittingParameter = 1.0; // TODO ?
+    const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,CurveFittingParameter);
+
+    // TODO Should CriticalDisplacement be calculated with FractureEnergy ?
+    rVariables.CriticalDisplacement = FractureThoughness / (std::exp(1.0) * MaterialProperties[YIELD_STRESS]);
 }
 
 //----------------------------------------------------------------------------------------
