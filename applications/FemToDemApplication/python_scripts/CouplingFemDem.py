@@ -189,7 +189,8 @@ class FEMDEM_Solution:
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
                                                                    self.DEM_Solution.time,
                                                                    self.DEM_Solution.dt,
-                                                                   self.DEM_Solution.step)
+                                                                   self.DEM_Solution.step,
+                                                                   self.DEM_Solution.IsTimeToPrintPostProcess(self.DEM_Solution.time))
         self.DEM_Solution.BeforeSolveOperations(self.DEM_Solution.time)
 
         #### SOLVE DEM #########################################
