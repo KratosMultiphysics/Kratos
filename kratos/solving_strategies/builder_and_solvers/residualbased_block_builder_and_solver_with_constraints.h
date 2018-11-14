@@ -103,15 +103,33 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef Vector VectorType;
     typedef Internals::ConstraintImposer<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief Default constructor
      */
     explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
+        : BaseType(pNewLinearSystemSolver)
     {
     }
 
