@@ -249,35 +249,35 @@ class DataCommunicator
     // Sendrecv operations
 
     virtual void SendRecv(
-        const std::vector<int>& rSendValues, const unsigned int SendDestination,
-        std::vector<int>& rRecvValues, const unsigned int RecvSource) const
+        const std::vector<int>& rSendValues, const int SendDestination,
+        std::vector<int>& rRecvValues, const int RecvSource) const
     {}
 
     virtual void SendRecv(
-        const std::vector<double>& rSendValues, const unsigned int SendDestination,
-        std::vector<double>& rRecvValues, const unsigned int RecvSource) const
+        const std::vector<double>& rSendValues, const int SendDestination,
+        std::vector<double>& rRecvValues, const int RecvSource) const
     {}
 
     // Broadcast
 
     virtual void Broadcast(
         int& rBuffer,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
     {}
 
     virtual void Broadcast(
         double& rBuffer,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
     {}
 
     virtual void Broadcast(
         std::vector<int>& rBuffer,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
     {}
 
     virtual void Broadcast(
         std::vector<double>& rBuffer,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
     {}
 
     // Scatter operations
@@ -285,13 +285,13 @@ class DataCommunicator
     virtual void Scatter(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
     {}
 
     virtual void Scatter(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
     {}
 
     virtual void Scatterv(
@@ -299,7 +299,7 @@ class DataCommunicator
         const std::vector<int>& rSendCounts,
         const std::vector<int>& rSendOffsets,
         std::vector<int>& rRecvValues,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
     {}
 
     virtual void Scatterv(
@@ -307,7 +307,7 @@ class DataCommunicator
         const std::vector<int>& rSendCounts,
         const std::vector<int>& rSendOffsets,
         std::vector<double>& rRecvValues,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
     {}
 
     // Gather operations
@@ -315,13 +315,13 @@ class DataCommunicator
     virtual void Gather(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
-        const unsigned int DestinationRank) const
+        const int DestinationRank) const
     {}
 
     virtual void Gather(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
-        const unsigned int DestinationRank) const
+        const int DestinationRank) const
     {}
 
     virtual void Gatherv(
@@ -329,7 +329,7 @@ class DataCommunicator
         std::vector<int>& rRecvValues,
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
-        const unsigned int DestinationRank) const
+        const int DestinationRank) const
     {}
 
     virtual void Gatherv(
@@ -337,7 +337,7 @@ class DataCommunicator
         std::vector<double>& rRecvValues,
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
-        const unsigned int DestinationRank) const
+        const int DestinationRank) const
     {}
 
     virtual void AllGather(

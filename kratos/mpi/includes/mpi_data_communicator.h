@@ -176,82 +176,82 @@ class MPIDataCommunicator: public DataCommunicator
     // Sendrecv operations
 
     void SendRecv(
-        const std::vector<int>& rSendValues, const unsigned int SendDestination,
-        std::vector<int>& rRecvValues, const unsigned int RecvSource) const override;
+        const std::vector<int>& rSendValues, const int SendDestination,
+        std::vector<int>& rRecvValues, const int RecvSource) const override;
 
     void SendRecv(
-        const std::vector<double>& rSendValues, const unsigned int SendDestination,
-        std::vector<double>& rRecvValues, const unsigned int RecvSource) const override;
+        const std::vector<double>& rSendValues, const int SendDestination,
+        std::vector<double>& rRecvValues, const int RecvSource) const override;
 
     // Broadcast
 
     void Broadcast(
         int& rBuffer,
-        const unsigned int SourceRank) const override;
+        const int SourceRank) const override;
 
     void Broadcast(
         double& rBuffer,
-        const unsigned int SourceRank) const override;
+        const int SourceRank) const override;
 
     void Broadcast(
         std::vector<int>& rBuffer,
-        const unsigned int SourceRank) const override;
+        const int SourceRank) const override;
 
     void Broadcast(
         std::vector<double>& rBuffer,
-        const unsigned int SourceRank) const override;
+        const int SourceRank) const override;
 
     // Scatter operations
 
     void Scatter(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
-        const unsigned int SourceRank) const override;
+        const int SourceRank) const override;
 
     void Scatter(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
-        const unsigned int SourceRank) const override;
+        const int SourceRank) const override;
 
     void Scatterv(
         const std::vector<int>& rSendValues,
         const std::vector<int>& rSendCounts,
         const std::vector<int>& rSendOffsets,
         std::vector<int>& rRecvValues,
-        const unsigned int SourceRank) const override;
+        const int SourceRank) const override;
 
     void Scatterv(
         const std::vector<double>& rSendValues,
         const std::vector<int>& rSendCounts,
         const std::vector<int>& rSendOffsets,
         std::vector<double>& rRecvValues,
-        const unsigned int SourceRank) const override;
+        const int SourceRank) const override;
 
     // Gather operations
 
     void Gather(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
-        const unsigned int DestinationRank) const override;
+        const int DestinationRank) const override;
 
     void Gather(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
-        const unsigned int DestinationRank) const override;
+        const int DestinationRank) const override;
 
     void Gatherv(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
-        const unsigned int DestinationRank) const override;
+        const int DestinationRank) const override;
 
     void Gatherv(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
-        const unsigned int DestinationRank) const override;
+        const int DestinationRank) const override;
 
     void AllGather(
         const std::vector<int>& rSendValues,

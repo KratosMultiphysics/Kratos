@@ -54,7 +54,7 @@ std::vector<TValue> VectorAllReduceWrapper(
 template<class TValue>
 std::vector<TValue> VectorBroadcastWrapper(
     DataCommunicator& rSelf,
-    void (DataCommunicator::*pBroadcastMethod)(std::vector<TValue>&, const unsigned int) const,
+    void (DataCommunicator::*pBroadcastMethod)(std::vector<TValue>&, const int) const,
     const std::vector<TValue>& rSourceValues,
     const int SourceRank)
 {
@@ -75,7 +75,7 @@ std::vector<TValue> VectorBroadcastWrapper(
 template<class TValue>
 std::vector<TValue> VectorScatterWrapper(
     DataCommunicator& rSelf,
-    void (DataCommunicator::*pScatterMethod)(const std::vector<TValue>&, std::vector<TValue>&, const unsigned int) const,
+    void (DataCommunicator::*pScatterMethod)(const std::vector<TValue>&, std::vector<TValue>&, const int) const,
     const std::vector<TValue>& rSourceValues,
     const int SourceRank)
 {
@@ -117,10 +117,10 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("Max", (int (DataCommunicator::*)(const int, const int) const) &DataCommunicator::Max)
     .def("Max", (double (DataCommunicator::*)(const double, const int) const) &DataCommunicator::Max)
     .def("Max", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&, const int) const) &DataCommunicator::Max)
-    .def("MaxInts", [](DataCommunicator& rSelf, const std::vector<int>& rLocalValues, const unsigned int Root) {
+    .def("MaxInts", [](DataCommunicator& rSelf, const std::vector<int>& rLocalValues, const int Root) {
         return VectorReduceWrapper<int>(rSelf, &DataCommunicator::Max, rLocalValues, Root);
     })
-    .def("MaxDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rLocalValues, const unsigned int Root) {
+    .def("MaxDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rLocalValues, const int Root) {
         return VectorReduceWrapper<double>(rSelf, &DataCommunicator::Max, rLocalValues, Root);
     })
     // Allreduce sum

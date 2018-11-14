@@ -406,8 +406,8 @@ void MPIDataCommunicator::ScanSum(
 // Sendrecv operations
 
 void MPIDataCommunicator::SendRecv(
-    const std::vector<int>& rSendValues, const unsigned int SendDestination,
-    std::vector<int>& rRecvValues, const unsigned int RecvSource) const
+    const std::vector<int>& rSendValues, const int SendDestination,
+    std::vector<int>& rRecvValues, const int RecvSource) const
 {
     const int send_tag = 0;
     const int recv_tag = 0;
@@ -419,8 +419,8 @@ void MPIDataCommunicator::SendRecv(
 }
 
 void MPIDataCommunicator::SendRecv(
-    const std::vector<double>& rSendValues, const unsigned int SendDestination,
-    std::vector<double>& rRecvValues, const unsigned int RecvSource) const
+    const std::vector<double>& rSendValues, const int SendDestination,
+    std::vector<double>& rRecvValues, const int RecvSource) const
 {
     const int send_tag = 0;
     const int recv_tag = 0;
@@ -435,7 +435,7 @@ void MPIDataCommunicator::SendRecv(
 
 void MPIDataCommunicator::Broadcast(
     int& rBuffer,
-    const unsigned int SourceRank) const
+    const int SourceRank) const
 {
     int ierr = MPI_Bcast(&rBuffer, 1, Internals::MPIDatatype(rBuffer), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
@@ -443,7 +443,7 @@ void MPIDataCommunicator::Broadcast(
 
 void MPIDataCommunicator::Broadcast(
         double& rBuffer,
-        const unsigned int SourceRank) const
+        const int SourceRank) const
 {
     int ierr = MPI_Bcast(&rBuffer, 1, Internals::MPIDatatype(rBuffer), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
@@ -451,7 +451,7 @@ void MPIDataCommunicator::Broadcast(
 
 void MPIDataCommunicator::Broadcast(
     std::vector<int>& rBuffer,
-    const unsigned int SourceRank) const
+    const int SourceRank) const
 {
     int ierr = MPI_Bcast(rBuffer.data(), rBuffer.size(), Internals::MPIDatatype(rBuffer), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
@@ -459,7 +459,7 @@ void MPIDataCommunicator::Broadcast(
 
 void MPIDataCommunicator::Broadcast(
     std::vector<double>& rBuffer,
-    const unsigned int SourceRank) const
+    const int SourceRank) const
 {
     int ierr = MPI_Bcast(rBuffer.data(), rBuffer.size(), Internals::MPIDatatype(rBuffer), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
@@ -470,7 +470,7 @@ void MPIDataCommunicator::Broadcast(
 void MPIDataCommunicator::Scatter(
     const std::vector<int>& rSendValues,
     std::vector<int>& rRecvValues,
-    const unsigned int SourceRank) const
+    const int SourceRank) const
 {
     const int sends_per_rank = rRecvValues.size();
     int ierr = MPI_Scatter(
@@ -483,7 +483,7 @@ void MPIDataCommunicator::Scatter(
 void MPIDataCommunicator::Scatter(
     const std::vector<double>& rSendValues,
     std::vector<double>& rRecvValues,
-    const unsigned int SourceRank) const
+    const int SourceRank) const
 {
     const int sends_per_rank = rRecvValues.size();
     int ierr = MPI_Scatter(
@@ -498,7 +498,7 @@ void MPIDataCommunicator::Scatterv(
     const std::vector<int>& rSendCounts,
     const std::vector<int>& rSendOffsets,
     std::vector<int>& rRecvValues,
-    const unsigned int SourceRank) const
+    const int SourceRank) const
 {
     int ierr = MPI_Scatterv(
         rSendValues.data(), rSendCounts.data(), rSendOffsets.data(), MPI_INT,
@@ -512,7 +512,7 @@ void MPIDataCommunicator::Scatterv(
     const std::vector<int>& rSendCounts,
     const std::vector<int>& rSendOffsets,
     std::vector<double>& rRecvValues,
-    const unsigned int SourceRank) const
+    const int SourceRank) const
 {
     int ierr = MPI_Scatterv(
         rSendValues.data(), rSendCounts.data(), rSendOffsets.data(), MPI_DOUBLE,
@@ -526,7 +526,7 @@ void MPIDataCommunicator::Scatterv(
 void MPIDataCommunicator::Gather(
     const std::vector<int>& rSendValues,
     std::vector<int>& rRecvValues,
-    const unsigned int DestinationRank) const
+    const int DestinationRank) const
 {
     const int sends_per_rank = rSendValues.size();
     int ierr = MPI_Gather(
@@ -539,7 +539,7 @@ void MPIDataCommunicator::Gather(
 void MPIDataCommunicator::Gather(
     const std::vector<double>& rSendValues,
     std::vector<double>& rRecvValues,
-    const unsigned int DestinationRank) const
+    const int DestinationRank) const
 {
     const int sends_per_rank = rSendValues.size();
     int ierr = MPI_Gather(
@@ -554,7 +554,7 @@ void MPIDataCommunicator::Gatherv(
     std::vector<int>& rRecvValues,
     const std::vector<int>& rRecvCounts,
     const std::vector<int>& rRecvOffsets,
-    const unsigned int DestinationRank) const
+    const int DestinationRank) const
 {
     int ierr = MPI_Gatherv(
         rSendValues.data(), rSendValues.size(), MPI_INT,
@@ -568,7 +568,7 @@ void MPIDataCommunicator::Gatherv(
     std::vector<double>& rRecvValues,
     const std::vector<int>& rRecvCounts,
     const std::vector<int>& rRecvOffsets,
-    const unsigned int DestinationRank) const
+    const int DestinationRank) const
 {
     int ierr = MPI_Gatherv(
         rSendValues.data(), rSendValues.size(), MPI_DOUBLE,
