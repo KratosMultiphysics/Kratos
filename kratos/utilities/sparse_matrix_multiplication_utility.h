@@ -145,27 +145,26 @@ public:
         CMatrix& C
         )
     {
-        typedef typename value_type<CMatrix>::type Val;
-        typedef std::ptrdiff_t Idx;
+        typedef typename value_type<CMatrix>::type ValueType;
 
         // Auxiliar sizes
-        const std::size_t nrows = A.size1();
-        const std::size_t ncols = B.size2();
+        const SizeType nrows = A.size1();
+        const SizeType ncols = B.size2();
 
         // Exiting just in case of empty matrix
         if ((nrows == 0) || (ncols == 0))
             return void();
 
         // Get access to A, B and C data
-        const std::size_t* index1_a = A.index1_data().begin();
-        const std::size_t* index2_a = A.index2_data().begin();
+        const IndexType* index1_a = A.index1_data().begin();
+        const IndexType* index2_a = A.index2_data().begin();
         const double* values_a = A.value_data().begin();
-        const std::size_t* index1_b = B.index1_data().begin();
-        const std::size_t* index2_b = B.index2_data().begin();
+        const IndexType* index1_b = B.index1_data().begin();
+        const IndexType* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
-        std::ptrdiff_t* c_ptr = new std::ptrdiff_t[nrows + 1];
+        SignedIndexType* aux_c_ptr = new SignedIndexType[nrows + 1];
 
-        c_ptr[0] = 0;
+        aux_c_ptr[0] = 0;
 
         #pragma omp parallel
         {
@@ -173,32 +172,37 @@ public:
 
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
-                const Idx row_begin_a = index1_a[ia];
-                const Idx row_end_a   = index1_a[ia+1];
+                const IndexType row_begin_a = index1_a[ia];
+                const IndexType row_end_a   = index1_a[ia+1];
 
-                Idx C_cols = 0;
-                for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
-                    const Idx ca = index2_a[ja];
-                    const Idx row_begin_b = index1_b[ca];
-                    const Idx row_end_b   = index1_b[ca+1];
+                IndexType C_cols = 0;
+                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const IndexType ca = index2_a[ja];
+                    const IndexType row_begin_b = index1_b[ca];
+                    const IndexType row_end_b   = index1_b[ca+1];
 
-                    for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
-                        const Idx cb = index2_b[jb];
+                    for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                        const IndexType cb = index2_b[jb];
                         if (marker[cb] != ia) {
                             marker[cb]  = ia;
                             ++C_cols;
                         }
                     }
                 }
-                c_ptr[ia + 1] = C_cols;
+                aux_c_ptr[ia + 1] = C_cols;
             }
         }
 
         // We initialize the sparse matrix
+        IndexType* c_ptr = new IndexType[nrows + 1];
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(nrows + 1); ++i) {
+            c_ptr[i] = aux_c_ptr[i];
+        }
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
         const std::size_t nonzero_values = c_ptr[nrows];
-        Idx* aux_index2_c = new Idx[nonzero_values];
-        Val* aux_val_c = new Val[nonzero_values];
+        IndexType* aux_index2_c = new IndexType[nonzero_values];
+        ValueType* aux_val_c = new ValueType[nonzero_values];
 
         #pragma omp parallel
         {
@@ -206,24 +210,24 @@ public:
 
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
-                const Idx row_begin_a = index1_a[ia];
-                const Idx row_end_a   = index1_a[ia+1];
+                const IndexType row_begin_a = index1_a[ia];
+                const IndexType row_end_a   = index1_a[ia+1];
 
-                const Idx row_beg = c_ptr[ia];
-                Idx row_end = row_beg;
+                const IndexType row_beg = c_ptr[ia];
+                IndexType row_end = row_beg;
 
-                for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
-                    const Idx ca = index2_a[ja];
-                    const Val va = values_a[ja];
+                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const IndexType ca = index2_a[ja];
+                    const ValueType va = values_a[ja];
 
-                    const Idx row_begin_b = index1_b[ca];
-                    const Idx row_end_b   = index1_b[ca+1];
+                    const IndexType row_begin_b = index1_b[ca];
+                    const IndexType row_end_b   = index1_b[ca+1];
 
-                    for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
-                        const Idx cb = index2_b[jb];
-                        const Val vb = values_b[jb];
+                    for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                        const IndexType cb = index2_b[jb];
+                        const ValueType vb = values_b[jb];
 
-                        if (marker[cb] < row_beg) {
+                        if (marker[cb] < static_cast<SignedIndexType>(row_beg)) {
                             marker[cb] = row_end;
                             aux_index2_c[row_end] = cb;
                             aux_val_c[row_end] = va * vb;
@@ -263,7 +267,6 @@ public:
         )
     {
         typedef typename value_type<CMatrix>::type Val;
-        typedef std::size_t Idx;
 
         // Auxiliar sizes
         const std::size_t nrows = A.size1();
@@ -281,20 +284,20 @@ public:
         const std::size_t* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
 
-        Idx max_row_width = 0;
+        IndexType max_row_width = 0;
 
         #pragma omp parallel
         {
-            Idx my_max = 0;
+            IndexType my_max = 0;
 
             #pragma omp for
             for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const Idx row_beg = index1_a[i];
-                const Idx row_end = index1_a[i+1];
+                const IndexType row_beg = index1_a[i];
+                const IndexType row_end = index1_a[i+1];
 
-                Idx row_width = 0;
-                for(Idx j = row_beg; j < row_end; ++j) {
-                    const Idx a_col = index2_a[j];
+                IndexType row_width = 0;
+                for(IndexType j = row_beg; j < row_end; ++j) {
+                    const IndexType a_col = index2_a[j];
                     row_width += index1_b[a_col + 1] - index1_b[a_col];
                 }
                 my_max = std::max(my_max, row_width);
@@ -310,7 +313,7 @@ public:
         const int nthreads = 1;
     #endif
 
-        std::vector< std::vector<Idx> > tmp_col(nthreads);
+        std::vector< std::vector<IndexType> > tmp_col(nthreads);
         std::vector< std::vector<Val> > tmp_val(nthreads);
 
         for(int i = 0; i < nthreads; ++i) {
@@ -330,12 +333,12 @@ public:
             const int tid = 0;
         #endif
 
-            Idx* t_col = &tmp_col[tid][0];
+            IndexType* t_col = &tmp_col[tid][0];
 
             #pragma omp for
             for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const Idx row_beg = index1_a[i];
-                const Idx row_end = index1_a[i+1];
+                const IndexType row_beg = index1_a[i];
+                const IndexType row_end = index1_a[i+1];
 
                 c_ptr[i+1] = ProdRowWidth( index2_a + row_beg, index2_a + row_end, index1_b, index2_b, t_col, t_col + max_row_width, t_col + 2 * max_row_width );
             }
@@ -344,7 +347,7 @@ public:
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
         const std::size_t nonzero_values = c_ptr[nrows];
-        Idx* aux_index2_c = new Idx[nonzero_values];
+        IndexType* aux_index2_c = new IndexType[nonzero_values];
         Val* aux_val_c = new Val[nonzero_values];
 
         #pragma omp parallel
@@ -355,13 +358,13 @@ public:
             const int tid = 0;
         #endif
 
-            Idx* t_col = tmp_col[tid].data();
+            IndexType* t_col = tmp_col[tid].data();
             Val *t_val = tmp_val[tid].data();
 
             #pragma omp for
             for(int i = 0; i < static_cast<int>(nrows); ++i) {
-                const Idx row_beg = index1_a[i];
-                const Idx row_end = index1_a[i+1];
+                const IndexType row_beg = index1_a[i];
+                const IndexType row_end = index1_a[i+1];
 
                 ProdRow(index2_a + row_beg, index2_a + row_end, values_a + row_beg,
                         index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
@@ -390,11 +393,10 @@ public:
         )
     {
         typedef typename value_type<AMatrix>::type Val;
-        typedef std::ptrdiff_t Idx;
 
         // Auxiliar sizes
-        const std::size_t nrows = A.size1();
-        const std::size_t ncols = A.size2();
+        const SizeType nrows = A.size1();
+        const SizeType ncols = A.size2();
 
         /* Some checks */
         // Exiting just in case of empty matrix
@@ -405,11 +407,11 @@ public:
         KRATOS_ERROR_IF_NOT(ncols == B.size2()) << "The second matrix has a wrong number of columns" << std::endl;
 
         // Get access to A and B data
-        const std::size_t* index1_a = A.index1_data().begin();
-        const std::size_t* index2_a = A.index2_data().begin();
+        const IndexType* index1_a = A.index1_data().begin();
+        const IndexType* index2_a = A.index2_data().begin();
         const double* values_a = A.value_data().begin();
-        const std::size_t* index1_b = B.index1_data().begin();
-        const std::size_t* index2_b = B.index2_data().begin();
+        const IndexType* index1_b = B.index1_data().begin();
+        const IndexType* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
 
         std::ptrdiff_t* new_a_ptr = new std::ptrdiff_t[nrows + 1];
@@ -423,22 +425,22 @@ public:
                 SignedIndexVectorType marker(ncols, -1);
 
                 // Initialize
-                Idx new_A_cols = 0;
+                IndexType new_A_cols = 0;
 
                 // Iterate over A
-                const Idx row_begin_a = index1_a[ia];
-                const Idx row_end_a   = index1_a[ia+1];
-                for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
-                    const Idx ca = index2_a[ja];
+                const IndexType row_begin_a = index1_a[ia];
+                const IndexType row_end_a   = index1_a[ia+1];
+                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const IndexType ca = index2_a[ja];
                     marker[ca] = 1;
                     ++new_A_cols;
                 }
 
                 // Iterate over B
-                const Idx row_begin_b = index1_b[ia];
-                const Idx row_end_b   = index1_b[ia+1];
-                for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
-                    const Idx cb = index2_b[jb];
+                const IndexType row_begin_b = index1_b[ia];
+                const IndexType row_end_b   = index1_b[ia+1];
+                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                    const IndexType cb = index2_b[jb];
                     if (marker[cb] < 0) {
                         marker[cb] = 1;
                         ++new_A_cols;
@@ -451,7 +453,7 @@ public:
         // We initialize the sparse matrix
         std::partial_sum(new_a_ptr, new_a_ptr + nrows + 1, new_a_ptr);
         const std::size_t nonzero_values = new_a_ptr[nrows];
-        Idx* aux_index2_new_a = new Idx[nonzero_values];
+        IndexType* aux_index2_new_a = new IndexType[nonzero_values];
         Val* aux_val_new_a = new Val[nonzero_values];
 
         #pragma omp parallel
@@ -462,14 +464,14 @@ public:
                 SignedIndexVectorType marker(ncols, -1);
 
                 // Initialize
-                const Idx row_beg = new_a_ptr[ia];
-                Idx row_end = row_beg;
+                const IndexType row_beg = new_a_ptr[ia];
+                IndexType row_end = row_beg;
 
                 // Iterate over A
-                const Idx row_begin_a = index1_a[ia];
-                const Idx row_end_a   = index1_a[ia+1];
-                for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
-                    const Idx ca = index2_a[ja];
+                const IndexType row_begin_a = index1_a[ia];
+                const IndexType row_end_a   = index1_a[ia+1];
+                for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const IndexType ca = index2_a[ja];
                     const Val va = values_a[ja];
 
                     marker[ca] = row_end;
@@ -479,10 +481,10 @@ public:
                 }
 
                 // Iterate over B
-                const Idx row_begin_b = index1_b[ia];
-                const Idx row_end_b   = index1_b[ia+1];
-                for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
-                    const Idx cb = index2_b[jb];
+                const IndexType row_begin_b = index1_b[ia];
+                const IndexType row_end_b   = index1_b[ia+1];
+                for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
+                    const IndexType cb = index2_b[jb];
                     const Val vb = values_b[jb];
 
                     if (marker[cb] < 0) {
@@ -537,7 +539,7 @@ public:
         }
 
         IndexVectorType new_a_ptr(size_system_2 + 1, 0);
-        SignedIndexVectorType aux_index2_new_a(transpose_nonzero_values);
+        IndexVectorType aux_index2_new_a(transpose_nonzero_values);
         DenseVector<Val> aux_val_new_a(transpose_nonzero_values);
 
         #pragma omp parallel for
@@ -591,15 +593,15 @@ public:
      * @param AuxIndex2C The indexes of the nonzero columns
      * @param AuxValC The C array containing the values of the sparse matrix
      */
-    template <class CMatrix, typename TSize, typename Ptr, typename Idx, typename Val>
+    template <class CMatrix, typename TSize, typename Ptr, typename IndexType, typename Val>
     static inline void CreateSolutionMatrix(
-                CMatrix& C,
-                const TSize NRows,
-                const TSize NCols,
-                const Ptr* CPtr,
-                const Idx* AuxIndex2C,
-                const Val* AuxValC
-                )
+        CMatrix& C,
+        const TSize NRows,
+        const TSize NCols,
+        const Ptr* CPtr,
+        const IndexType* AuxIndex2C,
+        const Val* AuxValC
+        )
     {
         // Exiting just in case of empty matrix
         if ((NRows == 0) || (NCols == 0))
@@ -619,7 +621,7 @@ public:
 
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(nonzero_values); i++) {
-            KRATOS_DEBUG_ERROR_IF(AuxIndex2C[i] > static_cast<Idx>(NCols)) << "Index " << AuxIndex2C[i] <<" is greater than the number of columns " << NCols << std::endl;
+            KRATOS_DEBUG_ERROR_IF(AuxIndex2C[i] > static_cast<IndexType>(NCols)) << "Index " << AuxIndex2C[i] <<" is greater than the number of columns " << NCols << std::endl;
             index2_c[i] = AuxIndex2C[i];
             values_c[i] = AuxValC[i];
         }
@@ -635,9 +637,9 @@ public:
      * @param Columns The columns of the problem
      * @param Values The values (to be ordered with the rows)
      */
-    template <typename TSize, typename Col, typename Idx, typename Val>
+    template <typename TSize, typename Col, typename IndexType, typename Val>
     static inline void SortRows(
-        const Idx* CPtr,
+        const IndexType* CPtr,
         const TSize NRows,
         const TSize NCols,
         Col* Columns,
@@ -648,11 +650,11 @@ public:
         {
             #pragma omp for
             for (int i_row=0; i_row<static_cast<int>(NRows); i_row++) {
-                const std::ptrdiff_t row_beg = CPtr[i_row];
-                const std::ptrdiff_t row_end = CPtr[i_row + 1];
+                const std::size_t row_beg = CPtr[i_row];
+                const std::size_t row_end = CPtr[i_row + 1];
 
-                for(std::ptrdiff_t j = 1; j < row_end - row_beg; ++j) {
-                    const std::ptrdiff_t c = Columns[j + row_beg];
+                for(std::size_t j = 1; j < row_end - row_beg; ++j) {
+                    const std::size_t c = Columns[j + row_beg];
                     const double v = Values[j + row_beg];
 
                     std::ptrdiff_t i = j - 1;
@@ -751,132 +753,158 @@ private:
     ///@{
 
     /**
-     *
+     * @brief This method is oriented to merge rows
+     * @param Column1 The index of the first matrix column
+     * @param Column1End The last index of the first matrix column
+     * @param Column2 The index of the second matrix column
+     * @param Column2End The last index of the second matrix column
+     * @param Column3 The index of the third matrix column
+     * @return The resulting row
      */
-    template <bool need_out, class Idx>
-    static Idx* MergeRows(
-            const Idx* col1,
-            const Idx* col1_end,
-            const Idx* col2,
-            const Idx* col2_end,
-            Idx* col3
-            )
+    template <bool TNeedOut, class TIndex>
+    static TIndex* MergeRows(
+        const TIndex* Column1,
+        const TIndex* Column1End,
+        const TIndex* Column2,
+        const TIndex* Column2End,
+        TIndex* Column3
+        )
     {
-        while(col1 != col1_end && col2 != col2_end) {
-            Idx c1 = *col1;
-            Idx c2 = *col2;
+        while(Column1 != Column1End && Column2 != Column2End) {
+            TIndex c1 = *Column1;
+            TIndex c2 = *Column2;
 
             if (c1 < c2) {
-                if (need_out) *col3 = c1;
-                ++col1;
+                if (TNeedOut) *Column3 = c1;
+                ++Column1;
             } else if (c1 == c2) {
-                if (need_out) *col3 = c1;
-                ++col1;
-                ++col2;
+                if (TNeedOut) *Column3 = c1;
+                ++Column1;
+                ++Column2;
             } else {
-                if (need_out) *col3 = c2;
-                ++col2;
+                if (TNeedOut) *Column3 = c2;
+                ++Column2;
             }
-            ++col3;
+            ++Column3;
         }
 
-        if (need_out) {
-            if (col1 < col1_end) {
-                return std::copy(col1, col1_end, col3);
-            } else if (col2 < col2_end) {
-                return std::copy(col2, col2_end, col3);
+        if (TNeedOut) {
+            if (Column1 < Column1End) {
+                return std::copy(Column1, Column1End, Column3);
+            } else if (Column2 < Column2End) {
+                return std::copy(Column2, Column2End, Column3);
             } else {
-                return col3;
+                return Column3;
             }
         } else {
-            return col3 + (col1_end - col1) + (col2_end - col2);
+            return Column3 + (Column1End - Column1) + (Column2End - Column2);
         }
     }
 
     /**
-     *
+     * @brief This method is oriented to merge rows
+     * @param rAlpha1 The coefficient of the first matrix
+     * @param Column1 The index of the first matrix column
+     * @param Column1End The last index of the first matrix column
+     * @param Value1 The values of the first matrix
+     * @param rAlpha2 The coefficient of the second matrix
+     * @param Column2 The index of the second matrix column
+     * @param Column2End The last index of the second matrix column
+     * @param Value2 The values of the second matrix
+     * @param Column3 The index of the third matrix column
+     * @param Value3 The values of the third matrix
+     * @return The resulting row
      */
-    template <class Idx, class Val>
-    static Idx* MergeRows(
-            const Val &alpha1,
-            const Idx* col1,
-            const Idx* col1_end,
-            const Val *val1,
-            const Val &alpha2,
-            const Idx* col2,
-            const Idx* col2_end,
-            const Val *val2,
-            Idx* col3,
-            Val *val3
-            )
+    template <class TIndex, class TValueType>
+    static TIndex* MergeRows(
+        const TValueType &rAlpha1,
+        const TIndex* Column1,
+        const TIndex* Column1End,
+        const TValueType *Value1,
+        const TValueType &rAlpha2,
+        const TIndex* Column2,
+        const TIndex* Column2End,
+        const TValueType *Value2,
+        TIndex* Column3,
+        TValueType *Value3
+        )
     {
-        while(col1 != col1_end && col2 != col2_end) {
-            Idx c1 = *col1;
-            Idx c2 = *col2;
+        while(Column1 != Column1End && Column2 != Column2End) {
+            TIndex c1 = *Column1;
+            TIndex c2 = *Column2;
 
             if (c1 < c2) {
-                ++col1;
+                ++Column1;
 
-                *col3 = c1;
-                *val3 = alpha1 * (*val1++);
+                *Column3 = c1;
+                *Value3 = rAlpha1 * (*Value1++);
             } else if (c1 == c2) {
-                ++col1;
-                ++col2;
+                ++Column1;
+                ++Column2;
 
-                *col3 = c1;
-                *val3 = alpha1 * (*val1++) + alpha2 * (*val2++);
+                *Column3 = c1;
+                *Value3 = rAlpha1 * (*Value1++) + rAlpha2 * (*Value2++);
             } else {
-                ++col2;
+                ++Column2;
 
-                *col3 = c2;
-                *val3 = alpha2 * (*val2++);
+                *Column3 = c2;
+                *Value3 = rAlpha2 * (*Value2++);
             }
 
-            ++col3;
-            ++val3;
+            ++Column3;
+            ++Value3;
         }
 
-        while(col1 < col1_end) {
-            *col3++ = *col1++;
-            *val3++ = alpha1 * (*val1++);
+        while(Column1 < Column1End) {
+            *Column3++ = *Column1++;
+            *Value3++ = rAlpha1 * (*Value1++);
         }
 
-        while(col2 < col2_end) {
-            *col3++ = *col2++;
-            *val3++ = alpha2 * (*val2++);
+        while(Column2 < Column2End) {
+            *Column3++ = *Column2++;
+            *Value3++ = rAlpha2 * (*Value2++);
         }
 
-        return col3;
+        return Column3;
     }
 
     /**
-     *
+     * @brief This method is oriented to multiply rows
+     * @param AColumn The index of the first matrix column
+     * @param AColumnEnd The last index of the first matrix column
+     * @param BPtr The array constining the nonzero values per row of the second matrix
+     * @param BColumn The index of the second matrix column
+     * @param Column2End The last index of the second matrix column
+     * @param Tmp1Column Indexes of the columns of first matrix
+     * @param Tmp2Column Indexes of the columns of second matrix
+     * @param Tmp3Column Indexes of the columns of third matrix
+     * @return The resulting row
      */
-    template <class Idx>
-    static Idx ProdRowWidth(
-            const Idx* acol,
-            const Idx* acol_end,
-            const Idx* bptr,
-            const Idx* bcol,
-            Idx* tmp_col1,
-            Idx* tmp_col2,
-            Idx* tmp_col3
-            )
+    template <class TIndex>
+    static TIndex ProdRowWidth(
+        const TIndex* AColumn,
+        const TIndex* AColumnEnd,
+        const TIndex* BPtr,
+        const TIndex* BColumn,
+        TIndex* Tmp1Column,
+        TIndex* Tmp2Column,
+        TIndex* Tmp3Column
+        )
     {
-        const Idx nrow = acol_end - acol;
+        const TIndex nrow = AColumnEnd - AColumn;
 
         /* No rows to merge, nothing to do */
         if (nrow == 0) return 0;
 
         /* Single row, just copy it to output */
-        if (nrow == 1) return bptr[*acol + 1] - bptr[*acol];
+        if (nrow == 1) return BPtr[*AColumn + 1] - BPtr[*AColumn];
 
         /* Two rows, merge them */
         if (nrow == 2) {
-            int a1 = acol[0];
-            int a2 = acol[1];
+            int a1 = AColumn[0];
+            int a2 = AColumn[1];
 
-            return MergeRows<false>( bcol + bptr[a1], bcol + bptr[a1+1], bcol + bptr[a2], bcol + bptr[a2+1], tmp_col1) - tmp_col1;
+            return MergeRows<false>( BColumn + BPtr[a1], BColumn + BPtr[a1+1], BColumn + BPtr[a2], BColumn + BPtr[a2+1], Tmp1Column) - Tmp1Column;
         }
 
         /* Generic case (more than two rows).
@@ -886,67 +914,80 @@ private:
         * Merging by pairs allows to work with short rows as often as possible.
         */
         // Merge first two.
-        Idx a1 = *acol++;
-        Idx a2 = *acol++;
-        Idx c_col1 = MergeRows<true>(  bcol + bptr[a1], bcol + bptr[a1+1], bcol + bptr[a2], bcol + bptr[a2+1], tmp_col1 ) - tmp_col1;
+        TIndex a1 = *AColumn++;
+        TIndex a2 = *AColumn++;
+        TIndex c_col1 = MergeRows<true>(  BColumn + BPtr[a1], BColumn + BPtr[a1+1], BColumn + BPtr[a2], BColumn + BPtr[a2+1], Tmp1Column ) - Tmp1Column;
 
         // Go by pairs.
-        while(acol + 1 < acol_end) {
-            a1 = *acol++;
-            a2 = *acol++;
+        while(AColumn + 1 < AColumnEnd) {
+            a1 = *AColumn++;
+            a2 = *AColumn++;
 
-            Idx c_col2 = MergeRows<true>(  bcol + bptr[a1], bcol + bptr[a1+1], bcol + bptr[a2], bcol + bptr[a2+1], tmp_col2 ) - tmp_col2;
+            TIndex c_col2 = MergeRows<true>(  BColumn + BPtr[a1], BColumn + BPtr[a1+1], BColumn + BPtr[a2], BColumn + BPtr[a2+1], Tmp2Column ) - Tmp2Column;
 
-            if (acol == acol_end) {
-                return MergeRows<false>( tmp_col1, tmp_col1 + c_col1, tmp_col2, tmp_col2 + c_col2, tmp_col3 ) - tmp_col3;
+            if (AColumn == AColumnEnd) {
+                return MergeRows<false>( Tmp1Column, Tmp1Column + c_col1, Tmp2Column, Tmp2Column + c_col2, Tmp3Column ) - Tmp3Column;
             } else {
-                c_col1 = MergeRows<true>( tmp_col1, tmp_col1 + c_col1, tmp_col2, tmp_col2 + c_col2, tmp_col3 ) - tmp_col3;
+                c_col1 = MergeRows<true>( Tmp1Column, Tmp1Column + c_col1, Tmp2Column, Tmp2Column + c_col2, Tmp3Column ) - Tmp3Column;
 
-                std::swap(tmp_col1, tmp_col3);
+                std::swap(Tmp1Column, Tmp3Column);
             }
         }
 
         // Merge the tail.
-        a2 = *acol;
-        return MergeRows<false>( tmp_col1, tmp_col1 + c_col1, bcol + bptr[a2], bcol + bptr[a2+1], tmp_col2 ) - tmp_col2;
+        a2 = *AColumn;
+        return MergeRows<false>( Tmp1Column, Tmp1Column + c_col1, BColumn + BPtr[a2], BColumn + BPtr[a2+1], Tmp2Column ) - Tmp2Column;
     }
 
     /**
-     *
+     * @brief This method is oriented to multiply rows
+     * @param AColumn The index of the first matrix column
+     * @param AColumnEnd The last index of the first matrix column
+     * @param AValue The values of the first matrix
+     * @param BPtr The array constining the nonzero values per row of the second matrix
+     * @param BColumn The index of the second matrix column
+     * @param BValue The values of the second matrix
+     * @param OutColumn Indexes of the columns of output matrix
+     * @param OutValue Values of the columns of output matrix
+     * @param Tmp2Column Indexes of the columns of second matrix
+     * @param Tmp2Value Values of the columns of second matrix
+     * @param Tmp3Column Indexes of the columns of third matrix
+     * @param Tmp3Value Values of the columns of third matrix
+     * @return The resulting row
      */
-    template <class Idx, class Val>
+    template <class TIndex, class TValueType>
     static void ProdRow(
-            const Idx* acol,
-            const Idx* acol_end,
-            const Val *aval,
-            const Idx* bptr,
-            const Idx* bcol,
-            const Val *bval,
-            Idx* out_col,
-            Val *out_val,
-            Idx* tm2_col,
-            Val *tm2_val,
-            Idx* tm3_col,
-            Val *tm3_val
-            )
+        const TIndex* AColumn,
+        const TIndex* AColumnEnd,
+        const TValueType *AValue,
+        const TIndex* BPtr,
+        const TIndex* BColumn,
+        const TValueType *BValue,
+        TIndex* OutColumn,
+        TValueType *OutValue,
+        TIndex* Tmp2Column,
+        TValueType *Tmp2Value,
+        TIndex* Tmp3Column,
+        TValueType *Tmp3Value
+        )
     {
-        const Idx nrow = acol_end - acol;
+        const TIndex nrow = AColumnEnd - AColumn;
 
         /* No rows to merge, nothing to do */
         if (nrow == 0) return;
 
         /* Single row, just copy it to output */
         if (nrow == 1) {
-            Idx ac = *acol;
-            Val av = *aval;
+            TIndex ac = *AColumn;
+            TValueType av = *AValue;
 
-            const Val *bv = bval + bptr[ac];
-            const Idx* bc = bcol + bptr[ac];
-            const Idx* be = bcol + bptr[ac+1];
+            const TValueType *bv = BValue + BPtr[ac];
+            const TIndex* bc = BColumn + BPtr[ac];
+            const TIndex* be = BColumn + BPtr[ac+1];
 
             while(bc != be) {
-                *out_col++ = *bc++;
-                *out_val++ = av * (*bv++);
+                *OutColumn++ = *bc++;
+                *OutValue++ = av * (*bv++);
             }
 
             return;
@@ -954,13 +995,13 @@ private:
 
         /* Two rows, merge them */
         if (nrow == 2) {
-            Idx ac1 = acol[0];
-            Idx ac2 = acol[1];
+            TIndex ac1 = AColumn[0];
+            TIndex ac2 = AColumn[1];
 
-            Val av1 = aval[0];
-            Val av2 = aval[1];
+            TValueType av1 = AValue[0];
+            TValueType av2 = AValue[1];
 
-            MergeRows( av1, bcol + bptr[ac1], bcol + bptr[ac1+1], bval + bptr[ac1], av2, bcol + bptr[ac2], bcol + bptr[ac2+1], bval + bptr[ac2], out_col, out_val );
+            MergeRows( av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1], av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], OutColumn, OutValue );
         }
 
         /* Generic case (more than two rows).
@@ -970,49 +1011,49 @@ private:
         * Merging by pairs allows to work with short rows as often as possible.
         */
         // Merge first two.
-        Idx ac1 = *acol++;
-        Idx ac2 = *acol++;
+        TIndex ac1 = *AColumn++;
+        TIndex ac2 = *AColumn++;
 
-        Val av1 = *aval++;
-        Val av2 = *aval++;
+        TValueType av1 = *AValue++;
+        TValueType av2 = *AValue++;
 
-        Idx* tm1_col = out_col;
-        Val *tm1_val = out_val;
+        TIndex* tm1_col = OutColumn;
+        TValueType *tm1_val = OutValue;
 
-        Idx c_col1 = MergeRows( av1, bcol + bptr[ac1], bcol + bptr[ac1+1], bval + bptr[ac1], av2, bcol + bptr[ac2], bcol + bptr[ac2+1], bval + bptr[ac2], tm1_col, tm1_val ) - tm1_col;
+        TIndex c_col1 = MergeRows( av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1], av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], tm1_col, tm1_val ) - tm1_col;
 
         // Go by pairs.
-        while(acol + 1 < acol_end) {
-            ac1 = *acol++;
-            ac2 = *acol++;
+        while(AColumn + 1 < AColumnEnd) {
+            ac1 = *AColumn++;
+            ac2 = *AColumn++;
 
-            av1 = *aval++;
-            av2 = *aval++;
+            av1 = *AValue++;
+            av2 = *AValue++;
 
-            Idx c_col2 = MergeRows( av1, bcol + bptr[ac1], bcol + bptr[ac1+1], bval + bptr[ac1], av2, bcol + bptr[ac2], bcol + bptr[ac2+1], bval + bptr[ac2], tm2_col, tm2_val ) - tm2_col;
+            TIndex c_col2 = MergeRows( av1, BColumn + BPtr[ac1], BColumn + BPtr[ac1+1], BValue + BPtr[ac1], av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], Tmp2Column, Tmp2Value ) - Tmp2Column;
 
-            c_col1 = MergeRows( amgcl::math::identity<Val>(), tm1_col, tm1_col + c_col1, tm1_val, amgcl::math::identity<Val>(), tm2_col, tm2_col + c_col2, tm2_val, tm3_col, tm3_val ) - tm3_col;
+            c_col1 = MergeRows( amgcl::math::identity<TValueType>(), tm1_col, tm1_col + c_col1, tm1_val, amgcl::math::identity<TValueType>(), Tmp2Column, Tmp2Column + c_col2, Tmp2Value, Tmp3Column, Tmp3Value ) - Tmp3Column;
 
-            std::swap(tm3_col, tm1_col);
-            std::swap(tm3_val, tm1_val);
+            std::swap(Tmp3Column, tm1_col);
+            std::swap(Tmp3Value, tm1_val);
         }
 
         // Merge the tail if there is one.
-        if (acol < acol_end) {
-            ac2 = *acol++;
-            av2 = *aval++;
+        if (AColumn < AColumnEnd) {
+            ac2 = *AColumn++;
+            av2 = *AValue++;
 
-            c_col1 = MergeRows( amgcl::math::identity<Val>(), tm1_col, tm1_col + c_col1, tm1_val, av2, bcol + bptr[ac2], bcol + bptr[ac2+1], bval + bptr[ac2], tm3_col, tm3_val ) - tm3_col;
+            c_col1 = MergeRows( amgcl::math::identity<TValueType>(), tm1_col, tm1_col + c_col1, tm1_val, av2, BColumn + BPtr[ac2], BColumn + BPtr[ac2+1], BValue + BPtr[ac2], Tmp3Column, Tmp3Value ) - Tmp3Column;
 
-            std::swap(tm3_col, tm1_col);
-            std::swap(tm3_val, tm1_val);
+            std::swap(Tmp3Column, tm1_col);
+            std::swap(Tmp3Value, tm1_val);
         }
 
         // If we are lucky, tm1 now points to out.
         // Otherwise, copy the results.
-        if (tm1_col != out_col) {
-            std::copy(tm1_col, tm1_col + c_col1, out_col);
-            std::copy(tm1_val, tm1_val + c_col1, out_val);
+        if (tm1_col != OutColumn) {
+            std::copy(tm1_col, tm1_col + c_col1, OutColumn);
+            std::copy(tm1_val, tm1_val + c_col1, OutValue);
         }
 
         return;
