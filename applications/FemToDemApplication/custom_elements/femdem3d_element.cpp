@@ -713,7 +713,7 @@ void FemDem3DElement::CalculateAverageStrainOnEdge(
 	rAverageVector = CurrentElementStress;
 	int counter = 0;
 
-	for (int elem = 0; elem < VectorOfElems.size(); elem++) {
+	for (unsigned int elem = 0; elem < VectorOfElems.size(); elem++) {
 		// Only take into account the active elements
 		bool is_active = true;
 		if (VectorOfElems[elem]->IsDefined(ACTIVE)) {
@@ -874,8 +874,8 @@ void FemDem3DElement::Get2MaxValues(Vector &MaxValues, double a, double b, doubl
 	V[2] = c;
 	int n = 3, imin = 0;
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n - 1; j++) {
+	for (unsigned int i = 0; i < n; i++) {
+		for (unsigned int j = 0; j < n - 1; j++) {
 			if (V[j] > V[j + 1]) {
 				double aux = V[j];
 				V[j] = V[j + 1];
@@ -897,8 +897,8 @@ void FemDem3DElement::Get2MinValues(Vector &MaxValues, double a, double b, doubl
 	V[2] = c;
 	int n = 3, imin = 0;
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n - 1; j++) {
+	for (unsigned int i = 0; i < n; i++) {
+		for (unsigned int j = 0; j < n - 1; j++) {
 			if (V[j] > V[j + 1]) {
 				double aux = V[j];
 				V[j] = V[j + 1];
@@ -1062,8 +1062,8 @@ double FemDem3DElement::GetMaxValue(Vector Strain)
 	}
 
 	int imin = 0;
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n - 1; j++) {
+	for (unsigned int i = 0; i < n; i++) {
+		for (unsigned int j = 0; j < n - 1; j++) {
 			if (V[j] > V[j + 1]) {
 				double aux = V[j];
 				V[j] = V[j + 1];
@@ -1085,8 +1085,8 @@ double FemDem3DElement::GetMaxAbsValue(Vector Strain)
 	}
 	int imin = 0;
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n - 1; j++) {
+	for (unsigned int i = 0; i < n; i++) {
+		for (unsigned int j = 0; j < n - 1; j++) {
 			if (V[j] > V[j + 1]) {
 				double aux = V[j];
 				V[j] = V[j + 1];
@@ -1106,8 +1106,8 @@ double FemDem3DElement::GetMinAbsValue(Vector Strain)
 	V[2] = std::abs(Strain[2]);
 	int n = 3, imin = 0;
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n - 1; j++) {
+	for (unsigned int i = 0; i < n; i++) {
+		for (unsigned int j = 0; j < n - 1; j++) {
 			if (V[j] > V[j + 1]) {
 				double aux = V[j];
 				V[j] = V[j + 1];
@@ -1345,7 +1345,7 @@ void FemDem3DElement::SimoJuCriterion(
 	const double c_max = std::abs(sigma_c) / std::sqrt(E);
 
 	double SumA = 0.0, SumB = 0.0, SumC = 0.0;
-	for (int cont = 0; cont < 3; cont++) {
+	for (unsigned int cont = 0; cont < 3; cont++) {
 		SumA += std::abs(PrincipalStressVector[cont]);
 		SumB += 0.5 * (PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
 		SumC += 0.5 * (-PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
@@ -1355,11 +1355,11 @@ void FemDem3DElement::SimoJuCriterion(
 
 	double f; /// F = f-c = 0 classical definition of yield surface
 	// Check SimoJu criterion
-	if (StrainVector[0] == 0 && StrainVector[1] == 0) {
-		f = 0;
+	if (StrainVector[0] == 0.0 && StrainVector[1] == 0.0) {
+		f = 0.0;
 	} else {
 		double auxf = 0.0;
-		for (int cont = 0; cont < 6; cont++) {
+		for (unsigned int cont = 0; cont < 6; cont++) {
 			auxf += StrainVector[cont] * StressVector[cont]; // E*S
 		}
 		f = std::sqrt(auxf);
@@ -1379,7 +1379,7 @@ void FemDem3DElement::SimoJuCriterion(
 	const double A = 1.00 / (Gt * n * n * E / (l_char * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < 0.0) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
-	if (F <= 0) { // Elastic region --> Damage is constant
+	if (F <= 0.0) { // Elastic region --> Damage is constant
 		damage = this->GetConvergedDamages(cont);
 	} else {
 		damage = 1 - (c_max / f) * std::exp(A * (1 - f / c_max)); // Exponential softening law
@@ -1410,8 +1410,8 @@ void FemDem3DElement::RankineFragileLaw(
 	const double  A = 1.00 / (Gt * E / (l_char * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < 0.0) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
-	double f; /// F = f-c = 0 classical definition of yield surface
-	f = GetMaxValue(PrincipalStressVector);
+	// F = f-c = 0 classical definition of yield surface
+	const double f = GetMaxValue(PrincipalStressVector);
 
 	if (this->GetThreshold(cont) == 0) {
 		this->SetThreshold(c_max, cont); // 1st iteration sets threshold as c_max
@@ -1423,13 +1423,13 @@ void FemDem3DElement::RankineFragileLaw(
 
 	const double F = f - c_threshold;
 
-	if (F <= 0) { // Elastic region --> Damage is constant
+	if (F <= 0.0) { // Elastic region --> Damage is constant
 		damage = this->GetConvergedDamages(cont);
 	} else {
 		damage = 0.98; // Fragile  law
 	}
 	noalias(rIntegratedStress) = StressVector;
-	rIntegratedStress *= (1 - damage);
+	rIntegratedStress *= (1.0 - damage);
 }
 
 // Computes the damage of the element considering different fracture modes
@@ -1445,7 +1445,6 @@ double FemDem3DElement::CalculateElementalDamage(const Vector &EdgeDamages)
 	DamageModeFracture[4] = 0.25 * (EdgeDamages[0] + EdgeDamages[1] + EdgeDamages[4] + EdgeDamages[5]);
 	DamageModeFracture[5] = one_third * (EdgeDamages[2] + EdgeDamages[4] + EdgeDamages[5]);
 	DamageModeFracture[6] = 0.25 * (EdgeDamages[0] + EdgeDamages[2] + EdgeDamages[3] + EdgeDamages[5]);
-
 	return this->GetMaxValue(DamageModeFracture);
 }
 
