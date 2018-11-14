@@ -162,9 +162,9 @@ public:
         const IndexType* index1_b = B.index1_data().begin();
         const IndexType* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
-        SignedIndexType* aux_c_ptr = new SignedIndexType[nrows + 1];
+        IndexType* c_ptr = new IndexType[nrows + 1];
 
-        aux_c_ptr[0] = 0;
+        c_ptr[0] = 0;
 
         #pragma omp parallel
         {
@@ -189,18 +189,13 @@ public:
                         }
                     }
                 }
-                aux_c_ptr[ia + 1] = C_cols;
+                c_ptr[ia + 1] = C_cols;
             }
         }
 
         // We initialize the sparse matrix
-        IndexType* c_ptr = new IndexType[nrows + 1];
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nrows + 1); ++i) {
-            c_ptr[i] = aux_c_ptr[i];
-        }
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
-        const std::size_t nonzero_values = c_ptr[nrows];
+        const SizeType nonzero_values = c_ptr[nrows];
         IndexType* aux_index2_c = new IndexType[nonzero_values];
         ValueType* aux_val_c = new ValueType[nonzero_values];
 
@@ -266,22 +261,22 @@ public:
         CMatrix &C
         )
     {
-        typedef typename value_type<CMatrix>::type Val;
+        typedef typename value_type<CMatrix>::type ValueType;
 
         // Auxiliar sizes
-        const std::size_t nrows = A.size1();
-        const std::size_t ncols = B.size2();
+        const SizeType nrows = A.size1();
+        const SizeType ncols = B.size2();
 
         // Exiting just in case of empty matrix
         if ((nrows == 0) || (ncols == 0))
             return void();
 
         // Get access to A and B data
-        const std::size_t* index1_a = A.index1_data().begin();
-        const std::size_t* index2_a = A.index2_data().begin();
+        const IndexType* index1_a = A.index1_data().begin();
+        const IndexType* index2_a = A.index2_data().begin();
         const double* values_a = A.value_data().begin();
-        const std::size_t* index1_b = B.index1_data().begin();
-        const std::size_t* index2_b = B.index2_data().begin();
+        const IndexType* index1_b = B.index1_data().begin();
+        const IndexType* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
 
         IndexType max_row_width = 0;
@@ -314,7 +309,7 @@ public:
     #endif
 
         std::vector< std::vector<IndexType> > tmp_col(nthreads);
-        std::vector< std::vector<Val> > tmp_val(nthreads);
+        std::vector< std::vector<ValueType> > tmp_val(nthreads);
 
         for(int i = 0; i < nthreads; ++i) {
             tmp_col[i].resize(3 * max_row_width);
@@ -322,7 +317,7 @@ public:
         }
 
         // We create the c_ptr auxiliar variable
-        std::size_t* c_ptr = new std::size_t[nrows + 1];
+        IndexType* c_ptr = new IndexType[nrows + 1];
         c_ptr[0] = 0;
 
         #pragma omp parallel
@@ -346,9 +341,9 @@ public:
 
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
-        const std::size_t nonzero_values = c_ptr[nrows];
+        const SizeType nonzero_values = c_ptr[nrows];
         IndexType* aux_index2_c = new IndexType[nonzero_values];
-        Val* aux_val_c = new Val[nonzero_values];
+        ValueType* aux_val_c = new ValueType[nonzero_values];
 
         #pragma omp parallel
         {
@@ -359,7 +354,7 @@ public:
         #endif
 
             IndexType* t_col = tmp_col[tid].data();
-            Val *t_val = tmp_val[tid].data();
+            ValueType *t_val = tmp_val[tid].data();
 
             #pragma omp for
             for(int i = 0; i < static_cast<int>(nrows); ++i) {
@@ -392,7 +387,7 @@ public:
         const double Factor = 1.0
         )
     {
-        typedef typename value_type<AMatrix>::type Val;
+        typedef typename value_type<AMatrix>::type ValueType;
 
         // Auxiliar sizes
         const SizeType nrows = A.size1();
@@ -414,7 +409,7 @@ public:
         const IndexType* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
 
-        std::ptrdiff_t* new_a_ptr = new std::ptrdiff_t[nrows + 1];
+        IndexType* new_a_ptr = new IndexType[nrows + 1];
         new_a_ptr[0] = 0;
 
         #pragma omp parallel
@@ -452,9 +447,9 @@ public:
 
         // We initialize the sparse matrix
         std::partial_sum(new_a_ptr, new_a_ptr + nrows + 1, new_a_ptr);
-        const std::size_t nonzero_values = new_a_ptr[nrows];
+        const SizeType nonzero_values = new_a_ptr[nrows];
         IndexType* aux_index2_new_a = new IndexType[nonzero_values];
-        Val* aux_val_new_a = new Val[nonzero_values];
+        ValueType* aux_val_new_a = new ValueType[nonzero_values];
 
         #pragma omp parallel
         {
@@ -472,7 +467,7 @@ public:
                 const IndexType row_end_a   = index1_a[ia+1];
                 for(IndexType ja = row_begin_a; ja < row_end_a; ++ja) {
                     const IndexType ca = index2_a[ja];
-                    const Val va = values_a[ja];
+                    const ValueType va = values_a[ja];
 
                     marker[ca] = row_end;
                     aux_index2_new_a[row_end] = ca;
@@ -485,7 +480,7 @@ public:
                 const IndexType row_end_b   = index1_b[ia+1];
                 for(IndexType jb = row_begin_b; jb < row_end_b; ++jb) {
                     const IndexType cb = index2_b[jb];
-                    const Val vb = values_b[jb];
+                    const ValueType vb = values_b[jb];
 
                     if (marker[cb] < 0) {
                         marker[cb] = row_end;
@@ -523,12 +518,12 @@ public:
         const double Factor = 1.0
         )
     {
-        typedef typename value_type<AMatrix>::type Val;
+        typedef typename value_type<AMatrix>::type ValueType;
 
         // Get access to B data
         const IndexType* index1 = rB.index1_data().begin();
         const IndexType* index2 = rB.index2_data().begin();
-        const Val* data = rB.value_data().begin();
+        const ValueType* data = rB.value_data().begin();
         const SizeType transpose_nonzero_values = rB.value_data().end() - rB.value_data().begin();
 
         const SizeType size_system_1 = rB.size1();
@@ -540,14 +535,14 @@ public:
 
         IndexVectorType new_a_ptr(size_system_2 + 1, 0);
         IndexVectorType aux_index2_new_a(transpose_nonzero_values);
-        DenseVector<Val> aux_val_new_a(transpose_nonzero_values);
+        DenseVector<ValueType> aux_val_new_a(transpose_nonzero_values);
 
         #pragma omp parallel for
         for (int i=0; i<static_cast<int>(size_system_1); ++i) {
             IndexType row_begin = index1[i];
             IndexType row_end   = index1[i+1];
 
-            for (std::size_t j=row_begin; j<row_end; j++) {
+            for (IndexType j=row_begin; j<row_end; j++) {
                 #pragma omp atomic
                 new_a_ptr[index2[j] + 1] += 1;
             }
@@ -593,14 +588,14 @@ public:
      * @param AuxIndex2C The indexes of the nonzero columns
      * @param AuxValC The C array containing the values of the sparse matrix
      */
-    template <class CMatrix, typename TSize, typename Ptr, typename IndexType, typename Val>
+    template <class CMatrix, typename TSize, typename Ptr, typename IndexType, typename ValueType>
     static inline void CreateSolutionMatrix(
         CMatrix& C,
         const TSize NRows,
         const TSize NCols,
         const Ptr* CPtr,
         const IndexType* AuxIndex2C,
-        const Val* AuxValC
+        const ValueType* AuxValC
         )
     {
         // Exiting just in case of empty matrix
@@ -611,8 +606,8 @@ public:
         const TSize nonzero_values = CPtr[NRows];
 
         C = CMatrix(NRows, NCols, nonzero_values);
-        std::size_t* index1_c = C.index1_data().begin();
-        std::size_t* index2_c = C.index2_data().begin();
+        IndexType* index1_c = C.index1_data().begin();
+        IndexType* index2_c = C.index2_data().begin();
         double* values_c = C.value_data().begin();
 
         index1_c[0] = 0;
@@ -637,27 +632,27 @@ public:
      * @param Columns The columns of the problem
      * @param Values The values (to be ordered with the rows)
      */
-    template <typename TSize, typename Col, typename IndexType, typename Val>
+    template <typename TSize, typename Col, typename TIndexType, typename ValueType>
     static inline void SortRows(
-        const IndexType* CPtr,
+        const TIndexType* CPtr,
         const TSize NRows,
         const TSize NCols,
         Col* Columns,
-        Val* Values
+        ValueType* Values
         )
     {
         #pragma omp parallel
         {
             #pragma omp for
             for (int i_row=0; i_row<static_cast<int>(NRows); i_row++) {
-                const std::size_t row_beg = CPtr[i_row];
-                const std::size_t row_end = CPtr[i_row + 1];
+                const TIndexType row_beg = CPtr[i_row];
+                const TIndexType row_end = CPtr[i_row + 1];
 
-                for(std::size_t j = 1; j < row_end - row_beg; ++j) {
-                    const std::size_t c = Columns[j + row_beg];
+                for(IndexType j = 1; j < row_end - row_beg; ++j) {
+                    const IndexType c = Columns[j + row_beg];
                     const double v = Values[j + row_beg];
 
-                    std::ptrdiff_t i = j - 1;
+                    SignedIndexType i = j - 1;
 
                     while(i >= 0 && Columns[i + row_beg] > c) {
                         KRATOS_DEBUG_ERROR_IF(Columns[i + row_beg] > static_cast<Col>(NCols)) << " Index for column: " << i + row_beg << ". Index " << Columns[i + row_beg] <<" is greater than the number of columns " << NCols << std::endl;
