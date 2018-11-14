@@ -58,14 +58,20 @@ std::vector<TValue> VectorBroadcastWrapper(
     const std::vector<TValue>& rSourceValues,
     const int SourceRank)
 {
+    int rank = rSelf.Rank();
     std::vector<int> message_size(1);
-    if (rSelf.Rank() == SourceRank)
+    if (rank == SourceRank)
     {
         message_size[0] = rSourceValues.size();
     }
     rSelf.Broadcast(message_size,SourceRank);
 
     std::vector<TValue> buffer(message_size[0]);
+    if (rank == SourceRank)
+    {
+        buffer = rSourceValues;
+    }
+
     (rSelf.*pBroadcastMethod)(buffer, SourceRank);
     return buffer;
 }
