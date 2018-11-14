@@ -1345,7 +1345,7 @@ void FemDem3DElement::SimoJuCriterion(
 	const double c_max = std::abs(sigma_c) / std::sqrt(E);
 
 	double SumA = 0.0, SumB = 0.0, SumC = 0.0;
-	for (int cont = 0; cont < 2; cont++) {
+	for (int cont = 0; cont < 3; cont++) {
 		SumA += std::abs(PrincipalStressVector[cont]);
 		SumB += 0.5 * (PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
 		SumC += 0.5 * (-PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
