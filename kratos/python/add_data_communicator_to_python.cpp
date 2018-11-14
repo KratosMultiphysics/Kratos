@@ -40,8 +40,9 @@ std::vector<TValue> VectorReduceWrapper(
     return reduced_values;
 }
 
+// This wrapper covers all operations that take a std::vector and output to a different std::vector of the same size.
 template<class TValue>
-std::vector<TValue> VectorAllReduceWrapper(
+std::vector<TValue> VectorBufferTransferWrapper(
     DataCommunicator& rSelf,
     void (DataCommunicator::*pMethod)(const std::vector<TValue>&, std::vector<TValue>&) const,
     const std::vector<TValue>& rLocalValues)
@@ -49,6 +50,23 @@ std::vector<TValue> VectorAllReduceWrapper(
     std::vector<TValue> reduced_values(rLocalValues.size());
     (rSelf.*pMethod)(rLocalValues, reduced_values);
     return reduced_values;
+}
+
+template<class TValue>
+std::vector<TValue> VectorSendRecvWrapper(
+    DataCommunicator& rSelf,
+    void (DataCommunicator::*pMethod)(const std::vector<TValue>&, const int, std::vector<TValue>&, const int) const,
+    const std::vector<TValue>& rSendValues,
+    const int SendDestination,
+    const int RecvSource)
+{
+    std::vector<int> send_size(1, rSendValues.size());
+    std::vector<int> recv_size{0};
+    rSelf.SendRecv(send_size, SendDestination, recv_size, RecvSource);
+
+    std::vector<TValue> recv_values(recv_size[0]);
+    (rSelf.*pMethod)(rSendValues, SendDestination, recv_values, RecvSource);
+    return recv_values;
 }
 
 template<class TValue>
@@ -88,6 +106,54 @@ std::vector<TValue> VectorScatterWrapper(
 }
 
 template<class TValue>
+std::vector<TValue> VectorScattervWrapper(
+    DataCommunicator& rSelf,
+    void (DataCommunicator::*pScattervMethod)(const std::vector<TValue>&, const std::vector<int>&, const std::vector<int>&, std::vector<TValue>&,const int) const,
+    const std::vector<std::vector<TValue>>& rSendValues,
+    const int SourceRank)
+{
+    std::vector<TValue> message;
+    std::vector<int> message_lenghts;
+    std::vector<int> message_offsets;
+
+    if (rSelf.IsDistributed() && (rSelf.Rank() == SourceRank) )
+    {
+        unsigned int size = rSelf.Size();
+        KRATOS_ERROR_IF_NOT(rSendValues.size() != size)
+        << "Error in DataCommunicator.Scatterv: expected " << size << " vectors as input, got " << rSendValues.size() << "." << std::endl;
+
+        message_lenghts.resize(size);
+        message_offsets.resize(size);
+        unsigned int message_size = rSendValues[0].size();
+        message_lenghts[0] = message_size;
+        message_offsets[0] = 0;
+        for (unsigned int i = 1; i < rSendValues.size(); i++)
+        {
+            unsigned int rank_size = rSendValues[i].size();
+            message_lenghts[i] = rank_size;
+            message_offsets[i] = message_offsets[i-1] + rank_size;
+            message_size += rank_size;
+        }
+
+        message.resize(message_size);
+        for (unsigned int i = 0, counter = 0; i < rSendValues.size(); i++)
+        {
+            for (unsigned int j = 0; j < rSendValues[i].size(); j++, counter++)
+            {
+                message[counter] = rSendValues[i][j];
+            }
+        }
+    }
+
+    std::vector<int> recv_size{0};
+    rSelf.Scatter(message_lenghts, recv_size, SourceRank);
+
+    std::vector<TValue> recv_message(recv_size[0]);
+    rSelf.Scatterv(message, message_lenghts, message_offsets, recv_message, SourceRank);
+    return recv_message;
+}
+
+template<class TValue>
 std::vector<TValue> VectorGatherWrapper(
     DataCommunicator& rSelf,
     void (DataCommunicator::*pGatherMethod)(const std::vector<TValue>&, std::vector<TValue>&, const int) const,
@@ -102,6 +168,17 @@ std::vector<TValue> VectorGatherWrapper(
     }
     (rSelf.*pGatherMethod)(rSourceValues, gathered_values, DestinationRank);
     return gathered_values;
+}
+
+template<class TValue>
+std::vector<TValue> VectorAllGatherWrapper(
+    DataCommunicator& rSelf,
+    void (DataCommunicator::*pMethod)(const std::vector<TValue>&, std::vector<TValue>&) const,
+    const std::vector<TValue>& rLocalValues)
+{
+    std::vector<TValue> reduced_values(rLocalValues.size()*rSelf.Size());
+    (rSelf.*pMethod)(rLocalValues, reduced_values);
+    return reduced_values;
 }
 
 void AddDataCommunicatorToPython(pybind11::module &m)
@@ -145,40 +222,46 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("SumAll", (double (DataCommunicator::*)(const double) const) &DataCommunicator::SumAll)
     .def("SumAll", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&) const) &DataCommunicator::SumAll)
     .def("SumAllInts", [](DataCommunicator& rSelf, const std::vector<int>& rLocalValues) {
-        return VectorAllReduceWrapper<int>(rSelf, &DataCommunicator::SumAll, rLocalValues);
+        return VectorBufferTransferWrapper<int>(rSelf, &DataCommunicator::SumAll, rLocalValues);
     })
     .def("SumAllDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rLocalValues) {
-        return VectorAllReduceWrapper<double>(rSelf, &DataCommunicator::SumAll, rLocalValues);
+        return VectorBufferTransferWrapper<double>(rSelf, &DataCommunicator::SumAll, rLocalValues);
     })
     // Allreduce min
     .def("MinAll", (int (DataCommunicator::*)(const int) const) &DataCommunicator::MinAll)
     .def("MinAll", (double (DataCommunicator::*)(const double) const) &DataCommunicator::MinAll)
     .def("MinAll", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&) const) &DataCommunicator::MinAll)
     .def("MinAllInts", [](DataCommunicator& rSelf, const std::vector<int>& rLocalValues) {
-        return VectorAllReduceWrapper<int>(rSelf, &DataCommunicator::MinAll, rLocalValues);
+        return VectorBufferTransferWrapper<int>(rSelf, &DataCommunicator::MinAll, rLocalValues);
     })
     .def("MinAllDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rLocalValues) {
-        return VectorAllReduceWrapper<double>(rSelf, &DataCommunicator::MinAll, rLocalValues);
+        return VectorBufferTransferWrapper<double>(rSelf, &DataCommunicator::MinAll, rLocalValues);
     })
     // Allreduce max
     .def("MaxAll", (int (DataCommunicator::*)(const int) const) &DataCommunicator::MaxAll)
     .def("MaxAll", (double (DataCommunicator::*)(const double) const) &DataCommunicator::MaxAll)
     .def("MaxAll", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&) const) &DataCommunicator::MaxAll)
     .def("MaxAllInts", [](DataCommunicator& rSelf, const std::vector<int>& rLocalValues) {
-        return VectorAllReduceWrapper<int>(rSelf, &DataCommunicator::MaxAll, rLocalValues);
+        return VectorBufferTransferWrapper<int>(rSelf, &DataCommunicator::MaxAll, rLocalValues);
     })
     .def("MaxAllDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rLocalValues) {
-        return VectorAllReduceWrapper<double>(rSelf, &DataCommunicator::MaxAll, rLocalValues);
+        return VectorBufferTransferWrapper<double>(rSelf, &DataCommunicator::MaxAll, rLocalValues);
     })
+    // ScanSum
     .def("ScanSum", (int (DataCommunicator::*)(const int) const) &DataCommunicator::ScanSum)
     .def("ScanSum", (double (DataCommunicator::*)(const double) const) &DataCommunicator::ScanSum)
     .def("ScanSumInts",[](DataCommunicator& rSelf, const std::vector<int>& rLocalValues) {
-        // I use the same wrapper as in Allreduce, since the two methods have the same signature
-        return VectorAllReduceWrapper<int>(rSelf, &DataCommunicator::ScanSum, rLocalValues);
+        return VectorBufferTransferWrapper<int>(rSelf, &DataCommunicator::ScanSum, rLocalValues);
     })
     .def("ScanSumDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rLocalValues) {
-        // I use the same wrapper as in Allreduce, since the two methods have the same signature
-        return VectorAllReduceWrapper<double>(rSelf, &DataCommunicator::ScanSum, rLocalValues);
+        return VectorBufferTransferWrapper<double>(rSelf, &DataCommunicator::ScanSum, rLocalValues);
+    })
+    // SendRecv
+    .def("SendRecvInts",[](DataCommunicator& rSelf, const std::vector<int>& rLocalValues, const int SendDestination, const int RecvSource) {
+        return VectorSendRecvWrapper<int>(rSelf, &DataCommunicator::SendRecv, rLocalValues, SendDestination, RecvSource);
+    })
+    .def("SendRecvDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rLocalValues, const int SendDestination, const int RecvSource) {
+        return VectorSendRecvWrapper<double>(rSelf, &DataCommunicator::SendRecv, rLocalValues, SendDestination, RecvSource);
     })
     // Broadcast
     .def("Broadcast", [](DataCommunicator& rSelf, int SourceMessage, const int SourceRank){
@@ -202,12 +285,26 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("ScatterDoubles", [](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int SourceRank) {
         return VectorScatterWrapper<double>(rSelf, &DataCommunicator::Scatter, rSourceMessage, SourceRank);
     })
+    // Scatterv
+    .def("ScatterInts", [](DataCommunicator& rSelf, const std::vector<std::vector<int>>& rSourceMessage, const int SourceRank) {
+        return VectorScattervWrapper<int>(rSelf, &DataCommunicator::Scatterv, rSourceMessage, SourceRank);
+    })
+    .def("ScatterDoubles", [](DataCommunicator& rSelf, const std::vector<std::vector<double>>& rSourceMessage, const int SourceRank) {
+        return VectorScattervWrapper<double>(rSelf, &DataCommunicator::Scatterv, rSourceMessage, SourceRank);
+    })
     // Gather
     .def("GatherInts",[](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage, const int DestinationRank) {
         return VectorGatherWrapper<int>(rSelf, &DataCommunicator::Gather, rSourceMessage, DestinationRank);
     })
     .def("GatherDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage, const int DestinationRank) {
         return VectorGatherWrapper<double>(rSelf, &DataCommunicator::Gather, rSourceMessage, DestinationRank);
+    })
+    // AllGather
+    .def("AllGatherInts",[](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage) {
+        return VectorAllGatherWrapper<int>(rSelf, &DataCommunicator::AllGather, rSourceMessage);
+    })
+    .def("AllGatherDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rSourceMessage) {
+        return VectorAllGatherWrapper<double>(rSelf, &DataCommunicator::AllGather, rSourceMessage);
     })
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
