@@ -76,7 +76,7 @@ namespace Kratos {
         const double my_radius = element1->GetRadius();
         const double other_radius = element2->GetRadius();
         
-        double calculation_area = 0;
+        double calculation_area = 0.0;
         Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
         GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
         
