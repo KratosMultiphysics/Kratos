@@ -229,9 +229,9 @@ public:
                         {
                             shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                         }
-                        else if(m_NumPar == 16)
+                        else if(m_NumPar == 12)
                         {
-                            shape_functions_values = this->MP16ShapeFunctions();
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
                         }
                     }
                     else if(m_GeometryElement == "Quadrilateral")
@@ -494,20 +494,21 @@ public:
 		return 0.00;
     }
 
+    // TODO: Check whether this is used in any part of the code, or remove it.
     virtual Matrix MP16ShapeFunctions()
     {
-        double Na1 = 0.33333333333333;
-        double Nb1 = 0.45929258829272;
-        double Nb2 = 0.08141482341455;
-        double Nc1 = 0.17056930775176;
-        double Nc2 = 0.65886138449648;
+        const double Na1 = 0.33333333333333;
+        const double Nb1 = 0.45929258829272;
+        const double Nb2 = 0.08141482341455;
+        const double Nc1 = 0.17056930775176;
+        const double Nc2 = 0.65886138449648;
 
-        double Nd1 = 0.05054722831703;
-        double Nd2 = 0.89890554336594;
+        const double Nd1 = 0.05054722831703;
+        const double Nd2 = 0.89890554336594;
 
-        double Ne1 = 0.26311282963464;
-        double Ne2 = 0.72849239295540;
-        double Ne3 = 0.00839477740996;
+        const double Ne1 = 0.26311282963464;
+        const double Ne2 = 0.72849239295540;
+        const double Ne3 = 0.00839477740996;
 
         BoundedMatrix<double,16,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
         MP_ShapeFunctions(0,0) = Na1;
@@ -583,34 +584,35 @@ public:
 
     }
 
+    // TODO: Check whether this is used in any part of the code, or remove it.
     virtual Matrix MP33ShapeFunctions()
     {
-        double Na2 = 0.02356522045239;
-        double Na1 = 0.488217389773805;
+        const double Na2 = 0.02356522045239;
+        const double Na1 = 0.488217389773805;
 
-        double Nb2 = 0.120551215411079;
-        double Nb1 = 0.43972439229446;
+        const double Nb2 = 0.120551215411079;
+        const double Nb1 = 0.43972439229446;
 
-        double Nc2 = 0.457579229975768;
-        double Nc1 = 0.271210385012116;
+        const double Nc2 = 0.457579229975768;
+        const double Nc1 = 0.271210385012116;
 
-        double Nd2 = 0.744847708916828;
-        double Nd1 = 0.127576145541586;
+        const double Nd2 = 0.744847708916828;
+        const double Nd1 = 0.127576145541586;
 
-        double Ne2 = 0.957365299093579;
-        double Ne1 = 0.021317350453210;
+        const double Ne2 = 0.957365299093579;
+        const double Ne1 = 0.021317350453210;
 
-        double Nf1 = 0.115343494534698;
-        double Nf2 = 0.275713269685514;
-        double Nf3 = 0.608943235779788;
+        const double Nf1 = 0.115343494534698;
+        const double Nf2 = 0.275713269685514;
+        const double Nf3 = 0.608943235779788;
 
-        double Ng1 = 0.022838332222257;
-        double Ng2 = 0.281325580989940;
-        double Ng3 = 0.695836086787803;
+        const double Ng1 = 0.022838332222257;
+        const double Ng2 = 0.281325580989940;
+        const double Ng3 = 0.695836086787803;
 
-        double Nh1 = 0.025734050548330;
-        double Nh2 = 0.116251915907597;
-        double Nh3 = 0.858014033544073;
+        const double Nh1 = 0.025734050548330;
+        const double Nh2 = 0.116251915907597;
+        const double Nh3 = 0.858014033544073;
         BoundedMatrix<double,33,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
 
         MP_ShapeFunctions(0,0) = Na1;
