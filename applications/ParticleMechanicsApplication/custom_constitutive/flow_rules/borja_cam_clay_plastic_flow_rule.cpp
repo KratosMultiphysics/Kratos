@@ -152,7 +152,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateReturnMapping(
     else
     {
         unsigned int region = 0;
-        Vector principal_stress_updated = ZeroVector(3);
+        BoundedVector<double,3> principal_stress_updated = ZeroVector(3);
 
         // Perform return mapping to the yield surface: Will update mElasticPrincipalStrain, Region, and principal_stress_updated
         bool converged = this->CalculateConsistencyCondition(rReturnMappingVariables, principal_stress, mElasticPrincipalStrain, region, principal_stress_updated);
@@ -186,8 +186,8 @@ bool BorjaCamClayPlasticFlowRule::CalculateReturnMapping(
 
 }
 
-bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStress,
-    Vector& rPrincipalStrain, unsigned int& region, Vector& rPrincipalStressUpdated)
+bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, const BoundedVector<double,3>& rPrincipalStress,
+    BoundedVector<double,3>& rPrincipalStrain, unsigned int& region, BoundedVector<double,3>& rPrincipalStressUpdated)
 {
 
     // Calculate stress return in principal stress
@@ -196,8 +196,8 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     bool converged = false;
 
     // Initiate Main Matrices and Vectors for Newton Iteration
-    Vector unknown_vector, delta_unknown_vector;
-    Vector rhs_vector = ZeroVector(3);
+    BoundedVector<double,3> unknown_vector, delta_unknown_vector;
+    BoundedVector<double,3> rhs_vector = ZeroVector(3);
     Matrix lhs_matrix = ZeroMatrix(3,3);
     Matrix inv_lhs_matrix = ZeroMatrix(3,3);
 
@@ -212,13 +212,13 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     unknown_vector = ZeroVector(3);
     delta_unknown_vector = ZeroVector(3);
     double trial_volumetric_strain, trial_deviatoric_strain;
-    Vector trial_deviatoric_strain_vector;
+    BoundedVector<double,3> trial_deviatoric_strain_vector;
     this->CalculateStrainInvariantsFromPrincipalStrain(rPrincipalStrain, trial_volumetric_strain, trial_deviatoric_strain, trial_deviatoric_strain_vector);
     unknown_vector[0] = trial_volumetric_strain;
     unknown_vector[1] = trial_deviatoric_strain;
 
     // Constant direction of deviatoric strain vector -- with check if trial_deviatoric_strain == 0
-    Vector direction_strain_vector = ZeroVector(3);
+    BoundedVector<double,3> direction_strain_vector = ZeroVector(3);
     if(std::abs(trial_deviatoric_strain) > 1.e-9)
         direction_strain_vector = std::sqrt(2.0/3.0) * trial_deviatoric_strain_vector / trial_deviatoric_strain;
 
@@ -226,8 +226,8 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     mStateFunction = 0.0;
     mStateFunctionFirstDerivative  = ZeroVector(3);
     mStateFunctionSecondDerivative = ZeroVector(6);
-    Vector principal_stress_vector = rPrincipalStress;
-    Vector principal_strain_vector = ZeroVector(3);
+    BoundedVector<double,3> principal_stress_vector = rPrincipalStress;
+    BoundedVector<double,3> principal_strain_vector = ZeroVector(3);
 
     // Initialize Material parameters
     const double swelling_slope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
@@ -295,7 +295,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
     return converged;
 }
 
-void BorjaCamClayPlasticFlowRule::CalculateLHSMatrix(Matrix& rLHSMatrix, const Vector& rPrincipalStressVector, const Vector& rUnknownVector, const double& rK_p)
+void BorjaCamClayPlasticFlowRule::CalculateLHSMatrix(Matrix& rLHSMatrix, const BoundedVector<double,3>& rPrincipalStressVector, const BoundedVector<double,3>& rUnknownVector, const double& rK_p)
 {
     // Reset Zero
     rLHSMatrix = ZeroMatrix(3,3);
@@ -339,7 +339,7 @@ void BorjaCamClayPlasticFlowRule::CalculateHessianMatrix_2x2(Matrix& rHessianMat
 
 }
 
-void BorjaCamClayPlasticFlowRule::ComputeElasticMatrix_2X2(const Vector& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, Matrix& rElasticMatrix)
+void BorjaCamClayPlasticFlowRule::ComputeElasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, Matrix& rElasticMatrix)
 {
     // Material parameters
     const double swelling_slope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
@@ -363,13 +363,13 @@ void BorjaCamClayPlasticFlowRule::ComputeElasticMatrix_2X2(const Vector& rPrinci
     rElasticMatrix(1,0) = rElasticMatrix(0,1);
 }
 
-void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Matrix& rElasticMatrix, Matrix& rPlasticMatrix)
+void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Matrix& rElasticMatrix, Matrix& rPlasticMatrix)
 {
     // Initialize used temporary matrices and vectors
-    Vector a = ZeroVector(2);
+    BoundedVector<double,2> a = ZeroVector(2);
     Matrix b = ZeroMatrix(2,2);
-    Vector c = ZeroVector(2);
-    Vector d = ZeroVector(2);
+    BoundedVector<double,2> c = ZeroVector(2);
+    BoundedVector<double,2> d = ZeroVector(2);
     double e;
 
     // Compute Hessian Matrix H
@@ -426,8 +426,8 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrinci
 // Compute Trial elastic principal stress matrix from Trial elastic principal strain matrix
 void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
-    Vector main_strain      = ZeroVector(3);
-    Vector principal_stress = ZeroVector(3);
+    BoundedVector<double,3> main_strain      = ZeroVector(3);
+    BoundedVector<double,3> principal_stress = ZeroVector(3);
 
     for (unsigned int i = 0; i<3; ++i)
     {
@@ -446,11 +446,11 @@ void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressTrial(const RadialRetu
 
 
 // Function to compute Principal Stress Vector from Principal Strain Vector
-void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressVector(const Vector& rPrincipalStrain, Vector& rPrincipalStress)
+void BorjaCamClayPlasticFlowRule::CalculatePrincipalStressVector(const BoundedVector<double,3>& rPrincipalStrain, BoundedVector<double,3>& rPrincipalStress)
 {
     // Calculate volumetric and deviatoric strains from princial strain
     double volumetric_strain, deviatoric_strain;
-    Vector deviatoric_strain_vector;
+    BoundedVector<double,3> deviatoric_strain_vector;
     this->CalculateStrainInvariantsFromPrincipalStrain(rPrincipalStrain, volumetric_strain, deviatoric_strain, deviatoric_strain_vector);
 
     // Calculate mean_stress_p and DeviatoricStressQ
@@ -481,7 +481,7 @@ void BorjaCamClayPlasticFlowRule::CalculateMeanStress(const double& rVolumetricS
 
 
 // Function calculate DeviatoricStressVector from given volumetric_strain and deviatoric_strain_vector
-void BorjaCamClayPlasticFlowRule::CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector & rDeviatoricStrainVector, Vector& rDeviatoricStress)
+void BorjaCamClayPlasticFlowRule::CalculateDeviatoricStress(const double& rVolumetricStrain, const BoundedVector<double,3> & rDeviatoricStrainVector, BoundedVector<double,3>& rDeviatoricStress)
 {
     double ref_pressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
     const double ocr = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
@@ -498,7 +498,7 @@ void BorjaCamClayPlasticFlowRule::CalculateDeviatoricStress(const double& rVolum
 }
 
 // Function which returns principal strains from volumetric and deviatoric strain components
-void BorjaCamClayPlasticFlowRule::CalculatePrincipalStrainFromStrainInvariants(Vector& rPrincipalStrain, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Vector& rDirectionVector)
+void BorjaCamClayPlasticFlowRule::CalculatePrincipalStrainFromStrainInvariants(BoundedVector<double,3>& rPrincipalStrain, const double& rVolumetricStrain, const double& rDeviatoricStrain, const BoundedVector<double,3>& rDirectionVector)
 {
     rPrincipalStrain = ZeroVector(3);
 
@@ -511,7 +511,7 @@ void BorjaCamClayPlasticFlowRule::CalculatePrincipalStrainFromStrainInvariants(V
 
 
 // Function which returns volumetric and deviatoric strain components from principal strain
-void BorjaCamClayPlasticFlowRule::CalculateStrainInvariantsFromPrincipalStrain(const Vector& rPrincipalStrain, double& rVolumetricStrain, double& rDeviatoricStrain, Vector& rDeviatoricStrainVector)
+void BorjaCamClayPlasticFlowRule::CalculateStrainInvariantsFromPrincipalStrain(const BoundedVector<double,3>& rPrincipalStrain, double& rVolumetricStrain, double& rDeviatoricStrain, BoundedVector<double,3>& rDeviatoricStrainVector)
 {
     rDeviatoricStrainVector = rPrincipalStrain;
     rVolumetricStrain = sum(rPrincipalStrain);
@@ -523,7 +523,7 @@ void BorjaCamClayPlasticFlowRule::CalculateStrainInvariantsFromPrincipalStrain(c
 }
 
 // Function to return matrix from principal space to normal space
-void BorjaCamClayPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix)
+void BorjaCamClayPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const BoundedVector<double,3>& rPrincipalStress, Matrix& rStressMatrix)
 {
     rStressMatrix = ZeroMatrix(3,3);
     Vector aux_N  = ZeroVector(3);
@@ -541,16 +541,16 @@ void BorjaCamClayPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rE
 void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix)
 {
     // Prepare principal_stress_vector and its invariants
-    Vector principal_stress_vector = mPrincipalStressUpdated;
+    BoundedVector<double,3> principal_stress_vector = mPrincipalStressUpdated;
     double mean_stress_p, deviatoric_q;
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( principal_stress_vector, mean_stress_p, deviatoric_q);
 
     // Compute StrainComponents and direction -- with check if deviatoric_strain == 0
     double volumetric_strain, deviatoric_strain;
-    Vector deviatoric_strain_vector;
+    BoundedVector<double,3> deviatoric_strain_vector;
     this->CalculateStrainInvariantsFromPrincipalStrain(mElasticPrincipalStrain, volumetric_strain, deviatoric_strain, deviatoric_strain_vector);
 
-    Vector direction_strain_vector = ZeroVector(3);
+    BoundedVector<double,3> direction_strain_vector = ZeroVector(3);
     if (std::abs(deviatoric_strain) > 1.e-9)
         direction_strain_vector = std::sqrt(2.0/3.0) * deviatoric_strain_vector / deviatoric_strain;
 
@@ -652,12 +652,12 @@ void BorjaCamClayPlasticFlowRule::CalculateTransformationMatrix(const Matrix& rM
             rA(i,j) = A1(i,j);
         }
     }
-    Vector Hj1 = ZeroVector(3);
+    BoundedVector<double,3> Hj1 = ZeroVector(3);
     Hj1[0] = 0;
     Hj1[1] = 2;
     Hj1[2] = 1;
 
-    Vector Hj2 = ZeroVector(3);
+    BoundedVector<double,3> Hj2 = ZeroVector(3);
     Hj2[0] = 1;
     Hj2[1] = 0;
     Hj2[2] = 2;
@@ -692,7 +692,7 @@ void BorjaCamClayPlasticFlowRule::CalculateTransformationMatrix(const Matrix& rM
 // Function that gives the elastic left cauchy green tensor B
 Matrix BorjaCamClayPlasticFlowRule::GetElasticLeftCauchyGreen(RadialReturnVariables& rReturnMappingVariables)
 {
-    Vector landa_2 = ZeroVector(3);
+    BoundedVector<double,3> landa_2 = ZeroVector(3);
 
     for (unsigned int i = 0; i<3; ++i)
         landa_2[i] = std::exp(2.0*mElasticPrincipalStrain[i]);
@@ -711,7 +711,7 @@ bool BorjaCamClayPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables
 
     // Compute Strain Components and its invariants
     double volumetric_strain, deviatoric_strain;
-    Vector deviatoric_strain_vector;
+    BoundedVector<double,3> deviatoric_strain_vector;
     this->CalculateStrainInvariantsFromPrincipalStrain(mPlasticPrincipalStrain, volumetric_strain, deviatoric_strain, deviatoric_strain_vector);
 
     // Update Equivalent Plastic Strain
@@ -733,7 +733,7 @@ bool BorjaCamClayPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables
     return true;
 }
 
-void BorjaCamClayPlasticFlowRule::UpdateStateVariables(const Vector rPrincipalStress, const double rAlpha, const double rConsistencyParameter)
+void BorjaCamClayPlasticFlowRule::UpdateStateVariables(const BoundedVector<double,3> rPrincipalStress, const double rAlpha, const double rConsistencyParameter)
 {
     // Calculate final state function and derivatives
     mStateFunction = mpYieldCriterion->CalculateYieldCondition(mStateFunction, rPrincipalStress, rAlpha, mMaterialParameters.PreconsolidationPressure);
