@@ -23,6 +23,11 @@ template<> inline MPI_Datatype MPIDatatype<int>(const int&)
     return MPI_INT;
 }
 
+template<> inline MPI_Datatype MPIDatatype<std::vector<double>>(const std::vector<double>&)
+{
+    return MPI_DOUBLE;
+}
+
 template<> inline MPI_Datatype MPIDatatype<double>(const double&)
 {
     return MPI_DOUBLE;
@@ -31,6 +36,11 @@ template<> inline MPI_Datatype MPIDatatype<double>(const double&)
 template<> inline MPI_Datatype MPIDatatype<array_1d<double,3>>(const array_1d<double,3>&)
 {
     return MPI_DOUBLE;
+}
+
+template<> inline MPI_Datatype MPIDatatype<std::vector<int>>(const std::vector<int>&)
+{
+    return MPI_INT;
 }
 
 }
@@ -94,7 +104,7 @@ void MPIDataCommunicator::Sum(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Reduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_SUM, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
@@ -106,7 +116,7 @@ void MPIDataCommunicator::Sum(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Reduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_SUM, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
@@ -144,7 +154,7 @@ void MPIDataCommunicator::Min(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Reduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_MIN, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
@@ -156,7 +166,7 @@ void MPIDataCommunicator::Min(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Reduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_MIN, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
@@ -194,7 +204,7 @@ void MPIDataCommunicator::Max(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Reduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_MAX, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
@@ -206,7 +216,7 @@ void MPIDataCommunicator::Max(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Reduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_MAX, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
@@ -245,7 +255,7 @@ void MPIDataCommunicator::SumAll(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Allreduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_SUM, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
 }
@@ -256,7 +266,7 @@ void MPIDataCommunicator::SumAll(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Allreduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_SUM, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
 }
@@ -293,7 +303,7 @@ void MPIDataCommunicator::MinAll(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Allreduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_MIN, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
 }
@@ -304,7 +314,7 @@ void MPIDataCommunicator::MinAll(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Allreduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_MIN, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
 }
@@ -341,7 +351,7 @@ void MPIDataCommunicator::MaxAll(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Allreduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_INT,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_MAX, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
 }
@@ -352,7 +362,7 @@ void MPIDataCommunicator::MaxAll(
 {
     const int message_size = rLocalValues.size();
     int ierr = MPI_Allreduce(
-        rLocalValues.data(), rGlobalValues.data(), message_size, MPI_DOUBLE,
+        rLocalValues.data(), rGlobalValues.data(), message_size, Internals::MPIDatatype(rLocalValues),
         MPI_MAX, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
 }
@@ -375,6 +385,23 @@ double MPIDataCommunicator::ScanSum(const double rLocalValue) const
     return partial_total;
 }
 
+void MPIDataCommunicator::ScanSum(
+    const std::vector<int>& rLocalValues, std::vector<int>& rPartialSums) const
+{
+    int ierr = MPI_Scan(
+        rLocalValues.data(), rPartialSums.data(), rLocalValues.size(),
+        Internals::MPIDatatype(rLocalValues), MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Scan");
+}
+
+void MPIDataCommunicator::ScanSum(
+    const std::vector<double>& rLocalValues, std::vector<double>& rPartialSums) const
+{
+    int ierr = MPI_Scan(
+        rLocalValues.data(), rPartialSums.data(), rLocalValues.size(),
+        Internals::MPIDatatype(rLocalValues), MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Scan");
+}
 
 // Sendrecv operations
 

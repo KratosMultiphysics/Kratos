@@ -236,6 +236,16 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    virtual void ScanSum(
+        const std::vector<int>& rLocalValues,
+        std::vector<int>& rPartialSums) const
+    {}
+
+    virtual void ScanSum(
+        const std::vector<double>& rLocalValues,
+        std::vector<double>& rPartialSums) const
+    {}
+
     // Sendrecv operations
 
     virtual void SendRecv(

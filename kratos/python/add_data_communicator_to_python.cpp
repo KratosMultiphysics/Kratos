@@ -119,6 +119,14 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     })
     .def("ScanSum", (int (DataCommunicator::*)(const int) const) &DataCommunicator::ScanSum)
     .def("ScanSum", (double (DataCommunicator::*)(const double) const) &DataCommunicator::ScanSum)
+    .def("ScanSumInts",[](DataCommunicator& rSelf, const std::vector<int>& rLocalValues) {
+        // I use the same wrapper as in Allreduce, since the two methods have the same signature
+        return VectorAllReduceWrapper<int>(rSelf, &DataCommunicator::ScanSum, rLocalValues);
+    })
+    .def("ScanSumDoubles",[](DataCommunicator& rSelf, const std::vector<double>& rLocalValues) {
+        // I use the same wrapper as in Allreduce, since the two methods have the same signature
+        return VectorAllReduceWrapper<double>(rSelf, &DataCommunicator::ScanSum, rLocalValues);
+    })
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
     .def("IsDistributed", &DataCommunicator::IsDistributed)
