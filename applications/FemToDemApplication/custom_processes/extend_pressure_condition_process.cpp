@@ -194,6 +194,30 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
                 ToEraseConditionsId.push_back((*it)->Id());
             }
         }
+    } else if (inactive_nodes_id.size() == 3) { // elem and nodes are removed afterwards
+        // We remove the condition regarding the erased edges...
+
+        for (ModelPart::ConditionsContainerType::ptr_iterator it = mr_model_part.Conditions().ptr_begin();
+            it != mr_model_part.Conditions().ptr_end(); ++it) {
+
+            const IndexType Id1 = (*it)->GetGeometry()[0].Id();
+            const IndexType Id2 = (*it)->GetGeometry()[1].Id();
+
+            const IndexType id_1 = inactive_nodes_local_id[0] == 0 ? 0 : inactive_nodes_local_id[0] == 1 ? 1 : 2;
+            const IndexType id_2 = inactive_nodes_local_id[0] == 0 ? 1 : inactive_nodes_local_id[0] == 1 ? 2 : 0;
+            const IndexType id_3 = inactive_nodes_local_id[0] == 0 ? 2 : inactive_nodes_local_id[0] == 1 ? 0 : 1;
+
+            if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
+                (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
+                ToEraseConditionsId.push_back((*it)->Id());
+            } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
+                       (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
+                ToEraseConditionsId.push_back((*it)->Id());
+            } else if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_3].Id()) ||
+                       (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_3].Id())) {
+                ToEraseConditionsId.push_back((*it)->Id());
+            }
+        }
     }
 }
 /***********************************************************************************/
