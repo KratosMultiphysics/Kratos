@@ -333,8 +333,8 @@ class FemDemMechanicalSolver(object):
             params.AddValue("bodies_list",self.settings["bodies_list"])
 
         # CheckAndPrepareModelProcess creates the computating_model_part
-        import check_and_prepare_model_process_solid
-        check_and_prepare_model_process_solid.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+        import check_and_prepare_model_process
+        check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Import constitutive laws
         materials_imported = self._import_constitutive_laws()
