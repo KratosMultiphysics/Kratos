@@ -19,7 +19,6 @@ def __ModuleInitDetail():
     and the parallel DataCommunicator are initialized when the Kernel is built.
     It is defined as a function to avoid polluting the Kratos namespace with local variables.
     """
-    import sys
     if "--using-mpi" in sys.argv[1:]:
         try:
             import KratosMultiphysics.mpi
