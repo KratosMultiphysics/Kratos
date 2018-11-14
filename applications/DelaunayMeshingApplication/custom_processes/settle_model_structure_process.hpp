@@ -647,7 +647,7 @@ class SettleModelStructureProcess
             }
 
             if(list_of_neighbour_nodes.size() == 0){
-              std::cout << " something wierd, this new node does not have any new neighbour: " << NodeId << std::endl;
+              std::cout << "Warning: New Node["<<NodeId<<"] does not have any new neighbour" << std::endl;
               // aqui falta un continue o algu ( no un break)
               continue;
             }

@@ -333,7 +333,7 @@ namespace Kratos
                         i_cond->SetValue(MASTER_NODES,MasterNodes);
                       }
                       else{
-                        std::cout<<" MASTER_NODE not FOUND : something is wrong "<<std::endl;
+                        std::cout<<" 2N Geometry MASTER_NODE not FOUND : something is wrong "<<std::endl;
                       }
                     }
                   }
@@ -420,7 +420,7 @@ namespace Kratos
                               i_cond->SetValue(MASTER_NODES,MasterNodes);
                             }
                             else{
-                              std::cout<<" MASTER_NODE not FOUND : something is wrong "<<std::endl;
+                              std::cout<<" 3N Geometry MASTER_NODE not FOUND : something is wrong "<<std::endl;
                             }
                           }
                         }

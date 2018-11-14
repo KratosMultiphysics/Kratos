@@ -90,7 +90,7 @@ public:
 
       double Radius = 0.0;
       //BOUNDARY flag must be set in model part nodes
-      mBoundingBox = SpatialBoundingBox(mrModelPart,Radius);
+      mBoundingBox = SpatialBoundingBox(mrModelPart,Radius,0.1);
 
       KRATOS_CATCH("")
     }

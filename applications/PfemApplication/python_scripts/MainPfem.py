@@ -41,8 +41,8 @@ class PfemSolution(MainSolid.Solution):
             #print(" PROBLEM_PROCESSES ", processes_parameters["problem_process_list"].PrettyPrintJsonString())
             extended_problem_processes = self._set_particle_properties_process(problem_processes)
             processes_parameters.AddValue("problem_process_list", extended_problem_processes)
-            extended_problem_processes = self._set_volume_recovery_process(problem_processes)
-            processes_parameters.AddValue("problem_process_list", extended_problem_processes)
+            #extended_problem_processes = self._set_volume_recovery_process(problem_processes)
+            #processes_parameters.AddValue("problem_process_list", extended_problem_processes)
             #print(" EXTENDED_PROBLEM_PROCESSES ", processes_parameters["problem_process_list"].PrettyPrintJsonString())
 
         if(processes_parameters.Has("constraints_process_list")):
@@ -148,7 +148,7 @@ class PfemSolution(MainSolid.Solution):
                 default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
 
                 loads_processes.Append(default_settings)
-                
+
         return loads_processes
 
     def _set_particle_properties_process(self, problem_processes):
