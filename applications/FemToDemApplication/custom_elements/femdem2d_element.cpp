@@ -92,25 +92,29 @@ FemDem2DElement::~FemDem2DElement()
 {
 }
 
-void FemDem2DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+void FemDem2DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) 
 {
 
 	// After the mapping, the thresholds of the edges ( are equal to 0.0) are imposed equal to the IP threshold
-	const Vector thresholds = this->GetThresholds();
-	const double ElementThreshold = this->GetValue(STRESS_THRESHOLD);
+	Vector thresholds;
+	thresholds.resize(3);
+	thresholds = this->GetThresholds();
+	const double element_threshold = this->GetValue(STRESS_THRESHOLD);
 	if (thresholds[0] == 0.0 && thresholds[1] == 0.0 && thresholds[2] == 0.0) {
-		this->SetThreshold(ElementThreshold, 0);
-		this->SetThreshold(ElementThreshold, 1);
-		this->SetThreshold(ElementThreshold, 2);
+		this->SetThreshold(element_threshold, 0);
+		this->SetThreshold(element_threshold, 1);
+		this->SetThreshold(element_threshold, 2);
 	}
 
 	// IDEM with the edge damages
-	const Vector DamageEdges = this->GetDamages();
-	const double DamageElement = this->GetValue(DAMAGE_ELEMENT);
-	if (DamageEdges[0] == 0.0 && DamageEdges[1] == 0.0 && DamageEdges[2] == 0.0) {
-		this->SetConvergedDamages(DamageElement, 0);
-		this->SetConvergedDamages(DamageElement, 1);
-		this->SetConvergedDamages(DamageElement, 2);
+	Vector damage_edges;
+	damage_edges.resize(3);
+	damage_edges = this->GetDamages();
+	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
+	if (damage_edges[0] == 0.0 && damage_edges[1] == 0.0 && damage_edges[2] == 0.0) {
+		this->SetConvergedDamages(damage_element, 0);
+		this->SetConvergedDamages(damage_element, 1);
+		this->SetConvergedDamages(damage_element, 2);
 	}
 }
 
@@ -758,8 +762,6 @@ double FemDem2DElement::CalculateLodeAngle(double J2, double J3)
 
 void FemDem2DElement::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
 {
-	KRATOS_TRY
-
 	bool ComputeLumpedMassMatrix = false;
 	if (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX))
 		if (rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == true)
@@ -812,8 +814,6 @@ void FemDem2DElement::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &
 			}
 		}
 	}
-
-	KRATOS_CATCH("")
 }
 Vector &FemDem2DElement::CalculateVolumeForce(Vector &rVolumeForce, const Vector &rN)
 {
@@ -926,7 +926,7 @@ void FemDem2DElement::IntegrateStressDamageMechanics(
 		this->RankineFragileLaw(
 			rIntegratedStress, damage, StressVector, cont, l_char);
 	} else {
-		KRATOS_ERROR << " Yield Surface not defined ";
+		KRATOS_ERROR << " Yield Surface not defined " << std::endl;
 	}
 }
 
@@ -942,11 +942,12 @@ void FemDem2DElement::ModifiedMohrCoulombCriterion(
 	Vector PrincipalStressVector = ZeroVector(2);
 	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
 
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	double friction_angle = this->GetProperties()[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double sigma_t = properties[YIELD_STRESS_T];
+	double friction_angle = properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 
 	KRATOS_WARNING_IF("friction_angle", friction_angle < 1e-24) << "Friction Angle not defined, assumed equal to 32deg" << std::endl;
 	KRATOS_ERROR_IF(sigma_c < 1e-24) << "Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa " << std::endl;
@@ -958,23 +959,23 @@ void FemDem2DElement::ModifiedMohrCoulombCriterion(
 	}
 
 	const double R = std::abs(sigma_c / sigma_t);
-	const double Rmorh = std::pow(tan((Globals::Pi / 4) + friction_angle / 2), 2);
+	const double Rmorh = std::pow(tan((Globals::Pi / 4.0) + friction_angle / 2.0), 2.0);
 	const double alpha_r = R / Rmorh;
 	const double c_max = std::abs(sigma_c);
 	const double I1 = CalculateI1Invariant(PrincipalStressVector[0], PrincipalStressVector[1]);
 	const double J2 = CalculateJ2Invariant(PrincipalStressVector[0], PrincipalStressVector[1]);
 	const double J3 = CalculateJ3Invariant(PrincipalStressVector[0], PrincipalStressVector[1], I1);
-	const double K1 = 0.5 * (1 + alpha_r) - 0.5 * (1 - alpha_r) * std::sin(friction_angle);
-	const double K2 = 0.5 * (1 + alpha_r) - 0.5 * (1 - alpha_r) / std::sin(friction_angle);
-	const double K3 = 0.5 * (1 + alpha_r) * std::sin(friction_angle) - 0.5 * (1 - alpha_r);
+	const double K1 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) * std::sin(friction_angle);
+	const double K2 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) / std::sin(friction_angle);
+	const double K3 = 0.5 * (1.0 + alpha_r) * std::sin(friction_angle) - 0.5 * (1.0 - alpha_r);
 	const double n = sigma_c / sigma_t;
 	const double A = 1.00 / (n * n * Gt * E / (l_char * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < 0.0) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	double f; /// F = f-c = 0 classical definition of yield surface
 	// Check Modified Mohr-Coulomb criterion
-	if (PrincipalStressVector[0] == 0 && PrincipalStressVector[1] == 0) {
-		f = 0;
+	if (PrincipalStressVector[0] == 0.0 && PrincipalStressVector[1] == 0.0) {
+		f = 0.0;
 	} else {
 		const double theta = CalculateLodeAngle(J2, J3);
 		f = (2.00 * std::tan(Globals::Pi * 0.25 + friction_angle * 0.5) / std::cos(friction_angle)) * ((I1 * K3 / 3.0) + 
@@ -985,7 +986,7 @@ void FemDem2DElement::ModifiedMohrCoulombCriterion(
 		this->SetThreshold(c_max, cont);
 	} // 1st iteration sets threshold as c_max
 	const double c_threshold = this->GetThreshold(cont);
-	this->Set_NonConvergedf_sigma(f, cont);
+	this->SetNonConvergedEquivalentStress(f, cont);
 
 	const double F = f - c_threshold;
 
@@ -999,7 +1000,7 @@ void FemDem2DElement::ModifiedMohrCoulombCriterion(
 	}
 
     rIntegratedStress = StressVector;
-	rIntegratedStress *= (1 - damage);
+	rIntegratedStress *= (1.0 - damage);
 }
 
 void FemDem2DElement::RankineCriterion(
@@ -1012,10 +1013,11 @@ void FemDem2DElement::RankineCriterion(
 	Vector PrincipalStressVector = ZeroVector(3);
 	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
 
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();	
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 	const double c_max = std::abs(sigma_t);
 	const double A = 1.00 / (Gt * E / (l_char * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < 0.0)<< " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
@@ -1027,12 +1029,12 @@ void FemDem2DElement::RankineCriterion(
 		this->SetThreshold(c_max, cont);
 	} // 1st iteration sets threshold as c_max
 	const double c_threshold = this->GetThreshold(cont);
-	this->Set_NonConvergedf_sigma(f, cont);
+	this->SetNonConvergedEquivalentStress(f, cont);
 
 	const double F = f - c_threshold;
 
-	if (F <= 0) { // Elastic region --> Damage is constant
-		damage = this->Get_Convergeddamage();
+	if (F <= 0.0) { // Elastic region --> Damage is constant
+		damage = this->GetConvergedDamage();
 		//this->Set_NonConvergeddamage(damage);
 	} else {
 		damage = 1.0 - (c_max / f) * std::exp(A * (1.0 - f / c_max)); // Exponential softening law
@@ -1054,11 +1056,12 @@ void FemDem2DElement::DruckerPragerCriterion(
 	Vector PrincipalStressVector = ZeroVector(3);
 	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
 
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	double friction_angle = this->GetProperties()[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();		
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double sigma_t = properties[YIELD_STRESS_T];
+	double friction_angle = properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 
 	KRATOS_WARNING_IF("friction_angle", friction_angle < 1e-24) << "Friction Angle not defined, assumed equal to 32deg" << std::endl;
 	KRATOS_ERROR_IF(sigma_c < 1e-24) << "Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa " << std::endl;
@@ -1079,23 +1082,23 @@ void FemDem2DElement::DruckerPragerCriterion(
 
 	double f, CFL, TEN0;
 	// Check DruckerPrager criterion
-	if (PrincipalStressVector[0] == 0 && PrincipalStressVector[1] == 0) {
-		f = 0;
+	if (PrincipalStressVector[0] == 0.0 && PrincipalStressVector[1] == 0.0) {
+		f = 0.0;
 	} else {
 		CFL = -std::sqrt(3.0) * (3.0 - std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0);
 		TEN0 = 2.0 * I1 * std::sin(friction_angle) / (std::sqrt(3.0) * (3.0 - std::sin(friction_angle))) + std::sqrt(J2);
 		f = std::abs(CFL * TEN0);
 	}
 
-	if (this->GetThreshold(cont) == 0) {
+	if (this->GetThreshold(cont) == 0.0) {
 		this->SetThreshold(c_max, cont);
 	} // 1st iteration sets threshold as c_max
 	const double c_threshold = this->GetThreshold(cont);
-	this->Set_NonConvergedf_sigma(f, cont);
+	this->SetNonConvergedEquivalentStress(f, cont);
 	const double F = f - c_threshold;
 
-	if (F <= 0) {// Elastic region --> Damage is constant
-		damage = this->Get_Convergeddamage();
+	if (F <= 0.0) {// Elastic region --> Damage is constant
+		damage = this->GetConvergedDamage();
 	} else {
 		damage = 1.0 - (c_max / f) * std::exp(A * (1.0 - f / c_max)); // Exponential softening law
 		if (damage > 0.99) {
@@ -1103,7 +1106,7 @@ void FemDem2DElement::DruckerPragerCriterion(
 		}
 	}
 	rIntegratedStress = StressVector;
-	rIntegratedStress *= (1 - damage);
+	rIntegratedStress *= (1.0 - damage);
 }
 
 void FemDem2DElement::SimoJuCriterion(
@@ -1116,15 +1119,16 @@ void FemDem2DElement::SimoJuCriterion(
 {
 	Vector PrincipalStressVector = ZeroVector(3);
 	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const auto& properties = this->GetProperties();
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 	const double n = std::abs(sigma_c / sigma_t);
 	const double c_max = std::abs(sigma_c) / std::sqrt(E);
 
 	double SumA = 0.0, SumB = 0.0, SumC = 0.0;
-	for (int cont = 0; cont < 1; cont++) {
+	for (int cont = 0; cont < 2; cont++) {
 		SumA += std::abs(PrincipalStressVector[cont]);
 		SumB += 0.5 * (PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
 		SumC += 0.5 * (-PrincipalStressVector[cont] + std::abs(PrincipalStressVector[cont]));
@@ -1149,14 +1153,14 @@ void FemDem2DElement::SimoJuCriterion(
 		this->SetThreshold(c_max, cont);
 	} // 1st iteration sets threshold as c_max
 	const double c_threshold = this->GetThreshold(cont);
-	this->Set_NonConvergedf_sigma(f, cont);
+	this->SetNonConvergedEquivalentStress(f, cont);
 	const double F = f - c_threshold;
 
 	const double A = 1.00 / (Gt * n * n * E / (l_char * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < 0) << "'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	if (F <= 0) {// Elastic region --> Damage is constant
-		damage = this->Get_Convergeddamage();
+		damage = this->GetConvergedDamage();
 	} else {
 		damage = 1.0 - (c_max / f) * std::exp(A * (1.0 - f / c_max)); // Exponential softening law
 		if (damage > 0.99) {
@@ -1176,12 +1180,13 @@ void FemDem2DElement::RankineFragileLaw(
 {
 	Vector PrincipalStressVector = ZeroVector(3);
 	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
+	const auto& properties = this->GetProperties();
 
-	const double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-	const double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-	const double friction_angle = this->GetProperties()[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
-	const double E = this->GetProperties()[YOUNG_MODULUS];
-	const double Gt = this->GetProperties()[FRAC_ENERGY_T];
+	const double sigma_c = properties[YIELD_STRESS_C];
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double friction_angle = properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
+	const double E = properties[YOUNG_MODULUS];
+	const double Gt = properties[FRAC_ENERGY_T];
 	const double c_max = std::abs(sigma_t);
 
 	const double A = 1.00 / (Gt * E / (l_char * std::pow(sigma_c, 2)) - 0.5);
@@ -1194,17 +1199,17 @@ void FemDem2DElement::RankineFragileLaw(
 	} // 1st iteration sets threshold as c_max
 
 	const double c_threshold = this->GetThreshold(cont);
-	this->Set_NonConvergedf_sigma(f, cont);
+	this->SetNonConvergedEquivalentStress(f, cont);
 
 	const double F = f - c_threshold;
 
-	if (F <= 0) {// Elastic region --> Damage is constant
-		damage = this->Get_Convergeddamage();
+	if (F <= 0.0) {// Elastic region --> Damage is constant
+		damage = this->GetConvergedDamage();
 	} else {
 		damage = 0.98; // Fragile  law
 	}
 	rIntegratedStress = StressVector;
-	rIntegratedStress *= (1 - damage);
+	rIntegratedStress *= (1.0 - damage);
 }
 
 void FemDem2DElement::SetValueOnIntegrationPoints(

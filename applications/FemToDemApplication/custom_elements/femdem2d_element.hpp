@@ -49,9 +49,9 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 
 	// *************** Methods Alejandro Cornejo ***************
 	//**********************************************************
-	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo);
-	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo);
-	void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
+	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
+	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
+	void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo) override;
 	void CalculateConstitutiveMatrix(Matrix &rConstitutiveMatrix, const double &rYoungModulus,
 									 const double &rPoissonCoefficient);
 
@@ -63,21 +63,21 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 
 	void CalculatePrincipalStress(Vector &PrincipalStressVector, const Vector StressVector);
 
-	void FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
+	void FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo) override;
 
-	void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable, std::vector<Vector> &rOutput, const ProcessInfo &rCurrentProcessInfo);
-	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput, const ProcessInfo &rCurrentProcessInfo);
+	void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable, std::vector<Vector> &rOutput, const ProcessInfo &rCurrentProcessInfo) override;
+	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput, const ProcessInfo &rCurrentProcessInfo) override;
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-							  ProcessInfo &rCurrentProcessInfo);
+							  ProcessInfo &rCurrentProcessInfo) override;
 
 	void AverageVector(Vector &rAverageVector, const Vector &v, const Vector &w);
 
 	void GetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues,
-									 const ProcessInfo &rCurrentProcessInfo);
+									 const ProcessInfo &rCurrentProcessInfo) override;
 
 	void GetValueOnIntegrationPoints(const Variable<Vector> &rVariable,
 									 std::vector<Vector> &rValues,
-									 const ProcessInfo &rCurrentProcessInfo);
+									 const ProcessInfo &rCurrentProcessInfo) override;
 
 	void Get2MaxValues(Vector &MaxValues, double a, double b, double c);
 	void Get2MinValues(Vector &MaxValues, double a, double b, double c);
@@ -115,7 +115,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	double GetThreshold() { return mThreshold; }
 
 	void SetConvergedDamage(double af) { mDamage = af; }
-	double Get_Convergeddamage() { return mDamage; }
+	double GetConvergedDamage() { return mDamage; }
 
 	void SetConverged_f_sigma(double af) { mF_sigma = af; }
 	double GetConverged_f_sigma() { return mF_sigma; }
@@ -133,19 +133,19 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void Set_NonConvergeddamage(double af) { mNonConvergedDamage = af; }
 	double Get_NonConvergeddamage() { return mNonConvergedDamage; }
 
-	void Set_NonConvergedf_sigma(double af, int cont) { mNonConvergedFsigmas[cont] = af; }
+	void SetNonConvergedEquivalentStress(double af, int cont) { mNonConvergedFsigmas[cont] = af; }
 	double GetNonConvergedEquivalentStress(int cont) { return mNonConvergedFsigmas[cont]; }
 
-	void Set_NonConvergedf_sigma(double af) { mNonConvergedFsigma = af; }
+	void SetNonConvergedEquivalentStress(double af) { mNonConvergedFsigma = af; }
 	double GetNonConvergedEquivalentStress() { return mNonConvergedFsigma; }
 
 	void ResetNonConvergedVars()
 	{
 		this->Set_NonConvergeddamage(0.0);
-		this->Set_NonConvergedf_sigma(0.0);
+		this->SetNonConvergedEquivalentStress(0.0);
 		for (unsigned int cont = 0; cont < 3; cont++) {
 			this->Set_NonConvergeddamages(0, cont);
-			this->Set_NonConvergedf_sigma(0, cont);
+			this->SetNonConvergedEquivalentStress(0, cont);
 		}
 	}
 
