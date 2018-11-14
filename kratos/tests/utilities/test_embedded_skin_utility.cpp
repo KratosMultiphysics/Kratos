@@ -18,14 +18,14 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/structured_mesh_generator_process.h"
-#include "utilities/generate_embedded_skin_utility.h"
+#include "utilities/embedded_skin_utility.h"
 
 namespace Kratos
 {
 namespace Testing
 {
 
-    KRATOS_TEST_CASE_IN_SUITE(GenerateEmbeddedSkinUtility2D, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinUtility2D, KratosCoreFastSuite)
     {
         Model current_model;
 
@@ -73,7 +73,8 @@ namespace Testing
 
         // Generate the skin
         ModelPart &generated_skin_part = current_model.CreateModelPart("GeneratedSkinPart");
-        GenerateEmbeddedSkinUtility(surface_part, generated_skin_part, "continuous").Execute();
+        EmbeddedSkinUtility<2> embedded_skin_utility(surface_part, generated_skin_part, "continuous");
+		embedded_skin_utility.GenerateSkin();
 
         KRATOS_CHECK_EQUAL(generated_skin_part.NumberOfNodes(), 152);
         KRATOS_CHECK_EQUAL(generated_skin_part.NumberOfConditions(), 76);

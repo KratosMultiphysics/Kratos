@@ -43,7 +43,7 @@
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-#include "utilities/generate_embedded_skin_utility.h"
+#include "utilities/embedded_skin_utility.h"
 #include "utilities/geometry_tester.h"
 #include "utilities/cutting_utility.h"
 
@@ -70,6 +70,25 @@ void SetOnProcessInfo(
     )
 {
     rCurrentProcessInfo[TABLE_UTILITY] = pTable;
+}
+
+// Embedded skin utility auxiliar functions 
+template<std::size_t TDim>
+void InterpolateMeshVariableToSkinDouble(
+    EmbeddedSkinUtility<TDim> &rEmbeddedSkinUtility,
+    const Variable<double> &rVariable,
+    const Variable<double> &rEmbeddedVariable)
+{
+    rEmbeddedSkinUtility.InterpolateMeshVariableToSkin(rVariable, rEmbeddedVariable);
+}
+
+template<std::size_t TDim>
+void InterpolateMeshVariableToSkinArray(
+    EmbeddedSkinUtility<TDim> &rEmbeddedSkinUtility,
+    const Variable<array_1d<double,3>> &rVariable,
+    const Variable<array_1d<double,3>> &rEmbeddedVariable)
+{
+    rEmbeddedSkinUtility.InterpolateMeshVariableToSkin(rVariable, rEmbeddedVariable);
 }
 
 void AddUtilitiesToPython(pybind11::module& m)
@@ -467,9 +486,18 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
         ;
 
-    py::class_< GenerateEmbeddedSkinUtility>(m,"GenerateEmbeddedSkinUtility")
+    py::class_< EmbeddedSkinUtility < 2 > >(m,"EmbeddedSkinUtility2D")
         .def(py::init< ModelPart&, ModelPart&, const std::string >())
-        .def("Execute", &GenerateEmbeddedSkinUtility::Execute)
+        .def("GenerateSkin", &EmbeddedSkinUtility < 2 > ::GenerateSkin)
+        .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinArray< 2 > )
+        .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinDouble< 2 > )
+        ;
+
+    py::class_< EmbeddedSkinUtility <3 > >(m,"EmbeddedSkinUtility3D")
+        .def(py::init< ModelPart&, ModelPart&, const std::string >())
+        .def("GenerateSkin", &EmbeddedSkinUtility < 3 > ::GenerateSkin)
+        .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinArray< 3 > )
+        .def("InterpolateMeshVariableToSkin", InterpolateMeshVariableToSkinDouble< 3 > )
         ;
 
     py::class_< GeometryTesterUtility>(m,"GeometryTesterUtility")

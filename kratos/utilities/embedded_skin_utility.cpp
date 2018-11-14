@@ -16,14 +16,14 @@
 
 // Project includes
 #include "variable_utils.h"
-#include "generate_embedded_skin_utility.h"
+#include "embedded_skin_utility.h"
 #include "utilities/divide_triangle_2d_3.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
 
 namespace Kratos
 {
-
-    void GenerateEmbeddedSkinUtility::Execute()
+    template<std::size_t TDim>
+    void EmbeddedSkinUtility<TDim>::GenerateSkin()
     {
         this->Clear();
 
@@ -57,7 +57,24 @@ namespace Kratos
         this->RenumberAndAddSkinEntities(new_nodes_vect, new_conds_vect);
     }
 
-    void GenerateEmbeddedSkinUtility::Clear()
+    template<std::size_t TDim>
+    void EmbeddedSkinUtility<TDim>::InterpolateMeshVariableToSkin(
+        const Variable<double> &rMeshVariable,
+		const Variable<double> &rSkinVariable)
+    {
+        this->InterpolateMeshVariableToSkinSpecialization<double>(rMeshVariable, rSkinVariable);
+    }
+
+    template<std::size_t TDim>
+    void EmbeddedSkinUtility<TDim>::InterpolateMeshVariableToSkin(
+        const Variable<array_1d<double,3>> &rMeshVariable,
+		const Variable<array_1d<double,3>> &rSkinVariable)
+    {
+        this->InterpolateMeshVariableToSkinSpecialization<array_1d<double,3>>(rMeshVariable, rSkinVariable);
+    }
+
+    template<std::size_t TDim>
+    void EmbeddedSkinUtility<TDim>::Clear()
     {
         // Flag all the geometrical entities with the TO_ERASE flag
         VariableUtils().SetFlag<ModelPart::NodesContainerType>(TO_ERASE, true, mrSkinModelPart.Nodes());
@@ -65,12 +82,13 @@ namespace Kratos
         VariableUtils().SetFlag<ModelPart::ConditionsContainerType>(TO_ERASE, true, mrSkinModelPart.Conditions());
 
         // Remove all the skin model part geometrical entities
-        mrSkinModelPart.RemoveNodes(TO_ERASE);
-        mrSkinModelPart.RemoveElements(TO_ERASE);
-        mrSkinModelPart.RemoveConditions(TO_ERASE);
+        // mrSkinModelPart.RemoveNodes(TO_ERASE);
+        // mrSkinModelPart.RemoveElements(TO_ERASE);
+        // mrSkinModelPart.RemoveConditions(TO_ERASE);
     }
 
-    void GenerateEmbeddedSkinUtility::ComputeElementSkin(
+    template<std::size_t TDim>
+    void EmbeddedSkinUtility<TDim>::ComputeElementSkin(
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances,
         unsigned int &rTempNodeId,
@@ -101,7 +119,7 @@ namespace Kratos
             Condition::NodesArrayType sub_int_geom_nodes_array;
             for (unsigned int i_node = 0; i_node < sub_int_geom_n_nodes; ++i_node){
                 DivideGeometry::IndexedPointType &r_sub_int_geom_node = p_int_sub_geom->operator[](i_node);
-                Node<3>::Pointer p_new_node = Kratos::make_shared<Node<3>>(
+                Node<3>::Pointer p_new_node = mrSkinModelPart.CreateNewNode(
                     rTempNodeId,
                     r_sub_int_geom_node.X(),
                     r_sub_int_geom_node.Y(),
@@ -125,7 +143,8 @@ namespace Kratos
         }
     }
 
-    void GenerateEmbeddedSkinUtility::RenumberAndAddSkinEntities(
+    template<std::size_t TDim>
+    void EmbeddedSkinUtility<TDim>::RenumberAndAddSkinEntities(
         const ModelPart::NodesContainerType &rNewNodesVect,
         const ModelPart::ConditionsContainerType &rNewCondsVect)
     {
@@ -163,14 +182,15 @@ namespace Kratos
             it_cond->SetId(new_id);
         }
 
-        mrSkinModelPart.AddNodes(rNewNodesVect.begin(), rNewNodesVect.end());
+        // Add the created conditions to the skin model part
         mrSkinModelPart.AddConditions(rNewCondsVect.begin(), rNewCondsVect.end());
 
         // Wait for all nodes to renumber its nodes
         mrModelPart.GetCommunicator().Barrier();
     }
 
-    Geometry< Node<3> >::Pointer GenerateEmbeddedSkinUtility::SetNewConditionGeometry(
+    template<std::size_t TDim>
+    Geometry< Node<3> >::Pointer EmbeddedSkinUtility<TDim>::SetNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray)
     {
@@ -184,7 +204,8 @@ namespace Kratos
         }
     }
 
-    Properties::Pointer GenerateEmbeddedSkinUtility::SetSkinEntitiesProperties()
+    template<std::size_t TDim>
+    Properties::Pointer EmbeddedSkinUtility<TDim>::SetSkinEntitiesProperties()
     {
         // Set the properties for the new elements depending if the
         // element is in the positive or negative side of the cut.
@@ -202,7 +223,8 @@ namespace Kratos
         return p_new_prop;
     }
 
-    const bool inline GenerateEmbeddedSkinUtility::ElementIsSplit(
+    template<std::size_t TDim>
+    const bool inline EmbeddedSkinUtility<TDim>::ElementIsSplit(
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances)
     {
@@ -218,7 +240,8 @@ namespace Kratos
         return (n_pos > 0 && n_neg > 0) ? true : false;
     }
 
-    const Vector GenerateEmbeddedSkinUtility::SetDistancesVector(ModelPart::ElementIterator ItElem)
+    template<std::size_t TDim>
+    const Vector EmbeddedSkinUtility<TDim>::SetDistancesVector(ModelPart::ElementIterator ItElem)
     {
         auto &r_geom = ItElem->GetGeometry();
         Vector nodal_distances(r_geom.PointsNumber());
@@ -238,7 +261,8 @@ namespace Kratos
         return nodal_distances;
     }
 
-    DivideGeometry::Pointer GenerateEmbeddedSkinUtility::SetDivideGeometryUtility(
+    template<std::size_t TDim>
+    DivideGeometry::Pointer EmbeddedSkinUtility<TDim>::SetDivideGeometryUtility(
         const Geometry<Node<3>> &rGeometry,
         const Vector& rNodalDistances)
     {
@@ -256,4 +280,6 @@ namespace Kratos
         }
     }
 
+    template class Kratos::EmbeddedSkinUtility<2>;
+	template class Kratos::EmbeddedSkinUtility<3>;
 }

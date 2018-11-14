@@ -26,6 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "geometries/geometry_data.h"
+#include "utilities/binbased_fast_point_locator.h"
 #include "utilities/divide_geometry.h"
 
 
@@ -58,21 +59,22 @@ namespace Kratos
  *  them in an empty provided model part. Note that such skin representation
  *  is discontinuous even for a provided continuous distance field.
  */
-class KRATOS_API(KRATOS_CORE) GenerateEmbeddedSkinUtility
+template<std::size_t TDim>
+class KRATOS_API(KRATOS_CORE) EmbeddedSkinUtility
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of GenerateEmbeddedSkinUtility
-    KRATOS_CLASS_POINTER_DEFINITION(GenerateEmbeddedSkinUtility);
+    /// Pointer definition of EmbeddedSkinUtility
+    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    GenerateEmbeddedSkinUtility(
+    EmbeddedSkinUtility(
         ModelPart &rModelPart,
         ModelPart &rSkinModelPart,
         const std::string LevelSetType = "continuous") :
@@ -81,7 +83,7 @@ public:
         mLevelSetType(LevelSetType) {};
 
     /// Destructor.
-    virtual ~GenerateEmbeddedSkinUtility() {};
+    virtual ~EmbeddedSkinUtility() {};
 
     ///@}
     ///@name Operators
@@ -98,7 +100,15 @@ public:
      * the embedded skin model part. The new geometries will be stored 
      * inside the skin model part provided in the constructor. 
      */
-    void Execute();
+    void GenerateSkin();
+
+    void InterpolateMeshVariableToSkin(
+        const Variable<double> &rMeshVariable,
+		const Variable<double> &rSkinVariable);
+
+    void InterpolateMeshVariableToSkin(
+        const Variable<array_1d<double,3>> &rMeshVariable,
+		const Variable<array_1d<double,3>> &rSkinVariable);
 
     ///@}
     ///@name Access
@@ -184,6 +194,48 @@ private:
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances);
 
+    template<class TVarType>
+    void InterpolateMeshVariableToSkinSpecialization(
+        const Variable<TVarType> &rMeshVariable,
+		const Variable<TVarType> &rSkinVariable)
+    {
+		// Check requested variables
+		KRATOS_ERROR_IF((mrModelPart.NodesBegin())->SolutionStepsDataHas(rMeshVariable) == false) 
+			<< "Mesh model part solution step data missing variable: " << rMeshVariable << std::endl;
+		KRATOS_ERROR_IF((mrSkinModelPart.NodesBegin())->SolutionStepsDataHas(rSkinVariable) == false) 
+			<< "Generated skin model part solution step data missing variable: " << rSkinVariable << std::endl;
+
+        // Check that the mesh model part has elements
+        KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "Mesh model part has no elements."; 
+
+        // Set the binbased fast point locator utility
+        BinBasedFastPointLocator<TDim> bin_based_point_locator(mrModelPart);
+        bin_based_point_locator.UpdateSearchDatabase();
+
+        // Loop the generated skin model part nodes
+		const int n_nodes = mrSkinModelPart.NumberOfNodes();
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto it_node = mrSkinModelPart.NodesBegin() + i_node;
+
+            // Find the generated skin node in the origin mesh
+            Vector aux_N;
+            Element::Pointer p_elem;
+            const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), aux_N, p_elem);
+
+            // Check if the node is found
+            if (is_found){
+                // Interpolate the origin model part node value
+                auto &r_geom = p_elem->GetGeometry();
+                it_node->GetSolutionStepValue(rSkinVariable) = rSkinVariable.Zero();
+                for (std::size_t i_orig_node = 0; i_orig_node < r_geom.PointsNumber(); ++i_orig_node){
+                    it_node->GetSolutionStepValue(rSkinVariable) += aux_N(i_orig_node) * r_geom[i_orig_node].GetSolutionStepValue(rMeshVariable);
+                }
+            } else {
+                KRATOS_WARNING("EmbeddedSkinUtility") << "Intersections skin model part node " << it_node->Id() << " has not been found in any origin model part element." << std::endl;
+            }
+        }
+    };
+
     /**
      * @brief Renumber and saves the new skin entities
      * This method renumbers the new skin geometrical entities (MPI compatible)
@@ -247,14 +299,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    GenerateEmbeddedSkinUtility& operator=(GenerateEmbeddedSkinUtility const& rOther) = delete;
+    EmbeddedSkinUtility& operator=(EmbeddedSkinUtility const& rOther) = delete;
 
     /// Copy constructor.
-    GenerateEmbeddedSkinUtility(GenerateEmbeddedSkinUtility const& rOther) = delete;
+    EmbeddedSkinUtility(EmbeddedSkinUtility const& rOther) = delete;
 
     ///@}
 
-}; // Class GenerateEmbeddedSkinUtility
+}; // Class EmbeddedSkinUtility
 
 ///@}
 
