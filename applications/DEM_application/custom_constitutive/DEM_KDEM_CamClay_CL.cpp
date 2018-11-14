@@ -64,15 +64,24 @@ namespace Kratos {
 
     double DEM_KDEM_CamClay::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
-        Properties& element1_props = element1->GetProperties();
-        Properties& element2_props = element2->GetProperties();
-        const double mean_preconsolidation_pressure = 1e6 * 0.5*(element1_props[DEM_PRECONSOLIDATION_PRESSURE] + element2_props[DEM_PRECONSOLIDATION_PRESSURE]);
+        //Properties& element1_props = element1->GetProperties();
+        //Properties& element2_props = element2->GetProperties();
+        //const double mean_preconsolidation_pressure = 1e6 * 0.5*(element1_props[DEM_PRECONSOLIDATION_PRESSURE] + element2_props[DEM_PRECONSOLIDATION_PRESSURE]);
+
+        Matrix average_stress_tensor = ZeroMatrix(3,3);
+        for (unsigned i = 0; i < 3; i++) {
+            for (unsigned j = 0; j < 3; j++) {
+                average_stress_tensor(i,j) = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));
+            }
+        }
+
+        Vector principal_stresses(3);
+        noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(average_stress_tensor);
+        const double max_stress = *std::max_element(principal_stresses.begin(), principal_stresses.end());
         
-        // calculation of equivalent young modulus
         const double myYoung = element1->GetYoung();
         const double other_young = element2->GetYoung();
         const double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
-
         const double my_radius = element1->GetRadius();
         const double other_radius = element2->GetRadius();
         
@@ -83,10 +92,9 @@ namespace Kratos {
         const double radius_sum = my_radius + other_radius;
         const double initial_delta = element1->GetInitialDelta(i);
         const double initial_dist = radius_sum - initial_delta;
-
         const double kn_el = equiv_young * calculation_area / initial_dist;
-        const double max_normal_force = mean_preconsolidation_pressure * calculation_area;
-
+        //const double max_normal_force = mean_preconsolidation_pressure * calculation_area;
+        const double max_normal_force = max_stress * calculation_area;
         const double max_local_distance_by_force = max_normal_force / kn_el;
         const double max_local_distance_by_radius = 0.05 * radius_sum;
         
