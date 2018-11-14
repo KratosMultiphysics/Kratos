@@ -38,8 +38,8 @@ def AssembleTestSuites():
     nightlySuite = suites['nightly']
     nightlySuite.addTests(smallSuite)
     nightlySuite.addTest(TPfem2ConservedVariables('test_execution'))
-    # nightlySuite.addTest(TEulerianPrimitiveVariables('test_execution'))
-    # nightlySuite.addTest(TEulerianConservedVariables('test_execution'))
+    nightlySuite.addTest(TEulerianPrimitiveVariables('test_execution'))
+    nightlySuite.addTest(TEulerianConservedVariables('test_execution'))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
