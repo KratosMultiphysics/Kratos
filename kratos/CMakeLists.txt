@@ -187,13 +187,13 @@ install(TARGETS KratosCore DESTINATION libs)
 
 # Kratos Testing. Install everything except sources
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests
-  PATTERN "*.git" EXCLUDE
-  PATTERN "*.c" EXCLUDE
-  PATTERN "*.h" EXCLUDE
-  PATTERN "*.cpp" EXCLUDE
-  PATTERN "*.hpp" EXCLUDE
-)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION kratos
+    PATTERN "*.git" EXCLUDE
+    PATTERN "*.c" EXCLUDE
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.hpp" EXCLUDE
+    )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install python scripts
