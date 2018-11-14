@@ -127,7 +127,7 @@ class ModelManager(object):
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-            serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
+            serializer = KratosMultiphysics.FileSerializer(restart_path, serializer_flag)
             serializer.Load(self.main_model_part.Name, self.main_model_part)
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
