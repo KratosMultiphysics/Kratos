@@ -17,7 +17,6 @@
 #include "custom_processes/initial_dem_skin_process.hpp"
 #include "custom_processes/extend_pressure_condition_process.h"
 #include "custom_processes/assign_pressure_id_process.h"
-//#include "custom_processes/skin_nodes_detection_process.hpp"
 
 namespace Kratos
 {
@@ -59,9 +58,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
 		.def(init<ModelPart &>())
 		.def("Execute", &AssignPressureIdProcess::Execute);
 
-	//class_<SkinNodesDetectionProcess2D, SkinNodesDetectionProcess2D::Pointer, Process>(m, "SkinNodesDetectionProcess2D")
-	//	.def(init<ModelPart &>())
-	//	.def("Execute", &SkinNodesDetectionProcess2D::Execute);
 }
 } // namespace Python.
 } // Namespace Kratos
