@@ -326,7 +326,7 @@ public:
 
 #ifdef KRATOS_DEBUG
         // Print the partitions in debug mode
-        std::ofstream debug_ofstream("debug_modelpart_"+std::to_string(mpi_rank)+".mpda");
+        std::ofstream debug_ofstream("debug_modelpart_"+std::to_string(mpi_rank)+".mdpa");
         debug_ofstream << stringbufs[mpi_rank].str() << std::endl;
 #endif
 
