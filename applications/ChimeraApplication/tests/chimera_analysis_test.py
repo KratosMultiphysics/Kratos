@@ -104,7 +104,7 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
                 print("started to check results  2" )
                 ref_file.write("#ID, VELOCITY_X, VELOCITY_Y\n")
                 print("started to check results  3" )
-                for node in self.model["MainModelPart"].Nodes:
+                for node in self.model["FluidModelPart"].Nodes:
                     vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
                     ref_file.write("{0}, {1}, {2}\n".format(node.Id, vel[0], vel[1]))
         else:
@@ -114,7 +114,7 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
                 print("started to check results1")
                 line = reference_file.readline()
                 print("started to check results12")
-                for node in self.model["MainModelPart"].Nodes:
+                for node in self.model["FluidModelPart"].Nodes:
                     values = [ float(i) for i in line.rstrip('\n ').split(',') ]
                     node_id = values[0]
                     reference_vel_x = values[1]

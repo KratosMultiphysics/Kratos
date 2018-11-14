@@ -63,7 +63,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     ''' def Initialize(self):
         super(FluidChimeraAnalysis,self).Initialize()
         chimera_params = self.project_parameters["chimera"][0]
-        main_model_part = self.model["MainModelPart"]
+        main_model_part = self.model["FluidModelPart"]
         self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,chimera_params)
     '''
 

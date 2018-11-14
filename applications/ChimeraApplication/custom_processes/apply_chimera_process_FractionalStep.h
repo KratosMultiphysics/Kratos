@@ -466,6 +466,12 @@ class ApplyChimeraProcessFractionalStep : public Process
 		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
 		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
+
+		CalculateNodalAreaAndNodalMass(rPatchInsideBoundaryModelPart, 1);
+		CalculateNodalAreaAndNodalMass(rDomainBoundaryModelPart, 1);
+		CalculateShearAndPressureForceOnStructure(rPatchInsideBoundaryModelPart);
+
+
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
@@ -633,6 +639,22 @@ class ApplyChimeraProcessFractionalStep : public Process
 		KRATOS_CATCH("")
 	}
 
+	void CalculateShearAndPressureForceOnStructure(ModelPart &rBoundaryModelPart)
+	{
+	for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
+	{	
+		array_1d<double, 3> zero;
+		zero[0] = 0.0;
+		zero[1] = 0.0;
+		zero[2] = 0.0;
+		inode->GetSolutionStepValue(PRESSURE_FORCE) = zero;
+		double temp = MathUtils<double>::Dot(inode->GetSolutionStepValue(REACTION, 1),inode->GetSolutionStepValue(NORMAL));
+        inode->GetSolutionStepValue(PRESSURE_FORCE) = temp* inode->GetSolutionStepValue(NORMAL);
+        inode->GetSolutionStepValue(SHEAR_FORCE)= inode->GetSolutionStepValue(REACTION, 1)-inode->GetSolutionStepValue(PRESSURE_FORCE);
+	}
+}
+
+
 	void CalculateNormal2D(ConditionsArrayType::iterator it, array_1d<double, 3> &An, array_1d<double, 3> &centre, int sign)
 	{
 		Geometry<Node<3>> &pGeometry = (it)->GetGeometry();
@@ -773,6 +795,8 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		KRATOS_INFO( "Conservative Correction of " )<< pMpc->mName << " is applied" << std::endl;
 	}
+
+
 
 	// Functions which use two variable components
 

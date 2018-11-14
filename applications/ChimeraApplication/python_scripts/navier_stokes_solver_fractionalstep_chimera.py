@@ -134,6 +134,10 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.PRESSURE_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.SHEAR_FORCE)
+
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)

@@ -34,6 +34,8 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.PRESSURE_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosChimera.SHEAR_FORCE)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicChimera", "Fluid solver variables added correctly.")
 

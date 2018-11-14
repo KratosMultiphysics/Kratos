@@ -355,7 +355,7 @@ array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
     KRATOS_CATCH("")
 }
 
-// this function can dot product given noda variable with its normal or surface component. Present implementation does it with surface/parallel component
+// this function can dot product given nodal variable with its normal or surface component. Present implementation does it with surface/parallel component
 // This require calculation of NORMAL on the respective structure part before, for the Chimera its done in the initial chimera step of apply chimera process monolithic
 double VariableUtils::SumHistoricalNodeVectorVariableDotWithNormal(
     const Variable<array_1d<double, 3> >& rVar,
@@ -373,31 +373,34 @@ double VariableUtils::SumHistoricalNodeVectorVariableDotWithNormal(
     centre[0]=centreX;
     centre[1]=centreY;
     centre[2]=centreZ;
-
+    KRATOS_INFO("printing so that we reached here 1");
     double sum_value = 0;
-    #pragma omp parallel
-    {
-        double private_sum_value = 0;
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-            NodesContainerType::iterator it_node = rModelPart.NodesBegin() + k;
-            double temp = MathUtils<double>::Dot(it_node->GetSolutionStepValue(rVar, rBuffStep),it_node->GetSolutionStepValue(NORMAL));
-            array_1d<double, 3> normalForce = temp* it_node->GetSolutionStepValue(NORMAL);
-            Vector ShearForce = it_node->GetSolutionStepValue(rVar, rBuffStep)-normalForce;
-            array_1d<double, 3> NodalCordinates = it_node->Coordinates();
-            
-            Vector rVector;
-            rVector[0] = NodalCordinates[0]-centre[0];
-            rVector[1] = NodalCordinates[1]-centre[1];
-            rVector[2] = NodalCordinates[2]-centre[2];
+    KRATOS_INFO("printing so that we reached here 2");
+    double private_sum_value = 0;
+    for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
+        KRATOS_INFO("printing so that we reached here 3");
+        NodesContainerType::iterator it_node = rModelPart.NodesBegin() + k;
+        KRATOS_INFO("printing so that we reached here 4");
+        double temp = MathUtils<double>::Dot(it_node->GetSolutionStepValue(rVar, rBuffStep),it_node->GetSolutionStepValue(NORMAL));
+        KRATOS_INFO("printing so that we reached here 5");
+        array_1d<double, 3> normalForce = temp* (it_node->GetSolutionStepValue(NORMAL));
+        //it_node->GetSolutionStepValue(PRESSURE_FORCE)= temp* it_node->GetSolutionStepValue(NORMAL);
+        KRATOS_INFO("printing so that we reached here 6");
+        Vector ShearForce = it_node->GetSolutionStepValue(rVar, rBuffStep)-normalForce;
+        //it_node->GetSolutionStepValue(SHEAR_FORCE)= it_node->GetSolutionStepValue(rVar, rBuffStep)-normalForce;;
+        array_1d<double, 3> NodalCordinates = it_node->Coordinates();
+        KRATOS_INFO("printing so that we reached here 7");
+        Vector rVector;
+        rVector[0] = NodalCordinates[0]-centre[0];
+        rVector[1] = NodalCordinates[1]-centre[1];
+        rVector[2] = NodalCordinates[2]-centre[2];
 
-            array_1d<double, 3> MomentOfShearForce =  MathUtils<double>::CrossProduct(rVector,ShearForce);
-            temp = rVector[2];
-            private_sum_value += temp;
-        }
-        #pragma omp atomic
-        sum_value += private_sum_value;
+        array_1d<double, 3> MomentOfShearForce =  MathUtils<double>::CrossProduct(rVector,ShearForce);
+        temp = rVector[2];
+        private_sum_value += temp;
     }
+
+    sum_value += private_sum_value;
 
     rModelPart.GetCommunicator().SumAll(sum_value);
 

@@ -1,7 +1,7 @@
 {
     "problem_data"                     : {
         "problem_name"    : "test_chimera_fractionalstep_simple_input",
-        "model_part_name" : "MainModelPart",
+        "model_part_name" : "FluidModelPart",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,

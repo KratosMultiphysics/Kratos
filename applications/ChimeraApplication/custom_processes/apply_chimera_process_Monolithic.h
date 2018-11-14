@@ -483,6 +483,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		CalculateNodalAreaAndNodalMass(rPatchInsideBoundaryModelPart, 1);
 		CalculateNodalAreaAndNodalMass(rDomainBoundaryModelPart, 1);
+		CalculateShearAndPressureForceOnStructure(rPatchInsideBoundaryModelPart);
 
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
@@ -495,7 +496,6 @@ class ApplyChimeraProcessMonolithic : public Process
 		{
 			KRATOS_THROW_ERROR("", "Overlap distance should be a positive number \n", "");
 		}
-
 
 		if (m_overlap_distance > epsilon)
 		{
@@ -701,9 +701,23 @@ void CalculateNormal3D(ConditionsArrayType::iterator it, array_1d<double, 3> &An
 	// 				noalias((it)->GetValue(NORMAL)) = An;
 }
 
+void CalculateShearAndPressureForceOnStructure(ModelPart &rBoundaryModelPart)
+{
+	for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
+	{	
+		array_1d<double, 3> zero;
+		zero[0] = 0.0;
+		zero[1] = 0.0;
+		zero[2] = 0.0;
+		inode->GetSolutionStepValue(PRESSURE_FORCE) = zero;
+		double temp = MathUtils<double>::Dot(inode->GetSolutionStepValue(REACTION, 1),inode->GetSolutionStepValue(NORMAL));
+        inode->GetSolutionStepValue(PRESSURE_FORCE) = temp* inode->GetSolutionStepValue(NORMAL);
+        inode->GetSolutionStepValue(SHEAR_FORCE)= inode->GetSolutionStepValue(REACTION, 1)-inode->GetSolutionStepValue(PRESSURE_FORCE);
+	}
+}
+
 void CalculateConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
 {
-
 	double nodalMass;
 	std::size_t slaveNodeId;
 	std::size_t slaveNodeIdOther;
