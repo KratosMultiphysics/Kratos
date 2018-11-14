@@ -186,6 +186,14 @@ class MPIDataCommunicator: public DataCommunicator
     // Broadcast
 
     void Broadcast(
+        int& rBuffer,
+        const unsigned int SourceRank) const override;
+
+    void Broadcast(
+        double& rBuffer,
+        const unsigned int SourceRank) const override;
+
+    void Broadcast(
         std::vector<int>& rBuffer,
         const unsigned int SourceRank) const override;
 

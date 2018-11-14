@@ -434,10 +434,26 @@ void MPIDataCommunicator::SendRecv(
 // Broadcast
 
 void MPIDataCommunicator::Broadcast(
+    int& rBuffer,
+    const unsigned int SourceRank) const
+{
+    int ierr = MPI_Bcast(&rBuffer, 1, Internals::MPIDatatype(rBuffer), SourceRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Bcast");
+}
+
+void MPIDataCommunicator::Broadcast(
+        double& rBuffer,
+        const unsigned int SourceRank) const
+{
+    int ierr = MPI_Bcast(&rBuffer, 1, Internals::MPIDatatype(rBuffer), SourceRank, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Bcast");
+}
+
+void MPIDataCommunicator::Broadcast(
     std::vector<int>& rBuffer,
     const unsigned int SourceRank) const
 {
-    int ierr = MPI_Bcast(rBuffer.data(), rBuffer.size(), MPI_INT, SourceRank, mComm);
+    int ierr = MPI_Bcast(rBuffer.data(), rBuffer.size(), Internals::MPIDatatype(rBuffer), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
 }
 
@@ -445,7 +461,7 @@ void MPIDataCommunicator::Broadcast(
     std::vector<double>& rBuffer,
     const unsigned int SourceRank) const
 {
-    int ierr = MPI_Bcast(rBuffer.data(), rBuffer.size(), MPI_DOUBLE, SourceRank, mComm);
+    int ierr = MPI_Bcast(rBuffer.data(), rBuffer.size(), Internals::MPIDatatype(rBuffer), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
 }
 

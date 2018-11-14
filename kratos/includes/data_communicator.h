@@ -261,6 +261,16 @@ class DataCommunicator
     // Broadcast
 
     virtual void Broadcast(
+        int& rBuffer,
+        const unsigned int SourceRank) const
+    {}
+
+    virtual void Broadcast(
+        double& rBuffer,
+        const unsigned int SourceRank) const
+    {}
+
+    virtual void Broadcast(
         std::vector<int>& rBuffer,
         const unsigned int SourceRank) const
     {}

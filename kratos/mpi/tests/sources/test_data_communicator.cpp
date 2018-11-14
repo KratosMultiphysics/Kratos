@@ -625,7 +625,42 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
     }
 }
 
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcast, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    int send_buffer_int = 0;
+    double send_buffer_double = 0.0;
+
+    if (world_rank == send_rank)
+    {
+        send_buffer_int = 1;
+        send_buffer_double = 2.0;
+    }
+    int send_buffer_int_reference = send_buffer_int;
+    double send_buffer_double_reference = send_buffer_double;
+
+    serial_communicator.Broadcast(send_buffer_int,send_rank);
+    serial_communicator.Broadcast(send_buffer_double,send_rank);
+
+    // Check that serial_communicator does nothing
+    KRATOS_CHECK_EQUAL(send_buffer_int, send_buffer_int_reference);
+    KRATOS_CHECK_EQUAL(send_buffer_double, send_buffer_double_reference);
+
+    mpi_world_communicator.Broadcast(send_buffer_int,send_rank);
+    mpi_world_communicator.Broadcast(send_buffer_double,send_rank);
+
+    KRATOS_CHECK_EQUAL(send_buffer_int, 1);
+    KRATOS_CHECK_EQUAL(send_buffer_double, 2.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);

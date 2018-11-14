@@ -59,14 +59,10 @@ std::vector<TValue> VectorBroadcastWrapper(
     const int SourceRank)
 {
     int rank = rSelf.Rank();
-    std::vector<int> message_size(1);
-    if (rank == SourceRank)
-    {
-        message_size[0] = rSourceValues.size();
-    }
+    int message_size = rSourceValues.size();
     rSelf.Broadcast(message_size,SourceRank);
 
-    std::vector<TValue> buffer(message_size[0]);
+    std::vector<TValue> buffer(message_size);
     if (rank == SourceRank)
     {
         buffer = rSourceValues;
@@ -83,14 +79,10 @@ std::vector<TValue> VectorScatterWrapper(
     const std::vector<TValue>& rSourceValues,
     const int SourceRank)
 {
-    int rank = rSelf.Rank();
-    std::vector<int> message_size(1);
-    if (rank == SourceRank)
-    {
-        message_size[0] = rSourceValues.size();
-    }
+    int message_size = rSourceValues.size();
     rSelf.Broadcast(message_size, SourceRank);
-    std::vector<TValue> message(message_size[0]);
+
+    std::vector<TValue> message(message_size);
     (rSelf.*pScatterMethod)(rSourceValues,message,SourceRank);
     return message;
 }
@@ -172,6 +164,14 @@ void AddDataCommunicatorToPython(pybind11::module &m)
         return VectorAllReduceWrapper<double>(rSelf, &DataCommunicator::ScanSum, rLocalValues);
     })
     // Broadcast
+    .def("Broadcast", [](DataCommunicator& rSelf, int SourceMessage, const int SourceRank){
+        rSelf.Broadcast(SourceMessage,SourceRank);
+        return SourceMessage;
+    })
+    .def("Broadcast",[](DataCommunicator& rSelf, double SourceMessage, const int SourceRank){
+        rSelf.Broadcast(SourceMessage,SourceRank);
+        return SourceMessage;
+    })
     .def("BroadcastInts", [](DataCommunicator& rSelf, const std::vector<int>& rSourceMessage, const int SourceRank) {
         return VectorBroadcastWrapper<int>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
     })
