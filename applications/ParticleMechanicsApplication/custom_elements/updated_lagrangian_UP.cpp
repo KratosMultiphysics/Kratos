@@ -123,14 +123,14 @@ void UpdatedLagrangianUP::Initialize()
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
-    mDeformationGradientF0 = identity_matrix<double> (dimension);
-    
+    mDeformationGradientF0 = IdentityMatrix(dimension);
+
     // Compute initial jacobian matrix and inverses
     Matrix J0 = ZeroMatrix(dimension, dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
-    // Compute current jacobian matrix and inverses  
+    // Compute current jacobian matrix and inverses
     Matrix j = ZeroMatrix(dimension,dimension);
     j = this->MPMJacobian(j,xg);
     double detj;
@@ -208,7 +208,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     }
 
     /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003). 
+    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
     This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
     MP_Velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_Acceleration + MP_PreviousAcceleration);
     this -> SetValue(MP_VELOCITY,MP_Velocity );
@@ -288,12 +288,12 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
 
-    /* NOTE:: 
+    /* NOTE::
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
     1. By: noalias( rVariables.F ) = prod( rVariables.j, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee  
-    
+    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+
     (NOTICE: Here, we are using method no. 1)
     */
 
@@ -366,7 +366,7 @@ void UpdatedLagrangianUP::CalculateDeformationMatrix(Matrix& rB,
 
 void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    /* NOTE: 
+    /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
 
@@ -406,7 +406,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
         array_1d<double, 3 > & nodal_acceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
         array_1d<double, 3 > & nodal_velocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
-        
+
         // These are the values of nodal pressure evaluated in the initialize solution step
         double & nodal_pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,1);
 
@@ -494,7 +494,7 @@ void UpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHandSi
             rRightHandSideVector[index_up + j] += rVariables.N[i] * rVolumeForce[j];
         }
     }
-  
+
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
@@ -651,7 +651,7 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
                 consistent=(-1)*alpha_stabilization*factor_value/(36.0*lame_mu);
                 if(i==j)
                     consistent=2*alpha_stabilization*factor_value/(36.0*lame_mu);
-                    
+
 
                 rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / (delta_coefficient * (rVariables.detF0/rVariables.detF)); //2D
             }
@@ -676,29 +676,29 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem
 {
     // Contributions of the stiffness matrix calculated on the reference configuration
     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-    
+
     rVariables.detF0   *= rVariables.detF;
     double determinant_F = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
-    
+
     // Operation performed: add Km to the rLefsHandSideMatrix
     CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kg to the rLefsHandSideMatrix
     CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kup to the rLefsHandSideMatrix
     CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kpu to the rLefsHandSideMatrix
     CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kpp to the rLefsHandSideMatrix
     CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     rVariables.detF     = determinant_F;
     rVariables.detF0   /= rVariables.detF;
 
@@ -758,7 +758,7 @@ void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 
     Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix reduced_Kg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( stress_tensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
-    Matrix Kuug = zero_matrix<double> (size);
+    Matrix Kuug = ZeroMatrix(size);
     MathUtils<double>::ExpandAndAddReducedMatrix( Kuug, reduced_Kg, dimension );
 
     // Assemble components considering added DOF matrix system
@@ -780,7 +780,7 @@ void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
             indexi++;
         }
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -871,13 +871,13 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
     delta_coefficient = this->CalculatePUDeltaCoefficient( delta_coefficient, rVariables );
 
     unsigned int indexpi = dimension;
-    
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int indexpj = dimension;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight /(delta_coefficient * (rVariables.detF0/rVariables.detF)); 
+            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight /(delta_coefficient * (rVariables.detF0/rVariables.detF));
 
             indexpj += (dimension + 1);
         }
