@@ -28,6 +28,8 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
+    # conditions
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/iga_mapper_condition.cpp
 )
 
 # define library Kratos which defines the basic python interface

@@ -96,6 +96,13 @@ namespace Kratos
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
+        void GetGeometryIntegrationTrimmed(ModelPart& rModelPart,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
+
         /// Constructor.
         BrepFace(
             int rBrepId,
