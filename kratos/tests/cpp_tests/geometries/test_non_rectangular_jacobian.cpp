@@ -18,7 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "tests/geometries/test_geometry.h"
+#include "tests/cpp_tests/geometries/test_geometry.h"
 #include "geometries/geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_3d_3.h"

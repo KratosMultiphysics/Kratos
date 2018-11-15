@@ -19,9 +19,9 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/hexahedra_3d_8.h"
-#include "tests/geometries/test_geometry.h"
-#include "tests/geometries/test_shape_function_derivatives.h"
-#include "tests/geometries/cross_check_shape_functions_values.h"
+#include "tests/cpp_tests/geometries/test_geometry.h"
+#include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
+#include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
 namespace Kratos {
 	namespace Testing {

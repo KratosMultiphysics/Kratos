@@ -19,7 +19,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/prism_3d_6.h"
-#include "tests/geometries/test_geometry.h"
+#include "tests/cpp_tests/geometries/test_geometry.h"
 
 namespace Kratos {
 namespace Testing {

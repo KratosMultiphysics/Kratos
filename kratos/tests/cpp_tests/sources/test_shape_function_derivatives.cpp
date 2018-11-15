@@ -1,9 +1,9 @@
-#include "tests/geometries/test_shape_function_derivatives.h"
+#include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 
 #include <functional>
 #include "containers/array_1d.h"
 #include "testing/testing.h"
-#include "tests/geometries/test_geometry.h"
+#include "tests/cpp_tests/geometries/test_geometry.h"
 
 namespace Kratos {
 namespace Testing {
