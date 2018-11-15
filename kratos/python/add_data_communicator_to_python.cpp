@@ -125,19 +125,17 @@ std::vector<TValue> VectorScattervWrapper(
     if (rSelf.IsDistributed() && (rSelf.Rank() == SourceRank) )
     {
         unsigned int size = rSelf.Size();
-        KRATOS_ERROR_IF_NOT(rSendValues.size() != size)
+        KRATOS_ERROR_IF_NOT(rSendValues.size() == size)
         << "Error in DataCommunicator.Scatterv: expected " << size << " vectors as input, got " << rSendValues.size() << "." << std::endl;
 
         message_lenghts.resize(size);
         message_offsets.resize(size);
-        unsigned int message_size = rSendValues[0].size();
-        message_lenghts[0] = message_size;
-        message_offsets[0] = 0;
-        for (unsigned int i = 1; i < rSendValues.size(); i++)
+        unsigned int message_size = 0;
+        for (unsigned int i = 0; i < rSendValues.size(); i++)
         {
+            message_offsets[i] = message_size;
             unsigned int rank_size = rSendValues[i].size();
             message_lenghts[i] = rank_size;
-            message_offsets[i] = message_offsets[i-1] + rank_size;
             message_size += rank_size;
         }
 
