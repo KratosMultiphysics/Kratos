@@ -124,6 +124,21 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results_with_subproperties()
 
+    @KratosUnittest.expectedFailure
+    def test_input_with_subproperties_cpp_expected_failure(self):
+
+        if (missing_external_dependencies is True):
+            self.skipTest("{} is not available".format(missing_application))
+        self._prepare_test("materials_with_subproperties_expected_failure.json")
+        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
+        # An error shall be thrown while reading the input since the format is not correct
+        try:
+            with self.assertRaisesRegex(RuntimeError, "Wrong input format while reading Properties"): #ideally a more specific error message shall be devised
+                pass #the real line shall be the one below but it segfaults badly
+        except:
+            raise Exception("A segmentation fault is issued!!")
+            self.fail("A segmentation fault is issued!!")
+
     def test_overdefined_materials(self):
         import read_materials_process
         current_model = KratosMultiphysics.Model()
