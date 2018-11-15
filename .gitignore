@@ -6,7 +6,6 @@
 
 # Common build directory
 cmake_build/*
-cmake_build_debug/*
 !cmake_build/example_configure.bat.do_not_touch
 !cmake_build/example_configure.sh.do_not_touch
 packaging/*
@@ -69,6 +68,3 @@ kratos/includes/kratos_version.h
 *.cpp~
 
 applications/python_scripts/beam_profiles\.csv
-
-applications/FluidDynamicsApplication/.PowerFolder
-
