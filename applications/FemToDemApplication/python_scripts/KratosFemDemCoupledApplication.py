@@ -3,4 +3,5 @@ import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.FemToDemApplication
 import CouplingFemDem
 
-CouplingFemDem.FEMDEM_Solution().Run()
+model = KratosMultiphysics.Model()
+CouplingFemDem.FEMDEM_Solution(model).Run()

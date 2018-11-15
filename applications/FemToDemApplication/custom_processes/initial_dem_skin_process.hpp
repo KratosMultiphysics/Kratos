@@ -54,12 +54,7 @@ class InitialDemSkinProcess : public Process
         mrModelPart.CreateSubModelPart(name_dem_model_part);
         ModelPart* p_auxiliar_model_part = mrModelPart.pGetSubModelPart(name_dem_model_part);
 
-        ModelPart* p_skin_model_part;
-        if (mrModelPart.HasSubModelPart("SkinDEMModelPart")) {
-            p_skin_model_part = mrModelPart.pGetSubModelPart("SkinDEMModelPart");
-        } else {
-            KRATOS_ERROR << "The initial skin is not computed..." << std::endl;
-        }
+        ModelPart* p_skin_model_part = mrModelPart.pGetSubModelPart("SkinDEMModelPart");
 
         for (ModelPart::NodeIterator it = (*p_skin_model_part).NodesBegin(); it != (*p_skin_model_part).NodesEnd(); ++it) {
             p_auxiliar_model_part->AddNode(*(it.base()));
