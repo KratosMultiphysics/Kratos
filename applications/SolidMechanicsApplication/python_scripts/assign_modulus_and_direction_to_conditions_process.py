@@ -74,7 +74,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             self.interval_string = "initial"
         elif( self.interval[0] < 0 ):
             self.interval_string = "start"
-
+            self.interval[0] = 0.0
+            
         ##check normalized direction
         direction   = []
         scalar_prod = 0

@@ -76,6 +76,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             self.interval_string = "initial"
         elif( self.interval[0] < 0 ):
             self.interval_string = "start"
+            self.interval[0] = 0.0
 
         ## set the value
         self.value_is_numeric = False
@@ -171,13 +172,13 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
             for process in self.FreeDofsProcesses:
                 process.Execute()
 
-
     #
     def ExecuteAssignment(self):
         if self.IsInsideInterval():
             if self.IsFixingStep():
                 for process in self.FixDofsProcesses:
                     process.Execute()
+            #print(" Execute ", self.variable_name," interval ",self.interval)
             self.AssignValueProcess.Execute()
             if( self.fix_time_integration ):
                 for node in self.model_part.Nodes:
@@ -210,7 +211,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         if( (not isinstance(self.var,KratosMultiphysics.Array1DComponentVariable)) and (not isinstance(self.var,KratosMultiphysics.DoubleVariable)) and (not isinstance(self.var,KratosMultiphysics.VectorVariable)) ):
             raise Exception("Variable type is incorrect. Must be a scalar or a component")
 
-
     #
     def SetFixAndFreeProcesses(self,params):
 
@@ -240,7 +240,6 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                 method_variable_name = time_integration_methods.GetMethodVariableName(self.variable_name)
                 if( method_variable_name != self.variable_name ):
                     self.TimeIntegrationMethod = time_integration_methods.Get(method_variable_name).Clone()
-
 
         if( self.TimeIntegrationMethod != None ):
             self.fix_time_integration = True

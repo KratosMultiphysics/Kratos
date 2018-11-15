@@ -57,7 +57,8 @@ class AssignVectorToConditionsProcess(BaseProcess.AssignModulusAndDirectionToCon
             self.interval_string = "initial"
         elif( self.interval[0] < 0 ):
             self.interval_string = "start"
-
+            self.interval[0] = 0.0
+            
         ## set the value
         self.value_is_numeric = False
         self.value_is_spatial_function = False

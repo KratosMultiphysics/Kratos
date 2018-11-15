@@ -911,6 +911,8 @@ public:
 
     bool CheckSubdomain     (Geometry<Node<3> >& rGeometry);
 
+    bool CheckRigidOuterCentre   (Geometry<Node<3> >& rGeometry);
+    
     bool CheckInnerCentre   (Geometry<Node<3> >& rGeometry);
 
     bool CheckOuterCentre   (Geometry<Node<3> >& rGeometry, double& rOffsetFactor, bool& rSelfContact);

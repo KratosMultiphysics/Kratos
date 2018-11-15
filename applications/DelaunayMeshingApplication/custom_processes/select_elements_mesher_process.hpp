@@ -715,40 +715,49 @@ class SelectElementsMesherProcess
     unsigned int NumberOfVertices = rVertices.size();
 
     if ( mrModelPart.Is(FLUID) ){
+      
+      //check outer normal
+      MesherUtilities MesherUtils;
+      if( rVerticesFlags.Rigid == NumberOfVertices )
+        accepted = !MesherUtils.CheckRigidOuterCentre(rVertices);
 
-      //do not accept full rigid elements (no fluid)
-      if( rVerticesFlags.Rigid == NumberOfVertices && rVerticesFlags.Fluid>0){
-        //accept when it has more than two fluid nodes (2D) and more than 3 fluid nodes (3D)
-        if( rVerticesFlags.Fluid < NumberOfVertices-1 ){
-          //std::cout<<" RIGID EDGE DISCARDED (free_surface: "<<rVerticesFlags.FreeSurface<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<")"<<std::endl;
-          accepted=false;
+      if( accepted ){
+      
+        //do not accept full rigid elements (no fluid)
+        if( rVerticesFlags.Rigid == NumberOfVertices && rVerticesFlags.Fluid>0){
+          //accept when it has more than two fluid nodes (2D) and more than 3 fluid nodes (3D)
+          if( rVerticesFlags.Fluid < NumberOfVertices-1 ){
+            //std::cout<<" RIGID EDGE DISCARDED (free_surface: "<<rVerticesFlags.FreeSurface<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<")"<<std::endl;
+            accepted=false;
+          }
+          else if( rVerticesFlags.Fluid == NumberOfVertices && rVerticesFlags.OldEntity >= 2  ){
+            //std::cout<<" OLD RIGID EDGE DISCARDED (old_entity: "<<rVerticesFlags.OldEntity<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<")"<<std::endl;
+            accepted=false;
+          }
+          // rigid bodies slave boundaries
+          // else if( rVerticesFlags.Fluid >= NumberOfVertices-1 && rVerticesFlags.Slave >= 1){
+          //   accepted=false;
+          // }
         }
-        else if( rVerticesFlags.Fluid == NumberOfVertices && rVerticesFlags.OldEntity >= 2  ){
-          //std::cout<<" OLD RIGID EDGE DISCARDED (old_entity: "<<rVerticesFlags.OldEntity<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<")"<<std::endl;
-          accepted=false;
+
+        //do not accept full rigid elements with a new inserted node (no fluid)
+        if( (rVerticesFlags.Rigid + rVerticesFlags.NewEntity) == NumberOfVertices && rVerticesFlags.Fluid>0){
+          if( rVerticesFlags.Fluid == NumberOfVertices && rVerticesFlags.OldEntity >= NumberOfVertices-1 ){
+            std::cout<<" OLD RIGID NEW ENTITY EDGE DISCARDED (old_entity: "<<rVerticesFlags.OldEntity<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<" free_surface: "<<rVerticesFlags.FreeSurface<<")"<<std::endl;
+            accepted=false;
+          }
         }
-        else if( rVerticesFlags.Fluid >= NumberOfVertices-1 && rVerticesFlags.Slave >= 1){
+
+        //do not accept full rigid-solid elements (no fluid)
+        if( (rVerticesFlags.Solid + rVerticesFlags.Rigid) >= NumberOfVertices && rVerticesFlags.Fluid == 0)
           accepted=false;
-        }
+
+        //do not accept full solid elements
+        if( rVerticesFlags.Solid == NumberOfVertices )
+          accepted=false;
       }
-
-      //do not accept full rigid elements with a new inserted node (no fluid)
-      if( (rVerticesFlags.Rigid + rVerticesFlags.NewEntity) == NumberOfVertices && rVerticesFlags.Fluid>0){
-        if( rVerticesFlags.Fluid == NumberOfVertices && rVerticesFlags.OldEntity >= NumberOfVertices-1 ){
-          std::cout<<" OLD RIGID NEW ENTITY EDGE DISCARDED (old_entity: "<<rVerticesFlags.OldEntity<<" fluid: "<<rVerticesFlags.Fluid<<" rigid: "<<rVerticesFlags.Rigid<<" free_surface: "<<rVerticesFlags.FreeSurface<<")"<<std::endl;
-          accepted=false;
-        }
-      }
-
-      //do not accept full rigid-solid elements (no fluid)
-      if( (rVerticesFlags.Solid + rVerticesFlags.Rigid) >= NumberOfVertices && rVerticesFlags.Fluid == 0)
-        accepted=false;
-
-      //do not accept full solid elements
-      if( rVerticesFlags.Solid == NumberOfVertices )
-        accepted=false;
     }
-
+   
     return accepted;
   }
 
