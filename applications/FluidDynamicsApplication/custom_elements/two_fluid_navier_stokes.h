@@ -409,8 +409,6 @@ private:
     ///@name Private  Access
     ///@{
 
-    TElementData data;
-
     ///@}
     ///@name Private Inquiry
     ///@{

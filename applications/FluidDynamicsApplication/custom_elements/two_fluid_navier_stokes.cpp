@@ -82,7 +82,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     if (TElementData::ElementManagesTimeIntegration){
-        // TElementData data;
+        TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 
         if (data.IsCut()){
@@ -121,7 +121,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     data.CalculateDensityAtGaussPoint();
                     if (d_gauss > 0.0){
                         data.CalculateAirMaterialResponse();
-                        // this->CalculateMaterialResponse(data);
                     } else {
                         this->CalculateMaterialResponse(data);
                     }
@@ -145,7 +144,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
                     data.CalculateDensityAtGaussPoint();
                     data.CalculateAirMaterialResponse();
-                    // this->CalculateMaterialResponse(data);
                     this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
                     ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
                 }
@@ -242,29 +240,6 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
                                                     const ProcessInfo& rCurrentProcessInfo )
 {
     
-    if ( rVariable == FLUID_STRESS ){
-
-        rFluidStress.resize( StrainSize, false );
-
-        if ( this->data.ShearStress.size() != 0 ){
-            rFluidStress = this->data.ShearStress;
-        } else {
-            std::cout << "data.ShearStress has size 0 >>> RACE CONDITION " << std::endl;
-            if ( data.IsAir() ) { std::cout << " element is AIR " << std::endl; }
-            else { std::cout << " element is WATER " << std::endl; }
-            if ( data.IsCut() ) { std::cout << " element is CUT " << std::endl; }
-            else { std::cout << " element is NOT cut " << std::endl; }
-            
-             for (unsigned int i = 0; i < rFluidStress.size(); i++){
-                rFluidStress[i] = 0.0;
-            }
-        }
-
-    } else {
-
-        std::cout << "This variable cannot be retrieved" << std::endl;
-
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +278,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateMaterialResponse(TElementData 
         rData.CalculateAirMaterialResponse();
     } else {
         FluidElement<TElementData>::CalculateMaterialResponse(rData);
-        rData.CalculateAirMaterialResponse();   // New >>> Idea: Write the ShearStress
     }
 }
 
