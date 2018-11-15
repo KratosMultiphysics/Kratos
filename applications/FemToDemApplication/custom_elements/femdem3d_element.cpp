@@ -667,7 +667,7 @@ void FemDem3DElement::AverageVector(Vector &rAverageVector, const Vector &v, con
 
 void FemDem3DElement::CalculateAverageStressOnEdge(
 	Vector &rAverageVector,
-	const std::vector<Element *> VectorOfElems)
+	const std::vector<Element *>& VectorOfElems)
 {
 	KRATOS_TRY
 
@@ -694,7 +694,7 @@ void FemDem3DElement::CalculateAverageStressOnEdge(
 
 void FemDem3DElement::CalculateAverageStrainOnEdge(
 	Vector &rAverageVector,
-	const std::vector<Element*> VectorOfElems)
+	const std::vector<Element*>& VectorOfElems)
 {
 	KRATOS_TRY
 
@@ -818,7 +818,6 @@ void FemDem3DElement::CalculateOnIntegrationPoints(
 	std::vector<Matrix> &rOutput,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	const unsigned int &integration_points_number = GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
 	if (rOutput[0].size2() != dimension)
@@ -861,7 +860,7 @@ void FemDem3DElement::Get2MaxValues(Vector &MaxValues, double a, double b, doubl
 	V[0] = a;
 	V[1] = b;
 	V[2] = c;
-	int n = 3, imin = 0;
+	int n = 3;
 
 	for (unsigned int i = 0; i < n; i++) {
 		for (unsigned int j = 0; j < n - 1; j++) {
@@ -943,10 +942,8 @@ double FemDem3DElement::CalculateJ3Invariant(const Vector Deviator)
 
 double FemDem3DElement::CalculateLodeAngle(double J2, double J3)
 {
-	double sint3;
-
 	if (std::abs(J2) > 1.0e-24) {
-		sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
+		double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
 		if (sint3 < -0.95) {
 			sint3 = -1.0;
 		} else if (sint3 > 0.95) {
@@ -1049,8 +1046,6 @@ double FemDem3DElement::GetMaxValue(Vector Strain)
 	for (int cont = 0; cont < n; cont++) {
 		V[cont] = Strain[cont];
 	}
-
-	int imin = 0;
 	for (unsigned int i = 0; i < n; i++) {
 		for (unsigned int j = 0; j < n - 1; j++) {
 			if (V[j] > V[j + 1]) {
@@ -1285,13 +1280,13 @@ void FemDem3DElement::DruckerPragerCriterion(
 	const double A = 1.00 / (Gt * E / (l_char * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < 0.0) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
-	double f, CFL = 0.0, TEN0 = 0.0;
+	double f;
 	// Check DruckerPrager criterion
 	if (I1 == 0.0) {
 		f = 0.0;
 	} else {
-		CFL = -std::sqrt(3.0) * (3.0 - std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0);
-		TEN0 = 2.0 * I1 * std::sin(friction_angle) / (std::sqrt(3.0) * (3.0 - std::sin(friction_angle))) + std::sqrt(J2);
+		const double CFL = -std::sqrt(3.0) * (3.0 - std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0);
+		const double TEN0 = 2.0 * I1 * std::sin(friction_angle) / (std::sqrt(3.0) * (3.0 - std::sin(friction_angle))) + std::sqrt(J2);
 		f = std::abs(CFL * TEN0);
 	}
 

@@ -2,8 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import CouplingFemDem3D
 import KratosMultiphysics
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.FemToDemApplication   as KratosFemDem
+
 
 def Wait():
 	input("Press Something")

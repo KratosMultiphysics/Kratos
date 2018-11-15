@@ -1,16 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import MainDEM_for_coupling as DEM
-import MainFEM_for_coupling as FEM
 import FEMDEMParticleCreatorDestructor as PCD
 import KratosMultiphysics
-import KratosMultiphysics.DEMApplication as DEMApplication
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import CouplingFemDem
 import math
-import os
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-import mmg_process as MMG
 
 def Wait():
 	input("Press Something")
@@ -208,7 +202,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				if NumberOfDEM == 0: # we must create 4 DEM
 
 					# Look to the Node 1 ---------------------------------------------
-					Radius1 = self.GetMinimumValue(dist01, dist02, dist03) * 0.5
+					Radius1 = self.GetMinimumValue3(dist01, dist02, dist03) * 0.5
 					Coordinates1 = self.GetNodeCoordinates(Element.GetNodes()[0])
 					Id1 = Element.GetNodes()[0].Id
 					self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates1, Radius1, Id1)
@@ -216,7 +210,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Element.GetNodes()[0].SetValue(KratosMultiphysics.RADIUS, Radius1)
 
 					# Look to the Node 2 ---------------------------------------------
-					#Radius2 = self.GetMinimumValue(dist01-Radius1, dist12*0.5, dist13*0.5) 
+					#Radius2 = self.GetMinimumValue3(dist01-Radius1, dist12*0.5, dist13*0.5) 
 					Radius2 = dist01-Radius1
 					Coordinates2 = self.GetNodeCoordinates(Element.GetNodes()[1])
 					Id2 = Element.GetNodes()[1].Id
@@ -225,7 +219,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Element.GetNodes()[1].SetValue(KratosMultiphysics.RADIUS, Radius2)
 
 					# look to the node 3 ---------------------------------------------
-					Radius3 = self.GetMinimumValue(dist02-Radius1, dist12-Radius2, 100000000)
+					Radius3 = self.GetMinimumValue3(dist02-Radius1, dist12-Radius2, 100000000)
 					Coordinates3 = self.GetNodeCoordinates(Element.GetNodes()[2])
 					Id3 = Element.GetNodes()[2].Id
 					self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates3, Radius3, Id3)
@@ -233,7 +227,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Element.GetNodes()[2].SetValue(KratosMultiphysics.RADIUS, Radius3)
 
 					# look to the node 4 ---------------------------------------------
-					Radius4 = self.GetMinimumValue(dist03-Radius1, dist13-Radius2, dist23-Radius3)
+					Radius4 = self.GetMinimumValue3(dist03-Radius1, dist13-Radius2, dist23-Radius3)
 					Coordinates4 = self.GetNodeCoordinates(Element.GetNodes()[3])
 					Id4 = Element.GetNodes()[3].Id
 					self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates4, Radius4, Id4)
@@ -259,7 +253,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						R1 = Element.GetNodes()[1].GetValue(KratosMultiphysics.RADIUS)
 						R2 = Element.GetNodes()[2].GetValue(KratosMultiphysics.RADIUS)
 						R3 = Element.GetNodes()[3].GetValue(KratosMultiphysics.RADIUS)
-						R0 = self.GetMinimumValue(dist01-R1, dist02-R2, dist03-R3)
+						R0 = self.GetMinimumValue3(dist01-R1, dist02-R2, dist03-R3)
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates, R0, Id)
 						Element.GetNodes()[index].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[index].SetValue(KratosMultiphysics.RADIUS, R0)
@@ -268,7 +262,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						R0 = Element.GetNodes()[0].GetValue(KratosMultiphysics.RADIUS)
 						R2 = Element.GetNodes()[2].GetValue(KratosMultiphysics.RADIUS)
 						R3 = Element.GetNodes()[3].GetValue(KratosMultiphysics.RADIUS)
-						R1 = self.GetMinimumValue(dist01-R0, dist12-R2, dist13-R3)
+						R1 = self.GetMinimumValue3(dist01-R0, dist12-R2, dist13-R3)
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates, R1, Id)
 						Element.GetNodes()[index].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[index].SetValue(KratosMultiphysics.RADIUS, R1)
@@ -277,7 +271,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						R0 = Element.GetNodes()[0].GetValue(KratosMultiphysics.RADIUS)
 						R1 = Element.GetNodes()[1].GetValue(KratosMultiphysics.RADIUS)
 						R3 = Element.GetNodes()[3].GetValue(KratosMultiphysics.RADIUS)
-						R2 = self.GetMinimumValue(dist02-R0, dist12-R1, dist23-R3)
+						R2 = self.GetMinimumValue3(dist02-R0, dist12-R1, dist23-R3)
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates, R2, Id)
 						Element.GetNodes()[index].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[index].SetValue(KratosMultiphysics.RADIUS, R2)
@@ -286,7 +280,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						R0 = Element.GetNodes()[0].GetValue(KratosMultiphysics.RADIUS)
 						R1 = Element.GetNodes()[1].GetValue(KratosMultiphysics.RADIUS)
 						R2 = Element.GetNodes()[2].GetValue(KratosMultiphysics.RADIUS)
-						R3 = self.GetMinimumValue(dist03-R0, dist13-R1, dist23-R2)
+						R3 = self.GetMinimumValue3(dist03-R0, dist13-R1, dist23-R2)
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates, R3, Id)
 						Element.GetNodes()[index].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[index].SetValue(KratosMultiphysics.RADIUS, R3)
@@ -307,9 +301,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					RadiusOfDem = Element.GetNodes()[localId].GetValue(KratosMultiphysics.RADIUS)
 
 					if localId == 0:
-						R1 = self.GetMinimumValue(dist01-RadiusOfDem, dist12*0.5, dist13*0.5)
-						R2 = self.GetMinimumValue(dist02-RadiusOfDem, dist12-R1,dist23*0.5)
-						R3 = self.GetMinimumValue(dist03-RadiusOfDem, dist13-R1, dist23-R2)
+						R1 = self.GetMinimumValue3(dist01-RadiusOfDem, dist12*0.5, dist13*0.5)
+						R2 = self.GetMinimumValue3(dist02-RadiusOfDem, dist12-R1,dist23*0.5)
+						R3 = self.GetMinimumValue3(dist03-RadiusOfDem, dist13-R1, dist23-R2)
 
 						Coordinates1 = self.GetNodeCoordinates(Element.GetNodes()[1])
 						Coordinates2 = self.GetNodeCoordinates(Element.GetNodes()[2])
@@ -331,9 +325,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[3].SetValue(KratosMultiphysics.RADIUS, R3)
 
 					elif localId == 1:
-						R0 = self.GetMinimumValue(dist01-RadiusOfDem, dist02*0.5, dist03*0.5)
-						R2 = self.GetMinimumValue(dist12-RadiusOfDem, dist02-R0, dist23*0.5)
-						R3 = self.GetMinimumValue(dist13-RadiusOfDem, dist03-R0, dist23-R2)
+						R0 = self.GetMinimumValue3(dist01-RadiusOfDem, dist02*0.5, dist03*0.5)
+						R2 = self.GetMinimumValue3(dist12-RadiusOfDem, dist02-R0, dist23*0.5)
+						R3 = self.GetMinimumValue3(dist13-RadiusOfDem, dist03-R0, dist23-R2)
 
 						Coordinates0 = self.GetNodeCoordinates(Element.GetNodes()[0])
 						Coordinates2 = self.GetNodeCoordinates(Element.GetNodes()[2])
@@ -355,9 +349,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[3].SetValue(KratosMultiphysics.RADIUS, R3)
 
 					elif localId == 2:
-						R0 = self.GetMinimumValue(dist02-RadiusOfDem, dist01*0.5, dist03*0.5)
-						R1 = self.GetMinimumValue(dist12-RadiusOfDem, dist01-R0, dist13*0.5)
-						R3 = self.GetMinimumValue(dist23-RadiusOfDem, dist03-R0, dist13-R1)
+						R0 = self.GetMinimumValue3(dist02-RadiusOfDem, dist01*0.5, dist03*0.5)
+						R1 = self.GetMinimumValue3(dist12-RadiusOfDem, dist01-R0, dist13*0.5)
+						R3 = self.GetMinimumValue3(dist23-RadiusOfDem, dist03-R0, dist13-R1)
 
 						Coordinates0 = self.GetNodeCoordinates(Element.GetNodes()[0])
 						Coordinates1 = self.GetNodeCoordinates(Element.GetNodes()[1])
@@ -379,9 +373,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[3].SetValue(KratosMultiphysics.RADIUS, R3)
 
 					elif localId == 3:
-						R0 = self.GetMinimumValue(dist03-RadiusOfDem, dist01*0.5, dist02*0.5)
-						R1 = self.GetMinimumValue(dist13-RadiusOfDem, dist01-R0, dist12*0.5)
-						R2 = self.GetMinimumValue(dist23-RadiusOfDem, dist02-R0, dist12-R1)
+						R0 = self.GetMinimumValue3(dist03-RadiusOfDem, dist01*0.5, dist02*0.5)
+						R1 = self.GetMinimumValue3(dist13-RadiusOfDem, dist01-R0, dist12*0.5)
+						R2 = self.GetMinimumValue3(dist23-RadiusOfDem, dist02-R0, dist12-R1)
 
 						Coordinates0 = self.GetNodeCoordinates(Element.GetNodes()[0])
 						Coordinates1 = self.GetNodeCoordinates(Element.GetNodes()[1])
@@ -427,9 +421,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Id2 = Element.GetNodes()[2].Id
 						Id3 = Element.GetNodes()[3].Id
 
-						#R2 = self.GetMinimumValue(dist02-R2, dist01-R1, dist23*0.5)
-						R2 = self.GetMinimumValue(dist02-R0, dist01-R1, 1000000)
-						R3 = self.GetMinimumValue(dist03-R0, dist13-R1, dist23-R2)
+						#R2 = self.GetMinimumValue3(dist02-R2, dist01-R1, dist23*0.5)
+						R2 = self.GetMinimumValue3(dist02-R0, dist01-R1, 1000000)
+						R3 = self.GetMinimumValue3(dist03-R0, dist13-R1, dist23-R2)
 							
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates2, R2, Id2)
 						Element.GetNodes()[2].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
@@ -451,9 +445,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Id1 = Element.GetNodes()[1].Id
 						Id3 = Element.GetNodes()[3].Id
 
-						#R1 = self.GetMinimumValue(dist01-R0, dist12-R2, dist13*0.5)
-						R1 = self.GetMinimumValue(dist01-R0, dist12-R2, 100000)
-						R3 = self.GetMinimumValue(dist03-R0, dist23-R2, dist13-R1)
+						#R1 = self.GetMinimumValue3(dist01-R0, dist12-R2, dist13*0.5)
+						R1 = self.GetMinimumValue3(dist01-R0, dist12-R2, 100000)
+						R3 = self.GetMinimumValue3(dist03-R0, dist23-R2, dist13-R1)
 
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates1, R1, Id1)
 						Element.GetNodes()[1].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
@@ -475,9 +469,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Id1 = Element.GetNodes()[1].Id
 						Id2 = Element.GetNodes()[2].Id
 
-						#R1 = self.GetMinimumValue(dist01-R0, dist13-R3, dist12*0.5)
-						R1 = self.GetMinimumValue(dist01-R0, dist13-R3, 100000)
-						R2 = self.GetMinimumValue(dist02-R0, dist23-R3, dist12-R1)
+						#R1 = self.GetMinimumValue3(dist01-R0, dist13-R3, dist12*0.5)
+						R1 = self.GetMinimumValue3(dist01-R0, dist13-R3, 100000)
+						R2 = self.GetMinimumValue3(dist02-R0, dist23-R3, dist12-R1)
 
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates1, R1, Id1)
 						Element.GetNodes()[1].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
@@ -499,9 +493,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Id0 = Element.GetNodes()[0].Id
 						Id2 = Element.GetNodes()[2].Id
 
-						#R0 = self.GetMinimumValue(dist01-R1, dist03-R3, dist02*0.5)
-						R0 = self.GetMinimumValue(dist01-R1, dist03-R3, 100000)
-						R2 = self.GetMinimumValue(dist12-R1, dist23-R3, dist02-R0)
+						#R0 = self.GetMinimumValue3(dist01-R1, dist03-R3, dist02*0.5)
+						R0 = self.GetMinimumValue3(dist01-R1, dist03-R3, 100000)
+						R2 = self.GetMinimumValue3(dist12-R1, dist23-R3, dist02-R0)
 
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates0, R0, Id0)
 						Element.GetNodes()[0].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
@@ -522,9 +516,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Id0 = Element.GetNodes()[0].Id
 						Id1 = Element.GetNodes()[1].Id
 
-						#R0 = self.GetMinimumValue(dist02-R2, dist03-R3, dist01*0.5)
-						R0 = self.GetMinimumValue(dist02-R2, dist03-R3, 100000)
-						R1 = self.GetMinimumValue(dist12-R2, dist13-R3, dist01-R0)
+						#R0 = self.GetMinimumValue3(dist02-R2, dist03-R3, dist01*0.5)
+						R0 = self.GetMinimumValue3(dist02-R2, dist03-R3, 100000)
+						R1 = self.GetMinimumValue3(dist12-R2, dist13-R3, dist01-R0)
 
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates0, R0, Id0)
 						Element.GetNodes()[0].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
@@ -545,9 +539,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Id0 = Element.GetNodes()[0].Id
 						Id3 = Element.GetNodes()[3].Id	
 
-						#R0 = self.GetMinimumValue(dist01-R1, dist02-R2, dist03*0.5)
-						R0 = self.GetMinimumValue(dist01-R1, dist02-R2, 100000)
-						R3 = self.GetMinimumValue(dist13-R1, dist23-R2, dist03-R0)			
+						#R0 = self.GetMinimumValue3(dist01-R1, dist02-R2, dist03*0.5)
+						R0 = self.GetMinimumValue3(dist01-R1, dist02-R2, 100000)
+						R3 = self.GetMinimumValue3(dist13-R1, dist23-R2, dist03-R0)			
 
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates0, R0, Id0)
 						Element.GetNodes()[0].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
@@ -575,7 +569,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 					# Check the 6 edges of the element
 					if R0 + R1 > dist01:
-						R0 = self.GetMinimumValue(R0, dist01*0.5, 1000000)
+						R0 = self.GetMinimumValue3(R0, dist01*0.5, 1000000)
 						R1 = dist01 - R0
 
 						# assign the new radius to the DEM nodes
@@ -585,7 +579,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[1].SetValue(KratosMultiphysics.RADIUS, R1)
 
 					if R0 + R2 > dist02:
-						R0 = self.GetMinimumValue(R0, 0.5*dist02, 1000000)
+						R0 = self.GetMinimumValue3(R0, 0.5*dist02, 1000000)
 						R2 = dist02 - R0
 
 						# assign the new radius to the DEM nodes 
@@ -595,7 +589,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[2].SetValue(KratosMultiphysics.RADIUS, R2)
 
 					if R0 + R3 > dist03:
-						R0 = self.GetMinimumValue(R0, 0.5*dist03, 1000000)
+						R0 = self.GetMinimumValue3(R0, 0.5*dist03, 1000000)
 						R3 = dist03 - R0
 
 						# assign the new radius to the DEM nodes 
@@ -605,7 +599,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[3].SetValue(KratosMultiphysics.RADIUS, R3)
 
 					if R1 + R2 > dist12:
-						R1 = self.GetMinimumValue(R1, 0.5*dist12, 1000000)
+						R1 = self.GetMinimumValue3(R1, 0.5*dist12, 1000000)
 						R2 = dist12 - R1
 
 						# assign the new radius to the DEM nodes
@@ -615,7 +609,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[1].SetValue(KratosMultiphysics.RADIUS, R1)
 
 					if R1 + R3 > dist13:
-						R1 = self.GetMinimumValue(R1, 0.5*dist13, 1000000)
+						R1 = self.GetMinimumValue3(R1, 0.5*dist13, 1000000)
 						R3 = dist13 - R1
 
 						# assign the new radius to the DEM nodes
@@ -625,7 +619,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[3].SetValue(KratosMultiphysics.RADIUS, R3)
 
 					if R2 + R3 > dist23:
-						R2 = self.GetMinimumValue(R2, 0.5*dist23, 1000000)
+						R2 = self.GetMinimumValue3(R2, 0.5*dist23, 1000000)
 						R3 = dist23 - R2
 
 						# assign the new radius to the DEM nodes
@@ -660,7 +654,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		return math.sqrt((X1 - X2) * (X1 - X2) + (Y1 - Y2) * (Y1 - Y2) + (Z1 - Z2) * (Z1 - Z2))
 
 #============================================================================================================================
-	def GetMinimumValue(self, val1, val2, val3):
+	def GetMinimumValue3(self, val1, val2, val3):
 		res = val1
 		if val2 < val1:
 			res = val2
@@ -725,7 +719,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 					if R1 + R2 > Distance:
 
-						R1 = self.GetMinimumValue(R1, 0.5*Distance, 1000000)
+						R1 = self.GetMinimumValue3(R1, 0.5*Distance, 1000000)
 						R2 = Distance - R1
 						self.DEM_Solution.spheres_model_part.GetNode(Id1).SetSolutionStepValue(KratosMultiphysics.RADIUS, R1)
 						self.DEM_Solution.spheres_model_part.GetNode(Id2).SetSolutionStepValue(KratosMultiphysics.RADIUS, R2)
@@ -748,7 +742,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 						if R1 + R2 > Distance:
 
-							R1 = self.GetMinimumValue(R1, 0.5*Distance, 1000000)
+							R1 = self.GetMinimumValue3(R1, 0.5*Distance, 1000000)
 							R2 = Distance - R1
 							self.DEM_Solution.spheres_model_part.GetNode(Id1).SetSolutionStepValue(KratosMultiphysics.RADIUS, R1)
 							self.DEM_Solution.spheres_model_part.GetNode(Id2).SetSolutionStepValue(KratosMultiphysics.RADIUS, R2)
@@ -770,7 +764,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 						if R1 + R2 > Distance:
 
-							R1 = self.GetMinimumValue(R1, 0.5*Distance, 1000000)
+							R1 = self.GetMinimumValue3(R1, 0.5*Distance, 1000000)
 							R2 = Distance - R1
 							self.DEM_Solution.spheres_model_part.GetNode(Id1).SetSolutionStepValue(KratosMultiphysics.RADIUS, R1)
 							self.DEM_Solution.spheres_model_part.GetNode(Id2).SetSolutionStepValue(KratosMultiphysics.RADIUS, R2)
@@ -782,16 +776,13 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		FEM_Elements = self.FEM_Solution.main_model_part.Elements
 		FEM_Nodes    = self.FEM_Solution.main_model_part.Nodes
-		DEM_Nodes    = self.SpheresModelPart
 
 		for Element in FEM_Elements:
-
 			for i in range(0, 4): # Loop over nodes of the element
 				node = Element.GetNodes()[i]
 				NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
 				NumberOfActiveElements += 1
 				node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, NumberOfActiveElements)
-
 
 		NumberOfActiveElements = 0	
 		for node in FEM_Nodes:
@@ -817,13 +808,10 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 	def UpdateDEMVariables(self):
 
-		FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
 		DEM_Nodes = self.SpheresModelPart.Nodes
 
 		for DEM_Node in DEM_Nodes:  # Loop over DEM nodes
-
 			if (DEM_Node.GetValue(KratosFemDem.INACTIVE_NODE) == False):
-
 				Id = DEM_Node.Id
 				Corresponding_FEM_Node = self.FEM_Solution.main_model_part.GetNode(Id)
 

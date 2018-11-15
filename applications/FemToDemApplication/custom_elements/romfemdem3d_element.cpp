@@ -10,19 +10,8 @@
 //  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#include "includes/define.h"
-#include <string>
-#include "includes/constitutive_law.h"
-#include "custom_constitutive/zarate_law.hpp"
-#include "femdem3d_element.hpp"
 #include "romfemdem3d_element.hpp"
-#include "includes/element.h"
-#include "includes/node.h"
 #include "fem_to_dem_application_variables.h"
-#include "includes/kratos_flags.h"
-#include "containers/flags.h"
-//#include "solid_mechanics_application_variables.h"
-#include "processes/find_nodal_neighbours_process.h"
 
 namespace Kratos
 {
@@ -224,7 +213,7 @@ void RomFemDem3DElement::CalculatePredictiveStresses(const Vector &StrainVector)
 	this->SetValue(STEEL_STRESS_VECTOR, StressVectorSteel);
 }
 
-void RomFemDem3DElement::CalculateAverageStressOnEdge(Vector &rAverageVector, const std::vector<Element *> VectorOfElems)
+void RomFemDem3DElement::CalculateAverageStressOnEdge(Vector &rAverageVector, const std::vector<Element *>& VectorOfElems)
 {
 	// Only averages the stress over the concrete part!!!!
 	Vector CurrentElementStress = this->GetValue(CONCRETE_STRESS_VECTOR);
@@ -416,8 +405,7 @@ void RomFemDem3DElement::CalculateOnIntegrationPoints(
 	std::vector<Matrix> &rOutput,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	const unsigned int &integration_points_number = GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
-	const unsigned int &dimension = GetGeometry().WorkingSpaceDimension();
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
 	if (rOutput[0].size2() != dimension)
 		rOutput[0].resize(dimension, dimension, false);
@@ -478,13 +466,10 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 	const Vector &PredictiveStress,
 	const Matrix &C)
 { // ecuua
-	int iteration = 0;
-	const int iter_max = 9000;
 
 	double Kp, Capap;
 	Vector PlasticStrain;
-	bool is_converged = false;
-
+	
 	// Get Converged values from the prev step
 	Kp = this->GetKp();
 	Capap = this->GetCapap();
@@ -515,8 +500,11 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 		double DLambda;
 		Vector DS = ZeroVector(6), DESIG = ZeroVector(6);
 
-		while (is_converged == false && iteration <= iter_max)
-		{
+		int iteration = 0;
+		const int iter_max = 9000;
+		bool is_converged = false;
+
+		while (is_converged == false && iteration <= iter_max) {
 			DLambda = F * PlasticDenominator;
 			// if (DLambda < 0.0)
 			// 	DLambda = 0.0;
@@ -533,20 +521,16 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 
 			F = Yield - Kp;
 
-			if (F < std::abs(1.0e-8 * Kp)) // Has converged
-			{
+			if (F < std::abs(1.0e-8 * Kp)) {// Has converged
 				is_converged = true;
 				// Update Int Vars
 				this->SetNonConvergedKp(Kp);
 				this->SetNonConvergedCapap(Capap);
 				this->SetNonConvergedPlasticDeformation(PlasticStrain);
 				this->SetValue(EQUIVALENT_STRESS_VM, Yield);
-			}
-			else
-				iteration++;
+			} else iteration++;
 		}
-		if (iteration == iter_max)
-			KRATOS_ERROR << "Reached Max iterations inside Plasticity Loop" << std::endl;
+		KRATOS_WARNING_IF("iteration", iteration == iter_max) << "Reached Max iterations inside Plasticity Loop" << std::endl;
 	}
 }
 
@@ -685,7 +669,7 @@ void RomFemDem3DElement::CalculatePlasticDissipation(
 		Dcapa += rHCapa[i] * PlasticStrainInc[i];
 	}
 
-	if (Dcapa<0.0 | Dcapa> 1.0)
+	if (Dcapa < 0.0 || Dcapa > 1.0)
 		Dcapa = 0.0;
 	rCapap += Dcapa;
 
@@ -827,8 +811,7 @@ void RomFemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	double current_equivalent_stress = 0.0, damage_element = 0.0;
 
 	//Loop over edges
-	for (int cont = 0; cont < 3; cont++)
-	{
+	for (int cont = 0; cont < 3; cont++) {
 		this->SetConvergedDamages(this->GetNonConvergedDamages(cont), cont);
 		this->SetConvergedEquivalentStress(this->GetNonConvergedEquivalentStress(cont), cont);
 		current_equivalent_stress = this->GetConvergedEquivalentStress(cont);

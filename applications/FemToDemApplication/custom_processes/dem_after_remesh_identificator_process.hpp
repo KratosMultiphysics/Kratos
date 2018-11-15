@@ -82,10 +82,7 @@ class DemAfterRemeshIdentificatorProcess : public Process
                 min_radius = this->GetMinimumValue(radius_not_dem);
                 (*it).SetValue(DEM_RADIUS, min_radius);
             } else {
-                if (radius_is_dems.size() != 0)
-                    min_radius_is_dem = this->GetMinimumValue(radius_is_dems);
-                else
-                    min_radius_is_dem = 1000.0;
+                min_radius_is_dem = this->GetMinimumValue(radius_is_dems);
 
                 if (radius_not_dem.size() != 0)
                     min_radius_no_dem = this->GetMinimumValue(radius_not_dem);
@@ -96,6 +93,7 @@ class DemAfterRemeshIdentificatorProcess : public Process
                     min_radius = min_radius_no_dem;
                 else
                     min_radius = min_radius_is_dem;
+                    
                 (*it).SetValue(DEM_RADIUS, min_radius);
             }
         }

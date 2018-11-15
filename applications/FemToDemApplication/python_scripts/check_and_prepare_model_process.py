@@ -134,20 +134,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,part,entity_type)
             transfer_process.Execute()
 
-        '''
-        for node in self.main_model_part.Nodes:
-            computing_model_part.AddNode(node,0)
-
-        for part in domain_parts:
-            for elem in part.Elements:
-                computing_model_part.AddElement(elem,0)
-
-        for part in processes_parts:
-            part.Set(KratosMultiphysics.BOUNDARY)
-            for cond in part.Conditions:
-                computing_model_part.AddCondition(cond,0)
-        '''
-
         #delete body parts: (materials have to be already assigned)
         if( self.bodies_list == True ):
             for i in range(self.bodies_parts_list.size()):
@@ -156,9 +142,3 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 for j in range(body_parts_name_list.size()):
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
                     print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
-
-        #for part in domain_parts:
-        #    self.main_model_part.RemoveSubModelPart(part)
-        #    print("Removed SubModelPart:", part.Name)
-
-        #print("::[Model_Prepare]::",computing_model_part)

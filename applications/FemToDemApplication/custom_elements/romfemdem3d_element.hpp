@@ -49,7 +49,7 @@ class RomFemDem3DElement : public FemDem3DElement
 	void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo);
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo);
 	void CalculatePredictiveStresses(const Vector &StrainVector);
-	void CalculateAverageStressOnEdge(Vector &rAverageVector, const std::vector<Element *> VectorOfElems);
+	void CalculateAverageStressOnEdge(Vector &rAverageVector, const std::vector<Element *>& VectorOfElems);
 	Vector &CalculateVolumeForce(Vector &rVolumeForce, const Vector &rN);
 	void CalculateOnIntegrationPoints(const Variable<Matrix> &rVariable, std::vector<Matrix> &rOutput, const ProcessInfo &rCurrentProcessInfo);
 	void GetValueOnIntegrationPoints(const Variable<Matrix> &rVariable, std::vector<Matrix> &rValues, const ProcessInfo &rCurrentProcessInfo);

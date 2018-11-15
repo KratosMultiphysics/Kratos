@@ -94,7 +94,6 @@ void FemDem3DLargeDisplacementElement::InitializeNonLinearIteration(ProcessInfo 
 
     // Kinematic variables
     Matrix B, F, DN_DX, InvJ0, J, J0;
-    double detJ0;
 
     const SizeType mat_size = number_of_nodes * dimension;
     B.resize(strain_size, dimension * number_of_nodes);
@@ -115,7 +114,7 @@ void FemDem3DLargeDisplacementElement::InitializeNonLinearIteration(ProcessInfo 
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
 
         J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
-        detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
+        const double detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);

@@ -55,23 +55,18 @@ class InitialDemSkinProcess : public Process
         ModelPart* p_auxiliar_model_part = mrModelPart.pGetSubModelPart(name_dem_model_part);
 
         ModelPart* p_skin_model_part;
-        if (mrModelPart.HasSubModelPart("SkinDEMModelPart"))
-        {
+        if (mrModelPart.HasSubModelPart("SkinDEMModelPart")) {
             p_skin_model_part = mrModelPart.pGetSubModelPart("SkinDEMModelPart");
-        }
-        else
-        {
+        } else {
             KRATOS_ERROR << "The initial skin is not computed..." << std::endl;
         }
 
-        for (ModelPart::NodeIterator it = (*p_skin_model_part).NodesBegin(); it != (*p_skin_model_part).NodesEnd(); ++it)
-        {
+        for (ModelPart::NodeIterator it = (*p_skin_model_part).NodesBegin(); it != (*p_skin_model_part).NodesEnd(); ++it) {
             p_auxiliar_model_part->AddNode(*(it.base()));
         } // InitialDemSkin SubModelPart Filled with nodes
 
         // Let's assign the DEM radius to those nodes...
-        for (ModelPart::NodeIterator it = (*p_auxiliar_model_part).NodesBegin(); it != (*p_auxiliar_model_part).NodesEnd(); ++it)
-        {
+        for (ModelPart::NodeIterator it = (*p_auxiliar_model_part).NodesBegin(); it != (*p_auxiliar_model_part).NodesEnd(); ++it) {
             WeakPointerVector<Node<3>> &rneigh = (*it).GetValue(NEIGHBOUR_NODES);
             KRATOS_ERROR_IF(rneigh.size() == 0) << "Nodal neighbours not computed..." << std::endl;
             std::vector<double> radius_is_dems, radius_not_dem;
@@ -93,17 +88,11 @@ class InitialDemSkinProcess : public Process
                     radius_not_dem.push_back(radius_dem);
                 }
             }
-            if (radius_is_dems.size() == 0)
-            {
+            if (radius_is_dems.size() == 0) {
                 min_radius = this->GetMinimumValue(radius_not_dem);
                 (*it).SetValue(DEM_RADIUS, min_radius);
-            }
-            else
-            {
-                if (radius_is_dems.size() != 0)
-                    min_radius_is_dem = this->GetMinimumValue(radius_is_dems);
-                else
-                    min_radius_is_dem = 1000.0;
+            } else {
+                min_radius_is_dem = this->GetMinimumValue(radius_is_dems);
 
                 if (radius_not_dem.size() != 0)
                     min_radius_no_dem = this->GetMinimumValue(radius_not_dem);

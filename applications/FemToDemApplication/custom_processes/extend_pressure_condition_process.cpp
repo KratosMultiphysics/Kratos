@@ -141,7 +141,6 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
         mr_model_part.GetSubModelPart("computing_domain").AddCondition(line_cond);
 
         // We remove the condition regarding the erased edges...
-        int counter = 0;
         for (ModelPart::ConditionsContainerType::ptr_iterator it = mr_model_part.Conditions().ptr_begin();
             it != mr_model_part.Conditions().ptr_end(); ++it) {
 
@@ -152,11 +151,9 @@ void ExtendPressureConditionProcess<2>::CreateAndAddPressureConditions3(
             if ((Id1 == r_geom[id_2].Id() && Id2 == r_geom[id_1].Id()) ||
                 (Id2 == r_geom[id_2].Id() && Id1 == r_geom[id_1].Id())) {
                 ToEraseConditionsId.push_back((*it)->Id());
-                counter++;
             } else if ((Id1 == r_geom[id_1].Id() && Id2 == r_geom[id_3].Id()) ||
                        (Id2 == r_geom[id_1].Id() && Id1 == r_geom[id_3].Id())) {
                 ToEraseConditionsId.push_back((*it)->Id());
-                counter++;
             }
         }
     } else if (inactive_nodes_id.size() == 1) {

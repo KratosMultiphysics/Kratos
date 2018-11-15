@@ -209,11 +209,11 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo);
 
 	// Storages mEdgeNeighboursContainer
-	void SaveEdgeNeighboursContainer(std::vector<std::vector<Element *>> toSave) { mEdgeNeighboursContainer = toSave; }
+	void SaveEdgeNeighboursContainer(const std::vector<std::vector<Element *>>& toSave) { mEdgeNeighboursContainer = toSave; }
 	std::vector<Element *> GetEdgeNeighbourElements(int edge) { return mEdgeNeighboursContainer[edge]; }
 
-	void CalculateAverageStressOnEdge(Vector &AverageVector, const std::vector<Element *> VectorOfElems);
-	void CalculateAverageStrainOnEdge(Vector &AverageVector, const std::vector<Element *> VectorOfElems);
+	void CalculateAverageStressOnEdge(Vector &AverageVector, const std::vector<Element *>& VectorOfElems);
+	void CalculateAverageStrainOnEdge(Vector &AverageVector, const std::vector<Element *>& VectorOfElems);
 	void AddDEMContactForces(Vector &NodalRHS);
 
 	void SetNodeIndexes(Matrix &M) // Defines the numbering of the edges with the corresponding nodes
