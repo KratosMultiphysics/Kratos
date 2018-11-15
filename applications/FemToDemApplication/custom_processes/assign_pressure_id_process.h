@@ -8,21 +8,14 @@
 //					 Kratos default license:
 //kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_ASSIGN_PRESSURE_ID_PROCESS)
 #define KRATOS_ASSIGN_PRESSURE_ID_PROCESS
 
-
-#include "includes/model_part.h"
 #include "processes/process.h"
-
 #include "fem_to_dem_application_variables.h"
-#include "includes/define.h"
-#include "includes/kratos_flags.h"
-
-
 
 namespace Kratos {
 

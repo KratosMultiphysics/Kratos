@@ -7,19 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#include "includes/define.h"
-#include "includes/constitutive_law.h"
-#include "custom_constitutive/zarate_law.hpp"
 #include "femdem2d_element.hpp"
-#include "includes/element.h"
 #include "fem_to_dem_application_variables.h"
-#include "includes/kratos_flags.h"
-#include "containers/flags.h"
 #include "solid_mechanics_application_variables.h"
-#include "includes/global_variables.h"
 
 namespace Kratos
 {
@@ -751,13 +744,16 @@ double FemDem2DElement::CalculateJ3Invariant(double sigma1, double sigma2, doubl
 }
 double FemDem2DElement::CalculateLodeAngle(double J2, double J3)
 {
-	double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
-	if (sint3 < -0.95) {
-		sint3 = -1.0;
-	} else if (sint3 > 0.95) {
-		sint3 = 1.0;
-	}
-	return std::asin(sint3) / 3.0;
+    if (std::abs(J2) > tolerance) {
+        double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
+        if (sint3 < -0.95)
+            sint3 = -1.0;
+        else if (sint3 > 0.95)
+            sint3 = 1.0;
+        return std::asin(sint3) / 3.0;
+    } else {
+        return 0.0;
+    }
 }
 
 void FemDem2DElement::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)

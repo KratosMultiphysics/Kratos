@@ -7,19 +7,15 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#include "includes/define.h"
+
 #include "femdem3d_element.hpp"
-#include "includes/element.h"
-#include "includes/node.h"
 #include "fem_to_dem_application_variables.h"
-#include "includes/kratos_flags.h"
-#include "containers/flags.h"
 #include "solid_mechanics_application_variables.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "includes/global_variables.h"
+
 
 namespace Kratos
 {

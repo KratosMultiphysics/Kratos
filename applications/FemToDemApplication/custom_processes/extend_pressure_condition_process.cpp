@@ -8,7 +8,7 @@
 //                               Kratos default license:
 //kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 #include "custom_processes/extend_pressure_condition_process.h"

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 #include "custom_elements/femdem3d_large_displacement_element.hpp"

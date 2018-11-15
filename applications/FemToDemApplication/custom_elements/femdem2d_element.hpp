@@ -7,15 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
-#if !defined(KRATOS_ALECORNVEL_ELEMENT_H_INCLUDED)
-#define KRATOS_ALECORNVEL_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_FEMDEM2D_ELEMENT_H_INCLUDED)
+#define KRATOS_FEMDEM2D_ELEMENT_H_INCLUDED
 
-#include "custom_constitutive/zarate_law.hpp"
-#include "includes/constitutive_law.h"
-#include "includes/element.h"
 #include "custom_elements/solid_elements/small_displacement_element.hpp"
 
 namespace Kratos
@@ -49,6 +46,9 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 
 	// *************** Methods Alejandro Cornejo ***************
 	//**********************************************************
+	/// The zero tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
 	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 	void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo) override;

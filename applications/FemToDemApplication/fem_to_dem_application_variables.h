@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_FEM_TO_DEM_APPLICATION_VARIABLES_H_INCLUDED )

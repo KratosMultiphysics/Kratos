@@ -1,9 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics FemDem Application
 //
-//   Project Name:        KratosFemToDemApplication $
-//   Created by:          $Author:Alejandro Cornejo $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                Sept 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:             BSD License
+//                               Kratos default license:
+//kratos/license.txt
+//
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 // System includes

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 // System includes
@@ -20,7 +20,6 @@
 #define KRATOS_DEM_AFTER_REMESH_IDENTIFICATOR_PROCESS_HPP_INCLUDED
 
 #include "processes/process.h"
-#include "includes/model_part.h"
 #include "processes/find_nodal_neighbours_process.h"
 
 namespace Kratos

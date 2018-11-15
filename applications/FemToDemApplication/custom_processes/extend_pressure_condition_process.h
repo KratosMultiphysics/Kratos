@@ -8,7 +8,7 @@
 //					 Kratos default license:
 // kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo Velázquez
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_EXTEND_PRESSURE_PROCESS)
