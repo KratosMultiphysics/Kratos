@@ -212,6 +212,7 @@ public:
     /**
      * @brief Initializes the condition by finding the parent element
      * @comment The parent element is needed to retrieve the viscous stress for the BEHR2004 slip condition
+     * Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
      */
     void Initialize() override;
 
@@ -282,6 +283,7 @@ public:
         }
 
         // Adding the BEHR2004 contribution if a slip BC is detected
+        // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
         if (this->Is(SLIP)){
 
             MatrixType rBehrSlipLeftHandSideMatrix = ZeroMatrix(MatrixSize,MatrixSize);
@@ -580,7 +582,7 @@ private:
      * @brief Computes the left-hand side contribution for the BEHR2004 slip condition
      * This specific implementation of the slip condition avoids spurious velocities 
      * at points were the normal directions of the adjacent boundary geometries do not 
-     * coincide
+     * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      * @param rDataStruct reference to a struct to hand over data
@@ -594,7 +596,7 @@ private:
      * @brief Computes the right-hand side contribution for the BEHR2004 slip condition
      * This specific implementation of the slip condition avoids spurious velocities 
      * at points were the normal directions of the adjacent boundary geometries do not 
-     * coincide
+     * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
      * @param rRightHandSideMatrix reference to the LHS matrix
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      * @param rDataStruct reference to a struct to hand over data
