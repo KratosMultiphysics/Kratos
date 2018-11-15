@@ -122,7 +122,7 @@ public:
         int node_id=0;
         // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -159,7 +159,7 @@ public:
 
         //we also calculate the element mean size in the same way, for the courant number
         //also we set the right size to the LHS column for the pressure enrichments, in order to recover correctly the enrichment pressure
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
 
         //before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
@@ -324,7 +324,7 @@ public:
         const double nodal_weight = 1.0/ (1.0 + double (TDim) );
 
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -369,7 +369,7 @@ public:
         component_type vector_var_z = KratosComponents< component_type >::Get(m_vector_var1_name+std::string("_Z"));
 
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -417,7 +417,7 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -447,7 +447,7 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -476,7 +476,7 @@ public:
     {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -531,7 +531,7 @@ public:
         mMaxSubSteps = 10;
         mMaxSubStepDt = delta_t / static_cast<double>(mMaxSubSteps);
 
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -663,7 +663,7 @@ public:
         // after having saved data, we reset them to zero, this way it's easier to add the contribution
         // of the surrounding particles.
         ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
-        vector<unsigned int> node_partition;
+        std::vector<unsigned int> node_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -684,7 +684,7 @@ public:
         }
 
         // Adding contribution, loop on elements, since each element has stored the particles found inside of it
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, mrModelPart.Elements().size(), element_partition);
 
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
@@ -814,7 +814,7 @@ public:
                                     //(flag managed only by MoveParticles)
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
 
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
         #else
@@ -898,7 +898,7 @@ public:
 
         //tools for the paralelization
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        vector<unsigned int> elem_partition;
+        std::vector<unsigned int> elem_partition;
         int number_of_rows = mrModelPart.Elements().size();
         elem_partition.resize(number_of_threads + 1);
         int elem_partition_size = number_of_rows / number_of_threads;
@@ -1010,9 +1010,8 @@ public:
         const int offset = mOffset;
 
         //TOOLS FOR THE PARALELIZATION
-        //int last_id= (mr_linea_model_part.NodesEnd()-1)->Id();
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
-        vector<unsigned int> elem_partition;
+        std::vector<unsigned int> elem_partition;
         int number_of_rows=mrModelPart.Elements().size();
         //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
         elem_partition.resize(number_of_threads + 1);
@@ -1022,12 +1021,7 @@ public:
 
         for (unsigned int i = 1; i < number_of_threads; i++)
         elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
-        //typedef Node < 3 > PointType;
-        //std::vector<ModelPart::NodesContainerType> aux;// aux;
-        //aux.resize(number_of_threads);
 
-        //ModelPart::NodesContainerType::iterator it_begin_particle_model_part = mr_linea_model_part.NodesBegin();
-        //ModelPart::NodesContainerType::iterator it_end_particle_model_part = mr_linea_model_part.NodesEnd();
         ModelPart::ElementsContainerType::iterator ielembegin = mrModelPart.ElementsBegin();
 
         #pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemple everything toghether, remaming particles ids to get consecutive ids
@@ -2245,9 +2239,9 @@ private:
     bool mParticlePrintingToolInitialized;
     unsigned int mLastNodeId;
 
-    vector<int> mNumOfParticlesInElems;
-    vector<int> mNumOfParticlesInElemsAux;
-    vector<ParticlePointerVector> mVectorOfParticlePointersVectors;
+    std::vector<int> mNumOfParticlesInElems;
+    std::vector<int> mNumOfParticlesInElemsAux;
+    std::vector<ParticlePointerVector> mVectorOfParticlePointersVectors;
 
     typename BinsObjectDynamic<Configure>::Pointer mpBinsObjectDynamic;
 
