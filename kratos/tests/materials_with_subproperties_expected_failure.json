@@ -1,0 +1,105 @@
+{
+    "properties" : [{
+        "model_part_name" : "Inlets",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "HyperElastic3DLaw",
+                "name_after_merge_rule_of_mixtures" : "RuleOfMixturesLaw",
+                "combination_factors"      : [0.4, 0.3, 0.3 ]
+            },
+            "Variables"        : {
+            },
+            "Tables"           : {}
+        },
+        "sub_properties" : [{
+            "properties_id"   : 11,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "HyperElastic3DLaw"
+                },
+                "Variables"        : {
+                    "THICKNESS"     : 0.000889,
+                    "DENSITY"       : 7850.0,
+                    "YOUNG_MODULUS" : 206900000000.0,
+                    "POISSON_RATIO" : 0.29
+                },
+                "Tables"           : {}
+            },"sub_properties" : [{
+                "properties_id"   : 21,
+                "Material"        : {
+                    "constitutive_law" : {
+                        "name" : "HyperElastic3DLaw"
+                    },
+                    "Variables"        : {
+                        "THICKNESS"     : 0.000889,
+                        "DENSITY"       : 7850.0,
+                        "YOUNG_MODULUS" : 206900000000.0,
+                        "POISSON_RATIO" : 0.29
+                    },
+                    "Tables"           : {}
+                }
+            },{
+                "properties_id"   : 22,
+                "Material"        : {
+                    "constitutive_law" : {
+                        "name" : "LinearElastic3DLaw"
+                    },
+                    "Variables"        : {
+                        "THICKNESS"     : 0.000889,
+                        "DENSITY"       : 7850.0,
+                        "YOUNG_MODULUS" : 206900000000000.0,
+                        "POISSON_RATIO" : 0.0
+                    },
+                    "Tables"           : {}
+                }
+            },{
+                "properties_id"   : 2
+            }]
+        },{
+            "properties_id"   : 12,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "LinearElastic3DLaw"
+                },
+                "Variables"        : {
+                    "THICKNESS"     : 0.000889,
+                    "DENSITY"       : 7850.0,
+                    "YOUNG_MODULUS" : 206900000000000.0,
+                    "POISSON_RATIO" : 0.0
+                },
+                "Tables"           : {}
+            }
+        },{
+            "properties_id"   : 13,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "HyperElastic3DLaw"
+                },
+                "Variables"        : {
+                    "THICKNESS"     : 0.000889,
+                    "DENSITY"       : 7850.0,
+                    "YOUNG_MODULUS" : 206900000000000.0,
+                    "POISSON_RATIO" : 0.0
+                },
+                "Tables"           : {}
+            }
+        }]
+    },{
+        "model_part_name" : "Outlet",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElastic3DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.000889,
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 206900000000000.0,
+                "POISSON_RATIO" : 0.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}
+
