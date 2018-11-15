@@ -31,7 +31,9 @@ class PythonSolver(object):
         self.model = model
         self.settings = settings
 
-        self.echo_level = self.settings["echo_level"].GetInt()
+        self.echo_level = 0 # default to zero
+        if self.settings.Has("echo_level"):
+            self.echo_level = self.settings["echo_level"].GetInt()
 
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
