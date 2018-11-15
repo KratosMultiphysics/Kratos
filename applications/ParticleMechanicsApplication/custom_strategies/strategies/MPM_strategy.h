@@ -217,40 +217,62 @@ public:
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                     if (m_GeometryElement == "Triangle")
                     {
-                        if(m_NumPar == 1)
+                        switch (m_NumPar)
                         {
-                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                        }
-                        else if(m_NumPar == 3)
-                        {
-                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                        }
-                        else if(m_NumPar == 6)
-                        {
-                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                        }
-                        else if(m_NumPar == 12)
-                        {
-                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                            case 1:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                break;
+                            case 3:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                break;
+                            case 6:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                break;
+                            case 12:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                                break;
+                            case 16:
+                                if (TDim==2){
+                                    shape_functions_values = this->MP16ShapeFunctions();
+                                    break;
+                                }
+                            case 33:
+                                if (TDim==2) {
+                                    shape_functions_values = this->MP33ShapeFunctions();
+                                    break;
+                                }
+                            default:
+                                std::string warning_msg = "The input number of particle: " + std::to_string(m_NumPar);
+                                warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
+                                warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
+                                warning_msg += "The default number of particle: 3 is currently assumed.";
+                                KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                break;
                         }
                     }
                     else if(m_GeometryElement == "Quadrilateral")
                     {
-                        if(m_NumPar == 1)
+                        switch (m_NumPar)
                         {
-                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                        }
-                        else if(m_NumPar == 4)
-                        {
-                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                        }
-                        else if(m_NumPar == 9)
-                        {
-                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
-                        }
-                        else if(m_NumPar == 16)
-                        {
-                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                            case 1:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                break;
+                            case 4:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                break;
+                            case 9:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                break;
+                            case 16:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                break;
+                            default:
+                                std::string warning_msg = "The input number of particle: " + std::to_string(m_NumPar);
+                                warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
+                                warning_msg += "Available options are: 1, 4, 9, 16.\n";
+                                warning_msg += "The default number of particle: 4 is currently assumed.";
+                                KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                break;
                         }
                     }
 
@@ -494,7 +516,6 @@ public:
 		return 0.00;
     }
 
-    // TODO: Check whether this is used in any part of the code, or remove it.
     virtual Matrix MP16ShapeFunctions()
     {
         const double Na1 = 0.33333333333333;
@@ -510,7 +531,7 @@ public:
         const double Ne2 = 0.72849239295540;
         const double Ne3 = 0.00839477740996;
 
-        BoundedMatrix<double,16,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
+        BoundedMatrix<double,16,3> MP_ShapeFunctions;
         MP_ShapeFunctions(0,0) = Na1;
         MP_ShapeFunctions(0,1) = Na1;
         MP_ShapeFunctions(0,2) = Na1;
@@ -584,7 +605,6 @@ public:
 
     }
 
-    // TODO: Check whether this is used in any part of the code, or remove it.
     virtual Matrix MP33ShapeFunctions()
     {
         const double Na2 = 0.02356522045239;
@@ -613,7 +633,7 @@ public:
         const double Nh1 = 0.025734050548330;
         const double Nh2 = 0.116251915907597;
         const double Nh3 = 0.858014033544073;
-        BoundedMatrix<double,33,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
+        BoundedMatrix<double,33,3> MP_ShapeFunctions;
 
         MP_ShapeFunctions(0,0) = Na1;
         MP_ShapeFunctions(0,1) = Na1;
