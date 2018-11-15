@@ -11,7 +11,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def __sparse_matrix_sum(self, file_name = "A.mm"):
+    def __sparse_matrix_sum(self, file_name = "auxiliar_files/sparse_matrix_files/A.mm"):
 
         try:
             from scipy import sparse, io
@@ -44,7 +44,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
             self.skipTest("Missing python libraries (scipy)")
 
     def test_sparse_matrix_sum_small(self):
-        self.__sparse_matrix_sum("small_A.mm")
+        self.__sparse_matrix_sum("auxiliar_files/sparse_matrix_files/small_A.mm")
 
     def test_sparse_matrix_sum_full(self):
         self.__sparse_matrix_sum()
@@ -54,7 +54,7 @@ class TestSparseMatrixTranspose(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def __sparse_matrix_transpose(self, file_name = "A.mm"):
+    def __sparse_matrix_transpose(self, file_name = "auxiliar_files/sparse_matrix_files/A.mm"):
         try:
             from scipy import sparse, io
             import numpy as np
@@ -80,7 +80,7 @@ class TestSparseMatrixTranspose(KratosUnittest.TestCase):
             self.skipTest("Missing python libraries (scipy)")
 
     def test_sparse_matrix_transpose_small(self):
-        self.__sparse_matrix_transpose("small_A.mm")
+        self.__sparse_matrix_transpose("auxiliar_files/sparse_matrix_files/small_A.mm")
 
     def test_sparse_matrix_transpose_full(self):
         self.__sparse_matrix_transpose()
@@ -90,7 +90,7 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def __sparse_matrix_multiplication(self, problem = "saad", file_name = "A.mm"):
+    def __sparse_matrix_multiplication(self, problem = "saad", file_name = "auxiliar_files/sparse_matrix_files/A.mm"):
         try:
             from scipy import sparse, io
             import numpy as np
@@ -122,10 +122,10 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
             self.skipTest("Missing python libraries (scipy)")
 
     def test_sparse_matrix_multiplication_saad_small(self):
-        self.__sparse_matrix_multiplication("saad", "small_A.mm")
+        self.__sparse_matrix_multiplication("saad", "auxiliar_files/sparse_matrix_files/small_A.mm")
 
     def test_sparse_matrix_multiplication_rmerge_small(self):
-        self.__sparse_matrix_multiplication("rmerge", "small_A.mm")
+        self.__sparse_matrix_multiplication("rmerge", "auxiliar_files/sparse_matrix_files/small_A.mm")
 
     def test_sparse_matrix_multiplication_saad_full(self):
         self.__sparse_matrix_multiplication("saad")

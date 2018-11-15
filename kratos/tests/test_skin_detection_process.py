@@ -14,7 +14,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         # We set a flag in the already knon node in the skin
@@ -34,7 +34,7 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         skin_detection_parameters = KratosMultiphysics.Parameters("""

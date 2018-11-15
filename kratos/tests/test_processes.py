@@ -20,7 +20,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DENSITY)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         #reset all data
@@ -344,7 +344,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         #note that y and z are inverted in the rotated system
@@ -398,7 +398,7 @@ class TestProcesses(KratosUnittest.TestCase):
         current_model = Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = Parameters(
@@ -445,7 +445,7 @@ class TestProcesses(KratosUnittest.TestCase):
         current_model = Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = Parameters(
@@ -487,7 +487,7 @@ class TestProcesses(KratosUnittest.TestCase):
     def test_assign_scalar_field_scalar_variable_to_conditions(self):
         current_model = Model()
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = Parameters(
@@ -526,7 +526,7 @@ class TestProcesses(KratosUnittest.TestCase):
         current_model = Model()
 
         model_part= current_model.CreateModelPart("Main")
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = Parameters(
@@ -566,7 +566,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(NODAL_H)
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         FindNodalHProcess(model_part).Execute();
@@ -583,7 +583,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         settings = Parameters(
@@ -757,10 +757,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files/point_output_process_ref_files/node_output_ref.dat")
 
         # Here we also test if the output to folder(s) (and subfolder(s)) works
         settings = Parameters("""{
@@ -773,7 +773,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "model_part_name"  : "Main",
                             "output_file_settings": {
                                 "file_name"   : "node_output",
-                                "folder_name" : "test_parent_folder/test_subfolder"
+                                "folder_name" : "auxiliar_files/test_parent_folder/test_subfolder"
                             },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
@@ -784,7 +784,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
                             "reference_file_name"   : "",
-                            "output_file_name"      : "test_parent_folder/test_subfolder/node_output.dat",
+                            "output_file_name"      : "auxiliar_files/test_parent_folder/test_subfolder/node_output.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
@@ -808,10 +808,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("point_output_process_ref_files/element_output_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files/point_output_process_ref_files/element_output_ref.dat")
 
         settings = Parameters("""{
                 "process_list" : [ {
@@ -855,10 +855,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("point_output_process_ref_files/condition_output_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files/point_output_process_ref_files/condition_output_ref.dat")
 
         # Here we also test if setting the write_buffer_size works
         settings = Parameters("""{
@@ -905,10 +905,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files/point_output_process_ref_files/node_output_ref.dat")
 
         # note that we are comparing the same file as for without restart
         settings = Parameters("""{
@@ -968,10 +968,10 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_restart_time_not_found_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files/point_output_process_ref_files/node_output_restart_time_not_found_ref.dat")
 
         # note that we are comparing the same file as for without restart
         settings = Parameters("""{
@@ -1031,13 +1031,13 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
         # Delete the file in case it is leftover from a previous test
         kratos_utils.DeleteFileIfExisting("node_output_failed_restart.dat")
 
-        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_failed_restart_ref.dat")
+        reference_file_name = GetFilePath("auxiliar_files/point_output_process_ref_files/node_output_failed_restart_ref.dat")
 
         settings = Parameters("""{
                 "process_list" : [ {
@@ -1083,12 +1083,12 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name_1 = GetFilePath("point_output_process_ref_files/node_output_1_ref.dat")
-        reference_file_name_2 = GetFilePath("point_output_process_ref_files/node_output_2_ref.dat")
-        reference_file_name_3 = GetFilePath("point_output_process_ref_files/node_output_3_ref.dat")
+        reference_file_name_1 = GetFilePath("auxiliar_files/point_output_process_ref_files/node_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("auxiliar_files/point_output_process_ref_files/node_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("auxiliar_files/point_output_process_ref_files/node_output_3_ref.dat")
 
         settings = Parameters("""{
                 "process_list" : [ {
@@ -1154,12 +1154,12 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
 
-        reference_file_name_1 = GetFilePath("point_output_process_ref_files/line_output_1_ref.dat")
-        reference_file_name_2 = GetFilePath("point_output_process_ref_files/line_output_2_ref.dat")
-        reference_file_name_3 = GetFilePath("point_output_process_ref_files/line_output_3_ref.dat")
+        reference_file_name_1 = GetFilePath("auxiliar_files/point_output_process_ref_files/line_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("auxiliar_files/point_output_process_ref_files/line_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("auxiliar_files/point_output_process_ref_files/line_output_3_ref.dat")
 
         settings = Parameters("""{
                 "process_list" : [ {
@@ -1221,7 +1221,7 @@ class TestProcesses(KratosUnittest.TestCase):
     def test_assign_flag_process(self):
         model_part = ModelPart("Main")
 
-        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_processes"))
         model_part_io.ReadModelPart(model_part)
         
         Model = {"Main":model_part}
@@ -1263,7 +1263,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DENSITY)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io = ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         #reset all data

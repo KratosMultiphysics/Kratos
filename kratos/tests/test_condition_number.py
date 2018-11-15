@@ -19,7 +19,7 @@ class TestConditionNumber(KratosUnittest.TestCase):
 
         # Read the matrices
         K = KratosMultiphysics.CompressedMatrix()
-        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("A.mm"),K)
+        KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath("auxiliar_files/sparse_matrix_files/A.mm"),K)
 
         # Construct the solver
         import eigen_solver_factory

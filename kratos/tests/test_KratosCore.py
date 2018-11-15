@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # import Kratos
-from KratosMultiphysics import *
+import KratosMultiphysics
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -112,4 +112,5 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())

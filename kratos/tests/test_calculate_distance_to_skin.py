@@ -31,7 +31,7 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
 
         # Set aerofoil geometry
         skin_model_part = KratosMultiphysics.ModelPart("Aerofoil")
-        KratosMultiphysics.ModelPartIO(GetFilePath("test_calculate_distance_to_skin_naca_0012")).ReadModelPart(skin_model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_calculate_distance_to_skin_naca_0012")).ReadModelPart(skin_model_part)
 
         # Call the CalculateDistanceToSkinProcess()
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(model_part, skin_model_part).Execute()
@@ -95,7 +95,7 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
 
         # Set aerofoil geometry
         skin_model_part = KratosMultiphysics.ModelPart("Aerofoil")
-        KratosMultiphysics.ModelPartIO(GetFilePath("test_calculate_distance_to_skin_naca_0012_3d")).ReadModelPart(skin_model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_calculate_distance_to_skin_naca_0012_3d")).ReadModelPart(skin_model_part)
 
         # Call the CalculateDistanceToSkinProcess()
         KratosMultiphysics.CalculateDistanceToSkinProcess3D(model_part, skin_model_part).Execute()

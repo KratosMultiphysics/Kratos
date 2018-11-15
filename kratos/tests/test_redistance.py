@@ -25,7 +25,7 @@ class TestRedistance(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
-        KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere")).ReadModelPart(model_part)
+        KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/coarse_sphere")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
 
 
