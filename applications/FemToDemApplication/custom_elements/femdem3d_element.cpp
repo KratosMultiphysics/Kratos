@@ -173,7 +173,7 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
 				const int NeighElementNodeId = NodesNeighElem[neigh_elem_node].Id();
 
-				if (NeighElementNodeId == NodeId2 & this->Id() != neigh_of_node_1[neigh_elem].Id()) {
+				if (NeighElementNodeId == NodeId2 && this->Id() != neigh_of_node_1[neigh_elem].Id()) {
 					edge_shared_elements_node_1.push_back(&neigh_of_node_1[neigh_elem]); // ( [] returns an Element object!!)
 				}
 			}
@@ -189,7 +189,7 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 			for (unsigned int neigh_elem_node = 0; neigh_elem_node < 4; neigh_elem_node++) {
 				const int NeighElementNodeId = NodesNeighElem[neigh_elem_node].Id();
 
-				if (NeighElementNodeId == NodeId1 & this->Id() != neigh_of_node_2[neigh_elem].Id()) {
+				if (NeighElementNodeId == NodeId1 && this->Id() != neigh_of_node_2[neigh_elem].Id()) {
 					edge_shared_elements_node_2.push_back(&neigh_of_node_2[neigh_elem]);
 				}
 			}
@@ -486,7 +486,6 @@ void FemDem3DElement::CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_D
 {
 	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-	unsigned int voigt_size = dimension * (dimension + 1) / 2;
 
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
 		unsigned int index = 3 * i;
@@ -536,12 +535,6 @@ void FemDem3DElement::CalculateDN_DX(Matrix &rDN_DX, int PointNumber)
 {
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-	
-	//reading integration points
-	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-	//get the shape functions [N] (for the order of the default integration method)
-	const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
 	//get the shape functions parent coordinates derivative [dN/d�] (for the order of the default integration method)
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);

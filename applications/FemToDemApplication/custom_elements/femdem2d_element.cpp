@@ -465,11 +465,6 @@ void FemDem2DElement::CalculateDN_DX(Matrix &rDN_DX, int PointNumber)
 {
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-	//reading integration points
-	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-	//get the shape functions [N] (for the order of the default integration method)
-	const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
 	//get the shape functions parent coordinates derivative [dN/d�] (for the order of the default integration method)
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
@@ -1180,7 +1175,6 @@ void FemDem2DElement::RankineFragileLaw(
 
 	const double sigma_c = properties[YIELD_STRESS_C];
 	const double sigma_t = properties[YIELD_STRESS_T];
-	const double friction_angle = properties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180; // In radians!
 	const double E = properties[YOUNG_MODULUS];
 	const double Gt = properties[FRAC_ENERGY_T];
 	const double c_max = std::abs(sigma_t);
