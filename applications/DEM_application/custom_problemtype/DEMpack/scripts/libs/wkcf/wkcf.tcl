@@ -470,14 +470,19 @@ proc ::wkcf::WriteProperties {AppId} {
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_Mohr_Coulomb"
 		                    GiD_File fprintf $filechannel "INTERNAL_COHESION [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_internal_cohesion" dv read {} mat]"
 		                    GiD_File fprintf $filechannel "INTERNAL_FRICTION_ANGLE [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_internal_friction_angle" dv read {} mat]"
-						} elseif {$propvalue == "KDEM_Fissured_Rock"} {
+                                } elseif {$propvalue == "KDEM_Fissured_Rock"} {
 		                    set using_dem_kdem 1
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_Fissured_Rock"
 		                    GiD_File fprintf $filechannel "TENSION_LIMIT_INCREASE_SLOPE [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_stress_limit_growth_slope" dv read {} mat]"
+		                } elseif {$propvalue == "KDEM_CamClay"} {
+		                    set using_dem_kdem 1
+                                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_CamClay"
+		                    GiD_File fprintf $filechannel "DEM_PRECONSOLIDATION_PRESSURE [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Preconsolidation_Pressure" dv read {} mat]"
+		                    GiD_File fprintf $filechannel "DEM_M_CAMCLAY_SLOPE [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_CamClay_Slope" dv read {} mat]"
 		                } elseif {$propvalue == "KDEMFabric"} {
 		                    set using_dem_kdem 1
-		                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
-		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEMFabric"
+                                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEMFabric"
+                                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
 		                } else {
 		                    WarnWin [= "Unknown Continuum Constitutive Law for material $material"]
 		                }

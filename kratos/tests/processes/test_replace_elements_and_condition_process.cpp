@@ -35,8 +35,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test triangle
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestReplaceElementsAndConditionsProcess1, KratosReplaceElementsAndConditionsProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess1, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
@@ -107,8 +106,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test tetrahedra
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestReplaceElementsAndConditionsProcess2, KratosReplaceElementsAndConditionsProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess2, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");

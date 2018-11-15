@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.37">
+<Kratos_Data version="1.2.38">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -203,7 +203,7 @@
             <Item id="DEM-ExportId" pid="Export Id" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="ExportId"/>
             <Item id="DEM-Rhs" pid="Rhs" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Rhs"/>
             <Item id="DEM-DampForces" pid="Damp forces" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Damp forces"/>
-            <Item id="DEM-AppliedForces" pid="Applied forces" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
+            <Item id="DEM-AppliedForces" pid="Applied forces" dv="No" state="normal" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
             <Item id="DEM-RollingResistanceMoment" pid="Rolling resistance moment" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Rolling resistance moment"/>
             <Item id="DEM-SeaSurface" pid="Print Virtual Sea Surface" class="DEM-PrintSeaSurface" dv="No" ivalues="No,Yes" values="No,Yes" help="Use this option if you want to print a virtual sea surface as a mesh in PostProcess. Enter the four pairs of coordinates that will define the quadrilateral surface representing the virtual sea surface. A z=0 sea level is assumed"/>
             <Item id="DEM-VirtualSeaSurfaceX1" pid="X1" DEM-PrintSeaSurface="Yes" dv="10"/>
