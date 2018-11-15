@@ -129,21 +129,24 @@ public:
     typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
 
 
-    /** Constructor.
+    /**
+     * @brief Default constructor of MPM Strategy.
+     * @details
      * The grid model part contains all the information about ID, geometry and initial/boundary conditions
      * of the computational mesh.
      * In the costructor of time scheme the model part of material points is defined as:
+     *
      * STEP 1:
      * The nodes, properties and process info of grid_model_part are assigned to the material points' mdpa.
      *
      * STEP 2:
-     *loop over grid elements to evaluate:
+     * loop over grid elements to evaluate:
      * - the MP integration weight and MP mass
      * - rGeo : connectivity of the grid element
      * - shape function values of the integration points of the grid element
      *
      * STEP 3:
-     *loop over the integration points of a grid element to
+     * loop over the integration points of a grid element to
      * - create a new MP element
      * - evaluate xg which is the coordinate of the integration point
      * - to assign all MP variables
@@ -465,31 +468,36 @@ public:
         mp_solving_strategy->SetEchoLevel(Level);
     }
 
-
     /**
-    Initialization of member variables and prior operations
+     * @brief Initialization of member variables and prior operations
      */
     void Initialize() override
     {
         mp_solving_strategy->Initialize();
     }
 
+    /**
+     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+     */
     void InitializeSolutionStep() override
     {
-        // Only perform this once
-        this->Initialize();
-
         // The nodal initial conditions are computed
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - InitializeSolutionStep" <<std::endl;
         mp_solving_strategy->InitializeSolutionStep();
     }
 
+    /**
+     * @brief Operation to predict the solution
+     */
     void Predict() override
     {
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Predict" <<std::endl;
         mp_solving_strategy->Predict();
     }
 
+    /**
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
     bool SolveSolutionStep() override
     {
         // Do solution iterations
@@ -499,24 +507,31 @@ public:
         return true;
     }
 
+    /**
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     */
     void FinalizeSolutionStep() override
     {
         // The nodal solution are mapped from mesh to MP
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - FinalizeSolutionStep" <<std::endl;
         mp_solving_strategy->FinalizeSolutionStep();
+    }
 
+    /**
+     * @brief Clears the internal storage
+     */
+    void Clear() override
+    {
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Clear" <<std::endl;
         mp_solving_strategy->Clear();
     }
 
-
-    /** SearchElement.
-     * A search is performed to know in which grid element the material point falls.
-     *
+    /**
+     * @brief Search element connectivity for each particle
+     * @details A search is performed to know in which grid element the material point falls.
      * If one or more material points fall in the grid element, the grid element is
      * set to be active and its connectivity is associated to the material point
      * element.
-     *
      * STEPS:
      * 1) All the elements are set to be INACTIVE
      * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
@@ -629,8 +644,8 @@ public:
 
 
     /**
-     * Function to perform expensive checks.
-     * It is designed to be called ONCE to verify that the input is correct.
+     * @brief Function to perform expensive checks.
+     * @details It is designed to be called ONCE to verify that the input is correct.
      */
     int Check() override
     {
@@ -651,7 +666,10 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    /**
+     * @brief Function that return matrix of shape function value for 16 particles.
+     * @details It is only possible to be used in 2D Triangular.
+     */
     virtual Matrix MP16ShapeFunctions()
     {
         const double Na1 = 0.33333333333333;
@@ -668,6 +686,7 @@ public:
         const double Ne3 = 0.00839477740996;
 
         BoundedMatrix<double,16,3> MP_ShapeFunctions;
+
         MP_ShapeFunctions(0,0) = Na1;
         MP_ShapeFunctions(0,1) = Na1;
         MP_ShapeFunctions(0,2) = Na1;
@@ -738,9 +757,12 @@ public:
         //                    (Ne3, Ne1, Ne2),(Ne2, Ne1, Ne3),(Ne1, Ne3, Ne2),(Ne3, Ne2, Ne1)];
 
         return MP_ShapeFunctions;
-
     }
 
+    /**
+     * @brief Function that return matrix of shape function value for 33 particles.
+     * @details It is only possible to be used in 2D Triangular.
+     */
     virtual Matrix MP33ShapeFunctions()
     {
         const double Na2 = 0.02356522045239;
@@ -769,6 +791,7 @@ public:
         const double Nh1 = 0.025734050548330;
         const double Nh2 = 0.116251915907597;
         const double Nh3 = 0.858014033544073;
+
         BoundedMatrix<double,33,3> MP_ShapeFunctions;
 
         MP_ShapeFunctions(0,0) = Na1;
@@ -905,11 +928,7 @@ public:
         MP_ShapeFunctions(32,2) = Nh1;
 
         return MP_ShapeFunctions;
-
     }
-
-
-    /*@} */
 
 protected:
     /**@name Protected static Member Variables */
@@ -989,9 +1008,6 @@ private:
 
     /** Copy constructor.
      */
-
-
-
 
     /*@} */
 
