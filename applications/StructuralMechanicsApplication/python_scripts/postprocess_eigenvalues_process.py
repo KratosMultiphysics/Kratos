@@ -13,11 +13,14 @@ def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
 
-    if settings.Has("computing_model_part_name"):
-        computing_model_part = Model[settings["computing_model_part_name"].GetString()]
+    process_settings = settings["Parameters"]
+
+    if process_settings.Has("computing_model_part_name"):
+        computing_model_part = Model[process_settings["computing_model_part_name"].GetString()]
     else: # using default name
         computing_model_part = Model["Structure.computing_domain"]
 
-    settings.RemoveValue("help")
+    process_settings.RemoveValue("computing_model_part_name")
+    process_settings.RemoveValue("help")
 
-    return KSM.PostprocessEigenvaluesProcess(computing_model_part, settings)
+    return KSM.PostprocessEigenvaluesProcess(computing_model_part, process_settings)
