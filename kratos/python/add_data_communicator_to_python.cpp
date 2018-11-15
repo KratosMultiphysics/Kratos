@@ -199,14 +199,14 @@ std::vector<std::vector<TValue>> VectorGathervWrapper(
         int message_size = 0;
         for (int i = 0; i < size; i++)
         {
-            message_offsets[message_size];
-            message_size += message_lenghts[size];
+            message_offsets[i] = message_size;
+            message_size += message_lenghts[i];
         }
         gathered_message.resize(message_size);
     }
     rSelf.Gatherv(rSourceValues, gathered_message, message_lenghts, message_offsets, DestinationRank);
 
-    std::vector<std::vector<TValue>> gathered_values;
+    std::vector<std::vector<TValue>> gathered_values(size);
     if (rank == DestinationRank)
     {
         for (int i = 0, counter = 0; i < size; i++)
