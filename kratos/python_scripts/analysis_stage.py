@@ -29,7 +29,9 @@ class AnalysisStage(object):
         self.project_parameters = project_parameters
 
         ## Get echo level and parallel type
-        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
+        self.echo_level = 0 # default to zero
+        if self.project_parameters["problem_data"].Has("echo_level"):
+            self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
 
         if (self.parallel_type == "MPI"):
@@ -107,8 +109,8 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
-        self._GetSolver().Finalize()   
-          
+        self._GetSolver().Finalize()
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
