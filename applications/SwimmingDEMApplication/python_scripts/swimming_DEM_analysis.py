@@ -325,6 +325,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         vars_man.ConstructListsOfVariables(self.pp)
 
+        self.TransferBodyForceFromDisperseToFluid()
+
         self.FluidInitialize()
         self.DispersePhaseInitialize()
 
@@ -360,8 +362,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.SetDragOutput()
 
         self.SetPointGraphPrinter()
-
-        self.TransferGravityFromDisperseToFluid()
 
         self.AssignKinematicViscosityFromDynamicViscosity()
 
@@ -1048,14 +1048,17 @@ class SwimmingDEMAnalysis(AnalysisStage):
             #variables_dictionary,
             #domain_size)
 
-    def TransferGravityFromDisperseToFluid(self):
+    def TransferBodyForceFromDisperseToFluid(self):
         # setting fluid's body force to the same as DEM's
         if self.pp.CFD_DEM["body_force_on_fluid_option"].GetBool():
+            body_force = [self.pp.CFD_DEM["GravityX"].GetDouble(),
+                          self.pp.CFD_DEM["GravityY"].GetDouble(),
+                          self.pp.CFD_DEM["GravityZ"].GetDouble()]
+            modulus_of_body_force = math.sqrt(sum([b**2 for b in body_force]))
 
-            for node in self.fluid_model_part.Nodes:
-                node.SetSolutionStepValue(BODY_FORCE_X, 0, self.pp.CFD_DEM["GravityX"].GetDouble())
-                node.SetSolutionStepValue(BODY_FORCE_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
-                node.SetSolutionStepValue(BODY_FORCE_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
+            gravity_parameters = self.fluid_solution.parameters['processes']['gravity'][0]['Parameters']
+            gravity_parameters['modulus'].SetDouble(modulus_of_body_force)
+            [gravity_parameters['direction'][i].SetDouble(b) for i, b in enumerate(body_force)]
 
     def AssignKinematicViscosityFromDynamicViscosity(self):
         # Eulerian fluid already works with kinematic viscosity
