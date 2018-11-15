@@ -65,7 +65,7 @@ def CreateSolver(model, custom_settings):
     solver_settings = custom_settings["solver_settings"]
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
 
-    if solver_settings.Has("ale_settings"):
+    if solver_settings["solver_type"].GetString() == "ale_fluid":
         KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
         from KratosMultiphysics import MeshMovingApplication
         import ale_fluid_solver
