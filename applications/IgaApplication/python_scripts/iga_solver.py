@@ -106,8 +106,6 @@ class IgaSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        self._set_nurbs_brep_modeler()
-
         self.print_on_rank_zero("::[IgaSolver]:: ", "Construction finished")
 
     def AddVariables(self):
@@ -166,13 +164,17 @@ class IgaSolver(PythonSolver):
     def ImportModelPart(self):
         """This function imports the ModelPart
         """
-        # check input reader
-        self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+        self._set_nurbs_brep_modeler()
 
     def PrepareModelPart(self):
         # Check and prepare computing model part and import constitutive laws.
         self._execute_after_reading()
+        
+        self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+
         self._set_and_fill_buffer()
+
+        print(self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]::", "ModelPart prepared for Solver.")
 
@@ -272,7 +274,9 @@ class IgaSolver(PythonSolver):
             # Add constitutive laws and material properties from json file to model parts.
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
-            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
+            import read_materials_process
+            read_materials_process.Factory(material_settings,self.model)
+            #KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
             materials_imported = True
         else:
             materials_imported = False
@@ -284,12 +288,15 @@ class IgaSolver(PythonSolver):
         """Prepare the nurbs brep modeler and read in the necessary data. """
         # This function prepares the nurbs brep modeler and reads in the rough geometry data,
         # which can be used for surface descriptions and integration domains.
+        
+        self.nurbs_brep_modeler = IgaApplication.NurbsBrepModeler(self.main_model_part)
+
         if self.settings["model_import_settings"]["input_type"].GetString() == "json":
-            geometry_file = open(self.settings["model_import_settings"]["input_type"].GetString() + ".json",'r')
-            geometry_parameters = Parameters( geometry_file.read())
+            geometry_file = open(self.settings["model_import_settings"]["input_filename"].GetString() + ".json",'r')
+            geometry_parameters = KratosMultiphysics.Parameters( geometry_file.read())
             self.geometry_reader = IgaApplication.BrepJsonIO()
 
-        self.nurbs_brep_modeler = IgaApplication.NurbsBrepModeler(self.main_model_part)
+            self.nurbs_brep_modeler.ImportGeometry(self.geometry_reader, geometry_parameters)
 
     def _execute_after_reading(self):
         # """Prepare computing model part and import constitutive laws. """
@@ -304,11 +311,12 @@ class IgaSolver(PythonSolver):
         # check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
 
         # Import constitutive laws.
-        materials_imported = self.import_constitutive_laws()
-        if materials_imported:
-            self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was successfully imported.")
-        else:
-            self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was not imported.")
+        self.import_constitutive_laws()
+        #materials_imported = self.import_constitutive_laws()
+        #if materials_imported:
+        #    self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was successfully imported.")
+        #else:
+        #    self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
