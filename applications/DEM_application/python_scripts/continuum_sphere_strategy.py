@@ -102,6 +102,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
+        spheres_model_part.AddNodalSolutionStepVariable(DEM_PRECONSOLIDATION_PRESSURE)
+        spheres_model_part.AddNodalSolutionStepVariable(DEM_M_CAMCLAY_SLOPE)
 
     def ModifyProperties(self, properties, param = 0):
         BaseExplicitStrategy.ModifyProperties(self, properties, param)

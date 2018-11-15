@@ -30,6 +30,7 @@
 #include "../custom_constitutive/DEM_KDEM_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
+#include "../custom_constitutive/DEM_KDEM_CamClay_CL.h"
 #include "../custom_constitutive/dem_kdem_fissured_rock_cl.h"
 #include "../custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
@@ -174,6 +175,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_KDEM_Mohr_Coulomb, DEM_KDEM_Mohr_Coulomb::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Mohr_Coulomb")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEM_KDEM_CamClay, DEM_KDEM_CamClay::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_CamClay")
         .def(py::init<>())
         ;
 
