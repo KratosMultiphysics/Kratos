@@ -10,10 +10,13 @@ import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.MonteCarloApplication as KratosMC
 
 # Avoid printing of Kratos informations
-KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
+# KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
 
 # Importing the base class
 from analysis_stage import AnalysisStage
+
+# Importing serializer
+# import test_model
 
 # Import pycompss
 from pycompss.api.task import task
@@ -21,7 +24,7 @@ from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import *
 
 # Import Monte Carlo library
-import mc as mc
+import mc_utilities as mc
 
 
 '''Adapt the following class depending on the problem, deriving the MonteCarloAnalysis class from the problem of interest'''
@@ -39,7 +42,20 @@ References:
 class MonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for Monte Carlo simulations'''
 
-    def __init__(self,model,parameters,sample):
+    def __init__(self,serialized_model,serialized_parameters,sample):
+        if (type(serialized_model) == KratosMultiphysics.StreamSerializer):
+            model = KratosMultiphysics.Model()
+            serialized_model.Load(model)
+        else:
+            model = serialized_model
+            del(serialized_model)
+        if (type(serialized_parameters) == KratosMultiphysics.StreamSerializer):
+            parameters = KratosMultiphysics.Parameters()
+            serialized_parameters.Load(parameters)
+        else:
+            parameters = serialized_parameters
+            del(serialized_parameters)
+
         self.sample = sample
         super(MonteCarloAnalysis,self).__init__(model,parameters)
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
@@ -177,13 +193,34 @@ if __name__ == '__main__':
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
-    
+
+    model = KratosMultiphysics.Model()
+    fake_sample = 1.0
+
+    standard_montecarlo_analyis = MonteCarloAnalysis(model,local_parameters,fake_sample)
+    standard_montecarlo_analyis.Initialize()
+
+    print(standard_montecarlo_analyis.model.HasModelPart("MLMCLaplacianModelPart"))
+    print("model type = ",type(standard_montecarlo_analyis.model))
+
+    serialized_model = KratosMultiphysics.StreamSerializer()
+    serialized_model.Save("ModelSerialization",standard_montecarlo_analyis.model)
+    serialized_parameters = KratosMultiphysics.StreamSerializer()
+    serialized_parameters.Save("ParametersSerialization",standard_montecarlo_analyis.project_parameters)
+
+    stop
+
     number_samples = 10
     Qlist = []
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = exact_execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
-    
+    # ExactExpectedValueQoI = exact_execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
+    sample = 1.0
+    simulation = MonteCarloAnalysis(serialized_model,serialized_parameters, sample)
+    simulation.Run()
+    QoI =  EvaluateQuantityOfInterest(simulation)
+    ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
+
     for instance in range (0,number_samples):
         Qlist.append(execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name))
         
