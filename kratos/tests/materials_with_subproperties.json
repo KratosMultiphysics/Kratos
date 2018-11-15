@@ -54,7 +54,8 @@
                     "Tables"           : {}
                 }
             },{
-                "properties_id"   : 2
+                "properties_id"   : 2,
+                "use_existing_property" : true
             }]
         },{
             "properties_id"   : 12,
