@@ -333,10 +333,10 @@ void AddDataCommunicatorToPython(pybind11::module &m)
         return VectorScatterWrapper<double>(rSelf, &DataCommunicator::Scatter, rSourceMessage, SourceRank);
     })
     // Scatterv
-    .def("ScatterInts", [](DataCommunicator& rSelf, const std::vector<std::vector<int>>& rSourceMessage, const int SourceRank) {
+    .def("ScattervInts", [](DataCommunicator& rSelf, const std::vector<std::vector<int>>& rSourceMessage, const int SourceRank) {
         return VectorScattervWrapper<int>(rSelf, &DataCommunicator::Scatterv, rSourceMessage, SourceRank);
     })
-    .def("ScatterDoubles", [](DataCommunicator& rSelf, const std::vector<std::vector<double>>& rSourceMessage, const int SourceRank) {
+    .def("ScattervDoubles", [](DataCommunicator& rSelf, const std::vector<std::vector<double>>& rSourceMessage, const int SourceRank) {
         return VectorScattervWrapper<double>(rSelf, &DataCommunicator::Scatterv, rSourceMessage, SourceRank);
     })
     // Gather
