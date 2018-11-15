@@ -308,6 +308,9 @@ protected:
             }
         }
 
+        KRATOS_INFO_IF("ContactResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 0)) <<
+        "Model part after creating new constraints" << rModelPart << std::endl;
+
         // Calling base SetUpDofSetWithConstraints
         BaseType::SetUpDofSetWithConstraints(pScheme, rModelPart);
 
