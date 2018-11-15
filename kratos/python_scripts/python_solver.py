@@ -123,8 +123,8 @@ class PythonSolver(object):
         warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
         self.print_warning_on_rank_zero("::[PythonSolver]::", warning_msg)
         self.Initialize()
-        self.Predict()
         self.InitializeSolutionStep()
+        self.Predict()
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
 
