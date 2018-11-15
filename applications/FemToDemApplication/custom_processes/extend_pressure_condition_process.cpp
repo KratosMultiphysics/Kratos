@@ -12,9 +12,6 @@
 //
 
 #include "custom_processes/extend_pressure_condition_process.h"
-#include "includes/define.h"
-#include "includes/kratos_flags.h"
-#include <string>
 
 namespace Kratos {
 
