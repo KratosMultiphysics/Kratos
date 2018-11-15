@@ -386,15 +386,6 @@ public:
     {
         return mData;
     }
-
-    /**
-     * @brief This method returns the whole list of subproperties (constant)
-     * @return The whole lis of subproperties
-     */
-    PropertiesContainerType& SubPropertiesList()
-    {
-        return mSubPropertiesList;
-    }
     
     /**
      * @brief This method returns the tables
@@ -412,15 +403,6 @@ public:
     TablesContainerType const& Tables() const
     {
         return mTables;
-    }
-
-    /**
-     * @brief This method returns the whole list of subproperties (constant)
-     * @return The whole lis of subproperties
-     */
-    PropertiesContainerType const& SubPropertiesList() const
-    {
-        return mSubPropertiesList;
     }
 
     ///@}
@@ -564,6 +546,23 @@ private:
     ///@name Private  Access
     ///@{
 
+    /**
+     * @brief This method returns the whole list of subproperties (constant)
+     * @return The whole lis of subproperties
+     */
+    PropertiesContainerType& SubPropertiesList()
+    {
+        return mSubPropertiesList;
+    }
+    
+    /**
+     * @brief This method returns the whole list of subproperties (constant)
+     * @return The whole lis of subproperties
+     */
+    PropertiesContainerType const& SubPropertiesList() const
+    {
+        return mSubPropertiesList;
+    }
 
     ///@}
     ///@name Private Inquiry
