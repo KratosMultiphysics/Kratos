@@ -2,7 +2,6 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
-import KratosMultiphysics.HDF5Application as KHdf5
 try:
     import KratosMultiphysics.ExternalSolversApplication
 except ImportError:
