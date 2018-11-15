@@ -103,6 +103,15 @@ namespace Kratos
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
+        void BrepFace::CreateIntegrationElementsConditions(
+            std::vector<ANurbs::IntegrationPoint2<double>> rIntegrationPoints,
+            ModelPart& rModelPart,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
+
         /// Constructor.
         BrepFace(
             int rBrepId,

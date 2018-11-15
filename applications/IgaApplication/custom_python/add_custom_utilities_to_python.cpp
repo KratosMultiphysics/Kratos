@@ -302,9 +302,12 @@ void RegisterSurfaceGeometryBase(
         .def("SetKnotV", &Type::SetKnotV,
             "Index"_a,
             "Value"_a)
-        .def("Pole", &Type::Pole,
+        .def("Pole", (VectorType (Type::*)(const int, const int) const)
+            &Type::Pole,
             "IndexU"_a,
             "IndexV"_a)
+        .def("Pole", (VectorType (Type::*)(const int) const) &Type::Pole,
+            "Index"_a)
         .def("SetPole", (void (Type::*)(const int, const VectorType&))
             &Type::SetPole,
             "Index"_a,

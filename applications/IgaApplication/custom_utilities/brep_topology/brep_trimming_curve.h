@@ -35,6 +35,8 @@ namespace Kratos
         */
         int& GetTrimIndex();
 
+        std::shared_ptr<ANurbs::Curve2D> GetCurve2D();
+
         /// Constructor.
         BrepTrimmingCurve(
             int& rTrimIndex, 
