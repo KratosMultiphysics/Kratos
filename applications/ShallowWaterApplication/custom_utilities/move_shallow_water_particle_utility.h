@@ -575,14 +575,14 @@ public:
                 ModelPart::ElementsContainerType::iterator old_element = ielembegin+ielem;
                 const int old_element_id = old_element->Id();
 
-                ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors(old_element_id-1);
+                ParticlePointerVector& old_element_particle_pointers = mVectorOfParticlePointersVectors[old_element_id-1];
 
                 if ( (results.size()) != max_results )
                     results.resize(max_results);
 
                 unsigned int number_of_elements_in_trajectory = 0; //excluding the origin one (current one, ielem)
 
-                for(int ii=0; ii<(mNumOfParticlesInElemsAux(ielem)); ii++)
+                for (int ii = 0; ii < mNumOfParticlesInElemsAux[ielem]; ii++)
                 {
                     ShallowParticle& pparticle = old_element_particle_pointers[offset+ii];
 
@@ -594,11 +594,11 @@ public:
 
                         const int current_element_id = pcurrent_element->Id();
 
-                        int & number_of_particles_in_current_elem = mNumOfParticlesInElems(current_element_id-1);
+                        int & number_of_particles_in_current_elem = mNumOfParticlesInElems[current_element_id-1];
 
                         if (number_of_particles_in_current_elem < mMaxNumberOfParticles && erase_flag == false)
                         {
-                            ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors(current_element_id-1);
+                            ParticlePointerVector& current_element_particle_pointers = mVectorOfParticlePointersVectors[current_element_id-1];
 
                             #pragma omp critical
                             {
@@ -2239,9 +2239,9 @@ private:
     bool mParticlePrintingToolInitialized;
     unsigned int mLastNodeId;
 
-    std::vector<int> mNumOfParticlesInElems;
-    std::vector<int> mNumOfParticlesInElemsAux;
-    std::vector<ParticlePointerVector> mVectorOfParticlePointersVectors;
+    DenseVector<int> mNumOfParticlesInElems;
+    DenseVector<int> mNumOfParticlesInElemsAux;
+    DenseVector<ParticlePointerVector> mVectorOfParticlePointersVectors;
 
     typename BinsObjectDynamic<Configure>::Pointer mpBinsObjectDynamic;
 
