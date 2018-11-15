@@ -301,15 +301,15 @@ void BorjaCamClayPlasticFlowRule::CalculateLHSMatrix(Matrix& rLHSMatrix, const B
     rLHSMatrix = ZeroMatrix(3,3);
 
     // Compute ElasticMatrix D^e
-    Matrix elastic_matrix_D_e = ZeroMatrix(2,2);
+    BoundedMatrix<double,2,2> elastic_matrix_D_e = ZeroMatrix(2,2);
     this->ComputeElasticMatrix_2X2(rPrincipalStressVector, rUnknownVector[0], rUnknownVector[1], elastic_matrix_D_e);
 
     // Compute Hessian Matrix H
-    Matrix hessian_matrix_H = ZeroMatrix(2,2);
+    BoundedMatrix<double,2,2> hessian_matrix_H = ZeroMatrix(2,2);
     this->CalculateHessianMatrix_2x2(hessian_matrix_H);
 
     // Compute matrix_G
-    Matrix matrix_G = prod(hessian_matrix_H, elastic_matrix_D_e);
+    BoundedMatrix<double,2,2> matrix_G = prod(hessian_matrix_H, elastic_matrix_D_e);
 
     // Arrange rLHSMatrix
     rLHSMatrix(0,0) = -1.0 * (1.0 + rUnknownVector[2] * (matrix_G(0,0) + rK_p * mStateFunctionSecondDerivative[5]));
@@ -326,7 +326,7 @@ void BorjaCamClayPlasticFlowRule::CalculateLHSMatrix(Matrix& rLHSMatrix, const B
 
 }
 
-void BorjaCamClayPlasticFlowRule::CalculateHessianMatrix_2x2(Matrix& rHessianMatrix)
+void BorjaCamClayPlasticFlowRule::CalculateHessianMatrix_2x2(BoundedMatrix<double,2,2>& rHessianMatrix)
 {
     // Material parameters
     const double shear_M = mpYieldCriterion->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
@@ -339,7 +339,7 @@ void BorjaCamClayPlasticFlowRule::CalculateHessianMatrix_2x2(Matrix& rHessianMat
 
 }
 
-void BorjaCamClayPlasticFlowRule::ComputeElasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, Matrix& rElasticMatrix)
+void BorjaCamClayPlasticFlowRule::ComputeElasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, BoundedMatrix<double,2,2>& rElasticMatrix)
 {
     // Material parameters
     const double swelling_slope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
@@ -363,21 +363,21 @@ void BorjaCamClayPlasticFlowRule::ComputeElasticMatrix_2X2(const BoundedVector<d
     rElasticMatrix(1,0) = rElasticMatrix(0,1);
 }
 
-void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Matrix& rElasticMatrix, Matrix& rPlasticMatrix)
+void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const BoundedVector<double,3>& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, const BoundedMatrix<double,2,2>& rElasticMatrix, BoundedMatrix<double,2,2>& rPlasticMatrix)
 {
     // Initialize used temporary matrices and vectors
     BoundedVector<double,2> a = ZeroVector(2);
-    Matrix b = ZeroMatrix(2,2);
+    BoundedMatrix<double,2,2> b = ZeroMatrix(2,2);
     BoundedVector<double,2> c = ZeroVector(2);
     BoundedVector<double,2> d = ZeroVector(2);
     double e;
 
     // Compute Hessian Matrix H
-    Matrix hessian_matrix_H = ZeroMatrix(2,2);
+    BoundedMatrix<double,2,2> hessian_matrix_H = ZeroMatrix(2,2);
     this->CalculateHessianMatrix_2x2(hessian_matrix_H);
 
     // Compute matrix_G
-    Matrix matrix_G = prod(hessian_matrix_H, rElasticMatrix);
+    BoundedMatrix<double,2,2> matrix_G = prod(hessian_matrix_H, rElasticMatrix);
 
     // Initiate coefficient parameters
     const double k_p      = mMaterialParameters.PlasticHardeningModulus;
@@ -527,7 +527,7 @@ void BorjaCamClayPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rE
 {
     rStressMatrix = ZeroMatrix(3,3);
     Vector aux_N  = ZeroVector(3);
-    Matrix aux_M  = ZeroMatrix(3,3);
+    BoundedMatrix<double,3,3> aux_M  = ZeroMatrix(3,3);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
@@ -555,28 +555,28 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
         direction_strain_vector = std::sqrt(2.0/3.0) * deviatoric_strain_vector / deviatoric_strain;
 
     // Compute ElasticMatrix (2x2) D^e
-    Matrix elastic_matrix_D_e = ZeroMatrix(2,2);
+    BoundedMatrix<double,2,2> elastic_matrix_D_e = ZeroMatrix(2,2);
     this->ComputeElasticMatrix_2X2(principal_stress_vector, volumetric_strain, deviatoric_strain, elastic_matrix_D_e);
 
     // Compute PlasticMatrix (2x2) D^p
-    Matrix plastic_matrix_D_p = IdentityMatrix(2);
+    BoundedMatrix<double,2,2> plastic_matrix_D_p = IdentityMatrix(2);
     if (rReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION))
     {
         this->ComputePlasticMatrix_2X2(principal_stress_vector, volumetric_strain, deviatoric_strain, elastic_matrix_D_e, plastic_matrix_D_p);
     }
 
     // Compute Elasto-plastic (2x2) D^ep = D^e D^p
-    Matrix matrix_D_ep = prod(elastic_matrix_D_e, plastic_matrix_D_p);
+    BoundedMatrix<double,2,2> matrix_D_ep = prod(elastic_matrix_D_e, plastic_matrix_D_p);
 
     // Prepare fourth_order_identity and identity_cross
-    Matrix fourth_order_identity = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> fourth_order_identity = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
         fourth_order_identity(i,i) = 1.0;
 
     for (unsigned int i = 3; i<6; ++i)
         fourth_order_identity(i,i) = 0.50;
 
-    Matrix identity_cross = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> identity_cross = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
@@ -586,7 +586,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     }
 
     // Prepare tensor_NxN, tensor_1xN, and tensor_Nx1
-    Matrix tensor_NxN = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> tensor_NxN = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
@@ -595,7 +595,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
         }
     }
 
-    Matrix tensor_1xN = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> tensor_1xN = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
@@ -604,7 +604,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
         }
     }
 
-    Matrix tensor_Nx1 = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> tensor_Nx1 = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
@@ -619,7 +619,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     else{deviatoric_q_by_strain = deviatoric_q / deviatoric_strain;}
 
     // Compute Consistent Tangent Stiffness matrix in principal space
-    Matrix D_elasto_plastic = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> D_elasto_plastic = ZeroMatrix(6,6);
     D_elasto_plastic  = ( matrix_D_ep(0,0) - 2.0 * deviatoric_q_by_strain / 9.0 ) * identity_cross;
     D_elasto_plastic += ( std::sqrt(2.0/3.0) * matrix_D_ep(0,1) ) * tensor_1xN;
     D_elasto_plastic += ( std::sqrt(2.0/3.0) * matrix_D_ep(1,0) ) * tensor_Nx1;
@@ -627,23 +627,23 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     D_elasto_plastic += ( 2.0 / 3.0 * matrix_D_ep(1,1) ) * tensor_NxN;
 
     // Return constitutive matrix from principal space to normal space
-    Matrix A = ZeroMatrix(6,6);
-    Matrix A_trans = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> A = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> A_trans = ZeroMatrix(6,6);
     this->CalculateTransformationMatrix(rReturnMappingVariables.MainDirections, A);
     A_trans = trans(A);
 
-    Matrix aux_mat = ZeroMatrix(6,6);
+    BoundedMatrix<double,6,6> aux_mat = ZeroMatrix(6,6);
     aux_mat = prod(A_trans, D_elasto_plastic);
     rConsistMatrix = prod(aux_mat, A);
 
 }
 
-void BorjaCamClayPlasticFlowRule::CalculateTransformationMatrix(const Matrix& rMainDirection, Matrix& rA)
+void BorjaCamClayPlasticFlowRule::CalculateTransformationMatrix(const BoundedMatrix<double,3,3>& rMainDirection, BoundedMatrix<double,6,6>& rA)
 {
-    Matrix A1 = ZeroMatrix(3,3);
-    Matrix A2 = ZeroMatrix(3,3);
-    Matrix A3 = ZeroMatrix(3,3);
-    Matrix A4 = ZeroMatrix(3,3);
+    BoundedMatrix<double,3,3> A1 = ZeroMatrix(3);
+    BoundedMatrix<double,3,3> A2 = ZeroMatrix(3);
+    BoundedMatrix<double,3,3> A3 = ZeroMatrix(3);
+    BoundedMatrix<double,3,3> A4 = ZeroMatrix(3);
     for (unsigned int i = 0; i<3 ; i++)
     {
         for(unsigned int j = 0; j<3 ; j++)
