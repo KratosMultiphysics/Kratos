@@ -63,9 +63,7 @@ Flags FlagsOr(const Flags& Left, const Flags& Right )
 
 Flags FlagsAnd(const Flags& Left, const Flags& Right )
 {
-    KRATOS_WARNING("Kratos::Flags Python interface") << "Using deprecated flag & operation, which internally perfms a union (bitwise or)." << std::endl
-                 << "Please use | instead, since this behaviour will be soon deprecated." << std::endl;
-    return (Left|Right);
+    return (Left&Right);
 }
 
 void FlagsSet1(Flags& ThisFlag, const Flags& OtherFlag )
