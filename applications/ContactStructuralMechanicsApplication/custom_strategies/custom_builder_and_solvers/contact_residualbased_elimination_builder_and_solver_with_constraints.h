@@ -246,7 +246,7 @@ protected:
                 // Gets the array of constraints from the modeler
                 auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
                 const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-                #pragma omp for  schedule(guided, 512) nowait
+                #pragma omp for schedule(guided, 512)
                 for (int i = 0; i < number_of_constraints; ++i) {
                     auto it_const = r_constraints_array.begin() + i;
 
