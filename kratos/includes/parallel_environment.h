@@ -61,19 +61,19 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     void RegisterDataCommunicator(
         const std::string Name,
         const DataCommunicator& rPrototype,
-        bool Default = DoNotMakeDefault);
+        const bool Default = DoNotMakeDefault);
 
-    DataCommunicator& GetDataCommunicator(const std::string Name) const;
+    DataCommunicator& GetDataCommunicator(const std::string& rName) const;
 
     DataCommunicator& GetDefaultDataCommunicator() const;
 
-    void SetDefaultDataCommunicator(const std::string Name);
+    void SetDefaultDataCommunicator(const std::string& rName);
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    bool HasDataCommunicator(const std::string Name) const;
+    bool HasDataCommunicator(const std::string& rName) const;
 
     ///@}
     ///@name Input and output

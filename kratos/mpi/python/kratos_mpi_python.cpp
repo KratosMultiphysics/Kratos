@@ -27,13 +27,6 @@
 namespace Kratos {
 namespace Python {
 
-void module_greet()
-{
-	std::stringstream header;
-	header << "Hello, I am the MPI extension of Kratos Multi-Physics " << KRATOS_VERSION <<" ;-)\n";
-    std::cout << header.str();
-}
-
 PYBIND11_MODULE(KratosMPI, m)
 {
     namespace py = pybind11;
@@ -49,11 +42,6 @@ PYBIND11_MODULE(KratosMPI, m)
     };
 
     m.add_object("_cleanup", py::capsule(cleanup_callback));
-
-    m.def("Hello",module_greet);
-
-    //m.def("MPIInitialize",MPIEnvironment::Initialize);
-    //m.def("MPIFinalize",MPIEnvironment::Finalize);
 
     AddMPICommunicatorToPython(m);
     AddMPIDataCommunicatorToPython(m);

@@ -31,7 +31,7 @@ ParallelEnvironment& ParallelEnvironment::GetInstance()
 void ParallelEnvironment::RegisterDataCommunicator(
     const std::string Name,
     const DataCommunicator& rPrototype,
-    bool Default)
+    const bool Default)
 {
     auto found = mDataCommunicators.find(Name);
     if (found == mDataCommunicators.end())
@@ -55,10 +55,11 @@ void ParallelEnvironment::RegisterDataCommunicator(
     }
 }
 
-DataCommunicator& ParallelEnvironment::GetDataCommunicator(const std::string Name) const
+DataCommunicator& ParallelEnvironment::GetDataCommunicator(const std::string& rName) const
 {
-    auto found = mDataCommunicators.find(Name);
-    KRATOS_ERROR_IF(found == mDataCommunicators.end()) << "Requesting unknown DataCommunicator " << Name << "." << std::endl;
+    auto found = mDataCommunicators.find(rName);
+    KRATOS_ERROR_IF(found == mDataCommunicators.end())
+    << "Requesting unknown DataCommunicator " << rName << "." << std::endl;
     return *(found->second);
 }
 
@@ -67,19 +68,19 @@ DataCommunicator& ParallelEnvironment::GetDefaultDataCommunicator() const
     return *(mDefaultCommunicator->second);
 }
 
-void ParallelEnvironment::SetDefaultDataCommunicator(const std::string Name)
+void ParallelEnvironment::SetDefaultDataCommunicator(const std::string& rName)
 {
-    auto found = mDataCommunicators.find(Name);
+    auto found = mDataCommunicators.find(rName);
     KRATOS_ERROR_IF(found == mDataCommunicators.end())
-    << "Trying to set \"" << Name << "\" as the default DataCommunicator,"
+    << "Trying to set \"" << rName << "\" as the default DataCommunicator,"
     << " but no registered DataCommunicator with that name has been found." << std::endl;
 
     mDefaultCommunicator = found;
 }
 
-bool ParallelEnvironment::HasDataCommunicator(const std::string Name) const
+bool ParallelEnvironment::HasDataCommunicator(const std::string& rName) const
 {
-    return (mDataCommunicators.find(Name) != mDataCommunicators.end());
+    return (mDataCommunicators.find(rName) != mDataCommunicators.end());
 }
 
 
