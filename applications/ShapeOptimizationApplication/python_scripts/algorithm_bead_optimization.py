@@ -38,7 +38,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             "number_of_filter_iterations" : 1,
             "filter_penalty_term"         : false,
             "penalty_factor"              : 1000.0,
-            "gradient_ratio"              : 0.1,
             "max_total_iterations"        : 10000,
             "max_outer_iterations"        : 10000,
             "max_inner_iterations"        : 30,
@@ -105,7 +104,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.number_of_filter_iterations = self.algorithm_settings["number_of_filter_iterations"].GetInt()
         self.filter_penalty_term = self.algorithm_settings["filter_penalty_term"].GetBool()
         self.penalty_factor = self.algorithm_settings["penalty_factor"].GetDouble()
-        self.gradient_ratio = self.algorithm_settings["gradient_ratio"].GetDouble()
         self.max_total_iterations = self.algorithm_settings["max_total_iterations"].GetInt()
         self.max_outer_iterations = self.algorithm_settings["max_outer_iterations"].GetInt()
         self.max_inner_iterations = self.algorithm_settings["max_inner_iterations"].GetInt()
@@ -226,6 +224,18 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 for itr in range(self.number_of_filter_iterations-1):
                     self.mapper.InverseMap(DF1DALPHA_MAPPED, DF1DALPHA_MAPPED)
 
+                # Compute scaling
+                if outer_iteration == 1 and inner_iteration == 1:
+                    max_norm_objective_term = 0.0
+                    max_norm_penalty_term = 2.0
+
+                    for node in self.design_surface.Nodes:
+                        temp_value = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
+                        max_norm_objective_term = max(temp_value**2,max_norm_objective_term)
+                    max_norm_objective_term = math.sqrt(max_norm_objective_term)
+
+                    penalty_scaling = max_norm_objective_term/max_norm_penalty_term
+
                 # Compute penalization term
                 penalty_value = 0.0
                 if self.direction_mode == 1:
@@ -255,6 +265,10 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                             penalty_gradient_i = penalty_scaling*(-2*alpha_i)
                             node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
+                # Filter penalty term if specified
+                if self.filter_penalty_term:
+                    self.mapper.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
+
                 # Compute value of Lagrange function
                 L = objective_value + current_lambda*penalty_value + self.penalty_factor*(penalty_value)**2
                 if inner_iteration == 1:
@@ -264,8 +278,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Compute gradient of Lagrange function
                 if self.filter_penalty_term:
-                    self.mapper.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
-
                     for node in self.design_surface.Nodes:
                         dLdalpha_i = node.GetSolutionStepValue(DF1DALPHA_MAPPED) + current_lambda*node.GetSolutionStepValue(DPDALPHA_MAPPED)
                         node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
@@ -347,37 +359,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
                 print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
-            # Compute scaling factor for penalty term
-            if outer_iteration==1:
-                norm_term_1 = 0.0
-                norm_term_2 = 0.0
-
-                if self.filter_penalty_term:
-                    for node in self.design_surface.Nodes:
-                        temp_value = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
-                        norm_term_1 = norm_term_1+temp_value**2
-
-                        temp_value = node.GetSolutionStepValue(DPDALPHA_MAPPED)
-                        norm_term_2 = norm_term_2+temp_value**2
-                else:
-                    for node in self.design_surface.Nodes:
-                        temp_value = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
-                        norm_term_1 = norm_term_1+temp_value**2
-
-                        temp_value = node.GetSolutionStepValue(DPDALPHA)
-                        norm_term_2 = norm_term_2+temp_value**2
-
-                norm_term_1 = math.sqrt(norm_term_1)
-                norm_term_2 = math.sqrt(norm_term_2)
-
-                penalty_scaling = self.gradient_ratio*norm_term_1/norm_term_2
-
-                # Update lambda
-                current_lambda = current_lambda + self.penalty_factor*penalty_scaling*penalty_value
-
-            else:
-                # Update lambda
-                current_lambda = current_lambda + self.penalty_factor*penalty_value
+            # Update lambda
+            current_lambda = current_lambda + self.penalty_factor*penalty_value
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
