@@ -247,8 +247,8 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
         k_p *= 1.0 / (other_slope-swelling_slope);
 
         // Calculate RHS Vector
-        rhs_vector[0] = unknown_vector[0] - trial_volumetric_strain + unknown_vector[3] * mStateFunctionFirstDerivative[0];
-        rhs_vector[1] = unknown_vector[1] - trial_deviatoric_strain + unknown_vector[3] * mStateFunctionFirstDerivative[1];
+        rhs_vector[0] = unknown_vector[0] - trial_volumetric_strain + unknown_vector[2] * mStateFunctionFirstDerivative[0];
+        rhs_vector[1] = unknown_vector[1] - trial_deviatoric_strain + unknown_vector[2] * mStateFunctionFirstDerivative[1];
         rhs_vector[2] = mStateFunction;
 
         // Calculate RHS Norm (Residual Norm)
