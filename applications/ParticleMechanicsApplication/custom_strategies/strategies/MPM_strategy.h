@@ -422,6 +422,10 @@ public:
     }
     /*@} */
 
+
+    //*********************************************************************************
+    /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
+
     /**
      * @brief This sets the level of echo for the solution strategy
      * @param Level of echo for the solution strategy
@@ -439,60 +443,192 @@ public:
         mp_solving_strategy->SetEchoLevel(Level);
     }
 
-    //*********************************************************************************
-    /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
-    /*@{ */
-
-    /**
-    operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
-     */
-    void Predict() override
-    {
-    }
 
     /**
     Initialization of member variables and prior operations
      */
     void Initialize() override
     {
+        mp_solving_strategy->Initialize();
     }
 
-    /**
-    the problem of interest is solved
-     */
-    double Solve() override
+    void InitializeSolutionStep() override
     {
-        // Check which nodes and elements are ACTIVE and populate the MPM model part
-        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Start" <<std::endl;
-        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Search Element - Start" <<std::endl;
-        this->SearchElement(mr_grid_model_part, mr_mpm_model_part);
-
         // Only perform this once
-        mp_solving_strategy->Initialize();
+        this->Initialize();
 
         // The nodal initial conditions are computed
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - InitializeSolutionStep" <<std::endl;
         mp_solving_strategy->InitializeSolutionStep();
+    }
 
+    void Predict() override
+    {
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Predict" <<std::endl;
         mp_solving_strategy->Predict();
+    }
 
+    bool SolveSolutionStep() override
+    {
         // Do solution iterations
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - SolveSolutionStep" <<std::endl;
         mp_solving_strategy->SolveSolutionStep();
 
+        return true;
+    }
+
+    void FinalizeSolutionStep() override
+    {
         // The nodal solution are mapped from mesh to MP
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - FinalizeSolutionStep" <<std::endl;
         mp_solving_strategy->FinalizeSolutionStep();
 
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Clear" <<std::endl;
         mp_solving_strategy->Clear();
-
-        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - End" <<std::endl;
-
-		return 0.00;
     }
+
+
+    /** SearchElement.
+     * A search is performed to know in which grid element the material point falls.
+     *
+     * If one or more material points fall in the grid element, the grid element is
+     * set to be active and its connectivity is associated to the material point
+     * element.
+     *
+     * STEPS:
+     * 1) All the elements are set to be INACTIVE
+     * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
+     *
+    */
+    virtual void SearchElement(
+        ModelPart& grid_model_part,
+        ModelPart& mpm_model_part,
+        const std::size_t MaxNumberOfResults = 1000,
+        const double Tolerance = 1.0e-5)
+    {
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Search Element" <<std::endl;
+
+        // Reset elements to inactive
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
+
+			auto element_itr = grid_model_part.Elements().begin() + i;
+			element_itr->Reset(ACTIVE);
+            if (m_GeometryElement == "Triangle"){
+                element_itr->GetGeometry()[0].Reset(ACTIVE);
+                element_itr->GetGeometry()[1].Reset(ACTIVE);
+                element_itr->GetGeometry()[2].Reset(ACTIVE);
+
+                if (TDim ==3)
+                {
+                    element_itr->GetGeometry()[3].Reset(ACTIVE);
+                }
+            }
+            else if (m_GeometryElement == "Quadrilateral"){
+                element_itr->GetGeometry()[0].Reset(ACTIVE);
+                element_itr->GetGeometry()[1].Reset(ACTIVE);
+                element_itr->GetGeometry()[2].Reset(ACTIVE);
+                element_itr->GetGeometry()[3].Reset(ACTIVE);
+
+                if (TDim ==3)
+                {
+                    element_itr->GetGeometry()[4].Reset(ACTIVE);
+                    element_itr->GetGeometry()[5].Reset(ACTIVE);
+                    element_itr->GetGeometry()[6].Reset(ACTIVE);
+                    element_itr->GetGeometry()[7].Reset(ACTIVE);
+                }
+            }
+		}
+
+        // Search background grid and make element active
+        Vector N;
+        const int max_result = 1000;
+
+        #pragma omp parallel
+        {
+            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+            SearchStructure.UpdateSearchDatabase();
+
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
+
+            #pragma omp for
+            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
+
+                auto element_itr = mpm_model_part.Elements().begin() + i;
+
+                array_1d<double,3> xg = element_itr->GetValue(GAUSS_COORD);
+                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+                Element::Pointer pelem;
+
+                // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+
+                if (is_found == true)
+                {
+                    pelem->Set(ACTIVE);
+                    element_itr->GetGeometry() = pelem->GetGeometry();
+                    if (m_GeometryElement == "Triangle")
+                    {
+                        element_itr->GetGeometry()[0].Set(ACTIVE);
+                        element_itr->GetGeometry()[1].Set(ACTIVE);
+                        element_itr->GetGeometry()[2].Set(ACTIVE);
+                        if (TDim ==3)
+                        {
+                            element_itr->GetGeometry()[3].Set(ACTIVE);
+                        }
+                    }
+                    else if(m_GeometryElement == "Quadrilateral")
+                    {
+                        element_itr->GetGeometry()[0].Set(ACTIVE);
+                        element_itr->GetGeometry()[1].Set(ACTIVE);
+                        element_itr->GetGeometry()[2].Set(ACTIVE);
+                        element_itr->GetGeometry()[3].Set(ACTIVE);
+                        if (TDim ==3)
+                        {
+                            element_itr->GetGeometry()[4].Set(ACTIVE);
+                            element_itr->GetGeometry()[5].Set(ACTIVE);
+                            element_itr->GetGeometry()[6].Set(ACTIVE);
+                            element_itr->GetGeometry()[7].Set(ACTIVE);
+                        }
+                    }
+                }
+                else{
+                    KRATOS_INFO("MPM_Strategy.SearchElement") << "WARNING: Search Element for Particle " << element_itr->Id()
+                        << " is failed. Geometry is cleared." << std::endl;
+
+                    element_itr->GetGeometry().clear();
+                    element_itr->Reset(ACTIVE);
+                    element_itr->Set(TO_ERASE);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Function to perform expensive checks.
+     * It is designed to be called ONCE to verify that the input is correct.
+     */
+    int Check() override
+    {
+        KRATOS_TRY
+
+        for (ModelPart::ElementsContainerType::iterator it = mr_mpm_model_part.ElementsBegin();
+                it != mr_mpm_model_part.ElementsEnd(); it++)
+        {
+            it->Check(mr_mpm_model_part.GetProcessInfo());
+        }
+
+        for (ModelPart::ConditionsContainerType::iterator it = mr_grid_model_part.ConditionsBegin();
+                it != mr_grid_model_part.ConditionsEnd(); it++)
+        {
+            it->Check(mr_grid_model_part.GetProcessInfo());
+        }
+        return 0;
+        KRATOS_CATCH("")
+    }
+
 
     virtual Matrix MP16ShapeFunctions()
     {
@@ -750,157 +886,12 @@ public:
 
     }
 
-    /** SearchElement.
-     * A search is performed to know in which grid element the material point falls.
-     *
-     * If one or more material points fall in the grid element, the grid element is
-     * set to be active and its connectivity is associated to the material point
-     * element.
-     *
-     * STEPS:
-     * 1) All the elements are set to be INACTIVE
-     * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
-     *
-    */
-    virtual void SearchElement(
-        ModelPart& grid_model_part,
-        ModelPart& mpm_model_part,
-        const std::size_t MaxNumberOfResults = 1000,
-        const double Tolerance = 1.0e-5)
-    {
-        // Reset elements to inactive
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
-
-			auto element_itr = grid_model_part.Elements().begin() + i;
-			element_itr->Reset(ACTIVE);
-            if (m_GeometryElement == "Triangle"){
-                element_itr->GetGeometry()[0].Reset(ACTIVE);
-                element_itr->GetGeometry()[1].Reset(ACTIVE);
-                element_itr->GetGeometry()[2].Reset(ACTIVE);
-
-                if (TDim ==3)
-                {
-                    element_itr->GetGeometry()[3].Reset(ACTIVE);
-                }
-            }
-            else if (m_GeometryElement == "Quadrilateral"){
-                element_itr->GetGeometry()[0].Reset(ACTIVE);
-                element_itr->GetGeometry()[1].Reset(ACTIVE);
-                element_itr->GetGeometry()[2].Reset(ACTIVE);
-                element_itr->GetGeometry()[3].Reset(ACTIVE);
-
-                if (TDim ==3)
-                {
-                    element_itr->GetGeometry()[4].Reset(ACTIVE);
-                    element_itr->GetGeometry()[5].Reset(ACTIVE);
-                    element_itr->GetGeometry()[6].Reset(ACTIVE);
-                    element_itr->GetGeometry()[7].Reset(ACTIVE);
-                }
-            }
-		}
-
-        // Search background grid and make element active
-        Vector N;
-        const int max_result = 1000;
-
-        #pragma omp parallel
-        {
-            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-            SearchStructure.UpdateSearchDatabase();
-
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
-
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-                auto element_itr = mpm_model_part.Elements().begin() + i;
-
-                array_1d<double,3> xg = element_itr->GetValue(GAUSS_COORD);
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelem;
-
-                // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
-
-                if (is_found == true)
-                {
-                    pelem->Set(ACTIVE);
-                    element_itr->GetGeometry() = pelem->GetGeometry();
-                    if (m_GeometryElement == "Triangle")
-                    {
-                        element_itr->GetGeometry()[0].Set(ACTIVE);
-                        element_itr->GetGeometry()[1].Set(ACTIVE);
-                        element_itr->GetGeometry()[2].Set(ACTIVE);
-                        if (TDim ==3)
-                        {
-                            element_itr->GetGeometry()[3].Set(ACTIVE);
-                        }
-                    }
-                    else if(m_GeometryElement == "Quadrilateral")
-                    {
-                        element_itr->GetGeometry()[0].Set(ACTIVE);
-                        element_itr->GetGeometry()[1].Set(ACTIVE);
-                        element_itr->GetGeometry()[2].Set(ACTIVE);
-                        element_itr->GetGeometry()[3].Set(ACTIVE);
-                        if (TDim ==3)
-                        {
-                            element_itr->GetGeometry()[4].Set(ACTIVE);
-                            element_itr->GetGeometry()[5].Set(ACTIVE);
-                            element_itr->GetGeometry()[6].Set(ACTIVE);
-                            element_itr->GetGeometry()[7].Set(ACTIVE);
-                        }
-                    }
-                }
-                else{
-                    KRATOS_INFO("MPM_Strategy.SearchElement") << "WARNING: Search Element for Particle " << element_itr->Id()
-                        << " is failed. Geometry is cleared." << std::endl;
-
-                    element_itr->GetGeometry().clear();
-                    element_itr->Reset(ACTIVE);
-                    element_itr->Set(TO_ERASE);
-                }
-            }
-        }
-    }
-
-
-    /**
-     * Function to perform expensive checks.
-     * It is designed to be called ONCE to verify that the input is correct.
-     */
-    int Check() override
-    {
-        KRATOS_TRY
-
-        for (ModelPart::ElementsContainerType::iterator it = mr_mpm_model_part.ElementsBegin();
-                it != mr_mpm_model_part.ElementsEnd(); it++)
-        {
-            it->Check(mr_mpm_model_part.GetProcessInfo());
-        }
-
-        for (ModelPart::ConditionsContainerType::iterator it = mr_grid_model_part.ConditionsBegin();
-                it != mr_grid_model_part.ConditionsEnd(); it++)
-        {
-            it->Check(mr_grid_model_part.GetProcessInfo());
-        }
-        return 0;
-        KRATOS_CATCH("")
-    }
 
     /*@} */
 
 protected:
     /**@name Protected static Member Variables */
     /*@{ */
-
-    //level of echo for the solving strategy
-    //int mEchoLevel;
-
-    //settings for the rebuilding of the stiffness matrix
-    //int mRebuildLevel;
-    //bool mStiffnessMatrixIsBuilt;
 
     ModelPart& mr_grid_model_part;
     ModelPart& mr_initial_model_part;
