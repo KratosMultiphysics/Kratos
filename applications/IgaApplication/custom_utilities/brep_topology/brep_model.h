@@ -46,21 +46,12 @@ namespace Kratos
         std::vector<BrepVertex>& GetVertexVector();
 
         /// Constructor
-        BrepModel::BrepModel(
+        BrepModel(
             int& brep_id,
             double& model_tolerance,
             std::vector<BrepFace>& faces,
             std::vector<BrepEdge>& edges,
-            std::vector<BrepVertex>& vertices)
-            : m_model_tolerance(model_tolerance),
-              m_brep_faces(faces),
-              m_brep_edges(edges),
-              m_brep_vertices(vertices),
-              IndexedObject(brep_id),
-              Flags()
-        {
-
-        };
+            std::vector<BrepVertex>& vertices);
 
         /// Destructor.
         virtual ~BrepModel()

@@ -29,14 +29,27 @@ namespace Kratos
         std::vector<std::string> rVariables)
     {
         bool success = false;
+        
         for (int i = 0; i < m_brep_edges.size(); ++i)
         {
+            std::cout << "ID: " << m_brep_edges[i].Id() << ", brep_id: " << brep_id << std::endl;
             if (m_brep_edges[i].Id() == brep_id)
             {
-                return success;
                 m_brep_edges[i].GetGeometryIntegration(rModelPart, rType, rName, rPropertiesId, rShapeFunctionDerivativesOrder, rVariables);
+                return true;
             }
         }
+
+        for (int i = 0; i < m_brep_faces.size(); ++i)
+        {
+            std::cout << "ID: " << m_brep_faces[i].Id() << ", brep_id: " << brep_id << std::endl;
+            if (m_brep_faces[i].Id() == brep_id)
+            {
+                m_brep_faces[i].GetGeometryIntegration(rModelPart, rType, rName, rPropertiesId, rShapeFunctionDerivativesOrder, rVariables);
+                return true;
+            }
+        }
+
         return success;
     }
 
@@ -52,6 +65,23 @@ namespace Kratos
     std::vector<BrepVertex>& BrepModel::GetVertexVector()
     {
         return m_brep_vertices;
+    }
+
+    BrepModel::BrepModel(
+        int& brep_id,
+        double& model_tolerance,
+        std::vector<BrepFace>& faces,
+        std::vector<BrepEdge>& edges,
+        std::vector<BrepVertex>& vertices)
+        : m_model_tolerance(model_tolerance),
+        m_brep_faces(faces),
+        m_brep_edges(edges),
+        m_brep_vertices(vertices),
+        IndexedObject(brep_id),
+        Flags()
+    {
+        std::cout << "m_brep_edges size: " << m_brep_edges.size() << std::endl;
+        std::cout << "m_brep_faces size: " << m_brep_faces.size() << std::endl;
     }
 }  // namespace Kratos.
 

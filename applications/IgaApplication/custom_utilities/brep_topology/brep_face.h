@@ -89,14 +89,19 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
-        
+        void GetGeometryIntegration(ModelPart& rModelPart,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
 
         /// Constructor.
         BrepFace(
-            int& rBrepId,
+            int rBrepId,
             bool rIsTrimmed,
             bool rIsRational,
-            std::vector<BrepTrimmingCurve>& rTrimmingLoops,
+            std::vector<BrepBoundaryLoop>& rTrimmingLoops,
             std::vector<BrepBoundaryLoop>& rEmbeddedLoops,
             std::vector<EmbeddedPoint>& rEmbeddedPoints,
             Vector& rKnotVectorU,
@@ -122,9 +127,9 @@ namespace Kratos
         ///@{
         bool m_is_trimmed;
         bool m_is_rational;
-        std::vector<BrepTrimmingCurve> m_trimming_loops;
-        std::vector<BrepBoundaryLoop> m_embedded_loops;
-        std::vector<EmbeddedPoint> m_embedded_points;
+        std::vector<BrepBoundaryLoop>& m_trimming_loops;
+        std::vector<BrepBoundaryLoop>& m_embedded_loops;
+        std::vector<EmbeddedPoint>& m_embedded_points;
 
         //3d surface parameters
         IntVector& m_control_points_ids;

@@ -56,26 +56,55 @@ namespace Kratos
 
                 shape.Compute(m_node_curve_geometry_3d->Knots(), integration_points[j].t);
 
+                Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
+                Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 1);
+
                 Element::GeometryType::PointsArrayType non_zero_control_points;
-                std::vector<Node<3>::Pointer> cps;
-                std::vector<int> cp_ids;
+                //std::vector<Node<3>::Pointer> cps;
+                //std::vector<int> cp_ids;
                 for (int m = shape.FirstNonzeroPole(); m < shape.LastNonzeroPole() + 1; ++m)
                 {
-                    cp_ids.push_back(m_node_curve_geometry_3d->Node(m)->Id());
-                    cps.push_back(m_node_curve_geometry_3d->Node(m));
+                    //cp_ids.push_back(m_node_curve_geometry_3d->Node(m)->Id());
+                    //cps.push_back(m_node_curve_geometry_3d->Node(m));
                     non_zero_control_points.push_back(m_node_curve_geometry_3d->Node(m));
-                }
 
+                    N_0(m) = shape(0, m);
+
+                    N_1(m, 0) = shape(1, m);
+                }
                 if (rType == "element")
                 {
-                    int id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+                    int id = 0;
+                    if (rModelPart.GetRootModelPart().Elements().size()>0)
+                        id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+                    
                     auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, this_property);
 
+                    element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
+                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
+                    element->SetValue(INTEGRATION_WEIGHT, integration_points[j].weight);
                 }
                 if (rType == "condition")
                 {
-                    int id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+                    int id = 0;
+                    if (rModelPart.GetRootModelPart().Conditions().size()>0)
+                        int id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
                     auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, this_property);
+
+                    condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
+                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
+                    condition->SetValue(INTEGRATION_WEIGHT, integration_points[j].weight);
+                }
+                // for strong application of properties on control point nodes
+                if (rType == "node")
+                {
+                    for (int sh_nonzero = 0; sh_nonzero < N_0.size(); ++sh_nonzero)
+                    {
+                        if (N_0(sh_nonzero) > 0.0)
+                        {
+                            rModelPart.AddNode(non_zero_control_points(sh_nonzero));
+                        }
+                    }
                 }
             }
         }
@@ -101,7 +130,7 @@ namespace Kratos
           IndexedObject(rBrepId),
           Flags()
     {
-        int number_of_nodes = rKnotVector.size() + rDegree - 1;
+        int number_of_nodes = rControlPointIds.size();
 
         m_node_curve_geometry_3d = Kratos::make_unique<NodeCurveGeometry3D>(
             rDegree, number_of_nodes);

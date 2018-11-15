@@ -23,6 +23,7 @@ namespace Kratos
 {
     void NurbsBrepModeler::ImportGeometry(BrepJsonIO& rBrepJsonIO, Parameters& rNurbsBrepGeometryJson)
     {
+        std::cout << "ImportGeometry in of geometry" << std::endl;
         std::vector<BrepModel> brep_model_vector = rBrepJsonIO.ImportNurbsBrepGeometry(m_model_part, rNurbsBrepGeometryJson);
         for (auto brep_model = brep_model_vector.begin(); brep_model != brep_model_vector.end(); ++brep_model)
         {
@@ -35,8 +36,8 @@ namespace Kratos
         for (int i = 0; i < rModelPartParameters["element_condition_list"].size(); ++i)
         {
             Parameters element_parameter = rModelPartParameters["element_condition_list"][i];
-            std::string type = element_parameter["type"].GetString();
-            std::string name = element_parameter["name"].GetString();
+            std::string type = element_parameter["parameters"]["type"].GetString();
+            std::string name = element_parameter["parameters"]["name"].GetString();
             int property_id = element_parameter["parameters"]["properties_id"].GetInt();
             int shape_function_derivatives_order = element_parameter["parameters"]["shape_function_derivatives_order"].GetInt();
 
@@ -51,14 +52,16 @@ namespace Kratos
 
             std::string sub_model_part_name = element_parameter["iga_model_part"].GetString();
 
-            if (!model_part.HasSubModelPart(sub_model_part_name))
+            //if (!model_part.HasSubModelPart(sub_model_part_name))
+            //{
+            //    model_part.CreateSubModelPart(sub_model_part_name);
+            //}
+            ModelPart& sub_model_part = model_part.HasSubModelPart(sub_model_part_name) 
+                ? model_part.GetSubModelPart(sub_model_part_name) 
+                : model_part.CreateSubModelPart(sub_model_part_name);
+            for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
             {
-                model_part.CreateSubModelPart(sub_model_part_name);
-            }
-            ModelPart& sub_model_part = model_part.GetSubModelPart(sub_model_part_name);
-            for (int j = 0; j < element_parameter["parameters"]["brep_ids"].size(); ++j)
-            {
-                int brep_id = element_parameter["parameters"]["brep_ids"][j].GetInt();
+                int brep_id = element_parameter["brep_ids"][j].GetInt();
                 bool success = m_brep_model_vector[0].GetIntegrationDomain(
                     sub_model_part, brep_id, type, name, property_id, shape_function_derivatives_order, variable_list);
             }

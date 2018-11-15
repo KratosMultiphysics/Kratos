@@ -32,9 +32,9 @@ namespace Kratos
         int& rTrimIndex,
         Vector& rKnotVector,
         int& rDegree,
-        std::vector<BoundedVector<double, 4>> rControlPoints,
-        bool& rCurveDirection,
-        bool& rIsRational,
+        std::vector<BoundedVector<double, 4>>& rControlPoints,
+        bool rCurveDirection,
+        bool rIsRational,
         Vector& rActiveRange)
         : m_curve_direction(rCurveDirection),
           m_trim_index(rTrimIndex)
