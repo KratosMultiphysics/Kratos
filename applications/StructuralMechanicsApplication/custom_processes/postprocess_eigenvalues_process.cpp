@@ -31,18 +31,19 @@ namespace Kratos
     {
         Parameters default_parameters(R"(
             {
-                "result_file_name" : "",
-                "result_file_format_use_ascii" : false,
-                "animation_steps"   :  1,
-                "label_type" : "angular_frequency",
-                "list_of_result_variables" : []
+                "result_file_name"              : "Structure",
+                "file_label"                    : "step",
+                "result_file_format_use_ascii"  : false,
+                "animation_steps"               : 20,
+                "label_type"                    : "frequency",
+                "list_of_result_variables"      : ["DISPLACEMENT"]
             }  )"
         );
 
         mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     }
 
-    void PostprocessEigenvaluesProcess::Execute()
+    void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     {
         std::string result_file_name = mOutputParameters["result_file_name"].GetString();
 
@@ -50,7 +51,17 @@ namespace Kratos
             result_file_name = mrModelPart.Name();
         }
 
-        result_file_name += "_EigenResults";
+        result_file_name += "_EigenResults_";
+
+        const std::string file_label = mOutputParameters["file_label"].GetString();
+
+        if (file_label == "step") {
+            result_file_name += std::to_string(mrModelPart.GetProcessInfo()[STEP]);
+        } else if (file_label == "time") {
+            result_file_name += std::to_string(mrModelPart.GetProcessInfo()[TIME]);
+        } else {
+            KRATOS_ERROR << "\"file_label\" can only be \"step\" or \"time\"" << std::endl;
+        }
 
         auto post_mode = GiD_PostBinary;
         if (mOutputParameters["result_file_format_use_ascii"].GetBool()) { // this format is only needed for testing
