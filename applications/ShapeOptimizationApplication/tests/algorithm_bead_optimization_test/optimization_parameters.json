@@ -45,7 +45,7 @@
             "fix_boundaries"              : ["corner_points"],
             "number_of_filter_iterations" : 1,
             "filter_penalty_term"         : false,
-            "penalty_factor"              : 5000.0,
+            "penalty_factor"              : 50.0,
             "max_outer_iterations"        : 2,
             "max_inner_iterations"        : 3,
             "min_inner_iterations"        : 1,
