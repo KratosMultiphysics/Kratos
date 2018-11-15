@@ -485,8 +485,6 @@ void FemDem3DElement::AddDEMContactForces(Vector &rNodalRHS)
 void FemDem3DElement::CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX)
 {
 	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
 		unsigned int index = 3 * i;
 
@@ -883,7 +881,7 @@ void FemDem3DElement::Get2MinValues(Vector &MaxValues, double a, double b, doubl
 	V[0] = a;
 	V[1] = b;
 	V[2] = c;
-	int n = 3, imin = 0;
+	int n = 3;
 
 	for (unsigned int i = 0; i < n; i++) {
 		for (unsigned int j = 0; j < n - 1; j++) {
@@ -1088,7 +1086,7 @@ double FemDem3DElement::GetMinAbsValue(Vector Strain)
 	V[0] = std::abs(Strain[0]);
 	V[1] = std::abs(Strain[1]);
 	V[2] = std::abs(Strain[2]);
-	int n = 3, imin = 0;
+	int n = 3;
 
 	for (unsigned int i = 0; i < n; i++) {
 		for (unsigned int j = 0; j < n - 1; j++) {
