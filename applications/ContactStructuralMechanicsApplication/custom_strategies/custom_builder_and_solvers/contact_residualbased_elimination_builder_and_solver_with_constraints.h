@@ -277,12 +277,14 @@ protected:
                             const IndexType node_id = p_dof->Id();
                             const auto& r_variable = p_dof->GetVariable();
                             auto pnode = rModelPart.pGetNode(node_id);
-                            if (r_variable == DISPLACEMENT_X) {
-                                master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-                            } else if (r_variable == DISPLACEMENT_Y) {
-                                master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
-                            } else if (r_variable == DISPLACEMENT_Z) {
-                                master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                            if (pnode->Is(SLAVE)) { // The nodes computing contact are the slave nodes
+                                if (r_variable == DISPLACEMENT_X) {
+                                    master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+                                } else if (r_variable == DISPLACEMENT_Y) {
+                                    master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+                                } else if (r_variable == DISPLACEMENT_Z) {
+                                    master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                                }
                             }
                         }
                     }
