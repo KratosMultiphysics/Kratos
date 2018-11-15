@@ -600,8 +600,8 @@ private:
      * @param rDataStruct reference to a struct to hand over data
      */
     void CalculateBehrSlipRightHandSideContribution(    VectorType& rRightHandSideVector,
-                                                        ProcessInfo& rCurrentProcessInfo,
-                                                        ConditionDataStruct& rDataStruct );
+                                                        const ProcessInfo& rCurrentProcessInfo,
+                                                        const ConditionDataStruct& rDataStruct );
 
     ///@}
     ///@name Private  Access

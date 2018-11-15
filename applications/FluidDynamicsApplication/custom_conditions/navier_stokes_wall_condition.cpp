@@ -492,32 +492,32 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipLeftHandSideCon
 
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideContribution( VectorType& rRightHandSideVector,
-                                                                                            ProcessInfo& rCurrentProcessInfo,
-                                                                                            ConditionDataStruct& rDataStruct )
+                                                                                            const ProcessInfo& rCurrentProcessInfo,
+                                                                                            const ConditionDataStruct& rDataStruct )
 {
     KRATOS_TRY
 
     GeometryType& rGeom = this->GetGeometry();
 
-    std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
+    std::vector< IndexType > NodeIds(TNumNodes), ElementNodeIds;
     std::vector< Matrix > NodalNormals(TNumNodes);
     std::vector< Matrix > NodalEntriesRHS(TNumNodes);
     Matrix sigmaVoigtMatrix;
     Matrix stressTimesNormal;
 
     // Retrieve the nodal normal vectors, normalize, and store them in matrix
-	for (SizeType nnode=0; nnode < TNumNodes; nnode++){
+	for (unsigned int nnode=0; nnode < TNumNodes; nnode++){
 		NodeIds[nnode] = rGeom[nnode].Id();
         NodalNormals[nnode].resize(3,1);
 
         double sumOfSquares = 0.0;
-        for (int j = 0; j < 3; j++)
+        for (unsigned int j = 0; j < 3; j++)
         {
-            NodalNormals[nnode](j,0) = rGeom[nnode].FastGetSolutionStepValue(NORMAL)(j);
+            NodalNormals[nnode](j,0) = rGeom[nnode].FastGetSolutionStepValue(NORMAL)(j); 
             sumOfSquares += NodalNormals[nnode](j,0) * NodalNormals[nnode](j,0);
         }
         // normalization
-        for (int j = 0; j < 3; j++)
+        for (unsigned int j = 0; j < 3; j++)
         {
             NodalNormals[nnode](j,0) /= sqrt(sumOfSquares);
         }
@@ -528,7 +528,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideCo
     const MatrixType auxIdentMatrix = identity_matrix<double>(3);
     MatrixType auxMatrix = zero_matrix<double>(3,3);
     
-    for (SizeType nnode=0; nnode < TNumNodes; nnode++){
+    for (unsigned int nnode=0; nnode < TNumNodes; nnode++){
         auxMatrix = prod( NodalNormals[nnode], trans(NodalNormals[nnode]) );
         NodalProjectionMatrix[nnode] = auxIdentMatrix - auxMatrix;
     }
@@ -565,9 +565,9 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideCo
 
     // checking for existance of the parent
     if (mpParentElement != NULL){
-        // std::cout << mpParentElement->Info() << std::endl;    ////   PROBLEM
+        // std::cout << mpParentElement->Info() << std::endl;
     } else {
-        // std::cout << "NULL was found..." << std::endl;
+        std::cout << "NULL was found..." << std::endl;
     }
     
     VectorType ShearStressOfElement(3, 0.0);

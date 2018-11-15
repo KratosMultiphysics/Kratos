@@ -187,8 +187,8 @@ public:
      * @param rFluidStress Viscous stress in the fluid given in Voigt notation
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    void Calculate( const Variable<Vector >& rVariable,
-                    Vector& rFluidStress,
+    void Calculate( const Variable<Vector>& rVariable,
+                    Vector& rOutput,
                     const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Auxiliar element check function
