@@ -85,10 +85,22 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
 
     CheckUniqueMaterialAssignment(Materials);
 
+    // We create first the properties (to avoid property creation duplication when assigning subproperties)
+    for (IndexType i = 0; i < Materials["properties"].size(); ++i) {
+        Parameters material = Materials["properties"].GetArrayItem(i);
+
+        // Get the properties for the specified model part.
+        ModelPart& r_model_part = mrModel.GetModelPart(material["model_part_name"].GetString());
+        const IndexType property_id = material["properties_id"].GetInt();
+        Properties::Pointer p_prop = r_model_part.pGetProperties(property_id, mesh_id);
+    }
+
+    // Now we assign the property block
     for (IndexType i = 0; i < Materials["properties"].size(); ++i) {
         Parameters material = Materials["properties"].GetArrayItem(i);
         AssignPropertyBlock(material);
     }
+
     KRATOS_INFO("Read materials") << "Finished" << std::endl;
 }
 
@@ -222,10 +234,13 @@ void ReadMaterialsUtility::CreateSubProperties(
 
             // We get the subproperty id
             const int sub_property_id = sub_prop["properties_id"].GetInt();
+            const bool use_existing_property = sub_prop.Has("use_existing_property") ? sub_prop["use_existing_property"].GetBool() : false;
 
             // We check if already defined
-            const bool already_defined = rModelPart.HasProperties(sub_property_id);
-            KRATOS_INFO_IF("ReadMaterialsUtility", already_defined) << "Subproperty " << sub_property_id << " already defined. The first material definition will be taken into account" << std::endl;
+            const bool already_defined = rModelPart.GetRootModelPart().HasProperties(sub_property_id);
+
+            KRATOS_ERROR_IF(!use_existing_property && already_defined) << "Subproperty " << sub_property_id << " already defined. You need to set: \"use_existing_property\" : true" << std::endl;
+            KRATOS_WARNING_IF("ReadMaterialsUtility", already_defined && sub_prop.Has("Material")) << "Subproperty " << sub_property_id << " already defined. The first material definition will be taken into account" << std::endl;
 
             // We get or create the new subproperty
             Properties::Pointer p_new_sub_prop = rModelPart.pGetProperties(sub_property_id, mesh_id);
