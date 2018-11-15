@@ -50,6 +50,10 @@ namespace Kratos {
 
                 array_1d<double,3>& r_current_velocity = itNode->FastGetSolutionStepValue(CURRENT_STRUCTURAL_VELOCITY);
                 noalias(r_current_velocity) = itNode->FastGetSolutionStepValue(VELOCITY);
+                
+                array_1d<double,3>& r_current_displacement = itNode->FastGetSolutionStepValue(CURRENT_STRUCTURAL_DISPLACEMENT);
+                noalias(r_current_displacement) = itNode->FastGetSolutionStepValue(DISPLACEMENT);
+                
             }
             
             KRATOS_CATCH("")
@@ -72,12 +76,14 @@ namespace Kratos {
 
                 noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates()
                                                 + it_node->FastGetSolutionStepValue(DISPLACEMENT,1)
-                                                + (it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT,1)) * time_factor;
-
+                                                + (it_node->FastGetSolutionStepValue(CURRENT_STRUCTURAL_DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT,1)) * time_factor;
+                
                 array_1d<double,3>& r_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
                 const array_1d<double,3>& previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY,1);
-                
                 noalias(r_velocity) = previous_velocity + (it_node->FastGetSolutionStepValue(CURRENT_STRUCTURAL_VELOCITY) - previous_velocity) * time_factor;
+                
+                array_1d<double,3>& r_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                noalias(r_displacement) = it_node->Coordinates() - it_node->GetInitialPosition().Coordinates();
             }
             
             
@@ -101,6 +107,9 @@ namespace Kratos {
                 
                 array_1d<double,3>& r_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
                 noalias(r_velocity) = it_node->FastGetSolutionStepValue(CURRENT_STRUCTURAL_VELOCITY);
+                
+                array_1d<double,3>& r_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                noalias(r_displacement) = it_node->FastGetSolutionStepValue(CURRENT_STRUCTURAL_DISPLACEMENT);
             }
             
             KRATOS_CATCH("")
