@@ -1,6 +1,6 @@
 {
     "problem_data"         : {
-        "problem_name"         : "pfem2_primitive_variables",
+        "problem_name"         : "pfem2_conserved_variables",
         "domain_size"          : 2,
         "echo_level"           : 0,
         "start_time"           : 0.0,
@@ -9,7 +9,7 @@
         "number_of_threads"    : 1
     },
     "solver_settings"      : {
-        "solver_type"              : "pfem2_primitive_var_solver",
+        "solver_type"              : "pfem2_conserved_var_solver",
         "model_part_name"          : "main_model_part",
         "domain_size"              : 2,
         "gravity"                  : 9.81,
@@ -49,7 +49,7 @@
             "process_name"         : "GidOutputProcess",
             "Parameters"           : {
                 "model_part_name"        : "main_model_part",
-                "output_name"            : "element_tests/pfem2_primitive_variables",
+                "output_name"            : "element_tests/pfem2_conserved_variables",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"         : {
@@ -64,7 +64,7 @@
                         "node_output"           : false,
                         "skin_output"           : false,
                         "plane_output"          : [],
-                        "nodal_results"         : ["VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","BATHYMETRY"],
+                        "nodal_results"         : ["MOMENTUM","VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","BATHYMETRY"],
                         "gauss_point_results"   : []
                     },
                     "point_data_configuration"  :  []
@@ -90,7 +90,7 @@
             "process_name"    : "ApplyConstantVectorValueProcess",
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Imposed_flux-auto-1",
-                "variable_name"   : "VELOCITY",
+                "variable_name"   : "MOMENTUM",
                 "modulus"         : 0.0,
                 "direction"       : [1.0, 0.0, 0.0],
                 "is_fixed_x"      : true,
@@ -102,7 +102,7 @@
             "process_name"    : "ApplyConstantVectorValueProcess",
             "Parameters"      : {
                 "model_part_name" : "main_model_part.Imposed_flux-auto-2",
-                "variable_name"   : "VELOCITY",
+                "variable_name"   : "MOMENTUM",
                 "modulus"         : 0.0,
                 "direction"       : [0.0, 1.0, 0.0],
                 "is_fixed_x"      : false,
@@ -123,10 +123,10 @@
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "from_json_check_result_process",
             "Parameters"      : {
-                "model_part_name" : "main_model_part",
-                "check_variables" : ["HEIGHT"],
-                "input_file_name" : "element_tests/test_pfem2_primitive_element.json",
-                "time_frequency"  : 0.5
+                "model_part_name"  : "main_model_part",
+                "check_variables"  : ["HEIGHT"],
+                "input_file_name"  : "element_tests/test_pfem2_conserved_element.json",
+                "time_frequency"   : 0.5
             }
         }]
     },
@@ -137,17 +137,17 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "output_variables" : ["HEIGHT"],
-                "output_file_name" : "element_tests/test_pfem2_primitive_element.json",
+                "output_file_name" : "element_tests/test_pfem2_conserved_element.json",
                 "time_frequency"   : 0.5
             }
         },{
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "from_json_check_result_process",
             "Parameters"      : {
-                "model_part_name" : "main_model_part",
-                "check_variables" : ["HEIGHT"],
-                "input_file_name" : "element_tests/test_pfem2_primitive_element.json",
-                "time_frequency"  : 0.5
+                "model_part_name"  : "main_model_part",
+                "check_variables"  : ["HEIGHT"],
+                "input_file_name"  : "element_tests/test_pfem2_conserved_element.json",
+                "time_frequency"   : 0.5
             }
         }]
     }

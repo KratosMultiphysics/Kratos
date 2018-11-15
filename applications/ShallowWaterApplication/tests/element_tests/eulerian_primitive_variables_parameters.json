@@ -1,6 +1,6 @@
 {
     "problem_data"         : {
-        "problem_name"         : "pfem2_primitive_variables",
+        "problem_name"         : "eulerian_primitive_variables",
         "domain_size"          : 2,
         "echo_level"           : 0,
         "start_time"           : 0.0,
@@ -9,7 +9,7 @@
         "number_of_threads"    : 1
     },
     "solver_settings"      : {
-        "solver_type"              : "pfem2_primitive_var_solver",
+        "solver_type"              : "eulerian_primitive_var_solver",
         "model_part_name"          : "main_model_part",
         "domain_size"              : 2,
         "gravity"                  : 9.81,
@@ -49,7 +49,7 @@
             "process_name"         : "GidOutputProcess",
             "Parameters"           : {
                 "model_part_name"        : "main_model_part",
-                "output_name"            : "element_tests/pfem2_primitive_variables",
+                "output_name"            : "element_tests/eulerian_primitive_variables",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"         : {
@@ -125,7 +125,7 @@
             "Parameters"      : {
                 "model_part_name" : "main_model_part",
                 "check_variables" : ["HEIGHT"],
-                "input_file_name" : "element_tests/test_pfem2_primitive_element.json",
+                "input_file_name" : "element_tests/test_eulerian_primitive_element.json",
                 "time_frequency"  : 0.5
             }
         }]
@@ -137,7 +137,7 @@
             "Parameters"      : {
                 "model_part_name"  : "main_model_part",
                 "output_variables" : ["HEIGHT"],
-                "output_file_name" : "element_tests/test_pfem2_primitive_element.json",
+                "output_file_name" : "element_tests/test_eulerian_primitive_element.json",
                 "time_frequency"   : 0.5
             }
         },{
@@ -146,7 +146,7 @@
             "Parameters"      : {
                 "model_part_name" : "main_model_part",
                 "check_variables" : ["HEIGHT"],
-                "input_file_name" : "element_tests/test_pfem2_primitive_element.json",
+                "input_file_name" : "element_tests/test_eulerian_primitive_element.json",
                 "time_frequency"  : 0.5
             }
         }]
