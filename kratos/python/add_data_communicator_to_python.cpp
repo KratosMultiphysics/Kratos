@@ -97,7 +97,13 @@ std::vector<TValue> VectorScatterWrapper(
     const std::vector<TValue>& rSourceValues,
     const int SourceRank)
 {
-    int message_size = rSourceValues.size();
+    const int send_size = rSourceValues.size();
+    const int world_size = rSelf.Size();
+    KRATOS_ERROR_IF_NOT( send_size % world_size == 0 )
+    << "Error in DataCommunicator.Scatter: A message of size " << send_size
+    << " cannot be evenly distributed amongst " << world_size << " ranks." << std::endl;
+    int message_size = send_size / world_size;
+
     rSelf.Broadcast(message_size, SourceRank);
 
     std::vector<TValue> message(message_size);
