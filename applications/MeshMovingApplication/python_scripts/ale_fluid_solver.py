@@ -16,51 +16,61 @@ def CreateSolver(model, solver_settings, parallelism):
 
 class ALEFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
-        super(ALEFluidSolver, self).__init__(model, solver_settings)
-        mesh_motion_solver_settings = solver_settings["ale_settings"].Clone()
-        solver_settings.RemoveValue("ale_settings")
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "solver_type"                 : "ale_fluid",
+            "fluid_solver_settings"       : { },
+            "mesh_motion_solver_settings" : { },
+            "echo_level"                  : 0,
+            "ale_boundary_parts"          : [ ]
+        }""")
 
-        fluid_model_part_name = solver_settings["model_part_name"].GetString()
+        # cannot recursively validate bcs validation of fluid- and
+        # mesh-motion-settings is done in corresponding solvers
+        solver_settings.ValidateAndAssignDefaults(default_settings)
+
+        super(ALEFluidSolver, self).__init__(model, solver_settings)
+
+        fluid_solver_settings       = self.settings["fluid_solver_settings"]
+        mesh_motion_solver_settings = self.settings["mesh_motion_solver_settings"]
+
+        fluid_model_part_name = fluid_solver_settings["model_part_name"].GetString()
         if not self.model.HasModelPart(fluid_model_part_name):
             model.CreateModelPart(fluid_model_part_name)
 
         ## Checking if reactions are being computed in the fluid
-        if solver_settings.Has("compute_reactions"):
-            if solver_settings["compute_reactions"].GetBool() == False:
-                solver_settings["compute_reactions"].SetBool(True)
+        if fluid_solver_settings.Has("compute_reactions"):
+            if fluid_solver_settings["compute_reactions"].GetBool() == False:
+                fluid_solver_settings["compute_reactions"].SetBool(True)
                 warn_msg  = '"compute_reactions" is switched off for the fluid-solver, '
                 warn_msg += 'switching it on!'
                 KratosMultiphysics.Logger.PrintWarning("::[ALEFluidSolver]::", warn_msg)
         else:
-            solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
+            fluid_solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
             info_msg = 'Setting "compute_reactions" to true for the fluid-solver'
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
 
         ## Creating the fluid solver
-        self.fluid_solver = self._CreateFluidSolver(solver_settings, parallelism)
+        self.fluid_solver = self._CreateFluidSolver(fluid_solver_settings, parallelism)
 
         ## Creating the mesh-motion solver
         if not mesh_motion_solver_settings.Has("echo_level"):
-            mesh_motion_solver_settings.AddValue("echo_level", solver_settings["echo_level"])
+            mesh_motion_solver_settings.AddValue("echo_level", self.settings["echo_level"])
 
+        # Making sure the settings are consistent btw fluid and mesh-motion
         if mesh_motion_solver_settings.Has("model_part_name"):
             if not fluid_model_part_name == mesh_motion_solver_settings["model_part_name"].GetString():
                 raise Exception('Fluid- and Mesh-Solver have to use the same "model_part_name"!')
         else:
-            mesh_motion_solver_settings.AddValue("model_part_name", solver_settings["model_part_name"])
+            mesh_motion_solver_settings.AddValue("model_part_name", fluid_solver_settings["model_part_name"])
 
-        domain_size = solver_settings["domain_size"].GetInt()
+        domain_size = fluid_solver_settings["domain_size"].GetInt()
         if mesh_motion_solver_settings.Has("domain_size"):
             mesh_motion_domain_size = mesh_motion_solver_settings["domain_size"].GetInt()
             if not domain_size == mesh_motion_domain_size:
                 raise Exception('Fluid- and Mesh-Solver have to use the same "domain_size"!')
         else:
-            mesh_motion_solver_settings.AddValue("domain_size", solver_settings["domain_size"])
-
-        self.ale_boudary_parts_params = mesh_motion_solver_settings["ale_boundary_parts"].Clone()
-        if not self.ale_boudary_parts_params.IsArray():
-            raise Exception('"ale_boundary_parts" has to be provided as a list!')
-        mesh_motion_solver_settings.RemoveValue("ale_boundary_parts")
+            mesh_motion_solver_settings.AddValue("domain_size", fluid_solver_settings["domain_size"])
 
         self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(
             model, mesh_motion_solver_settings, parallelism)
@@ -100,10 +110,12 @@ class ALEFluidSolver(PythonSolver):
         # Saving the ALE-interface-parts for later
         # this has to be done AFTER reading the ModelPart
         self.ale_boundary_parts = []
-        main_model_part_name = self.settings["model_part_name"].GetString()
+        main_model_part_name = self.settings["fluid_solver_settings"]["model_part_name"].GetString()
 
-        for i_name in range(self.ale_boudary_parts_params.size()):
-            sub_model_part_name = self.ale_boudary_parts_params[i_name].GetString()
+        ale_boudary_parts_params = self.settings["ale_boundary_parts"]
+
+        for i_name in range(ale_boudary_parts_params.size()):
+            sub_model_part_name = ale_boudary_parts_params[i_name].GetString()
             full_model_part_name = main_model_part_name + "." + sub_model_part_name
             self.ale_boundary_parts.append(self.model[full_model_part_name])
 
