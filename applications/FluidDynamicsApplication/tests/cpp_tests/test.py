@@ -16,14 +16,15 @@ Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS) # Set the verbosity level
 print(" Element in hydrstatic case ---- below ----- ")
 Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NHydrostatic") # for 2D
 
+
 print(" Element with BEHR2004 in hydrstatic case ---- below ----- ")
 Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NHydrostaticBehr")
 
-print(" Element with BEHR2004 in dynamic case ---- below ----- ")
-Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NMotionBehr") 
 
 print(" Element with BEHR2004 in dynamic case ---- below ----- ")
-Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NMotionBehr2") 
+Tester.RunTestCases("TestElementTwoFluidNavierStokes3D4NHydrostaticBehr")
 
-print(" Element with BEHR2004 in 3D dynamic case ---- below ----- ")
-Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NMotionBehr3") 
+
+print(" Element with BEHR2004 in hydrstatic case ---- below ----- ")
+Tester.RunTestCases("TestElementTwoFluidNavierStokes2D3NStressBehr")
+

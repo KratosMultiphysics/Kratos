@@ -148,10 +148,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::Initialize()
 		std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
 		if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
 		{
-            // std::cout << "Parent was found " << i << std::endl;
-			mpParentElement = &ElementCandidates[i];
 
-            std::cout << mpParentElement->Info() << std::endl;   /// works
+			mpParentElement = &ElementCandidates[i];
             KRATOS_ERROR_IF(mpParentElement == NULL) << "Parent as NULL pointer (Check2)";
 			return;
 		}
@@ -594,6 +592,10 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideCo
             CompleteNodalSigma[nnode](0,0) = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
             CompleteNodalSigma[nnode](1,0) = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
             CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2]; // no pressure in shear component
+            // Remark: Normal components of stress should be zero
+            // CompleteNodalSigma[nnode](0,0) = - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            // CompleteNodalSigma[nnode](1,0) = - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            // CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2]; // no pressure in shear component
         }
     } else if ( TNumNodes == 3 ){
         for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
@@ -606,6 +608,13 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideCo
             CompleteNodalSigma[nnode](3,0) = ShearStressOfElement[3];  // no pressure in shear component
             CompleteNodalSigma[nnode](4,0) = ShearStressOfElement[4];  // no pressure in shear component
             CompleteNodalSigma[nnode](5,0) = ShearStressOfElement[5];  // no pressure in shear component
+            // Remark: Normal components of stress should be zero
+            // CompleteNodalSigma[nnode](0,0) = - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            // CompleteNodalSigma[nnode](1,0) = - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            // CompleteNodalSigma[nnode](2,0) = - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            // CompleteNodalSigma[nnode](3,0) = ShearStressOfElement[3];  // no pressure in shear component
+            // CompleteNodalSigma[nnode](4,0) = ShearStressOfElement[4];  // no pressure in shear component
+            // CompleteNodalSigma[nnode](5,0) = ShearStressOfElement[5];  // no pressure in shear component
         }
     }
 

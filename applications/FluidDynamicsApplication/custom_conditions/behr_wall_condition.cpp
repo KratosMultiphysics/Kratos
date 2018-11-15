@@ -758,11 +758,11 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
     // Loop on nodes
     for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
 
-        if (NodalEntriesRHS[nnode].size1() != TNumNodes+1){
-            NodalEntriesRHS[nnode].resize(TNumNodes+1, 1);
-        }
-
         NodalEntriesRHS[nnode] = zero_matrix<double>(3, 1);
+
+        // if (NodalEntriesRHS[nnode].size1() != TNumNodes+1){
+        //     NodalEntriesRHS[nnode].resize(TNumNodes+1, 1);
+        // }
         
         // Loop on gauss points
         for(unsigned int igauss = 0; igauss < NumGauss; igauss++){
@@ -784,8 +784,26 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
             NodalEntriesRHS[nnode] += ( data.wGauss * data.N(nnode) * CompleteSigmaInterpolated );
         }
 
+        KRATOS_WATCH( NodalEntriesRHS[nnode] )
+
         NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], NodalEntriesRHS[nnode] );
     }
+
+    KRATOS_WATCH( NodalProjectionMatrix )
+
+    KRATOS_WATCH( NodalEntriesRHS )
+
+    // NodalEntriesRHS[0](0,0) = 1.0;
+    // NodalEntriesRHS[0](1,0) = 2.0;
+    // NodalEntriesRHS[0](2,0) = 3.0;
+// 
+    // NodalEntriesRHS[1](0,0) = 4.0;
+    // NodalEntriesRHS[1](1,0) = 5.0;
+    // NodalEntriesRHS[1](2,0) = 6.0;
+// 
+    // NodalEntriesRHS[2](0,0) = 7.0;
+    // NodalEntriesRHS[2](1,0) = 8.0;
+    // NodalEntriesRHS[2](2,0) = 9.0;
 
     for (unsigned int entry = 0; entry < 3; entry++){
 
@@ -794,7 +812,7 @@ void BehrWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRigh
         }
     }
 
-    // KRATOS_WATCH( rRightHandSideVector )
+    KRATOS_WATCH( rRightHandSideVector )
 
     KRATOS_CATCH("")
 }

@@ -241,24 +241,17 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
                                                     Vector& rFluidStress,
                                                     const ProcessInfo& rCurrentProcessInfo )
 {
-
-    std::cout << "Function in 2 fluid element was entered" << std::endl;
     
     if ( rVariable == FLUID_STRESS ){
 
         rFluidStress.resize( StrainSize, false );
 
-        KRATOS_WATCH( rFluidStress.size() )
-        KRATOS_WATCH( this->data.ShearStress.size() )
-
         if ( this->data.ShearStress.size() != 0 ){
             rFluidStress = this->data.ShearStress;
         } else {
             std::cout << "data.ShearStress has size 0 >>> RACE CONDITION " << std::endl;
-
             if ( data.IsAir() ) { std::cout << " element is AIR " << std::endl; }
             else { std::cout << " element is WATER " << std::endl; }
-
             if ( data.IsCut() ) { std::cout << " element is CUT " << std::endl; }
             else { std::cout << " element is NOT cut " << std::endl; }
             
@@ -272,8 +265,6 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
         std::cout << "This variable cannot be retrieved" << std::endl;
 
     }
-
-    std::cout << "Function in 2 fluid element was exitted" << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -312,9 +303,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateMaterialResponse(TElementData 
         rData.CalculateAirMaterialResponse();
     } else {
         FluidElement<TElementData>::CalculateMaterialResponse(rData);
-
-        rData.ShearStress.resize(3);
-
         rData.CalculateAirMaterialResponse();   // New >>> Idea: Write the ShearStress
     }
 }

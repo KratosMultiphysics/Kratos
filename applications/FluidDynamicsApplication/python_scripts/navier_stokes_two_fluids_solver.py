@@ -16,7 +16,6 @@ from fluid_solver import FluidSolver
 
 
 
-
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
 
@@ -73,9 +72,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         
-        # Modify the JSON TODO --------------------------------------------------------------------------------------
-        self.condition_name = "BehrWallCondition"
-
         self.min_buffer_size = 3
 
         # There is only a single rank in OpenMP, we always print
@@ -129,8 +125,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
 
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+ 
         self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part, 10, 10)
         (self.neighbour_search).Execute()
+
+        self.accelerationLimitationUtility = KratosMultiphysics.FluidDynamicsApplication.AccelerationLimitationUtilities( self.computing_model_part, 1.0 )
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -182,6 +182,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.variational_distance_process).Execute()   # Recompute the distance field according to the new level set position
             self._set_physical_properties()                 # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level set
             (self.solver).InitializeSolutionStep()          # Initialize the solver current step
+
+    def FinalizeSolutionStep(self):
+        if self._TimeBufferIsInitialized():
+            (self.solver).FinalizeSolutionStep()
+            (self.accelerationLimitationUtility).Execute()
+
 
     def _set_physical_properties(self):
         # Get fluid 1 and 2 properties
