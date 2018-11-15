@@ -149,12 +149,12 @@ void UpdatedLagrangian::Initialize()
     mDeformationGradientF0 = IdentityMatrix(dimension);
 
     // Compute initial jacobian matrix and inverses
-    Matrix J0 = ZeroMatrix(dimension, dimension);
+    Matrix J0 = ZeroMatrix(dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
     // Compute current jacobian matrix and inverses
-    Matrix j = ZeroMatrix(dimension,dimension);
+    Matrix j = ZeroMatrix(dimension);
     j = this->MPMJacobian(j,xg);
     double detj;
     MathUtils<double>::InvertMatrix( j, mInverseJ, detj );
@@ -294,7 +294,7 @@ void UpdatedLagrangian::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix
         if ( rLeftHandSideMatrix.size1() != matrix_size )
             rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( matrix_size, matrix_size ); //resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size); //resetting LHS
     }
 
     // Resizing the RHS vector if needed
@@ -406,7 +406,7 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     Matrix I = IdentityMatrix(dimension);
-    Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
+    Matrix gradient_displacement = ZeroMatrix(dimension);
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     gradient_displacement = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
 
@@ -830,7 +830,7 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
+        Matrix J0 = ZeroMatrix(dimension);
 
         J0 = this->MPMJacobian(J0, xg);
 
@@ -864,7 +864,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
+        Matrix J0 = ZeroMatrix(dimension);
 
         J0 = this->MPMJacobian(J0, xg);
 
@@ -895,7 +895,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
+        Matrix J0 = ZeroMatrix(dimension);
 
         J0 = this->MPMJacobian(J0, xg);
 
@@ -937,7 +937,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension, dimension);
+    Matrix J0 = ZeroMatrix(dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
@@ -1401,8 +1401,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, Proc
     if ( rDampingMatrix.size1() != matrix_size )
         rDampingMatrix.resize( matrix_size, matrix_size, false );
 
-    noalias( rDampingMatrix ) = ZeroMatrix( matrix_size, matrix_size );
-
+    noalias( rDampingMatrix ) = ZeroMatrix(matrix_size);
 
     //1.-Calculate StiffnessMatrix:
     MatrixType StiffnessMatrix  = Matrix();
@@ -1459,7 +1458,7 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInf
     if ( rMassMatrix.size1() != matrix_size )
         rMassMatrix.resize( matrix_size, matrix_size, false );
 
-    rMassMatrix = ZeroMatrix( matrix_size, matrix_size );
+    rMassMatrix = ZeroMatrix(matrix_size);
 
     double TotalMass = 0;
 
@@ -1501,7 +1500,7 @@ Matrix& UpdatedLagrangian::MPMJacobian( Matrix& rResult, array_1d<double,3>& rPo
     if (dimension ==2)
     {
         rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2,2);
+        rResult = ZeroMatrix(2);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
@@ -1514,7 +1513,7 @@ Matrix& UpdatedLagrangian::MPMJacobian( Matrix& rResult, array_1d<double,3>& rPo
     else if(dimension ==3)
     {
         rResult.resize( 3, 3, false );
-        rResult = ZeroMatrix(3,3);
+        rResult = ZeroMatrix(3);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
@@ -1562,7 +1561,7 @@ Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, array_1d<double,3>
     if (dimension ==2)
     {
         rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2,2);
+        rResult = ZeroMatrix(2);
 
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
@@ -1575,7 +1574,7 @@ Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, array_1d<double,3>
     else if(dimension ==3)
     {
         rResult.resize( 3, 3, false );
-        rResult = ZeroMatrix(3,3);
+        rResult = ZeroMatrix(3);
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
             rResult( 0, 0 ) += ( rGeom.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 0 ) );
@@ -1686,7 +1685,7 @@ Matrix& UpdatedLagrangian::MPMShapeFunctionsLocalGradients( Matrix& rResult )
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     if (dimension == 2)
     {
-        rResult = ZeroMatrix( 3, 2 );
+        rResult = ZeroMatrix(3,2);
         rResult( 0, 0 ) = -1.0;
         rResult( 0, 1 ) = -1.0;
         rResult( 1, 0 ) =  1.0;
@@ -1696,7 +1695,7 @@ Matrix& UpdatedLagrangian::MPMShapeFunctionsLocalGradients( Matrix& rResult )
     }
     else if(dimension == 3)
     {
-        rResult = ZeroMatrix( 4, 3 );
+        rResult = ZeroMatrix(4,3);
         rResult(0,0) = -1.0;
         rResult(0,1) = -1.0;
         rResult(0,2) = -1.0;

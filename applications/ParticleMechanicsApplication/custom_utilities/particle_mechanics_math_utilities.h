@@ -83,17 +83,17 @@ public:
 
         R.resize(dim,dim,false);
 
-        noalias(R)=ZeroMatrix(dim,dim);
+        noalias(R)=ZeroMatrix(dim);
 
         Q.resize(dim,dim,false);
 
-        noalias(Q)=ZeroMatrix(dim,dim);
+        noalias(Q)=ZeroMatrix(dim);
 
         Matrix Help(A.size1(),A.size2());
 	    noalias(Help) = A;
 
         Matrix unity(dim,dim);
-	    noalias(unity) = ZeroMatrix(dim,dim);
+	    noalias(unity) = ZeroMatrix(dim);
 
         for(unsigned int j=0; j<dim; j++)
             unity(j,j)=1.0;
@@ -107,7 +107,7 @@ public:
             HelpQ[i].resize(dim,dim,false);
             HelpR[i].resize(dim,dim,false);
             noalias(HelpQ[i])= unity;
-            noalias(HelpR[i])= ZeroMatrix(dim,dim);
+            noalias(HelpR[i])= ZeroMatrix(dim);
         }
 
         for(unsigned int iteration=0; iteration< dim-1; iteration++)
@@ -205,13 +205,13 @@ public:
 	    noalias(Result) = ZeroVector(dim);
 
         Matrix HelpA(dim,dim);
-	    noalias(HelpA) = ZeroMatrix(dim, dim);
+	    noalias(HelpA) = ZeroMatrix(dim);
 
         Matrix HelpQ(dim,dim);
-	    noalias(HelpQ) = ZeroMatrix(dim, dim);
+	    noalias(HelpQ) = ZeroMatrix(dim);
 
         Matrix HelpR(dim,dim);
-	    noalias(HelpR) = ZeroMatrix(dim, dim);
+	    noalias(HelpR) = ZeroMatrix(dim);
 
         HelpA=A;
 
@@ -230,7 +230,7 @@ public:
 
             ParticleMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
 
-            HelpA= ZeroMatrix(dim, dim);
+            HelpA= ZeroMatrix(dim);
 
             for(unsigned int i=0; i<dim; i++)
             {
@@ -628,7 +628,7 @@ public:
             for(unsigned int j=0; j<3; j++)
             {
                 rTensor[i][j].resize(3,3,false);
-                noalias(rTensor[i][j])= ZeroMatrix(3,3);
+                noalias(rTensor[i][j])= ZeroMatrix(3);
                 for(unsigned int k=0; k<3; k++)
                     for(unsigned int l=0; l<3; l++)
                     {
