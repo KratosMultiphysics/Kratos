@@ -228,7 +228,7 @@ namespace Kratos
 
 
       for(unsigned int i = 0; i < size; ++i)
-      {              
+      {
         Vertex  = rGeometry[i].Coordinates();
 
         Vertices.push_back(Vertex);
@@ -270,7 +270,7 @@ namespace Kratos
         }
       }
 
-      if( numouter == size )
+      if( numouter > 0 )
         outer = true;
 
     }

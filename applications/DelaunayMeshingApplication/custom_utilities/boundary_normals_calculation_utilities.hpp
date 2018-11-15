@@ -307,8 +307,9 @@ protected:
   {
     Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
 
-    An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
-    An[1] = - (pGeometry[1].X() - pGeometry[0].X());
+    //Attention: normal criterion changed for line conditions (vs line elements)
+    An[0] =    pGeometry[1].Y()-pGeometry[0].Y();
+    An[1] =  -(pGeometry[1].X()-pGeometry[0].X());
     An[2] =    0.00;
 
     array_1d<double,3>& normal = (it)->GetValue(NORMAL);
@@ -349,9 +350,9 @@ protected:
     }
     else{
 
-      An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
-      An[1] = - (pGeometry[1].X() - pGeometry[0].X());
-      An[2] =    0.00;
+      An[0] = -(pGeometry[1].Y()-pGeometry[0].Y());
+      An[1] =   pGeometry[1].X()-pGeometry[0].X();
+      An[2] =   0.00;
 
       array_1d<double,3>& normal = (it)->GetValue(NORMAL);
       noalias(normal) = An/norm_2(An);
@@ -1020,7 +1021,7 @@ protected:
       for(unsigned int i_norm=0; i_norm<NumberOfNeighbourNormals; ++i_norm)//loop over node neighbour faces
       {
 
-        const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+        const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions-elements
 
         if( FaceNormals[i_norm] != 1 ){ //if is not marked as coincident
 
@@ -1028,7 +1029,7 @@ protected:
           for (unsigned int j_norm=i_norm+1; j_norm<NumberOfNeighbourNormals; ++j_norm)//loop over node neighbour faces
           {
 
-            const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm].GetValue(NORMAL); //conditions
+            const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm].GetValue(NORMAL); //conditions-elements
 
             ProjectionValue = inner_prod(rEntityNormal,rNormalVector);
 
