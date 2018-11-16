@@ -1,0 +1,154 @@
+{
+    "problem_data"         : {
+        "problem_name"         : "eulerian_primitive_variables",
+        "domain_size"          : 2,
+        "echo_level"           : 0,
+        "start_time"           : 0.0,
+        "end_time"             : 0.5,
+        "parallel_type"        : "OpenMP",
+        "number_of_threads"    : 1
+    },
+    "solver_settings"      : {
+        "solver_type"              : "eulerian_primitive_var_solver",
+        "model_part_name"          : "main_model_part",
+        "domain_size"              : 2,
+        "gravity"                  : 9.81,
+        "time_scale"               : "seconds",
+        "water_height_scale"       : "meters",
+        "model_import_settings"    : {
+            "input_type"               : "mdpa",
+            "input_filename"           : "element_tests/square_domain"
+        },
+        "echo_level"               : 0,
+        "buffer_size"              : 2,
+        "dynamic_tau"              : 0.005,
+        "relative_tolerance"       : 1.0E-6,
+        "absolute_tolerance"       : 1.0E-9,
+        "maximum_iterations"       : 20,
+        "compute_reactions"        : false,
+        "reform_dofs_at_each_step" : false,
+        "move_mesh_flag"           : false,
+        "linear_solver_settings"   : {
+            "solver_type"      : "AMGCL",
+            "smoother_type"    : "ilu0",
+            "krylov_type"      : "gmres",
+            "coarsening_type"  : "aggregation",
+            "max_iteration"    : 100,
+            "tolerance"        : 1.0e-6,
+            "scaling"          : false
+        },
+        "time_stepping"            : {
+            "automatic_time_step"      : false,
+            "time_step"                : 0.01
+        }
+    },
+    "_output_processes" : {
+        "output_process_list" : [{
+            "kratos_module"        : "KratosMultiphysics",
+            "python_module"        : "gid_output_process",
+            "process_name"         : "GidOutputProcess",
+            "Parameters"           : {
+                "model_part_name"        : "main_model_part",
+                "output_name"            : "element_tests/eulerian_primitive_variables",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"         : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteElementsOnly",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "output_control_type"   : "step",
+                        "output_frequency"      : 1,
+                        "body_output"           : true,
+                        "node_output"           : false,
+                        "skin_output"           : false,
+                        "plane_output"          : [],
+                        "nodal_results"         : ["VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","BATHYMETRY"],
+                        "gauss_point_results"   : []
+                    },
+                    "point_data_configuration"  :  []
+                }
+            }
+        }]
+    },
+    "processes" : {
+        "initial_conditions_process_list"   : [{
+            "python_module"   : "set_initial_water_level_process",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "process_name"    : "SetInitialWaterLevelProcess",
+            "Parameters"      : {
+                "mesh_id"         : 0,
+                "model_part_name" : "main_model_part.Initial_water_level-auto-1",
+                "variable_name"   : "HEIGHT",
+                "value"           : "5"
+            }
+        }],
+        "boundary_conditions_process_list"  : [{
+            "python_module"   : "process_factory",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "ApplyConstantVectorValueProcess",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Imposed_flux-auto-1",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 0.0,
+                "direction"       : [1.0, 0.0, 0.0],
+                "is_fixed_x"      : true,
+                "is_fixed_y"      : false
+            }
+        },{
+            "python_module"   : "process_factory",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "ApplyConstantVectorValueProcess",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Imposed_flux-auto-2",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 0.0,
+                "direction"       : [0.0, 1.0, 0.0],
+                "is_fixed_x"      : false,
+                "is_fixed_y"      : true
+            }
+        }],
+        "bathymetry_process_list"     : [{
+            "python_module"   : "set_bathymetry_process",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "process_name"    : "SetBathymetryProcess",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Body_Part-auto-1",
+                "variable_name"   : "BATHYMETRY",
+                "value"           : "z"
+            }
+        }],
+        "json_output_and_check_process" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part",
+                "check_variables" : ["HEIGHT"],
+                "input_file_name" : "element_tests/test_eulerian_primitive_element.json",
+                "time_frequency"  : 0.5
+            }
+        }]
+    },
+    "copy_the_process_into___processes___to_generate_or check_the_results_file" : {
+        "json_output_and_check_process" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "json_output_process",
+            "Parameters"      : {
+                "model_part_name"  : "main_model_part",
+                "output_variables" : ["HEIGHT"],
+                "output_file_name" : "element_tests/test_eulerian_primitive_element.json",
+                "time_frequency"   : 0.5
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part",
+                "check_variables" : ["HEIGHT"],
+                "input_file_name" : "element_tests/test_eulerian_primitive_element.json",
+                "time_frequency"  : 0.5
+            }
+        }]
+    }
+}

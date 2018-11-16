@@ -11,7 +11,8 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
 
     def test_naca_0012_calculate_distance_to_skin_2d(self):
         # Set the problem domain using the structured mesh generator process
-        model_part = KratosMultiphysics.ModelPart("ModelPart")
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("ModelPart")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EMBEDDED_VELOCITY)
@@ -30,7 +31,7 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, model_part, parameters).Execute()
 
         # Set aerofoil geometry
-        skin_model_part = KratosMultiphysics.ModelPart("Aerofoil")
+        skin_model_part = current_model.CreateModelPart("Aerofoil")
         KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_calculate_distance_to_skin_naca_0012")).ReadModelPart(skin_model_part)
 
         # Call the CalculateDistanceToSkinProcess()
@@ -71,7 +72,8 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
     @KratosUnittest.skip("Due to its computational cost, this test is left for debugging.")
     def test_naca_0012_calculate_distance_to_skin_3d(self):
         # Set the problem domain using the structured mesh generator process
-        model_part = KratosMultiphysics.ModelPart("ModelPart")
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("ModelPart")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EMBEDDED_VELOCITY)
@@ -94,7 +96,7 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, model_part, parameters).Execute()
 
         # Set aerofoil geometry
-        skin_model_part = KratosMultiphysics.ModelPart("Aerofoil")
+        skin_model_part = current_model.CreateModelPart("Aerofoil")
         KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files/mdpa_files/test_calculate_distance_to_skin_naca_0012_3d")).ReadModelPart(skin_model_part)
 
         # Call the CalculateDistanceToSkinProcess()

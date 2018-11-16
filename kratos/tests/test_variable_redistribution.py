@@ -172,7 +172,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
                 TEMPERATURE)
 
             for cond in self.model_part.Conditions:
-                area = cond.GetArea()
+                area = cond.GetGeometry().Area()
                 for node in cond.GetNodes():
                     nodal_area = node.GetSolutionStepValue(NODAL_PAUX)
                     node.SetSolutionStepValue(NODAL_PAUX,nodal_area+area/3.0)
