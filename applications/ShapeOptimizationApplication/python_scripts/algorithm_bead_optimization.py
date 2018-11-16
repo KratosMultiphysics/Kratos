@@ -30,19 +30,19 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = Parameters("""
         {
-            "name"                        : "bead_optimization",
-            "bead_height"                 : 1.0,
-            "bead_direction"              : [],
-            "bead_direction_mode"         : 2,
-            "fix_boundaries"              : [],
-            "number_of_filter_iterations" : 1,
-            "filter_penalty_term"         : false,
-            "penalty_factor"              : 1000.0,
-            "max_total_iterations"        : 10000,
-            "max_outer_iterations"        : 10000,
-            "max_inner_iterations"        : 30,
-            "min_inner_iterations"        : 3,
-            "inner_iteration_tolerance"   : 1e-3,
+            "name"                          : "bead_optimization",
+            "bead_height"                   : 1.0,
+            "bead_direction"                : [],
+            "bead_direction_mode"           : 2,
+            "fix_boundaries"                : [],
+            "number_of_filter_iterations"   : 1,
+            "filter_penalty_term"           : false,
+            "estimated_lagrange_multiplier" : 1.0,
+            "max_total_iterations"          : 10000,
+            "max_outer_iterations"          : 10000,
+            "max_inner_iterations"          : 30,
+            "min_inner_iterations"          : 3,
+            "inner_iteration_tolerance"     : 1e-3,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
@@ -103,7 +103,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.direction_mode = self.algorithm_settings["bead_direction_mode"].GetInt()
         self.number_of_filter_iterations = self.algorithm_settings["number_of_filter_iterations"].GetInt()
         self.filter_penalty_term = self.algorithm_settings["filter_penalty_term"].GetBool()
-        self.penalty_factor = self.algorithm_settings["penalty_factor"].GetDouble()
+        self.estimated_lagrange_multiplier = self.algorithm_settings["estimated_lagrange_multiplier"].GetDouble()
         self.max_total_iterations = self.algorithm_settings["max_total_iterations"].GetInt()
         self.max_outer_iterations = self.algorithm_settings["max_outer_iterations"].GetInt()
         self.max_inner_iterations = self.algorithm_settings["max_inner_iterations"].GetInt()
@@ -134,6 +134,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         self.lambda0 = 0.0
         self.penalty_scaling_0 = 1.0
+        self.penalty_factor_0 = 1.0
 
         # Identify fixed design areas
         VariableUtils().SetNonHistoricalVariable(IS_ALPHA_FIXED, False, self.optimization_model_part.Nodes)
@@ -167,6 +168,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         current_lambda = self.lambda0
         penalty_scaling = self.penalty_scaling_0
+        penalty_factor = self.penalty_factor_0
+
         total_iteration = 0
         is_design_converged = False
         is_max_total_iterations_reached = False
@@ -225,9 +228,13 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     self.mapper.InverseMap(DF1DALPHA_MAPPED, DF1DALPHA_MAPPED)
 
                 # Compute scaling
-                if outer_iteration == 1 and inner_iteration == 1:
+                if outer_iteration == 1 and inner_iteration == min(3,self.max_inner_iterations):
                     max_norm_objective_term = 0.0
-                    max_norm_penalty_term = 2.0
+
+                    if self.direction_mode == 1 or self.direction_mode == -1:
+                        max_norm_penalty_term = 1.0
+                    elif self.direction_mode == 2:
+                        max_norm_penalty_term = 2.0
 
                     for node in self.design_surface.Nodes:
                         temp_value = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
@@ -270,11 +277,11 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     self.mapper.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
 
                 # Compute value of Lagrange function
-                L = objective_value + current_lambda*penalty_value + self.penalty_factor*(penalty_value)**2
+                L = objective_value + current_lambda*penalty_value + penalty_factor*(penalty_value)**2
                 if inner_iteration == 1:
                     dL_relative = 0.0
                 else:
-                    dL_relative = L/previos_L-1
+                    dL_relative = 100*(L/previos_L-1)
 
                 # Compute gradient of Lagrange function
                 if self.filter_penalty_term:
@@ -332,6 +339,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 additional_values_to_log["penalty_value"] = penalty_value
                 additional_values_to_log["penalty_lambda"] = current_lambda
                 additional_values_to_log["penalty_scaling"] = penalty_scaling
+                additional_values_to_log["penalty_factor"] = penalty_factor
 
                 self.data_logger.LogCurrentValues(total_iteration, additional_values_to_log)
                 self.data_logger.LogCurrentDesign(total_iteration)
@@ -359,8 +367,12 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
                 print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
+            # Compute penalyt factor such that estimated Lagrange multiplier is obtained
+            if outer_iteration==1:
+                penalty_factor = self.estimated_lagrange_multiplier/penalty_value
+
             # Update lambda
-            current_lambda = current_lambda + self.penalty_factor*penalty_value
+            current_lambda = current_lambda + penalty_factor*penalty_value
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
