@@ -35,6 +35,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.InitializeMMGvariables()
 			self.RemeshingProcessMMG.ExecuteInitialize()
 
+        # for the dem contact forces coupling
+        self.InitializeDummyNodalForces()
+
 		print(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
 		print("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
 		print("| $$      | $$      | $$$$  /$$$$|__/  \ $$| $$  \ $$| $$      | $$$$  /$$$$")
@@ -837,24 +840,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				DEM_Node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, Velocity_x)
 				DEM_Node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, Velocity_y)
 				DEM_Node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, Velocity_z)
-
-#============================================================================================================================
-	def TransferNodalForcesToFEM(self):
-
-		DEM_Nodes = self.SpheresModelPart.Nodes
-
-		for DEM_node in DEM_Nodes:
-
-			# Get the contact forces from the DEM
-			Id = DEM_node.Id
-			Force_X = DEM_node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_X)
-			Force_Y = DEM_node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
-			Force_Z = DEM_node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Z)
-
-			# Tranfer the Force information to the FEM nodes
-			self.FEM_Solution.main_model_part.GetNode(Id).SetValue(KratosFemDem.NODAL_FORCE_X, Force_X)
-			self.FEM_Solution.main_model_part.GetNode(Id).SetValue(KratosFemDem.NODAL_FORCE_Y, Force_Y)
-			self.FEM_Solution.main_model_part.GetNode(Id).SetValue(KratosFemDem.NODAL_FORCE_Z, Force_Z)
 
 #============================================================================================================================
 	def PrintPlotsFiles(self):
