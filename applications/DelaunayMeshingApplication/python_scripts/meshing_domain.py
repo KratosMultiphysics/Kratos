@@ -129,7 +129,7 @@ class MeshingDomain(object):
         Remesh = "No"
         if(self.active_remeshing):
             Remesh = "Yes"
-            
+
         print(self._class_prefix()+" "+self.settings["model_part_name"].GetString()+" ("+BodyType+") "+Remesh)
 
     ####

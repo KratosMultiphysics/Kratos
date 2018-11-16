@@ -174,9 +174,10 @@ class RemoveFluidNodesMesherProcess
     {
       if(in->Is(TO_ERASE)){
         any_node_removed = true;
+        std::cout<<" TO_ERASE "<<in->Id()<<" "<<in->Coordinates()<<std::endl;
       }
 
-      if( in->IsNot(NEW_ENTITY) &&  in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(TO_ERASE) )
+      if( in->IsNot(NEW_ENTITY) && in->IsNot(BLOCKED) && in->IsNot(SOLID) && in->IsNot(TO_ERASE) )
       {
         radius = size_for_distance_inside;
 
@@ -190,7 +191,7 @@ class RemoveFluidNodesMesherProcess
         unsigned int NumberOfNeighbourNodes = NeighbourNodes.size();
         for(WeakPointerVector< Node <3> >::iterator nn = NeighbourNodes.begin();nn != NeighbourNodes.end(); ++nn)
         {
-          if(nn->Is(RIGID) || nn->Is(SOLID)){
+          if(nn->Is(BLOCKED) || nn->Is(SOLID)){
             ++RigidNeighbours;
           }
           if(nn->Is(FREE_SURFACE)){
@@ -227,7 +228,7 @@ class RemoveFluidNodesMesherProcess
                   in->Set(TO_ERASE);
                   any_node_removed = true;
                   ++inside_nodes_removed;
-                  //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+                  //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<in->Coordinates()<<std::endl;
                 }
               }
             }
@@ -243,7 +244,7 @@ class RemoveFluidNodesMesherProcess
 
               if ( (*nn)->Is(BOUNDARY) && (neighbour_distances[counter] < 2.0 * size_for_distance_boundary) && (neighbour_distances[counter] > 0.0) )
               {
-                if((*nn)->Is(TO_ERASE)){
+                if((*nn)->Is(TO_ERASE) || (*nn)->Is(BLOCKED)){
                   engaged_node = true;
                   break;
                 }
@@ -252,7 +253,7 @@ class RemoveFluidNodesMesherProcess
               ++counter;
             }
 
-            if(!engaged_node){ //Can be inserted in the boundary refine
+            if(!engaged_node && in->IsNot(BLOCKED)){ //Can be inserted in the boundary refine
               in->Set(TO_ERASE);
               ++boundary_nodes_removed;
               //std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
@@ -283,6 +284,7 @@ class RemoveFluidNodesMesherProcess
     if( this->mEchoLevel > 0 ){
       std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
       std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
+      std::cout<<"critical_nodes_removed "<<critical_nodes_removed<<std::endl;
     }
 
     //Build boundary after removing boundary nodes due distance criterion
@@ -621,7 +623,7 @@ class RemoveFluidNodesMesherProcess
       bool wall_boundary = false;
       for(unsigned int i=0; i<NumberOfNodes; ++i)
       {
-        if(rGeometry[i].Is(RIGID) || rGeometry[i].Is(SOLID)){
+        if(rGeometry[i].Is(BLOCKED) || rGeometry[i].Is(SOLID)){
           wall_boundary = true;
           break;
         }
@@ -635,7 +637,7 @@ class RemoveFluidNodesMesherProcess
 
           for(unsigned int i=0; i<NumberOfNodes; ++i)
           {
-            if((rGeometry[i].IsNot(RIGID) && rGeometry[i].IsNot(SOLID))){
+            if((rGeometry[i].IsNot(BLOCKED) && rGeometry[i].IsNot(SOLID))){
               LayerNodes.push_back(rGeometry(i));
             }
           }
@@ -651,7 +653,7 @@ class RemoveFluidNodesMesherProcess
     {
       ModelPart::NodesContainerType::iterator it_begin = LayerNodes.begin();
 
-	  unsigned int inside_nodes_removed_accum = 0;
+      unsigned int inside_nodes_removed_accum = 0;
       #pragma omp parallel for reduction(+:inside_nodes_removed_accum,erased_nodes)
       for (int i = 0; i < nnodes; ++i)
       {
@@ -687,7 +689,7 @@ class RemoveFluidNodesMesherProcess
               std::vector<unsigned int> wall_nodes;
               for(unsigned int j=1; j<NumberOfNodes; ++j)
               {
-                if(rGeometry[lpofa(j,face)].Is(RIGID) || rGeometry[lpofa(j,face)].Is(SOLID)){
+                if( rGeometry[lpofa(j,face)].Is(BLOCKED) || rGeometry[lpofa(j,face)].Is(SOLID) ){
                   ++wall_boundary;
                   wall_nodes.push_back(j);
                 }

@@ -71,7 +71,9 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
             self.process_info[KratosSolid.RAYLEIGH_BETA]  = 0.0
 
         # compute dynamic tangent lhs and rhs
-        self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = False
+        if not self.process_info.Has(KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT):
+            self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = False
+
         if( integration_method.find("Step") != -1 ):
             self.process_info[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT] = True
 

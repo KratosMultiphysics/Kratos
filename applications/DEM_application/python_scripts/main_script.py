@@ -53,8 +53,9 @@ class Solution(object):
     def GetMainPath(self):
         return os.getcwd()
 
-    def __init__(self):
+    def __init__(self, model):
 
+        self.model = model
         self.main_path = self.GetMainPath()
         self.LoadParametersFile()
         self.solver_strategy = self.SetSolverStrategy()
@@ -93,17 +94,16 @@ class Solution(object):
         self.p_count = self.p_frequency
 
         self.solver = self.SetSolver()
-
         self.Setdt()
         self.SetFinalTime()
 
     def CreateModelParts(self):
-        self.spheres_model_part = ModelPart("SpheresPart")
-        self.rigid_face_model_part = ModelPart("RigidFacePart")
-        self.cluster_model_part = ModelPart("ClusterPart")
-        self.DEM_inlet_model_part = ModelPart("DEMInletPart")
-        self.mapping_model_part = ModelPart("MappingPart")
-        self.contact_model_part = ModelPart("ContactPart")
+        self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
+        self.rigid_face_model_part = self.model.CreateModelPart("RigidFacePart")
+        self.cluster_model_part = self.model.CreateModelPart("ClusterPart")
+        self.DEM_inlet_model_part = self.model.CreateModelPart("DEMInletPart")
+        self.mapping_model_part = self.model.CreateModelPart("MappingPart")
+        self.contact_model_part = self.model.CreateModelPart("ContactPart")
 
         mp_list = []
         mp_list.append(self.spheres_model_part)
@@ -263,6 +263,8 @@ class Solution(object):
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
+        self.step = 0
+        self.time = 0.0
 
         self.AddVariables()
 
@@ -298,8 +300,8 @@ class Solution(object):
 
         #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
         max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)
-
-        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)
+        #self.creator_destructor.SetMaxNodeId(max_Id)
+        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
 
         #Strategy Initialization
         #-------------os.chdir(self.main_path)
@@ -410,7 +412,6 @@ class Solution(object):
         self.all_model_parts.ComputeMaxIds()
 
 
-
     def RunMainTemporalLoop(self):
 
         self.step = 0
@@ -422,7 +423,7 @@ class Solution(object):
             self.time = self.time + self.dt
             self.step += 1
 
-            self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+            self.UpdateTimeInModelParts()
 
             self.BeforeSolveOperations(self.time)
 
@@ -431,7 +432,6 @@ class Solution(object):
             self.AfterSolveOperations()
 
             self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
-            #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
             ##### adding DEM elements by the inlet ######
             if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -473,6 +473,12 @@ class Solution(object):
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
+
+    def UpdateTimeInModelParts(self):
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
+
+    def UpdateTimeInOneModelPart(self):
+        pass
 
     def SolverSolve(self):
         self.solver.Solve()
@@ -552,11 +558,10 @@ class Solution(object):
             del self.DEM_inlet
 
     def SetGraphicalOutput(self):
-        self.demio = DEM_procedures.DEMIo(self.DEM_parameters, self.post_path, self.all_model_parts)
-        if "post_vtk_option" in self.DEM_parameters.keys():
-            if self.DEM_parameters["post_vtk_option"].GetBool():
-                import dem_vtk_output
-                self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
+        self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
+        if self.DEM_parameters["post_vtk_option"].GetBool():
+            import dem_vtk_output
+            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
         self.demio.Initialize(self.DEM_parameters)
@@ -593,4 +598,5 @@ class Solution(object):
 
 
 if __name__ == "__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()

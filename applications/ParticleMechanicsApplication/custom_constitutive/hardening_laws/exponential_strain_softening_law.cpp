@@ -31,9 +31,9 @@ namespace Kratos
 //************************************************************************************
 
 ExponentialStrainSofteningLaw::ExponentialStrainSofteningLaw()
-	:HardeningLaw()
+	:MPMHardeningLaw()
 {
-   
+
 }
 
 
@@ -42,7 +42,7 @@ ExponentialStrainSofteningLaw::ExponentialStrainSofteningLaw()
 
 ExponentialStrainSofteningLaw& ExponentialStrainSofteningLaw::operator=(ExponentialStrainSofteningLaw const& rOther)
 {
-   HardeningLaw::operator=(rOther);
+   MPMHardeningLaw::operator=(rOther);
    return *this;
 }
 
@@ -50,7 +50,7 @@ ExponentialStrainSofteningLaw& ExponentialStrainSofteningLaw::operator=(Exponent
 //************************************************************************************
 
 ExponentialStrainSofteningLaw::ExponentialStrainSofteningLaw(ExponentialStrainSofteningLaw const& rOther)
-	:HardeningLaw(rOther)
+	:MPMHardeningLaw(rOther)
 {
 
 }
@@ -101,13 +101,13 @@ double& ExponentialStrainSofteningLaw::CalculateHardening(double &rHardening, co
 
 void ExponentialStrainSofteningLaw::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMHardeningLaw )
 
 }
 
 void ExponentialStrainSofteningLaw::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMHardeningLaw )
 
 }
 

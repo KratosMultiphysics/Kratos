@@ -14,11 +14,11 @@
 #include <limits>
 
 // External includes
-#include <boost/numeric/ublas/matrix.hpp>
-
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
+
 
 // Utility includes
 #include "includes/define.h"
@@ -99,11 +99,13 @@ namespace Kratos
          * Checks if the Newmark scheme performs correctly the integration
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementNewmarkSchemeTest, KratosCoreSchemesFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(DisplacementNewmarkSchemeTest, KratosCoreFastSuite)
         {
+            Model current_model;
+
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedNewmarkDisplacementSchemeType() );
@@ -162,11 +164,13 @@ namespace Kratos
          * Checks if the Bossak scheme performs correctly the integration
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementBossakSchemeTest, KratosCoreSchemesFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(DisplacementBossakSchemeTest, KratosCoreFastSuite)
         {
+            Model current_model;
+
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedBossakDisplacementSchemeType() );
@@ -225,11 +229,13 @@ namespace Kratos
          * Checks if the BDF2 scheme performs correctly the integration
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementBDF2SchemeTest, KratosCoreSchemesFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(DisplacementBDF2SchemeTest, KratosCoreFastSuite)
         {
+            Model current_model;
+            
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedBDFDisplacementSchemeType(2) );

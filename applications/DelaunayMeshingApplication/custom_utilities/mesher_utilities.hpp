@@ -904,12 +904,16 @@ public:
 
     void SetModelPartNameToNodes (ModelPart& rModelPart);
 
+    void SetFlagsToNodes (ModelPart& rModelPart, const std::vector<Flags> rControlFlags, const std::vector<Flags> rAssignFlags);
+
     double ComputeModelPartVolume (ModelPart& rModelPart);
 
     //*******************************************************************************************
     //*******************************************************************************************
 
     bool CheckSubdomain     (Geometry<Node<3> >& rGeometry);
+
+    bool CheckRigidOuterCentre   (Geometry<Node<3> >& rGeometry);
 
     bool CheckInnerCentre   (Geometry<Node<3> >& rGeometry);
 

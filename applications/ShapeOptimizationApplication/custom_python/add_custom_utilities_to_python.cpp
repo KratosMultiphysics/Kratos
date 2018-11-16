@@ -34,51 +34,89 @@
 #include "custom_utilities/input_output/vtk_file_io.h"
 // ==============================================================================
 
-namespace Kratos
-{
+namespace Kratos {
+namespace Python {
 
-namespace Python
+// Overloaded functions
+template<typename TMapper>
+inline void MapVector(TMapper& mapper,
+                const Variable< array_1d<double, 3> >& origin_variable,
+                const Variable< array_1d<double, 3> >& destination_variable)
 {
+    mapper.Map(origin_variable, destination_variable);
+}
+
+template<typename TMapper>
+inline void MapScalar(TMapper& mapper,
+                const Variable< double >& origin_variable,
+                const Variable< double >& destination_variable)
+{
+    mapper.Map(origin_variable, destination_variable);
+}
+
+template<typename TMapper>
+inline void InverseMapVector(TMapper& mapper,
+                       const Variable< array_1d<double, 3> >& origin_variable,
+                       const Variable< array_1d<double, 3> >& destination_variable)
+{
+    mapper.InverseMap(origin_variable, destination_variable);
+}
+template<typename TMapper>
+inline void InverseMapScalar(TMapper& mapper,
+                       const Variable< double >& origin_variable,
+                       const Variable< double >& destination_variable)
+{
+    mapper.InverseMap(origin_variable, destination_variable);
+}
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     // ================================================================
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
-    class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
-        .def(init<ModelPart&, Parameters>())
-        .def("InitializeMapping", &MapperVertexMorphing::InitializeMapping)
-        .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
+    py::class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphing::Initialize)
+        .def("Update", &MapperVertexMorphing::Update)
+        .def("Map", MapScalar<MapperVertexMorphing>)
+        .def("Map", MapVector<MapperVertexMorphing>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphing>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphing>)
         ;
-    class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
-        .def(init<ModelPart&, Parameters>())
-        .def("InitializeMapping", &MapperVertexMorphingMatrixFree::InitializeMapping)
-        .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
+    py::class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingMatrixFree::Initialize)
+        .def("Update", &MapperVertexMorphingMatrixFree::Update)
+        .def("Map", MapScalar<MapperVertexMorphingMatrixFree>)
+        .def("Map", MapVector<MapperVertexMorphingMatrixFree>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingMatrixFree>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingMatrixFree>)
         ;
-    class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
-        .def(init<ModelPart&, Parameters>())
-        .def("InitializeMapping", &MapperVertexMorphingImprovedIntegration::InitializeMapping)
-        .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
+    py::class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingImprovedIntegration::Initialize)
+        .def("Update", &MapperVertexMorphingImprovedIntegration::Update)
+        .def("Map", MapScalar<MapperVertexMorphingImprovedIntegration>)
+        .def("Map", MapVector<MapperVertexMorphingImprovedIntegration>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingImprovedIntegration>)
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingImprovedIntegration>)
         ;
 
     // ================================================================
     // For a possible damping of nodal variables
     // ================================================================
-    class_<DampingUtilities >(m, "DampingUtilities")
-        .def(init<ModelPart&, pybind11::dict, Parameters>())
+    py::class_<DampingUtilities >(m, "DampingUtilities")
+        .def(py::init<ModelPart&, pybind11::dict, Parameters>())
         .def("DampNodalVariable", &DampingUtilities::DampNodalVariable)
         ;
 
     // ========================================================================
     // For performing individual steps of an optimization algorithm
     // ========================================================================
-    class_<OptimizationUtilities >(m, "OptimizationUtilities")
-        .def(init<ModelPart&, Parameters>())
+    py::class_<OptimizationUtilities >(m, "OptimizationUtilities")
+        .def(py::init<ModelPart&, Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -98,8 +136,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // ========================================================================
     // For pre- and post-processing of geometry data
     // ========================================================================
-    class_<GeometryUtilities >(m, "GeometryUtilities")
-        .def(init<ModelPart&>())
+    py::class_<GeometryUtilities >(m, "GeometryUtilities")
+        .def(py::init<ModelPart&>())
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
@@ -108,8 +146,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // ========================================================================
     // For mesh handling
     // ========================================================================
-    class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
-        .def(init<ModelPart&>())
+    py::class_<MeshControllerUtilities >(m, "MeshControllerUtilities")
+        .def(py::init<ModelPart&>())
         .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
         .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
@@ -120,20 +158,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // ========================================================================
     // For input / output
     // ========================================================================
-    class_<UniversalFileIO >(m, "UniversalFileIO")
-        .def(init<ModelPart&, std::string, std::string, Parameters>())
+    py::class_<UniversalFileIO >(m, "UniversalFileIO")
+        .def(py::init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
-    class_<VTKFileIO >(m, "VTKFileIO")
-        .def(init<ModelPart&, std::string, std::string, Parameters>())
+    py::class_<VTKFileIO >(m, "VTKFileIO")
+        .def(py::init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &VTKFileIO::InitializeLogging)
         .def("LogNodalResults", &VTKFileIO::LogNodalResults)
         ;
 }
 
-
 }  // namespace Python.
-
 } // Namespace Kratos
 

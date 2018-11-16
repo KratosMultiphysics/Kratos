@@ -475,7 +475,7 @@ namespace Kratos
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " WIERD " << std::endl;
+		  std::cout << " WEIRD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
 		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}
@@ -534,7 +534,7 @@ namespace Kratos
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " WIERD " << std::endl;
+		  std::cout << " WEIRD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
 		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}

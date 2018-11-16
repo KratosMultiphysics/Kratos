@@ -123,14 +123,6 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         return dof_variables, dof_reactions
 
 
-    def _add_dofs(self):
-        dof_variables, dof_reactions = self._get_dofs()
-        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, dof_variables, dof_reactions)
-        AddDofsProcess.Execute()
-        if( self.echo_level > 1 ):
-            print(dof_variables + dof_reactions)
-            print("::[-------Solver------]:: DOF's ADDED")
-
     #
     def _get_time_integration_methods(self):
         scalar_integration_methods = {}

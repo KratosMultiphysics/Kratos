@@ -83,7 +83,7 @@ public:
 
       double Radius = 0.0;
       //BOUNDARY flag must be set in model part nodes
-      mBoundingBox = SpatialBoundingBox(mrModelPart,Radius);
+      mBoundingBox = SpatialBoundingBox(mrModelPart,Radius,0.1);
 
       KRATOS_CATCH("")
     }
@@ -164,8 +164,10 @@ public:
 
             //std::cout<<" ISOLATED Node ["<<it->Id()<<"] Displacement"<<it->FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
 
-            if( !mBoundingBox.IsInside( it->Coordinates() ) )
+            if( !mBoundingBox.IsInside( it->Coordinates() ) ){
               it->Set(TO_ERASE);
+              std::cout<<" ISOLATED to erase "<<std::endl;
+            }
           }
           else if( it->Is(VISITED) ){
 

@@ -26,7 +26,7 @@ listDISclRK   = [31,33]
 
 class Solution(main_script.Solution):
 
-    def LoadParametersFile(self):
+    def GetInputParameters(self):
         file_name = None
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
@@ -50,11 +50,15 @@ class Solution(main_script.Solution):
             Logger.PrintInfo("DEM",'Benchmark number does not exist')
             sys.exit()
 
-        with open(file_name, 'r') as parameters_file:
-            self.DEM_parameters = Parameters(parameters_file.read())
 
-    def __init__(self):
-        super(Solution, self).__init__()
+        with open(file_name, 'r') as parameters_file:
+            parameters = Parameters(parameters_file.read())
+
+        return parameters
+
+
+    def __init__(self, model):
+        super(Solution, self).__init__(model)
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()
@@ -167,7 +171,8 @@ class Solution(main_script.Solution):
 final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
     for iteration in range(1, number_of_points_in_the_graphic + 1):
-        slt = Solution()
+        model = Model()
+        slt = Solution(model)
         slt.iteration = iteration
         slt.dt = dt
         slt.final_time = final_time

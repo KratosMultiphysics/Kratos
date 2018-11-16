@@ -89,6 +89,9 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	# Utilites
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 
+	# Processes
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_entities_process.cpp
+
 
 	##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION ##
 	# Constitutive laws
@@ -169,6 +172,12 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	## DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION ##
 )
 
+## generate variables with the testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+  file(GLOB_RECURSE KRATOS_SOLID_MECHANICS_APPLICATION_TESTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+
 ## Generate variables with the sources
 set( KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
         # Custom python
@@ -180,7 +189,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 )
 
-add_library(KratosSolidMechanicsCore SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_CORE})
+add_library(KratosSolidMechanicsCore SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_CORE} ${KRATOS_SOLID_MECHANICS_APPLICATION_TESTS})
 #target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore KratosConstitutiveModelsCore)
 target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
@@ -210,8 +219,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # install the python files
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/constitutive_laws DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN ".csv" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -227,4 +235,3 @@ install(TARGETS KratosSolidMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/SolidMechanicsApplication.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/beam_profiles.csv" DESTINATION KratosMultiphysics )

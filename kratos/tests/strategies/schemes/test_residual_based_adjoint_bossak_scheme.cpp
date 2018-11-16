@@ -3,6 +3,8 @@
 #include <sstream>
 
 #include "testing/testing.h"
+#include "containers/model.h"
+
 #include "includes/define.h"
 #include "includes/shared_pointers.h"
 #include "includes/model_part.h"
@@ -628,11 +630,13 @@ void InitializeAdjointModelPart(ModelPart& rModelPart)
 
 } // unnamed namespace
 
-KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, KratosCoreSchemesFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, KratosCoreFastSuite)
 {
     namespace Nlsmd = NonLinearSpringMassDamper;
     // Solve the primal problem.
-    ModelPart model_part("test");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("test");
+    
     Nlsmd::InitializePrimalModelPart(model_part);
     auto p_results_data = Kratos::make_shared<Nlsmd::PrimalResults>();
     Base::PrimalStrategy solver(model_part, p_results_data);
@@ -651,7 +655,8 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, 
     }
 
     // Solve the adjoint problem.
-    ModelPart adjoint_model_part("test");
+    ModelPart& adjoint_model_part = current_model.CreateModelPart("test_adjoint");
+
     Nlsmd::InitializeAdjointModelPart(adjoint_model_part);
     auto p_response_function =
         Kratos::make_shared<Nlsmd::ResponseFunction>(adjoint_model_part);

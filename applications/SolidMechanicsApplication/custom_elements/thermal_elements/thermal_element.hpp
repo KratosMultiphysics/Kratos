@@ -497,12 +497,6 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ThermalElement
 
 
   /**
-   * Calculation of the Position increment
-   */
-  Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-
-  /**
    * Calculate Variation of Thermal Properties
    */
   void CalculateThermalProperties(GeneralVariables& rVariables);

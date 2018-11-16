@@ -151,8 +151,10 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
       DataType CurrentResidualNorm;
       size = CalculateResidualNorm(rDofSet,rb,CurrentResidualNorm);
 
-      if( size == 0 )
-        KRATOS_ERROR << "Dofs vector has size: " << size << std::endl;
+      if( size == 0 ){
+        KRATOS_WARNING("") << GetDofName() << " Residual Dofs vector has size: " << size << std::endl;
+        return true;
+      }
 
       if(mInitialResidualNorm == 0.00)
       {

@@ -112,13 +112,15 @@ class InsertFluidNodesMesherProcess
       for(ModelPart::ElementsContainerType::const_iterator i_elem = mrModelPart.ElementsBegin(); i_elem != mrModelPart.ElementsEnd(); ++i_elem)
       {
 
-        const unsigned int dimension = i_elem->GetGeometry().WorkingSpaceDimension();
+          const unsigned int dimension = i_elem->GetGeometry().WorkingSpaceDimension();
 
-        if(dimension==2){
-          SelectEdgeToRefine2D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
-        } else if(dimension==3){
-          SelectEdgeToRefine3D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
-        }
+          if(dimension==2){
+            if( i_elem->GetGeometry().size() > 2 ) //not boundary elements
+              SelectEdgeToRefine2D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
+          } else if(dimension==3){
+            if( i_elem->GetGeometry().size() > 3 ) //not boundary elements
+              SelectEdgeToRefine3D(i_elem->GetGeometry(),NewPositions,LargestVolumes,NodeIdsToInterpolate,NewDofs,NodesToRefine,ElementsToRefine);
+          }
 
       }
 
@@ -329,7 +331,7 @@ class InsertFluidNodesMesherProcess
 
     if(dangerousElement==false && any_node_to_erase==false && nodes_to_split<2){
 
-      unsigned int maxCount=3;
+      unsigned int maxCount=2;
       double LargestEdge=0;
 
       for(unsigned int i=0; i<3; ++i)
@@ -358,6 +360,8 @@ class InsertFluidNodesMesherProcess
 	}else{
 	  std::cout<<"CAUTION! THIS IS A WALL EDGE"<<std::endl;
 	}
+
+        std::cout<<" NewPosition" <<NewPosition<<" maxCount "<<maxCount<<" LargestEdge "<<LargestEdge<<std::endl;
 
 	rLargestVolumes[rNodesToRefine]=ElementalVolume;
 	rNewPositions[rNodesToRefine]=NewPosition;
@@ -675,7 +679,8 @@ class InsertFluidNodesMesherProcess
 
       //to control the inserted nodes
       // pnode->Set(MODIFIED);
-      //std::cout<<" Insert new node "<<pnode->Id()<<std::endl;
+      std::cout<<" Insert new node "<<pnode->Id()<<"["<<x<<","<<y<<","<<z<<"]"<<std::endl;
+
 
       pnode->Set(NEW_ENTITY,true); //not boundary
       list_of_new_nodes.push_back( pnode );

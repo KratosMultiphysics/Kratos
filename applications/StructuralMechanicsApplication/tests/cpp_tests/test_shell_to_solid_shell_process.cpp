@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/gid_io.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/mortar_utilities.h"
@@ -94,9 +95,10 @@ namespace Kratos
         * Test 1 layer
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess1, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess1, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part =  current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -125,9 +127,10 @@ namespace Kratos
         * Test 2 layer
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess2, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess2, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part =  current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -156,9 +159,10 @@ namespace Kratos
         * Test 2 layer with external conditions
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess3, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess3, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             this_model_part.AddNodalSolutionStepVariable(NORMAL);

@@ -282,6 +282,18 @@ protected:
 
 
   /**
+   * Calculation and addition of the matrices of the LHS
+   */
+  void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
+                                 ElementDataType& rVariables) override;
+
+  /**
+   * Calculation and addition of the vectors of the RHS
+   */
+  void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+                                 ElementDataType& rVariables) override;
+
+  /**
    * Get element size from the dofs
    */
   unsigned int GetDofsSize() override;

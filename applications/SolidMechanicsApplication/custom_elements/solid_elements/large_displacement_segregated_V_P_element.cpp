@@ -111,6 +111,8 @@ Element::Pointer LargeDisplacementSegregatedVPElement::Clone( IndexType NewId, N
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
+    NewElement.mStepVariable = mStepVariable;
+
     return Kratos::make_shared< LargeDisplacementSegregatedVPElement >(NewElement);
 }
 

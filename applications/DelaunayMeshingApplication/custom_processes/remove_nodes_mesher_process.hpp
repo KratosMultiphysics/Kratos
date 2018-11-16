@@ -27,7 +27,7 @@
 ///VARIABLES used:
 //Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
 //StepData: MEAN_ERROR, CONTACT_FORCE
-//Flags:    (checked) TO_ERASE, BOUNDARY,  CONTACT, NEW_ENTITY, BLOCKED
+//Flags:    (checked) TO_ERASE, BOUNDARY, CONTACT, NEW_ENTITY, BLOCKED
 //          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)(set), INSIDE(nodes)(set)
 //          (modified)
 //          (reset)
@@ -114,10 +114,10 @@ class RemoveNodesMesherProcess
   {
     KRATOS_TRY
 
-        if( mEchoLevel > 0 ){
-          std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
-          //std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes().size()<<std::endl;
-        }
+    if( mEchoLevel > 0 ){
+      std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
+      //std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes().size()<<std::endl;
+    }
 
     if( mrModelPart.Name() != mrRemesh.SubModelPartName )
       std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
@@ -131,6 +131,9 @@ class RemoveNodesMesherProcess
 
     bool any_node_removed      = false;
     bool any_condition_removed = false;
+
+    //set flags for the local process execution
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{RIGID,INLET},{BLOCKED});
 
     //if the remove_node switch is activated, we check if the nodes got too close
     if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES) || (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES)) )
@@ -161,6 +164,7 @@ class RemoveNodesMesherProcess
       // REMOVE ON DISTANCE
       ////////////////////////////////////////////////////////////
 
+
       ////////////////////////////////////////////////////////////
       // REMOVE CONTACT NODES (and boundary near the contact)
       if ( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
@@ -178,8 +182,10 @@ class RemoveNodesMesherProcess
         any_condition_removed = true;
 
 
-      if(any_node_removed)
+      if(any_node_removed){
+        std::cout<<" Removed Nodes: ( error "<<any_node_removed_on_error<<" distance "<<any_node_removed_on_distance<<" conv_cond "<<any_convex_condition_removed<<" cond "<< any_condition_removed<<")"<<std::endl;
         this->CleanRemovedNodes(mrModelPart);
+      }
 
       if(any_condition_removed){
         //Clean Conditions
@@ -207,6 +213,16 @@ class RemoveNodesMesherProcess
     }
 
 
+    //check
+    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
+    {
+      if( i_node->Is(TO_ERASE) && i_node->Is(BLOCKED) )
+        std::cout<<" REMOVE NOT ALLOWED entity NODE : "<<i_node->Id()<<" "<<i_node->Coordinates()<<std::endl;
+    }
+
+    //reset flags for the local process execution
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{BLOCKED},{NOT_BLOCKED});
+
     // number of removed nodes:
     mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();
     RemovedConditions -= mrModelPart.NumberOfConditions();
@@ -224,8 +240,9 @@ class RemoveNodesMesherProcess
       std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;
     }
 
+
     KRATOS_CATCH(" ")
-        }
+  }
 
 
   ///@}
@@ -288,6 +305,7 @@ class RemoveNodesMesherProcess
   ///@}
   ///@name Protected Operations
   ///@{
+
 
   //**************************************************************************
   //**************************************************************************
@@ -366,6 +384,7 @@ class RemoveNodesMesherProcess
 
     for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
     {
+
       bool on_contact_tip = false;
       bool contact_active = false;
 
@@ -378,7 +397,7 @@ class RemoveNodesMesherProcess
       if(contact_active || in->Is(CONTACT) )
         on_contact_tip = true;
 
-      if( in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(TO_ERASE) )
+      if( in->IsNot(NEW_ENTITY) && in->IsNot(BLOCKED) && in->IsNot(TO_ERASE) )
       {
         radius = size_for_distance_inside;
 
@@ -864,7 +883,7 @@ class RemoveNodesMesherProcess
   {
     KRATOS_TRY
 
-        bool any_condition_removed = false;
+    bool any_condition_removed = false;
 
     unsigned int number_of_nodes = 0;
     if( !rModelPart.IsSubModelPart() )
@@ -891,6 +910,8 @@ class RemoveNodesMesherProcess
 
     }
 
+    //set flags for the local process execution
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{NOT_MODIFIED});
 
     //nodes
     int i=0,j=0;
@@ -907,7 +928,7 @@ class RemoveNodesMesherProcess
     for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
     {
 
-      if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) && in->Is(TO_ERASE) ){
+      if( in->Is(BOUNDARY) && in->IsNot(MODIFIED) && in->IsNot(NEW_ENTITY) && in->Is(TO_ERASE) ){
 
         unsigned int nodeId = in->Id();
 
@@ -942,8 +963,8 @@ class RemoveNodesMesherProcess
 
             Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
 
-            Node0.Set(BLOCKED);
-            Node2.Set(BLOCKED);
+            Node0.Set(MODIFIED);
+            Node2.Set(MODIFIED);
 
             //create new condition Node0-NodeB
             Condition::NodesArrayType face;
@@ -984,10 +1005,8 @@ class RemoveNodesMesherProcess
 
     }
 
-    // for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
-    // 	{
-    // 	  in->Reset(BLOCKED);
-    // 	}
+    //reset flags for the local process execution
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{NOT_MODIFIED});
 
     return any_condition_removed;
 
@@ -1041,10 +1060,10 @@ class RemoveNodesMesherProcess
 
 
     unsigned int number_of_nodes = 0;
-    if( !rModelPart.IsSubModelPart() )
-      number_of_nodes = rModelPart.NumberOfNodes()+1;
+    if(mrRemesh.InputInitializedFlag)
+      number_of_nodes = mrRemesh.NodeMaxId+1;
     else
-      number_of_nodes = rModelPart.GetParentModelPart()->NumberOfNodes()+1;
+      number_of_nodes = MesherUtilities::GetMaxNodeId(rModelPart)+1;
 
 
     std::vector<std::vector<Condition::Pointer> > node_shared_conditions(number_of_nodes); //all domain nodes
@@ -1066,6 +1085,10 @@ class RemoveNodesMesherProcess
     }
 
     //std::cout<<"     Node Shared Conditions (Pair of Condition Nodes) is now set "<<std::endl;
+
+
+    //set flags for the local process execution
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{NOT_MODIFIED});
 
 
     //vector of the neighbour conditions
@@ -1102,7 +1125,7 @@ class RemoveNodesMesherProcess
       //angles
       double condition_angle = 0;
 
-      if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) )
+      if( in->Is(BOUNDARY) && in->IsNot(MODIFIED) && in->IsNot(NEW_ENTITY) )
       {
         unsigned int nodeId = in->Id();
 
@@ -1178,8 +1201,8 @@ class RemoveNodesMesherProcess
 
               Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
 
-              Node0.Set(BLOCKED);
-              Node2.Set(BLOCKED);
+              Node0.Set(MODIFIED);
+              Node2.Set(MODIFIED);
 
               //create new condition Node0-NodeB
               Condition::NodesArrayType face;
@@ -1336,9 +1359,9 @@ class RemoveNodesMesherProcess
                 Geometry<Node<3> >& rConditionGeom3 = NewCond->GetGeometry();
                 Node<3> & NodeB = rConditionGeom3[1];
 
-                NodeA.Set(BLOCKED);
-                NodeB.Set(BLOCKED);
-                Node0.Set(BLOCKED);
+                NodeA.Set(MODIFIED);
+                NodeB.Set(MODIFIED);
+                Node0.Set(MODIFIED);
 
                 //create new condition Node0-NodeB
                 Condition::NodesArrayType face;
@@ -1380,10 +1403,8 @@ class RemoveNodesMesherProcess
       }
     }
 
-    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
-    {
-      in->Reset(BLOCKED);
-    }
+    //reset flags for the local process execution
+    mMesherUtilities.SetFlagsToNodes(mrModelPart,{MODIFIED},{NOT_MODIFIED});
 
 
     RemovedConditions = rModelPart.Conditions().size() - RemovedConditions;

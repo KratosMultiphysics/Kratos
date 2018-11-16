@@ -206,7 +206,6 @@ class MeshingStrategy(object):
 
         self.FinalizeMeshGeneration()
 
-
     #
     def SetEchoLevel(self, echo_level):
         self.echo_level = echo_level

@@ -197,7 +197,10 @@ namespace Kratos
 
       //properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-      Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
+      if(number_properties<0)
+        KRATOS_ERROR<<" number of properties is "<<number_properties<<std::endl;
+
+      Properties::Pointer properties = rModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
 
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -270,6 +273,7 @@ namespace Kratos
 
 		    //if no neighbour is present => the face is free surface
                     unsigned int rigid_nodes = 0;
+                    unsigned int inlet_nodes = 0;
                     unsigned int free_surface_nodes = 0;
                     for(unsigned int j=1; j<=NumberNodesInFace; ++j)
                     {
@@ -277,6 +281,9 @@ namespace Kratos
                       if(rModelPart.Is(FLUID)){
                         if(rElementGeometry[lpofa(j,iface)].Is(RIGID) || rElementGeometry[lpofa(j,iface)].Is(SOLID)){
                           ++rigid_nodes;
+                        }
+                        else if(rElementGeometry[lpofa(j,iface)].Is(INLET)){
+                          ++inlet_nodes;
                         }
                         else{
                           ++free_surface_nodes;
@@ -286,7 +293,7 @@ namespace Kratos
                     }
 
                     if(rModelPart.Is(FLUID)){
-                      if( (free_surface_nodes>0 && rigid_nodes>0) || rigid_nodes==0 ){
+                      if( (free_surface_nodes>0 && (rigid_nodes>0 || inlet_nodes>0)) || (rigid_nodes==0 && inlet_nodes==0) ){
                         for(unsigned int j=1; j<=NumberNodesInFace; ++j)
                         {
                           rElementGeometry[lpofa(j,iface)].Set(FREE_SURFACE,true);
@@ -309,7 +316,7 @@ namespace Kratos
 
 			  if( ic->IsNot(CONTACT) ){
 
-			    if(ic->Is(NEW_ENTITY)){
+			    if( ic->Is(NEW_ENTITY) ){
 			      inserted = false;
 			    }
 			    else{
@@ -460,7 +467,7 @@ namespace Kratos
 
 		      }
 
-		      mrModelPart.Conditions().push_back(p_cond);
+                      mrModelPart.Conditions().push_back(p_cond);
 		      // Set new conditions: end
 
 		    } //end no point condition

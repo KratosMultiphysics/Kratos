@@ -62,6 +62,17 @@ bool LinearIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
+bool LinearIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
+{
+    if(rThisVariable == DAMAGE_VARIABLE){
+        return true;
+    }
+    return false;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 bool& LinearIsotropicDamage3D::GetValue(
     const Variable<bool>& rThisVariable,
     bool& rValue

@@ -48,8 +48,8 @@ class ModelManager(object):
         self.settings["input_file_settings"].ValidateAndAssignDefaults(default_settings["input_file_settings"])
 
         # Set void model
-        self.main_model_part = self._create_main_model_part()
         self.model = self._create_model()
+        self.main_model_part = self._create_main_model_part()
 
         # Process Info
         self.process_info = self.main_model_part.ProcessInfo
@@ -127,7 +127,7 @@ class ModelManager(object):
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-            serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
+            serializer = KratosMultiphysics.FileSerializer(restart_path, serializer_flag)
             serializer.Load(self.main_model_part.Name, self.main_model_part)
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
@@ -139,29 +139,6 @@ class ModelManager(object):
             # print("   Finished loading model part from restart file ")
 
             print( self.main_model_part )
-
-            '''
-            solving_model_part = self.settings["solving_model_part"].GetString()
-            self._add_model_part_to_model(solving_model_part)
-
-            # Get the list of the model_part's in the object Model
-
-            for i in range(self.settings["domain_parts_list"].size()):
-                part_name = self.settings["domain_parts_list"][i].GetString()
-                self._add_model_part_to_model(part_name)
-
-            for i in range(self.settings["processes_parts_list"].size()):
-                part_name = self.settings["processes_parts_list"][i].GetString()
-                self._add_model_part_to_model(part_name)
-
-            solving_parts = self.settings["composite_solving_parts"]
-            for i in range(solving_parts.size()):
-                part_name = solving_parts[i]["model_part_name"].GetString()
-                self._add_model_part_to_model(part_name)
-            
-            '''
-            for part in self.main_model_part.SubModelParts:
-                self._add_model_part_to_model(part.Name)
 
             self._build_composite_solving_parts()
 
@@ -212,23 +189,19 @@ class ModelManager(object):
 
     #### Model manager internal methods ####
 
-    def _create_main_model_part(self):
-        # Defining the model_part
-        main_model_part = KratosMultiphysics.ModelPart(self.settings["model_name"].GetString())
-        return main_model_part
-
     def _create_model(self):
-        #TODO: replace this "model" for real one once available in kratos core
-        model = {self.settings["model_name"].GetString() : self.main_model_part}
+        model = KratosMultiphysics.Model()
         return model
 
-    def _add_model_part_to_model(self, part_name):
-        if( self.main_model_part.HasSubModelPart(part_name) ):
-            self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+    def _create_main_model_part(self):
+        # Defining the model_part
+        if not hasattr(self, 'model'):
+            self.model = self._create_model()
+        main_model_part = self.model.CreateModelPart(self.settings["model_name"].GetString())
+        return main_model_part
 
     def _create_sub_model_part(self, part_name):
         self.main_model_part.CreateSubModelPart(part_name)
-        self._add_model_part_to_model(part_name)
 
     def _add_variables(self):
 
@@ -239,11 +212,12 @@ class ModelManager(object):
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
         self.nodal_variables.sort()
 
+        print(" Variables :",self.nodal_variables)
+
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
 
-        print(self.nodal_variables)
         print(self._class_prefix()+" General Variables ADDED")
 
 
@@ -268,9 +242,6 @@ class ModelManager(object):
 
         # Build output model part
         #self._create_sub_model_part(self.settings["output_model_part"].GetString())
-
-        # Build model
-        self._build_model()
 
     #
     def _build_bodies(self):
@@ -404,38 +375,10 @@ class ModelManager(object):
 
     #
     def _update_composite_solving_parts(self):
+        self.current_update_time = self.process_info[KratosMultiphysics.TIME]
         print(self._class_prefix()+" Update Solving Parts")
         for transfer in self.transfer_solving_parts:
             transfer.Execute()
-    #
-    def _build_model(self):
-
-        if( self._has_bodies() ):
-            bodies_list = self.settings["bodies_list"]
-            for i in range(bodies_list.size()):
-                body_parts_name_list = bodies_list[i]["parts_list"]
-                for j in range(body_parts_name_list.size()):
-                    part_name = body_parts_name_list[j].GetString()
-                    if( self.main_model_part.HasSubModelPart(part_name) ):
-                        self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-                body_name = bodies_list[i]["body_name"].GetString()
-                self.model.update({body_name: self.main_model_part.GetSubModelPart(body_name)})
-        else:
-            # Get the list of the model_part's in the object Model
-            for i in range(self.settings["domain_parts_list"].size()):
-                part_name = self.settings["domain_parts_list"][i].GetString()
-                if( self.main_model_part.HasSubModelPart(part_name) ):
-                    self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-
-        for i in range(self.settings["processes_parts_list"].size()):
-            part_name = self.settings["processes_parts_list"][i].GetString()
-            if( self.main_model_part.HasSubModelPart(part_name) ):
-                self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-
-        for i in range(self.settings["composite_solving_parts"].size()):
-            part_name = self.settings["composite_solving_parts"][i]["model_part_name"].GetString()
-            if( self.main_model_part.HasSubModelPart(part_name) ):
-                self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
 
     #
     def _clean_body_parts(self):
@@ -456,13 +399,19 @@ class ModelManager(object):
         if not self._is_not_restarted():
             if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
                 update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
-                # print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
+                #print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
 
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+            #print(" MESHING_STEP_TIME ",self.process_info[KratosSolid.MESHING_STEP_TIME], update_time)
+
 
         if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+            #print(" CONTACT_STEP_TIME ",self.process_info[KratosSolid.CONTACT_STEP_TIME], update_time)
+
+        if update_time:
+            update_time  = not self._check_current_time_step(self.current_update_time)
 
         return update_time
     #

@@ -171,3 +171,7 @@ class DomainUtilities(object):
                             if( part.Is(KratosMultiphysics.SOLID) or part.Is(KratosMultiphysics.RIGID) ):
                                 transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,part,entity_type,transfer_flags)
                                 transfer_process.Execute()
+    #
+    def GetVariables(self):
+        nodal_variables = ['NORMAL', 'NODAL_H', 'SHRINK_FACTOR']
+        return nodal_variables
