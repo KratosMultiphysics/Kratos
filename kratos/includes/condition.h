@@ -745,6 +745,18 @@ public:
      * these methods are: OPTIONAL
      */
 
+    virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+                          std::vector<bool>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                          std::vector<int>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                           std::vector<double>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
@@ -782,6 +794,18 @@ public:
 
     //SET ON INTEGRATION POINTS - METHODS
 
+    virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                         std::vector<bool>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+                         std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
@@ -808,14 +832,20 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
+    virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                         std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
                          std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                         std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
