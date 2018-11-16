@@ -792,11 +792,8 @@ bool MPIDataCommunicator::BroadcastErrorIfTrue(bool Condition, const int SourceR
 {
     MPI_Bcast(&Condition,1,MPI_C_BOOL,SourceRank,mComm);
     const int rank = Rank();
-    if (rank != SourceRank)
-    {
-        KRATOS_ERROR_IF(Condition)
-        << "Rank " << rank << ": Stopping because of error in rank " << SourceRank << "." << std::endl;
-    }
+    KRATOS_ERROR_IF(Condition && (rank != SourceRank) )
+    << "Rank " << rank << ": Stopping because of error in rank " << SourceRank << "." << std::endl;
     return Condition;
 }
 
@@ -833,17 +830,26 @@ template<class TDataType> void MPIDataCommunicator::ValidateSendRecvInput(
     MPI_Gather(&SendDestination, 1, MPI_INT, send_ranks, 1, MPI_INT, 0, mComm);
     MPI_Gather(&RecvSource, 1, MPI_INT, recv_ranks, 1, MPI_INT, 0, mComm);
 
+    // No overflow in sent buffer.
+    std::stringstream message;
+    bool failed = false;
     if (rank == 0)
     {
         for (int i = 0; i < size; i++)
         {
-            KRATOS_ERROR_IF(BroadcastErrorIfTrue(i != recv_ranks[send_ranks[i]], 0))
-            << "Input error in call to MPI_Sendrecv: "
-            << "Rank " << i << " is sending a message to rank " << send_ranks[i]
-            << " but rank " << send_ranks[i] << " expects a message from rank "
-            << recv_ranks[send_ranks[i]] << "." << std::endl;
+            if(i != recv_ranks[send_ranks[i]])
+            {
+                message
+                << "Input error in call to MPI_Sendrecv: "
+                << "Rank " << i << " is sending a message to rank " << send_ranks[i]
+                << " but rank " << send_ranks[i] << " expects a message from rank "
+                << recv_ranks[send_ranks[i]] << "." << std::endl;
+                failed = true;
+                break;
+            }
         }
     }
+    KRATOS_ERROR_IF(BroadcastErrorIfTrue(failed, 0)) << message.str();
 
     // Check that message sizes match
     const int send_tag = 0;
@@ -884,15 +890,22 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
     << " values are expected in total across all ranks." << std::endl;
 
     // No overflow in sent buffer.
+    std::stringstream message;
+    bool failed = false;
     if (Rank() == SourceRank)
     {
         for (int i = 0; i < Size(); i++)
         {
-            KRATOS_ERROR_IF(BroadcastErrorIfTrue(rSendOffsets[i]+rSendCounts[i] >= message_size, SourceRank))
-            << "Input error in call to MPI_Scatterv for rank " << SourceRank << ": "
-            << "Reading past sent message end when sending message for rank " << i << "." << std::endl;
+            if(rSendOffsets[i]+rSendCounts[i] >= message_size) {
+                message
+                << "Input error in call to MPI_Scatterv for rank " << SourceRank << ": "
+                << "Reading past sent message end when sending message for rank " << i << "." << std::endl;
+                failed = true;
+                break;
+            }
         }
     }
+    KRATOS_ERROR_IF(BroadcastErrorIfTrue(failed, SourceRank)) << message.str();
 }
 
 template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
@@ -920,15 +933,22 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
     << expected_message_size << " values are expected in rank " << RecvRank << "." << std::endl;
 
     // No overflow in recv buffer.
+    std::stringstream message;
+    bool failed = false;
     if (Rank() == RecvRank)
     {
         for (int i = 0; i < Size(); i++)
         {
-            KRATOS_ERROR_IF(BroadcastErrorIfTrue(rRecvOffsets[i]+rRecvCounts[i] >= expected_message_size, RecvRank))
-            << "Input error in call to MPI_Gatherv for rank " << RecvRank << ": "
-            << "Writting past buffer end when sending message for rank " << i << "." << std::endl;
+            if (rRecvOffsets[i]+rRecvCounts[i] >= expected_message_size) {
+                message
+                << "Input error in call to MPI_Gatherv for rank " << RecvRank << ": "
+                << "Writting past buffer end when sending message for rank " << i << "." << std::endl;
+                failed = true;
+                break;
+            }
         }
     }
+    KRATOS_ERROR_IF(BroadcastErrorIfTrue(failed, RecvRank)) << message.str();
 }
 
 }
