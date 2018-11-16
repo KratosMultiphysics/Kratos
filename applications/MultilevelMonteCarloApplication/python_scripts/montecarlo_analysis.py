@@ -188,7 +188,7 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "../tests/Level2/ProjectParameters.json"
+        parameter_file_name = "../tests/Level0/ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -208,18 +208,18 @@ if __name__ == '__main__':
     serialized_parameters = KratosMultiphysics.StreamSerializer()
     serialized_parameters.Save("ParametersSerialization",standard_montecarlo_analyis.project_parameters)
 
-    stop
+    stop    
 
     number_samples = 10
     Qlist = []
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
-    # ExactExpectedValueQoI = exact_execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
-    sample = 1.0
-    simulation = MonteCarloAnalysis(serialized_model,serialized_parameters, sample)
-    simulation.Run()
-    QoI =  EvaluateQuantityOfInterest(simulation)
-    ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
+    ExactExpectedValueQoI = exact_execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
+    # sample = 1.0
+    # simulation = MonteCarloAnalysis(serialized_model,serialized_parameters, sample)
+    # simulation.Run()
+    # QoI =  EvaluateQuantityOfInterest(simulation)
+    # ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
 
     for instance in range (0,number_samples):
         Qlist.append(execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name))
