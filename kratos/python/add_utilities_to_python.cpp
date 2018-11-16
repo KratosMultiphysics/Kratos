@@ -55,10 +55,11 @@
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
+#include "utilities/sensitivity_builder.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos {
 namespace Python {
-
 /**
  * @brief Sets the current table utility on the process info
  * @param rCurrentProcessInfo The process info
@@ -71,6 +72,85 @@ void SetOnProcessInfo(
     rCurrentProcessInfo[TABLE_UTILITY] = pTable;
 }
 
+// Auxiliar ModelPart Utility
+void ModelPartRemoveElementAndBelongings1(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag)
+{
+    rAuxiliarModelPartUtilities.RemoveElementAndBelongings(ElementId, IdentifierFlag);
+}
+void ModelPartRemoveElementAndBelongings2(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rAuxiliarModelPartUtilities.RemoveElementAndBelongings(ElementId, IdentifierFlag, ThisIndex);
+}
+void ModelPartRemoveElementAndBelongings3(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag)
+{
+    rAuxiliarModelPartUtilities.RemoveElementAndBelongings(pThisElement, IdentifierFlag);
+}
+
+void ModelPartRemoveElementAndBelongings4(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rAuxiliarModelPartUtilities.RemoveElementAndBelongings(pThisElement, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveElementAndBelongingsFromAllLevels1(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag)
+{
+    rAuxiliarModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(ElementId, IdentifierFlag);
+}
+
+void ModelPartRemoveElementAndBelongingsFromAllLevels2(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ElementId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rAuxiliarModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(ElementId, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveElementAndBelongingsFromAllLevels3(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag)
+{
+    rAuxiliarModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(pThisElement, IdentifierFlag);
+}
+
+void ModelPartRemoveElementAndBelongingsFromAllLevels4(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ElementType::Pointer pThisElement, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rAuxiliarModelPartUtilities.RemoveElementAndBelongingsFromAllLevels(pThisElement, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveConditionAndBelongings1(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag)
+{
+    rAuxiliarModelPartUtilities.RemoveConditionAndBelongings(ConditionId, IdentifierFlag);
+}
+
+void ModelPartRemoveConditionAndBelongings2(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rAuxiliarModelPartUtilities.RemoveConditionAndBelongings(ConditionId, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveConditionAndBelongings3(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag)
+{
+    rAuxiliarModelPartUtilities.RemoveConditionAndBelongings(pThisCondition, IdentifierFlag);
+}
+
+void ModelPartRemoveConditionAndBelongings4(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rAuxiliarModelPartUtilities.RemoveConditionAndBelongings(pThisCondition, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveConditionAndBelongingsFromAllLevels1(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag)
+{
+    rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(ConditionId, IdentifierFlag);
+}
+
+void ModelPartRemoveConditionAndBelongingsFromAllLevels2(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::IndexType ConditionId, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(ConditionId, IdentifierFlag, ThisIndex);
+}
+
+void ModelPartRemoveConditionAndBelongingsFromAllLevels3(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag)
+{
+    rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag);
+}
+
+void ModelPartRemoveConditionAndBelongingsFromAllLevels4(AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex)
+{
+    rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);
+}
+  
 void AddUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -571,8 +651,10 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
-        .def(py::init<Parameters, Model&>())
-        ;
+    .def(py::init<Model&>())
+    .def(py::init<Parameters, Model&>())
+    .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
+    ;
 
     // SubModelParts List Utility
     py::class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
@@ -615,6 +697,36 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
         ;
 
+    py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
+        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
+        .def("Initialize", &SensitivityBuilder::Initialize)
+        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
+
+    // Auxiliar ModelPart Utility
+
+    py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
+    .def(py::init<ModelPart&>())
+    .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings1)
+    .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings2)
+    .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings3)
+    .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings4)
+    .def("RemoveElementsAndBelongings", &Kratos::AuxiliarModelPartUtilities::RemoveElementsAndBelongings)
+    .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels1)
+    .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels2)
+    .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels3)
+    .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels4)
+    .def("RemoveElementsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels)
+    .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings1)
+    .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings2)
+    .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings3)
+    .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings4)
+    .def("RemoveConditionsAndBelongings", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongings)
+    .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels1)
+    .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels2)
+    .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels3)
+    .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels4)
+    .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
+    ;
 }
 
 } // namespace Python.
