@@ -1,9 +1,9 @@
-//  KratosAdjointFluidApplication
+//  KratosFluidDynamicsApplication
 //
 //  License:		 BSD License
-//					 license: AdjointFluidApplication/license.txt
+//					 license: FluidDynamicsApplication/license.txt
 //
-//  Main authors:    Michael Andre, https://github.com/msandre
+//  Main authors:    
 //
 
 #if !defined(KRATOS_CUSTOM_RESPONSE_FUNCTIONS_PYTHON_H_INCLUDED)
