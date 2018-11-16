@@ -44,7 +44,8 @@ typedef  ModelPart::ConditionType                                ConditionType;
 typedef  ModelPart::NodesContainerType                      NodesContainerType;
 typedef  ModelPart::ElementsContainerType                ElementsContainerType;
 typedef  ModelPart::ConditionsContainerType            ConditionsContainerType;
-typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
+typedef  ConditionType::GeometryType                              GeometryType;
+typedef  GeometryType::PointsArrayType                         PointsArrayType;
 
 typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
 typedef ConditionsContainerType::iterator                    ConditionIterator;
@@ -534,7 +535,6 @@ class SettleModelStructureProcess
 
         for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
         {
-
           if( i_cond->IsNot(TO_ERASE) ){
             i_cond->Set(TO_REFINE,false);  //reset if was labeled to refine (to not duplicate boundary conditions)
             rPreservedConditions.push_back(*(i_cond.base()));
@@ -647,7 +647,7 @@ class SettleModelStructureProcess
             }
 
             if(list_of_neighbour_nodes.size() == 0){
-              std::cout << "Warning: New Node["<<NodeId<<"] does not have any new neighbour" << std::endl;
+              //std::cout << "Warning: New Node["<<NodeId<<"] does not have any new neighbour" << std::endl;
               // aqui falta un continue o algu ( no un break)
               continue;
             }
@@ -894,9 +894,20 @@ class SettleModelStructureProcess
             (rComputingModelPart.Conditions()).push_back(*(i_cond.base()));
           }
 
-          for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
-          {
-            (rComputingModelPart.Elements()).push_back(*(i_elem.base()));
+          if(i_mp->Is(RIGID)){
+
+            for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
+            {
+              if( this->CheckRigidElementSize(*i_elem) )
+                (rComputingModelPart.Elements()).push_back(*(i_elem.base()));
+            }
+          }
+          else{
+
+            for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
+            {
+              (rComputingModelPart.Elements()).push_back(*(i_elem.base()));
+            }
           }
 
         }
@@ -954,6 +965,55 @@ class SettleModelStructureProcess
     }
 
     KRATOS_CATCH(" ")
+  }
+
+  //**************************************************************************
+  //**************************************************************************
+
+  virtual bool CheckRigidElementSize(Element& rElement)
+  {
+    KRATOS_TRY
+
+    GeometryType& rElementGeometry = rElement.GetGeometry();
+
+    unsigned int rigid = 0;
+    unsigned int moving = 0;
+    for(unsigned int i=0; i<rElementGeometry.size(); ++i)
+    {
+      if(rElementGeometry[i].Is(RIGID)){
+        ++rigid;
+        array_1d<double,3>& movement = rElementGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+        for(unsigned int j=0; j<3; ++j){
+          if( movement[j] != 0 )
+            ++moving;
+        }
+      }
+    }
+
+    if( moving > 0 && rigid == rElementGeometry.size() ){
+      double CurrentSize = rElementGeometry.DomainSize();
+      std::vector<array_1d<double, 3> > CurrentCoordinates;
+      for(unsigned int i=0; i<rigid; ++i)
+      {
+        CurrentCoordinates.push_back(rElementGeometry[i].Coordinates());
+        rElementGeometry[i].Coordinates() = rElementGeometry[i].GetInitialPosition();
+      }
+
+      double OriginalSize = rElementGeometry.DomainSize();
+      for(unsigned int i=0; i<rigid; ++i)
+      {
+        rElementGeometry[i].Coordinates() = CurrentCoordinates[i];
+      }
+
+      if( (CurrentSize > OriginalSize + 1e-3*OriginalSize) || (CurrentSize < OriginalSize - 1e-3*OriginalSize) ){
+        //rElement.Set(TO_ERASE);
+        return false;
+      }
+    }
+
+    return true;
+
+    KRATOS_CATCH( "" )
   }
 
 

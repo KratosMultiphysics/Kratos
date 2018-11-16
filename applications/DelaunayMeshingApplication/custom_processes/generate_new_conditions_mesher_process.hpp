@@ -316,7 +316,7 @@ namespace Kratos
 
 			  if( ic->IsNot(CONTACT) ){
 
-			    if(ic->Is(NEW_ENTITY)){
+			    if( ic->Is(NEW_ENTITY) ){
 			      inserted = false;
 			    }
 			    else{
@@ -467,7 +467,7 @@ namespace Kratos
 
 		      }
 
-		      mrModelPart.Conditions().push_back(p_cond);
+                      mrModelPart.Conditions().push_back(p_cond);
 		      // Set new conditions: end
 
 		    } //end no point condition

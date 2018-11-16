@@ -132,6 +132,29 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
+  void MesherUtilities::SetFlagsToNodes(ModelPart& rModelPart, const std::vector<Flags> rControlFlags, const std::vector<Flags> rAssignFlags)
+  {
+    const int nnodes = rModelPart.Nodes().size();
+    ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; i++)
+    {
+      ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+      for(unsigned int i = 0; i<rControlFlags.size(); i++)
+      {
+        if( it->Is(rControlFlags[i]) ){
+          for(unsigned int i = 0; i<rAssignFlags.size(); i++)
+            it->Set(rAssignFlags[i]);
+        }
+      }
+    }
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
   bool MesherUtilities::CheckSubdomain(Geometry<Node<3> >& rGeometry)
   {
 
@@ -215,7 +238,7 @@ namespace Kratos
       }
 
 
-    if(RigidNodes == size)
+    if(RigidNodes >= size)
     {
 
       //Baricenter
@@ -243,7 +266,7 @@ namespace Kratos
       double tolerance = 0.05;
       int numouter     = 0;
 
-
+      int numnodes = 0;
       for(unsigned int i = 0; i < size; ++i)
       {
         if(rGeometry[i].Is(RIGID)){
@@ -265,13 +288,20 @@ namespace Kratos
 
           if( projection > tolerance )
           {
-            numouter++;
+            ++numouter;
           }
+          ++numnodes;
         }
       }
 
-      if( numouter > 0 )
-        outer = true;
+      if(RigidNodes == size){
+        if(numouter > 0)
+          outer = true;
+      }
+      else if(RigidNodes == size-1){
+        if(numouter = numouter )
+          outer = true;
+      }
 
     }
 
