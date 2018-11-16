@@ -15,9 +15,6 @@ import KratosMultiphysics.MonteCarloApplication as KratosMC
 # Importing the base class
 from analysis_stage import AnalysisStage
 
-# Importing serializer
-# import test_model
-
 # Import pycompss
 from pycompss.api.task import task
 from pycompss.api.api import compss_wait_on
@@ -189,7 +186,7 @@ if __name__ == '__main__':
         parameter_file_name = argv[1]
     else: # using default name
         parameter_file_name = "../tests/Level0/ProjectParameters.json"
-
+        
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
