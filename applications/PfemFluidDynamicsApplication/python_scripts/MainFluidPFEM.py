@@ -353,14 +353,33 @@ class Solution(object):
                 self.post_process_model_part.Nodes.clear()
                 for node in self.main_model_part.Nodes:
                     self.post_process_model_part.AddNode(node, 0)
+
+                elements_to_be_added = []
                 for smp in self.main_model_part.SubModelParts:
                     for elem in smp.Elements:
-                        elem.Set(KratosMultiphysics.ACTIVE, True)
-                        self.post_process_model_part.AddElement(elem, 0)
+                        if self.main_model_part.GetMesh(0).HasElement(elem.Id):
+                            if self.main_model_part.GetElement(elem.Id).GetGeometry() == elem.GetGeometry():
+                                self.post_process_model_part.AddElement(elem, 0)
+                            else:
+                                elements_to_be_added.append(elem)
+                        else:
+                            elements_to_be_added.append(elem)
 
+                max_id = 1
+                for elem in self.post_process_model_part.Elements:
+                    max_id = max(max_id, elem.Id)
+
+                for elem in elements_to_be_added:
+                    max_id += 1
+                    elem.Id = max_id
+                    elem.Set(KratosMultiphysics.ACTIVE, True)
+                    self.post_process_model_part.AddElement(elem, 0)
+
+                print("")
                 print("**********************************************************")
                 print("---> Print Output at [STEP:",self.step," TIME:",self.time," DT:",self.delta_time,"]")
                 print("**********************************************************")
+                print("")
                 self.graphical_output.PrintOutput()
 
     def GraphicalOutputExecuteFinalize(self):
