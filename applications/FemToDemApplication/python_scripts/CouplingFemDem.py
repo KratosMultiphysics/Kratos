@@ -636,6 +636,8 @@ class FEMDEM_Solution:
 
         FEM_Elements = self.FEM_Solution.main_model_part.Elements
         FEM_Nodes    = self.FEM_Solution.main_model_part.Nodes
+        erased_nodes_id = []
+        conditions_to_erase_id = []
 
         for node in FEM_Nodes:
             node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
@@ -664,6 +666,15 @@ class FEMDEM_Solution:
                 DEMnode = self.SpheresModelPart.GetNode(Id)
                 DEMnode.SetValue(KratosFemDem.INACTIVE_NODE, True)
                 DEMnode.Set(KratosMultiphysics.TO_ERASE, True)
+                erased_nodes_id.append(Id)
+
+                for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
+                    if condition.GetNodes()[0].Id == Id:
+                        conditions_to_erase_id.append(condition.Id)
+
+        # let's remove the nodal dem conditions according to inactive nodes
+        for Id in conditions_to_erase_id:
+            self.FEM_Solution.main_model_part.RemoveCondition(Id)
 
         # Remove inactive nodes
         self.SpheresModelPart.RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
