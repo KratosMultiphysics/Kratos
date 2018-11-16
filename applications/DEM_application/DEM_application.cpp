@@ -35,6 +35,7 @@
 #include "custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
+#include "custom_constitutive/DEM_KDEM_CamClay_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
@@ -73,6 +74,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TABLE_NUMBER_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TABLE_NUMBER_ANGULAR_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TABLE_NUMBER_FORCE)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TABLE_NUMBER_MOMENT)
+KRATOS_CREATE_VARIABLE(int, TABLE_NUMBER) // JIG: To erase (1 January 2019)
 KRATOS_CREATE_VARIABLE(int, TOP)
 KRATOS_CREATE_VARIABLE(int, BOTTOM)
 KRATOS_CREATE_VARIABLE(int, BOUNDING_BOX_OPTION)
@@ -80,6 +82,7 @@ KRATOS_CREATE_VARIABLE(int, ROTATION_OPTION)
 KRATOS_CREATE_VARIABLE(int, CRITICAL_TIME_OPTION)
 KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_OPTION)
 KRATOS_CREATE_VARIABLE(int, SEARCH_CONTROL)
+KRATOS_CREATE_VARIABLE(bool, IS_TIME_TO_PRINT)
 KRATOS_CREATE_VARIABLE(double, COORDINATION_NUMBER)
 KRATOS_CREATE_VARIABLE(double, MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS)
 KRATOS_CREATE_VARIABLE(DenseVector<int>, SEARCH_CONTROL_VECTOR)
@@ -134,6 +137,8 @@ KRATOS_CREATE_VARIABLE(double, PARTICLE_COHESION)
 KRATOS_CREATE_VARIABLE(int, IF_BOUNDARY_ELEMENT)
 KRATOS_CREATE_VARIABLE(Vector, IF_BOUNDARY_FACE)
 KRATOS_CREATE_VARIABLE(DenseVector<int>, PARTICLE_CONTACT_FAILURE_ID)
+KRATOS_CREATE_VARIABLE(double, DEM_PRECONSOLIDATION_PRESSURE)
+KRATOS_CREATE_VARIABLE(double, DEM_M_CAMCLAY_SLOPE)
 
 // *************** Continuum only END ***************
 KRATOS_CREATE_VARIABLE(std::vector<Condition*>, WALL_POINT_CONDITION_POINTERS)
@@ -434,7 +439,7 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
 
-// Explicit instantiation of composed constituive laws
+// Explicit instantiation of composed constitutive laws
 template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
 template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
 template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
@@ -481,6 +486,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TABLE_NUMBER_ANGULAR_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TABLE_NUMBER_FORCE)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TABLE_NUMBER_MOMENT)
+    KRATOS_REGISTER_VARIABLE(TABLE_NUMBER) // JIG: To erase (1 January 2019)
     KRATOS_REGISTER_VARIABLE(SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION)
     KRATOS_REGISTER_VARIABLE(POISSON_EFFECT_OPTION)
     KRATOS_REGISTER_VARIABLE(ROLLING_FRICTION_OPTION)
@@ -489,6 +495,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(CRITICAL_TIME_OPTION)
     KRATOS_REGISTER_VARIABLE(VIRTUAL_MASS_OPTION)
     KRATOS_REGISTER_VARIABLE(SEARCH_CONTROL)
+    KRATOS_REGISTER_VARIABLE(IS_TIME_TO_PRINT)
     KRATOS_REGISTER_VARIABLE(COORDINATION_NUMBER)
     KRATOS_REGISTER_VARIABLE(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS)
     KRATOS_REGISTER_VARIABLE(SEARCH_CONTROL_VECTOR)
@@ -540,6 +547,8 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(IF_BOUNDARY_FACE)
     KRATOS_REGISTER_VARIABLE(PARTICLE_CONTACT_FAILURE_ID)
     KRATOS_REGISTER_VARIABLE(EXPORT_PARTICLE_FAILURE_ID)
+    KRATOS_REGISTER_VARIABLE(DEM_PRECONSOLIDATION_PRESSURE)
+    KRATOS_REGISTER_VARIABLE(DEM_M_CAMCLAY_SLOPE)
     // *************** Continuum only END ***************
 
     // MATERIAL PARAMETERS
@@ -845,6 +854,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_KDEM", DEM_KDEM());
     Serializer::Register("DEM_KDEMFabric", DEM_KDEMFabric());
     Serializer::Register("DEM_KDEM_Rankine", DEM_KDEM_Rankine());
+    Serializer::Register("DEM_KDEM_CamClay", DEM_KDEM_CamClay());
     Serializer::Register("DEM_Dempack_torque", DEM_Dempack_torque());
     Serializer::Register("DEM_Dempack_dev", DEM_Dempack_dev());
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());

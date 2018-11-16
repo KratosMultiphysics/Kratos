@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos Core, Applications and Dependencies
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as ParticleMechanicsApplication
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Importing the solvers (if available)
 try:
@@ -91,7 +91,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
         ## Solver construction
         import python_solvers_wrapper_particle
         return python_solvers_wrapper_particle.CreateSolver(self.model, self.project_parameters)
-    
+
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes"""
         list_of_processes = super(ParticleMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
