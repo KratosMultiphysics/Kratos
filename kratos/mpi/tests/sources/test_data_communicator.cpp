@@ -822,6 +822,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastVector, KratosMPICoreFastSuit
         KRATOS_CHECK_EQUAL(send_buffer_int[i], 1);
         KRATOS_CHECK_EQUAL(send_buffer_double[i], 2.0);
     }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has a different size
+        if (world_rank == 0)
+        {
+            send_buffer_int.resize(3);
+            send_buffer_int = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send_buffer_int, send_rank),"Input error in call to MPI_Bcast");
+    }
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatter, KratosMPICoreFastSuite)
@@ -866,6 +879,22 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatter, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(recv_buffer_int[i], 1);
         KRATOS_CHECK_EQUAL(recv_buffer_double[i], 2.0);
     }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has a different size
+        if (world_rank == 0)
+        {
+            send_buffer_int.resize(3);
+            send_buffer_int = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer_int, recv_buffer_int, send_rank),"Error");
+    }
+    // send rank has wrong size
+    send_buffer_double.push_back(0.0);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer_double, recv_buffer_double, send_rank),"Error");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterv, KratosMPICoreFastSuite)
@@ -933,6 +962,38 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterv, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(recv_buffer_int[i], world_rank);
         KRATOS_CHECK_EQUAL(recv_buffer_double[i], 2.0*world_rank);
     }
+
+    #ifdef KRATOS_DEBUG
+    // send sizes do not match
+    std::vector<int> wrong_send_sizes = send_sizes;
+    if (world_rank == send_rank) {
+        wrong_send_sizes[0] += 1;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer_int, wrong_send_sizes, send_offsets, recv_buffer_int, send_rank),
+        "Error");
+
+    // sent message is too large
+    std::vector<int> wrong_recv_message;
+    if (world_rank == send_rank)
+    {
+        wrong_recv_message.resize(recv_buffer_int.size()-1);
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer_int, send_sizes, send_offsets, wrong_recv_message, send_rank),
+        "Error");
+    
+    // sent offsets overflow
+    std::vector<int> wrong_send_offsets = send_offsets;
+    if (world_rank == send_rank)
+    {
+        wrong_send_offsets[world_rank - 1] += 5;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer_int, send_sizes, wrong_send_offsets, recv_buffer_int, send_rank),
+        "Error");
+
+    #endif
 }
 
 
@@ -983,6 +1044,22 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGather, KratosMPICoreFastSuite)
             }
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has a different size
+        if (world_rank == 0)
+        {
+            send_buffer_int.resize(3);
+            send_buffer_int = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer_int, recv_buffer_int, recv_rank),"Error");
+    }
+    // recv rank has wrong size
+    recv_buffer_double.push_back(0.0);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer_double, recv_buffer_double, recv_rank),"Error");
+    #endif
 }
 
 
@@ -1066,6 +1143,39 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherv, KratosMPICoreFastSuite)
 
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    // recv sizes do not match
+    std::vector<int> wrong_recv_sizes = recv_sizes;
+    if (world_rank == recv_rank) {
+        wrong_recv_sizes[0] += 1;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Gatherv(
+            send_buffer_int, recv_buffer_int, wrong_recv_sizes, recv_offsets, recv_rank),
+            "Error");
+
+    // recv message is too small
+    std::vector<int> wrong_recv_message;
+    if (world_rank == recv_size)
+    {
+        wrong_recv_message.resize(recv_buffer_int.size()-1);
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Gatherv(send_buffer_int, wrong_recv_message, recv_sizes, recv_offsets, recv_rank),
+        "Error");
+    
+    // sent offsets overflow
+    std::vector<int> wrong_recv_offsets = recv_offsets;
+    if (world_rank == recv_rank)
+    {
+        wrong_recv_offsets[world_rank - 1] += 5;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Gatherv(send_buffer_int, recv_buffer_int, recv_sizes, wrong_recv_offsets, recv_rank),
+        "Error");
+
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGather, KratosMPICoreFastSuite)
@@ -1102,6 +1212,23 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGather, KratosMPICoreFastSuite)
             KRATOS_CHECK_EQUAL(recv_buffer_double[j], 2.0*rank);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has a different size
+        send_buffer_int.resize(3);
+        send_buffer_int = {1,2,3};
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            mpi_world_communicator.AllGather(send_buffer_int, recv_buffer_int),
+            "Input error in call to MPI_Allgather");
+    }
+    // recv rank has wrong size
+    recv_buffer_double.push_back(0.0);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.AllGather(send_buffer_double, recv_buffer_double),
+        "Input error in call to MPI_Allgather");
+    #endif
 }
 
 }
