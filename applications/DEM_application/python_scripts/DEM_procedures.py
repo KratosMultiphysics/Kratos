@@ -1252,7 +1252,6 @@ class PreUtils(object):
     def __init__(self):
         pass
 
-
 class MaterialTest(object):
 
     def __init__(self):

@@ -55,6 +55,7 @@
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
+#include "utilities/sensitivity_builder.h"
 #include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos {
@@ -650,8 +651,10 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     // Read materials utility
     py::class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
-        .def(py::init<Parameters, Model&>())
-        ;
+    .def(py::init<Model&>())
+    .def(py::init<Parameters, Model&>())
+    .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
+    ;
 
     // SubModelParts List Utility
     py::class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
@@ -693,6 +696,11 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def_static("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
         .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
         ;
+
+    py::class_<SensitivityBuilder>(m, "SensitivityBuilder")
+        .def(py::init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
+        .def("Initialize", &SensitivityBuilder::Initialize)
+        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
 
     // Auxiliar ModelPart Utility
 
