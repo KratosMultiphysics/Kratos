@@ -152,6 +152,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumVector, KratosMPICoreFastSuite)
             KRATOS_CHECK_EQUAL(reduced_double_vector[i], 2.0*world_size);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    // One of the inputs has a different size
+    if (world_size > 1)
+    {
+        if (world_rank == 0) {
+            local_int_vector.resize(3);
+            local_int_vector = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local_int_vector, reduced_int_vector, root),"Input error in call to MPI_Reduce");
+    }
+    // Input size != output size
+    std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local_vector_wrong_size, reduced_int_vector, root),"Error:");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMin, KratosMPICoreFastSuite)
@@ -235,6 +250,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinVector, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(reduced_double_vector[0], 0.0);
         KRATOS_CHECK_EQUAL(reduced_double_vector[1], 2.0*(1-world_size));
     }
+
+    #ifdef KRATOS_DEBUG
+    // One of the inputs has a different size
+    if (world_size > 1)
+    {
+        if (world_rank == 0) {
+            local_int_vector.resize(3);
+            local_int_vector = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local_int_vector, reduced_int_vector, root),"Input error in call to MPI_Reduce");
+    }
+    // Input size != output size
+    std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local_vector_wrong_size, reduced_int_vector, root),"Error:");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMax, KratosMPICoreFastSuite)
@@ -318,6 +348,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxVector, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(reduced_double_vector[0], 2.0*(world_size-1));
         KRATOS_CHECK_EQUAL(reduced_double_vector[1], 0.0);
     }
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (world_rank == 0) {
+            local_int_vector.resize(3);
+            local_int_vector = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local_int_vector, reduced_int_vector, root),"Input error in call to MPI_Reduce");
+    }
+    // Input size != output size
+    std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local_vector_wrong_size, reduced_int_vector, root),"Error:");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAll, KratosMPICoreFastSuite)
@@ -389,6 +434,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllVector, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(reduced_int_vector[i], world_size);
         KRATOS_CHECK_EQUAL(reduced_double_vector[i], 2.0*world_size);
     }
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local_int_vector.resize(3);
+            local_int_vector = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_int_vector, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAll, KratosMPICoreFastSuite)
@@ -460,6 +520,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllVector, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(reduced_int_vector[1], 1-world_size);
     KRATOS_CHECK_EQUAL(reduced_double_vector[0], 0.0);
     KRATOS_CHECK_EQUAL(reduced_double_vector[1], 2.0*(1-world_size));
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local_int_vector.resize(3);
+            local_int_vector = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_int_vector, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAll, KratosMPICoreFastSuite)
@@ -532,6 +607,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllVector, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(reduced_int_vector[1], 0);
     KRATOS_CHECK_EQUAL(reduced_double_vector[0], 2.0*(world_size-1));
     KRATOS_CHECK_EQUAL(reduced_double_vector[1], 0.0);
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local_int_vector.resize(3);
+            local_int_vector = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_int_vector, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSum, KratosMPICoreFastSuite)
@@ -584,6 +674,21 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumVector, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(partial_sum_int[i], mpi_world_rank + 1);
         KRATOS_CHECK_EQUAL(partial_sum_double[i], 2.0*(mpi_world_rank + 1));
     }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_rank == 0) {
+            local_total_int.resize(3);
+            local_total_int = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total_int, partial_sum_int),"Input error in call to MPI_Scan");
+    }
+    // Input size != output size
+    std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum_int),"Input error in call to MPI_Scan");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
@@ -623,6 +728,22 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
             KRATOS_CHECK_EQUAL(recv_buffer_double[i], expected_recv_double);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has the wrong source/destination
+        int wrong_send_rank = send_rank;
+        if (mpi_world_communicator.Rank() == 0) {
+            wrong_send_rank = 2;
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer_int, wrong_send_rank, recv_buffer_int, recv_rank),"Error:");
+
+        // Input size != output size
+        std::vector<int> local_vector_wrong_size{1,2,3};
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_vector_wrong_size, send_rank, recv_buffer_int, recv_rank),"Input error in call to MPI_Sendrecv");
+    }
+    #endif
 }
 
 
