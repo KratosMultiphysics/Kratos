@@ -1439,7 +1439,7 @@ class DEMIo(object):
     def OpenMultiFileLists(self):
         one_level_up_path = os.path.join(self.post_path, "..")
         self.multifiles = (
-            #MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
+            MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
             MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
             MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
             MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
