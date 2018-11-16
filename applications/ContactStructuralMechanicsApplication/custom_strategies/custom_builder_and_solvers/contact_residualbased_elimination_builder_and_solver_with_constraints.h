@@ -256,13 +256,28 @@ protected:
 
                     DofPointerVectorType slave_dofs, master_dofs;
                     bool create_lm_constraint = false;
+
+                    // We check if we have SLAVE nodes in the master dofs
+                    bool slave_nodes_master_dof = false;
+                    // Master DoFs
+                    for (auto& p_dof : second_dof_list) {
+                        if (IsDisplacementDof(*p_dof)) {
+                            const IndexType node_id = p_dof->Id();
+                            auto pnode = rModelPart.pGetNode(node_id);
+                            if (pnode->Is(SLAVE)) { // The nodes computing contact are the slave nodes
+                                slave_nodes_master_dof = true;
+                                break;
+                            }
+                        }
+                    }
+
                     // Slave DoFs
                     for (auto& p_dof : dof_list) {
                         if (IsDisplacementDof(*p_dof)) {
                             const IndexType node_id = p_dof->Id();
                             const auto& r_variable = p_dof->GetVariable();
                             auto pnode = rModelPart.pGetNode(node_id);
-                            if (pnode->IsNot(INTERFACE)) { // Nodes from the contact interface cannot be slave DoFs
+                            if (pnode->IsNot(INTERFACE) || slave_nodes_master_dof) { // Nodes from the contact interface cannot be slave DoFs
                                 if (r_variable == DISPLACEMENT_X) {
                                     slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
                                 } else if (r_variable == DISPLACEMENT_Y) {
@@ -276,12 +291,12 @@ protected:
                         }
                     }
                     // Master DoFs
-                    for (auto& p_dof : second_dof_list) {
-                        if (IsDisplacementDof(*p_dof)) {
-                            const IndexType node_id = p_dof->Id();
-                            const auto& r_variable = p_dof->GetVariable();
-                            auto pnode = rModelPart.pGetNode(node_id);
-                            if (pnode->Is(SLAVE)) { // The nodes computing contact are the slave nodes
+                    if (slave_nodes_master_dof) { // The nodes computing contact are the slave nodes
+                        for (auto& p_dof : second_dof_list) {
+                            if (IsDisplacementDof(*p_dof)) {
+                                const IndexType node_id = p_dof->Id();
+                                const auto& r_variable = p_dof->GetVariable();
+                                auto pnode = rModelPart.pGetNode(node_id);
                                 if (r_variable == DISPLACEMENT_X) {
                                     master_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
                                 } else if (r_variable == DISPLACEMENT_Y) {
