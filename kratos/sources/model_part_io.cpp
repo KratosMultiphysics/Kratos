@@ -472,13 +472,13 @@ namespace Kratos
                 if (mOptions.IsNot(IO::MESH_ONLY)) {
                     ReadModelPartDataBlock(rThisModelPart);
                 } else {
-                    EndSection("ModelPartData");
+                    SkipBlock("ModelPartData");
                 }
             } else if(word == "Table") {
                 if (mOptions.IsNot(IO::MESH_ONLY)) {
                     ReadTableBlock(rThisModelPart.Tables());
                 } else {
-                    EndSection("Table");
+                    SkipBlock("Table");
                 }
             } else if(word == "Properties") {
                 ReadPropertiesBlock(rThisModelPart.rProperties());
@@ -492,19 +492,19 @@ namespace Kratos
                 if (mOptions.IsNot(IO::MESH_ONLY)) {
                     ReadNodalDataBlock(rThisModelPart);
                 } else {
-                    EndSection("NodalData");
+                    SkipBlock("NodalData");
                 }
             } else if(word == "ElementalData") {
                 if (mOptions.IsNot(IO::MESH_ONLY)) {
                     ReadElementalDataBlock(rThisModelPart.Elements());
                 } else {
-                    EndSection("ElementalData");
+                    SkipBlock("ElementalData");
                 }
             } else if (word == "ConditionalData") {
                 if (mOptions.IsNot(IO::MESH_ONLY)) {
                     ReadConditionalDataBlock(rThisModelPart.Conditions());
                 } else {
-                    EndSection("ConditionalData");
+                    SkipBlock("ConditionalData");
                 }
             } else if(word == "CommunicatorData") {
                 if (mOptions.IsNot(IO::MESH_ONLY)) {
@@ -513,7 +513,7 @@ namespace Kratos
                     rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
                     rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
                 } else {
-                    EndSection("CommunicatorData");
+                    SkipBlock("CommunicatorData");
                 }
             } else if (word == "Mesh") {
                 ReadMeshBlock(rThisModelPart);
@@ -3026,13 +3026,13 @@ namespace Kratos
                 if (mOptions.IsNot(IO::MESH_ONLY)) {
                     ReadSubModelPartDataBlock(r_sub_model_part);
                 } else {
-                    EndSection("SubModelPartData");
+                    SkipBlock("SubModelPartData");
                 }
             } else if (word == "SubModelPartTables") {
                 if (mOptions.IsNot(IO::MESH_ONLY)) {
                     ReadSubModelPartTablesBlock(rMainModelPart, r_sub_model_part);
                 } else {
-                    EndSection("SubModelPartTables");
+                    SkipBlock("SubModelPartTables");
                 }
             } else if (word == "SubModelPartProperties") {
                 ReadSubModelPartPropertiesBlock(rMainModelPart, r_sub_model_part);
@@ -4717,17 +4717,6 @@ namespace Kratos
         partitions[NumberOfThreads] = number_of_rows;
         for(unsigned int i = 1; i<NumberOfThreads; i++)
             partitions[i] = partitions[i-1] + partition_size ;
-    }
-
-    inline void ModelPartIO::EndSection(const std::string& rString)
-    {
-        std::string value;
-
-        while(!mpStream->eof()) {
-            ReadWord(value); // reading id
-            if(CheckEndBlock(rString, value))
-                break;
-        }
     }
 
     /// Unaccessible assignment operator.

@@ -550,8 +550,6 @@ private:
 
     inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
-    inline void EndSection(const std::string& rString);
-
     ///@}
     ///@name Private  Access
     ///@{
