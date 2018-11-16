@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import numpy as np
+from multilevel_montecarlo_analysis import MultilevelMonteCarloAnalysis
+import KratosMultiphysics
 # import time
 
 '''
@@ -11,32 +13,20 @@ References:
 
 
 '''
-function that gives as output a list containing the mesh discretization parameter
-we consider the number of elements of a uniform grid on the same domain to be this parameter
-refinement strategy:
-uniform mesh on level "lev" with h_lev=h_0*M^(-lev)
-here M = 2
-i.e.    level = 0, h_{lev=0} = 0.25
-        level = 1, h_{lev=1} = 0.2/2 = 0.125
-        level = 2, h_{lev=2} = 0.2/4 = 0.0625
-        ...
+function that gives as output the mesh discretization parameter
+the mesh parameter is the degrees of freedom of the mesh
+TODO: read from the serialized model the number of nodes
 '''
-def Nf_law(lev):
-    # I wrote the following:
-    N0 = 4.
-    M  = 2.
-    NFF = (N0*np.power(M,lev))
-    Nf2 = 2*NFF**2
-    '''in [PNL17] it is exploited the following:
-    N0 = 5.
-    M  = 2.
-    NFF = (N0*np.power(M,lev))
-    Nf2 = NFF**2'''
-    '''
-    NFF is the number of elements on a boundary line
-    Nf2 is the number of triangular elements in the square domain (approximately, if mesh non uniform)
-    '''
-    return Nf2
+def compute_mesh_parameter(level):
+    parameter_file_name = "../tests/Level"+str(level)+"/ProjectParameters.json"
+    with open(parameter_file_name,'r') as parameter_file:
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    model = KratosMultiphysics.Model()
+    fake_sample = 1.0
+    standard_analyis = MultilevelMonteCarloAnalysis(model,parameters,fake_sample)
+    standard_analyis.Initialize()
+    ndof = standard_analyis._GetSolver().main_model_part.NumberOfNodes()
+    return ndof
 
 
 '''
@@ -67,7 +57,6 @@ def compute_sample_variance_from_M2(M2,nsam):
 
 '''
 function performing the Bayesian update of the variance using samples generated on all levels in order to locally improve the estimation of Var[Y_l]
-see [PNL17] pp. 8-9
 '''
 def EstimateBayesianVariance(mean,variance,settings_ML,ratesLS,nDoF,nsam,level_local):
     k0 = settings_ML[0]
@@ -106,7 +95,6 @@ function computing the iteration parameter i_E
 the first i_E iterations are needed to obtain increasingly accurate estimates of the problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma]
 the iterations i>i_E prevent redundant computations due to fluctuations in the estimate of P=[calpha,alpha,cbeta,beta,cgamma,gamma] by solving the problem for a slightly smaller tolerance than the desired one
 the function "compute_tolerance_i" computes the tolerance for itaeration "i"
-see [PNL16] pp. 7-8
 '''
 def compute_iE_cmlmc(settings_ML):
     tolF = settings_ML[5]
@@ -132,7 +120,6 @@ def compute_tolerance_i(settings_ML,iE,iter_def):
 '''
 function computing the problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma] using least squares fit
 we consider level > 0 to compute calpha,alpha,cbeta,beta for robustness reasons
-see [PNL17] pp.7-8
 '''
 def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
     bias_ratesLS = np.abs(bias_ratesLS)
@@ -163,7 +150,6 @@ def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
 
 '''
 function computing the splitting parameter theta \in (0,1)
-see [PNL17] pp. 5-6,8-11
 '''
 def theta_model(ratesLS,tol,nDoF):
     Calpha = ratesLS[0]
@@ -174,7 +160,6 @@ def theta_model(ratesLS,tol,nDoF):
 
 '''
 function computing the number of levels for iteration "i" of the cmlmc algorithm
-see [PNL17] pp. 8-11
 '''
 def compute_levels(tol,nsam,ratesLS,ndof_all,BayesianVariance,mean,variance,settings_ML,Lmax,Lmin):
     '''observe I have already computed ndof_all for all the possible levels, i.e. up to Lmax'''
@@ -231,7 +216,6 @@ def compute_levels(tol,nsam,ratesLS,ndof_all,BayesianVariance,mean,variance,sett
 
 '''
 function computing the new number of samples for each level for the iteration "i" of the cmlmc algorithm
-see [PNL17] pp. 6,10
 '''
 def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,settings_ML):
     minNadd = np.multiply(np.ones(L_opt+1),6.)
@@ -288,7 +272,6 @@ def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,se
 
 '''
 function computing the mlmc estimator for the mean of the Quantity of Interest
-see [PNL17] p. 4
 '''
 def compute_mean_mlmc_QoI(mean_array):
     mean_mlmc = np.sum(mean_array)
@@ -300,7 +283,6 @@ function computing the total error:
 TErr = bias contrinution + statistical error contribution
 bias contribution B ~= abs(E^MC[Q_{L}-Q_{L-1}])
 statistical error contribution SE = \sum_{i=0}^{L}(Var^MC[Y_l]/N_l)
-see [PNL17] pp. 3-7
 '''
 def compute_total_error_MLMC(mean_difference_QoI,number_samples,L_opt,BayesianVariance,settings_ML):
     bias_error = np.abs(mean_difference_QoI[L_opt])

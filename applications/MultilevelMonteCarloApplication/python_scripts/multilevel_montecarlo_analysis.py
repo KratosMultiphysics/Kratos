@@ -21,7 +21,7 @@ from pycompss.api.api import compss_wait_on
 from pycompss.api.parameter import *
 
 # Import Continuation Multilevel Monte Carlo library
-import cmlmc as mlmc
+import cmlmc_utilities as mlmc
 
 class MultilevelMonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for MultilevelMonte Carlo simulations'''
@@ -299,10 +299,11 @@ if __name__ == '__main__':
     print("mean time ML",mean_time_ML)
     print("sample variance time ML",variance_time_ML)
 
-    '''compute mesh parameter for each mesh, calling nDoF with a little abuse of notation'''
+    '''compute mesh parameter for each mesh'''
     nDoF = []
     for level in range (0,L_max + 1):
-        nDoF.append(mlmc.Nf_law(level))
+        nDoF.append(mlmc.compute_mesh_parameter(level))
+    print("Degrees of freedom = ",nDoF)
     
     '''compute parameters by least square fit to estimate Bayesian VAR'''
     ratesLS = mlmc.compute_ratesLS(mean_difference_QoI,variance_difference_QoI,mean_time_ML,nDoF[0:L_screening+1])
