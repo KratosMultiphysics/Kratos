@@ -6,6 +6,7 @@ import FEMDEMParticleCreatorDestructor as PCD
 import KratosMultiphysics
 import KratosMultiphysics.FemToDemApplication as KratosFemDem
 import KratosMultiphysics.MeshingApplication as MeshingApplication
+import KratosMultiphysics.SolidMechanicsApplication as Solid
 import math
 import os
 import mmg_process as MMG
@@ -33,7 +34,6 @@ class FEMDEM_Solution:
 
         self.InitializePlotsFiles()
 
-
 #============================================================================================================================
     def Run(self):
         
@@ -43,7 +43,7 @@ class FEMDEM_Solution:
 
 #============================================================================================================================
     def Initialize(self):
-
+        
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
 
@@ -53,6 +53,7 @@ class FEMDEM_Solution:
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
         # Initialize the "flag" RADIUS in all the nodes
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -70,6 +71,9 @@ class FEMDEM_Solution:
         self.pressure_load = True #hard coded
         if self.pressure_load:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+
+        # for the dem contact forces coupling
+        self.InitializeDummyNodalForces()
 
 
 
@@ -665,19 +669,21 @@ class FEMDEM_Solution:
 
 #============================================================================================================================
     def TransferNodalForcesToFEM(self):
+        
+        # self.FEM_Solution.main_model_part.GetCondition(169).SetValue(Solid.FORCE_LOAD, [1e4,0.0,0.0])
+        for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
+            id_node = condition.GetNodes()[0].Id
 
-        DEM_Nodes = self.SpheresModelPart.Nodes
+            if self.FEM_Solution.main_model_part.GetNode(id_node).GetValue(KratosFemDem.IS_DEM):
+                dem_forces = self.SpheresModelPart.GetNode(id_node).GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES)
+                condition.SetValue(Solid.FORCE_LOAD, dem_forces)
 
-        for DEM_node in DEM_Nodes:
 
-            # Get the contact forces from the DEM
-            Id = DEM_node.Id
-            Force_X = DEM_node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_X)
-            Force_Y = DEM_node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
 
-            # Tranfer the Force information to the FEM nodes
-            self.FEM_Solution.main_model_part.GetNode(Id).SetValue(KratosFemDem.NODAL_FORCE_X, Force_X)
-            self.FEM_Solution.main_model_part.GetNode(Id).SetValue(KratosFemDem.NODAL_FORCE_Y, Force_Y)
+                print(condition.GetValue(Solid.FORCE_LOAD))
+                Wait()
+
+
 
 
 #============================================================================================================================
@@ -913,3 +919,33 @@ class FEMDEM_Solution:
             elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
             elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
             elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
+
+
+#============================================================================================================================
+
+    def GetMaximumConditionId(self):
+        max_id = 0
+        for condition in self.FEM_Solution.main_model_part.Conditions:
+            if condition.Id > max_id:
+                max_id = condition.Id
+        return max_id
+
+#============================================================================================================================
+
+    def InitializeDummyNodalForces(self):
+        # we fill the submodel part with the nodes and dummy conditions
+        max_id = self.GetMaximumConditionId()
+        props = self.FEM_Solution.main_model_part.Properties[0]
+        self.FEM_Solution.main_model_part.CreateSubModelPart("ContactForcesDEMConditions")
+        for node in self.FEM_Solution.main_model_part.Nodes:
+            self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").AddNode(node, 0)
+            max_id += 1
+            cond = self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").CreateNewCondition(
+                                                                            "PointLoadCondition2D1N",
+                                                                            max_id,
+                                                                            [node.Id],
+                                                                            props)
+            self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
+            self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(Solid.FORCE_LOAD, [0.0,0.0,0.0])
+            
+            
