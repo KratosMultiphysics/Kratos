@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.37">
+<Kratos_Data version="1.2.38">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -203,7 +203,7 @@
             <Item id="DEM-ExportId" pid="Export Id" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="ExportId"/>
             <Item id="DEM-Rhs" pid="Rhs" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Rhs"/>
             <Item id="DEM-DampForces" pid="Damp forces" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Damp forces"/>
-            <Item id="DEM-AppliedForces" pid="Applied forces" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
+            <Item id="DEM-AppliedForces" pid="Applied forces" dv="No" state="normal" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
             <Item id="DEM-RollingResistanceMoment" pid="Rolling resistance moment" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Rolling resistance moment"/>
             <Item id="DEM-SeaSurface" pid="Print Virtual Sea Surface" class="DEM-PrintSeaSurface" dv="No" ivalues="No,Yes" values="No,Yes" help="Use this option if you want to print a virtual sea surface as a mesh in PostProcess. Enter the four pairs of coordinates that will define the quadrilateral surface representing the virtual sea surface. A z=0 sea level is assumed"/>
             <Item id="DEM-VirtualSeaSurfaceX1" pid="X1" DEM-PrintSeaSurface="Yes" dv="10"/>
@@ -228,7 +228,7 @@
             <Item id="DEM-ParticleTemperature" pid="Particle Temperature" dv="No" ivalues="No,Yes" values="No,Yes" help=""/>
             <Item id="DEM-ParticleHeatFlux" pid="Particle HeatFlux" dv="No" ivalues="No,Yes" values="No,Yes" help=""/>
         </Container>
-            <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" dv="No" ivalues="Yes,No" values="Yes,No" help="Activate this option to display the particle bonds at postprocessing stage"/>
+        <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" dv="No" ivalues="Yes,No" values="Yes,No" help="Activate this option to display the particle bonds at postprocessing stage"/>
         <Container id="DEM-BondElem" pid="On bond elements" DEM-ShowBondElements="Yes" help="Results on bond elements">
             <Item id="DEM-ContactSigma" pid="Contact sigma" dv="No" ivalues="Yes,No" values="Yes,No" help="Normal stress on contact"/>
             <Item id="DEM-ContactTau" pid="Contact tau" dv="No" ivalues="Yes,No" values="Yes,No" help="Tangential stress on contact"/>
@@ -245,7 +245,7 @@
             <Item id="MinX" pid="Min X" DEM-VTrap="Yes" dv="-100.0" help="Min X"/>
             <Item id="MinY" pid="Min Y" DEM-VTrap="Yes" dv="-100.0" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
             <Item id="MinZ" pid="Min Z" DEM-VTrap="Yes" dv="-100.0" help="Min Z"/>
-            <Item id="DEM-VelTrapGraphExportFreq" pid="Printing time step (s)" DEM-VTrap="Yes" dv="1e0" help="Printing delta time for the velocity trap" />
+            <Item id="DEM-VelTrapGraphExportFreq" pid="Printing time step (s)" DEM-VTrap="Yes" dv="1e-3" help="Printing delta time for the velocity trap" />
         </Container>
         <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess additional options" open="0">
             <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format. Choose Binary or Ascii. Ascii takes more hard disk space, but is human readable"/>

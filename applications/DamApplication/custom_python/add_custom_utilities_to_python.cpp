@@ -36,18 +36,9 @@ inline
 void AssignTimeActivation(
         ConstructionUtility& rThisUtil,
         std::string ThermalSubModelPartName,
-        int phase, double time_activation)
+        int phase, double time_activation, double initial_temperature)
 {
-    rThisUtil.AssignTimeActivation(ThermalSubModelPartName, phase, time_activation);
-}
-
-inline
-void AssignInitialTemperature(
-        ConstructionUtility& rThisUtil,
-        std::string ThermalSubModelPartName,
-        int phase, double initial_temperature)
-{
-    rThisUtil.AssignInitialTemperature(ThermalSubModelPartName, phase, initial_temperature);
+    rThisUtil.AssignTimeActivation(ThermalSubModelPartName, phase, time_activation, initial_temperature);
 }
 
 inline
@@ -80,47 +71,46 @@ void ActiveHeatFluxAzenha(
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef Table<double,double> TableType;
 
-    class_< StreamlinesOutput3DUtilities >
+    py::class_< StreamlinesOutput3DUtilities >
     (m, "StreamlinesOutput3DUtilities")
-    .def(init<>())
+    .def(py::init<>())
     .def("ComputeOutputStep",&StreamlinesOutput3DUtilities::ComputeOutputStep);
 
-    class_< GlobalJointStressUtility >
+    py::class_< GlobalJointStressUtility >
     (m, "GlobalJointStressUtility")
-    .def(init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, Parameters>())
     .def("ComputingGlobalStress",&GlobalJointStressUtility::ComputingGlobalStress);
 
-    class_< TransferSelfweightStressUtility >
+    py::class_< TransferSelfweightStressUtility >
     (m ,"TransferSelfweightStressUtility")
-    .def(init<>())
+    .def(py::init<>())
     .def("Transfer",&TransferSelfweightStressUtility::Transfer)
     .def("TransferInitialStress",&TransferSelfweightStressUtility::TransferInitialStress);
 
-    class_< ConstructionUtility >
+    py::class_< ConstructionUtility >
     (m, "ConstructionUtility")
-    .def(init<ModelPart&, ModelPart&, TableType&, Parameters&>())
+    .def(py::init<ModelPart&, ModelPart&, TableType&, Parameters&>())
     .def("Initialize",&ConstructionUtility::Initialize)
     .def("AssignTimeActivation", AssignTimeActivation)
-    .def("AssignInitialTemperature", AssignInitialTemperature)
     .def("InitializeSolutionStep",InitializeSolutionStep)
     .def("SearchingFluxes",&ConstructionUtility::SearchingFluxes)
     .def("ActiveHeatFluxNoorzai",ActiveHeatFluxNoorzai)
     .def("ActiveHeatFluxAzenha",ActiveHeatFluxAzenha)
     .def("AfterOutputStep",&ConstructionUtility::AfterOutputStep);
 
-    class_< MappingVariables2DUtilities >
+    py::class_< MappingVariables2DUtilities >
     (m, "MappingVariables2DUtilities")
-    .def(init<>())
+    .def(py::init<>())
     .def("MappingThermalModelParts",&MappingVariables2DUtilities::MappingThermalModelParts)
     .def("MappingMechanicalModelParts",&MappingVariables2DUtilities::MappingMechanicalModelParts);
 
-    class_< MappingVariables3DUtilities >
+    py::class_< MappingVariables3DUtilities >
     (m, "MappingVariables3DUtilities")
-    .def(init<>())
+    .def(py::init<>())
     .def("MappingThermalModelParts",&MappingVariables3DUtilities::MappingThermalModelParts)
     .def("MappingMechanicalModelParts",&MappingVariables3DUtilities::MappingMechanicalModelParts);
 }

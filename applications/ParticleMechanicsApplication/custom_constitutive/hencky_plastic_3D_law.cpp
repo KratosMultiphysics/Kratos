@@ -179,8 +179,8 @@ void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
         const Vector& rShapeFunctionsValues)
 {
     mDeterminantF0                = 1;
-    mInverseDeformationGradientF0 = identity_matrix<double> (3);
-    mElasticLeftCauchyGreen       = identity_matrix<double> (3);
+    mInverseDeformationGradientF0 = IdentityMatrix(3);
+    mElasticLeftCauchyGreen       = IdentityMatrix(3);
 
     mPlasticRegion = 0;
 
@@ -247,7 +247,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
     PlasticMaterialResponseVariables PlasticVariables;
-    ElasticVariables.Identity = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = IdentityMatrix(3);
 
     ElasticVariables.SetElementGeometry(domain_geometry);
     ElasticVariables.SetShapeFunctionsValues(shape_functions);
@@ -287,29 +287,27 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     if( options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
-        Matrix stress_matrix             = ZeroMatrix(3,3);
+        Matrix stress_matrix             = ZeroMatrix(3);
         Vector hencky_main_strain_vector = ZeroVector(3);
 
         // Hencky Strain -- E = 0.5 * ln(C)
         this->CalculateHenckyMainStrain(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, hencky_main_strain_vector);
 
-        ReturnMappingVariables.StrainMatrix = ZeroMatrix(3,3);
-        ReturnMappingVariables.TrialIsoStressMatrix = ZeroMatrix(3,3);
+        ReturnMappingVariables.StrainMatrix = ZeroMatrix(3);
+        ReturnMappingVariables.TrialIsoStressMatrix = ZeroMatrix(3);
 
-        Matrix hencky_main_strain_matrix = ZeroMatrix(3,3);
+        Matrix hencky_main_strain_matrix = ZeroMatrix(3);
         for (unsigned int i = 0; i<3; ++i)
             hencky_main_strain_matrix(i,i) = hencky_main_strain_vector[i];
 
-        Matrix new_elastic_left_cauchy_green = hencky_main_strain_matrix;
-
-        this->CalculatePrincipalStressTrial(ElasticVariables, rValues, ReturnMappingVariables, new_elastic_left_cauchy_green, stress_matrix );
+        this->CalculatePrincipalStressTrial(ElasticVariables, rValues, ReturnMappingVariables, hencky_main_strain_matrix, stress_matrix );
 
         //Attention!!
         /*  When I call the return mapping function NewElasticLeftCauchyGreen represents the Hencky strain in matrix form.
             When the return mapping is finished NewElasticLeftCauchyGreen is the NEW elastic left cauchy green tensor.
             If and only if GetElasticLeftCachyGreen is a protected member of the flow rule that I am using.
             Otherwise a public member of the flow rule base class has to be added as in this case.*/
-        mpMPMFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, stress_matrix, new_elastic_left_cauchy_green);
+        mpMPMFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, stress_matrix, hencky_main_strain_matrix);
 
         mPlasticRegion = 0;
         if( ReturnMappingVariables.Options.Is(MPMFlowRule::PLASTIC_REGION) )
@@ -324,7 +322,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
         // Calculate Constitutive Matrix related to Total Kirchhoff stress -- Dep
         constitutive_matrix.clear();
-        Matrix aux_constitutive_matrix = ZeroMatrix(6,6);
+        Matrix aux_constitutive_matrix = ZeroMatrix(6);
 
         double alfa = 0.0;
         this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, ElasticVariables.CauchyGreenMatrix, alfa, aux_constitutive_matrix, ElasticVariables);
@@ -432,9 +430,9 @@ Matrix HenckyElasticPlastic3DLaw::CalculateEigenbases(const MPMFlowRule::RadialR
     }
 
     //2- compute the eigenbases matrix
-    Matrix M1 = ZeroMatrix(3,3);
-    Matrix M2 = ZeroMatrix(3,3);
-    Matrix M3 = ZeroMatrix(3,3);
+    Matrix M1 = ZeroMatrix(3);
+    Matrix M2 = ZeroMatrix(3);
+    Matrix M3 = ZeroMatrix(3);
     M1 = MathUtils<double>::TensorProduct3(N1, N1);
     M2 = MathUtils<double>::TensorProduct3(N2, N2);
     M3 = MathUtils<double>::TensorProduct3(N3, N3);
@@ -569,7 +567,7 @@ Vector& HenckyElasticPlastic3DLaw::GetStressVectorFromMatrix(const Matrix& rStre
         Vector& rMainStress,
         const Matrix& rEigenVectors)
 {
-    Matrix auxMatrix = ZeroMatrix(3,3);
+    Matrix auxMatrix = ZeroMatrix(3);
     auxMatrix = prod( rStressMatrix, trans(rEigenVectors));
     auxMatrix = prod( (rEigenVectors), auxMatrix);
 
@@ -590,7 +588,7 @@ void HenckyElasticPlastic3DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyG
         MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
         Vector& rMainStrain)
 {
-    Matrix eigen_vectors  = ZeroMatrix(3,3);
+    Matrix eigen_vectors  = ZeroMatrix(3);
     Vector eigen_values   = ZeroVector(3);
 
     double tol = 1e-9;
