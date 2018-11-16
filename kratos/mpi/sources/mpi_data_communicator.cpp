@@ -594,10 +594,14 @@ template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     MPI_Op Operation, const int Root) const
 {
     #ifdef KRATOS_DEBUG
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rLocalValues)))
+    const int local_size = Internals::MessageSize(rLocalValues);
+    const int reduced_size = Internals::MessageSize(rReducedValues);
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Reduce: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
-    CheckBuffersHaveSameSize("MPI_Reduce", rLocalValues, rReducedValues, Root);
+    KRATOS_ERROR_IF(BroadcastErrorIfTrue(local_size != reduced_size,Root))
+    << "Input error in call to MPI_Reduce for rank " << Root << ": "
+    << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
     #endif // KRATOS_DEBUG
 
     int ierr = MPI_Reduce(
@@ -612,13 +616,14 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     MPI_Op Operation) const
 {
     #ifdef KRATOS_DEBUG
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rLocalValues)))
+    const int local_size = Internals::MessageSize(rLocalValues);
+    const int reduced_size = Internals::MessageSize(rReducedValues);
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Allreduce: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rReducedValues)))
-    << "Input error in call to MPI_Allreduce: "
-    << "The container for reduced values does not have the same size on all ranks." << std::endl;
-    CheckBuffersHaveSameSize("MPI_Allreduce", rLocalValues, rReducedValues);
+    KRATOS_ERROR_IF(local_size != reduced_size)
+    << "Input error in call to MPI_Allreduce for rank " << Rank() << ": "
+    << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
     #endif // KRATOS_DEBUG
 
     int ierr = MPI_Allreduce(
@@ -633,10 +638,14 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     MPI_Op Operation) const
 {
     #ifdef KRATOS_DEBUG
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rLocalValues)))
+    const int local_size = Internals::MessageSize(rLocalValues);
+    const int reduced_size = Internals::MessageSize(rReducedValues);
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Scan: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
-    CheckBuffersHaveSameSize("MPI_Scan", rLocalValues, rReducedValues);
+    KRATOS_ERROR_IF(local_size != reduced_size)
+    << "Input error in call to MPI_Scan for rank " << Rank() << ": "
+    << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
     #endif // KRATOS_DEBUG
 
     int ierr = MPI_Scan(
@@ -677,9 +686,17 @@ template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
 template<class TDataType> void MPIDataCommunicator::ScatterDetail(
     const TDataType& rSendValues, TDataType& rRecvValues, const int SourceRank) const
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rRecvValues)))
+    #ifdef KRATOS_DEBUG
+    const int send_size = Internals::MessageSize(rSendValues);
+    const int recv_size = Internals::MessageSize(rRecvValues);
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(recv_size))
     << "Input error in call to MPI_Scatter: "
-    << "The container for scattered values does not have the same size on all ranks." << std::endl;
+    << "The destination buffer does not have the same size on all ranks." << std::endl;
+    KRATOS_ERROR_IF(BroadcastErrorIfTrue(send_size != recv_size*Size(),SourceRank))
+    << "Input error in call to MPI_Scatter for rank " << SourceRank << ": "
+    << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
+    << recv_size * Size() << " values to send expected)." << std::endl;
+    #endif // KRATOS_DEBUG
 
     const int sends_per_rank = Internals::MessageSize(rRecvValues);
     int ierr = MPI_Scatter(
@@ -704,9 +721,15 @@ template<class TDataType> void MPIDataCommunicator::GatherDetail(
     const TDataType& rSendValues, TDataType& rRecvValues, const int RecvRank) const
 {
     #ifdef KRATOS_DEBUG
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rSendValues)))
+    const int send_size = Internals::MessageSize(rSendValues);
+    const int recv_size = Internals::MessageSize(rRecvValues);
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Gather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
+    KRATOS_ERROR_IF(BroadcastErrorIfTrue(send_size*Size() != recv_size,RecvRank))
+    << "Input error in call to MPI_Gather for rank " << RecvRank << ": "
+    << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
+    << send_size * Size() << " values to receive expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
     const int sends_per_rank = Internals::MessageSize(rSendValues);
@@ -734,9 +757,15 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     const TDataType& rSendValues, TDataType& rRecvValues) const
 {
     #ifdef KRATOS_DEBUG
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rSendValues)))
+    const int send_size = Internals::MessageSize(rSendValues);
+    const int recv_size = Internals::MessageSize(rRecvValues);
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Allgather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
+    KRATOS_ERROR_IF(send_size*Size() != recv_size)
+    << "Input error in call to MPI_Allgather for rank " << Rank() << ": "
+    << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
+    << send_size * Size() << " values to receive expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
     const int sends_per_rank = Internals::MessageSize(rSendValues);
@@ -747,7 +776,7 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     CheckMPIErrorCode(ierr, "MPI_Allgather");
 }
 
-bool MPIDataCommunicator::BroadcastError(bool Condition, const int SourceRank) const
+bool MPIDataCommunicator::BroadcastErrorIfTrue(bool Condition, const int SourceRank) const
 {
     MPI_Bcast(&Condition,1,MPI_C_BOOL,SourceRank,mComm);
     const int rank = Rank();
@@ -757,33 +786,6 @@ bool MPIDataCommunicator::BroadcastError(bool Condition, const int SourceRank) c
         << "Rank " << rank << ": Stopping because of error in rank " << SourceRank << "." << std::endl;
     }
     return Condition;
-}
-
-template<class TDataType> void MPIDataCommunicator::CheckBuffersHaveSameSize(
-    const std::string& rMPICallName,
-    const TDataType& rSourceBuffer, const TDataType& rDestinationBuffer,
-    const int CheckRank) const
-{
-    const int rank = Rank();
-    const int source_size = Internals::MessageSize(rSourceBuffer);
-    const int destination_size = Internals::MessageSize(rDestinationBuffer);
-
-    bool error_condition;
-    int error_rank;
-    if (CheckRank < 0) // Check on all ranks
-    {
-        error_condition = (source_size != destination_size);
-        error_rank = rank;
-    }
-    else // Check on source and broadcast result
-    {
-        error_condition = BroadcastError(source_size != destination_size, CheckRank);
-        error_rank = CheckRank;
-    }
-    KRATOS_ERROR_IF(error_condition)
-    << "In rank " << error_rank << ": "
-    << "Non-matching sizes in " << rMPICallName << " call: sending " << source_size << " values "
-    << "but receiving " << destination_size << " values." << std::endl;
 }
 
 bool MPIDataCommunicator::IsEqualOnAllRanks(const int LocalValue) const
