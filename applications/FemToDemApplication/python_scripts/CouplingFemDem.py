@@ -128,6 +128,8 @@ class FEMDEM_Solution:
                 self.SpheresModelPart.Elements.clear()
                 self.SpheresModelPart.Nodes.clear()
 
+                self.InitializeDummyNodalForces()
+
                 self.InitializeMMGvariables()
                 self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()
                 self.FEM_Solution.model_processes.ExecuteInitialize()
@@ -670,21 +672,12 @@ class FEMDEM_Solution:
 #============================================================================================================================
     def TransferNodalForcesToFEM(self):
         
-        # self.FEM_Solution.main_model_part.GetCondition(169).SetValue(Solid.FORCE_LOAD, [1e4,0.0,0.0])
         for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
             id_node = condition.GetNodes()[0].Id
 
             if self.FEM_Solution.main_model_part.GetNode(id_node).GetValue(KratosFemDem.IS_DEM):
                 dem_forces = self.SpheresModelPart.GetNode(id_node).GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES)
                 condition.SetValue(Solid.FORCE_LOAD, dem_forces)
-
-
-
-                print(condition.GetValue(Solid.FORCE_LOAD))
-                Wait()
-
-
-
 
 #============================================================================================================================
     def WritePostListFile(self):
@@ -947,5 +940,5 @@ class FEMDEM_Solution:
                                                                             props)
             self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
             self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(Solid.FORCE_LOAD, [0.0,0.0,0.0])
-            
+
             
