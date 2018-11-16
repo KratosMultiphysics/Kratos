@@ -83,7 +83,11 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
 
         # Use the process
         # here the minimum settings are specified to test the default values!
-        settings_eigen_process = KratosMultiphysics.Parameters("""{"result_file_format_use_ascii" : true}""")
+        settings_eigen_process = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "result_file_format_use_ascii" : true
+            }
+        }""")
 
         post_eigen_process = postprocess_eigenvalues_process.Factory(settings_eigen_process, test_model)
 
