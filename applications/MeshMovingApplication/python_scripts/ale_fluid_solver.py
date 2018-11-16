@@ -25,7 +25,7 @@ class ALEFluidSolver(PythonSolver):
             "ale_boundary_parts"          : [ ]
         }""")
 
-        # cannot recursively validate bcs validation of fluid- and
+        # cannot recursively validate because validation of fluid- and
         # mesh-motion-settings is done in corresponding solvers
         solver_settings.ValidateAndAssignDefaults(default_settings)
 
@@ -112,10 +112,10 @@ class ALEFluidSolver(PythonSolver):
         self.ale_boundary_parts = []
         main_model_part_name = self.settings["fluid_solver_settings"]["model_part_name"].GetString()
 
-        ale_boudary_parts_params = self.settings["ale_boundary_parts"]
+        ale_boundary_parts_params = self.settings["ale_boundary_parts"]
 
-        for i_name in range(ale_boudary_parts_params.size()):
-            sub_model_part_name = ale_boudary_parts_params[i_name].GetString()
+        for i_name in range(ale_boundary_parts_params.size()):
+            sub_model_part_name = ale_boundary_parts_params[i_name].GetString()
             full_model_part_name = main_model_part_name + "." + sub_model_part_name
             self.ale_boundary_parts.append(self.model[full_model_part_name])
 
