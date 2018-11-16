@@ -67,11 +67,6 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mFSWernerWengleWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mFSWernerWengleWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-
-    // Implementation of SLIP boundary condition according to BEHR2004
-    mBehrWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
-    mBehrWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
-
     mFSGeneralizedWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
     mFSGeneralizedWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mWallConditionDiscontinuous2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
@@ -257,8 +252,7 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D", mFSPeriodicCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge2D", mFSPeriodicConditionEdge2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge3D", mFSPeriodicConditionEdge3D);
-    KRATOS_REGISTER_CONDITION("BehrWallCondition2D2N", mBehrWallCondition2D);
-    KRATOS_REGISTER_CONDITION("BehrWallCondition3D3N", mBehrWallCondition3D);
+
 
     // Register constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Bingham3DLaw", mBingham3DLaw);
