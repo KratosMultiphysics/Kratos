@@ -10,21 +10,13 @@ missing_applications_message = ["Missing required application(s):",]
 have_required_applications = True
 
 try:
-    import KratosMultiphysics.AdjointFluidApplication
-except ImportError:
-    have_required_applications = False
-    missing_applications_message.append("AdjointFluidApplication")
-
-try:
     import KratosMultiphysics.HDF5Application as kh5
 except ImportError:
     have_required_applications = False
     missing_applications_message.append("HDF5Application")
 
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
-
-if have_required_applications:
-    from adjoint_fluid_analysis import AdjointFluidAnalysis
+from adjoint_fluid_analysis import AdjointFluidAnalysis
 
 class ControlledExecutionScope:
     def __init__(self, scope):
@@ -85,7 +77,6 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
                 self._remove_h5_files("primal")
             self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".time")
             self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".mdpa")
-            self._remove_h5_files("mpi_cylinder_test_")
 
     def tearDown(self):
         pass
