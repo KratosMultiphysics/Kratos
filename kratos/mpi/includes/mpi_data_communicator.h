@@ -33,6 +33,12 @@ namespace Internals {
 
 template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&);
 
+template<class TContainer> inline void* GetData(TContainer& rValues);
+
+template<class TContainer> inline const void* GetData(const TContainer& rValues);
+
+template<class TContainer> inline int MessageSize(const TContainer& rValues);
+
 }
 
 ///@name Kratos Classes
@@ -307,6 +313,48 @@ class MPIDataCommunicator: public DataCommunicator
     ///@{
 
     void CheckMPIErrorCode(const int ierr, const std::string MPICallName) const;
+
+    template<class TDataType> void ReduceDetail(
+        const TDataType& rLocalValues,
+        TDataType& rReducedValues,
+        MPI_Op Operation,
+        const int Root) const;
+
+    template<class TDataType> void AllReduceDetail(
+        const TDataType& rLocalValues,
+        TDataType& rReducedValues,
+        MPI_Op Operation) const;
+
+    template<class TDataType> void ScanDetail(
+        const TDataType& rLocalValues,
+        TDataType& rReducedValues,
+        MPI_Op Operation) const;
+
+    template<class TDataType> void SendRecvDetail(
+        const TDataType& rSendMessage, const int SendRank,
+        TDataType& rRecvMessage, const int RecvRank) const;
+
+    template<class TDataType> void BroadcastDetail(
+        TDataType& rBuffer, const int SourceRank) const;
+
+    template<class TDataType> void ScatterDetail(
+        const TDataType& rSendValues, TDataType& rRecvValues, const int SourceRank) const;
+
+    template<class TDataType> void ScattervDetail(
+        const TDataType& rSendValues,
+        const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
+        TDataType& rRecvValues, const int SourceRank) const;
+
+    template<class TDataType> void GatherDetail(
+        const TDataType& rSendValues, TDataType& rRecvValues, const int RecvRank) const;
+
+    template<class TDataType> void GathervDetail(
+        const TDataType& rSendValues, TDataType& rRecvValues,
+        const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
+        const int RecvRank) const;
+
+    template<class TDataType> void AllGatherDetail(
+        const TDataType& rSendValues, TDataType& rRecvValues) const;
 
     ///@}
     ///@name Un accessible methods
