@@ -31,6 +31,8 @@ std::vector<TValue> VectorReduceWrapper(
     const std::vector<TValue>& rLocalValues,
     const int Root)
 {
+    KRATOS_TRY;
+
     std::vector<TValue> reduced_values;
     if (rSelf.Rank() == Root)
     {
@@ -38,6 +40,8 @@ std::vector<TValue> VectorReduceWrapper(
     }
     (rSelf.*pMethod)(rLocalValues, reduced_values, Root);
     return reduced_values;
+
+    KRATOS_CATCH("")
 }
 
 // This wrapper covers all operations that take a std::vector and output to a different std::vector of the same size.
@@ -47,9 +51,13 @@ std::vector<TValue> VectorBufferTransferWrapper(
     void (DataCommunicator::*pMethod)(const std::vector<TValue>&, std::vector<TValue>&) const,
     const std::vector<TValue>& rLocalValues)
 {
+    KRATOS_TRY;
+
     std::vector<TValue> reduced_values(rLocalValues.size());
     (rSelf.*pMethod)(rLocalValues, reduced_values);
     return reduced_values;
+
+    KRATOS_CATCH("")
 }
 
 template<class TValue>
@@ -60,6 +68,8 @@ std::vector<TValue> VectorSendRecvWrapper(
     const int SendDestination,
     const int RecvSource)
 {
+    KRATOS_TRY;
+
     std::vector<int> send_size(1, rSendValues.size());
     std::vector<int> recv_size{0};
     rSelf.SendRecv(send_size, SendDestination, recv_size, RecvSource);
@@ -67,6 +77,8 @@ std::vector<TValue> VectorSendRecvWrapper(
     std::vector<TValue> recv_values(recv_size[0]);
     (rSelf.*pMethod)(rSendValues, SendDestination, recv_values, RecvSource);
     return recv_values;
+
+    KRATOS_CATCH("")
 }
 
 template<class TValue>
@@ -76,6 +88,8 @@ std::vector<TValue> VectorBroadcastWrapper(
     const std::vector<TValue>& rSourceValues,
     const int SourceRank)
 {
+    KRATOS_TRY;
+
     int rank = rSelf.Rank();
     int message_size = rSourceValues.size();
     rSelf.Broadcast(message_size,SourceRank);
@@ -88,6 +102,8 @@ std::vector<TValue> VectorBroadcastWrapper(
 
     (rSelf.*pBroadcastMethod)(buffer, SourceRank);
     return buffer;
+
+    KRATOS_CATCH("")
 }
 
 template<class TValue>
@@ -97,6 +113,8 @@ std::vector<TValue> VectorScatterWrapper(
     const std::vector<TValue>& rSourceValues,
     const int SourceRank)
 {
+    KRATOS_TRY;
+
     const int send_size = rSourceValues.size();
     const int world_size = rSelf.Size();
     KRATOS_ERROR_IF_NOT( send_size % world_size == 0 )
@@ -109,6 +127,8 @@ std::vector<TValue> VectorScatterWrapper(
     std::vector<TValue> message(message_size);
     (rSelf.*pScatterMethod)(rSourceValues,message,SourceRank);
     return message;
+
+    KRATOS_CATCH("")
 }
 
 template<class TValue>
@@ -118,6 +138,8 @@ std::vector<TValue> VectorScattervWrapper(
     const std::vector<std::vector<TValue>>& rSendValues,
     const int SourceRank)
 {
+    KRATOS_TRY;
+
     std::vector<TValue> message;
     std::vector<int> message_lenghts;
     std::vector<int> message_offsets;
@@ -155,6 +177,8 @@ std::vector<TValue> VectorScattervWrapper(
     std::vector<TValue> recv_message(recv_size[0]);
     rSelf.Scatterv(message, message_lenghts, message_offsets, recv_message, SourceRank);
     return recv_message;
+
+    KRATOS_CATCH("")
 }
 
 template<class TValue>
@@ -164,6 +188,8 @@ std::vector<TValue> VectorGatherWrapper(
     const std::vector<TValue>& rSourceValues,
     const int DestinationRank)
 {
+    KRATOS_TRY;
+
     int message_size = rSourceValues.size();
     std::vector<TValue> gathered_values;
     if (rSelf.Rank() == DestinationRank)
@@ -172,6 +198,8 @@ std::vector<TValue> VectorGatherWrapper(
     }
     (rSelf.*pGatherMethod)(rSourceValues, gathered_values, DestinationRank);
     return gathered_values;
+
+    KRATOS_CATCH("")
 }
 
 template<class TValue>
@@ -181,6 +209,8 @@ std::vector<std::vector<TValue>> VectorGathervWrapper(
     const std::vector<TValue>& rSourceValues,
     const int DestinationRank)
 {
+    KRATOS_TRY;
+
     std::vector<int> message_sizes_send(1, rSourceValues.size());
     std::vector<int> message_lenghts;
     const int rank = rSelf.Rank();
@@ -219,6 +249,8 @@ std::vector<std::vector<TValue>> VectorGathervWrapper(
         }
     }
     return gathered_values;
+
+    KRATOS_CATCH("")
 }
 
 template<class TValue>
@@ -227,9 +259,13 @@ std::vector<TValue> VectorAllGatherWrapper(
     void (DataCommunicator::*pMethod)(const std::vector<TValue>&, std::vector<TValue>&) const,
     const std::vector<TValue>& rLocalValues)
 {
+    KRATOS_TRY;
+
     std::vector<TValue> reduced_values(rLocalValues.size()*rSelf.Size());
     (rSelf.*pMethod)(rLocalValues, reduced_values);
     return reduced_values;
+
+    KRATOS_CATCH("")
 }
 
 void AddDataCommunicatorToPython(pybind11::module &m)
