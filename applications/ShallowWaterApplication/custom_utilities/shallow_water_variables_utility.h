@@ -19,7 +19,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 
-// External includes 
+// External includes
 
 // Project includes
 #include "shallow_water_application.h"
@@ -40,15 +40,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterVariablesUtility);
 
     ShallowWaterVariablesUtility(ModelPart& rModelPart, const double& rDryHeight = 1e-3)
-        : mrModelPart(rModelPart)  
+        : mrModelPart(rModelPart)
     {
         KRATOS_TRY
-        
-        std::cout << "Initializing shallow water variables utility" << std::endl; 
+
+        std::cout << "Initializing shallow water variables utility" << std::endl;
         mWaterHeightConvert = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
         mDryHeight = rDryHeight;
         mZeroValue = 1e-8;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -94,7 +94,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    /** 
+    /**
      * This method computes the velocity as the MOMENTUM / HEIGHT
      */
     void ComputeVelocity()
@@ -113,7 +113,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    /** 
+    /**
      * This method computes the momentum as the VELOCITY * HEIGHT
      */
     void ComputeMomentum()
@@ -191,24 +191,31 @@ public:
     void SetDryWetState()
     {
         KRATOS_TRY
-        
+
         // Getting the elements from the model
         const int nelem = static_cast<int>(mrModelPart.Elements().size());
         ModelPart::ElementsContainerType::iterator elem_begin = mrModelPart.ElementsBegin();
 
         int nodes;      // Number of element nodes
         bool wet_node;  // The nodal flag
-        
+
+        // KRATOS_WATCH("GOING TO CEHCK DRY AND WET NODES")
+
         // And now, if an element has all nodes dry, it is not active
         #pragma omp parallel for
         for(int k = 0; k < nelem; k++)
         {
             auto elem = elem_begin + k;
 
+            // KRATOS_WATCH(elem->Id())
+
             nodes = elem->GetGeometry().size();
             wet_node = false;
             for(int l = 0; l < nodes; l++)
             {
+                // KRATOS_WATCH(mDryHeight)
+                // KRATOS_WATCH(elem->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT))
+                // KRATOS_WATCH(elem->GetGeometry()[l].FastGetSolutionStepValue(RAIN))
                 if (elem->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
                     elem->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mDryHeight )
                     wet_node = true;  // It means there is almost a wet node
@@ -225,7 +232,7 @@ public:
                 elem->Set(ACTIVE, false);
             }
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -267,7 +274,7 @@ public:
 
     /**
      * This method assign the wet and dry properties
-     * Wet and dry are tween properties 
+     * Wet and dry are tween properties
      * The only difference between them is for visualization purpose
      * ExecuteBeforOutputStep
      * @see DefineDryProperties

@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ShallowWaterApplication as KratosShallow
+import KratosMultiphysics.ShallowWaterApplication as Shallow
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -26,8 +26,13 @@ class SetBathymetryProcess(KratosMultiphysics.Process):
             )
         settings.ValidateAndAssignDefaults(default_settings)
 
+        self.model_part = Model[settings["model_part_name"].GetString()]
+
         import assign_scalar_variable_process
         self.process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, settings)
 
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess2D(
+            self.model_part, Shallow.BATHYMETRY, Shallow.TOPOGRAPHY_GRADIENT, KratosMultiphysics.NODAL_AREA
+        )

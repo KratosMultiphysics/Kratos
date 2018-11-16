@@ -20,6 +20,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, RAIN)                                   // Source term
     KRATOS_CREATE_VARIABLE( double, FREE_SURFACE_ELEVATION)                 // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
     KRATOS_CREATE_VARIABLE( double, MANNING)                                // Friction coefficient
+    KRATOS_CREATE_VARIABLE( double, TOPOGRAPHY_SLOPE)
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TOPOGRAPHY_GRADIENT)
 
     // Specific variableS for PFEM2
     KRATOS_CREATE_VARIABLE( double, MEAN_SIZE)
