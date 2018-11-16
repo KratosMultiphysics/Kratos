@@ -25,7 +25,7 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
+
     MPMPointLoadCondition::MPMPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
         : MPMBaseLoadCondition( NewId, pGeometry )
     {
@@ -34,7 +34,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     MPMPointLoadCondition::MPMPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
     {
@@ -42,7 +42,7 @@ namespace Kratos
 
     //********************************* CREATE *******************************************
     //************************************************************************************
-    
+
     Condition::Pointer MPMPointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
         return Kratos::make_shared<MPMPointLoadCondition>(NewId, pGeom, pProperties);
@@ -50,7 +50,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     Condition::Pointer MPMPointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
         return Kratos::make_shared<MPMPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
@@ -58,7 +58,7 @@ namespace Kratos
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
-    
+
     MPMPointLoadCondition::~MPMPointLoadCondition()
     {
     }
@@ -66,15 +66,15 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void MPMPointLoadCondition::CalculateAll( 
+    void MPMPointLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
-        
+
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -88,7 +88,7 @@ namespace Kratos
                 rLeftHandSideMatrix.resize( MatSize, MatSize, false );
             }
 
-            noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+            noalias( rLeftHandSideMatrix ) = ZeroMatrix(MatSize); //resetting LHS
         }
 
         //resizing as needed the RHS
@@ -112,12 +112,12 @@ namespace Kratos
         for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
         {
             const unsigned int base = ii*Dimension;
-            
+
             if( GetGeometry()[ii].SolutionStepsDataHas( POINT_LOAD ) )
             {
                 noalias(PointLoad) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
             }
-            
+
             for(unsigned int k = 0; k < Dimension; ++k)
             {
                 rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k];
@@ -126,15 +126,15 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-    
+
     //************************************************************************************
     //************************************************************************************
-    
+
     double MPMPointLoadCondition::GetPointLoadIntegrationWeight()
     {
         return 1.0;
     }
-    
+
 } // Namespace Kratos
 
 
