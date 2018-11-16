@@ -16,7 +16,7 @@
 // Project includes
 //#include "includes/define.h"
 #include "custom_elements/structural_meshmoving_element.h"
-#include "mesh_moving_application.h"
+#include "includes/mesh_moving_variables.h"
 #include "custom_utilities/move_mesh_utilities.h"
 
 namespace Kratos {

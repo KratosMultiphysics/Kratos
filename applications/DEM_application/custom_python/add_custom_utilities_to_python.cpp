@@ -139,13 +139,13 @@ void CreatePropertiesProxies2(PropertiesProxiesManager& r_properties_proxy_manag
     r_properties_proxy_manager.CreatePropertiesProxies(r_modelpart, r_inlet_modelpart, r_clusters_modelpart);
 }
 
-using namespace pybind11;
+namespace py = pybind11;
 
 void AddCustomUtilitiesToPython(pybind11::module& m) {
 
-    class_<ParticleCreatorDestructor, ParticleCreatorDestructor::Pointer>(m, "ParticleCreatorDestructor")
-        .def(init<>())
-        .def(init<AnalyticWatcher::Pointer>())
+    py::class_<ParticleCreatorDestructor, ParticleCreatorDestructor::Pointer>(m, "ParticleCreatorDestructor")
+        .def(py::init<>())
+        .def(py::init<AnalyticWatcher::Pointer>())
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
@@ -170,23 +170,23 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle6)
         ;
 
-    class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
-        .def(init<ModelPart&>())
+    py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
+        .def(py::init<ModelPart&>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet
-            ,arg("model_part")
-            ,arg("creator_destructor")
-            ,arg("using_strategy_for_continuum") = false
+            ,py::arg("model_part")
+            ,py::arg("creator_destructor")
+            ,py::arg("using_strategy_for_continuum") = false
             )
         .def("GetNumberOfParticlesInjectedSoFar", &DEM_Inlet::CreateElementsFromInletMesh)
         ;
 
-    class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
-        .def(init<ModelPart&, array_1d<double, 3>>())
+    py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")
+        .def(py::init<ModelPart&, array_1d<double, 3>>())
         ;
 
-    class_<SphericElementGlobalPhysicsCalculator, SphericElementGlobalPhysicsCalculator::Pointer >(m, "SphericElementGlobalPhysicsCalculator")
-        .def(init<ModelPart&>())
+    py::class_<SphericElementGlobalPhysicsCalculator, SphericElementGlobalPhysicsCalculator::Pointer >(m, "SphericElementGlobalPhysicsCalculator")
+        .def(py::init<ModelPart&>())
         .def("CalculateTotalVolume", &SphericElementGlobalPhysicsCalculator::CalculateTotalVolume)
         .def("CalculateTotalMass", &SphericElementGlobalPhysicsCalculator::CalculateTotalMass)
         .def("CalculateMaxNodalVariable", &SphericElementGlobalPhysicsCalculator::CalculateMaxNodalVariable)
@@ -210,26 +210,26 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesLM)(ModelPart&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
     void (DemSearchUtilities::*SearchNodeNeigboursDistancesLL)(NodesArrayType&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
 
-    class_<DemSearchUtilities, DemSearchUtilities::Pointer>(m, "DemSearchUtilities")
-        .def(init<SpatialSearch::Pointer>())
+    py::class_<DemSearchUtilities, DemSearchUtilities::Pointer>(m, "DemSearchUtilities")
+        .def(py::init<SpatialSearch::Pointer>())
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesMM)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesML)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLM)
         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
         ;
 
-    class_<AnalyticModelPartFiller, AnalyticModelPartFiller::Pointer>(m, "AnalyticModelPartFiller")
-        .def(init<>())
+    py::class_<AnalyticModelPartFiller, AnalyticModelPartFiller::Pointer>(m, "AnalyticModelPartFiller")
+        .def(py::init<>())
         .def("FillAnalyticModelPartGivenFractionOfParticlesToTransform", &AnalyticModelPartFiller::FillAnalyticModelPartGivenFractionOfParticlesToTransform
-            ,arg("fraction_of_particles_to_convert")
-            ,arg("spheres_model_part")
-            ,arg("particle_creator_destructor")
-            ,arg("analytic_sub_model_part_name") = ""
+            ,py::arg("fraction_of_particles_to_convert")
+            ,py::arg("spheres_model_part")
+            ,py::arg("particle_creator_destructor")
+            ,py::arg("analytic_sub_model_part_name") = ""
             )
         ;
 
-    class_<AnalyticParticleWatcher, AnalyticParticleWatcher::Pointer>(m, "AnalyticParticleWatcher")
-        .def(init<>())
+    py::class_<AnalyticParticleWatcher, AnalyticParticleWatcher::Pointer>(m, "AnalyticParticleWatcher")
+        .def(py::init<>())
         .def("MakeMeasurements", &AnalyticParticleWatcher::MakeMeasurements)
         //.def("GetTimeStepsData", &AnalyticParticleWatcher::GetTimeStepsData)
         //.def("GetParticleData", &AnalyticParticleWatcher::GetParticleData)
@@ -239,8 +239,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         ;
 
 
-    class_<std::list<int>>(m, "IntList")
-        .def(init<>())
+    py::class_<std::list<int>>(m, "IntList")
+        .def(py::init<>())
         //.def("clear", &std::list<int>::clear)
         //.def("pop_back", &std::list<int>::pop_back)
         //.def("__len__", [](const std::list<int> &v) { return v.size(); })
@@ -249,8 +249,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         //}
         ;
 
-    class_<std::list<double>>(m, "DoubleList")
-        .def(init<>())
+    py::class_<std::list<double>>(m, "DoubleList")
+        .def(py::init<>())
         //.def("clear", &std::list<int>::clear)
         //.def("pop_back", &std::list<int>::pop_back)
         //.def("__len__", [](const std::list<int> &v) { return v.size(); })
@@ -260,8 +260,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         ;
 
 
-    class_<AnalyticFaceWatcher, AnalyticFaceWatcher::Pointer>(m, "AnalyticFaceWatcher")
-        .def(init < ModelPart& >())
+    py::class_<AnalyticFaceWatcher, AnalyticFaceWatcher::Pointer>(m, "AnalyticFaceWatcher")
+        .def(py::init<ModelPart& >())
         .def("ClearData", &AnalyticFaceWatcher::ClearData)
         .def("MakeMeasurements", &AnalyticFaceWatcher::MakeMeasurements)
         //.def("GetTimeStepsData", &AnalyticFaceWatcher::GetTimeStepsData)
@@ -270,15 +270,15 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("GetTotalFlux", &AnalyticFaceWatcher::GetTotalFlux)
         ;
 
-    class_<DEM_FEM_Search, DEM_FEM_Search::Pointer>(m, "DEM_FEM_Search")
-        .def(init<>())
+    py::class_<DEM_FEM_Search, DEM_FEM_Search::Pointer>(m, "DEM_FEM_Search")
+        .def(py::init<>())
         .def("GetBBHighPoint", &DEM_FEM_Search::GetBBHighPoint)
         .def("GetBBLowPoint", &DEM_FEM_Search::GetBBLowPoint)
         ;
 
-    class_<PreUtilities, PreUtilities::Pointer >(m, "PreUtilities")
-        .def(init<>())
-        .def(init<ModelPart&>())
+    py::class_<PreUtilities, PreUtilities::Pointer >(m, "PreUtilities")
+        .def(py::init<>())
+        .def(py::init<ModelPart&>())
         .def("MeasureTopHeigh", Aux_MeasureTopHeight)
         .def("MeasureBotHeigh", Aux_MeasureBotHeight)
         .def("SetClusterInformationInProperties", &PreUtilities::SetClusterInformationInProperties)
@@ -287,8 +287,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("FillAnalyticSubModelPartUtility", &PreUtilities::FillAnalyticSubModelPartUtility)
         ;
 
-    class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities")
-        .def(init<>())
+    py::class_<PostUtilities, PostUtilities::Pointer>(m, "PostUtilities")
+        .def(py::init<>())
         .def("VelocityTrap", &PostUtilities::VelocityTrap)
         .def("AddModelPartToModelPart", &PostUtilities::AddModelPartToModelPart)
         .def("AddSpheresNotBelongingToClustersToMixModelPart", &PostUtilities::AddSpheresNotBelongingToClustersToMixModelPart)
@@ -300,53 +300,53 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ComputeEulerAngles", &PostUtilities::ComputeEulerAngles)
         ;
 
-    class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
-        .def(init<>())
+    py::class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
+        .def(py::init<>())
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
         ;
 
-    class_<BenchmarkUtils, BenchmarkUtils::Pointer>(m, "BenchmarkUtils")
-        .def(init<>())
+    py::class_<BenchmarkUtils, BenchmarkUtils::Pointer>(m, "BenchmarkUtils")
+        .def(py::init<>())
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
 
-    class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, ReorderConsecutiveModelPartIO>(m, "ReorderConsecutiveFromGivenIdsModelPartIO")
-        .def(init<std::string const& >())
-        .def(init<std::string const&, const int, const int, const int>())
+    py::class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, ReorderConsecutiveModelPartIO>(m, "ReorderConsecutiveFromGivenIdsModelPartIO")
+        .def(py::init<std::string const& >())
+        .def(py::init<std::string const&, const int, const int, const int>())
         ;
 
-    class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
-        .def(init<>())
+    py::class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
+        .def(py::init<>())
         ;
 
-    class_<PropertiesProxiesManager, PropertiesProxiesManager::Pointer>(m, "PropertiesProxiesManager")
-        .def(init<>())
+    py::class_<PropertiesProxiesManager, PropertiesProxiesManager::Pointer>(m, "PropertiesProxiesManager")
+        .def(py::init<>())
         .def("CreatePropertiesProxies", CreatePropertiesProxies1)
         .def("CreatePropertiesProxies", CreatePropertiesProxies2)
         ;
 
-    class_<ExcavatorUtility, ExcavatorUtility::Pointer >(m, "ExcavatorUtility")
-        .def(init<ModelPart&, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double>())
+    py::class_<ExcavatorUtility, ExcavatorUtility::Pointer >(m, "ExcavatorUtility")
+        .def(py::init<ModelPart&, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double, const double>())
         .def("ExecuteInitializeSolutionStep", &ExcavatorUtility::ExecuteInitializeSolutionStep)
         ;
 
-    class_<AnalyticWatcher, AnalyticWatcher::Pointer>(m, "AnalyticWatcher")
-        .def(init<>())
+    py::class_<AnalyticWatcher, AnalyticWatcher::Pointer>(m, "AnalyticWatcher")
+        .def(py::init<>())
         ;
 
-    class_<ParticlesHistoryWatcher, ParticlesHistoryWatcher::Pointer, AnalyticWatcher>(m, "ParticlesHistoryWatcher")
-        .def(init<>())
+    py::class_<ParticlesHistoryWatcher, ParticlesHistoryWatcher::Pointer, AnalyticWatcher>(m, "ParticlesHistoryWatcher")
+        .def(py::init<>())
         .def("GetNewParticlesData", &ParticlesHistoryWatcher::GetNewParticlesData)
         ;
 
-    class_<MoveMeshUtility, MoveMeshUtility::Pointer>(m, "MoveMeshUtility")
-        .def(init<>())
+    py::class_<MoveMeshUtility, MoveMeshUtility::Pointer>(m, "MoveMeshUtility")
+        .def(py::init<>())
         .def("MoveDemMesh", &MoveMeshUtility::MoveDemMesh)
         ;
 
-    class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")
-        .def(init<>())
+    py::class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")
+        .def(py::init<>())
         .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
         ;
     }

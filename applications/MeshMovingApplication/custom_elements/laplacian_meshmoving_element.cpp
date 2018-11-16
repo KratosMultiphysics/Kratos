@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_elements/laplacian_meshmoving_element.h"
-#include "mesh_moving_application.h"
+#include "includes/mesh_moving_variables.h"
 #include "custom_utilities/move_mesh_utilities.h"
 #include "utilities/math_utils.h"
 

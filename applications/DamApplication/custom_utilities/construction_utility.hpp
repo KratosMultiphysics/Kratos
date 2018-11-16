@@ -216,7 +216,7 @@ class ConstructionUtility
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void AssignTimeActivation(std::string ThermalSubModelPartName, int phase, double time_activation)
+    void AssignTimeActivation(std::string ThermalSubModelPartName, int phase, double time_activation, double initial_temperature)
     {
         KRATOS_TRY;
 
@@ -244,55 +244,20 @@ class ConstructionUtility
 
                 if ((central_position(direction) >= previous_height) && (central_position(direction) <= current_height))
                 {
+
                     const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
                     for (unsigned int i = 0; i < number_of_points; ++i)
                     {
                         if (it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION)==0)
                         {
                             it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation * mTimeUnitConverter;
+                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = initial_temperature;
                         }
                     }
                 }
             }
         }
 
-        KRATOS_CATCH("");
-    }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void AssignInitialTemperature(std::string ThermalSubModelPartName, int phase, double initial_temperature)
-    {
-        KRATOS_TRY;
-
-        const int nnodes = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).GetMesh(0).Nodes().size();
-
-        int direction;
-        if (mGravityDirection == "X")
-            direction = 0;
-        else if (mGravityDirection == "Y")
-            direction = 1;
-        else
-            direction = 2;
-
-        if (nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).GetMesh(0).NodesBegin();
-
-            double current_height = mReferenceCoordinate + (mHeight / mPhases) * (phase);
-            double previous_height = mReferenceCoordinate + (mHeight / mPhases) * (phase - 1);
-
-            for (int i = 0; i < nnodes; ++i)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                double coordinate_gravity_direction = it->Coordinates()[direction];
-
-                if ((coordinate_gravity_direction > previous_height) && (coordinate_gravity_direction <= (current_height+0.1)) && (it->Is(SOLID) == false))
-                {
-                    it->FastGetSolutionStepValue(TEMPERATURE) = initial_temperature;
-                }
-            }
-        }
         KRATOS_CATCH("");
     }
 
@@ -750,7 +715,7 @@ class ConstructionUtility
                 {
                     ModelPart::NodesContainerType::iterator it_thermal = it_begin_thermal + i;
 
-                    if ((it_thermal->Id() == ConditionNodeIds[j]) && (it_thermal->Is(SOLID) == false))
+                    if (it_thermal->Id() == ConditionNodeIds[j])
                     {
                         const double temp_current = it_thermal->FastGetSolutionStepValue(TEMPERATURE);
                         const double heat_flux = mH0 * (ambient_temp - temp_current);
