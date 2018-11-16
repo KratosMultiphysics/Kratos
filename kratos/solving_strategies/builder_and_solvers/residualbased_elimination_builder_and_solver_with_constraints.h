@@ -136,11 +136,13 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "reassemble_lhs" : false
+            "reassemble_lhs"     : false,
+            "rebuild_fixed_dofs" : false
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         mReassembleLHS = ThisParameters["reassemble_lhs"].GetBool();
+        mRebuildFixedDoFs = ThisParameters["rebuild_fixed_dofs"].GetBool();
     }
 
     /**
@@ -148,10 +150,12 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
      */
     explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        const bool ReassembleLHS = false
+        const bool ReassembleLHS = false,
+        const bool RebuildFixedDoFs = false
         )
         : BaseType(pNewLinearSystemSolver),
-          mReassembleLHS(ReassembleLHS)
+          mReassembleLHS(ReassembleLHS),
+          mRebuildFixedDoFs(RebuildFixedDoFs)
     {
     }
 
@@ -351,8 +355,9 @@ protected:
     DofsArrayType mDoFSlaveSet;                /// The set containing the slave DoF of the system
     SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
 
-    bool mCleared = true; /// If the system has been reseted
-    bool mReassembleLHS = false; /// If the LHS must be reconstructed after computing
+    bool mCleared = true;           /// If the system has been reseted
+    bool mReassembleLHS = false;    /// If the LHS must be reconstructed after computing
+    bool mRebuildFixedDoFs = false; /// If we rebuild the DoF of the slave DoFs assigned to master DoFs
 
     ///@}
     ///@name Protected Operators
@@ -1002,7 +1007,7 @@ protected:
 
             const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
-            #pragma omp parallel firstprivate(number_of_constraints, transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
+            #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
             {
                 // The current process info
                 ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -1102,6 +1107,226 @@ protected:
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                     rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, true);
                     ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation choosen and on how the System Matrix is built.
+     * @details In the base ResidualBasedEliminationBuilderAndSolver does nothing, due to the fact that the BC are automatically managed with the elimination. But in the constrints approach the slave DoF depending on fixed DoFs must be reconstructed
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void ApplyDirichletConditions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        // Rebuild the DoFs is expensive, we can choose if we do it or not
+        if (mRebuildFixedDoFs) {
+            // Vector containing the localization in the system of the different terms
+            DofsVectorType slave_dof_list, master_dof_list;
+
+            // The dof set to be reset
+            typedef std::unordered_set < DofPointerType, DofPointerHasher> set_type;
+            set_type reset_slave_dofs;
+            reset_slave_dofs.reserve(mDoFSlaveSet.size());
+
+            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
+            // Set to zero the NODAL_VAUX
+            const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+
+            // Auxiliar zero array
+            const array_1d<double, 3> zero_array = ZeroVector(3);
+
+            #pragma omp parallel for
+            for(int i = 0;  i< num_nodes; ++i) {
+                auto it_node = rModelPart.Nodes().begin() + i;
+                it_node->SetValue(NODAL_MAUX, 0.0);
+                it_node->SetValue(NODAL_VAUX, zero_array);
+            }
+
+            // Contributions to the system
+            LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
+            LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
+
+            // First we do a database of the slave dofs to be reset
+            #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_dof_list, master_dof_list)
+            {
+                // The current process info
+                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+                set_type aux_reset_slave_dofs;
+                aux_reset_slave_dofs.reserve(mDoFSlaveSet.size());
+
+                #pragma omp for schedule(guided, 512)
+                for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                    // It is active by default
+                    bool constraint_is_active = true;
+                    if (it_const->IsDefined(ACTIVE))
+                        constraint_is_active = it_const->Is(ACTIVE);
+
+                    if (constraint_is_active) {
+                        it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                        it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
+
+                        // The direct assignment will be done in case all the dofs of the constraint are fixed
+                        // Otherwise the behaviour is undetermined
+                        // How do you impose directly at the same time you solve the system?, good question
+                        SizeType number_dofs = 0;
+                        for (auto& master_dof : master_dof_list) {
+                            if (master_dof->IsFixed()) {
+                                ++number_dofs;
+                            }
+                        }
+
+                        if (number_dofs == master_dof_list.size()) {
+                            aux_reset_slave_dofs.insert(slave_dof_list.begin(), slave_dof_list.end());
+
+                            IndexType slave_index = 0;
+                            for (auto& slave_dof : slave_dof_list) {
+                                const IndexType node_id = slave_dof->Id();
+                                const auto& r_variable = slave_dof->GetVariable();
+                                auto pnode = rModelPart.pGetNode(node_id);
+
+                                if (r_variable.IsNotComponent()) {
+                                    double& coeff = pnode->GetValue(NODAL_MAUX);
+
+                                    for (IndexType master_index = 0; master_index < master_dof_list.size(); ++master_index) {
+                                        #pragma omp atomic
+                                        coeff += transformation_matrix(slave_index, master_index);
+                                    }
+                                } else {
+                                    IndexType component_index;
+                                    const std::string& variable_name = r_variable.Name();
+                                    std::size_t found = variable_name.find("_X");
+                                    if (found!=std::string::npos) {
+                                        component_index = 0;
+                                    } else {
+                                        found = variable_name.find("_Y");
+                                        if (found!=std::string::npos) {
+                                            component_index = 1;
+                                        } else {
+                                            component_index = 2;
+                                        }
+                                    }
+
+                                    double& coeff = pnode->GetValue(NODAL_VAUX)[component_index];
+
+                                    for (IndexType master_index = 0; master_index < master_dof_list.size(); ++master_index) {
+                                        #pragma omp atomic
+                                        coeff += transformation_matrix(slave_index, master_index);
+                                    }
+                                }
+                                ++slave_index;
+                            }
+                        }
+                    }
+                }
+
+                // We merge all the sets in one thread
+                #pragma omp critical
+                {
+                    reset_slave_dofs.insert(aux_reset_slave_dofs.begin(), aux_reset_slave_dofs.end());
+                }
+            }
+
+            // We reset the DoFs
+            for (auto& it_dof : reset_slave_dofs) {
+                it_dof->GetSolutionStepValue() = 0.0;
+            }
+
+            // Auxiliar vectors
+            LocalSystemVectorType aux_solution_vector = LocalSystemVectorType(0);
+            LocalSystemVectorType aux_master_vector = LocalSystemVectorType(0);
+
+            // Now we add the contributions of the fixed master dofs
+            #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_dof_list, master_dof_list, aux_solution_vector, aux_master_vector)
+            {
+                // The current process info
+                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+                #pragma omp for schedule(guided, 512)
+                for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                    // It is active by default
+                    bool constraint_is_active = true;
+                    if (it_const->IsDefined(ACTIVE))
+                        constraint_is_active = it_const->Is(ACTIVE);
+
+                    if (constraint_is_active) {
+                        it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+                        it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
+
+                        // The direct assignment will be done in case all the dofs of the constraint are fixed
+                        // Otherwise the behaviour is undetermined
+                        // How do you impose directly at the same time you solve the system?, good question
+                        SizeType number_dofs = 0;
+                        for (auto& master_dof : master_dof_list) {
+                            if (master_dof->IsFixed()) {
+                                ++number_dofs;
+                            }
+                        }
+
+                        // Now we add the contribution
+                        if (number_dofs == master_dof_list.size()) {
+                            aux_solution_vector.resize(slave_dof_list.size());
+                            aux_master_vector.resize(number_dofs);
+
+                            IndexType counter = 0;
+                            for (auto& master_dof : master_dof_list) {
+                                aux_master_vector[counter] = master_dof->GetSolutionStepValue();
+                                ++counter;
+                            }
+                            noalias(aux_solution_vector) = prod(transformation_matrix, aux_master_vector);
+
+                            counter = 0;
+                            for (auto& slave_dof : slave_dof_list) {
+                                const IndexType node_id = slave_dof->Id();
+                                const auto& r_variable = slave_dof->GetVariable();
+                                auto pnode = rModelPart.pGetNode(node_id);
+                                double coeff;
+                                if (r_variable.IsNotComponent()) {
+                                    coeff = pnode->GetValue(NODAL_MAUX);
+                                } else {
+                                    IndexType component_index;
+                                    const std::string& variable_name = r_variable.Name();
+                                    std::size_t found = variable_name.find("_X");
+                                    if (found!=std::string::npos) {
+                                        component_index = 0;
+                                    } else {
+                                        found = variable_name.find("_Y");
+                                        if (found!=std::string::npos) {
+                                            component_index = 1;
+                                        } else {
+                                            component_index = 2;
+                                        }
+                                    }
+                                    coeff = pnode->GetValue(NODAL_VAUX)[component_index];
+                                }
+                                const double inv_coeff = std::abs(coeff) > std::numeric_limits<double>::epsilon()? 1.0/coeff : 1.0;
+
+                                double& aux_value = slave_dof->GetSolutionStepValue();
+                                #pragma omp atomic
+                                aux_value += inv_coeff * aux_solution_vector[counter];
+
+                                ++counter;
+                            }
+                        }
+                    }
                 }
             }
         }
