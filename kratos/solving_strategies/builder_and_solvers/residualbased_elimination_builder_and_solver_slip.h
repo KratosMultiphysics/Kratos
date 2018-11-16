@@ -31,7 +31,6 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
-
 namespace Kratos
 {
 
@@ -106,6 +105,8 @@ public:
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > ResidualBasedEliminationBuilderAndSolverType;
+
     typedef typename BaseType::TSchemeType TSchemeType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -130,16 +131,41 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverSlip(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "domain_size" : 3,
+            "variable_x" : "VELOCITY_X",
+            "variable_y" : "VELOCITY_Y",
+            "variable_z" : "VELOCITY_Z"
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mdim = ThisParameters["domain_size"].GetInt();
+        mrVar_x = KratosComponents<TVariableType>::Get(ThisParameters["variable_x"].GetString());
+        mrVar_y = KratosComponents<TVariableType>::Get(ThisParameters["variable_y"].GetString());
+        mrVar_z = KratosComponents<TVariableType>::Get(ThisParameters["variable_z"].GetString());
+    }
+
+    /**
+     * @brief Default constructor.
      */
     ResidualBasedEliminationBuilderAndSolverSlip(
         typename TLinearSolver::Pointer pNewLinearSystemSolver, unsigned int dim, TVariableType const& Var_x, TVariableType const& Var_y, TVariableType const& Var_z)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
+        : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
         , mdim(dim), mrVar_x(Var_x), mrVar_y(Var_y), mrVar_z(Var_z)
     {
 
