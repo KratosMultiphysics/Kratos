@@ -358,6 +358,8 @@ class MPIDataCommunicator: public DataCommunicator
 
     bool BroadcastErrorIfTrue(bool Condition, const int SourceRank) const;
 
+    bool ErrorIfTrueOnAnyRank(bool Condition) const;
+
     bool IsEqualOnAllRanks(const int LocalValue) const;
 
     template<class TDataType> void ValidateSendRecvInput(

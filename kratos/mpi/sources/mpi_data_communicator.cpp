@@ -621,7 +621,7 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Allreduce: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
-    KRATOS_ERROR_IF(local_size != reduced_size)
+    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(local_size != reduced_size))
     << "Input error in call to MPI_Allreduce for rank " << Rank() << ": "
     << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
     #endif // KRATOS_DEBUG
@@ -643,7 +643,7 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Scan: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
-    KRATOS_ERROR_IF(local_size != reduced_size)
+    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(local_size != reduced_size))
     << "Input error in call to MPI_Scan for rank " << Rank() << ": "
     << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
     #endif // KRATOS_DEBUG
@@ -774,7 +774,7 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Allgather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
-    KRATOS_ERROR_IF(send_size*Size() != recv_size)
+    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(send_size*Size() != recv_size))
     << "Input error in call to MPI_Allgather for rank " << Rank() << ": "
     << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
     << send_size * Size() << " values to receive expected)." << std::endl;
@@ -798,6 +798,15 @@ bool MPIDataCommunicator::BroadcastErrorIfTrue(bool Condition, const int SourceR
         << "Rank " << rank << ": Stopping because of error in rank " << SourceRank << "." << std::endl;
     }
     return Condition;
+}
+
+bool MPIDataCommunicator::ErrorIfTrueOnAnyRank(bool Condition) const
+{
+    bool or_condition;
+    MPI_Allreduce(&Condition, &or_condition, 1, MPI_C_BOOL, MPI_LOR, mComm);
+    KRATOS_ERROR_IF(or_condition && !Condition)
+    << "Rank " << Rank() << ": Stopping because an error was detected on a different rank." << std::endl;
+    return or_condition;
 }
 
 bool MPIDataCommunicator::IsEqualOnAllRanks(const int LocalValue) const
@@ -846,7 +855,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateSendRecvInput(
         &send_size, 1, MPI_INT, SendDestination, send_tag,
         &recv_size, 1, MPI_INT, RecvSource, recv_tag,
         mComm, MPI_STATUS_IGNORE);
-    KRATOS_ERROR_IF(recv_size != expected_recv_size)
+    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(recv_size != expected_recv_size))
     << "Input error in call to MPI_Sendrecv for rank " << Rank() << ": "
     << "Receiving " << recv_size << " values but " << expected_recv_size << " are expected." << std::endl;
 }
@@ -860,7 +869,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
     int expected_size = 0;
     const int available_recv_size = Internals::MessageSize(rRecvValues);
     MPI_Scatter(rSendCounts.data(), 1, MPI_INT, &expected_size, 1, MPI_INT, SourceRank, mComm);
-    KRATOS_ERROR_IF(expected_size != available_recv_size)
+    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(expected_size != available_recv_size))
     << "Input error in call to MPI_Scatterv for rank " << Rank() << ": "
     << "This rank will receive " << expected_size << " values but the receive buffer has size "
     << available_recv_size << "." << std::endl;
@@ -895,7 +904,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
     int expected_recv_size = 0;
     const int send_size = Internals::MessageSize(rSendValues);
     MPI_Scatter(rRecvCounts.data(), 1, MPI_INT, &expected_recv_size, 1, MPI_INT, RecvRank, mComm);
-    KRATOS_ERROR_IF(send_size != expected_recv_size)
+    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(send_size != expected_recv_size))
     << "Input error in call to MPI_Gatherv for rank " << Rank() << ": "
     << "This rank will send " << send_size << " values but " << RecvRank << " expects "
     << expected_recv_size << " values from it." << std::endl;
