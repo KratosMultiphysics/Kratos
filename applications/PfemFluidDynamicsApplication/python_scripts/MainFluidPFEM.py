@@ -284,7 +284,7 @@ class Solution(object):
 
         # Calculate Nodal_Area
         self.CalculateNodalArea()
-        
+
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
     def Finalize(self):
@@ -321,7 +321,9 @@ class Solution(object):
         if( self.ProjectParameters.Has("output_configuration") ):
             from gid_output_process import GiDOutputProcess
             self.output_settings = self.ProjectParameters["output_configuration"]
-            return GiDOutputProcess(self.computing_model_part,
+            self.post_process_model_part = self.model.CreateModelPart("output_model_part")
+
+            return GiDOutputProcess(self.post_process_model_part,
                                     self.problem_name,
                                     self.output_settings)
         else:
@@ -343,15 +345,26 @@ class Solution(object):
         self.graphical_output.ExecuteFinalizeSolutionStep()
 
     def GraphicalOutputPrintOutput(self):
+        self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if( self.ProjectParameters.Has("output_configuration") ):
             if(self.graphical_output.IsOutputStep()):
+
+                self.post_process_model_part.Elements.clear()
+                self.post_process_model_part.Nodes.clear()
+                for node in self.main_model_part.Nodes:
+                    self.post_process_model_part.AddNode(node, 0)
+                for smp in self.main_model_part.SubModelParts:
+                    for elem in smp.Elements:
+                        elem.Set(KratosMultiphysics.ACTIVE, True)
+                        self.post_process_model_part.AddElement(elem, 0)
+
+                print("**********************************************************")
                 print("---> Print Output at [STEP:",self.step," TIME:",self.time," DT:",self.delta_time,"]")
+                print("**********************************************************")
                 self.graphical_output.PrintOutput()
 
     def GraphicalOutputExecuteFinalize(self):
         self.graphical_output.ExecuteFinalize()
-
-
 
     def SetParallelSize(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()
