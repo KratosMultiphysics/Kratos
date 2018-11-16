@@ -262,12 +262,16 @@ protected:
                             const IndexType node_id = p_dof->Id();
                             const auto& r_variable = p_dof->GetVariable();
                             auto pnode = rModelPart.pGetNode(node_id);
-                            if (r_variable == DISPLACEMENT_X) {
-                                slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
-                            } else if (r_variable == DISPLACEMENT_Y) {
-                                slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
-                            } else if (r_variable == DISPLACEMENT_Z) {
-                                slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                            if (pnode->IsNot(INTERFACE)) { // Nodes from the contact interface cannot be slave DoFs
+                                if (r_variable == DISPLACEMENT_X) {
+                                    slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
+                                } else if (r_variable == DISPLACEMENT_Y) {
+                                    slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
+                                } else if (r_variable == DISPLACEMENT_Z) {
+                                    slave_dofs.push_back(pnode->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Z));
+                                }
+                            } else { // We remove it
+                                it_const->Set(TO_ERASE);
                             }
                         }
                     }
@@ -309,6 +313,9 @@ protected:
                 }
             }
         }
+
+        // We remove the marked constraints
+        rModelPart.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
 
         KRATOS_INFO_IF("ContactResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 0)) <<
         "Model part after creating new constraints" << rModelPart << std::endl;
