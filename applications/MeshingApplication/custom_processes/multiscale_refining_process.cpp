@@ -63,17 +63,13 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
     Check();
 
     // Initialize the coarse model part
-    InitializeCoarseModelPart();
-
-    // Get the model part hierarchy
-    StringVectorType sub_model_parts_names;
-    sub_model_parts_names = mrCoarseModelPart.GetSubModelPartNames();
+    InitializeCoarseModelPartInterface();
 
     // Initialize the refined model part
-    InitializeRefinedModelPart(sub_model_parts_names);
+    InitializeRefinedModelPartInterface();
 
     // Copy all the entities to the visualization model part
-    InitializeVisualizationModelPart(sub_model_parts_names);
+    // InitializeVisualizationModelPart(sub_model_parts_names);
 }
 
 
@@ -151,6 +147,43 @@ void MultiscaleRefiningProcess::ExecuteCoarsening()
 }
 
 
+void MultiscaleRefiningProcess::InitializeVisualizationModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
+{
+    // Create the sub model parts and add properties and tables
+    InitializeNewModelPart(rReferenceModelPart, rNewModelPart);
+
+    // Adding the variables
+    VariablesList& variables_list = rNewModelPart.GetNodalSolutionStepVariablesList();
+    variables_list = rReferenceModelPart.GetNodalSolutionStepVariablesList();
+
+    // Add the entities to the root model part
+    FastTransferBetweenModelPartsProcess(rNewModelPart, rReferenceModelPart)();
+
+    // Get the model part hierarchy
+    StringVectorType sub_model_parts_names;
+    sub_model_parts_names = rReferenceModelPart.GetSubModelPartNames();
+
+    // Add the entities to the submodel parts
+    for (auto name : sub_model_parts_names)
+    {
+        ModelPart& destination = rNewModelPart.GetSubModelPart(name);
+        ModelPart& origin = rReferenceModelPart.GetSubModelPart(name);
+        FastTransferBetweenModelPartsProcess(destination, origin)();
+    }
+}
+
+
+void MultiscaleRefiningProcess::InitializeRefinedModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
+{
+    // Increase the refinement level
+    int subscale_index = rReferenceModelPart.GetValue(SUBSCALE_INDEX);
+    rNewModelPart.SetValue(SUBSCALE_INDEX, ++subscale_index);
+
+    // Create the sub model parts and add properties and tables
+    InitializeNewModelPart(rReferenceModelPart, rNewModelPart);
+}
+
+
 void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
 {
     // Copy all the tables and properties
@@ -175,60 +208,31 @@ void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
 }
 
 
-void MultiscaleRefiningProcess::CopyVariablesListToNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
-{
-    VariablesList& variables_list = rNewModelPart.GetNodalSolutionStepVariablesList();
-    variables_list = rReferenceModelPart.GetNodalSolutionStepVariablesList();
-}
-
-
-void MultiscaleRefiningProcess::InitializeCoarseModelPart()
+void MultiscaleRefiningProcess::InitializeCoarseModelPartInterface()
 {
     // Create a model part to store the interface boundary conditions
     if (mrCoarseModelPart.HasSubModelPart(mRefinedInterfaceName))
     {
-        mrCoarseModelPart.RemoveNodesFromAllLevels();
-        mrCoarseModelPart.RemoveElementsFromAllLevels();
-        mrCoarseModelPart.RemoveConditionsFromAllLevels();
+        mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveNodesFromAllLevels();
+        mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveElementsFromAllLevels();
+        mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveConditionsFromAllLevels();
     }
     else
         mrCoarseModelPart.CreateSubModelPart(mRefinedInterfaceName);
 }
 
 
-void MultiscaleRefiningProcess::InitializeRefinedModelPart(const StringVectorType& rNames)
+void MultiscaleRefiningProcess::InitializeRefinedModelPartInterface()
 {
-    // Increase the refinement level
-    int subscale_index = mrCoarseModelPart.GetValue(SUBSCALE_INDEX);
-    mrRefinedModelPart.SetValue(SUBSCALE_INDEX, ++subscale_index);
-
     // Create a model part to store the interface boundary conditions
     if (mrRefinedModelPart.HasSubModelPart(mRefinedInterfaceName))
     {
-        mrRefinedModelPart.RemoveNodesFromAllLevels();
-        mrRefinedModelPart.RemoveElementsFromAllLevels();
-        mrRefinedModelPart.RemoveConditionsFromAllLevels();
+        mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveNodesFromAllLevels();
+        mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveElementsFromAllLevels();
+        mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName).RemoveConditionsFromAllLevels();
     }
     else
         mrRefinedModelPart.CreateSubModelPart(mRefinedInterfaceName);
-}
-
-
-void MultiscaleRefiningProcess::InitializeVisualizationModelPart(const StringVectorType& rNames)
-{
-    // Create a model part to store the interface boundary conditions
-    mrVisualizationModelPart.CreateSubModelPart(mRefinedInterfaceName);
-
-    // Add the entities to the root model part
-    FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrCoarseModelPart)();
-
-    // Add the entities to the submodel parts
-    for (auto name : rNames)
-    {
-        ModelPart& destination = mrVisualizationModelPart.GetSubModelPart(name);
-        ModelPart& origin = mrCoarseModelPart.GetSubModelPart(name);
-        FastTransferBetweenModelPartsProcess(destination, origin)();
-    }
 }
 
 
