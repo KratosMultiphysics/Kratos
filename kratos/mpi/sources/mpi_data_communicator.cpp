@@ -145,7 +145,8 @@ DataCommunicator::UniquePointer MPIDataCommunicator::Clone() const
 
 void MPIDataCommunicator::Barrier() const
 {
-    MPI_Barrier(mComm);
+    int ierr = MPI_Barrier(mComm);
+    CheckMPIErrorCode(ierr,"MPI_Barrier");
 }
 
 // Reduce operations
