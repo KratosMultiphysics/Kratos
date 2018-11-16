@@ -331,8 +331,8 @@ class MPIDataCommunicator: public DataCommunicator
         MPI_Op Operation) const;
 
     template<class TDataType> void SendRecvDetail(
-        const TDataType& rSendMessage, const int SendRank,
-        TDataType& rRecvMessage, const int RecvRank) const;
+        const TDataType& rSendMessage, const int SendDestination,
+        TDataType& rRecvMessage, const int RecvSource) const;
 
     template<class TDataType> void BroadcastDetail(
         TDataType& rBuffer, const int SourceRank) const;
@@ -359,6 +359,20 @@ class MPIDataCommunicator: public DataCommunicator
     bool BroadcastErrorIfTrue(bool Condition, const int SourceRank) const;
 
     bool IsEqualOnAllRanks(const int LocalValue) const;
+
+    template<class TDataType> void ValidateSendRecvInput(
+        const TDataType& rSendMessage, const int SendDestination,
+        TDataType& rRecvMessage, const int RecvSource) const;
+
+    template<class TDataType> void ValidateScattervInput(
+        const TDataType& rSendValues,
+        const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
+        TDataType& rRecvValues, const int SourceRank) const;
+
+    template<class TDataType> void ValidateGathervInput(
+        const TDataType& rSendValues, TDataType& rRecvValues,
+        const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
+        const int RecvRank) const;
 
     ///@}
     ///@name Un accessible methods
