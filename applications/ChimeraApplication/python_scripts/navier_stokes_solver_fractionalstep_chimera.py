@@ -150,8 +150,8 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
         super(NavierStokesSolverFractionalStepForChimera, self).PrepareModelPart()
 
     def Initialize(self):
-        self.computing_model_part = self.GetComputingModelPart()
-
+        #self.computing_model_part = self.GetComputingModelPart()
+        self.computing_model_part =self.main_model_part
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()

@@ -11,7 +11,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+//#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
@@ -25,8 +25,8 @@
 // Application includes
 //#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_utilities/solver_settings_for_chimera.h"
-#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc_chimera.h"
-
+//#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc_chimera.h"
+#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_constraints_for_chimera.h"
 
 namespace Kratos
 {
@@ -130,7 +130,7 @@ public:
         if ( rStrategyLabel == BaseType::Velocity )
         {
             // Velocity Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithMpcChimera<TSparseSpace, TDenseSpace, TLinearSolver >
+            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver >
                                                                                 (pLinearSolver));
 
             SchemePointerType pScheme;
@@ -155,7 +155,7 @@ public:
         else if ( rStrategyLabel == BaseType::Pressure )
         {
             // Pressure Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithMpcChimera<TSparseSpace, TDenseSpace, TLinearSolver > (pLinearSolver));
+            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver > (pLinearSolver));
             SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy

@@ -39,6 +39,7 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             chimera_params = self.project_parameters["chimera"][0]
             main_model_part = self.model["FluidModelPart"]
             domain_size = main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+            #computing_model_part = 
 
             print("domain size is",domain_size)
 

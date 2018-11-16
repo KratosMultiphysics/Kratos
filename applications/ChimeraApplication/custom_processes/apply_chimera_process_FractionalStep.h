@@ -214,10 +214,16 @@ class ApplyChimeraProcessFractionalStep : public Process
 		Clear();
 		//for multipatch
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
-			{
-				it->Set(VISITED, false);
-				it->SetValue(SPLIT_ELEMENT,false);
-			}
+		{
+			it->Set(VISITED, false);
+			it->SetValue(SPLIT_ELEMENT,false);
+		}
+
+		int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
+		for (int i = 1;i<=number_of_constraints;++i)
+		{
+			mrMainModelPart.RemoveMasterSlaveConstraint(i);
+		}
 	}
 
 	void ExecuteBeforeOutputStep() override
@@ -456,6 +462,9 @@ class ApplyChimeraProcessFractionalStep : public Process
 			}
 		}
 		KRATOS_INFO("End of chimera loop")<<std::endl;
+		int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
+		KRATOS_INFO("total number of constraints created")<<number_of_constraints<<std::endl;
+	
 	}
 
 	//Apply Chimera with or without overlap
@@ -809,11 +818,14 @@ class ApplyChimeraProcessFractionalStep : public Process
         @arg weight
 		*/
 	void AddMasterSlaveRelationWithNodesAndVariableComponents(MpcDataPointerType pMpc, Node<3> &MasterNode, VariableComponentType &MasterVariable, Node<3> &SlaveNode, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
-	{
+	{	
+		int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
+		number_of_constraints++;
 		SlaveNode.Set(SLAVE);
 		DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
 		DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
 		AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
+		mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", number_of_constraints, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant); 
 	}
 
 	void AddMasterSlaveRelationWithNodeIdsAndVariableComponents(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableComponentType &MasterVariable, IndexType SlaveNodeId, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
@@ -828,11 +840,14 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 	// Functions with use two variables
 	void AddMasterSlaveRelationWithNodesAndVariable(MpcDataPointerType pMpc, Node<3> &MasterNode, VariableType &MasterVariable, Node<3> &SlaveNode, VariableType &SlaveVariable, double weight, double constant = 0.0)
-	{
+	{	
+		int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
+		number_of_constraints++;
 		SlaveNode.Set(SLAVE);
 		DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
 		DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
 		AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
+		mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", number_of_constraints, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant); 
 	}
 
 	void AddMasterSlaveRelationWithNodeIdsAndVariable(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableType &MasterVariable, IndexType SlaveNodeId, VariableType &SlaveVariable, double weight, double constant = 0.0)

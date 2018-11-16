@@ -48,6 +48,14 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
         fluid_computational_model_part.AddConditions(list(list_of_ids))
 
+        """  
+        list_of_ids_c = set()
+        for part in skin_parts:
+            for cons in part.MasterSlaveConstraints:
+                list_of_ids_c.add(cons.Id)
+
+        fluid_computational_model_part.AddMasterSlaveConstraints(list(list_of_ids_c))
+        """
         #verify the orientation of the skin
         throw_errors = False
         KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part,throw_errors).Execute()

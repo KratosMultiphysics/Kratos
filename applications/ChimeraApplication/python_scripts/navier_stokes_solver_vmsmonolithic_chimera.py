@@ -41,8 +41,8 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
 
     def Initialize(self):
 
-        self.computing_model_part = self.GetComputingModelPart()
-
+        #self.computing_model_part = self.GetComputingModelPart()
+        self.computing_model_part = self.main_model_part
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
             self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
@@ -83,7 +83,8 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
                                                                                 KratosCFD.PATCH_INDEX)
         else:
             if (self.implementation == "MPC"):
-                builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithMpcChimera(self.linear_solver)
+                builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.linear_solver)
+                #builder_and_solver = KratosChimera.ResidualBasedBlockBuilderAndSolverWithMpcChimera(self.linear_solver)
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
