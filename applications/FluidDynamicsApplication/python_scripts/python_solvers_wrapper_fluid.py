@@ -6,12 +6,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
 
-    if solver_type == "ale_fluid":
-        KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
-        from KratosMultiphysics import MeshMovingApplication
-        import ale_fluid_solver
-        return ale_fluid_solver.CreateSolver(model, solver_settings, parallelism)
-
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "Monolithic"):
@@ -32,6 +26,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "ConjugateHeatTransfer"):
             solver_module_name = "conjugate_heat_transfer_solver"
 
+        elif (solver_type == "ale_fluid"):
+            solver_module_name = "ale_fluid_solver"
+
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
 
@@ -48,6 +45,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif (solver_type == "EmbeddedAusas"):
             solver_module_name = "trilinos_navier_stokes_embedded_ausas_solver"
+
+        elif (solver_type == "ale_fluid"):
+            solver_module_name = "ale_fluid_solver"
 
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
