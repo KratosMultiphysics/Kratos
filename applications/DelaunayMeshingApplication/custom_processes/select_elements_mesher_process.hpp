@@ -718,7 +718,7 @@ class SelectElementsMesherProcess
 
       //check outer normal
       MesherUtilities MesherUtils;
-      if( rVerticesFlags.Rigid == NumberOfVertices )
+      if( rVerticesFlags.Rigid >= NumberOfVertices-1 )
         accepted = !MesherUtils.CheckRigidOuterCentre(rVertices);
 
       if( accepted ){
