@@ -540,7 +540,6 @@ class Solution(object):
 
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
-
         self.FinalizeTimeStep(self.time)
 
 

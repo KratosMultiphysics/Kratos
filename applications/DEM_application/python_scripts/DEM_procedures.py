@@ -1190,7 +1190,7 @@ class Report(object):
         self.initial_pr_time = timer.clock()
         self.initial_re_time = timer.time()
         self.prev_time = 0.0
-        self.total_steps_expected = 1
+        self.total_steps_expected = 0
         self.control_time = control_time
         self.first_print = True
 
@@ -1209,7 +1209,6 @@ class Report(object):
         label = "DEM: "
 
         if incremental_time > self.control_time:
-            if  self.total_steps_expected==0:  self.total_steps_expected+=1
             percentage = 100 * (float(step) / self.total_steps_expected)
             elapsed_time = timer.time() - self.initial_re_time
 
