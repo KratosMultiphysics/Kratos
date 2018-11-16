@@ -5,8 +5,7 @@ import sys
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("AdjointFluidApplication")
+import KratosFluidDynamicsApplication as KratosCFD
 
 def CreateSolver(model, custom_settings):
     return AdjointFluidSolver(model, custom_settings)
@@ -45,10 +44,10 @@ class AdjointFluidSolver(PythonSolver):
         raise Exception("Trying to call AdjointFluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VELOCITY_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Z, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_PRESSURE, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Z, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_SCALAR_1, self.main_model_part)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
@@ -94,6 +93,8 @@ class AdjointFluidSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
+        self.response_function.InitializeSolutionStep()
+
 
     def Predict(self):
         self.solver.Predict()
@@ -103,6 +104,8 @@ class AdjointFluidSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
+        self.response_function.FinalizeSolutionStep()
+        self.sensitivity_builder.UpdateSensitivities()
 
     def Check(self):
         (self.solver).Check()
