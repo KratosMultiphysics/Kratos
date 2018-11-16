@@ -28,7 +28,7 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 typedef Node<3> NodeType;
 
@@ -135,18 +135,18 @@ void  AddNodeToPython(pybind11::module& m)
     typedef MeshType::NodeType NodeType;
 
 
-    class_<IndexedObject, IndexedObject::Pointer>(m,"IndexedObject")
+    py::class_<IndexedObject, IndexedObject::Pointer>(m,"IndexedObject")
     .def_property("Id", &IndexedObject::GetId, &IndexedObject::SetId)
     .def("__str__", PrintObject<IndexedObject>)
     ;
 
-    class_<Dof<double>, Dof<double>::Pointer, IndexedObject >(m,"Dof")
+    py::class_<Dof<double>, Dof<double>::Pointer, IndexedObject >(m,"Dof")
     ;
 
-    typedef  class_<NodeType, NodeType::Pointer, NodeType::BaseType, IndexedObject, Flags > NodeBinderType;
+    typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, IndexedObject, Flags > NodeBinderType;
     NodeBinderType node_binder(m,"Node");
-    node_binder.def(init<NodeType::IndexType, double, double, double>());
-    node_binder.def(init<NodeType::IndexType, const Point& >());
+    node_binder.def(py::init<NodeType::IndexType, double, double, double>());
+    node_binder.def(py::init<NodeType::IndexType, const Point& >());
 
     IndexingUtility<NodeBinderType,NodeType,Variable<bool> >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<int> >(node_binder);

@@ -115,7 +115,6 @@ public:
 
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
 
-
     /**
      * This struct is used in the component wise calculation only
      * is defined here and is used to declare a member variable in the component wise builder and solver
@@ -206,9 +205,29 @@ public:
      */
     /*@{ */
 
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver, Parameters ThisParameters)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // We set the other member variables
+        mpLinearSystemSolver = pNewLinearSystemSolver;
+
+        mDofSetIsInitialized = false;
+
+        mReshapeMatrixFlag = false;
+    }
+
     /** Constructor.
      */
-    BuilderAndSolver(
+    explicit BuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
     {
         mpLinearSystemSolver = pNewLinearSystemSolver;
@@ -281,6 +300,11 @@ public:
     typename TLinearSolver::Pointer GetLinearSystemSolver()
     {
       return mpLinearSystemSolver;
+    }
+
+    void SetLinearSystemSolver(typename TLinearSolver::Pointer pLinearSystemSolver)
+    {
+       mpLinearSystemSolver = pLinearSystemSolver;
     }
 
     /**
@@ -552,6 +576,27 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "BuilderAndSolver";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
 
     /*@} */
     /**@name Friends */

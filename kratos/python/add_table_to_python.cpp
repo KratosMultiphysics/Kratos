@@ -29,7 +29,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 typedef Table<double,double> DoubleTableType;
 
@@ -41,11 +41,11 @@ double TableGetNearestValue(DoubleTableType& ThisTable, double X)
 
 void  AddTableToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<DoubleTableType, DoubleTableType::Pointer>(m,"PiecewiseLinearTable")
-    .def(init<>())
-    .def(init<Matrix const&>())
+    py::class_<DoubleTableType, DoubleTableType::Pointer>(m,"PiecewiseLinearTable")
+    .def(py::init<>())
+    .def(py::init<Matrix const&>())
     .def("GetValue", &DoubleTableType::GetValue)
     .def("GetDerivative",&DoubleTableType::GetDerivative)
     .def("GetNearestValue", TableGetNearestValue)

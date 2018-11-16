@@ -21,6 +21,13 @@
 namespace Kratos
 {
 
+ReadMaterialsUtility::ReadMaterialsUtility(Model& rModel) : mrModel(rModel)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 ReadMaterialsUtility::ReadMaterialsUtility(
     Parameters Params,
     Model& rModel
@@ -64,9 +71,20 @@ ReadMaterialsUtility::ReadMaterialsUtility(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ReadMaterialsUtility::ReadMaterials(Parameters MaterialData)
+{
+    GetPropertyBlock(MaterialData);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
 {
     KRATOS_INFO("Read materials") << "Started" << std::endl;
+
+    CheckUniqueMaterialAssignment(Materials);
+
     for (IndexType i = 0; i < Materials["properties"].size(); ++i) {
         Parameters material = Materials["properties"].GetArrayItem(i);
         AssignPropertyBlock(material);
@@ -100,11 +118,11 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     std::size_t variables_size = 0;
     for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it)
         ++variables_size;
-    
+
     std::size_t tables_size = 0;
     for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it)
         ++tables_size;
-    
+
     KRATOS_WARNING_IF("Read materials", variables_size > 0 && p_prop->HasVariables())
         << "Property " << std::to_string(property_id) << " already has variables." << std::endl;
     KRATOS_WARNING_IF("Read materials", tables_size > 0 && p_prop->HasTables())
@@ -209,6 +227,49 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
                          table_param["data"][i][1].GetDouble());
         }
         p_prop->SetTable(input_var, output_var, table);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ReadMaterialsUtility::CheckUniqueMaterialAssignment(Parameters Materials)
+{
+    const std::size_t num_props = Materials["properties"].size();
+
+    // save all ModelPartNames in a vector
+    std::vector<std::string> model_part_names(num_props);
+    for (IndexType i = 0; i < num_props; ++i) {
+        model_part_names[i] = Materials["properties"].GetArrayItem(i)["model_part_name"].GetString();
+    }
+
+    // sort the names
+    std::sort(model_part_names.begin(), model_part_names.end());
+
+    // check if the same name exists multiple times (this requires the sorting)
+    const auto it = std::unique( model_part_names.begin(), model_part_names.end() );
+    KRATOS_ERROR_IF_NOT(it == model_part_names.end()) << "Materials for ModelPart \""
+        << *it << "\" are specified multiple times!" << std::endl;
+
+    // checking if a parent also has a materials definition, i.e. if the assignment is unique
+    std::string parent_model_part_name;
+    for (IndexType i = 0; i < num_props; ++i) {
+        parent_model_part_name = model_part_names[i];
+
+        // removing the submodelpart-names one-by-one
+        while (parent_model_part_name.find(".") != std::string::npos) {
+            std::size_t found_pos = parent_model_part_name.find_last_of(".");
+            parent_model_part_name = parent_model_part_name.substr(0, found_pos);
+
+            // check if the parent-modelpart-name also has a materials definition
+            const bool parent_has_materials = std::find(model_part_names.begin(), model_part_names.end(),
+                parent_model_part_name) != model_part_names.end();
+
+            KRATOS_ERROR_IF(parent_has_materials) << "Materials for ModelPart \""
+                << model_part_names[i] << "\" are specified multiple times!\n"
+                << "Overdefined due to also specifying the materials for Parent-ModelPart \""
+                << parent_model_part_name << "\"!" << std::endl;
+        }
     }
 }
 
