@@ -12,13 +12,19 @@
 
 namespace Kratos {
 
-    ParticleCreatorDestructor::ParticleCreatorDestructor() : mGreatestParticleId(0){
+    ParticleCreatorDestructor::ParticleCreatorDestructor() : mMaxNodeId(0){
         mpAnalyticWatcher = Kratos::make_shared<AnalyticWatcher>(); // do-nothing watcher by default
+        mScaleFactor = 1.0;
+        mHighPoint[0] = 10e18;
+        mHighPoint[1] = 10e18;
+        mHighPoint[2] = 10e18;
+        mLowPoint[0] = -10e18;
+        mLowPoint[1] = -10e18;
+        mLowPoint[2] = -10e18;
     }
 
-    ParticleCreatorDestructor::ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher) : mGreatestParticleId(0) {
+    ParticleCreatorDestructor::ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher) : mMaxNodeId(0) {
         mScaleFactor = 1.0;
-        mMaxNodeId = 0;
         mHighPoint[0] = 10e18;
         mHighPoint[1] = 10e18;
         mHighPoint[2] = 10e18;
