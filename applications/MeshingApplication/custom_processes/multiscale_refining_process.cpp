@@ -175,6 +175,13 @@ void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
 }
 
 
+void MultiscaleRefiningProcess::CopyVariablesListToNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
+{
+    VariablesList& variables_list = rNewModelPart.GetNodalSolutionStepVariablesList();
+    variables_list = rReferenceModelPart.GetNodalSolutionStepVariablesList();
+}
+
+
 void MultiscaleRefiningProcess::InitializeCoarseModelPart()
 {
     // Create a model part to store the interface boundary conditions
@@ -221,7 +228,7 @@ void MultiscaleRefiningProcess::InitializeVisualizationModelPart(const StringVec
         ModelPart& destination = mrVisualizationModelPart.GetSubModelPart(name);
         ModelPart& origin = mrCoarseModelPart.GetSubModelPart(name);
         FastTransferBetweenModelPartsProcess(destination, origin)();
-    }        
+    }
 }
 
 
@@ -313,7 +320,7 @@ void MultiscaleRefiningProcess::MarkElementsFromNodalFlag()
         {
             if (elem->GetGeometry()[node].IsNot(TO_REFINE))
                 to_refine = false;
-            
+
             if (elem->GetGeometry()[node].Is(NEW_ENTITY))
                 new_entity = true;
         }
@@ -344,7 +351,7 @@ void MultiscaleRefiningProcess::MarkConditionsFromNodalFlag()
         {
             if (cond->GetGeometry()[node].IsNot(TO_REFINE))
                 to_refine = false;
-            
+
             if (cond->GetGeometry()[node].Is(NEW_ENTITY))
                 new_entity = true;
         }
@@ -560,7 +567,7 @@ void MultiscaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
 
             Element::Pointer aux_elem = coarse_elem->Clone(++rElemId, p_elem_nodes);
             mrRefinedModelPart.AddElement(aux_elem);
-            
+
             aux_elem->SetValue(FATHER_ELEMENT, *coarse_elem.base());
             aux_elem->Set(NEW_ENTITY, true);
 
@@ -610,7 +617,7 @@ void MultiscaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
 
             Condition::Pointer aux_cond = coarse_cond->Clone(++rCondId, p_cond_nodes);
             mrRefinedModelPart.AddCondition(aux_cond);
-            
+
             aux_cond->SetValue(FATHER_CONDITION, *coarse_cond.base());
             aux_cond->Set(NEW_ENTITY, true);
 
@@ -727,7 +734,7 @@ void MultiscaleRefiningProcess::IdentifyCurrentInterface()
     ModelPart::ElementIterator elem_begin = mrCoarseModelPart.ElementsBegin();
     const IndexType element_nodes = elem_begin->GetGeometry().size();
 
-    // Identify the current interface: 
+    // Identify the current interface:
     // Look for the elements which are not to refine and have some nodes to refine
     for (int i = 0; i < static_cast<int>(mrCoarseModelPart.Elements().size()); i++)
     {

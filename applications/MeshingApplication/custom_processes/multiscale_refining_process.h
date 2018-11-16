@@ -175,6 +175,13 @@ public:
     static void InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart);
 
     /**
+     * @brief This is an auxiliary method to copy tha variables list
+     * @param rReferenceModelPart
+     * @param rNewModelPart
+     */
+    static void CopyVariablesListToNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart);
+
+    /**
      * @brief Copies all the last nodal step data from the refined
      * model part to the coarse one
      */

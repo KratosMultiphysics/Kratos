@@ -19,12 +19,12 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             "main_model_part_name"            : "MainModelPart",
             "visualization_model_part_name"   : "VisualizationModelPart",
             "current_subscale"                : 0,
-            "maximum_number_of_subscales"     : 4,    
+            "maximum_number_of_subscales"     : 4,
             "echo_level"                      : 0,
             "advanced_configuration"          : {
                 "echo_level"                      : 0,
                 "number_of_divisions_at_subscale" : 2,
-                "subscale_interface_base_name"    : "refined_interface",      
+                "subscale_interface_base_name"    : "refined_interface",
                 "subscale_boundary_condition"     : "Condition2D2N"
             }
         }
@@ -109,6 +109,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         buffer_size = self.coarse_model_part.GetBufferSize()
         self.visualization_model_part.SetBufferSize(buffer_size)
         MeshingApplication.MultiscaleRefiningProcess.InitializeNewModelPart(self.coarse_model_part, self.visualization_model_part)
+        MeshingApplication.MultiscaleRefiningProcess.CopyVariablesListToNewModelPart(self.coarse_model_part, self.visualization_model_part)
 
     def _InitializeRefinedModelPart(self):
         self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
