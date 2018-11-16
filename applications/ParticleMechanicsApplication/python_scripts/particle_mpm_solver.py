@@ -228,7 +228,6 @@ class ParticleMPMSolver(PythonSolver):
         self.solver.SearchElement(self.grid_model_part, self.material_model_part, self.max_number_of_search_results, self.searching_tolerance)
 
     def InitializeSolutionStep(self):
-        self.solver.Initialize()
         self.solver.InitializeSolutionStep()
 
     def Predict(self):
