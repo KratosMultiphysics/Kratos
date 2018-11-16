@@ -356,6 +356,16 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TDataType> void AllGatherDetail(
         const TDataType& rSendValues, TDataType& rRecvValues) const;
 
+    bool BroadcastError(bool Condition, const int SourceRank) const;
+
+    template<class TDataType>
+    void CheckBuffersHaveSameSize(
+        const std::string& rMPICallName,
+        const TDataType& rSourceBuffer, const TDataType& rDestinationBuffer,
+        const int CheckRank = -1) const;
+
+    bool IsEqualOnAllRanks(const int LocalValue) const;
+
     ///@}
     ///@name Un accessible methods
     ///@{
