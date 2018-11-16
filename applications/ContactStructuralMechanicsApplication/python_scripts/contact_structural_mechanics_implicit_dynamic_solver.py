@@ -174,6 +174,10 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         #mechanical_solution_strategy.SolveSolutionStep()
         #mechanical_solution_strategy.FinalizeSolutionStep()
 
+    def SolveSolutionStep(self):
+        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        return is_converged
+
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)
 
