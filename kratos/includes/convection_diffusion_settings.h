@@ -463,6 +463,19 @@ private:
  		rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
         rSerializer.save("ReactionVar",mpReactionVar);
 
+        rSerializer.save("mis_defined_DensityVar",mis_defined_DensityVar);
+        rSerializer.save("mis_defined_DiffusionVar",mis_defined_DiffusionVar);
+        rSerializer.save("mis_defined_UnknownVar",mis_defined_UnknownVar);
+        rSerializer.save("mis_defined_VolumeSourceVar",mis_defined_VolumeSourceVar);
+        rSerializer.save("mis_defined_SurfaceSourceVar",mis_defined_SurfaceSourceVar);
+        rSerializer.save("mis_defined_ProjectionVar",mis_defined_ProjectionVar);
+        rSerializer.save("mis_defined_ConvectionVar",mis_defined_ConvectionVar);
+        rSerializer.save("mis_defined_MeshVelocityVar",mis_defined_MeshVelocityVar);
+        rSerializer.save("mis_defined_TransferCoefficientVar",mis_defined_TransferCoefficientVar);
+        rSerializer.save("mis_defined_VelocityVar",mis_defined_VelocityVar);
+        rSerializer.save("mis_defined_SpecificHeatVar",mis_defined_SpecificHeatVar);
+        rSerializer.save("mis_defined_ReactionVar",mis_defined_ReactionVar);
+
 // 	  rSerializer.save("",);
     }
 
@@ -480,6 +493,20 @@ private:
         rSerializer.load("VelocityVar",mpVelocityVar);
 		rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
         rSerializer.load("ReactionVar",mpReactionVar);
+
+        rSerializer.load("mis_defined_DensityVar",mis_defined_DensityVar);
+        rSerializer.load("mis_defined_DiffusionVar",mis_defined_DiffusionVar);
+        rSerializer.load("mis_defined_UnknownVar",mis_defined_UnknownVar);
+        rSerializer.load("mis_defined_VolumeSourceVar",mis_defined_VolumeSourceVar);
+        rSerializer.load("mis_defined_SurfaceSourceVar",mis_defined_SurfaceSourceVar);
+        rSerializer.load("mis_defined_ProjectionVar",mis_defined_ProjectionVar);
+        rSerializer.load("mis_defined_ConvectionVar",mis_defined_ConvectionVar);
+        rSerializer.load("mis_defined_MeshVelocityVar",mis_defined_MeshVelocityVar);
+        rSerializer.load("mis_defined_TransferCoefficientVar",mis_defined_TransferCoefficientVar);
+        rSerializer.load("mis_defined_VelocityVar",mis_defined_VelocityVar);
+        rSerializer.load("mis_defined_SpecificHeatVar",mis_defined_SpecificHeatVar);
+        rSerializer.load("mis_defined_ReactionVar",mis_defined_ReactionVar);
+
     }
 
 
