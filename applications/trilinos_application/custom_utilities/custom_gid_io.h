@@ -157,6 +157,11 @@ public:
         }
     }
 
+    void PrintResults( GiD_FILE ResultFile, Variable<bool> rVariable, ModelPart& r_model_part,
+                       double SolutionTag, unsigned int value_index ) override
+    {
+    }
+
     void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
                        double SolutionTag, unsigned int value_index ) override
     {
