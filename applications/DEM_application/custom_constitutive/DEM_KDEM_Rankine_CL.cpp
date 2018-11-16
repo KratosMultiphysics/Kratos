@@ -66,7 +66,7 @@ namespace Kratos {
             LocalElasticContactForce[2] = kn_el * indentation;
         }
         else {
-            if(failure_type > 0) {
+            if (failure_type > 0) {
                 LocalElasticContactForce[2] = 0.0;
             }
             else {
