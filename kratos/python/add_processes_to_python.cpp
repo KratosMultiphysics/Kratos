@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -68,6 +68,25 @@ namespace Python
 {
 typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
+// Discontinuous distance computation auxiliar functions
+template<std::size_t TDim>
+void CalculateEmbeddedVariableFromSkinDouble(
+    CalculateDiscontinuousDistanceToSkinProcess<TDim> &rDiscDistProcess,
+    const Variable<double> &rVariable,
+    const Variable<double> &rEmbeddedVariable)
+{
+    rDiscDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
+}
+
+template<std::size_t TDim>
+void CalculateEmbeddedVariableFromSkinArray(
+    CalculateDiscontinuousDistanceToSkinProcess<TDim> &rDiscDistProcess,
+    const Variable<array_1d<double,3>> &rVariable,
+    const Variable<array_1d<double,3>> &rEmbeddedVariable)
+{
+    rDiscDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
+}
+
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -87,12 +106,12 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     // Find NODAL_H (Historical variables stored)
-    py::class_<FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>, FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalHProcess")
+    py::class_<FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>, FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalHProcess")
     .def(py::init<ModelPart&>())
     ;
 
     // Find NODAL_H (Non-historical variables stored)
-    py::class_<FindNodalHProcess<FindNodalH::SaveAsNonHistoricalVariable>, FindNodalHProcess<FindNodalH::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindNodalHNonHistoricalProcess")
+    py::class_<FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>, FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindNodalHNonHistoricalProcess")
     .def(py::init<ModelPart&>())
     ;
 
@@ -258,22 +277,30 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    // Discontinuous distance computation methods
+    // Discontinuous distance computation methods        
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
-            .def(py::init<ModelPart&, ModelPart&>())
-            ;
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
+        ;
 
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
-            .def(py::init<ModelPart&, ModelPart&>())
-            ;
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<3>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<3>)
+        ;
 
     // Continuous distance computation methods
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
-            .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
-            .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")

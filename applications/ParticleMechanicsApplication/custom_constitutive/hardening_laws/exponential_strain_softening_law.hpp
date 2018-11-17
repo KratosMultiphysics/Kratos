@@ -48,8 +48,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ExponentialStrainSofteningLaw 
-        : public MPMHardeningLaw 
+class ExponentialStrainSofteningLaw
+        : public MPMHardeningLaw
 {
 public:
 
@@ -86,8 +86,16 @@ public:
     ///@name Operations
     ///@{
 
+
+    /*
+    * @brief This function return the softening rule for internal friction angle, cohesion, and internal dilatancy angle:
+    * @param[in/out] rHardening Exponential softening rate of change
+    * @param[in] rAlpha Plastic deviatoric strain
+    * @param[in] rThisVariable Identifier variable: INTERNAL_FRICTION_ANGLE, COHESION, INTERNAL_DILATANCY_ANGLE
+    * @return Softening rate of change parameter
+    */
     double& CalculateHardening(double &rHardening, const double &rAlpha, const Variable<double>& rThisVariable) override;
-	
+
     ///@}
     ///@name Access
     ///@{
@@ -128,7 +136,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-     
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -165,7 +173,7 @@ private:
     ///@name Member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Private Operators
     ///@{

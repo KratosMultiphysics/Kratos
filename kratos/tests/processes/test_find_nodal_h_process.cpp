@@ -48,8 +48,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test triangle
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalH1, KratosNodalHFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalH1, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -103,7 +102,7 @@ namespace Kratos
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
                          
             // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
             
 //             // DEBUG         
@@ -120,8 +119,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test tetrahedra
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalH2, KratosNodalHFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalH2, KratosCoreFastSuite)
         {
             Model current_model;
             
@@ -250,7 +248,7 @@ namespace Kratos
             Element::Pointer p_elem_11 = this_model_part.CreateNewElement("Element3D4N", 12, tetrahedra_11, p_elem_prop);
                       
             // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
             
 //             // DEBUG         

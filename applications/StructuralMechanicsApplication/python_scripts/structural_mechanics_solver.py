@@ -81,6 +81,7 @@ class MechanicalSolver(PythonSolver):
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
+                "symmetric_scaling": true,
                 "verbosity": 1
             },
             "problem_domain_sub_model_part_list": ["solid"],
@@ -242,6 +243,10 @@ class MechanicalSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        if not is_converged:
+            msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            self.print_warning_on_rank_zero("::[MechanicalSolver]:: ",msg)
         return is_converged
 
     def FinalizeSolutionStep(self):
@@ -430,7 +435,7 @@ class MechanicalSolver(PythonSolver):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
-            if self.settings["multi_point_constraints_used"].GetBool():
+            if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
                 raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
