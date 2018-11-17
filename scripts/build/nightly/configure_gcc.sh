@@ -45,6 +45,7 @@ cmake .. \
 -DSOLID_MECHANICS_APPLICATION=ON                                                                \
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                                            \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                                           \
+-DIGA_APPLICATION=ON                                                                            \
 -DSWIMMING_DEM_APPLICATION=OFF                                                                  \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
