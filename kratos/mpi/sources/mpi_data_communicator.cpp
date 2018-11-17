@@ -898,7 +898,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
     {
         for (int i = 0; i < Size(); i++)
         {
-            if(rSendOffsets[i]+rSendCounts[i] >= message_size) {
+            if(rSendOffsets[i]+rSendCounts[i] > message_size) {
                 message
                 << "Input error in call to MPI_Scatterv for rank " << SourceRank << ": "
                 << "Reading past sent message end when sending message for rank " << i << "." << std::endl;
@@ -943,7 +943,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
     {
         for (int i = 0; i < Size(); i++)
         {
-            if (rRecvOffsets[i]+rRecvCounts[i] >= expected_message_size) {
+            if (rRecvOffsets[i]+rRecvCounts[i] > expected_message_size) {
                 message
                 << "Input error in call to MPI_Gatherv for rank " << RecvRank << ": "
                 << "Writting past buffer end when sending message for rank " << i << "." << std::endl;
