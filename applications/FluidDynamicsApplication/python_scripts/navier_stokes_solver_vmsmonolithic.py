@@ -312,8 +312,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         (self.solver).Initialize()
 
-        self.solver.Check()
-
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
 
 
