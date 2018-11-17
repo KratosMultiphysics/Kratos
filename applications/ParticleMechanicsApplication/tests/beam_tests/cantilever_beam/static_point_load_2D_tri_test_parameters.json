@@ -1,0 +1,92 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "static_point_load_2D_tri_test",
+        "parallel_type" : "OpenMP",
+        "start_time"    : 0.0,
+        "end_time"      : 1.0,
+        "echo_level"    : 0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Static",
+        "model_part_name"                    : "MPM_Material",
+        "time_integration_method"            : "implicit",
+        "domain_size"                        : 2,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_Body"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "geometry_element"                   : "Triangle",
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","PointLoad2D_Load_on_points_Auto1"],
+        "grid_model_import_settings"         : {
+            "input_type"     : "mdpa",
+            "input_filename" : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_Grid"
+        },
+        "particle_per_element"               : 3,
+        "pressure_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "PointLoad2D_Load_on_points_Auto1",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 800.0,
+                "direction"       : [0.0,-1.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes": [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT"],
+                "input_file_name"  : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_results.json",
+                "model_part_name"  : "PointLoad2D_Load_on_points_Auto1",
+                "time_frequency"   : 1.0
+            }
+        }]
+    },
+    "print_output_process" : [{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"  : ["DISPLACEMENT"],
+            "output_file_name"  : "beam_tests/cantilever_beam/static_point_load_2D_tri_test_results.json",
+            "model_part_name"   : "PointLoad2D_Load_on_points_Auto1",
+            "time_frequency"    : 1.0
+        }
+    }]
+}

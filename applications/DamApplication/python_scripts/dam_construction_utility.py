@@ -70,8 +70,7 @@ class DamConstructionUtility:
                 file_2 = line.split(" ")
                 if (len(file_2)) > 1:
                     self.name_sub_thermal_part = "sub_Thermal_" + file_2[1]
-                    self.Construction.AssignTimeActivation(self.name_sub_thermal_part,int(file_2[2]),float(file_2[0]))
-                    self.Construction.AssignInitialTemperature(self.name_sub_thermal_part,int(file_2[2]),float(file_2[3]))
+                    self.Construction.AssignTimeActivation(self.name_sub_thermal_part,int(file_2[2]),float(file_2[0]), float(file_2[3]))
 
     def InitializeSolutionStep(self):
 

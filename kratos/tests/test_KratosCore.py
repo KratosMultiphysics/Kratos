@@ -37,6 +37,7 @@ import test_variable_redistribution
 import test_object_printing
 import test_array_1d_interface
 import test_linear_master_slave_constraints
+import test_flags
 
 
 def AssembleTestSuites():
@@ -56,7 +57,6 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_skin.TestCalculateDistanceToSkin]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part.TestModelPart]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_io.TestModelPartIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input.TestMaterialsInput]))
@@ -92,10 +92,12 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_object_printing.TestObjectPrinting]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_array_1d_interface.TestArray1DInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_master_slave_constraints.TestLinearMultipointConstraints]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_flags.TestFlags]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_skin.TestCalculateDistanceToSkin]))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']

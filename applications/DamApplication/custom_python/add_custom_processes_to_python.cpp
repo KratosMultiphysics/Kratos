@@ -48,94 +48,94 @@ namespace Python
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef Table<double,double> TableType;
 
     // Apply table values
-    class_<ApplyComponentTableProcessDam, ApplyComponentTableProcessDam::Pointer, Process>
+    py::class_<ApplyComponentTableProcessDam, ApplyComponentTableProcessDam::Pointer, Process>
     (m, "ApplyComponentTableProcessDam")
-    .def(init < ModelPart&, Parameters>());
+    .def(py::init < ModelPart&, Parameters>());
 
     // Fix Temperature
-    class_<DamFixTemperatureConditionProcess, DamFixTemperatureConditionProcess::Pointer, Process>
+    py::class_<DamFixTemperatureConditionProcess, DamFixTemperatureConditionProcess::Pointer, Process>
     (m, "DamFixTemperatureConditionProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Bofang Process
-    class_<DamBofangConditionTemperatureProcess, DamBofangConditionTemperatureProcess::Pointer, Process>
+    py::class_<DamBofangConditionTemperatureProcess, DamBofangConditionTemperatureProcess::Pointer, Process>
     (m, "DamBofangConditionTemperatureProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Uniform Reservoir Temperature Process
-    class_<DamReservoirConstantTemperatureProcess, DamReservoirConstantTemperatureProcess::Pointer, Process>
+    py::class_<DamReservoirConstantTemperatureProcess, DamReservoirConstantTemperatureProcess::Pointer, Process>
     (m, "DamReservoirConstantTemperatureProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Hydrostatic condition
-    class_<DamHydroConditionLoadProcess, DamHydroConditionLoadProcess::Pointer, Process>
+    py::class_<DamHydroConditionLoadProcess, DamHydroConditionLoadProcess::Pointer, Process>
     (m, "DamHydroConditionLoadProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Uplift Condition
-    class_<DamUpliftConditionLoadProcess, DamUpliftConditionLoadProcess::Pointer, Process>
+    py::class_<DamUpliftConditionLoadProcess, DamUpliftConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftConditionLoadProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Uplift Condition for arch dams
-    class_<DamUpliftCircularConditionLoadProcess, DamUpliftCircularConditionLoadProcess::Pointer, Process>
+    py::class_<DamUpliftCircularConditionLoadProcess, DamUpliftCircularConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftCircularConditionLoadProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
    // Westergaard Condition (for hydrostatic + hydrodynamic pressure)
-    class_<DamWestergaardConditionLoadProcess, DamWestergaardConditionLoadProcess::Pointer, Process>
+    py::class_<DamWestergaardConditionLoadProcess, DamWestergaardConditionLoadProcess::Pointer, Process>
     (m, "DamWestergaardConditionLoadProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Nodal Young Modulus Process
-    class_<DamNodalYoungModulusProcess, DamNodalYoungModulusProcess::Pointer, Process>
+    py::class_<DamNodalYoungModulusProcess, DamNodalYoungModulusProcess::Pointer, Process>
     (m, "DamNodalYoungModulusProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Chemo Mechanical Aging Young Modulus Process
-    class_<DamChemoMechanicalAgingYoungProcess, DamChemoMechanicalAgingYoungProcess::Pointer, Process>
+    py::class_<DamChemoMechanicalAgingYoungProcess, DamChemoMechanicalAgingYoungProcess::Pointer, Process>
     (m, "DamChemoMechanicalAgingYoungProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Added Mass Distribution
-    class_<DamAddedMassConditionProcess, DamAddedMassConditionProcess::Pointer, Process>
+    py::class_<DamAddedMassConditionProcess, DamAddedMassConditionProcess::Pointer, Process>
     (m, "DamAddedMassConditionProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     //Temperature by device
-    class_<DamTemperaturebyDeviceProcess, DamTemperaturebyDeviceProcess::Pointer, Process>
+    py::class_<DamTemperaturebyDeviceProcess, DamTemperaturebyDeviceProcess::Pointer, Process>
     (m, "DamTemperaturebyDeviceProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Heat Flux by t_sol_air
-    class_<DamTSolAirHeatFluxProcess, DamTSolAirHeatFluxProcess::Pointer, Process>
+    py::class_<DamTSolAirHeatFluxProcess, DamTSolAirHeatFluxProcess::Pointer, Process>
     (m, "DamTSolAirHeatFluxProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Heat Source According Noorzai (Adiabatic Hidratation)
-    class_<DamNoorzaiHeatFluxProcess, DamNoorzaiHeatFluxProcess::Pointer, Process>
+    py::class_<DamNoorzaiHeatFluxProcess, DamNoorzaiHeatFluxProcess::Pointer, Process>
     (m, "DamNoorzaiHeatFluxProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Heat Source according Azenha (Arrhenius formulation NonAdiabatic Hidratation)
-    class_<DamAzenhaHeatFluxProcess, DamAzenhaHeatFluxProcess::Pointer, Process>
+    py::class_<DamAzenhaHeatFluxProcess, DamAzenhaHeatFluxProcess::Pointer, Process>
     (m, "DamAzenhaHeatFluxProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
 
     // Nodal Reference Temperature Process
-    class_< DamNodalReferenceTemperatureProcess, DamNodalReferenceTemperatureProcess::Pointer, Process >
+    py::class_< DamNodalReferenceTemperatureProcess, DamNodalReferenceTemperatureProcess::Pointer, Process >
     (m, "DamNodalReferenceTemperatureProcess")
-    .def(init < ModelPart&, TableType&, Parameters&>());
+    .def(py::init < ModelPart&, TableType&, Parameters&>());
 
     // Grouting Reference Temperature Process
-    class_< DamGroutingReferenceTemperatureProcess, DamGroutingReferenceTemperatureProcess::Pointer, Process >
+    py::class_< DamGroutingReferenceTemperatureProcess, DamGroutingReferenceTemperatureProcess::Pointer, Process >
     (m, "DamGroutingReferenceTemperatureProcess")
-    .def(init < ModelPart&, Parameters&>());
+    .def(py::init < ModelPart&, Parameters&>());
     }
 
 }  // namespace Python.
