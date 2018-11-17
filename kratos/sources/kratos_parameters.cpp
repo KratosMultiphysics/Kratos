@@ -228,6 +228,14 @@ Parameters::Parameters(Parameters const& rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
+Parameters::Parameters(Parameters&& rOther) : Parameters()
+{
+    swap(rOther);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Parameters& Parameters::operator=(Parameters const& rOther)
 {
     if(mpRoot.get() ==  mpValue || mpRoot == nullptr) {
@@ -263,7 +271,6 @@ Parameters Parameters::operator[](const IndexType Index)
 Parameters& Parameters::operator=(Parameters&& rOther)
 {
     swap(rOther);
-
     return *this;
 }
 

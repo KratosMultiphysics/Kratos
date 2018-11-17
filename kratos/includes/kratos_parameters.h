@@ -318,6 +318,9 @@ public:
     /// Copy constructor.
     Parameters(Parameters const& rOther);
 
+    /// Move constructor.
+    Parameters(Parameters&& rOther);
+
     /// Destructor.
     virtual ~Parameters()
     {
