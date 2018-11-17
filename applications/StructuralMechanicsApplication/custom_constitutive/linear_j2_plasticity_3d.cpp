@@ -191,7 +191,7 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        this->CalculateValue(rValues, STRAIN, r_r_strain_vector);
+        this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // If we compute the tangent moduli or the stress
