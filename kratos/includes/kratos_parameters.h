@@ -346,6 +346,12 @@ public:
      */
     Parameters operator[](const IndexType Index);
 
+    /**
+     * @brief This is the move operator
+     * @param rOther The othe parameter to compute the move
+     */
+    Parameters& operator=(Parameters&& rOther);
+
     ///@}
     ///@name Operations
     ///@{
