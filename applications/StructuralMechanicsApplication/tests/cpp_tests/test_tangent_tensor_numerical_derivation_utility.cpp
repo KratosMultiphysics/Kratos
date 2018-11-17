@@ -6,7 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo Velazquez
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -17,10 +18,7 @@
 #include "includes/process_info.h"
 #include "testing/testing.h"
 
-// Application includes
-
-// Contitutive Law
-#include "custom_constitutive/elastic_isotropic_3d.h"
+/* Contitutive Law */
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
 namespace Kratos
@@ -28,92 +26,58 @@ namespace Kratos
 namespace Testing
 {
 
-void CalculateElasticMatrix(
-    Matrix &rElasticityTensor,
-    const Properties &rMaterialProperties)
-{
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-    const double lambda =
-        E * poisson_ratio / ((1. + poisson_ratio) * (1.0 - 2.0 * poisson_ratio));
-    const double mu = E / (2.0 + 2.0 * poisson_ratio);
-
-    if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
-        rElasticityTensor.resize(6, 6, false);
-    rElasticityTensor.clear();
-
-    rElasticityTensor(0, 0) = lambda + 2.0 * mu;
-    rElasticityTensor(0, 1) = lambda;
-    rElasticityTensor(0, 2) = lambda;
-    rElasticityTensor(1, 0) = lambda;
-    rElasticityTensor(1, 1) = lambda + 2.0 * mu;
-    rElasticityTensor(1, 2) = lambda;
-    rElasticityTensor(2, 0) = lambda;
-    rElasticityTensor(2, 1) = lambda;
-    rElasticityTensor(2, 2) = lambda + 2.0 * mu;
-    rElasticityTensor(3, 3) = mu;
-    rElasticityTensor(4, 4) = mu;
-    rElasticityTensor(5, 5) = mu;
-}
-
 /**
-    * Check the correct calculation of the uniaxial stress of the yield surfaces
-    */
+* Check the correct calculation of the uniaxial stress of the yield surfaces
+*/
 KRATOS_TEST_CASE_IN_SUITE(PertubationTensorTestUtility, KratosStructuralMechanicsFastSuite)
 {
-    ConstitutiveLaw::Parameters rValues;
-    Properties rMaterialProperties;
-    Vector rStressVector, rStrainVector;
+    ConstitutiveLaw::Parameters cl_configuration_values;
+    Properties material_properties;
+    Vector stress_vector, strain_vector;
     ProcessInfo CurrentProcessInfo;
 
-    Flags ConstitutiveLawOptions;
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    Flags constitutive_law_options;
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
-    rMaterialProperties.SetValue(YOUNG_MODULUS, 210e9);
-    rMaterialProperties.SetValue(POISSON_RATIO, 0.22);
+    material_properties.SetValue(YOUNG_MODULUS, 210e9);
+    material_properties.SetValue(POISSON_RATIO, 0.22);
 
-    rStressVector = ZeroVector(6);
-    rStressVector[0] = 5.40984e+06;
-    rStressVector[1] = 5.40984e+06;
-    rStressVector[2] = 1.91803e+07;
-    rStressVector[3] = 0.0;
-    rStressVector[4] = 0.0;
-    rStressVector[5] = 1.45804e-10;
+    stress_vector = ZeroVector(6);
+    stress_vector[0] = 5.40984e+06;
+    stress_vector[1] = 5.40984e+06;
+    stress_vector[2] = 1.91803e+07;
+    stress_vector[5] = 1.45804e-10;
 
-    rStrainVector = ZeroVector(6);
-    rStrainVector[0] = 0.0;
-    rStrainVector[1] = 0.0;
-    rStrainVector[2] = 8.0e-5;
-    rStrainVector[3] = 0.0;
-    rStrainVector[4] = 0.0;
-    rStrainVector[5] = 1.6941e-21;
+    strain_vector = ZeroVector(6);
+    strain_vector[2] = 8.0e-5;
+    strain_vector[5] = 1.6941e-21;
 
     Matrix F = IdentityMatrix(6);
 
-    rValues.SetMaterialProperties(rMaterialProperties);
-    rValues.SetDeformationGradientF(F);
-    rValues.SetStrainVector(rStrainVector);
-    rValues.SetStressVector(rStressVector);
-    rValues.SetOptions(ConstitutiveLawOptions);
-    rValues.SetProcessInfo(CurrentProcessInfo);
+    cl_configuration_values.SetMaterialProperties(material_properties);
+    cl_configuration_values.SetDeformationGradientF(F);
+    cl_configuration_values.SetStrainVector(strain_vector);
+    cl_configuration_values.SetStressVector(stress_vector);
+    cl_configuration_values.SetOptions(constitutive_law_options);
+    cl_configuration_values.SetProcessInfo(CurrentProcessInfo);
 
-    ElasticIsotropic3D ConstitutiveLaw = ElasticIsotropic3D();
-    ElasticIsotropic3D *pConstitutiveLaw = &ConstitutiveLaw;
+    auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
 
     Matrix C = ZeroMatrix(6, 6);
-    rValues.SetConstitutiveMatrix(C);
-    CalculateElasticMatrix(C, rMaterialProperties);
+    cl_configuration_values.SetConstitutiveMatrix(C);
+    p_constitutive_law->CalculateValue(cl_configuration_values,CONSTITUTIVE_MATRIX, C);
 
-    TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, pConstitutiveLaw);
-    Matrix &Tangent = rValues.GetConstitutiveMatrix();
+    TangentOperatorCalculatorUtility::CalculateTangentTensor(cl_configuration_values, p_constitutive_law.get());
+    Matrix& r_tangent_moduli = cl_configuration_values.GetConstitutiveMatrix();
 
-    for (int i = 0; i < 6; i++)
-    {
-        for (int j = 0; j < 6; j++)
-        {
-            KRATOS_CHECK_NEAR(C(i, j), Tangent(i, j), 1.0e-3);
+    const double tolerance = 1.0e-6;
+    for (std::size_t i = 0; i < 6; ++i) {
+        for (std::size_t j = 0; j < 6; ++j) {
+            if (std::abs(r_tangent_moduli(i, j)) > 0.0) {
+                KRATOS_CHECK_NEAR(C(i, j), r_tangent_moduli(i, j), tolerance);
+            }
         }
     }
 }
