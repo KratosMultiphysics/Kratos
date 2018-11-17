@@ -202,8 +202,8 @@ const std::string Parameters::const_iterator_adaptor::name()
 
 Parameters::Parameters()
 {
-    mpRoot = nullptr;
-    mpValue = nullptr;
+    mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( "{}" ));
+    mpValue = mpRoot.get();
 }
 
 /***********************************************************************************/
@@ -264,7 +264,7 @@ Parameters Parameters::Clone()
 {
     //TODO: make a clone
     //TODO: find a better way to make the copy
-    return Parameters(mpValue->dump());                     //new json(*mpValue));
+    return Parameters(WriteJsonString()); //new json(*mpValue));
 }
 
 /***********************************************************************************/
