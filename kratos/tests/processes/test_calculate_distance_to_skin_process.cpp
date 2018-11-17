@@ -28,10 +28,10 @@ namespace Kratos {
 	KRATOS_TEST_CASE_IN_SUITE(DistanceProcessQuadrilateral2D, KratosCoreFastSuite)
 	{
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point_1 = std::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point_2 = std::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_3 = std::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_4 = std::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
+		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+		Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
+		Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
+		Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
 
 		Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -88,10 +88,10 @@ namespace Kratos {
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point_1 = std::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point_2 = std::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_3 = std::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_4 = std::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
+		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+		Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
+		Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
+		Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
 
 		Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -142,14 +142,14 @@ namespace Kratos {
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point1 = std::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point2 = std::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
-		Node<3>::Pointer p_point3 = std::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point4 = std::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point5 = std::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
-		Node<3>::Pointer p_point6 = std::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
-		Node<3>::Pointer p_point7 = std::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
-		Node<3>::Pointer p_point8 = std::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
+		Node<3>::Pointer p_point1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+		Node<3>::Pointer p_point2 = Kratos::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
+		Node<3>::Pointer p_point3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
+		Node<3>::Pointer p_point4 = Kratos::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
+		Node<3>::Pointer p_point5 = Kratos::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
+		Node<3>::Pointer p_point6 = Kratos::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
+		Node<3>::Pointer p_point7 = Kratos::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
+		Node<3>::Pointer p_point8 = Kratos::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
 
 		Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
@@ -191,14 +191,14 @@ namespace Kratos {
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point1 = std::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point2 = std::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
-		Node<3>::Pointer p_point3 = std::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point4 = std::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point5 = std::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
-		Node<3>::Pointer p_point6 = std::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
-		Node<3>::Pointer p_point7 = std::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
-		Node<3>::Pointer p_point8 = std::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
+		Node<3>::Pointer p_point1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+		Node<3>::Pointer p_point2 = Kratos::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
+		Node<3>::Pointer p_point3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
+		Node<3>::Pointer p_point4 = Kratos::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
+		Node<3>::Pointer p_point5 = Kratos::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
+		Node<3>::Pointer p_point6 = Kratos::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
+		Node<3>::Pointer p_point7 = Kratos::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
+		Node<3>::Pointer p_point8 = Kratos::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
 
 		Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
@@ -241,14 +241,14 @@ namespace Kratos {
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point1 = std::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point2 = std::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
-		Node<3>::Pointer p_point3 = std::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point4 = std::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point5 = std::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
-		Node<3>::Pointer p_point6 = std::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
-		Node<3>::Pointer p_point7 = std::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
-		Node<3>::Pointer p_point8 = std::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
+		Node<3>::Pointer p_point1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
+		Node<3>::Pointer p_point2 = Kratos::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
+		Node<3>::Pointer p_point3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
+		Node<3>::Pointer p_point4 = Kratos::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
+		Node<3>::Pointer p_point5 = Kratos::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
+		Node<3>::Pointer p_point6 = Kratos::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
+		Node<3>::Pointer p_point7 = Kratos::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
+		Node<3>::Pointer p_point8 = Kratos::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
 
 		Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
@@ -370,10 +370,10 @@ namespace Kratos {
         Model current_model;
 
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = std::make_intrusive<Node<3>>(1, -0.5, -0.5, 0.0);
-        Node<3>::Pointer p_point_2 = std::make_intrusive<Node<3>>(2, -0.5,  0.5, 0.0);
-        Node<3>::Pointer p_point_3 = std::make_intrusive<Node<3>>(3,  0.5,  0.5, 0.0);
-        Node<3>::Pointer p_point_4 = std::make_intrusive<Node<3>>(4,  0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, -0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, -0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3,  0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4,  0.5, -0.5, 0.0);
 
         Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -424,10 +424,10 @@ namespace Kratos {
         Model current_model;
 
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = std::make_intrusive<Node<3>>(1, -0.5, -0.5, 0.0);
-        Node<3>::Pointer p_point_2 = std::make_intrusive<Node<3>>(2, -0.5,  0.5, 0.0);
-        Node<3>::Pointer p_point_3 = std::make_intrusive<Node<3>>(3,  0.5,  0.5, 0.0);
-        Node<3>::Pointer p_point_4 = std::make_intrusive<Node<3>>(4,  0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, -0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, -0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3,  0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4,  0.5, -0.5, 0.0);
 
         Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 

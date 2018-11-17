@@ -90,8 +90,8 @@ public:
     typedef Node<TDimension, TDofType> NodeType;
 
     /// Pointer definition of Node
-    typedef std::intrusive_ptr<NodeType> Pointer;
-    typedef std::intrusive_weak_ptr<NodeType> WeakPointer;
+    typedef Kratos::intrusive_ptr<NodeType> Pointer;
+    typedef Kratos::intrusive_weak_ptr<NodeType> WeakPointer;
 
     typedef Point BaseType;
 
@@ -328,7 +328,7 @@ public:
 
     typename Node<TDimension>::Pointer Clone()
     {
-        Node<3>::Pointer p_new_node = std::make_intrusive<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        Node<3>::Pointer p_new_node = Kratos::make_intrusive<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
 
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();

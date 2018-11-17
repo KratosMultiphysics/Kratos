@@ -253,7 +253,7 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, std::intrusive_ptr<TDataType>& pValue)
+    void load(std::string const & rTag, Kratos::intrusive_ptr<TDataType>& pValue)
     {
         PointerType pointer_type = SP_INVALID_POINTER;
         void* p_pointer;
@@ -268,7 +268,7 @@ public:
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
                     if(!pValue)
-                        pValue = std::intrusive_ptr<TDataType>(new TDataType);
+                        pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
                     load(rTag, *pValue);
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -282,7 +282,7 @@ public:
                         << object_name << std::endl;
 
                     if(!pValue)
-                        pValue = std::intrusive_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+                        pValue = Kratos::intrusive_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
 
                     load(rTag, *pValue);
 
@@ -290,7 +290,7 @@ public:
                 mLoadedPointers[p_pointer]=&pValue;
             }
             else
-                pValue = *static_cast<std::intrusive_ptr<TDataType>*>((i_pointer->second));
+                pValue = *static_cast<Kratos::intrusive_ptr<TDataType>*>((i_pointer->second));
         }
     }
 
@@ -607,7 +607,7 @@ public:
     }
 
     template<class TDataType>
-    void save(std::string const & rTag, std::intrusive_ptr<TDataType> pValue)
+    void save(std::string const & rTag, Kratos::intrusive_ptr<TDataType> pValue)
     {
         save(rTag, pValue.get());
     }
