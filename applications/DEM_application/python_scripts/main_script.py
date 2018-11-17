@@ -412,7 +412,6 @@ class Solution(object):
         self.all_model_parts.ComputeMaxIds()
 
 
-
     def RunMainTemporalLoop(self):
 
         self.step = 0

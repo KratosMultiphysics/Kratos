@@ -15,13 +15,12 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/checks.h"
-#include "includes/gid_io.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "utilities/variable_utils.h"
+#include "includes/mesh_moving_variables.h"
 
 // Application includes
-#include "mesh_moving_application.h"
 #include "custom_utilities/explicit_mesh_moving_utilities.h"
 
 namespace Kratos {
@@ -110,7 +109,7 @@ namespace Testing {
 
         // Set the explicit mesh moving utility
         const double search_radius = 1.0;
-        ExplicitMeshMovingUtilities::Pointer p_mesh_moving = 
+        ExplicitMeshMovingUtilities::Pointer p_mesh_moving =
             Kratos::make_shared<ExplicitMeshMovingUtilities>(virtual_model_part, str_model_part, search_radius);
 
         // Fill the virtual model part geometry

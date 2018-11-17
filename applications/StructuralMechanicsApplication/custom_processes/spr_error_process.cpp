@@ -18,6 +18,7 @@
 #include "processes/find_nodal_neighbours_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "utilities/variable_utils.h"
+#include "utilities/stl_io.h"
 
 namespace Kratos
 {

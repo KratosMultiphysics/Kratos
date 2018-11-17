@@ -99,7 +99,7 @@ namespace Kratos
          * Checks if the Newmark scheme performs correctly the integration
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementNewmarkSchemeTest, KratosCoreSchemesFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(DisplacementNewmarkSchemeTest, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -164,7 +164,7 @@ namespace Kratos
          * Checks if the Bossak scheme performs correctly the integration
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementBossakSchemeTest, KratosCoreSchemesFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(DisplacementBossakSchemeTest, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -229,7 +229,7 @@ namespace Kratos
          * Checks if the BDF2 scheme performs correctly the integration
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementBDF2SchemeTest, KratosCoreSchemesFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(DisplacementBDF2SchemeTest, KratosCoreFastSuite)
         {
             Model current_model;
             

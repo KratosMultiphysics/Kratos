@@ -18,9 +18,12 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "includes/io.h"
+#include "includes/model_part.h"
+#include "includes/model_part_io.h"
+
 #include "processes/process.h"
+
 #include "custom_python/add_processes_to_python.h"
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
@@ -82,10 +85,10 @@ void AddProcessesToPython(pybind11::module& m)
 
     py::class_<MetisDivideHeterogeneousInputInMemoryProcess, MetisDivideHeterogeneousInputInMemoryProcess::Pointer, Process>(
         m,"MetisDivideHeterogeneousInputInMemoryProcess")
-        .def(py::init<IO&, unsigned int>())
-        .def(py::init<IO&, unsigned int, int>())
-        .def(py::init<IO&, unsigned int, int, int>())
-        .def(py::init<IO&, unsigned int, int, int, bool>())
+        .def(py::init<IO&, ModelPartIO&, unsigned int>())
+        .def(py::init<IO&, ModelPartIO&, unsigned int, int>())
+        .def(py::init<IO&, ModelPartIO&, unsigned int, int, int>())
+        .def(py::init<IO&, ModelPartIO&, unsigned int, int, int, bool>())
         ;
 
     py::class_<MortonDivideInputToPartitionsProcess, MortonDivideInputToPartitionsProcess::Pointer, Process>(

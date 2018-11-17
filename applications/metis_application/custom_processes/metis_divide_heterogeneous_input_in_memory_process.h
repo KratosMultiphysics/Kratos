@@ -24,10 +24,12 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
+#include "includes/model_part_io.h"
+
 #include "processes/process.h"
 #include "processes/graph_coloring_process.h"
+
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
-#include "includes/model_part_io.h"
 
 // This one needs mpi
 #include "mpi.h"
@@ -99,14 +101,14 @@ public:
     ///@{
 
     /// Default constructor.
-    MetisDivideHeterogeneousInputInMemoryProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
-        BaseType(rIO,NumberOfPartitions,Dimension,Verbosity,SynchronizeConditions)
+    MetisDivideHeterogeneousInputInMemoryProcess(IO& rIO, ModelPartIO& rSerialIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
+        BaseType(rIO,NumberOfPartitions,Dimension,Verbosity,SynchronizeConditions), mrSerialIO(rSerialIO)
     {
     }
 
     /// Copy constructor.
     MetisDivideHeterogeneousInputInMemoryProcess(MetisDivideHeterogeneousInputInMemoryProcess const& rOther):
-        BaseType(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension,rOther.mVerbosity,rOther.mSynchronizeConditions)
+        BaseType(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension,rOther.mVerbosity,rOther.mSynchronizeConditions), mrSerialIO(rOther.mrSerialIO)
     {
     }
 
@@ -273,9 +275,9 @@ public:
 
             // Write files
             mrIO.DivideInputToPartitions(
-            streams, mNumberOfPartitions, ColoredDomainGraph,
-            io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-            nodes_all_partitions, elements_all_partitions, conditions_all_partitions
+                streams, mNumberOfPartitions, ColoredDomainGraph,
+                io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
+                nodes_all_partitions, elements_all_partitions, conditions_all_partitions
             );
         }
 
@@ -324,12 +326,12 @@ public:
 
 #ifdef KRATOS_DEBUG
         // Print the partitions in debug mode
-        std::ofstream debug_ofstream("debug_modelpart_"+std::to_string(mpi_rank)+".mpda");
+        std::ofstream debug_ofstream("debug_modelpart_"+std::to_string(mpi_rank)+".mdpa");
         debug_ofstream << stringbufs[mpi_rank].str() << std::endl;
 #endif
 
         // TODO: Try to come up with a better way to change the buffer.
-        ((ModelPartIO&)mrIO).SwapStreamSource(streams[mpi_rank]);
+        mrSerialIO.SwapStreamSource(streams[mpi_rank]);
 
         // Free buffers
         free(mpi_recv_buffer[mpi_rank]);
@@ -430,6 +432,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    ModelPartIO& mrSerialIO;
 
     ///@}
     ///@name Private Operators

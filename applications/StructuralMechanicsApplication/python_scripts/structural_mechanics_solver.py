@@ -81,6 +81,7 @@ class MechanicalSolver(PythonSolver):
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
+                "symmetric_scaling": true,
                 "verbosity": 1
             },
             "problem_domain_sub_model_part_list": ["solid"],
@@ -226,7 +227,6 @@ class MechanicalSolver(PythonSolver):
                 mechanical_solution_strategy.SetInitializePerformedFlag(True)
             except AttributeError:
                 pass
-        self.Check()
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def Solve(self):
@@ -243,6 +243,10 @@ class MechanicalSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        if not is_converged:
+            msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            self.print_warning_on_rank_zero("::[MechanicalSolver]:: ",msg)
         return is_converged
 
     def FinalizeSolutionStep(self):
