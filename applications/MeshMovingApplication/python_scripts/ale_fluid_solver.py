@@ -11,10 +11,10 @@ import python_solvers_wrapper_mesh_motion
 
 
 def CreateSolver(model, solver_settings, parallelism):
-    return ALEFluidSolver(model, solver_settings, parallelism)
+    return AleFluidSolver(model, solver_settings, parallelism)
 
 
-class ALEFluidSolver(PythonSolver):
+class AleFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -29,7 +29,7 @@ class ALEFluidSolver(PythonSolver):
         # mesh-motion-settings is done in corresponding solvers
         solver_settings.ValidateAndAssignDefaults(default_settings)
 
-        super(ALEFluidSolver, self).__init__(model, solver_settings)
+        super(AleFluidSolver, self).__init__(model, solver_settings)
 
         fluid_solver_settings       = self.settings["fluid_solver_settings"]
         mesh_motion_solver_settings = self.settings["mesh_motion_solver_settings"]
@@ -44,11 +44,11 @@ class ALEFluidSolver(PythonSolver):
                 fluid_solver_settings["compute_reactions"].SetBool(True)
                 warn_msg  = '"compute_reactions" is switched off for the fluid-solver, '
                 warn_msg += 'switching it on!'
-                KratosMultiphysics.Logger.PrintWarning("::[ALEFluidSolver]::", warn_msg)
+                KratosMultiphysics.Logger.PrintWarning("::[AleFluidSolver]::", warn_msg)
         else:
             fluid_solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
             info_msg = 'Setting "compute_reactions" to true for the fluid-solver'
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+            KratosMultiphysics.Logger.PrintInfo("::[AleFluidSolver]::", info_msg)
 
         ## Creating the fluid solver
         self.fluid_solver = self._CreateFluidSolver(fluid_solver_settings, parallelism)
@@ -80,6 +80,7 @@ class ALEFluidSolver(PythonSolver):
         self.fluid_solver.min_buffer_size = max(self.fluid_solver.GetMinimumBufferSize(),
                                                 self.mesh_motion_solver.GetMinimumBufferSize())
 
+        # TODO remove this once the MPI-logger is implemented
         self.is_printing_rank = self.fluid_solver._IsPrintingRank()
 
         # TODO once the different computations of the Mehs-Vel are implemented,
@@ -89,22 +90,22 @@ class ALEFluidSolver(PythonSolver):
         if (self.mesh_motion_solver.settings["calculate_mesh_velocities"].GetBool() == False
             and self.is_printing_rank):
             info_msg = "Mesh velocities are not being computed in the Mesh solver!"
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+            KratosMultiphysics.Logger.PrintInfo("::[AleFluidSolver]::", info_msg)
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Construction finished")
+            KratosMultiphysics.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
 
     def AddVariables(self):
         self.mesh_motion_solver.AddVariables()
         self.fluid_solver.AddVariables()
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Variables Added")
+            KratosMultiphysics.Logger.PrintInfo("::[AleFluidSolver]::", "Variables Added")
 
     def AddDofs(self):
         self.mesh_motion_solver.AddDofs()
         self.fluid_solver.AddDofs()
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "DOFs Added")
+            KratosMultiphysics.Logger.PrintInfo("::[AleFluidSolver]::", "DOFs Added")
 
     def Initialize(self):
         # Saving the ALE-interface-parts for later
@@ -123,7 +124,7 @@ class ALEFluidSolver(PythonSolver):
         self.fluid_solver.Initialize()
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Finished initialization")
+            KratosMultiphysics.Logger.PrintInfo("::[AleFluidSolver]::", "Finished initialization")
 
     def ImportModelPart(self):
         self.fluid_solver.ImportModelPart() # only ONE solver imports the ModelPart
@@ -155,7 +156,7 @@ class ALEFluidSolver(PythonSolver):
     def SolveSolutionStep(self):
         self.mesh_motion_solver.SolveSolutionStep()
 
-        self._ApplyALEBoundaryCondition()
+        self.__ApplyALEBoundaryCondition()
 
         self.fluid_solver.SolveSolutionStep()
 
@@ -182,14 +183,12 @@ class ALEFluidSolver(PythonSolver):
 
     def _CreateFluidSolver(self, solver_settings, parallelism):
         '''This function creates the fluid solver.
-        It can be overridden to create different fluid solvers
+        It has to be overridden in derived classes
         '''
-        KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-        import python_solvers_wrapper_fluid
-        return python_solvers_wrapper_fluid.CreateSolverByParameters(
-            self.model, solver_settings, parallelism)
+        raise Exception("Fluid solver creation must be implemented in the derived class.")
 
-    def _ApplyALEBoundaryCondition(self):
+
+    def __ApplyALEBoundaryCondition(self):
         '''Copy the MESH_VELOCITY to the VELOCITY (ALE) on the ale-boundary
         '''
         for mp in self.ale_boundary_parts:
