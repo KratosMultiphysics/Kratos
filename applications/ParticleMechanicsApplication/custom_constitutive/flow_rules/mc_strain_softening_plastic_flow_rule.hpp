@@ -121,7 +121,6 @@ public:
 
 protected:
 
-    //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -230,4 +229,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED  defined

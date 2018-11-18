@@ -199,7 +199,7 @@ namespace Kratos
                 rLeftHandSideMatrix.resize(mat_size, mat_size, false);
             }
 
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size); //resetting LHS
         }
 
         // Resizing as needed the RHS

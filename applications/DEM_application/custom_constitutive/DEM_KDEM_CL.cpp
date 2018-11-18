@@ -29,7 +29,7 @@ namespace Kratos {
 
         KRATOS_TRY
         double radius_sum = radius + other_radius;
-//         double equiv_radius = radius * other_radius / radius_sum;
+        //double equiv_radius = radius * other_radius / radius_sum;
         double equiv_radius = 0.5 * radius_sum;
         calculation_area = Globals::Pi * equiv_radius * equiv_radius;
         KRATOS_CATCH("")
@@ -93,7 +93,7 @@ namespace Kratos {
         Properties& element2_props = element2->GetProperties();
         double mTensionLimit;
 
-        // calculation of equivalent young modulus
+        // calculation of equivalent Young modulus
         double myYoung = element1->GetYoung();
         double other_young = element2->GetYoung();
         double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
@@ -104,7 +104,7 @@ namespace Kratos {
 
         Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
         GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
-
+        
         double radius_sum = my_radius + other_radius;
         double initial_delta = element1->GetInitialDelta(i);
         double initial_dist = radius_sum - initial_delta;

@@ -1007,7 +1007,7 @@ class DEMFEMProcedures(object):
         #         node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
     @classmethod
-    def UpdateTimeInModelParts(self, all_model_parts, time, dt, step, is_time_to_print):
+    def UpdateTimeInModelParts(self, all_model_parts, time, dt, step, is_time_to_print = False):
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
@@ -1020,7 +1020,7 @@ class DEMFEMProcedures(object):
         self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step, is_time_to_print)
 
     @classmethod
-    def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print):
+    def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print = False):
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step
@@ -1251,7 +1251,6 @@ class PreUtils(object):
 
     def __init__(self):
         pass
-
 
 class MaterialTest(object):
 
