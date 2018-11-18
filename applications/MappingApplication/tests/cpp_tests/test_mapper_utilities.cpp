@@ -14,6 +14,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
+#include "includes/stream_serializer.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "mapping_application_variables.h"
@@ -514,9 +515,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
         (*p_interface_info_container)[1], p_ref_nearest_neighbor_info );
 
     // serializing the object (=> happens on the partition that sends the objects)
-    Serializer serializer_0;
+    StreamSerializer serializer_0;
     serializer_0.save("obj", serializer_helper_0);
-    Serializer serializer_1;
+    StreamSerializer serializer_1;
     serializer_1.save("obj", serializer_helper_1);
 
     MapperInterfaceInfoPointerVectorPointerType p_interface_info_container_new

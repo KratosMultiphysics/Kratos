@@ -15,6 +15,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "testing/testing.h"
 #include "custom_mappers/nearest_element_mapper.h"
+#include "includes/stream_serializer.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
@@ -200,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
     KRATOS_CHECK(nearest_element_info.GetLocalSearchWasSuccessful());
 
     // serializing the object
-    Serializer serializer;
+    StreamSerializer serializer;
     serializer.save("nearest_element_interface_info", nearest_element_info);
     // deserializing the object => this happens if the remote search was successful and
     // sending back of the object to the partition where it came from is required
