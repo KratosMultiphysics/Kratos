@@ -60,6 +60,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosStruc
     deformation_gradient(2,0) = 0.5 * -1.6941e-21;
     deformation_gradient(0,2) = 0.5 * -1.6941e-21;
 
+    Matrix tangent_moduli = ZeroMatrix(6, 6);
+
     cl_configuration_values.SetMaterialProperties(material_properties);
     cl_configuration_values.SetDeformationGradientF(deformation_gradient);
     cl_configuration_values.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient));
@@ -67,21 +69,20 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosStruc
     cl_configuration_values.SetStressVector(stress_vector);
     cl_configuration_values.SetOptions(constitutive_law_options);
     cl_configuration_values.SetProcessInfo(CurrentProcessInfo);
+    cl_configuration_values.SetConstitutiveMatrix(tangent_moduli);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
 
     Matrix C = ZeroMatrix(6, 6);
-    cl_configuration_values.SetConstitutiveMatrix(C);
-    p_constitutive_law->CalculateValue(cl_configuration_values,CONSTITUTIVE_MATRIX, C);
+    C = p_constitutive_law->CalculateValue(cl_configuration_values,CONSTITUTIVE_MATRIX, C);
 
-    TangentOperatorCalculatorUtility::CalculateTangentTensor(cl_configuration_values, p_constitutive_law.get());
-    Matrix& r_tangent_moduli = cl_configuration_values.GetConstitutiveMatrix();
+    TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(cl_configuration_values, p_constitutive_law.get());
 
     const double tolerance = 1.0e-6;
     for (std::size_t i = 0; i < 6; ++i) {
         for (std::size_t j = 0; j < 6; ++j) {
-            if (std::abs(r_tangent_moduli(i, j)) > 0.0) {
-                KRATOS_CHECK_NEAR(C(i, j), r_tangent_moduli(i, j), tolerance);
+            if (std::abs(tangent_moduli(i, j)) > 0.0) {
+                KRATOS_CHECK_NEAR(C(i, j), tangent_moduli(i, j), tolerance);
             }
         }
     }
@@ -122,6 +123,8 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosStruct
     deformation_gradient(2,0) = 0.5 * -1.6941e-21;
     deformation_gradient(0,2) = 0.5 * -1.6941e-21;
 
+    Matrix tangent_moduli = ZeroMatrix(6, 6);
+
     cl_configuration_values.SetMaterialProperties(material_properties);
     cl_configuration_values.SetDeformationGradientF(deformation_gradient);
     cl_configuration_values.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient));
@@ -129,21 +132,20 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosStruct
     cl_configuration_values.SetStressVector(stress_vector);
     cl_configuration_values.SetOptions(constitutive_law_options);
     cl_configuration_values.SetProcessInfo(CurrentProcessInfo);
+    cl_configuration_values.SetConstitutiveMatrix(tangent_moduli);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("HyperElastic3DLaw").Clone();
 
     Matrix C = ZeroMatrix(6, 6);
-    cl_configuration_values.SetConstitutiveMatrix(C);
-    p_constitutive_law->CalculateValue(cl_configuration_values,CONSTITUTIVE_MATRIX_PK2, C);
+    C = p_constitutive_law->CalculateValue(cl_configuration_values,CONSTITUTIVE_MATRIX_PK2, C);
 
     TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(cl_configuration_values, p_constitutive_law.get());
-    Matrix& r_tangent_moduli = cl_configuration_values.GetConstitutiveMatrix();
 
     const double tolerance = 1.0e-6;
     for (std::size_t i = 0; i < 6; ++i) {
         for (std::size_t j = 0; j < 6; ++j) {
-            if (std::abs(r_tangent_moduli(i, j)) > 0.0) {
-                KRATOS_CHECK_NEAR(C(i, j), r_tangent_moduli(i, j), tolerance);
+            if (std::abs(tangent_moduli(i, j)) > 0.0) {
+                KRATOS_CHECK_NEAR(C(i, j), tangent_moduli(i, j), tolerance);
             }
         }
     }
