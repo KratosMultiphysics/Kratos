@@ -23,19 +23,8 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/kratos_parameters.h"
-
-#include "includes/define.h"
-#include "includes/element.h"
 #include "includes/variables.h"
-#include "includes/serializer.h"
 #include "includes/cfd_variables.h"
-#include "custom_elements/fluid_element.h"
-#include "custom_utilities/fluid_element_utilities.h"
-#include "utilities/geometry_utilities.h"
-
-#include "fluid_dynamics_application_variables.h"
-
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
@@ -90,7 +79,6 @@ public:
     /// Constructor.
     MassConservationCheckProcess(
         ModelPart& rModelPart, 
-        const bool IsSwitchedOn,
         const int MassComputationFreq,
         const bool CompareToInitial, 
         const bool WriteToLogFile);
@@ -164,15 +152,12 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    bool mIsSwitchedOn;
     int mMassComputationFreq;
     bool mCompareToInitial; 
     bool mWriteToLogFile;
 
     double mInitialNegativeVolume;
     double mInitialPositiveVolume;
-
-    int mCounter = 0;
 
     ///@}
     ///@name Protected Operators

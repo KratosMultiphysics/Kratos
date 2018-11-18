@@ -116,7 +116,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
     (m,"MassConservationCheckProcess")
-    .def(init < ModelPart&, const bool, const int, const bool, const bool >())
+    .def(init < ModelPart&, const int, const bool, const bool >())
     .def(init< ModelPart&, Parameters& >())
     ;
 }

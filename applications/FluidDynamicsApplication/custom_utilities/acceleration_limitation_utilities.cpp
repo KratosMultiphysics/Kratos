@@ -16,10 +16,6 @@
 // External includes
 
 // Project includes
-#include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
-#include "utilities/openmp_utils.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
 #include "acceleration_limitation_utilities.h"
@@ -31,52 +27,37 @@ namespace Kratos
 
     /**
      * @brief Iteration over all nodes in ModelPart to find and reduce excessive accelerations.
-     * 
-     * @param rModelPart model part to be controled
+     * Model part is specified in the constructor
      */
 
-    void AccelerationLimitationUtilities::LimitAccelerationAtNodes(ModelPart &rModelPart) {
-        // Sum the reactions in the model part of interest.
-        // Note that the reactions are assumed to be already computed.
+    void AccelerationLimitationUtilities::Execute() {
 
-        double dt = rModelPart.GetProcessInfo().GetValue(DELTA_TIME);
-        double time = rModelPart.GetProcessInfo().GetValue(TIME);
+        double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
-        // iterating over all elements
-        #pragma omp parallel for schedule(dynamic) shared(dt, time)
-        for (int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
-            
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            // iterating over all nodes of the current element
-            for (unsigned int nnode = 0; nnode < it_elem->GetGeometry().size(); nnode++){
+        ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
+        #pragma omp parallel for
+        for(unsigned int count = 0; count < static_cast<unsigned int>(rNodes.size()); count++)
+        {
+            ModelPart::NodesContainerType::iterator i = rNodes.begin() + count;
 
-                // retrieving velocities of current and last time step
-                array_1d<double, 3> v  = it_elem->GetGeometry()[nnode].FastGetSolutionStepValue( Kratos::VELOCITY, 0 );
-                array_1d<double, 3> vn = it_elem->GetGeometry()[nnode].FastGetSolutionStepValue( Kratos::VELOCITY, 1 );
+            // retrieving velocities of current and last time step
+            array_1d<double, 3> &v  = i->FastGetSolutionStepValue( Kratos::VELOCITY, 0 );
+            const array_1d<double, 3> vn = i->FastGetSolutionStepValue( Kratos::VELOCITY, 1 );
 
-                array_1d<double, 3> delta_v = v - vn;
-                double norm_delta_v = sqrt( delta_v[0]*delta_v[0] + delta_v[1]*delta_v[1] + delta_v[2]*delta_v[2] );
+            array_1d<double, 3> delta_v = v - vn;
+            double norm_delta_v = sqrt( delta_v[0]*delta_v[0] + delta_v[1]*delta_v[1] + delta_v[2]*delta_v[2] );
 
-                // a multiple of the 
-                double alpha = norm_delta_v / ( dt * mMaximalAccelaration * 9.81 );
+            double alpha = norm_delta_v / ( dt * mMaximalAccelaration * 9.81 );
 
-                if ( alpha > 1.0){
-                    // setting a new and "reasonable" velocity by scaling
-                    v = vn + ( 1 / alpha ) * delta_v;
-                    it_elem->GetGeometry()[nnode].FastGetSolutionStepValue( Kratos::VELOCITY, 0 ) = v;
-                    // std::cout << "AccelerationLimitationUtilities : High accelaration was detected and reduced" << std::endl;
-
-                    std::ofstream myfile;
-                    myfile.open ("accelerationLog.txt", std::ios::out | std::ios::app);
-                    if ( myfile.is_open() ){
-                        myfile << "time = " << time << " s   |   node = " << it_elem->GetGeometry()[nnode].Id() << "   :  ";
-                        myfile << " High accelaration was detected and reduced \n";
-                        myfile.close();
-                    }
-                }
-            }       
+            if ( alpha > 1.0){
+                // setting a new and "reasonable" velocity by scaling
+                v = vn + ( 1 / alpha ) * delta_v;
+                i->FastGetSolutionStepValue( Kratos::VELOCITY, 0 ) = v;
+            }
         }
+
     }
+
 
     /**
      * @brief Set a new value for the maximal acceleration
@@ -88,17 +69,6 @@ namespace Kratos
     void AccelerationLimitationUtilities::SetLimitAsMultipleOfGravitionalAcceleration( double& newMaxAcc ){
 
         mMaximalAccelaration = newMaxAcc;
-        std::cout << "Maximal acceleration is limited to " << newMaxAcc * 9.81 << " m/s2" << std::endl;
-
-    }
-
-    /**
-     * @brief Execute the utility based on already given data
-     * 
-     */
-    void AccelerationLimitationUtilities::Execute(){
-
-        LimitAccelerationAtNodes( *mpModelPart );
     }
 
 

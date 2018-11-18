@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 try:
     import KratosMultiphysics.ExternalSolversApplication
@@ -71,12 +72,8 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
                 distanceAnalytic = (node.Y - self.waterLevel)
                 self.assertAlmostEqual(distanceAnalytic, distance, delta = self.check_toleranceDistance)
             
-            # cleaning
-            try:
-                os.remove('TwoFluidStaticPoolTest2D.post.bin')
-                os.remove('tests.post.lst')
-            except FileNotFoundError as e:
-                pass
+            kratos_utils.DeleteFileIfExisting('TwoFluidStaticPoolTest2D.post.bin')
+            kratos_utils.DeleteFileIfExisting('tests.post.lst')
 
     # runs the three dimensional test case
     def runTwoFluidHydrostaticTest3D(self):
@@ -106,12 +103,9 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
                 distanceAnalytic = (node.Z - self.waterLevel)
                 self.assertAlmostEqual(distanceAnalytic, distance, delta = self.check_toleranceDistance)
             
-            # cleaning
-            try:
-                os.remove('TwoFluidStaticPoolTest3D.post.bin')
-                os.remove('tests.post.lst')
-            except FileNotFoundError as e:
-                pass
+            kratos_utils.DeleteFileIfExisting('TwoFluidStaticPoolTest3D.post.bin')
+            kratos_utils.DeleteFileIfExisting('tests.post.lst')
+
 
 class FluidDynamicsAnalysisWithFlush2D(FluidDynamicsAnalysis):
 

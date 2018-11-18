@@ -16,13 +16,12 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
         {
             "model_part_name"                        : "default_model_part_name",
-            "is_switched_on"                         : true,
             "mass_computation_frequency"             : 20,
             "compare_to_initial_values"              : true,
             "write_to_log_file"                      : true
         }  """ )
 
-        settings.ValidateAndAssignDefaults(default_parameters);
+        settings.ValidateAndAssignDefaults(default_parameters)
 
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
         self.MassConservationCheckProcess = KratosFluid.MassConservationCheckProcess(self.fluid_model_part, settings)

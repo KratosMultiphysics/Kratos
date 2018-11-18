@@ -66,11 +66,16 @@ namespace Kratos
     ///@{
 
     /// Constructor
-    AccelerationLimitationUtilities( ModelPart &rModelPart, double multipleOfG ) {
-        
-        this->mpModelPart = &rModelPart;
-        this->mMaximalAccelaration = multipleOfG;
 
+    /**
+     * @brief Construct a new Acceleration Limitation Utilities object
+     * 
+     * @param ModelPart model part to be controlled
+     * @param multipleOfG specification of maximal acceleration in multiples of the gravitational acceleration
+     */
+    AccelerationLimitationUtilities( ModelPart &ModelPart, double multipleOfG ) : mrModelPart(ModelPart) {
+        
+        this->mMaximalAccelaration = multipleOfG;
     };
 
     /// Destructor.
@@ -87,16 +92,10 @@ namespace Kratos
 
     /**
      * @brief Execution based on already specified parameters
-     * 
+     * The velocity at every node is reduced based on a physically possible acceleration
      */
     void Execute();
 
-    /**
-     * @brief Control the velocities within a given model part
-     * 
-     * @param rModelPart model part
-     */
-    void LimitAccelerationAtNodes(ModelPart &rModelPart);
 
     /**
      * @brief Set the Limit As Multiple Of Gravitional Acceleration object
@@ -145,7 +144,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart* mpModelPart = NULL;
+    ModelPart &mrModelPart; 
+    // The utilities model part saved as a reference
         
     double mMaximalAccelaration = 3.0;
     // given in multipples of gravitational acceleration
