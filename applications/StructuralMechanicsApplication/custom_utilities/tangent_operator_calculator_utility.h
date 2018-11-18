@@ -60,15 +60,21 @@ public:
     /// Pointer definition of TangentOperatorCalculatorUtility
     KRATOS_CLASS_POINTER_DEFINITION(TangentOperatorCalculatorUtility);
 
+    /// Definition of size type
+    typedef std::size_t SizeType;
+
+    /// Definition of index type
+    typedef std::size_t IndexType;
+
     /// Definition of the zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     // Definition of the perturbation coefficients
-    static constexpr double PerturbationCoefficient1 = 1.0e-5;
-    static constexpr double PerturbationCoefficient2 = 1.0e-10;
+    static constexpr double PerturbationCoefficient1 = 1.0e-4;
+    static constexpr double PerturbationCoefficient2 = 1.0e-8;
 
     // Definition of the perturbation threshold
-    static constexpr double PerturbationThreshold = 1.0e-8;
+    static constexpr double PerturbationThreshold = 1.0e-5;
 
     ///@}
     ///@name Life Cycle
@@ -103,35 +109,39 @@ public:
         )
     {
         // Converged values to be storaged
-        const Vector& strain_vector_gp = rValues.GetStrainVector();
-        const Vector& stress_vector_gp = rValues.GetStressVector();
+        const Vector strain_vector_gp = rValues.GetStrainVector();
+        const Vector stress_vector_gp = rValues.GetStressVector();
 
-        Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
-        tangent_tensor.clear();
+        Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+        r_tangent_tensor.clear();
 
-        const std::size_t num_components = strain_vector_gp.size();
+        // Ensure the proper flag
+        Flags& cl_options = rValues.GetOptions();
+        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+
+        const SizeType num_components = strain_vector_gp.size();
         // Loop over components of the strain
-        Vector& perturbed_strain = rValues.GetStrainVector();
-        for (std::size_t i_component = 0; i_component < num_components; ++i_component) {
+        Vector& r_perturbed_strain = rValues.GetStrainVector();
+        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
             // Calculate the perturbation
             double pertubation;
-            CalculatePerturbation(perturbed_strain, i_component, pertubation);
+            CalculatePerturbation(r_perturbed_strain, i_component, pertubation);
 
             // We check that the perturbation has a threshold value of PerturbationThreshold
             if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
             // Apply the perturbation
-            PerturbateStrainVector(perturbed_strain, strain_vector_gp, pertubation, i_component);
+            PerturbateStrainVector(r_perturbed_strain, strain_vector_gp, pertubation, i_component);
 
             // We continue with the calculations
             IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
             Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
-            const Vector& delta_stress = perturbed_integrated_stress - stress_vector_gp;
-            AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
+            const Vector delta_stress = perturbed_integrated_stress - stress_vector_gp;
+            AssignComponentsToTangentTensor(r_tangent_tensor, delta_stress, pertubation, i_component);
 
             // Reset the values to the initial ones
-            noalias(perturbed_strain) = strain_vector_gp;
+            noalias(r_perturbed_strain) = strain_vector_gp;
             noalias(perturbed_integrated_stress) = stress_vector_gp;
         }
     }
@@ -151,9 +161,7 @@ public:
         const Variable<Vector>& r_stress_variable = rStressMeasure == ConstitutiveLaw::StressMeasure_PK2 ? PK2_STRESS_VECTOR : KIRCHHOFF_STRESS_VECTOR;
 
         // Converged values to be storaged
-        const Vector& strain_vector_gp = rValues.GetStrainVector();
-        const Vector& stress_vector_gp = rValues.GetStressVector();
-        const Matrix& deformation_gradient_gp = rValues.GetDeformationGradientF();
+        const Matrix deformation_gradient_gp = rValues.GetDeformationGradientF();
         const double det_deformation_gradient_gp = rValues.GetDeterminantF();
 
         double aux_det;
@@ -164,14 +172,12 @@ public:
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         tangent_tensor.clear();
 
-        const std::size_t size1 = deformation_gradient_gp.size1();
-        const std::size_t size2 = deformation_gradient_gp.size2();
+        const SizeType size1 = deformation_gradient_gp.size1();
+        const SizeType size2 = deformation_gradient_gp.size2();
 
         // Loop over components of the strain
-        Vector& perturbed_strain = rValues.GetStrainVector();
-        Vector& perturbed_stress = rValues.GetStressVector();
-        for (std::size_t i_component = 0; i_component < size1; ++i_component) {
-            for (std::size_t j_component = 0; j_component < size2; ++j_component) {
+        for (IndexType i_component = 0; i_component < size1; ++i_component) {
+            for (IndexType j_component = 0; j_component < size2; ++j_component) {
                 // Calculate the perturbation
                 double pertubation;
                 CalculatePerturbationFiniteDeformation(perturbed_deformation_gradient, i_component, j_component, pertubation);
@@ -196,8 +202,6 @@ public:
                 AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
 
                 // Reset the values to the initial ones
-                perturbed_strain = strain_vector_gp;
-                perturbed_stress = stress_vector_gp;
                 rValues.SetDeformationGradientF(deformation_gradient_gp);
                 rValues.SetDeterminantF(det_deformation_gradient_gp);
             }
@@ -269,7 +273,7 @@ public:
         Vector& rPerturbedStrainVector,
         const Vector& rStrainVectorGP,
         const double Perturbation,
-        const int Component
+        const IndexType Component
         )
     {
         rPerturbedStrainVector = rStrainVectorGP;
@@ -288,8 +292,8 @@ public:
         Matrix& rPerturbedDeformationGradient,
         const Matrix& rDeformationGradientGP,
         const double Perturbation,
-        const std::size_t ComponentI,
-        const std::size_t ComponentJ
+        const SizeType ComponentI,
+        const SizeType ComponentJ
         )
     {
         rPerturbedDeformationGradient = rDeformationGradientGP;
@@ -311,7 +315,6 @@ public:
         Flags& cl_options = rValues.GetOptions();
 
         // In order to avoid recursivity...
-
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         pConstitutiveLaw->CalculateMaterialResponse(rValues, rStressMeasure);
@@ -327,17 +330,17 @@ public:
         double& rMaxValue
         )
     {
-        const std::size_t dimension = rArrayValues.size();
+        const SizeType dimension = rArrayValues.size();
         std::vector<double> non_zero_values;
 
-        for (std::size_t i = 1; i < dimension; ++i) {
+        for (IndexType i = 1; i < dimension; ++i) {
             if (std::abs(rArrayValues[i]) > tolerance)
                 non_zero_values.push_back(std::abs(rArrayValues[i]));
         }
         KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
 
         double aux = std::abs(non_zero_values[0]);
-        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
+        for (IndexType i = 1; i < non_zero_values.size(); ++i) {
             if (non_zero_values[i] > aux)
                 aux = non_zero_values[i];
         }
@@ -355,12 +358,12 @@ public:
         double& rMaxValue
         )
     {
-        const std::size_t size1 = rMatrixValues.size1();
-        const std::size_t size2 = rMatrixValues.size2();
+        const SizeType size1 = rMatrixValues.size1();
+        const SizeType size2 = rMatrixValues.size2();
         std::vector<double> non_zero_values;
 
-        for (std::size_t i = 0; i < size1; ++i) {
-            for (std::size_t j = 0; j < size2; ++j) {
+        for (IndexType i = 0; i < size1; ++i) {
+            for (IndexType j = 0; j < size2; ++j) {
                 if (std::abs(rMatrixValues(i, j)) > tolerance)
                     non_zero_values.push_back(std::abs(rMatrixValues(i, j)));
             }
@@ -368,7 +371,7 @@ public:
         KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The deformation gradient is full of 0's..." << std::endl;
 
         double aux = std::abs(non_zero_values[0]);
-        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
+        for (IndexType i = 1; i < non_zero_values.size(); ++i) {
             if (non_zero_values[i] > aux)
                 aux = non_zero_values[i];
         }
@@ -386,17 +389,17 @@ public:
         double& rMinValue
         )
     {
-        const std::size_t  dimension = rArrayValues.size();
+        const SizeType dimension = rArrayValues.size();
         std::vector<double> non_zero_values;
 
-        for (std::size_t i = 0; i < dimension; ++i) {
+        for (IndexType i = 0; i < dimension; ++i) {
             if (std::abs(rArrayValues[i]) > tolerance)
                 non_zero_values.push_back(std::abs(rArrayValues[i]));
         }
         KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
 
         double aux = std::abs(non_zero_values[0]);
-        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
+        for (IndexType i = 1; i < non_zero_values.size(); ++i) {
             if (non_zero_values[i] < aux)
                 aux = non_zero_values[i];
         }
@@ -414,12 +417,12 @@ public:
         double& rMinValue
         )
     {
-        const std::size_t size1 = rMatrixValues.size1();
-        const std::size_t size2 = rMatrixValues.size2();
+        const SizeType size1 = rMatrixValues.size1();
+        const SizeType size2 = rMatrixValues.size2();
         std::vector<double> non_zero_values;
 
-        for (std::size_t i = 0; i < size1; ++i) {
-            for (std::size_t j = 0; j < size2; ++j) {
+        for (IndexType i = 0; i < size1; ++i) {
+            for (IndexType j = 0; j < size2; ++j) {
                 if (std::abs(rMatrixValues(i, j)) > tolerance)
                     non_zero_values.push_back(std::abs(rMatrixValues(i, j)));
             }
@@ -427,7 +430,7 @@ public:
         KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The deformation gradient is full of 0's..." << std::endl;
 
         double aux = std::abs(non_zero_values[0]);
-        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
+        for (IndexType i = 1; i < non_zero_values.size(); ++i) {
             if (non_zero_values[i] < aux)
                 aux = non_zero_values[i];
         }
@@ -446,11 +449,11 @@ public:
         Matrix& rTangentTensor,
         const Vector& rDeltaStress,
         const double Perturbation,
-        const std::size_t Component
+        const IndexType Component
         )
     {
-        const std::size_t  dimension = rDeltaStress.size();
-        for (std::size_t row = 0; row < dimension; ++row) {
+        const SizeType dimension = rDeltaStress.size();
+        for (IndexType row = 0; row < dimension; ++row) {
             rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
         }
     }
