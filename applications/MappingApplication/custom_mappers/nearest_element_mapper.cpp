@@ -21,6 +21,7 @@
 #include "nearest_element_mapper.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapper_utilities.h"
+#include "mapping_application_variables.h"
 #include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos

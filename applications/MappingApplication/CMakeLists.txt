@@ -12,7 +12,6 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mapping_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_mappers_to_python.cpp
     # Mappers
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/mapper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_neighbor_mapper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_element_mapper.cpp
     # # Searching

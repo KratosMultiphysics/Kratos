@@ -19,6 +19,7 @@
 
 // Project includes
 #include "nearest_neighbor_mapper.h"
+#include "mapping_application_variables.h"
 #include "custom_utilities/mapper_typedefs.h"
 
 namespace Kratos

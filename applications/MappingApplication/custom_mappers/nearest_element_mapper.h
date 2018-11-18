@@ -22,29 +22,11 @@
 
 // Project includes
 #include "mapper.h"
+#include "custom_utilities/mapper_local_system.h"
 
 
 namespace Kratos
 {
-///@addtogroup MappingApplication
-///@{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -178,10 +160,12 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
     typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
-    typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
 
-    typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
-    typedef typename BaseType::MapperLocalSystemPointer MapperLocalSystemPointer;
+    typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
+    typedef typename BaseType::TMappingMatrixType  TMappingMatrixType;
+
+    // typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
+    // typedef typename BaseType::MapperLocalSystemPointer MapperLocalSystemPointer;
 
     ///@}
     ///@name Life Cycle
@@ -190,39 +174,67 @@ public:
     // Default constructor, needed for registration
     NearestElementMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination)
-                         : Mapper<TSparseSpace, TDenseSpace>(
-                             rModelPartOrigin,
-                             rModelPartDestination) {}
+                         : Mapper<TSparseSpace, TDenseSpace>() {}
 
     NearestElementMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
                          Parameters JsonParameters)
-                         : Mapper<TSparseSpace, TDenseSpace>(
-                             rModelPartOrigin,
-                             rModelPartDestination,
-                             JsonParameters)
+                         : Mapper<TSparseSpace, TDenseSpace>()
     {
         // The Initialize function has to be called here bcs it internally calls virtual
         // functions that would not exist yet if it was called from the BaseClass!
-        this->Initialize();
+        // this->Initialize();
     }
 
     /// Destructor.
-    virtual ~NearestElementMapper() { }
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    ~NearestElementMapper() override = default;
 
     ///@}
     ///@name Operations
     ///@{
 
+    void UpdateInterface(
+        Kratos::Flags MappingOptions,
+        double SearchRadius) override
+    {
+    }
+
+    void Map(
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        Kratos::Flags MappingOptions) override
+    {
+
+    }
+
+    void Map(
+        const Variable< array_1d<double, 3> >& rOriginVariable,
+        const Variable< array_1d<double, 3> >& rDestinationVariable,
+        Kratos::Flags MappingOptions) override
+    {
+
+    }
+
+    void InverseMap(
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        Kratos::Flags MappingOptions) override
+    {
+
+    }
+
+
+    void InverseMap(
+        const Variable< array_1d<double, 3> >& rOriginVariable,
+        const Variable< array_1d<double, 3> >& rDestinationVariable,
+        Kratos::Flags MappingOptions) override
+    {
+
+    }
+
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
-                          Parameters JsonParameters) override
+                          Parameters JsonParameters) const override
     {
         return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace>>(
             rModelPartOrigin,
@@ -230,16 +242,14 @@ public:
             JsonParameters);
     }
 
-
     ///@}
     ///@name Access
     ///@{
 
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
+    const TMappingMatrixType& GetMappingMatrix() const override
+    {
+        KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
+    }
 
     ///@}
     ///@name Input and output
@@ -264,123 +274,53 @@ public:
 
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
 
 protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
+    // MapperUniquePointerType mpInverseMapper = nullptr;
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
-    {
-        return Kratos::make_unique<NearestElementInterfaceInfo>();
-    }
+    // MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
+    // {
+    //     return Kratos::make_unique<NearestElementInterfaceInfo>();
+    // }
 
-    MapperLocalSystemPointer GetMapperLocalSystem() const override
-    {
-        return Kratos::make_unique<NearestElementLocalSystem>();
-    }
+    // MapperLocalSystemPointer GetMapperLocalSystem() const override
+    // {
+    //     return Kratos::make_unique<NearestElementLocalSystem>();
+    // }
 
-    InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const override
-    {
-        return InterfaceObject::Geometry_Center;
-    }
+    // InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const override
+    // {
+    //     return InterfaceObject::Geometry_Center;
+    // }
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    // NearestElementMapper& operator=(NearestElementMapper const& rOther) {}
-
-    //   /// Copy constructor.
-    //   NearestElementMapper(NearestElementMapper const& rOther){}
-
-
     ///@}
 
 }; // Class NearestElementMapper
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-///@}
-
-///@} addtogroup block
 
 }  // namespace Kratos.
 
