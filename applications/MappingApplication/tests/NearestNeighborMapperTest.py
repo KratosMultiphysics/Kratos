@@ -138,19 +138,19 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Number of Nodes in Destination: 25
         # => Values in Destination are multiplied with a factor of 1.48 (37/25)
         # to conserve the sum of quantities aka conservative mapping
-        self.nearest_neighbor_mapper.Map(variable_origin,
-                                         variable_destination,
-                                         Mapper.CONSERVATIVE)
+        # self.nearest_neighbor_mapper.Map(variable_origin,
+        #                                  variable_destination,
+        #                                  Mapper.CONSERVATIVE)
 
-        if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_destination,
-                                         self.model_part_destination,
-                                         variable_destination,
-                                         output_time + 0.3)
+        # if (self.GiD_output):
+        #     self.WriteNodalResultsCustom(self.gid_io_destination,
+        #                                  self.model_part_destination,
+        #                                  variable_destination,
+        #                                  output_time + 0.3)
 
-        self.CheckValues(self.interface_sub_model_part_destination,
-                         variable_destination,
-                         map_value*1.48)
+        # self.CheckValues(self.interface_sub_model_part_destination,
+        #                  variable_destination,
+        #                  map_value*1.48)
 
 
         self.nearest_neighbor_mapper.UpdateInterface()
@@ -331,19 +331,19 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
         # Number of Nodes in Destination: 25
         # => Values in Origin are multiplied with a factor of 0.675675676 (25/37)
         # to conserve the sum of quantities aka conservative mapping
-        self.nearest_neighbor_mapper.InverseMap(variable_origin,
-                                                variable_destination,
-                                                Mapper.CONSERVATIVE)
+        # self.nearest_neighbor_mapper.InverseMap(variable_origin,
+        #                                         variable_destination,
+        #                                         Mapper.CONSERVATIVE)
 
-        if (self.GiD_output):
-            self.WriteNodalResultsCustom(self.gid_io_origin,
-                                         self.model_part_origin,
-                                         variable_origin,
-                                         output_time + 0.2)
+        # if (self.GiD_output):
+        #     self.WriteNodalResultsCustom(self.gid_io_origin,
+        #                                  self.model_part_origin,
+        #                                  variable_origin,
+        #                                  output_time + 0.2)
 
-        self.CheckValues(self.interface_sub_model_part_origin,
-                         variable_origin,
-                         [0.675675676*x for x in map_value])
+        # self.CheckValues(self.interface_sub_model_part_origin,
+        #                  variable_origin,
+        #                  [0.675675676*x for x in map_value])
 
 
     def TestMapNonConstantScalarValues(self, output_time):
