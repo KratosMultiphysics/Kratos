@@ -78,12 +78,10 @@ class ParticleMechanicsAnalysis(AnalysisStage):
             start_solve_time = time.time()
 
             self.time = self._GetSolver().AdvanceInTime(self.time)
-            self._GetSolver().SearchElement()
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
-            self._GetSolver().Clear()
             self.OutputSolutionStep()
 
             ## Stop solution loop timer

@@ -211,6 +211,10 @@ class ParticleMPMSolver(PythonSolver):
         # Check if everything is assigned correctly
         self._check()
 
+        self.SearchElement()
+
+        self.solver.Initialize()
+
         self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Solver is initialized correctly.")
 
     def AdvanceInTime(self, current_time):
@@ -228,6 +232,7 @@ class ParticleMPMSolver(PythonSolver):
         self.solver.SearchElement(self.grid_model_part, self.material_model_part, self.max_number_of_search_results, self.searching_tolerance)
 
     def InitializeSolutionStep(self):
+        self.SearchElement()
         self.solver.InitializeSolutionStep()
 
     def Predict(self):
@@ -240,7 +245,6 @@ class ParticleMPMSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.solver.FinalizeSolutionStep()
 
-    def Clear(self):
         self.solver.Clear()
 
     ### Solver private functions

@@ -473,6 +473,8 @@ public:
      */
     void Initialize() override
     {
+        // Initialize solving strategy: only to be done at the beginning of time step
+        mp_solving_strategy->Initialize();
     }
 
     /**
@@ -480,9 +482,6 @@ public:
      */
     void InitializeSolutionStep() override
     {
-        // Initialize solving strategy: only to be done at the beginning of time step
-        mp_solving_strategy->Initialize();
-
         // The nodal initial conditions are computed
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - InitializeSolutionStep" <<std::endl;
         mp_solving_strategy->InitializeSolutionStep();
@@ -504,9 +503,7 @@ public:
     {
         // Do solution iterations
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - SolveSolutionStep" <<std::endl;
-        mp_solving_strategy->SolveSolutionStep();
-
-        return true;
+        return mp_solving_strategy->SolveSolutionStep();
     }
 
     /**
