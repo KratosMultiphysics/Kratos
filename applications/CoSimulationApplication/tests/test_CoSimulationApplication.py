@@ -1,15 +1,14 @@
 # import Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.CoSimulationApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.CoSimulationApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
-from generalTests import KratosCoSimulationGeneralTests
+from co_simulation_test_factory import TestSmallCoSimulationCases
+from co_simulation_test_factory import TestCoSimulationCases
 
-
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -21,33 +20,28 @@ def AssambleTestSuites():
     suites: A dictionary of suites
         The set of suites with its test_cases added.
     '''
-
     suites = KratosUnittest.KratosSuites
 
-    # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-    smallSuite = suites['small']
-    smallSuite.addTest(KratosCoSimulationGeneralTests('testSmallExample'))
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
-    nightSuite = suites['nightly']
-    nightSuite.addTests(KratosCoSimulationGeneralTests)
 
-    # Create a test suit that contains all the tests from every testCase
-    # in the list:
+    nightSuite = suites['nightly'] # These tests are executed in the nightly build
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallCoSimulationCases]))
+
+    nightSuite.addTests(smallSuite)
+
+    ### Adding Validation Tests
+    # For very long tests that should not be in nighly and you can use to validate
+    validationSuite = suites['validation']
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
+
+    # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosCoSimulationGeneralTests
-        ])
-    )
+    allSuite.addTests(nightSuite) # already contains the smallSuite
+    allSuite.addTests(validationSuite)
 
     return suites
 
+
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())
