@@ -21,6 +21,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             else:
                 err_msg = 'Requested coupling_scheme: ' + coupling_scheme + ' is not available.'
                 raise Exception(err_msg)
+        elif (solver_type == "PartitionedEmbedded" or solver_type == "partitioned_embedded"):
+            if (coupling_scheme == "DirichletNeumann" or coupling_scheme == "dirichlet_neumann"):
+                solver_module_name = "partitioned_embedded_fsi_base_solver"
+            else:
+                err_msg = 'Requested coupling_scheme: ' + coupling_scheme + ' is not available.'
+                raise Exception(err_msg)
         else:
             err_msg = 'Requested solver_type: ' + solver_type + ' is not available.'
             raise Exception(err_msg)
