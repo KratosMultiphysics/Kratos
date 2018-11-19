@@ -106,7 +106,7 @@ class IgaSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
-        self.print_on_rank_zero("::[IgaSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
@@ -122,7 +122,7 @@ class IgaSolver(PythonSolver):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
             variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
             self.main_model_part.AddNodalSolutionStepVariable(variable)
-        self.print_on_rank_zero("::[IgaSolver]:: ", "Variables ADDED")
+        KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return 2
@@ -158,8 +158,8 @@ class IgaSolver(PythonSolver):
                 reaction_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable_name + "_Z")
                 KratosMultiphysics.VariableUtils().AddDof(dof_variable_z, reaction_variable_z, self.main_model_part)
             else:
-                self.print_warning_on_rank_zero("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
-        self.print_on_rank_zero("::[IgaSolver]:: ", "DOF's ADDED")
+                KratosMultiphysics.Logger.PrintWarning("auxiliary_reaction_list list", "The variable " + dof_variable_name + "is not a compatible type")
+        KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
         """This function imports the ModelPart
@@ -169,7 +169,7 @@ class IgaSolver(PythonSolver):
     def PrepareModelPart(self):
         # Check and prepare computing model part and import constitutive laws.
         self._execute_after_reading()
-        
+
         self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
         self._set_and_fill_buffer()
@@ -180,7 +180,7 @@ class IgaSolver(PythonSolver):
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        self.print_on_rank_zero("::[IgaSolver]:: ", "Initializing ...")
+        KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Initializing ...")
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -189,7 +189,7 @@ class IgaSolver(PythonSolver):
         iga_solution_strategy.Initialize()
 
         self.Check()
-        self.print_on_rank_zero("::[IgaSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Finished initialization.")
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
@@ -288,7 +288,7 @@ class IgaSolver(PythonSolver):
         """Prepare the nurbs brep modeler and read in the necessary data. """
         # This function prepares the nurbs brep modeler and reads in the rough geometry data,
         # which can be used for surface descriptions and integration domains.
-        
+
         self.nurbs_brep_modeler = IgaApplication.NurbsBrepModeler(self.main_model_part)
 
         if self.settings["model_import_settings"]["input_type"].GetString() == "json":
@@ -314,9 +314,9 @@ class IgaSolver(PythonSolver):
         self.import_constitutive_laws()
         #materials_imported = self.import_constitutive_laws()
         #if materials_imported:
-        #    self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was successfully imported.")
+        #    KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Constitutive law was successfully imported.")
         #else:
-        #    self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was not imported.")
+        #    KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
