@@ -16,7 +16,6 @@
 
 
 // Project includes
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
 
@@ -43,8 +42,8 @@ namespace Kratos
             }
         };
 
-        ///@name Life Cycle 
-        ///@{ 
+        ///@name Life Cycle
+        ///@{
         VertexTopology GetVertexInformation(const int& rTopologyIndex);
 
         /// Constructor.
@@ -62,12 +61,12 @@ namespace Kratos
         /// Destructor.
         virtual ~BrepVertex() {};
 
-        ///@} 
+        ///@}
     protected:
 
     private:
         ///@name Member Variables
-        ///@{ 
+        ///@{
         // topology
         std::vector<VertexTopology> m_brep_vertex_topology_vector;
 
@@ -77,7 +76,7 @@ namespace Kratos
         int    m_control_point_id;
         Vector m_point;
         ///@}
-    }; // Class BrepVertex 
+    }; // Class BrepVertex
 
 }  // namespace Kratos.
 

@@ -5,7 +5,6 @@
 #include <vector>
 
 // Project includes
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
 #include "brep_json_io.h"
@@ -46,15 +45,15 @@ namespace Kratos
         KRATOS_CLASS_POINTER_DEFINITION(NurbsBrepModeler);
 
         ///@}
-        ///@name functions 
-        ///@{ 
+        ///@name functions
+        ///@{
 
         /**
         * Imports and adds a brep model with the use of the BrepJSON_IO
         * @param rBrepJSON_IO the IO reader
         */
         void ImportGeometry(
-            BrepJsonIO& rBrepJsonIO, 
+            BrepJsonIO& rBrepJsonIO,
             Parameters& rNurbsBrepGeometryJson);
 
         // here shall be added the functionality for more import option
@@ -63,9 +62,9 @@ namespace Kratos
 
         void ImportModelPart(ModelPart& model_part, Parameters& rModelPartParameters);
 
-        ///@} 
-        ///@name Life Cycle 
-        ///@{ 
+        ///@}
+        ///@name Life Cycle
+        ///@{
         /// Constructor.
         NurbsBrepModeler(ModelPart& rModelPart);
 
@@ -73,7 +72,7 @@ namespace Kratos
         virtual ~NurbsBrepModeler()
         { };
 
-        ///@} 
+        ///@}
     protected:
 
     private:
@@ -82,18 +81,18 @@ namespace Kratos
         ModelPart&                 m_model_part;
         std::vector<BrepModel>     m_brep_model_vector;
 
-        ///@} 
+        ///@}
         ///@name Private Operations
-        ///@{ 
-
-        ///@} 
-        ///@name Un accessible methods 
-        ///@{ 
+        ///@{
 
         ///@}
-    }; // Class NurbsBrepModeler 
+        ///@name Un accessible methods
+        ///@{
+
+        ///@}
+    }; // Class NurbsBrepModeler
 
 }  // namespace Kratos.
-#endif // KRATOS_NURBS_BREP_MODELER_APPLICATION_H_INCLUDED defined 
+#endif // KRATOS_NURBS_BREP_MODELER_APPLICATION_H_INCLUDED defined
 
 

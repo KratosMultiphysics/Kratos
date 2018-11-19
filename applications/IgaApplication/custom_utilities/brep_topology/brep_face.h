@@ -7,17 +7,12 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
+#include "iga_application_variables.h"
+#include "custom_utilities/node_surface_geometry_3d.h"
 #include "brep_trimming_curve.h"
 #include "brep_boundary_loop.h"
 
-#include "iga_application.h"
-#include "iga_application_variables.h"
-
-#include "../node_surface_geometry_3d.h"
-
-// Kratos includes
-#include "includes/model_part.h"
-#include "includes/node.h"
 
 namespace Kratos
 {
