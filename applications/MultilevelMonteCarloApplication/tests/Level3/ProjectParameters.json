@@ -24,25 +24,25 @@
             "solver_type": "convection_diffusion_base_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "../tests/Level3/Level3"
+                "input_filename": "../tests/Level0/Level0"
             },
             "computing_model_part_name" : "thermal_computing_domain",
             "material_import_settings" :{
                 "materials_filename": ""
             },
             "convection_diffusion_variables" : {
-                "density_variable"              : "",
-                "diffusion_variable"            : "",
-                "unknown_variable"              : "TEMPERATURE",
-                "volume_source_variable"        : "HEAT_FLUX",
-                "surface_source_variable"       : "",
-                "projection_variable"           : "",
-                "convection_variable"           : "",
-                "mesh_velocity_variable"        : "",
-                "transfer_coefficient_variable" : "",
-                "velocity_variable"             : "",
-                "specific_heat_variable"        : "",
-                "reaction_variable"             : ""
+            "density_variable"              : "DENSITY",
+            "diffusion_variable"            : "CONDUCTIVITY",
+            "unknown_variable"              : "TEMPERATURE",
+            "volume_source_variable"        : "HEAT_FLUX",
+            "surface_source_variable"       : "FACE_HEAT_FLUX",
+            "projection_variable"           : "PROJECTED_SCALAR1",
+            "convection_variable"           : "CONVECTION_VELOCITY",
+            "mesh_velocity_variable"        : "MESH_VELOCITY",
+            "transfer_coefficient_variable" : "AVERAGE_TEMPERATURE",
+            "velocity_variable"             : "VELOCITY",
+            "specific_heat_variable"        : "SPECIFIC_HEAT",
+            "reaction_variable"             : "REACTION_FLUX"
             },
             "time_stepping" : {
                 "time_step": 1.1
