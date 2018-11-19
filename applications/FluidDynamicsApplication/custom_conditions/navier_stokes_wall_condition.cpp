@@ -563,7 +563,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipLeftHandSideCon
                                                                                             Element& rParentElement )
 {
     KRATOS_TRY
-    
+
     GeometryType& rGeom = this->GetGeometry();
 
     std::vector< Matrix > NodalNormals(TNumNodes);
@@ -597,7 +597,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipLeftHandSideCon
     // Loop on gauss points
     for(unsigned int igauss = 0; igauss < NumGauss; igauss++) {
         
-        BaseLHSMatrixGPcontribution = ZeroMatrix(6, 6);
+        BaseLHSMatrixGPcontribution = ZeroMatrix( (TNumNodes + 1)*TNumNodes , (TNumNodes + 1)*TNumNodes );
+
         array_1d<double, TNumNodes> N = row(Ncontainer, igauss);
         const double J = GaussPtsJDet[igauss];
         const double wGauss = J * IntegrationPoints[igauss].Weight();

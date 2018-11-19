@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 def Factory(settings, Model):
-    if(isinstance(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings, KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyMassConservationCheckProcess(Model, settings["Parameters"])
 
