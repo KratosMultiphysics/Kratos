@@ -171,7 +171,7 @@ def serialize_model_projectparameters(model_part_file_name, parameter_file_name)
     serialized_model.Save("ModelSerialization",simulation.model)
     serialized_parameters = KratosMultiphysics.StreamSerializer()
     serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
-    return serialized_model, serialized_parameters
+    return (serialized_model, serialized_parameters)
 
 '''
 function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
@@ -232,13 +232,18 @@ if __name__ == '__main__':
     print("Maximum number of levels = ",L_max)
 
     '''create a serialization of the model and of the project parameters'''
-    serialized_model_0,serialized_parameters_0 = serialize_model_projectparameters(local_parameters_0["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[0])
-    serialized_model_1,serialized_parameters_1 = serialize_model_projectparameters(local_parameters_1["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[1])
-    serialized_model_2,serialized_parameters_2 = serialize_model_projectparameters(local_parameters_2["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[2])
-    serialized_model_3,serialized_parameters_3 = serialize_model_projectparameters(local_parameters_3["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[3])
-    serialized_model_4,serialized_parameters_4 = serialize_model_projectparameters(local_parameters_4["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[4])
-    serialized_model = [serialized_model_0,serialized_model_1,serialized_model_2,serialized_model_3,serialized_model_4]
-    serialized_parameters = [serialized_parameters_0,serialized_parameters_1,serialized_parameters_2,serialized_parameters_3,serialized_parameters_4]
+    output_serialization = []
+    serialized_model = []
+    serialized_parameters = []
+    output_serialization.append(serialize_model_projectparameters(local_parameters_0["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[0]))
+    output_serialization.append(serialize_model_projectparameters(local_parameters_1["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[1]))
+    output_serialization.append(serialize_model_projectparameters(local_parameters_2["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[2]))
+    output_serialization.append(serialize_model_projectparameters(local_parameters_3["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[3]))
+    output_serialization.append(serialize_model_projectparameters(local_parameters_4["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[4]))
+    for lst in range (0,L_max+1):
+        serialized_model.append(output_serialization[lst][0])
+        serialized_parameters.append(output_serialization[lst][1])
+    
     '''
     evaluate the exact expected value of Q (sample = 1.0)
     need to change both local_parameters_LEVEL and parameter_file_name[LEVEL] to compute for level LEVEL
@@ -273,7 +278,7 @@ if __name__ == '__main__':
 
     difference_QoI = [] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
     time_ML = []        # list containing the time to compute the level=l simulations
-    L_screening = settings_ML_simulation[8] # recall the levels start from zero
+    L_screening = settings_ML_simulation[8] # number of screening levels
     number_samples = []
     for lev in range(0,L_screening+1):
         number_samples.append(settings_ML_simulation[7])
@@ -307,7 +312,7 @@ if __name__ == '__main__':
                 difference_QoI[level] = np.append(difference_QoI[level],run_results[-1] - run_results[-2])
                 # time_ML[level].append(time_MLi)
                 time_ML[level] = np.append(time_ML[level],time_MLi)
-       
+
     '''compute {E^(MC)[Y_l]} = 1/N * sum_{i=1}^{N} Y_l(sample(i))
     compute {V^(MC)[Y_l]}'''
     mean_difference_QoI = []
