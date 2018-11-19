@@ -172,6 +172,8 @@ output:
 '''
 @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=2)
 def serialize_model_projectparameters(model_part_file_name, parameter_file_name):
+# @task(parameter_file_name=FILE_IN,returns=2)
+# def serialize_model_projectparameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
@@ -219,13 +221,15 @@ if __name__ == '__main__':
         parameter_file_name = argv[1]
     else: # using default name
         parameter_file_name = "../tests/Level0/ProjectParameters.json"
-        
+
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
 
     '''create a serialization of the model and of the project parameters'''
     serialized_model,serialized_parameters = serialize_model_projectparameters(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
+    # serialized_model,serialized_parameters = serialize_model_projectparameters(parameter_file_name)
+
 
     number_samples = 10
     Qlist = []
@@ -235,7 +239,7 @@ if __name__ == '__main__':
 
     for instance in range (0,number_samples):
         Qlist.append(execution_task(serialized_model,serialized_parameters))
-        
+
     '''Compute mean, second moment and sample variance'''
     MC_mean = 0.0
     MC_second_moment = 0.0
@@ -254,9 +258,8 @@ if __name__ == '__main__':
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
-    # model = KratosMultiphysics.Model()
     # sample = 1.0
-    # simulation = MonteCarloAnalysis(model,local_parameters,sample)
+    # simulation = MonteCarloAnalysis(serialized_model,serialized_parameters,sample)
     # simulation.Run()
     # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     # error = 0.0
