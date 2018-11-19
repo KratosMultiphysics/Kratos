@@ -186,7 +186,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe1.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe1_ref.dat",
             "comparison_type"     : "dat_file",
-            "decimal_places"      : 5
+            "tolerance"           : 1e-3
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -197,7 +197,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2_ref.dat",
             "comparison_type"     : "dat_file",
-            "decimal_places"      : 2
+            "tolerance"           : 1e-3
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -208,7 +208,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3_ref.dat",
             "comparison_type"     : "dat_file",
-            "decimal_places"      : 10
+            "tolerance"           : 1e-10
         }
     }]
 }
