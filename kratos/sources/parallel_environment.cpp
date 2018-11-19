@@ -51,6 +51,24 @@ bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)
     return env.HasDataCommunicatorDetail(rName);
 }
 
+std::string ParallelEnvironment::Info()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.InfoDetail();
+}
+
+void ParallelEnvironment::PrintInfo(std::ostream &rOStream)
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.PrintInfoDetail(rOStream);
+}
+
+void ParallelEnvironment::PrintData(std::ostream &rOStream)
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.PrintDataDetail(rOStream);
+}
+
 // Implementation details /////////////////////////////////////////////////////
 
 ParallelEnvironment::ParallelEnvironment()
@@ -121,19 +139,19 @@ bool ParallelEnvironment::HasDataCommunicatorDetail(const std::string& rName) co
 }
 
 
-std::string ParallelEnvironment::Info() const
+std::string ParallelEnvironment::InfoDetail() const
 {
     std::stringstream buffer;
     PrintInfo(buffer);
     return buffer.str();
 }
 
-void ParallelEnvironment::PrintInfo(std::ostream &rOStream) const
+void ParallelEnvironment::PrintInfoDetail(std::ostream &rOStream) const
 {
     rOStream << "ParallelEnvironment";
 }
 
-void ParallelEnvironment::PrintData(std::ostream &rOStream) const
+void ParallelEnvironment::PrintDataDetail(std::ostream &rOStream) const
 {
     rOStream << "Number of DataCommunicators: " << mDataCommunicators.size() << std::endl;
     for (auto it_prototype = mDataCommunicators.begin(); it_prototype != mDataCommunicators.end(); ++it_prototype)

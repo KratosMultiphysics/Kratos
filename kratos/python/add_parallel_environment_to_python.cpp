@@ -35,8 +35,13 @@ void AddParallelEnvironmentToPython(pybind11::module &m)
     .def_static("GetDefaultDataCommunicator",&ParallelEnvironment::GetDefaultDataCommunicator, py::return_value_policy::reference)
     .def_static("SetDefaultDataCommunicator",&ParallelEnvironment::SetDefaultDataCommunicator)
     .def_static("HasDataCommunicator",&ParallelEnvironment::HasDataCommunicator)
-    .def("__str__", PrintObject<ParallelEnvironment>);
-
+    .def_static("Info", []() {
+        std::stringstream ss;
+        ParallelEnvironment::PrintInfo(ss);
+        ss << std::endl;
+        ParallelEnvironment::PrintData(ss);
+        return ss.str();
+    });
 }
 
 } // namespace Python.

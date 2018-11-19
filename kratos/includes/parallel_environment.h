@@ -79,13 +79,13 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const;
+    static std::string Info();
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const;
+    static void PrintInfo(std::ostream &rOStream);
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const;
+    static void PrintData(std::ostream &rOStream);
 
     ///@}
 
@@ -125,6 +125,19 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     static ParallelEnvironment& GetInstance();
 
     ///@}
+    ///@name Private Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string InfoDetail() const;
+
+    /// Print information about this object.
+    void PrintInfoDetail(std::ostream &rOStream) const;
+
+    /// Print object's data.
+    void PrintDataDetail(std::ostream &rOStream) const;
+
+    ///@}
     ///@name Member Variables
     ///@{
 
@@ -145,28 +158,6 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@}
 
 }; // Class ParallelEnvironment
-
-///@}
-///@name Input and output
-///@{
-
-/// input stream function
-inline std::istream &operator>>(std::istream &rIStream,
-                                ParallelEnvironment &rThis)
-{
-    return rIStream;
-}
-
-/// output stream function
-inline std::ostream &operator<<(std::ostream &rOStream,
-                                const ParallelEnvironment &rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 
 ///@}
 
