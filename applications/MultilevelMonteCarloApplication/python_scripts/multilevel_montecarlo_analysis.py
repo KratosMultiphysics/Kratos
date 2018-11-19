@@ -23,11 +23,40 @@ from pycompss.api.parameter import *
 # Import Continuation Multilevel Monte Carlo library
 import cmlmc_utilities as mlmc
 
+# Import cpickle to pickle the serializer
+try:
+    import cpickle as pickle  # Use cPickle on Python 2.7
+except ImportError:
+    import pickle
+
+
 class MultilevelMonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for MultilevelMonte Carlo simulations'''
 
 
-    def __init__(self,model,parameters,sample):
+    def __init__(self,serialized_model,serialized_parameters,sample):
+        if (type(serialized_model) == KratosMultiphysics.StreamSerializer):
+            #pickle dataserialized_data
+            pickled_data = pickle.dumps(serialized_model, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+            #overwrite the old serializer with the unpickled one
+            serialized_model = pickle.loads(pickled_data)
+            model = KratosMultiphysics.Model()
+            serialized_model.Load("ModelSerialization",model)
+        else:
+            model = serialized_model
+            del(serialized_model)
+
+        if (type(serialized_parameters) == KratosMultiphysics.StreamSerializer):
+            #pickle dataserialized_data
+            pickled_data = pickle.dumps(serialized_parameters, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+            #overwrite the old serializer with the unpickled one
+            serialized_parameters = pickle.loads(pickled_data)
+            parameters = KratosMultiphysics.Parameters()
+            serialized_parameters.Load("ParametersSerialization",parameters)
+        else:
+            parameters = serialized_parameters
+            del(serialized_parameters)
+        
         self.sample = sample
         super(MultilevelMonteCarloAnalysis,self).__init__(model,parameters)
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
@@ -50,8 +79,8 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
             forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y) # this forcing presents an analytical solution
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
 
-    
-    
+
+
 ###########################################################
 ######## END OF CLASS MULTILEVELMONTECARLOANALYSIS ########
 ###########################################################
@@ -83,49 +112,66 @@ def EvaluateQuantityOfInterest(simulation):
 '''
 function executing the problem
 input:
-        model_part_file_name : path of the model part file (still to implement how to import in efficient way in a loop where I have different model part files and different ProjectParameters files, thus for now read model part name from the ProjectParameters.json file)
-        parameter_file_name  : path of the Project Parameters file
-        sample               : stochastic random variable
+        model       : serialization of the model
+        parameters  : serialization of the Project Parameters
+        sample      : stochastic random variable
 output:
-        QoI                  : Quantity of Interest
-still to implement how to import in efficient way in a loop where I have different model part files and different ProjectParameters files, thus for now read model part name from the ProjectParameters.json file
+        QoI         : Quantity of Interest
 '''
-# @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=1)
-@task(parameter_file_name=FILE_IN, returns=1)
-def execution_task(parameter_file_name, sample):
-    with open(parameter_file_name,'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters = parameters # in case there are more parameters file, we rename them
-    model = KratosMultiphysics.Model()
-    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
-    simulation = MultilevelMonteCarloAnalysis(model,local_parameters,sample)
+@task(returns=1)
+def execution_task(model, parameters, sample):
+    simulation = MultilevelMonteCarloAnalysis(model,parameters,sample)
     simulation.Run()
-    QoI = EvaluateQuantityOfInterest(simulation)
+    QoI =  EvaluateQuantityOfInterest(simulation)
     return QoI
     
 
 '''
 function executing the problem for sample = 1.0
 input:
+        model       : serialization of the model
+        parameters  : serialization of the Project Parameters
+output:
+        ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
+OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
+'''
+@task(returns=1)
+def exact_execution_task(model, parameters):
+    # parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
+    sample = 1.0
+    simulation = MultilevelMonteCarloAnalysis(model,parameters,sample)
+    simulation.Run()
+    QoI =  EvaluateQuantityOfInterest(simulation)
+    ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
+    return ExactExpectedValueQoI
+
+
+'''
+function serializing the model and the parameters of the problem
+input:
         model_part_file_name  : path of the model part file
         parameter_file_name   : path of the Project Parameters file
 output:
-        ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
+        serialized_model      : model serialized
+        serialized_parameters : project parameters serialized
 '''
-@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=1)
-def exact_execution_task(model_part_file_name, parameter_file_name):
+@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=2)
+def serialize_model_projectparameters(model_part_file_name, parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters = parameters # in case there are more parameters file, we rename them
+    local_parameters = parameters
     model = KratosMultiphysics.Model()      
     local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
-    sample = 1.0
-    simulation = MultilevelMonteCarloAnalysis(model,local_parameters, sample)
-    simulation.Run()
-    ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
-    # return simulation,ExactExpectedValueQoI
-    return ExactExpectedValueQoI
+    fake_sample = 1.0
 
+    simulation = MultilevelMonteCarloAnalysis(model,local_parameters, fake_sample)
+    simulation.Initialize()
+
+    serialized_model = KratosMultiphysics.StreamSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    serialized_parameters = KratosMultiphysics.StreamSerializer()
+    serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
+    return serialized_model, serialized_parameters
 
 '''
 function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
@@ -185,11 +231,20 @@ if __name__ == '__main__':
     L_max = len(parameter_file_name) - 1
     print("Maximum number of levels = ",L_max)
 
+    '''create a serialization of the model and of the project parameters'''
+    serialized_model_0,serialized_parameters_0 = serialize_model_projectparameters(local_parameters_0["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[0])
+    serialized_model_1,serialized_parameters_1 = serialize_model_projectparameters(local_parameters_1["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[1])
+    serialized_model_2,serialized_parameters_2 = serialize_model_projectparameters(local_parameters_2["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[2])
+    serialized_model_3,serialized_parameters_3 = serialize_model_projectparameters(local_parameters_3["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[3])
+    serialized_model_4,serialized_parameters_4 = serialize_model_projectparameters(local_parameters_4["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[4])
+    serialized_model = [serialized_model_0,serialized_model_1,serialized_model_2,serialized_model_3,serialized_model_4]
+    serialized_parameters = [serialized_parameters_0,serialized_parameters_1,serialized_parameters_2,serialized_parameters_3,serialized_parameters_4]
     '''
     evaluate the exact expected value of Q (sample = 1.0)
     need to change both local_parameters_LEVEL and parameter_file_name[LEVEL] to compute for level LEVEL
     '''
-    ExactExpectedValueQoI = exact_execution_task(local_parameters_2["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[2])
+    ExactExpectedValueQoI = exact_execution_task(serialized_model[2],serialized_parameters[2])
+    
     # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     # error = 0.0
     # L2norm_analyticalsolution = 0.0
@@ -236,7 +291,7 @@ if __name__ == '__main__':
             start_time_ML = time.time() # I can insert this operation in "GenerateBetaSample", or better to create a new function?
 
             if level == 0: # evaluating QoI in the coarsest grid
-                run_results.append(execution_task(parameter_file_name[level], sample)) # append to run_results QoI for the coarsest grid
+                run_results.append(execution_task(serialized_model[level],serialized_parameters[level], sample)) # append to run_results QoI for the coarsest grid
                 time_MLi = time.time() - start_time_ML # create a new function?
                 # difference_QoI[level].append(run_results[-1])
                 difference_QoI[level] = np.append(difference_QoI[level],run_results[-1]) # with list[-1] we read the last element of the list
@@ -245,7 +300,7 @@ if __name__ == '__main__':
                 
             else:
                 for cycle_level in range (level-1,level+1):
-                    run_results.append(execution_task(parameter_file_name[cycle_level], sample))
+                    run_results.append(execution_task(serialized_model[cycle_level],serialized_parameters[cycle_level], sample))
                   
                 time_MLi = time.time() - start_time_ML
                 # difference_QoI[level].append(run_results[-1] - run_results[-2])
@@ -372,7 +427,7 @@ if __name__ == '__main__':
                 run_results = []
                 start_time_ML = time.time()
                 if level == 0: # evaluating QoI in the coarsest grid
-                    run_results.append(execution_task(parameter_file_name[level], sample)) # append to run_results QoI for the coarsest grid
+                    run_results.append(execution_task(serialized_model[level],serialized_parameters[level], sample)) # append to run_results QoI for the coarsest grid
                     time_MLi = time.time() - start_time_ML
                     # difference_QoI[level].append(run_results[-1]) # with list[-1] we read the last element of the list
                     # time_ML[level].append(time_MLi)
@@ -380,7 +435,7 @@ if __name__ == '__main__':
                     time_ML[level] = np.append(time_ML[level],time_MLi)
                 else:
                     for cycle_level in range (level-1,level+1):
-                        run_results.append(execution_task(parameter_file_name[cycle_level], sample))
+                        run_results.append(execution_task(serialized_model[cycle_level],serialized_parameters[cycle_level], sample))
                     time_MLi = time.time() - start_time_ML
                     # difference_QoI[level].append(run_results[-1] - run_results[-2])
                     # time_ML[level].append(time_MLi)
