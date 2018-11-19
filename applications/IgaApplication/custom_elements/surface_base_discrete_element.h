@@ -192,7 +192,7 @@ protected:
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    );
+    ) override;
 
     /**
     * Calculation of the Material Stiffness Matrix. Km = B^T * D *B
