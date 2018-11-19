@@ -790,7 +790,8 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
 
 bool MPIDataCommunicator::BroadcastErrorIfTrue(bool Condition, const int SourceRank) const
 {
-    MPI_Bcast(&Condition,1,MPI_C_BOOL,SourceRank,mComm);
+    int ierr = MPI_Bcast(&Condition,1,MPI_C_BOOL,SourceRank,mComm);
+    CheckMPIErrorCode(ierr, "MPI_Bcast");
     const int rank = Rank();
     KRATOS_ERROR_IF(Condition && (rank != SourceRank) )
     << "Rank " << rank << ": Stopping because of error in rank " << SourceRank << "." << std::endl;
@@ -800,7 +801,8 @@ bool MPIDataCommunicator::BroadcastErrorIfTrue(bool Condition, const int SourceR
 bool MPIDataCommunicator::ErrorIfTrueOnAnyRank(bool Condition) const
 {
     bool or_condition;
-    MPI_Allreduce(&Condition, &or_condition, 1, MPI_C_BOOL, MPI_LOR, mComm);
+    int ierr = MPI_Allreduce(&Condition, &or_condition, 1, MPI_C_BOOL, MPI_LOR, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     KRATOS_ERROR_IF(or_condition && !Condition)
     << "Rank " << Rank() << ": Stopping because an error was detected on a different rank." << std::endl;
     return or_condition;
@@ -810,7 +812,8 @@ bool MPIDataCommunicator::IsEqualOnAllRanks(const int LocalValue) const
 {
     int local_buffer[2]{LocalValue, -LocalValue};
     int min_buffer[2]{0, 0};
-    MPI_Allreduce(&local_buffer,&min_buffer,2,MPI_INT,MPI_MIN,mComm);
+    int ierr = MPI_Allreduce(&local_buffer,&min_buffer,2,MPI_INT,MPI_MIN,mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
     int min_value = min_buffer[0];
     int max_value = -min_buffer[1];
     return min_value == max_value;
@@ -827,8 +830,10 @@ template<class TDataType> void MPIDataCommunicator::ValidateSendRecvInput(
     int send_ranks[buffer_size];
     int recv_ranks[buffer_size];
     // These two can be merged, but I want the check to be simple (it is for debug only).
-    MPI_Gather(&SendDestination, 1, MPI_INT, send_ranks, 1, MPI_INT, 0, mComm);
-    MPI_Gather(&RecvSource, 1, MPI_INT, recv_ranks, 1, MPI_INT, 0, mComm);
+    int ierr = MPI_Gather(&SendDestination, 1, MPI_INT, send_ranks, 1, MPI_INT, 0, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Gather");
+    ierr = MPI_Gather(&RecvSource, 1, MPI_INT, recv_ranks, 1, MPI_INT, 0, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Gather");
 
     // No overflow in sent buffer.
     std::stringstream message;
@@ -857,10 +862,11 @@ template<class TDataType> void MPIDataCommunicator::ValidateSendRecvInput(
     const int send_size = Internals::MessageSize(rSendMessage);
     int recv_size = 0;
     const int expected_recv_size = Internals::MessageSize(rRecvMessage);
-    MPI_Sendrecv(
+    ierr = MPI_Sendrecv(
         &send_size, 1, MPI_INT, SendDestination, send_tag,
         &recv_size, 1, MPI_INT, RecvSource, recv_tag,
         mComm, MPI_STATUS_IGNORE);
+    CheckMPIErrorCode(ierr, "MPI_Sendrecv");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(recv_size != expected_recv_size))
     << "Input error in call to MPI_Sendrecv for rank " << Rank() << ": "
     << "Receiving " << recv_size << " values but " << expected_recv_size << " are expected." << std::endl;
@@ -946,7 +952,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
             if (rRecvOffsets[i]+rRecvCounts[i] > expected_message_size) {
                 message
                 << "Input error in call to MPI_Gatherv for rank " << RecvRank << ": "
-                << "Writting past buffer end when sending message for rank " << i << "." << std::endl;
+                << "Writing past buffer end when sending message for rank " << i << "." << std::endl;
                 failed = true;
                 break;
             }
