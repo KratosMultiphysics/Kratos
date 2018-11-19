@@ -7,7 +7,6 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
@@ -32,12 +31,13 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ## RESPONSE UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_postprocess.cpp
 
-  ## DIFFERENTIATION_UTILITY
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/differentiation_utility.cpp
+  ## DIFFERENTIATION UTILITIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/element_finite_difference_utility.cpp
 
   ## PROCESSES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/postprocess_eigenvalues_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/total_structural_mass_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_center_of_gravity_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/prism_neighbours_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shell_to_solid_shell_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/solid_shell_thickness_compute_process.cpp
@@ -68,11 +68,15 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_plasticity_factory.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/finite_strain_isotropic_plasticity_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_plasticity.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_finite_strain_isotropic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_viscoplasticity_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_kelvin.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_maxwell.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_kinematic_plasticity.cpp
 
   ## ELEMENTS
   #Adding truss element

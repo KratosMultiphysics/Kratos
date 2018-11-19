@@ -108,6 +108,23 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
         self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
 
+    # Embedded Ausas development element tests
+    def testEmbeddedAusasDevelopmentCouette2D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette2DTest"
+        self.reference_file = "reference_couette_ausas_development_2D"
+        self.settings = "EmbeddedAusasDevelopmentCouette2DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
+    def testEmbeddedAusasDevelopmentCouette3D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette3DTest"
+        self.reference_file = "reference_couette_ausas_development_3D"
+        self.settings = "EmbeddedAusasDevelopmentCouette3DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
     def ExecuteEmbeddedCouetteTest(self):
         with WorkFolderScope(self.work_folder):
             self.setUp()
@@ -145,6 +162,10 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             ## Solver construction
             import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
+
+            ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
+            if self.slip_flag:
+                self.solver.settings["formulation"]["is_slip"].SetBool(True)
 
             self.solver.AddVariables()
 
@@ -260,7 +281,6 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
             time = 0.0
-            step = 0
 
             for process in self.list_of_processes:
                 process.ExecuteBeforeSolutionLoop()
@@ -359,16 +379,16 @@ if __name__ == '__main__':
     test.setUp()
     test.distance = 0.25
     test.slip_flag = False
-    test.print_output = False
-    test.print_reference_values = False
-    test.work_folder = "EmbeddedCouette2DTest"
-    test.reference_file = "reference_couette_embedded_2D"
-    test.settings = "EmbeddedCouette2DTestParameters.json"
+    test.print_output = True
+    test.print_reference_values = True
+    test.work_folder = "EmbeddedCouette3DTest"
+    test.reference_file = "reference_couette_development_3D"
+    test.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
     if (test.slip_flag):
         test.setUpSlipInitialCondition()
-        test.setUpSLipBoundaryConditions()
+        test.setUpSlipBoundaryConditions()
     else:
         test.setUpNoSlipInitialCondition()
         test.setUpNoSlipBoundaryConditions()

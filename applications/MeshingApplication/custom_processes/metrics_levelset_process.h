@@ -50,7 +50,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class KRATOS_API(KRATOS_MESHING_APPLICATION) ComputeLevelSetSolMetricProcess
+class KRATOS_API(MESHING_APPLICATION) ComputeLevelSetSolMetricProcess
     : public Process
 {
 public:

@@ -5,8 +5,7 @@ import sys
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("AdjointFluidApplication")
+import KratosFluidDynamicsApplication as KratosCFD
 
 def CreateSolver(model, custom_settings):
     return AdjointFluidSolver(model, custom_settings)
@@ -36,7 +35,7 @@ class AdjointFluidSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
@@ -45,10 +44,10 @@ class AdjointFluidSolver(PythonSolver):
         raise Exception("Trying to call AdjointFluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VELOCITY_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_VELOCITY_Z, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ADJOINT_PRESSURE, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Z, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_SCALAR_1, self.main_model_part)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
@@ -65,9 +64,6 @@ class AdjointFluidSolver(PythonSolver):
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
-
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.main_model_part)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
@@ -97,6 +93,8 @@ class AdjointFluidSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
+        self.response_function.InitializeSolutionStep()
+
 
     def Predict(self):
         self.solver.Predict()
@@ -106,6 +104,8 @@ class AdjointFluidSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
+        self.response_function.FinalizeSolutionStep()
+        self.sensitivity_builder.UpdateSensitivities()
 
     def Check(self):
         (self.solver).Check()
@@ -215,6 +215,6 @@ class AdjointFluidSolver(PythonSolver):
     def _ComputeDeltaTime(self):
         if self.settings["time_stepping"]["automatic_time_step"].GetBool():
             raise Exception("Automatic time stepping is not supported by adjoint fluid solver.")
-        
+
         delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
         return delta_time

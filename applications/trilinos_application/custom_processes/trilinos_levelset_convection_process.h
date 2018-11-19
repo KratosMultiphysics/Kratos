@@ -20,6 +20,7 @@
 #include "Epetra_MpiComm.h"
 
 // Project includes
+#include "containers/model.h"
 #include "includes/communicator.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "processes/levelset_convection_process.h"
@@ -151,7 +152,7 @@ public:
         const bool calculate_norm_Dx_flag = false;
 
         (this->mpSolvingStrategy) = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
-            *(this->mpDistanceModelPart),
+            *BaseType::mpDistanceModelPart,
             p_scheme,
             pLinearSolver,
             p_builder_and_solver,
@@ -238,21 +239,25 @@ protected:
         KRATOS_ERROR_IF(base_buffer_size < 2) << 
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
+        if(rBaseModelPart.GetModel().HasModelPart("DistanceConvectionPart"))
+            rBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
+
+        BaseType::mpDistanceModelPart= &(rBaseModelPart.GetModel().CreateModelPart("DistanceConvectionPart"));
+        
+
         // Generate
-        Kratos::unique_ptr<ModelPart> p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
-        (this->mpDistanceModelPart).swap(p_aux_model_part);
 
-        (this->mpDistanceModelPart)->Nodes().clear();
-        (this->mpDistanceModelPart)->Conditions().clear();
-        (this->mpDistanceModelPart)->Elements().clear();
+        BaseType::mpDistanceModelPart->Nodes().clear();
+        BaseType::mpDistanceModelPart->Conditions().clear();
+        BaseType::mpDistanceModelPart->Elements().clear();
 
-        (this->mpDistanceModelPart)->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
-        (this->mpDistanceModelPart)->SetBufferSize(base_buffer_size);
-        (this->mpDistanceModelPart)->SetProperties(rBaseModelPart.pProperties());
-        (this->mpDistanceModelPart)->Tables() = rBaseModelPart.Tables();
+        BaseType::mpDistanceModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
+        BaseType::mpDistanceModelPart->SetBufferSize(base_buffer_size);
+        BaseType::mpDistanceModelPart->SetProperties(rBaseModelPart.pProperties());
+        BaseType::mpDistanceModelPart->Tables() = rBaseModelPart.Tables();
 
         // Assigning the nodes to the new model part
-        (this->mpDistanceModelPart)->Nodes() = rBaseModelPart.Nodes();
+        BaseType::mpDistanceModelPart->Nodes() = rBaseModelPart.Nodes();
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof< Variable < double> >(this->mrLevelSetVar, rBaseModelPart);
@@ -272,10 +277,10 @@ protected:
             p_new_comm->pGhostMesh(i)->SetNodes(r_base_comm.pGhostMesh(i)->pNodes());
         }
 
-        (this->mpDistanceModelPart)->SetCommunicator(p_new_comm);
+        BaseType::mpDistanceModelPart->SetCommunicator(p_new_comm);
 
         // Generating the elements
-        ((this->mpDistanceModelPart)->Elements()).reserve(rBaseModelPart.NumberOfElements());
+        (BaseType::mpDistanceModelPart->Elements()).reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
             Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
@@ -285,12 +290,12 @@ protected:
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
             
-            ((this->mpDistanceModelPart)->Elements()).push_back(p_element);
-            ((this->mpDistanceModelPart)->GetCommunicator()).LocalMesh().Elements().push_back(p_element);
+            (BaseType::mpDistanceModelPart->Elements()).push_back(p_element);
+            (BaseType::mpDistanceModelPart->GetCommunicator()).LocalMesh().Elements().push_back(p_element);
         }
        
         // Resize the arrays
-        const auto n_nodes = (this->mpDistanceModelPart)->NumberOfNodes();
+        const auto n_nodes = BaseType::mpDistanceModelPart->NumberOfNodes();
         (this->mVelocity).resize(n_nodes);
         (this->mVelocityOld).resize(n_nodes);
         (this->mOldDistance).resize(n_nodes);

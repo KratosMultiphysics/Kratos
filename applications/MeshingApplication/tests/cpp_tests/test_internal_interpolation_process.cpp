@@ -18,6 +18,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
 #include "meshing_application.h"
@@ -234,8 +235,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
 
@@ -248,8 +249,6 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
-            if (!p_this_law->Has(PLASTIC_STRAIN))
-                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -300,7 +299,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(this_model_part, "pre1");
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -332,8 +331,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessLST1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
 
@@ -346,8 +345,6 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
-            if (!p_this_law->Has(PLASTIC_STRAIN))
-                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -399,10 +396,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre1");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -435,8 +432,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
@@ -449,8 +446,6 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
             auto p_this_law = r_clone_cl.Clone();
-            if (!p_this_law->Has(PLASTIC_STRAIN))
-                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -501,7 +496,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(this_model_part, "pre2");
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -534,8 +529,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessLST2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
@@ -548,8 +543,6 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
             auto p_this_law = r_clone_cl.Clone();
-            if (!p_this_law->Has(PLASTIC_STRAIN))
-                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -601,10 +594,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre2");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -637,8 +630,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsCPT1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
 
@@ -651,8 +644,6 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
-            if (!p_this_law->Has(PLASTIC_STRAIN))
-                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -685,7 +676,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre1");
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -716,8 +707,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
 
@@ -730,8 +721,6 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
-            if (!p_this_law->Has(PLASTIC_STRAIN))
-                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -765,10 +754,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre1");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -800,8 +789,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsCPT2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
@@ -814,8 +803,6 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
-            if (!p_this_law->Has(PLASTIC_STRAIN))
-                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -848,7 +835,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre2");
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -880,8 +867,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
@@ -894,8 +881,6 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
-            if (!p_this_law->Has(PLASTIC_STRAIN))
-                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -929,10 +914,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre2");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG

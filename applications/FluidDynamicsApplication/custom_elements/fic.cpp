@@ -407,7 +407,7 @@ void FIC<TElementData>::AddMassStabilization(
 }
 
 template <class TElementData>
-void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
+void FIC<TElementData>::AddBoundaryTraction(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
     BoundedMatrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
@@ -442,9 +442,9 @@ void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
         for (unsigned int d = 0; d < Dim; d++) {
             const unsigned int row = i*BlockSize + d;
             for (unsigned int col = 0; col < LocalSize; col++) {
-                rLHS(row,col) -= wni*normal_stress_operator(d,col);
+                rLHS(row,col) += wni*normal_stress_operator(d,col);
             }
-            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
+            rRHS[row] -= wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
         }
     }
 }

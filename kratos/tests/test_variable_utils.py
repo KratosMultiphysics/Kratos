@@ -12,8 +12,10 @@ def GetFilePath(fileName):
 class TestVariableUtils(KratosUnittest.TestCase):
 
     def test_copy_model_part_nodal_var(self):
+        current_model = Model()
+
         ##set the origin model part
-        origin_model_part = ModelPart("OriginModelPart")
+        origin_model_part = current_model.CreateModelPart("OriginModelPart")
         origin_model_part.AddNodalSolutionStepVariable(VISCOSITY)
         origin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         origin_model_part.SetBufferSize(2)
@@ -21,7 +23,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part_io.ReadModelPart(origin_model_part)
 
         ##set the destination model part
-        destination_model_part = ModelPart("DestinationModelPart")
+        destination_model_part = current_model.CreateModelPart("DestinationModelPart")
         destination_model_part.AddNodalSolutionStepVariable(VISCOSITY)
         destination_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         destination_model_part.SetBufferSize(2)
@@ -49,15 +51,17 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X, 1), node.X)
 
     def test_copy_model_part_elemental_var(self):
+        current_model = Model()
+
         ##set the origin model part
-        origin_model_part = ModelPart("OriginModelPart")
+        origin_model_part = current_model.CreateModelPart("OriginModelPart")
         origin_model_part.AddNodalSolutionStepVariable(VISCOSITY)
         origin_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(origin_model_part)
 
         ##set the destination model part
-        destination_model_part = ModelPart("DestinationModelPart")
+        destination_model_part = current_model.CreateModelPart("DestinationModelPart")
         destination_model_part.AddNodalSolutionStepVariable(VISCOSITY)
         destination_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -78,8 +82,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
 
     def test_set_variable(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -103,46 +109,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), viscosity)
 
     def test_set_nonhistorical_variable(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
-        model_part_io.ReadModelPart(model_part)
-
-        ##set the variable values
-        viscosity = 0.1
-        displacement = Vector(3)
-        displacement[0] = 1.0
-        displacement[1] = 2.0
-        displacement[2] = 3.0
-
-        # First for nodes
-        VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Nodes)
-        VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Nodes)
-
-        ##verify the result
-        for node in model_part.Nodes:
-            self.assertEqual(node.GetValue(DISPLACEMENT_X), 1.0)
-            self.assertEqual(node.GetValue(DISPLACEMENT_Y), 2.0)
-            self.assertEqual(node.GetValue(DISPLACEMENT_Z), 3.0)
-            self.assertEqual(node.GetValue(VISCOSITY), viscosity)
-
-        # Now for conditions (it will work for elements too)
-        VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Conditions)
-        VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Conditions)
-
-        ##verify the result
-        for cond in model_part.Conditions:
-            disp = cond.GetValue(DISPLACEMENT)
-            self.assertEqual(disp[0], 1.0)
-            self.assertEqual(disp[1], 2.0)
-            self.assertEqual(disp[2], 3.0)
-            self.assertEqual(cond.GetValue(VISCOSITY), viscosity)
-
-    def test_set_nonhistorical_variable(self):
-        ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -179,8 +149,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(cond.GetValue(VISCOSITY), viscosity)
 
     def test_set_flag(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -211,8 +183,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertTrue(condition.IsNot(OUTLET))
 
     def test_copy_var(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DENSITY)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -249,8 +223,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), node.GetSolutionStepValue(DENSITY))
 
     def test_save_var(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DENSITY)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -276,8 +252,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(DISTANCE), node.GetValue(DENSITY))
 
     def test_set_to_zero(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -295,8 +273,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
 
     def test_select_node_list(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -315,8 +295,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
         self.assertTrue(model_part.Nodes[974].Id in ids_list)
 
     def test_apply_fixity(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -334,8 +316,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
 
     def test_apply_vector(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -359,8 +343,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
             i+=1
 
     def test_sum_variable(self):
+        current_model = Model()
+
         ##set the model part
-        model_part = ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DENSITY)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -424,6 +410,98 @@ class TestVariableUtils(KratosUnittest.TestCase):
         self.assertAlmostEqual(elem_vect[0], 4.0, delta=1e-6)
         self.assertAlmostEqual(elem_vect[1], 8.0, delta=1e-6)
         self.assertAlmostEqual(elem_vect[2], 12.0, delta=1e-6)
+
+    def test_UpdateCurrentToInitialConfiguration(self):
+        current_model = Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DENSITY)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ##set the reference model part
+        ref_model_part = current_model.CreateModelPart("Reference")
+        ref_model_part.AddNodalSolutionStepVariable(DENSITY)
+        ref_model_part.AddNodalSolutionStepVariable(VELOCITY)
+        ref_model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        ref_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        ref_model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        ref_model_part_io.ReadModelPart(ref_model_part)
+
+        dx = 0.1
+        dy = -0.2
+        dz = 0.3
+
+        # update the current configuration, ONLY in master_mp, NOT in the reference
+        for node in model_part.Nodes:
+            node.X += dx
+            node.Y += dy
+            node.Z += dz
+
+        VariableUtils().UpdateCurrentToInitialConfiguration(model_part.Nodes)
+
+        # we set the updated configuration back to the initial configuration
+        # therefore testing against the initial configuration of the reference MP
+        for node, node_ref in zip(model_part.Nodes, ref_model_part.Nodes):
+            self.assertAlmostEqual(node.X0, node_ref.X0)
+            self.assertAlmostEqual(node.Y0, node_ref.Y0)
+            self.assertAlmostEqual(node.Z0, node_ref.Z0)
+
+            self.assertAlmostEqual(node.X, node_ref.X0)
+            self.assertAlmostEqual(node.Y, node_ref.Y0)
+            self.assertAlmostEqual(node.Z, node_ref.Z0)
+
+
+    def test_UpdateInitialToCurrentConfiguration(self):
+        current_model = Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DENSITY)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ##set the reference model part
+        ref_model_part = current_model.CreateModelPart("Reference")
+        ref_model_part.AddNodalSolutionStepVariable(DENSITY)
+        ref_model_part.AddNodalSolutionStepVariable(VELOCITY)
+        ref_model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        ref_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        ref_model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        ref_model_part_io.ReadModelPart(ref_model_part)
+
+        dx = 0.1
+        dy = -0.2
+        dz = 0.3
+
+        # update the current configuration, in BOTH ModelParts!
+        for node, node_ref in zip(model_part.Nodes, ref_model_part.Nodes):
+            node.X += dx
+            node.Y += dy
+            node.Z += dz
+            node_ref.X += dx
+            node_ref.Y += dy
+            node_ref.Z += dz
+
+        VariableUtils().UpdateInitialToCurrentConfiguration(model_part.Nodes)
+
+        # we set the initial configuration to be the same as the current configuration
+        # therefore testing against the current configuration of the reference MP
+        for node, node_ref in zip(model_part.Nodes, ref_model_part.Nodes):
+            self.assertAlmostEqual(node.X0, node_ref.X)
+            self.assertAlmostEqual(node.Y0, node_ref.Y)
+            self.assertAlmostEqual(node.Z0, node_ref.Z)
+
+            self.assertAlmostEqual(node.X, node_ref.X)
+            self.assertAlmostEqual(node.Y, node_ref.Y)
+            self.assertAlmostEqual(node.Z, node_ref.Z)
 
 
 if __name__ == '__main__':

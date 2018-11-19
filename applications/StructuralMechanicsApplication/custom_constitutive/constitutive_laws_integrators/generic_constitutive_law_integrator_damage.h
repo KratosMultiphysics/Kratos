@@ -58,7 +58,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TYieldSurfaceType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorDamage
+class GenericConstitutiveLawIntegratorDamage
 {
   public:
     ///@name Type Definitions
@@ -166,7 +166,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     {
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
-        rDamage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter * (1.0 - UniaxialStress / initial_threshold));
+        rDamage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter * 
+                 (1.0 - UniaxialStress / initial_threshold));
     }
 
     /**
@@ -212,7 +213,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     {
         KRATOS_CHECK_VARIABLE_KEY(SOFTENING_TYPE);
 
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "HARDENING_CURVE is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "SOFTENING_TYPE is not a defined value" << std::endl;
 
         return TYieldSurfaceType::Check(rMaterialProperties);
     }
@@ -292,18 +293,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

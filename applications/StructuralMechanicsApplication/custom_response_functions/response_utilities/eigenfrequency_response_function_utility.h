@@ -29,7 +29,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
-#include "differentiation_utility.h"
+#include "element_finite_difference_utility.h"
 
 // ==============================================================================
 
@@ -118,8 +118,16 @@ public:
         CheckIfAllNecessaryEigenvaluesAreComputed();
 
         double resp_function_value = 0.0;
+        KRATOS_INFO("EigenfrequencyResponseFunctionUtility") << "CalculateValue:" << std::endl
+        << "    #    Eigenfrequency [Hz]    weighting factor" <<std::endl;
         for(std::size_t i = 0; i < mTracedEigenfrequencyIds.size(); i++)
-            resp_function_value += mWeightingFactors[i] * std::sqrt(GetEigenvalue(mTracedEigenfrequencyIds[i])) / (2*Globals::Pi);
+        {
+            const double eigenfrequency = std::sqrt(GetEigenvalue(mTracedEigenfrequencyIds[i])) / (2*Globals::Pi);
+            resp_function_value += mWeightingFactors[i] * eigenfrequency;
+            KRATOS_INFO("") << std::setw(5)  << mTracedEigenfrequencyIds[i]
+                      << std::setw(23) << eigenfrequency
+                      << std::setw(20) << mWeightingFactors[i]<< std::endl;
+        }
 
         return resp_function_value;
     }
@@ -283,6 +291,8 @@ protected:
             for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                 DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], eigenvectors_of_element[i], CurrentProcessInfo);
 
+            const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
+
             // Computation of derivative of state equation w.r.t. node coordinates
             for(auto& node_i : elem_i.GetGeometry())
             {
@@ -292,21 +302,8 @@ protected:
 
                 for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
-                    if( coord_dir_i == 0 )
-                    {
-                        DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_X, node_i, mDelta, derived_LHS, CurrentProcessInfo);
-                        DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_X, node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
-                    }
-                    else if( coord_dir_i == 1 )
-                    {
-                        DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_Y, node_i, mDelta, derived_LHS, CurrentProcessInfo);
-                        DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_Y, node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
-                    }
-                    else if( coord_dir_i == 2 )
-                    {
-                        DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_Z, node_i, mDelta, derived_LHS, CurrentProcessInfo);
-                        DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_Z, node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
-                    }
+                    ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_LHS, CurrentProcessInfo);
+                    ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {

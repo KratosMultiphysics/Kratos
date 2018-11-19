@@ -54,6 +54,39 @@ namespace Kratos
         /// Destructor
         virtual ~SphericContinuumParticle();
 
+
+        class ParticleDataBuffer : public SphericParticle::ParticleDataBuffer
+        {
+        public:
+            ParticleDataBuffer(SphericParticle* p_this_particle): SphericParticle::ParticleDataBuffer(p_this_particle){}
+
+            virtual ~ParticleDataBuffer(){}
+
+            bool SetNextNeighbourOrExit(int& i) override
+            {
+                while (i < int(mpThisParticle->mNeighbourElements.size()) && (mpThisParticle->mNeighbourElements[i]==NULL)){
+                    i++;
+                }
+
+                if (i < int(mpThisParticle->mNeighbourElements.size())) {
+                    SetCurrentNeighbour(mpThisParticle->mNeighbourElements[i]);
+                    mpOtherParticleNode = &(mpOtherParticle->GetGeometry()[0]);
+                    return true;
+                }
+
+                else { // other_neighbour is nullified upon exiting loop
+                    mpOtherParticle = NULL;
+                    mpOtherParticleNode = NULL;
+                    return false;
+                }
+            }
+        };
+
+        std::unique_ptr<SphericParticle::ParticleDataBuffer> CreateParticleDataBuffer(SphericParticle* p_this_particle) override
+        {
+            return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
+        }
+
         void SetInitialSphereContacts(ProcessInfo& r_process_info);
         void SetInitialFemContacts();
         void CreateContinuumConstitutiveLaws();
@@ -107,7 +140,6 @@ namespace Kratos
 
         //member variables DEM_CONTINUUM
         int mContinuumGroup;
-        std::vector<ParticleContactElement*> mBondElements;
         std::vector<int> mIniNeighbourIds;
         std::vector<int> mIniNeighbourFailureId;
         std::vector<double> mIniNeighbourDelta;

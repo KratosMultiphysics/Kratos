@@ -1,11 +1,6 @@
 {
-    "test_settings" : {
-        "execute_solve" : true
-    },
     "problem_data" : {
         "problem_name"    : "one_element",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "start_step"      : 4.0,
         "nsteps"          : 3,
         "echo_level"      : 0,
@@ -39,16 +34,21 @@
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "sensitivity_model_part_name"  : "Boundary",
-            "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
                 "structure_model_part_name" : "Structure",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
         },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name": "Boundary",
+            "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
+            "build_mode": "integrate"
+        },
+        "domain_size"                   : 2,
         "dynamic_tau"                   : 1.0,
         "oss_switch"                    : 0,
         "echo_level"                    : 0,
+        "model_part_name"               : "MainModelPart",
         "volume_model_part_name"        : "Parts_Fluid",
         "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
         "linear_solver_settings" : {
@@ -72,7 +72,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -82,7 +82,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet",
-            "variable_name"   : "ADJOINT_PRESSURE",
+            "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
             "value"           : 0
         }
     },{
@@ -92,7 +92,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Boundary",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -102,7 +102,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "constrained"     : [false,true,true],
             "value"           : [0.0, 0.0, 0.0]
         }

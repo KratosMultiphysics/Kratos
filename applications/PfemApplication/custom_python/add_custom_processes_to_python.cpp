@@ -19,25 +19,20 @@
 
 // Processes
 //#include "custom_processes/adaptive_time_interval_process.hpp"
-#include "custom_processes/split_elements_process.hpp"
-#include "custom_processes/set_active_flag_process.hpp"
 #include "custom_processes/assign_properties_to_nodes_process.hpp"
 #include "custom_processes/manage_isolated_nodes_process.hpp"
-
-// Mesher initialization and finalization processes
-#include "custom_processes/settle_fluid_model_structure_process.hpp"
+#include "custom_processes/manage_selected_elements_process.hpp"
+#include "custom_processes/recover_volume_losses_process.hpp"
 
 // PreMeshing processes
-#include "custom_processes/set_active_entities_mesher_process.hpp"
-#include "custom_processes/recover_volume_losses_mesher_process.hpp"
-#include "custom_processes/inlet_management_mesher_process.hpp"
-#include "custom_processes/insert_new_nodes_mesher_process.hpp"
+#include "custom_processes/inlet_mesher_process.hpp"
+#include "custom_processes/insert_fluid_nodes_mesher_process.hpp"
 #include "custom_processes/remove_fluid_nodes_mesher_process.hpp"
+#include "custom_processes/refine_fluid_elements_in_edges_mesher_process.hpp"
 
 // MiddleMeshing processes
 
 // PostMeshing processes
-#include "custom_processes/select_fluid_elements_mesher_process.hpp"
 
 
 namespace Kratos
@@ -49,7 +44,7 @@ namespace Python
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;
 
   //**********MODEL PROPERTIES*********//
 
@@ -58,76 +53,57 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
 
   //to define it as a variable
-  class_<Variable<PropertiesContainerPointerType>, VariableData>(m,"PropertiesVectorPointerVariable")
+  py::class_<Variable<PropertiesContainerPointerType>, VariableData>(m,"PropertiesVectorPointerVariable")
       .def( "__repr__", &Variable<PropertiesContainerPointerType>::Info )
       ;
-
-  //**********MODEL STRUCTURE*********//
-  class_<SettleFluidModelStructureProcess, SettleFluidModelStructureProcess::Pointer, SettleModelStructureProcess>
-      (m, "FluidModelStructure")
-      .def(init<ModelPart&, Flags, int>());
 
 
   //**********MESHER PROCESSES*********//
 
-  class_<RemoveFluidNodesMesherProcess, RemoveFluidNodesMesherProcess::Pointer, MesherProcess>
+  py::class_<RemoveFluidNodesMesherProcess, RemoveFluidNodesMesherProcess::Pointer, RemoveNodesMesherProcess>
       (m, "RemoveFluidNodes")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<InsertNewNodesMesherProcess, InsertNewNodesMesherProcess::Pointer, MesherProcess>
-      (m, "InsertNewNodes")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+  py::class_<InsertFluidNodesMesherProcess, InsertFluidNodesMesherProcess::Pointer, MesherProcess>
+      (m, "InsertFluidNodes")
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<SelectFluidElementsMesherProcess, SelectFluidElementsMesherProcess::Pointer, MesherProcess>
-      (m, "SelectFluidElements")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+  py::class_<InletMesherProcess, InletMesherProcess::Pointer, MesherProcess>
+      (m, "InsertInlet")
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<SetActiveEntitiesMesherProcess, SetActiveEntitiesMesherProcess::Pointer, MesherProcess>
-      (m, "SetActiveEntities")
-      .def(init<ModelPart&, bool, bool, int>());
-
-  class_<InletManagementMesherProcess, InletManagementMesherProcess::Pointer, MesherProcess>
-      (m, "InletManagement")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
-
+  py::class_<RefineFluidElementsInEdgesMesherProcess, RefineFluidElementsInEdgesMesherProcess::Pointer, RefineElementsInEdgesMesherProcess>
+      (m,"RefineFluidElementsInEdges")
+      .def(py::init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      ;
 
   //*********SET SOLVER PROCESSES*************//
-
-  class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>
-      (m, "SetActiveFlagProcess")
-      .def(init<ModelPart&, bool, bool, int>());
-
-  class_<SplitElementsProcess, SplitElementsProcess::Pointer, Process>
-      (m,"SplitElementsProcess")
-      .def(init<ModelPart&, int>());
-
-  class_<AssignPropertiesToNodesProcess, AssignPropertiesToNodesProcess::Pointer, Process>
+  py::class_<AssignPropertiesToNodesProcess, AssignPropertiesToNodesProcess::Pointer, Process>
       (m, "AssignPropertiesToNodes")
-      .def(init<ModelPart&, Parameters>())
-      .def(init<ModelPart&, Parameters&>());
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init<ModelPart&, Parameters&>());
 
   //*********ADAPTIVE TIME STEP*************//
-
-  // class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
+  // py::class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
   //     (m, "AdaptiveTimeIntervalProcess")
-  //     .def(init<ModelPart&, int>());
+  //     .def(py::init<ModelPart&, int>());
 
-
-  //*********VOLUME RECOVETY PROCESS********//
-
-  class_<RecoverVolumeLossesMesherProcess, RecoverVolumeLossesMesherProcess::Pointer, MesherProcess>
+  //*********VOLUME RECOVERY PROCESS********//
+  py::class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, Process>
       (m, "RecoverVolumeLosses")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+      .def(py::init<ModelPart&, int>());
 
-
-  //*********VOLUME RECOVETY PROCESS********//
-  class_<ManageIsolatedNodesProcess, ManageIsolatedNodesProcess::Pointer, Process>
+  //*********MANAGE PARTICULAR ENTITIES PROCESS********//
+  py::class_<ManageIsolatedNodesProcess, ManageIsolatedNodesProcess::Pointer, Process>
       (m, "ManageIsolatedNodesProcess")
-      .def(init<ModelPart&>());
+      .def(py::init<ModelPart&>());
+
+  py::class_<ManageSelectedElementsProcess, ManageSelectedElementsProcess::Pointer, Process>
+      (m, "ManageSelectedElementsProcess")
+      .def(py::init<ModelPart&>());
 
 }
 
 }  // namespace Python.
 
 } // Namespace Kratos
-

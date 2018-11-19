@@ -456,7 +456,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "GearScheme";
@@ -464,13 +464,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "GearScheme";
+        rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {}
 
     ///@}
@@ -719,8 +719,8 @@ protected:
             iter++;
         }
 
-        if (rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Performed OSS Projection in " << iter << " iterations" << std::endl;
+        KRATOS_INFO_IF("GearScheme", rModelPart.GetCommunicator().MyPID() == 0)
+            << "Performed OSS Projection in " << iter << " iterations" << std::endl;
     }
 
     void LumpedProjection(ModelPart& rModelPart)
@@ -761,8 +761,8 @@ protected:
             iNode->FastGetSolutionStepValue(DIVPROJ) /= Area;
         }
 
-        if (rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Performed OSS Projection" << std::endl;
+        KRATOS_INFO_IF("GearScheme", rModelPart.GetCommunicator().MyPID() == 0)
+            << "Computing OSS projections" << std::endl;
     }
 
     /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on

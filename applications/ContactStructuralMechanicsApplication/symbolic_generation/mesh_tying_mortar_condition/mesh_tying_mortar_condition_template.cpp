@@ -20,15 +20,6 @@
 
 namespace Kratos
 {
-/**
- * Flags related to the condition computation
- */
-// Avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-const Kratos::Flags MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
-
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
@@ -245,10 +236,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 {
     KRATOS_TRY;
 
-    // Calculation flags
-    mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_LHS_MATRIX, true );
-    mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_RHS_VECTOR, true );
-
     // Compute the matrix size
     const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
     const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
@@ -276,10 +263,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Calculation flags
-    mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_LHS_MATRIX, true );
-    mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_RHS_VECTOR, false);
-
     // Compute the matrix size
     const TensorValue tensor_value = (mDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
     const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
@@ -292,7 +275,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     VectorType aux_right_hand_side_vector = Vector();
 
     // Calculate condition system
-    CalculateConditionSystem(rLeftHandSideMatrix, aux_right_hand_side_vector, rCurrentProcessInfo );
+    CalculateConditionSystem(rLeftHandSideMatrix, aux_right_hand_side_vector, rCurrentProcessInfo, true, false );
 }
 
 /***********************************************************************************/
@@ -304,10 +287,6 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Calculation flags
-    mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_LHS_MATRIX, false);
-    mCalculationFlags.Set( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_RHS_VECTOR, true);
-
     // Creating an auxiliar matrix
     MatrixType aux_left_hand_side_matrix = Matrix();
 
@@ -320,7 +299,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
         rRightHandSideVector.resize( matrix_size, false );
 
     // Calculate condition system
-    CalculateConditionSystem(aux_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo );
+    CalculateConditionSystem(aux_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo, false );
 }
 
 /***********************************************************************************/
@@ -355,6 +334,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     KRATOS_CATCH( "" );
 }
 
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -362,7 +342,9 @@ template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
 void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::CalculateConditionSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool ComputeLHS,
+    const bool ComputeRHS
     )
 {
     KRATOS_TRY;
@@ -380,13 +362,13 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
         dof_data.UpdateMasterPair(this->GetPairedGeometry(), mDoubleVariables, mArray1DVariables);
 
         // Assemble of the matrix is required
-        if ( mCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_LHS_MATRIX ) ) {
+        if ( ComputeLHS ) {
             // Calculate the local contribution
             this->CalculateLocalLHS<ScalarValue>(rLeftHandSideMatrix, mrThisMortarConditionMatrices, dof_data);
         }
 
         // Assemble of the vector is required
-        if ( mCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_RHS_VECTOR )) {
+        if ( ComputeRHS) {
             // Calculate the local contribution
             this->CalculateLocalRHS<ScalarValue>( rRightHandSideVector, mrThisMortarConditionMatrices, dof_data);
         }
@@ -400,13 +382,13 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
         dof_data.UpdateMasterPair(this->GetPairedGeometry(), mDoubleVariables, mArray1DVariables);
 
         // Assemble of the matrix is required
-        if ( mCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_LHS_MATRIX ) ) {
+        if ( ComputeLHS ) {
             // Calculate the local contribution
             this->CalculateLocalLHS<static_cast<TensorValue>(TDim)>(rLeftHandSideMatrix, mrThisMortarConditionMatrices, dof_data);
         }
 
         // Assemble of the vector is required
-        if ( mCalculationFlags.Is( MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::COMPUTE_RHS_VECTOR )) {
+        if ( ComputeRHS) {
             // Calculate the local contribution
             this->CalculateLocalRHS<static_cast<TensorValue>(TDim)>( rRightHandSideVector, mrThisMortarConditionMatrices, dof_data);
         }

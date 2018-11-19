@@ -71,15 +71,15 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
-
 PYBIND11_MODULE(KratosThermoMechanicalApplication, m)
 {
 
-    class_<KratosThermoMechanicalApplication,
+    namespace py = pybind11;
+
+    py::class_<KratosThermoMechanicalApplication,
            KratosThermoMechanicalApplication::Pointer,
            KratosApplication >(m,"KratosThermoMechanicalApplication")
-           .def(init<>())
+           .def(py::init<>())
            ;
 
     AddCustomStrategiesToPython(m);

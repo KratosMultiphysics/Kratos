@@ -41,6 +41,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
                     }
                 },
                 "thermal_solver_settings":{
+                    "model_part_name": "FluidThermalModelPart",
                     "solver_type": "Transient",
                     "analysis_type": "linear",
                     "model_import_settings": {
@@ -55,6 +56,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
                 "solid_solver_settings": {
                 },
                 "thermal_solver_settings": {
+                    "model_part_name": "SolidThermalModelPart",
                     "solver_type": "Transient",
                     "analysis_type": "linear",
                     "model_import_settings": {
@@ -110,6 +112,18 @@ class ConjugateHeatTransferSolver(PythonSolver):
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_TEMPERATURE)
 
     def ImportModelPart(self):
+        # Check that both thermal solvers have a different model part name. If
+        # both model part names coincide the solver will fail to acces them. This
+        # is the case if the default one in the convection diffusion is taken.
+        fluid_thermal_model_part_name = self.settings["fluid_domain_solver_settings"]["thermal_solver_settings"]["model_part_name"].GetString()
+        solid_thermal_model_part_name = self.settings["solid_domain_solver_settings"]["thermal_solver_settings"]["model_part_name"].GetString()
+        if fluid_thermal_model_part_name == solid_thermal_model_part_name:
+            err_msg = "\nFluid thermal solver settings model_part_name and solid thermal solver settings model_part_name can not coincide.\n"
+            err_msg += "- fluid model_part_name: " + fluid_thermal_model_part_name + "\n"
+            err_msg += "- solid model_part_name: " + solid_thermal_model_part_name + "\n"
+            err_msg += "Provide different model_part_names in the JSON settings file."
+            raise Exception(err_msg)
+
         # Import the fluid domain in the fluid dynamics solver
         self.fluid_solver.ImportModelPart()
         
@@ -208,10 +222,8 @@ class ConjugateHeatTransferSolver(PythonSolver):
         print("finished predict")
 
     def SolveSolutionStep(self):
-        print("aaa")
         # Solve the buoyancy solver
         self.fluid_solver.SolveSolutionStep()
-        print("bbb")
 
         max_iteration = self.settings["coupling_settings"]["max_iteration"].GetInt()
         relaxation_factor = self.settings["coupling_settings"]["relaxation_factor"].GetDouble()

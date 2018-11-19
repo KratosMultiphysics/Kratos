@@ -172,7 +172,7 @@ class VariableRedistributionTest(UnitTest.TestCase):
                 TEMPERATURE)
 
             for cond in self.model_part.Conditions:
-                area = cond.GetArea()
+                area = cond.GetGeometry().Area()
                 for node in cond.GetNodes():
                     nodal_area = node.GetSolutionStepValue(NODAL_PAUX)
                     node.SetSolutionStepValue(NODAL_PAUX,nodal_area+area/3.0)
@@ -185,8 +185,8 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.CheckDoubleResults(TEMPERATURE,NODAL_PAUX)
 
     def SetUpProblem(self):
-
-        self.model_part = ModelPart("Model")
+        current_model = Model()
+        self.model_part = current_model.CreateModelPart("Model")
         self.model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
         self.model_part.AddNodalSolutionStepVariable(PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
@@ -203,7 +203,9 @@ class VariableRedistributionTest(UnitTest.TestCase):
         self.model_part.SetBufferSize(1)
 
     def GenerateInterface(self):
-        self.interface_model_part = ModelPart("Interface")
+        current_model = Model()
+        self.interface_model_part = current_model.CreateModelPart("Interface")
+
         interface_model_part_generator = InterfacePreprocess()
         interface_model_part_generator.GenerateTriangleInterfacePart(self.model_part,self.interface_model_part)
 
