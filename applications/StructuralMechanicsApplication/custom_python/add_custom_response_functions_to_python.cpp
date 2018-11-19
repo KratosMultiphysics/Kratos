@@ -90,9 +90,9 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Parameters>());
 
     // Adjoint postprocess
-    class_<AdjointPostprocess, AdjointPostprocess::Pointer>
+    py::class_<AdjointPostprocess, AdjointPostprocess::Pointer>
       (m, "AdjointPostprocess")
-      .def(init<ModelPart&, AdjointStructuralResponseFunction&, Parameters>())
+      .def(py::init<ModelPart&, AdjointStructuralResponseFunction&, Parameters>())
       .def("Initialize", &AdjointPostprocess::Initialize)
       .def("InitializeSolutionStep", &AdjointPostprocess::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &AdjointPostprocess::FinalizeSolutionStep)
