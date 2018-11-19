@@ -42,6 +42,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
 )
 
+
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES})
 target_link_libraries(KratosIgaApplication PRIVATE KratosCore)
