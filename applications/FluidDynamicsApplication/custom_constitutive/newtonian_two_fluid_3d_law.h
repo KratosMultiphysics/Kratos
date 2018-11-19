@@ -19,6 +19,7 @@
 
 // Project includes
 #include "newtonian_3d_law.h"
+#include "custom_utilities/fluid_element_utilities.h"
 
 
 namespace Kratos
