@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from math import sqrt   # Import the square root from python library
 
 # Import utilities
-import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
 import python_solvers_wrapper_mesh_motion      # Import the mesh motion Python solvers wrapper
@@ -80,24 +79,16 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     #TODO: CHECK WHICH VARIABLES ARE MISSING OR NOT NEEDED
     def AddVariables(self):
-        ## Structure variables addition
-        # Standard CSM variables addition
+        # Structure solver variables addition
         self.structure_solver.AddVariables()
 
-        ## Fluid variables addition
-        # Standard CFD variables addition
+        # Fluid solver variables addition
         self.fluid_solver.AddVariables()
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION) # TODO: This should be added in the mesh solvers
 
-        ## FSIApplication variables addition
-        NonConformant_OneSideMap.AddVariables(self.fluid_solver.main_model_part,self.structure_solver.main_model_part)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
-        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE)
-        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE)
+        # FSI coupling required variables addition
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
+        self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FSI_INTERFACE_RESIDUAL)
 
     def ImportModelPart(self):
         # Fluid and structure solvers ImportModelPart() call
@@ -187,11 +178,23 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         return self.structure_solver.GetComputingModelPart()
 
     def GetStructureSkinModelPart(self):
-        return self.model.GetSubModelPart(self._get_structure_interface_model_part_name())
+        return self.model.GetModelPart(self._get_structure_interface_model_part_name())
+
+    def GetStructureSkinElementBasedModelPart(self):
+        element_based_skin_model_part_name = self._get_structure_interface_model_part_name() + "ElementBased"
+        if not self.model.HasModelPart(element_based_skin_model_part_name):
+            element_based_skin_model_part = self.model.CreateModelPart(element_based_skin_model_part_name)
+            return element_based_skin_model_part
+        else:
+            return self.model.GetModelPart(element_based_skin_model_part_name)
 
     def GetStructureIntersectionsModelPart(self):
         if not hasattr(self, '_embedded_intersections_model_part'):
             self._embedded_intersections_model_part = self.model.CreateModelPart("EmbeddedIntersectionsModelPart")
+            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+            self._embedded_intersections_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_PROJECTED)
         return self._embedded_intersections_model_part
 
     def GetOutputVariables(self):
@@ -264,18 +267,29 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def _get_distance_to_skin_process(self):
         if not hasattr(self, '_distance_to_skin_process'):
-            self._distance_to_skin_process = _create_distance_to_skin_process()
+            self._distance_to_skin_process = self._create_distance_to_skin_process()
         return self._distance_to_skin_process
 
     def _create_distance_to_skin_process(self):
+        # Copy the skin model part conditions to an auxiliar model part elements.
+        # This is required for the computation of the distance function, which
+        # takes the elements of the second modelpart as skin. If this operation
+        # is not performed, no elements are found, yielding a wrong level set.
+        # Such auxiliar model part is constructed using the same nodes. Therefore,
+        # there is no necessity to perform this operation more than once.
+        self._get_partitioned_fsi_utilities().CopySkinToElements(
+            self.GetStructureSkinModelPart(),
+            self.GetStructureSkinElementBasedModelPart())
+
+        # Set the distance computation process
         if self.domain_size == 2:
             return KratosMultiphysics.CalculateDistanceToSkinProcess2D(
                 self.GetFluidComputingModelPart(),
-                self.GetStructureSkinModelPart())
+                self.GetStructureSkinElementBasedModelPart())
         elif self.domain_size == 3:
             return KratosMultiphysics.CalculateDistanceToSkinProcess3D(
                 self.GetFluidComputingModelPart(),
-                self.GetStructureSkinModelPart())
+                self.GetStructureSkinElementBasedModelPart())
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
 
@@ -344,6 +358,11 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
 
+        # Swap the mapped PRESSURE sign
+        for node in self.GetStructureSkinModelPart().Nodes:
+            p = node.GetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+            node.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE, -p)
+
     def _map_velocity_to_vector_projected(self):
         # Maps the PRESSURE value from the generated intersections skins to the structure skin.
         # Note that the SurfaceLoadCondition in the StructuralMechanicsApplication uses the 
@@ -357,7 +376,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         }""")
 
         if self.domain_size == 2:
-            KratosMultiphysics.SimpleMortarMapperProcess2D2NDouble(
+            KratosMultiphysics.SimpleMortarMapperProcess2D2NVector(
                 self.GetStructureIntersectionsModelPart(),
                 self.GetStructureSkinModelPart(),
                 KratosMultiphysics.VELOCITY,
@@ -366,7 +385,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         elif self.domain_size == 3:
             #TODO: INCLUDE THE MAPPING AGAINST TRIANGLE CONDITIONS!
             #TODO: WILL BE NEEDED TO MAP TO SHELLS (DOUBLE SIDED SURFACES)
-            KratosMultiphysics.SimpleMortarMapperProcess3D3N4NDouble(
+            KratosMultiphysics.SimpleMortarMapperProcess3D3N4NVector(
                 self.GetStructureIntersectionsModelPart(),
                 self.GetStructureSkinModelPart(),
                 KratosMultiphysics.VELOCITY,
@@ -384,7 +403,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         # Initialize Dirichlet fluid interface (generate the intersections skin)
         #TODO
-        self._get_embedded_skin_utility().GenerateSkin()
+        # self._get_embedded_skin_utility().GenerateSkin()
 
     def _solve_fluid(self):
         # Update de EMBEDDED_VELOCITY value
@@ -405,7 +424,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Interpolate the intersections model part PRESSURE values from the fluid mesh
         # Then map the intersections model part PRESSURE values to the structure skin
         self._get_embedded_skin_utility().InterpolateMeshVariableToSkin(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE)
-        self._map_pressure_to_positive_face_pressure().Execute()
+        self._map_pressure_to_positive_face_pressure()
 
         # Solve the structure problem
         self.structure_solver.SolveSolutionStep()
