@@ -380,28 +380,15 @@ private:
         const SizeType dimension = rArrayValues.size();
 
         IndexType counter = 0;
-        for (IndexType i = 1; i < dimension; ++i) {
-            if (std::abs(rArrayValues[i]) > tolerance) {
+        double aux = 0.0;
+        for (IndexType i = 0; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) > aux) {
+                aux = std::abs(rArrayValues[i]);
                 ++counter;
             }
         }
 
         KRATOS_ERROR_IF(counter == 0) << "The strain vector is full of 0's..." << std::endl;
-
-        std::vector<double> non_zero_values(counter);
-        counter = 0;
-        for (IndexType i = 1; i < dimension; ++i) {
-            if (std::abs(rArrayValues[i]) > tolerance) {
-                non_zero_values[counter] = std::abs(rArrayValues[i]);
-                ++counter;
-            }
-        }
-
-        double aux = std::abs(non_zero_values[0]);
-        for (IndexType i = 1; i < counter; ++i) {
-            if (non_zero_values[i] > aux)
-                aux = non_zero_values[i];
-        }
 
         rMaxValue = aux;
     }
@@ -424,32 +411,17 @@ private:
         const Matrix working_matrix = rMatrixValues - IdentityMatrix(size1);
 
         IndexType counter = 0;
+        double aux = 0.0;
         for (IndexType i = 0; i < size1; ++i) {
             for (IndexType j = 0; j < size2; ++j) {
-                if (std::abs(working_matrix(i, j)) > tolerance) {
+                if (std::abs(working_matrix(i, j)) > aux) {
+                    aux = std::abs(working_matrix(i, j));
                     ++counter;
                 }
             }
         }
 
         KRATOS_ERROR_IF(counter == 0) << "The deformation gradient is an identity matrix" << std::endl;
-
-        std::vector<double> non_zero_values(counter);
-        counter = 0;
-        for (IndexType i = 0; i < size1; ++i) {
-            for (IndexType j = 0; j < size2; ++j) {
-                if (std::abs(working_matrix(i, j)) > tolerance) {
-                    non_zero_values[counter] = std::abs(working_matrix(i, j));
-                    ++counter;
-                }
-            }
-        }
-
-        double aux = std::abs(non_zero_values[0]);
-        for (IndexType i = 1; i < counter; ++i) {
-            if (non_zero_values[i] > aux)
-                aux = non_zero_values[i];
-        }
 
         rMaxValue = aux;
     }
@@ -467,28 +439,15 @@ private:
         const SizeType dimension = rArrayValues.size();
 
         IndexType counter = 0;
-        for (IndexType i = 1; i < dimension; ++i) {
-            if (std::abs(rArrayValues[i]) > tolerance) {
+        double aux = std::numeric_limits<double>::max();
+        for (IndexType i = 0; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) < aux) {
+                aux = std::abs(rArrayValues[i]);
                 ++counter;
             }
         }
 
         KRATOS_ERROR_IF(counter == 0) << "The strain vector is full of 0's..." << std::endl;
-
-        std::vector<double> non_zero_values(counter);
-        counter = 0;
-        for (IndexType i = 0; i < dimension; ++i) {
-            if (std::abs(rArrayValues[i]) > tolerance) {
-                non_zero_values[counter] = std::abs(rArrayValues[i]);
-                ++counter;
-            }
-        }
-
-        double aux = std::abs(non_zero_values[0]);
-        for (IndexType i = 1; i < counter; ++i) {
-            if (non_zero_values[i] < aux)
-                aux = non_zero_values[i];
-        }
 
         rMinValue = aux;
     }
@@ -511,32 +470,17 @@ private:
         const Matrix working_matrix = rMatrixValues - IdentityMatrix(size1);
 
         IndexType counter = 0;
+        double aux = std::numeric_limits<double>::max();
         for (IndexType i = 0; i < size1; ++i) {
             for (IndexType j = 0; j < size2; ++j) {
-                if (std::abs(working_matrix(i, j)) > tolerance) {
+                if (std::abs(working_matrix(i, j)) < aux) {
+                    aux = std::abs(working_matrix(i, j));
                     ++counter;
                 }
             }
         }
 
         KRATOS_ERROR_IF(counter == 0) << "The deformation gradient is an identity matrix" << std::endl;
-
-        std::vector<double> non_zero_values(counter);
-        counter = 0;
-        for (IndexType i = 0; i < size1; ++i) {
-            for (IndexType j = 0; j < size2; ++j) {
-                if (std::abs(working_matrix(i, j)) > tolerance) {
-                    non_zero_values[counter] = std::abs(working_matrix(i, j));
-                    ++counter;
-                }
-            }
-        }
-
-        double aux = std::abs(non_zero_values[0]);
-        for (IndexType i = 1; i < non_zero_values.size(); ++i) {
-            if (non_zero_values[i] < aux)
-                aux = non_zero_values[i];
-        }
 
         rMinValue = aux;
     }
