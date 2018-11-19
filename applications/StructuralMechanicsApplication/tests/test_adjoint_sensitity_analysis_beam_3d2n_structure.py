@@ -59,18 +59,36 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
             model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
+            response_settings = ProjectParametersAdjoint["solver_settings"]["response_function_settings"].Clone()
             model_adjoint = Model()
 
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
-            adjoint_analysis.Run()
+
+            adjoint_analysis.Initialize()
+            adjoint_model_part = model_adjoint.GetModelPart(model_part_name)
+
+            # response and adjoint postprocess
+            my_response = adjoint_analysis._GetSolver().response_function
+            adjoint_postprocess = AdjointPostprocess(adjoint_model_part, my_response, response_settings)
+            adjoint_postprocess.Initialize()
+
+            while adjoint_analysis.time < adjoint_analysis.end_time:
+                adjoint_analysis.time = adjoint_analysis._GetSolver().AdvanceInTime(adjoint_analysis.time)
+                adjoint_analysis.InitializeSolutionStep()
+                adjoint_analysis._GetSolver().Predict()
+                adjoint_analysis._GetSolver().SolveSolutionStep()
+                adjoint_postprocess.UpdateSensitivities()
+                adjoint_analysis.FinalizeSolutionStep()
+                adjoint_analysis.OutputSolutionStep()
+            adjoint_analysis.Finalize()
 
             # Check sensitivities for the parameter I22
             reference_values = [-87.62277093392399, 38.125186783868, 0.6250049974719261]
             sensitivities_to_check = []
             element_list = [1,6,10]
             for element_id in element_list:
-                sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
-    
+                sensitivities_to_check.append(adjoint_model_part.Elements[element_id].GetValue(I22_SENSITIVITY))
+
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 3)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 3)
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 3)
@@ -82,11 +100,28 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
             model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
+            response_settings = ProjectParametersAdjoint["solver_settings"]["response_function_settings"].Clone()
             model_adjoint = Model()
 
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
 
-            adjoint_analysis.Run()
+            adjoint_analysis.Initialize()
+            adjoint_model_part = model_adjoint.GetModelPart(model_part_name)
+
+            # response and adjoint postprocess
+            my_response = adjoint_analysis._GetSolver().response_function
+            adjoint_postprocess = AdjointPostprocess(adjoint_model_part, my_response, response_settings)
+            adjoint_postprocess.Initialize()
+
+            while adjoint_analysis.time < adjoint_analysis.end_time:
+                adjoint_analysis.time = adjoint_analysis._GetSolver().AdvanceInTime(adjoint_analysis.time)
+                adjoint_analysis.InitializeSolutionStep()
+                adjoint_analysis._GetSolver().Predict()
+                adjoint_analysis._GetSolver().SolveSolutionStep()
+                adjoint_postprocess.UpdateSensitivities()
+                adjoint_analysis.FinalizeSolutionStep()
+                adjoint_analysis.OutputSolutionStep()
+            adjoint_analysis.Finalize()
 
             # Check sensitivities for the parameter I22
             reference_values = [-0.45410279537614157, -0.37821875982596204, -0.006200296058668847]
@@ -94,7 +129,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             element_list = [1,6,10]
             for element_id in element_list:
                 sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
-           
+
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 4)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 4)
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 4)
@@ -106,11 +141,28 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
             model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
+            response_settings = ProjectParametersAdjoint["solver_settings"]["response_function_settings"].Clone()
             model_adjoint = Model()
 
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
 
-            adjoint_analysis.Run()
+            adjoint_analysis.Initialize()
+            adjoint_model_part = model_adjoint.GetModelPart(model_part_name)
+
+            # response and adjoint postprocess
+            my_response = adjoint_analysis._GetSolver().response_function
+            adjoint_postprocess = AdjointPostprocess(adjoint_model_part, my_response, response_settings)
+            adjoint_postprocess.Initialize()
+
+            while adjoint_analysis.time < adjoint_analysis.end_time:
+                adjoint_analysis.time = adjoint_analysis._GetSolver().AdvanceInTime(adjoint_analysis.time)
+                adjoint_analysis.InitializeSolutionStep()
+                adjoint_analysis._GetSolver().Predict()
+                adjoint_analysis._GetSolver().SolveSolutionStep()
+                adjoint_postprocess.UpdateSensitivities()
+                adjoint_analysis.FinalizeSolutionStep()
+                adjoint_analysis.OutputSolutionStep()
+            adjoint_analysis.Finalize()
 
             # Check sensitivities for the parameter I22
             reference_values = [-9.082055907522943, -7.5643751965193164, -0.12400592117339182]
@@ -118,7 +170,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             element_list = [1,6,10]
             for element_id in element_list:
                 sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
-          
+
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 4)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 4)
         self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 4)
