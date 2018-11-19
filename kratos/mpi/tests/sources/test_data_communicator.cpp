@@ -114,6 +114,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSum, KratosMPICoreFastSuite)
             KRATOS_CHECK_EQUAL(array_sum[i], local_array[i]*world_size);
         }
     }
+
+    #ifdef KRATOS_DEBUG
+    // passing invalid rank as argument
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Sum(local_int, world_size),"is not a valid rank.");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Sum(local_double, -1),"is not a valid rank.");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumVector, KratosMPICoreFastSuite)
@@ -213,6 +221,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMin, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(array_min[1],  0.0);
         KRATOS_CHECK_EQUAL(array_min[2],  0.0);
     }
+
+    #ifdef KRATOS_DEBUG
+    // passing invalid rank as argument
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Min(local_int, mpi_world_communicator.Size()),"is not a valid rank.");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Min(local_double, -1),"is not a valid rank.");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinVector, KratosMPICoreFastSuite)
@@ -311,6 +327,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMax, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(array_max[1], 0.0);
         KRATOS_CHECK_EQUAL(array_max[2], 1.0*(world_size-1));
     }
+
+    #ifdef KRATOS_DEBUG
+    // passing invalid rank as argument
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Max(local_int, mpi_world_communicator.Size()),"is not a valid rank.");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Max(local_double, -1),"is not a valid rank.");
+    #endif
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxVector, KratosMPICoreFastSuite)
@@ -982,7 +1006,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterv, KratosMPICoreFastSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Scatterv(send_buffer_int, send_sizes, send_offsets, wrong_recv_message, send_rank),
         "Error");
-    
+
     // sent offsets overflow
     std::vector<int> wrong_send_offsets = send_offsets;
     if (world_rank == send_rank)
@@ -1164,7 +1188,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherv, KratosMPICoreFastSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(send_buffer_int, wrong_recv_message, recv_sizes, recv_offsets, recv_rank),
         "Error");
-    
+
     // sent offsets overflow
     std::vector<int> wrong_recv_offsets = recv_offsets;
     if (world_rank == recv_rank)

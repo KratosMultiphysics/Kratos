@@ -594,6 +594,8 @@ template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     MPI_Op Operation, const int Root) const
 {
     #ifdef KRATOS_DEBUG
+    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(Root)))
+    << "In call to MPI_Reduce: " << Root << " is not a valid rank." << std::endl;
     const int local_size = Internals::MessageSize(rLocalValues);
     const int reduced_size = Internals::MessageSize(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
@@ -677,9 +679,13 @@ template<class TDataType> void MPIDataCommunicator::SendRecvDetail(
 template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     TDataType& rBuffer, const int SourceRank) const
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rBuffer)))
+    #ifdef KRATOS_DEBUG
+    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
+    << "In call to MPI_Bcast: " << SourceRank << " is not a valid rank." << std::endl;
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rBuffer)))
     << "Input error in call to MPI_Bcast: "
     << "The buffer does not have the same size on all ranks." << std::endl;
+    #endif
 
     int ierr = MPI_Bcast(
         Internals::GetData(rBuffer), Internals::MessageSize(rBuffer),
@@ -691,6 +697,8 @@ template<class TDataType> void MPIDataCommunicator::ScatterDetail(
     const TDataType& rSendValues, TDataType& rRecvValues, const int SourceRank) const
 {
     #ifdef KRATOS_DEBUG
+    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
+    << "In call to MPI_Scatter: " << SourceRank << " is not a valid rank." << std::endl;
     const int send_size = Internals::MessageSize(rSendValues);
     const int recv_size = Internals::MessageSize(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(recv_size))
@@ -729,6 +737,8 @@ template<class TDataType> void MPIDataCommunicator::GatherDetail(
     const TDataType& rSendValues, TDataType& rRecvValues, const int RecvRank) const
 {
     #ifdef KRATOS_DEBUG
+    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvRank)))
+    << "In call to MPI_Gather: " << RecvRank << " is not a valid rank." << std::endl;
     const int send_size = Internals::MessageSize(rSendValues);
     const int recv_size = Internals::MessageSize(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
@@ -808,6 +818,16 @@ bool MPIDataCommunicator::ErrorIfTrueOnAnyRank(bool Condition) const
     return or_condition;
 }
 
+bool MPIDataCommunicator::ErrorIfFalseOnAnyRank(bool Condition) const
+{
+    bool and_condition;
+    int ierr = MPI_Allreduce(&Condition, &and_condition, 1, MPI_C_BOOL, MPI_LAND, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
+    KRATOS_ERROR_IF(!and_condition && Condition)
+    << "Rank " << Rank() << ": Stopping because an error was detected on a different rank." << std::endl;
+    return and_condition;
+}
+
 bool MPIDataCommunicator::IsEqualOnAllRanks(const int LocalValue) const
 {
     int local_buffer[2]{LocalValue, -LocalValue};
@@ -819,10 +839,21 @@ bool MPIDataCommunicator::IsEqualOnAllRanks(const int LocalValue) const
     return min_value == max_value;
 }
 
+bool MPIDataCommunicator::IsValidRank(const int Rank) const
+{
+    return (Rank >= 0) && (Rank < Size());
+}
+
 template<class TDataType> void MPIDataCommunicator::ValidateSendRecvInput(
     const TDataType& rSendMessage, const int SendDestination,
     TDataType& rRecvMessage, const int RecvSource) const
 {
+    // Check input ranks
+    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SendDestination)))
+    << "In call to MPI_Sendrecv: " << SendDestination << " is not a valid rank." << std::endl;
+    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvSource)))
+    << "In call to MPI_Sendrecv: " << RecvSource << " is not a valid rank." << std::endl;
+
     // Check that send and recv ranks match
     const int rank = Rank();
     const int size = Size();
@@ -877,6 +908,9 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
     const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
     TDataType& rRecvValues, const int SourceRank) const
 {
+    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
+    << "In call to MPI_Scatterv: " << SourceRank << " is not a valid rank." << std::endl;
+
     // All ranks expect a message of the correct size
     int expected_size = 0;
     const int available_recv_size = Internals::MessageSize(rRecvValues);
@@ -921,6 +955,9 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
     const int RecvRank) const
 {
+    KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvRank)))
+    << "In call to MPI_Gatherv: " << RecvRank << " is not a valid rank." << std::endl;
+
     // All ranks send a message of the correct size
     int expected_recv_size = 0;
     const int send_size = Internals::MessageSize(rSendValues);

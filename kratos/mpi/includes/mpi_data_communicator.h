@@ -360,7 +360,11 @@ class MPIDataCommunicator: public DataCommunicator
 
     bool ErrorIfTrueOnAnyRank(bool Condition) const;
 
+    bool ErrorIfFalseOnAnyRank(bool Condition) const;
+
     bool IsEqualOnAllRanks(const int LocalValue) const;
+
+    bool IsValidRank(const int Rank) const;
 
     template<class TDataType> void ValidateSendRecvInput(
         const TDataType& rSendMessage, const int SendDestination,
