@@ -1,19 +1,23 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:                 ilaria $
-//   Date:                $Date:                July 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					    Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_AXISYMMETRY_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_AXISYMMETRY_H_INCLUDED
+#define      KRATOS_UPDATED_LAGRANGIAN_AXISYMMETRY_H_INCLUDED
 
 // System includes
 
 // External includes
 #include "custom_elements/updated_lagrangian.hpp"
-//#include "custom_utilities/comparison_utilities.hpp"
 
 
 namespace Kratos
@@ -74,7 +78,7 @@ public:
 
     /// Empty constructor needed for serialization
     UpdatedLagrangianAxisymmetry();
-  
+
 
     /// Default constructors
     UpdatedLagrangianAxisymmetry(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -90,9 +94,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
-    /// Assignment operator.
-    UpdatedLagrangianAxisymmetry& operator=(UpdatedLagrangianAxisymmetry const& rOther);
 
     ///@}
     ///@name Operations
@@ -225,20 +226,20 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-    
+
     void Calculate(const Variable<double>& rVariable,
                            double& Output,
                            const ProcessInfo& rCurrentProcessInfo);
-                 
+
     void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & Output,
                            const ProcessInfo& rCurrentProcessInfo);
-    
+
     //void CalculateAuxRVel(ProcessInfo& rCurrentProcessInfo);
-    
+
     //void CalculateAuxRAcc(ProcessInfo& rCurrentProcessInfo);
-    
-    
+
+
     void IterativeExtrapolation(ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -258,7 +259,7 @@ public:
 
     void Calculate(const Variable<Vector >& rVariable,
                            Vector& Output,
-                           const ProcessInfo& rCurrentProcessInfo);	
+                           const ProcessInfo& rCurrentProcessInfo);
     //************* COMPUTING  METHODS
 
 
@@ -271,8 +272,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-			      VectorType& rRightHandSideVector, 
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+			      VectorType& rRightHandSideVector,
 			      ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -296,7 +297,7 @@ public:
       * @param rRightHandSideVector: the elemental right hand side vector
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
 				ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -316,7 +317,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, 
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
 				ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -325,7 +326,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, 
+    void CalculateMassMatrix(MatrixType& rMassMatrix,
 		    ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -334,7 +335,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
 		    ProcessInfo& rCurrentProcessInfo);
 
 
@@ -344,12 +345,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */     
-    //virtual void AddExplicitContribution(const VectorType& rRHSVector, 
-					 //const Variable<VectorType>& rRHSVariable, 
-					 //Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    //virtual void AddExplicitContribution(const VectorType& rRHSVector,
+					 //const Variable<VectorType>& rRHSVariable,
+					 //Variable<array_1d<double,3> >& rDestinationVariable,
 					 //const ProcessInfo& rCurrentProcessInfo);
 
     //on integration points:
@@ -367,7 +368,7 @@ public:
      * Calculate a Matrix Variable on the Element Constitutive Law
      */
     //void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, Matrix& rOutput, ProcessInfo& rCurrentProcessInfo);
-    
+
 
 
 
@@ -440,7 +441,7 @@ protected:
      * Container for the total Jacobian determinants
      */
     //double mDeterminantJ0;
-	
+
     /**
      * Currently selected integration methods
      */
@@ -457,11 +458,11 @@ protected:
      */
     //bool mFinalizedStep;
 
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
- 
+
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
@@ -561,7 +562,7 @@ protected:
     /**
      * Clear Nodal Displacement Velocity and Acceleration
      */
-    
+
     /**
      * Calculate Element Kinematics
      */
@@ -573,7 +574,7 @@ protected:
      * Calculation of the Current Displacement
      */
     Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
      * Correct Precision Errors (for rigid free movements)
      */
@@ -594,13 +595,13 @@ protected:
      * Finalize Element Internal Variables
      */
     virtual void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-    
+
    /**
      * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
-     */    
-    
+     */
+
     virtual void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-   
+
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
@@ -644,7 +645,7 @@ protected:
      * Calculate Jacobian in a given point
      */
     virtual Matrix& MPMJacobian(Matrix& rResult, array_1d<double,3>& rPoint);
-    
+
     /**
      * Calculate Jacobian in a given point and given a delta position
      */
@@ -653,9 +654,9 @@ protected:
     /**
      * Calculate Shape Function Values in a given point
      */
-    
+
     virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, array_1d<double,3>& rPoint);
-    
+
     /**
      * Calculate Shape Function grandient local Values in a given point in 3 dimension
      */
@@ -664,7 +665,7 @@ protected:
      * Calculate local coordinated of a given point in 3 dimension
      */
     virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
-     
+
     /**
      * Calculation of the Volume Change of the Element
      */
@@ -674,7 +675,7 @@ protected:
      * Calculation of the Volume Force of the Element
      */
     virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables);
-    
+
     /**
      * Calculation of the Deformation Gradient F
      */
@@ -684,6 +685,10 @@ protected:
                                       const double & rCurrentRadius,
                                       const double & rReferenceRadius);
 
+    /**
+     * Return PI
+     */
+    double GetPI();
 
     ///@}
     ///@name Protected  Access
@@ -750,4 +755,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined
