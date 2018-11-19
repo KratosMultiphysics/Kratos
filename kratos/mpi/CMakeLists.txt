@@ -10,12 +10,7 @@ set( KRATOS_MPI_SOURCES
 )
 
 ## Kratos MPI extension Python interface
-set( KRATOS_MPI_PYTHON_SOURCES
-    python/kratos_mpi_python.cpp
-    python/add_mpi_communicator_to_python.cpp
-    python/add_mpi_data_communicator_to_python.cpp
-    python/add_mpi_utilities_to_python.cpp
-)
+file(GLOB_RECURSE KRATOS_MPI_PYTHON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
 ## Kratos MPI test sources.
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
