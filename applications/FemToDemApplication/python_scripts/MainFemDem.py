@@ -142,9 +142,6 @@ class FEM_Solution(MainSolidFEM.Solution):
 #============================================================================================================================		
 	def Initialize(self):
 
-
-		#### INITIALIZE ####
-		
 		# Add variables (always before importing the model part)
 		self.solver.AddVariables()
 		
