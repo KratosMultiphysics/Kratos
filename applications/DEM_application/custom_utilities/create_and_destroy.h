@@ -290,7 +290,6 @@ private:
     double mDiameter;
     double mStrictDiameter;
     double mScaleFactor;
-    int mGreatestParticleId;
     bool mDoSearchNeighbourElements;
     AnalyticWatcher::Pointer mpAnalyticWatcher;
     void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size);

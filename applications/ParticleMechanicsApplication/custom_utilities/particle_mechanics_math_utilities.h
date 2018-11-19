@@ -83,17 +83,17 @@ public:
 
         R.resize(dim,dim,false);
 
-        noalias(R)=ZeroMatrix(dim,dim);
+        noalias(R)=ZeroMatrix(dim);
 
         Q.resize(dim,dim,false);
 
-        noalias(Q)=ZeroMatrix(dim,dim);
+        noalias(Q)=ZeroMatrix(dim);
 
         Matrix Help(A.size1(),A.size2());
 	    noalias(Help) = A;
 
         Matrix unity(dim,dim);
-	    noalias(unity) = ZeroMatrix(dim,dim);
+	    noalias(unity) = ZeroMatrix(dim);
 
         for(unsigned int j=0; j<dim; j++)
             unity(j,j)=1.0;
@@ -107,21 +107,21 @@ public:
             HelpQ[i].resize(dim,dim,false);
             HelpR[i].resize(dim,dim,false);
             noalias(HelpQ[i])= unity;
-            noalias(HelpR[i])= ZeroMatrix(dim,dim);
+            noalias(HelpR[i])= ZeroMatrix(dim);
         }
 
         for(unsigned int iteration=0; iteration< dim-1; iteration++)
         {
             // Vector y
             for(unsigned int i=iteration; i<dim; i++)
-                y(i)= Help(i,iteration);
+                y[i]= Help(i,iteration);
 
 
             // Helpvalue l
             double normy=0.0;
 
             for(unsigned int i=iteration; i<dim; i++)
-                normy += y(i)*y(i);
+                normy += y[i]*y[i];
 
             normy= std::sqrt(normy);
 
@@ -141,12 +141,12 @@ public:
                 if(i==iteration)
                     e=1;
 
-                w(i)= 1/(2*l)*(y(i)-k*e);
+                w[i]= 1/(2*l)*(y[i]-k*e);
             }
 
             for(unsigned int i=iteration; i<dim; i++)
                 for(unsigned int j=iteration; j<dim; j++)
-                    HelpQ[iteration](i,j)= unity(i,j)- 2*w(i)*w(j);
+                    HelpQ[iteration](i,j)= unity(i,j)- 2*w[i]*w[j];
 
 
             for(unsigned int i=iteration; i<dim; i++)
@@ -205,13 +205,13 @@ public:
 	    noalias(Result) = ZeroVector(dim);
 
         Matrix HelpA(dim,dim);
-	    noalias(HelpA) = ZeroMatrix(dim, dim);
+	    noalias(HelpA) = ZeroMatrix(dim);
 
         Matrix HelpQ(dim,dim);
-	    noalias(HelpQ) = ZeroMatrix(dim, dim);
+	    noalias(HelpQ) = ZeroMatrix(dim);
 
         Matrix HelpR(dim,dim);
-	    noalias(HelpR) = ZeroMatrix(dim, dim);
+	    noalias(HelpR) = ZeroMatrix(dim);
 
         HelpA=A;
 
@@ -230,7 +230,7 @@ public:
 
             ParticleMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
 
-            HelpA= ZeroMatrix(dim, dim);
+            HelpA= ZeroMatrix(dim);
 
             for(unsigned int i=0; i<dim; i++)
             {
@@ -272,10 +272,10 @@ public:
 
         for(unsigned int i=0; i<dim; i++)
         {
-            Result(i)= HelpA(i,i);
+            Result[i]= HelpA(i,i);
 
-            if(std::abs(Result(i)) <rZeroTolerance)
-                Result(i)=0.0;
+            if(std::abs(Result[i]) <rZeroTolerance)
+                Result[i]=0.0;
         }
 
         return Result;
@@ -502,7 +502,7 @@ public:
         }
 
         for(unsigned int i=0; i<Help.size1(); i++)
-            rEigenValues(i)= Help(i,i);
+            rEigenValues[i]= Help(i,i);
 
     }
 
@@ -628,7 +628,7 @@ public:
             for(unsigned int j=0; j<3; j++)
             {
                 rTensor[i][j].resize(3,3,false);
-                noalias(rTensor[i][j])= ZeroMatrix(3,3);
+                noalias(rTensor[i][j])= ZeroMatrix(3);
                 for(unsigned int k=0; k<3; k++)
                     for(unsigned int l=0; l<3; l++)
                     {
