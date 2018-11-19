@@ -10,7 +10,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.MonteCarloApplication as KratosMC
 
 # Avoid printing of Kratos informations
-# KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
+KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
 
 # Importing the base class
 from analysis_stage import AnalysisStage
@@ -22,6 +22,12 @@ from pycompss.api.parameter import *
 
 # Import Monte Carlo library
 import mc_utilities as mc
+
+# Import cpickle to pickle the serializer
+try:
+    import cpickle as pickle  # Use cPickle on Python 2.7
+except ImportError:
+    import pickle
 
 
 '''Adapt the following class depending on the problem, deriving the MonteCarloAnalysis class from the problem of interest'''
@@ -41,14 +47,24 @@ class MonteCarloAnalysis(AnalysisStage):
 
     def __init__(self,serialized_model,serialized_parameters,sample):
         if (type(serialized_model) == KratosMultiphysics.StreamSerializer):
+            #pickle dataserialized_data
+            pickled_data = pickle.dumps(serialized_model, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+            #overwrite the old serializer with the unpickled one
+            serialized_model = pickle.loads(pickled_data)
+
             model = KratosMultiphysics.Model()
-            serialized_model.Load(model)
+            serialized_model.Load("ModelSerialization",model)
         else:
             model = serialized_model
             del(serialized_model)
         if (type(serialized_parameters) == KratosMultiphysics.StreamSerializer):
+            #pickle dataserialized_data
+            pickled_data = pickle.dumps(serialized_parameters, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+            #overwrite the old serializer with the unpickled one
+            serialized_parameters = pickle.loads(pickled_data)
+
             parameters = KratosMultiphysics.Parameters()
-            serialized_parameters.Load(parameters)
+            serialized_parameters.Load("ParametersSerialization",parameters)
         else:
             parameters = serialized_parameters
             del(serialized_parameters)
@@ -117,15 +133,11 @@ input:
 output:
         QoI                  : Quantity of Interest
 '''
-@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=1)
-def execution_task(model_part_file_name, parameter_file_name):
-    with open(parameter_file_name,'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters = parameters # in case there are more parameters file, we rename them
-    model = KratosMultiphysics.Model()
-    local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
+@task(returns=1)
+def execution_task(model, parameters):
+    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     sample = GenerateBetaSample()
-    simulation = MonteCarloAnalysis(model,local_parameters,sample)
+    simulation = MonteCarloAnalysis(model,parameters,sample)
     simulation.Run()
     QoI =  EvaluateQuantityOfInterest(simulation)
     return QoI
@@ -141,19 +153,33 @@ output:
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
 @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=1)
-def exact_execution_task(model_part_file_name, parameter_file_name):
-    with open(parameter_file_name,'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters = parameters # in case there are more parameters file, we rename them
-    model = KratosMultiphysics.Model()      
-    local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
+def exact_execution_task(model, parameters):
+    # parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     sample = 1.0
-    simulation = MonteCarloAnalysis(model,local_parameters, sample)
-    simulation.Run() 
+    simulation = MonteCarloAnalysis(model,parameters,sample)
+    simulation.Run()
     QoI =  EvaluateQuantityOfInterest(simulation)
     ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
     return ExactExpectedValueQoI
 
+
+@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=2)
+def serialize_model_projectparameters(model_part_file_name, parameter_file_name):
+    with open(parameter_file_name,'r') as parameter_file:
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    local_parameters = parameters
+    model = KratosMultiphysics.Model()      
+    local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
+    fake_sample = 1.0
+
+    simulation = MonteCarloAnalysis(model,local_parameters, fake_sample)
+    simulation.Initialize()
+
+    serialized_model = KratosMultiphysics.StreamSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    serialized_parameters = KratosMultiphysics.StreamSerializer()
+    serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
+    return serialized_model, serialized_parameters
 
 
 '''
@@ -191,35 +217,38 @@ if __name__ == '__main__':
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
 
-    model = KratosMultiphysics.Model()
-    fake_sample = 1.0
+    # model = KratosMultiphysics.Model()
+    # fake_sample = 1.0
 
-    standard_montecarlo_analyis = MonteCarloAnalysis(model,local_parameters,fake_sample)
-    standard_montecarlo_analyis.Initialize()
+    # standard_montecarlo_analyis = MonteCarloAnalysis(model,local_parameters,fake_sample)
+    # standard_montecarlo_analyis.Initialize()
 
-    print(standard_montecarlo_analyis.model.HasModelPart("MLMCLaplacianModelPart"))
-    print("model type = ",type(standard_montecarlo_analyis.model))
+    # print(standard_montecarlo_analyis.model.HasModelPart("MLMCLaplacianModelPart"))
+    # print("model type = ",type(standard_montecarlo_analyis.model))
 
-    serialized_model = KratosMultiphysics.StreamSerializer()
-    serialized_model.Save("ModelSerialization",standard_montecarlo_analyis.model)
-    serialized_parameters = KratosMultiphysics.StreamSerializer()
-    serialized_parameters.Save("ParametersSerialization",standard_montecarlo_analyis.project_parameters)
+    # serialized_model = KratosMultiphysics.StreamSerializer()
+    # serialized_model.Save("ModelSerialization",standard_montecarlo_analyis.model)
+    # serialized_parameters = KratosMultiphysics.StreamSerializer()
+    # serialized_parameters.Save("ParametersSerialization",standard_montecarlo_analyis.project_parameters)
 
-    stop    
+    serialized_model,serialized_parameters = serialize_model_projectparameters(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
 
     number_samples = 10
     Qlist = []
 
+    sample = 1.0
+    simulation = MonteCarloAnalysis(serialized_model,serialized_parameters,sample)
+    simulation.Run()
+    del(simulation)
+    sample = 1.0
+    simulation = MonteCarloAnalysis(serialized_model,serialized_parameters,sample)
+    simulation.Run()
+
     '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = exact_execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
-    # sample = 1.0
-    # simulation = MonteCarloAnalysis(serialized_model,serialized_parameters, sample)
-    # simulation.Run()
-    # QoI =  EvaluateQuantityOfInterest(simulation)
-    # ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
+    ExactExpectedValueQoI = exact_execution_task(serialized_model,serialized_parameters) 
 
     for instance in range (0,number_samples):
-        Qlist.append(execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name))
+        Qlist.append(execution_task(serialized_model,serialized_parameters))
         
 
     '''Compute mean, second moment and sample variance'''
@@ -240,19 +269,19 @@ if __name__ == '__main__':
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
-    # model = KratosMultiphysics.Model()
-    # sample = 1.0
-    # simulation = MonteCarloAnalysis(model,local_parameters,sample)
-    # simulation.Run()
-    # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-    # error = 0.0
-    # L2norm_analyticalsolution = 0.0
-    # for node in simulation._GetSolver().main_model_part.Nodes:
-    #     local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-    #     error = error + local_error
-    #     local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-    #     L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
-    # error = np.sqrt(error)
-    # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
-    # print("L2 relative error = ", error/L2norm_analyticalsolution)
+    model = KratosMultiphysics.Model()
+    sample = 1.0
+    simulation = MonteCarloAnalysis(model,local_parameters,sample)
+    simulation.Run()
+    KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
+    error = 0.0
+    L2norm_analyticalsolution = 0.0
+    for node in simulation._GetSolver().main_model_part.Nodes:
+        local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+        error = error + local_error
+        local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+        L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
+    error = np.sqrt(error)
+    L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
+    print("L2 relative error = ", error/L2norm_analyticalsolution)
    
