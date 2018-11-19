@@ -54,7 +54,6 @@ class FEMDEM_Solution:
         # Initialize the "flag" RADIUS in all the nodes
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
 
-
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
         
@@ -74,8 +73,6 @@ class FEMDEM_Solution:
 
         # for the dem contact forces coupling
         self.InitializeDummyNodalForces()
-
-
 
 #============================================================================================================================
     def RunMainTemporalLoop(self):
@@ -158,8 +155,6 @@ class FEMDEM_Solution:
         # Create the DEM after the remeshing
         if self.DoRemeshing and is_remeshing:
             self.GenerateDemAfterRemeshing()
-
-
 
 #============================================================================================================================
     def SolveSolutionStep(self): # Function to perform the coupling FEM <-> DEM
@@ -659,7 +654,6 @@ class FEMDEM_Solution:
         for node in FEM_Nodes:
             NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
             if NumberOfActiveElements == 0 and node.GetValue(KratosFemDem.INACTIVE_NODE) == False:
-
                 Id = node.Id
                 node.SetValue(KratosFemDem.INACTIVE_NODE, True)
                 node.Set(KratosMultiphysics.TO_ERASE, True) # added
