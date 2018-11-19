@@ -16,9 +16,46 @@
 
 namespace Kratos {
 
+// Public interface of ParallelEnvironment ////////////////////////////////////
+
+void ParallelEnvironment::RegisterDataCommunicator(
+    const std::string Name,
+    const DataCommunicator& rPrototype,
+    const bool Default)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.RegisterDataCommunicatorDetail(Name, rPrototype, Default);
+}
+
+DataCommunicator& ParallelEnvironment::GetDataCommunicator(const std::string& rName)
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.GetDataCommunicatorDetail(rName);
+}
+
+DataCommunicator& ParallelEnvironment::GetDefaultDataCommunicator()
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.GetDefaultDataCommunicatorDetail();
+}
+
+void ParallelEnvironment::SetDefaultDataCommunicator(const std::string& rName)
+{
+    ParallelEnvironment& env = GetInstance();
+    env.SetDefaultDataCommunicatorDetail(rName);
+}
+
+bool ParallelEnvironment::HasDataCommunicator(const std::string& rName)
+{
+    const ParallelEnvironment& env = GetInstance();
+    return env.HasDataCommunicatorDetail(rName);
+}
+
+// Implementation details /////////////////////////////////////////////////////
+
 ParallelEnvironment::ParallelEnvironment()
 {
-    RegisterDataCommunicator("Serial", DataCommunicator(), MakeDefault);
+    RegisterDataCommunicatorDetail("Serial", DataCommunicator(), MakeDefault);
 }
 
 ParallelEnvironment& ParallelEnvironment::GetInstance()
@@ -28,7 +65,7 @@ ParallelEnvironment& ParallelEnvironment::GetInstance()
     return parallel_environment;
 }
 
-void ParallelEnvironment::RegisterDataCommunicator(
+void ParallelEnvironment::RegisterDataCommunicatorDetail(
     const std::string Name,
     const DataCommunicator& rPrototype,
     const bool Default)
@@ -55,7 +92,7 @@ void ParallelEnvironment::RegisterDataCommunicator(
     }
 }
 
-DataCommunicator& ParallelEnvironment::GetDataCommunicator(const std::string& rName) const
+DataCommunicator& ParallelEnvironment::GetDataCommunicatorDetail(const std::string& rName) const
 {
     auto found = mDataCommunicators.find(rName);
     KRATOS_ERROR_IF(found == mDataCommunicators.end())
@@ -63,12 +100,12 @@ DataCommunicator& ParallelEnvironment::GetDataCommunicator(const std::string& rN
     return *(found->second);
 }
 
-DataCommunicator& ParallelEnvironment::GetDefaultDataCommunicator() const
+DataCommunicator& ParallelEnvironment::GetDefaultDataCommunicatorDetail() const
 {
     return *(mDefaultCommunicator->second);
 }
 
-void ParallelEnvironment::SetDefaultDataCommunicator(const std::string& rName)
+void ParallelEnvironment::SetDefaultDataCommunicatorDetail(const std::string& rName)
 {
     auto found = mDataCommunicators.find(rName);
     KRATOS_ERROR_IF(found == mDataCommunicators.end())
@@ -78,7 +115,7 @@ void ParallelEnvironment::SetDefaultDataCommunicator(const std::string& rName)
     mDefaultCommunicator = found;
 }
 
-bool ParallelEnvironment::HasDataCommunicator(const std::string& rName) const
+bool ParallelEnvironment::HasDataCommunicatorDetail(const std::string& rName) const
 {
     return (mDataCommunicators.find(rName) != mDataCommunicators.end());
 }

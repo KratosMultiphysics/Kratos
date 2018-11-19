@@ -101,8 +101,7 @@ MPI_Comm MPIEnvironment::GetMPICommunicator(const DataCommunicator& rDataCommuni
 void MPIEnvironment::InitializeKratosParallelEnvironment()
 {
     // Define the World DataCommunicator as a wrapper for MPI_COMM_WORLD and make it the default.
-    ParallelEnvironment& parallel_environment = ParallelEnvironment::GetInstance();
-    parallel_environment.RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
+    ParallelEnvironment::RegisterDataCommunicator("World", MPIDataCommunicator(MPI_COMM_WORLD), ParallelEnvironment::MakeDefault);
 }
 
 }

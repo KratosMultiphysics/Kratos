@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 class TestMPIDataCommunicatorPython(UnitTest.TestCase):
 
     def setUp(self):
-        self.world = Kratos.ParallelEnvironment.GetInstance().GetDefaultDataCommunicator()
+        self.world = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
         self.rank = self.world.Rank()
         self.size = self.world.Size()
 
@@ -14,10 +14,9 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         pass
 
     def testDataCommunicatorRetrieval(self):
-        parallel_environment = Kratos.ParallelEnvironment.GetInstance()
-        default_comm = parallel_environment.GetDefaultDataCommunicator()
+        default_comm = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
 
-        self.assertTrue(parallel_environment.HasDataCommunicator("World"))
+        self.assertTrue(Kratos.ParallelEnvironment.HasDataCommunicator("World"))
 
         # if we imported mpi, default should be "World" (wrapping MPI_COMM_WORLD)
         self.assertTrue(default_comm.IsDistributed())
@@ -112,7 +111,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         self.assertEqual(partial_sum_int_list, [self.rank+1, -self.rank-1])
         self.assertEqual(partial_sum_double_list, [2.0*(self.rank+1), -2.0*(self.rank+1)])
 
-    @UnitTest.skipIf(Kratos.ParallelEnvironment.GetInstance().GetDefaultDataCommunicator().Size() < 2, "This test does not work for a single process.")
+    @UnitTest.skipIf(Kratos.ParallelEnvironment.GetDefaultDataCommunicator().Size() < 2, "This test does not work for a single process.")
     def testSendRecvOperations(self):
 
         if self.rank + 1 != self.size:

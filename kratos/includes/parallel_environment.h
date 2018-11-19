@@ -52,28 +52,27 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Access
     ///@{
 
-    static ParallelEnvironment& GetInstance();
 
     ///@}
     ///@name Operations
     ///@{
 
-    void RegisterDataCommunicator(
+    static void RegisterDataCommunicator(
         const std::string Name,
         const DataCommunicator& rPrototype,
         const bool Default = DoNotMakeDefault);
 
-    DataCommunicator& GetDataCommunicator(const std::string& rName) const;
+    static DataCommunicator& GetDataCommunicator(const std::string& rName);
 
-    DataCommunicator& GetDefaultDataCommunicator() const;
+    static DataCommunicator& GetDefaultDataCommunicator();
 
-    void SetDefaultDataCommunicator(const std::string& rName);
+    static void SetDefaultDataCommunicator(const std::string& rName);
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    bool HasDataCommunicator(const std::string& rName) const;
+    static bool HasDataCommunicator(const std::string& rName);
 
     ///@}
     ///@name Input and output
@@ -97,6 +96,33 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     /// Internal constructor.
     ParallelEnvironment();
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void RegisterDataCommunicatorDetail(
+        const std::string Name,
+        const DataCommunicator& rPrototype,
+        const bool Default = DoNotMakeDefault);
+
+    DataCommunicator& GetDataCommunicatorDetail(const std::string& rName) const;
+
+    DataCommunicator& GetDefaultDataCommunicatorDetail() const;
+
+    void SetDefaultDataCommunicatorDetail(const std::string& rName);
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    bool HasDataCommunicatorDetail(const std::string& rName) const;
+
+    ///@}
+    ///@name Private Access
+    ///@{
+
+    static ParallelEnvironment& GetInstance();
 
     ///@}
     ///@name Member Variables

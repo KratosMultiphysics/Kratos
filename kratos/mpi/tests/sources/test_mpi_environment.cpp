@@ -23,10 +23,9 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(MPIEnvironmentSetUp, KratosMPICoreFastSuite)
 {
-    ParallelEnvironment& parallel_environment = ParallelEnvironment::GetInstance();
-    KRATOS_CHECK_EQUAL(parallel_environment.HasDataCommunicator("World"), true);
-    KRATOS_CHECK_EQUAL(parallel_environment.HasDataCommunicator("Serial"), true);
-    KRATOS_CHECK_EQUAL(parallel_environment.HasDataCommunicator("NotReallyACommunicator"), false);
+    KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("World"), true);
+    KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("Serial"), true);
+    KRATOS_CHECK_EQUAL(ParallelEnvironment::HasDataCommunicator("NotReallyACommunicator"), false);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MPIEnvironmentDefaultComms, KratosMPICoreFastSuite)
@@ -37,12 +36,10 @@ KRATOS_TEST_CASE_IN_SUITE(MPIEnvironmentDefaultComms, KratosMPICoreFastSuite)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    ParallelEnvironment& parallel_environment = ParallelEnvironment::GetInstance();
-
     // r_default_comm should be "World" in MPI runs
-    DataCommunicator& r_default_comm = parallel_environment.GetDefaultDataCommunicator();
-    DataCommunicator& r_world = parallel_environment.GetDataCommunicator("World");
-    DataCommunicator& r_serial = parallel_environment.GetDataCommunicator("Serial");
+    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    DataCommunicator& r_world = ParallelEnvironment::GetDataCommunicator("World");
+    DataCommunicator& r_serial = ParallelEnvironment::GetDataCommunicator("Serial");
 
     KRATOS_CHECK_EQUAL(r_default_comm.IsDistributed(), true);
     KRATOS_CHECK_EQUAL(r_world.IsDistributed(), true);

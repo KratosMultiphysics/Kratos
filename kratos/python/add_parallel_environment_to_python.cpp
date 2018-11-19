@@ -30,12 +30,11 @@ void AddParallelEnvironmentToPython(pybind11::module &m)
     py::class_<ParallelEnvironment, ParallelEnvironment::Pointer>(m,"ParallelEnvironment")
     .def_property_readonly("MakeDefault", [](const ParallelEnvironment& self) { return ParallelEnvironment::MakeDefault; } )
     .def_property_readonly("DoNotMakeDefault", [](const ParallelEnvironment& self) { return ParallelEnvironment::DoNotMakeDefault; } )
-    .def_static("GetInstance", &ParallelEnvironment::GetInstance, py::return_value_policy::reference)
-    .def("RegisterDataCommunicator", &ParallelEnvironment::RegisterDataCommunicator)
-    .def("GetDataCommunicator",&ParallelEnvironment::GetDataCommunicator, py::return_value_policy::reference_internal)
-    .def("GetDefaultDataCommunicator",&ParallelEnvironment::GetDefaultDataCommunicator, py::return_value_policy::reference_internal)
-    .def("SetDefaultDataCommunicator",&ParallelEnvironment::SetDefaultDataCommunicator)
-    .def("HasDataCommunicator",&ParallelEnvironment::HasDataCommunicator)
+    .def_static("RegisterDataCommunicator", &ParallelEnvironment::RegisterDataCommunicator)
+    .def_static("GetDataCommunicator",&ParallelEnvironment::GetDataCommunicator, py::return_value_policy::reference)
+    .def_static("GetDefaultDataCommunicator",&ParallelEnvironment::GetDefaultDataCommunicator, py::return_value_policy::reference)
+    .def_static("SetDefaultDataCommunicator",&ParallelEnvironment::SetDefaultDataCommunicator)
+    .def_static("HasDataCommunicator",&ParallelEnvironment::HasDataCommunicator)
     .def("__str__", PrintObject<ParallelEnvironment>);
 
 }
