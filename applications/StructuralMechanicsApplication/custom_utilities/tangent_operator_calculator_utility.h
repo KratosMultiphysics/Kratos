@@ -109,8 +109,8 @@ public:
         )
     {
         // Converged values to be storaged
-        const Vector strain_vector_gp = rValues.GetStrainVector();
-        const Vector stress_vector_gp = rValues.GetStressVector();
+        const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
+        const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
@@ -119,7 +119,7 @@ public:
         Flags& cl_options = rValues.GetOptions();
         cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 
-        const SizeType num_components = strain_vector_gp.size();
+        const SizeType num_components = unperturbed_strain_vector_gp.size();
         // Loop over components of the strain
         Vector& r_perturbed_strain = rValues.GetStrainVector();
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
@@ -131,18 +131,18 @@ public:
             if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
             // Apply the perturbation
-            PerturbateStrainVector(r_perturbed_strain, strain_vector_gp, pertubation, i_component);
+            PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
 
             // We continue with the calculations
             IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
             Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
-            const Vector delta_stress = perturbed_integrated_stress - stress_vector_gp;
+            const Vector delta_stress = perturbed_integrated_stress - unperturbed_stress_vector_gp;
             ComputeComponentsToTangentTensor(r_tangent_tensor, delta_stress, pertubation, i_component);
 
             // Reset the values to the initial ones
-            noalias(r_perturbed_strain) = strain_vector_gp;
-            noalias(perturbed_integrated_stress) = stress_vector_gp;
+            noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+            noalias(perturbed_integrated_stress) = unperturbed_stress_vector_gp;
         }
     }
 
@@ -161,16 +161,16 @@ public:
         const Variable<Vector>& r_stress_variable = rStressMeasure == ConstitutiveLaw::StressMeasure_PK2 ? PK2_STRESS_VECTOR : KIRCHHOFF_STRESS_VECTOR;
 
         // Converged values to be storaged
-        const Matrix deformation_gradient_gp = rValues.GetDeformationGradientF();
-        const double det_deformation_gradient_gp = rValues.GetDeterminantF();
+        const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
+        const double det_unperturbed_deformation_gradient_gp = double(rValues.GetDeterminantF());
 
         // The size of the deformation gradient
-        const SizeType size1 = deformation_gradient_gp.size1();
-        const SizeType size2 = deformation_gradient_gp.size2();
+        const SizeType size1 = unperturbed_deformation_gradient_gp.size1();
+        const SizeType size2 = unperturbed_deformation_gradient_gp.size2();
 
         double aux_det;
         Matrix inverse_perturbed_deformation_gradient(size1, size2);
-        Matrix perturbed_deformation_gradient(deformation_gradient_gp);
+        Matrix perturbed_deformation_gradient(unperturbed_deformation_gradient_gp);
         Matrix deformation_gradient_increment(size1, size2);
 
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
@@ -188,14 +188,14 @@ public:
                 if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
                 // Apply the perturbation
-                PerturbateDeformationGradient(perturbed_deformation_gradient, deformation_gradient_gp, pertubation, i_component, j_component);
+                PerturbateDeformationGradient(perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
 
                 // We continue with the calculations
                 IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
                 // We compute the new predictive stress vector
                 MathUtils<double>::InvertMatrix(perturbed_deformation_gradient,inverse_perturbed_deformation_gradient, aux_det);
-                deformation_gradient_increment = prod(inverse_perturbed_deformation_gradient, deformation_gradient_gp);
+                deformation_gradient_increment = prod(inverse_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp);
                 rValues.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient_increment));
                 rValues.SetDeformationGradientF(deformation_gradient_increment);
                 Vector delta_stress;
@@ -204,8 +204,8 @@ public:
                 ComputeComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
 
                 // Reset the values to the initial ones
-                rValues.SetDeformationGradientF(deformation_gradient_gp);
-                rValues.SetDeterminantF(det_deformation_gradient_gp);
+                rValues.SetDeformationGradientF(unperturbed_deformation_gradient_gp);
+                rValues.SetDeterminantF(det_unperturbed_deformation_gradient_gp);
             }
         }
     }
@@ -378,16 +378,27 @@ private:
         )
     {
         const SizeType dimension = rArrayValues.size();
-        std::vector<double> non_zero_values;
 
+        IndexType counter = 0;
         for (IndexType i = 1; i < dimension; ++i) {
-            if (std::abs(rArrayValues[i]) > tolerance)
-                non_zero_values.push_back(std::abs(rArrayValues[i]));
+            if (std::abs(rArrayValues[i]) > tolerance) {
+                ++counter;
+            }
         }
-        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
+
+        KRATOS_ERROR_IF(counter == 0) << "The strain vector is full of 0's..." << std::endl;
+
+        std::vector<double> non_zero_values(counter);
+        counter = 0;
+        for (IndexType i = 1; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) > tolerance) {
+                non_zero_values[counter] = std::abs(rArrayValues[i]);
+                ++counter;
+            }
+        }
 
         double aux = std::abs(non_zero_values[0]);
-        for (IndexType i = 1; i < non_zero_values.size(); ++i) {
+        for (IndexType i = 1; i < counter; ++i) {
             if (non_zero_values[i] > aux)
                 aux = non_zero_values[i];
         }
@@ -407,18 +418,31 @@ private:
     {
         const SizeType size1 = rMatrixValues.size1();
         const SizeType size2 = rMatrixValues.size2();
-        std::vector<double> non_zero_values;
 
+        IndexType counter = 0;
         for (IndexType i = 0; i < size1; ++i) {
             for (IndexType j = 0; j < size2; ++j) {
-                if (std::abs(rMatrixValues(i, j)) > tolerance)
-                    non_zero_values.push_back(std::abs(rMatrixValues(i, j)));
+                if (std::abs(rMatrixValues(i, j)) > tolerance) {
+                    ++counter;
+                }
             }
         }
-        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The deformation gradient is full of 0's..." << std::endl;
+
+        KRATOS_ERROR_IF(counter == 0) << "The deformation gradient is full of 0's..." << std::endl;
+
+        std::vector<double> non_zero_values(counter);
+        counter = 0;
+        for (IndexType i = 0; i < size1; ++i) {
+            for (IndexType j = 0; j < size2; ++j) {
+                if (std::abs(rMatrixValues(i, j)) > tolerance) {
+                    non_zero_values[counter] = std::abs(rMatrixValues(i, j));
+                    ++counter;
+                }
+            }
+        }
 
         double aux = std::abs(non_zero_values[0]);
-        for (IndexType i = 1; i < non_zero_values.size(); ++i) {
+        for (IndexType i = 1; i < counter; ++i) {
             if (non_zero_values[i] > aux)
                 aux = non_zero_values[i];
         }
@@ -437,16 +461,27 @@ private:
         )
     {
         const SizeType dimension = rArrayValues.size();
-        std::vector<double> non_zero_values;
 
-        for (IndexType i = 0; i < dimension; ++i) {
-            if (std::abs(rArrayValues[i]) > tolerance)
-                non_zero_values.push_back(std::abs(rArrayValues[i]));
+        IndexType counter = 0;
+        for (IndexType i = 1; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) > tolerance) {
+                ++counter;
+            }
         }
-        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
+
+        KRATOS_ERROR_IF(counter == 0) << "The strain vector is full of 0's..." << std::endl;
+
+        std::vector<double> non_zero_values(counter);
+        counter = 0;
+        for (IndexType i = 0; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) > tolerance) {
+                non_zero_values[counter] = std::abs(rArrayValues[i]);
+                ++counter;
+            }
+        }
 
         double aux = std::abs(non_zero_values[0]);
-        for (IndexType i = 1; i < non_zero_values.size(); ++i) {
+        for (IndexType i = 1; i < counter; ++i) {
             if (non_zero_values[i] < aux)
                 aux = non_zero_values[i];
         }
@@ -466,15 +501,28 @@ private:
     {
         const SizeType size1 = rMatrixValues.size1();
         const SizeType size2 = rMatrixValues.size2();
-        std::vector<double> non_zero_values;
 
+        IndexType counter = 0;
         for (IndexType i = 0; i < size1; ++i) {
             for (IndexType j = 0; j < size2; ++j) {
-                if (std::abs(rMatrixValues(i, j)) > tolerance)
-                    non_zero_values.push_back(std::abs(rMatrixValues(i, j)));
+                if (std::abs(rMatrixValues(i, j)) > tolerance) {
+                    ++counter;
+                }
             }
         }
-        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The deformation gradient is full of 0's..." << std::endl;
+
+        KRATOS_ERROR_IF(counter == 0) << "The deformation gradient is full of 0's..." << std::endl;
+
+        std::vector<double> non_zero_values(counter);
+        counter = 0;
+        for (IndexType i = 0; i < size1; ++i) {
+            for (IndexType j = 0; j < size2; ++j) {
+                if (std::abs(rMatrixValues(i, j)) > tolerance) {
+                    non_zero_values[counter] = std::abs(rMatrixValues(i, j));
+                    ++counter;
+                }
+            }
+        }
 
         double aux = std::abs(non_zero_values[0]);
         for (IndexType i = 1; i < non_zero_values.size(); ++i) {
