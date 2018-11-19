@@ -109,6 +109,33 @@ public:
     /*@{ */
 
     /**
+     * @brief Creates an element based skin
+     * For a modelpart defining the skin using conditions, this method
+     * copies such skin to the elements of an auxiliar model part. Note 
+     * that the same geometry is used so the nodes of the auxiliar geometry
+     * are actually the ones in the origin modelpart.
+     * @param rOriginInterfaceModelPart 
+     * @param rDestinationInterfaceModelPart 
+     */
+    void CopySkinToElements(
+        const ModelPart& rOriginInterfaceModelPart,
+        ModelPart& rDestinationInterfaceModelPart)
+    {
+        // Add the origin interface nodes to the destination interface model part
+        rDestinationInterfaceModelPart.AddNodes(
+            rOriginInterfaceModelPart.NodesBegin(),
+            rOriginInterfaceModelPart.NodesEnd());
+
+        // Create new elements emulating the condition based interface
+        ModelPart::ElementsContainerType new_elems_vect;
+        for (int i_cond = 0; i_cond < rOriginInterfaceModelPart.NumberOfConditions(); ++i_cond) {
+            const auto &it_cond = rOriginInterfaceModelPart.ConditionsBegin() + i_cond;
+            auto p_elem = Kratos::make_shared<Element>(it_cond->Id(), it_cond->pGetGeometry());
+            rDestinationInterfaceModelPart.AddElement(p_elem);
+        }
+    }
+
+    /**
      * This function computes the interface residual size as the
      * number of interface nodes times the problem domain size.
      * @return the model part residual size
