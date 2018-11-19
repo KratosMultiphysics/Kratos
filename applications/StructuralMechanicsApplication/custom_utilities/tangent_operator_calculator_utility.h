@@ -138,7 +138,7 @@ public:
 
             Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
             const Vector delta_stress = perturbed_integrated_stress - stress_vector_gp;
-            AssignComponentsToTangentTensor(r_tangent_tensor, delta_stress, pertubation, i_component);
+            ComputeComponentsToTangentTensor(r_tangent_tensor, delta_stress, pertubation, i_component);
 
             // Reset the values to the initial ones
             noalias(r_perturbed_strain) = strain_vector_gp;
@@ -164,20 +164,22 @@ public:
         const Matrix deformation_gradient_gp = rValues.GetDeformationGradientF();
         const double det_deformation_gradient_gp = rValues.GetDeterminantF();
 
+        // The size of the deformation gradient
+        const SizeType size1 = deformation_gradient_gp.size1();
+        const SizeType size2 = deformation_gradient_gp.size2();
+
         double aux_det;
-        Matrix inverse_perturbed_deformation_gradient(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
+        Matrix inverse_perturbed_deformation_gradient(size1, size2);
         Matrix perturbed_deformation_gradient(deformation_gradient_gp);
-        Matrix deformation_gradient_increment(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
+        Matrix deformation_gradient_increment(size1, size2);
 
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         tangent_tensor.clear();
 
-        const SizeType size1 = deformation_gradient_gp.size1();
-        const SizeType size2 = deformation_gradient_gp.size2();
-
         // Loop over components of the strain
         for (IndexType i_component = 0; i_component < size1; ++i_component) {
-            for (IndexType j_component = 0; j_component < size2; ++j_component) {
+            for (IndexType j_component = i_component; j_component < size2; ++j_component) { // Doing a symmetric perturbation
+
                 // Calculate the perturbation
                 double pertubation;
                 CalculatePerturbationFiniteDeformation(perturbed_deformation_gradient, i_component, j_component, pertubation);
@@ -199,7 +201,7 @@ public:
                 Vector delta_stress;
                 pConstitutiveLaw->CalculateValue(rValues, r_stress_variable, delta_stress);
 
-                AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
+                ComputeComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
 
                 // Reset the values to the initial ones
                 rValues.SetDeformationGradientF(deformation_gradient_gp);
@@ -207,6 +209,51 @@ public:
             }
         }
     }
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     /**
      * @brief This method computes the pertubation
@@ -445,7 +492,7 @@ public:
      * @param Perturbation The pertubation considered
      * @param Component Index of the component to compute
      */
-    static void AssignComponentsToTangentTensor(
+    static void ComputeComponentsToTangentTensor(
         Matrix& rTangentTensor,
         const Vector& rDeltaStress,
         const double Perturbation,
@@ -457,51 +504,6 @@ public:
             rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
         }
     }
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     ///@}
     ///@name Private  Access
