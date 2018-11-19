@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
 
