@@ -343,18 +343,6 @@ namespace Kratos {
 			MathUtils<double>::InvertMatrix(LHS, LHS, det);
 
 			const Vector solVec = prod(LHS, RHS);
-
-			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
-			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-			std::cout << "RHS(0) = " << RHS(0) << std::endl;
-			std::cout << "RHS(1) = " << RHS(1) << std::endl;
-			std::cout << "RHS(2) = " << RHS(2) << std::endl;
-			std::cout << "RHS(3) = " << RHS(3) << std::endl;
-			std::cout << "RHS(4) = " << RHS(4) << std::endl;
-			std::cout << "RHS(5) = " << RHS(5) << std::endl;
-			std::cout << "RHS(6) = " << RHS(6) << std::endl;
-			std::cout << "RHS(7) = " << RHS(7) << std::endl;
-			std::cout << "RHS(8) = " << RHS(8) << std::endl;
 			
 			// The remaining residuals in the velocities have the size of the boundary integrals over the enriched pressure.
 			// If the "standard" pressure shape functions are used, the results do not hold.
@@ -437,12 +425,6 @@ namespace Kratos {
 
 			pCondition1->SetFlags(SLIP);
 			pCondition2->SetFlags(SLIP);
-
-			if ( pCondition1->Is(SLIP) &&  pCondition2->Is(SLIP) ){
-				std::cout << "Both conditions have the flag SLIP" << std::endl;
-			} else {
-				std::cout << "SLIP not set ..." << std::endl;
-			}
 
             Vector elemRHS1 = ZeroVector(9);
             Vector elemRHS2 = ZeroVector(9);
@@ -528,14 +510,9 @@ namespace Kratos {
                 contriFromCond1[i] = condRHS1[3+i];
                 contriFromCond2[i] = condRHS2[0+i];
             }
-            // KRATOS_WATCH( contriFromElem1 )
-            // KRATOS_WATCH( contriFromElem2 )
-            // KRATOS_WATCH( contriFromCond1 )
-            // KRATOS_WATCH( contriFromCond2 )
 
             Vector residualAtNodeTwo = contriFromElem1 + contriFromElem2 + contriFromCond1 + contriFromCond2;
             Vector normalAtNodeTwo = pElement1->GetGeometry()[1].FastGetSolutionStepValue(NORMAL);
-			// KRATOS_WATCH( normalAtNodeTwo )
 
 			Vector tangentialComponent;
 			array_1d<double,3> residualAtNodeTwoVector;
@@ -544,9 +521,6 @@ namespace Kratos {
 			tangentialComponent = MathUtils<double>::CrossProduct( normalAtNodeTwo, residualAtNodeTwo );
 			tangentialComponent = - MathUtils<double>::CrossProduct( normalAtNodeTwo, tangentialComponent );
 
-			KRATOS_WATCH( tangentialComponent )
-
-            std::cout << "tangentialComponent = " << tangentialComponent << std::endl;
 			KRATOS_CHECK_NEAR( tangentialComponent[0], 0.0, 1e-7);
 			KRATOS_CHECK_NEAR( tangentialComponent[1], 0.0, 1e-7);
 			KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
@@ -631,12 +605,6 @@ namespace Kratos {
 			pCondition1->SetFlags(SLIP);
 			pCondition2->SetFlags(SLIP);
 			pCondition3->SetFlags(SLIP);
-
-			if ( pCondition1->Is(SLIP) && pCondition2->Is(SLIP) && pCondition2->Is(SLIP) ){
-				std::cout << "All three conditions have the flag SLIP" << std::endl;
-			} else {
-				std::cout << "SLIP not set correctly ..." << std::endl;
-			}
 
             Vector elemRHS1 = ZeroVector(16);
 			Vector elemRHS2 = ZeroVector(16);
@@ -769,14 +737,6 @@ namespace Kratos {
 				contriFromCond3[i] = condRHS3[8 + i];
             }
 
-			KRATOS_WATCH( contriFromElem1 )
-			KRATOS_WATCH( contriFromElem2 )
-			KRATOS_WATCH( contriFromElem3 )
-
-			KRATOS_WATCH( contriFromCond1 )
-			KRATOS_WATCH( contriFromCond2 )
-			KRATOS_WATCH( contriFromCond3 )
-
             Vector residualAtNodeTwo = 	contriFromElem1 + contriFromElem2 + contriFromElem3 +
 										( contriFromCond1 + contriFromCond2 + contriFromCond3 );
 
@@ -788,7 +748,6 @@ namespace Kratos {
 			}
 
 			normalAtNodeTwo /= sqrt(sumOfSquares);
-			KRATOS_WATCH( normalAtNodeTwo )
 
 			Vector tangentialComponent;
 			Vector normalComponent;
@@ -797,10 +756,6 @@ namespace Kratos {
 			tangentialComponent = - MathUtils<double>::CrossProduct( normalAtNodeTwo, tangentialComponent );
 
 			normalComponent = MathUtils<double>::Dot3( residualAtNodeTwo, normalAtNodeTwo ) * normalAtNodeTwo;
-
-            // KRATOS_WATCH( sum )
-            std::cout << "tangentialComponent = " << tangentialComponent << std::endl;
-			std::cout << "normalComponent = " << normalComponent << std::endl;
 
 			KRATOS_CHECK_NEAR( tangentialComponent[0], 0.0, 1e-7);
 			KRATOS_CHECK_NEAR( tangentialComponent[1], 0.0, 1e-7);
@@ -873,12 +828,6 @@ namespace Kratos {
 
 			pCondition1->SetFlags(SLIP);
 			pCondition2->SetFlags(SLIP);
-
-			if ( pCondition1->Is(SLIP) &&  pCondition2->Is(SLIP) ){
-				std::cout << "Both conditions have the flag SLIP" << std::endl;
-			} else {
-				std::cout << "SLIP not set ..." << std::endl;
-			}
 
             Vector elemRHS1 = ZeroVector(9);
             Vector elemRHS2 = ZeroVector(9);
@@ -978,17 +927,9 @@ namespace Kratos {
                 contriFromCond1[i] = condRHS1[3+i];
                 contriFromCond2[i] = condRHS2[0+i];
             }
-			
-            KRATOS_WATCH( contriFromElem1 )
-            KRATOS_WATCH( contriFromElem2 )
-            KRATOS_WATCH( contriFromCond1 )
-            KRATOS_WATCH( contriFromCond2 )
 
             Vector residualAtNodeTwo = contriFromElem1 + contriFromElem2 + contriFromCond1 + contriFromCond2;
-			KRATOS_WATCH( residualAtNodeTwo )
-
             Vector normalAtNodeTwo = pElement1->GetGeometry()[1].FastGetSolutionStepValue(NORMAL);
-			// KRATOS_WATCH( normalAtNodeTwo )
 
 			Vector tangentialComponent;
 			array_1d<double,3> residualAtNodeTwoVector;
@@ -997,9 +938,6 @@ namespace Kratos {
 			tangentialComponent = MathUtils<double>::CrossProduct( normalAtNodeTwo, residualAtNodeTwo );
 			tangentialComponent = - MathUtils<double>::CrossProduct( normalAtNodeTwo, tangentialComponent );
 
-			KRATOS_WATCH( tangentialComponent )
-
-            std::cout << "tangentialComponent = " << tangentialComponent << std::endl;
 			KRATOS_CHECK_NEAR( tangentialComponent[0], 0.0, 1e-7);
 			KRATOS_CHECK_NEAR( tangentialComponent[1], 0.0, 1e-7);
 			KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
