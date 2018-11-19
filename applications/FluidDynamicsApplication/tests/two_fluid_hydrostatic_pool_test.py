@@ -8,8 +8,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 try:
     import KratosMultiphysics.ExternalSolversApplication
     have_external_solvers = True
-except ImportError as e:
-    have_external_solvers = False
 
 import sys
 import time
@@ -25,10 +23,6 @@ class WorkFolderScope:
 
     def __enter__(self):
         os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
-
 
 # Class derived from the UnitTest (KratosMultiphysics.KratosUnittest) class
 class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
@@ -71,7 +65,7 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
                 distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 distanceAnalytic = (node.Y - self.waterLevel)
                 self.assertAlmostEqual(distanceAnalytic, distance, delta = self.check_toleranceDistance)
-            
+
             kratos_utils.DeleteFileIfExisting('TwoFluidStaticPoolTest2D.post.bin')
             kratos_utils.DeleteFileIfExisting('tests.post.lst')
 
@@ -117,14 +111,12 @@ class FluidDynamicsAnalysisWithFlush2D(FluidDynamicsAnalysis):
     def ModifyInitialGeometry(self):
         
         init_h = 0.5
-        zero_vect = KratosMultiphysics.Vector(3,0.0)
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             distance = node.Y - init_h
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, distance)
 
     def ApplyBoundaryConditions(self):
 
-        # print("This function is executed")    
         v_zero = KratosMultiphysics.Vector(3,0.0)
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             if abs(node.X) > 0.499 and abs(node.X) < 0.501:
