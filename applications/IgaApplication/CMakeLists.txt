@@ -5,8 +5,13 @@ message("**** configuring KratosIgaApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-if( NOT DEFINED ANURBS_ROOT )
-    message( FATAL_ERROR "ANURBS_ROOT not defined" )
+if(NOT DEFINED ANURBS_ROOT)
+    message(FATAL_ERROR
+        "ANURBS_ROOT not defined!\n"
+        "  - Download ANurbs from https://github.com/oberbichler/ANurbs\n"
+        "  - Add '-DANURBS_ROOT=<path to ANurbs>' to your build script")
+else()
+    message(STATUS "ANURBS_ROOT = ${ANURBS_ROOT}")
 endif()
 
 include_directories(
