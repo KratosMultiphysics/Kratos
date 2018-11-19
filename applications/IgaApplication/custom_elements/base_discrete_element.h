@@ -18,7 +18,6 @@
 // System includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/variables.h"
 
 // External includes
 
@@ -381,8 +380,8 @@ protected:
     */
     void Jacobian(const Matrix& DN_De,
         Matrix& Jacobian,
-        const int rWorkingSpaceDimension = 3,
-        const int rLocalSpaceDimension = 2) const;
+        const unsigned int rWorkingSpaceDimension = 3,
+        const unsigned int rLocalSpaceDimension = 2) const;
 
     ///@}
 private:

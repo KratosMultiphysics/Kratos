@@ -19,16 +19,12 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "includes/element.h"
 #include "custom_elements/surface_base_discrete_element.h"
 
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
 #include "utilities/math_utils.h"
 
-#include "geometries/geometry.h"
 
 namespace Kratos
 {

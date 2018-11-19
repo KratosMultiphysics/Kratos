@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 
 #include "custom_elements/iga_truss_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
