@@ -29,18 +29,6 @@ namespace Kratos
 ///@addtogroup Kratos MPI Core
 ///@{
 
-namespace Internals {
-
-template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&);
-
-template<class TContainer> inline void* GetData(TContainer& rValues);
-
-template<class TContainer> inline const void* GetData(const TContainer& rValues);
-
-template<class TContainer> inline int MessageSize(const TContainer& rValues);
-
-}
-
 ///@name Kratos Classes
 ///@{
 
@@ -385,6 +373,14 @@ class MPIDataCommunicator: public DataCommunicator
         const TDataType& rSendValues, TDataType& rRecvValues,
         const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
         const int RecvRank) const;
+
+    template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&) const;
+
+    template<class TContainer> inline void* MPIBuffer(TContainer& rValues) const;
+
+    template<class TContainer> inline const void* MPIBuffer(const TContainer& rValues) const;
+
+    template<class TContainer> inline int MPIMessageSize(const TContainer& rValues) const;
 
     ///@}
     ///@name Un accessible methods

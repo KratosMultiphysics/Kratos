@@ -13,117 +13,6 @@
 #include "mpi/includes/mpi_data_communicator.h"
 
 namespace Kratos {
-
-namespace Internals {
-
-// MPI_Datatype wrappers
-
-template<> inline MPI_Datatype MPIDatatype<int>(const int&)
-{
-    return MPI_INT;
-}
-
-template<> inline MPI_Datatype MPIDatatype<std::vector<double>>(const std::vector<double>&)
-{
-    return MPI_DOUBLE;
-}
-
-template<> inline MPI_Datatype MPIDatatype<double>(const double&)
-{
-    return MPI_DOUBLE;
-}
-
-template<> inline MPI_Datatype MPIDatatype<array_1d<double,3>>(const array_1d<double,3>&)
-{
-    return MPI_DOUBLE;
-}
-
-template<> inline MPI_Datatype MPIDatatype<std::vector<int>>(const std::vector<int>&)
-{
-    return MPI_INT;
-}
-
-// Buffer argument deduction
-
-template<> inline void* GetData(int& rValues)
-{
-    return &rValues;
-}
-
-template<> inline const void* GetData(const int& rValues)
-{
-    return &rValues;
-}
-
-template<> inline void* GetData(double& rValues)
-{
-    return &rValues;
-}
-
-template<> inline const void* GetData(const double& rValues)
-{
-    return &rValues;
-}
-
-template<> inline void* GetData(array_1d<double,3>& rValues)
-{
-    return rValues.data().data();
-}
-
-template<> inline const void* GetData(const array_1d<double,3>& rValues)
-{
-    return rValues.data().data();
-}
-
-template<> inline void* GetData(std::vector<int>& rValues)
-{
-    return rValues.data();
-}
-
-template<> inline const void* GetData(const std::vector<int>& rValues)
-{
-    return rValues.data();
-}
-
-template<> inline void* GetData(std::vector<double>& rValues)
-{
-    return rValues.data();
-}
-
-template<> inline const void* GetData(const std::vector<double>& rValues)
-{
-    return rValues.data();
-}
-
-// MPI message size deduction
-
-template<> inline int MessageSize(const int& rValues)
-{
-    return 1;
-}
-
-template<> inline int MessageSize(const double& rValues)
-{
-    return 1;
-}
-
-template<> inline int MessageSize(const array_1d<double,3>& rValues)
-{
-    return 3;
-}
-
-template<> inline int MessageSize(const std::vector<int>& rValues)
-{
-    return rValues.size();
-}
-
-template<> inline int MessageSize(const std::vector<double>& rValues)
-{
-    return rValues.size();
-}
-
-}
-
 // MPIDataCommunicator implementation
 
 // Life cycle
@@ -598,8 +487,8 @@ template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(Root)))
     << "In call to MPI_Reduce: " << Root << " is not a valid rank." << std::endl;
-    const int local_size = Internals::MessageSize(rLocalValues);
-    const int reduced_size = Internals::MessageSize(rReducedValues);
+    const int local_size = MPIMessageSize(rLocalValues);
+    const int reduced_size = MPIMessageSize(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Reduce: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -609,8 +498,8 @@ template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     #endif // KRATOS_DEBUG
 
     int ierr = MPI_Reduce(
-        Internals::GetData(rLocalValues), Internals::GetData(rReducedValues),
-        Internals::MessageSize(rLocalValues), Internals::MPIDatatype(rLocalValues),
+        MPIBuffer(rLocalValues), MPIBuffer(rReducedValues),
+        MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
         Operation, Root, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
 }
@@ -620,8 +509,8 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     MPI_Op Operation) const
 {
     #ifdef KRATOS_DEBUG
-    const int local_size = Internals::MessageSize(rLocalValues);
-    const int reduced_size = Internals::MessageSize(rReducedValues);
+    const int local_size = MPIMessageSize(rLocalValues);
+    const int reduced_size = MPIMessageSize(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Allreduce: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -631,8 +520,8 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     #endif // KRATOS_DEBUG
 
     int ierr = MPI_Allreduce(
-        Internals::GetData(rLocalValues), Internals::GetData(rReducedValues),
-        Internals::MessageSize(rLocalValues), Internals::MPIDatatype(rLocalValues),
+        MPIBuffer(rLocalValues), MPIBuffer(rReducedValues),
+        MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
         Operation, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
 }
@@ -642,8 +531,8 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     MPI_Op Operation) const
 {
     #ifdef KRATOS_DEBUG
-    const int local_size = Internals::MessageSize(rLocalValues);
-    const int reduced_size = Internals::MessageSize(rReducedValues);
+    const int local_size = MPIMessageSize(rLocalValues);
+    const int reduced_size = MPIMessageSize(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Scan: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -653,8 +542,8 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     #endif // KRATOS_DEBUG
 
     int ierr = MPI_Scan(
-        Internals::GetData(rLocalValues), Internals::GetData(rReducedValues),
-        Internals::MessageSize(rLocalValues), Internals::MPIDatatype(rLocalValues),
+        MPIBuffer(rLocalValues), MPIBuffer(rReducedValues),
+        MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
         Operation, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scan");
 }
@@ -670,10 +559,10 @@ template<class TDataType> void MPIDataCommunicator::SendRecvDetail(
     const int recv_tag = 0;
 
     int ierr = MPI_Sendrecv(
-        Internals::GetData(rSendMessage), Internals::MessageSize(rSendMessage),
-        Internals::MPIDatatype(rSendMessage), SendDestination, send_tag,
-        Internals::GetData(rRecvMessage), Internals::MessageSize(rRecvMessage),
-        Internals::MPIDatatype(rRecvMessage), RecvSource, recv_tag,
+        MPIBuffer(rSendMessage), MPIMessageSize(rSendMessage),
+        MPIDatatype(rSendMessage), SendDestination, send_tag,
+        MPIBuffer(rRecvMessage), MPIMessageSize(rRecvMessage),
+        MPIDatatype(rRecvMessage), RecvSource, recv_tag,
         mComm, MPI_STATUS_IGNORE);
     CheckMPIErrorCode(ierr, "MPI_Sendrecv");
 }
@@ -684,14 +573,14 @@ template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Bcast: " << SourceRank << " is not a valid rank." << std::endl;
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(Internals::MessageSize(rBuffer)))
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(MPIMessageSize(rBuffer)))
     << "Input error in call to MPI_Bcast: "
     << "The buffer does not have the same size on all ranks." << std::endl;
     #endif
 
     int ierr = MPI_Bcast(
-        Internals::GetData(rBuffer), Internals::MessageSize(rBuffer),
-        Internals::MPIDatatype(rBuffer), SourceRank, mComm);
+        MPIBuffer(rBuffer), MPIMessageSize(rBuffer),
+        MPIDatatype(rBuffer), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
 }
 
@@ -701,8 +590,8 @@ template<class TDataType> void MPIDataCommunicator::ScatterDetail(
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Scatter: " << SourceRank << " is not a valid rank." << std::endl;
-    const int send_size = Internals::MessageSize(rSendValues);
-    const int recv_size = Internals::MessageSize(rRecvValues);
+    const int send_size = MPIMessageSize(rSendValues);
+    const int recv_size = MPIMessageSize(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(recv_size))
     << "Input error in call to MPI_Scatter: "
     << "The destination buffer does not have the same size on all ranks." << std::endl;
@@ -712,10 +601,10 @@ template<class TDataType> void MPIDataCommunicator::ScatterDetail(
     << recv_size * Size() << " values to send expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = Internals::MessageSize(rRecvValues);
+    const int sends_per_rank = MPIMessageSize(rRecvValues);
     int ierr = MPI_Scatter(
-        Internals::GetData(rSendValues), sends_per_rank, Internals::MPIDatatype(rSendValues),
-        Internals::GetData(rRecvValues), sends_per_rank, Internals::MPIDatatype(rRecvValues),
+        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
+        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
         SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
 }
@@ -729,8 +618,8 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
     #endif
 
     int ierr = MPI_Scatterv(
-        Internals::GetData(rSendValues), rSendCounts.data(), rSendOffsets.data(), Internals::MPIDatatype(rSendValues),
-        Internals::GetData(rRecvValues), Internals::MessageSize(rRecvValues), Internals::MPIDatatype(rRecvValues),
+        MPIBuffer(rSendValues), rSendCounts.data(), rSendOffsets.data(), MPIDatatype(rSendValues),
+        MPIBuffer(rRecvValues), MPIMessageSize(rRecvValues), MPIDatatype(rRecvValues),
         SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatterv");
 }
@@ -741,8 +630,8 @@ template<class TDataType> void MPIDataCommunicator::GatherDetail(
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvRank)))
     << "In call to MPI_Gather: " << RecvRank << " is not a valid rank." << std::endl;
-    const int send_size = Internals::MessageSize(rSendValues);
-    const int recv_size = Internals::MessageSize(rRecvValues);
+    const int send_size = MPIMessageSize(rSendValues);
+    const int recv_size = MPIMessageSize(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Gather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -752,10 +641,10 @@ template<class TDataType> void MPIDataCommunicator::GatherDetail(
     << send_size * Size() << " values to receive expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = Internals::MessageSize(rSendValues);
+    const int sends_per_rank = MPIMessageSize(rSendValues);
     int ierr = MPI_Gather(
-        Internals::GetData(rSendValues), sends_per_rank, Internals::MPIDatatype(rSendValues),
-        Internals::GetData(rRecvValues), sends_per_rank, Internals::MPIDatatype(rRecvValues),
+        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
+        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
         RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Gather");
 }
@@ -771,8 +660,8 @@ template<class TDataType> void MPIDataCommunicator::GathervDetail(
     #endif
 
     int ierr = MPI_Gatherv(
-        Internals::GetData(rSendValues), Internals::MessageSize(rSendValues), Internals::MPIDatatype(rSendValues),
-        Internals::GetData(rRecvValues), rRecvCounts.data(), rRecvOffsets.data(), Internals::MPIDatatype(rRecvValues),
+        MPIBuffer(rSendValues), MPIMessageSize(rSendValues), MPIDatatype(rSendValues),
+        MPIBuffer(rRecvValues), rRecvCounts.data(), rRecvOffsets.data(), MPIDatatype(rRecvValues),
         RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Gatherv");
 }
@@ -781,8 +670,8 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     const TDataType& rSendValues, TDataType& rRecvValues) const
 {
     #ifdef KRATOS_DEBUG
-    const int send_size = Internals::MessageSize(rSendValues);
-    const int recv_size = Internals::MessageSize(rRecvValues);
+    const int send_size = MPIMessageSize(rSendValues);
+    const int recv_size = MPIMessageSize(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Allgather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -792,10 +681,10 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     << send_size * Size() << " values to receive expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = Internals::MessageSize(rSendValues);
+    const int sends_per_rank = MPIMessageSize(rSendValues);
     int ierr = MPI_Allgather(
-        Internals::GetData(rSendValues), sends_per_rank, Internals::MPIDatatype(rSendValues),
-        Internals::GetData(rRecvValues), sends_per_rank, Internals::MPIDatatype(rRecvValues),
+        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
+        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
         mComm);
     CheckMPIErrorCode(ierr, "MPI_Allgather");
 }
@@ -902,9 +791,9 @@ template<class TDataType> void MPIDataCommunicator::ValidateSendRecvInput(
     // Check that message sizes match
     const int send_tag = 0;
     const int recv_tag = 0;
-    const int send_size = Internals::MessageSize(rSendMessage);
+    const int send_size = MPIMessageSize(rSendMessage);
     int recv_size = 0;
-    const int expected_recv_size = Internals::MessageSize(rRecvMessage);
+    const int expected_recv_size = MPIMessageSize(rRecvMessage);
     ierr = MPI_Sendrecv(
         &send_size, 1, MPI_INT, SendDestination, send_tag,
         &recv_size, 1, MPI_INT, RecvSource, recv_tag,
@@ -925,7 +814,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
 
     // All ranks expect a message of the correct size
     int expected_size = 0;
-    const int available_recv_size = Internals::MessageSize(rRecvValues);
+    const int available_recv_size = MPIMessageSize(rRecvValues);
     int ierr = MPI_Scatter(rSendCounts.data(), 1, MPI_INT, &expected_size, 1, MPI_INT, SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(expected_size != available_recv_size))
@@ -935,7 +824,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
 
     // Message size is not smaller than total expected size (can only check for too small, since the source message may be padded).
     int total_size = 0;
-    const int message_size = Internals::MessageSize(rSendValues);
+    const int message_size = MPIMessageSize(rSendValues);
     ierr = MPI_Reduce(&available_recv_size, &total_size, 1, MPI_INT, MPI_SUM, SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(total_size > message_size, SourceRank))
@@ -972,7 +861,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
 
     // All ranks send a message of the correct size
     int expected_recv_size = 0;
-    const int send_size = Internals::MessageSize(rSendValues);
+    const int send_size = MPIMessageSize(rSendValues);
     int ierr = MPI_Scatter(rRecvCounts.data(), 1, MPI_INT, &expected_recv_size, 1, MPI_INT, RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(send_size != expected_recv_size))
@@ -982,8 +871,8 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
 
     // Message size is not larger than total expected size (can only check for too large, since the recv message may be padded).
     int total_size = 0;
-    const int message_size = Internals::MessageSize(rSendValues);
-    const int expected_message_size = Internals::MessageSize(rRecvValues);
+    const int message_size = MPIMessageSize(rSendValues);
+    const int expected_message_size = MPIMessageSize(rRecvValues);
     ierr = MPI_Reduce(&message_size, &total_size, 1, MPI_INT, MPI_SUM, RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(total_size > expected_message_size, RecvRank))
@@ -1008,6 +897,112 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
         }
     }
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(failed, RecvRank)) << message.str();
+}
+
+// MPI_Datatype wrappers
+
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<int>(const int&) const
+{
+    return MPI_INT;
+}
+
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::vector<double>>(const std::vector<double>&) const
+{
+    return MPI_DOUBLE;
+}
+
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<double>(const double&) const
+{
+    return MPI_DOUBLE;
+}
+
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<array_1d<double,3>>(const array_1d<double,3>&) const
+{
+    return MPI_DOUBLE;
+}
+
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::vector<int>>(const std::vector<int>&) const
+{
+    return MPI_INT;
+}
+
+// Buffer argument deduction
+
+template<> inline void* MPIDataCommunicator::MPIBuffer(int& rValues) const
+{
+    return &rValues;
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const int& rValues) const
+{
+    return &rValues;
+}
+
+template<> inline void* MPIDataCommunicator::MPIBuffer(double& rValues) const
+{
+    return &rValues;
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const double& rValues) const
+{
+    return &rValues;
+}
+
+template<> inline void* MPIDataCommunicator::MPIBuffer(array_1d<double,3>& rValues) const
+{
+    return rValues.data().data();
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const array_1d<double,3>& rValues) const
+{
+    return rValues.data().data();
+}
+
+template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<int>& rValues) const
+{
+    return rValues.data();
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<int>& rValues) const
+{
+    return rValues.data();
+}
+
+template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<double>& rValues) const
+{
+    return rValues.data();
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<double>& rValues) const
+{
+    return rValues.data();
+}
+
+// MPI message size deduction
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const int& rValues) const
+{
+    return 1;
+}
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const double& rValues) const
+{
+    return 1;
+}
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const array_1d<double,3>& rValues) const
+{
+    return 3;
+}
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<int>& rValues) const
+{
+    return rValues.size();
+}
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<double>& rValues) const
+{
+    return rValues.size();
 }
 
 }
