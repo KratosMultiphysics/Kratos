@@ -1255,5 +1255,65 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGather, KratosMPICoreFastSuite)
     #endif
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int rank = mpi_world_communicator.Rank();
+    const int size = mpi_world_communicator.Size();
+
+    std::stringstream broadcast_message;
+    if (rank == 0)
+    {
+        broadcast_message << "Something went wrong in rank 0.";
+    }
+    else
+    {
+        broadcast_message << "Stopping because of error in rank 0.";
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        {
+            KRATOS_ERROR_IF(mpi_world_communicator.BroadcastErrorIfTrue(true,0) )
+            << "Something went wrong in rank 0." << std::endl;
+
+        },
+        broadcast_message.str()
+    );
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        {
+            KRATOS_ERROR_IF(mpi_world_communicator.BroadcastErrorIfFalse(false,0) )
+            << "Something went wrong in rank 0." << std::endl;
+
+        },
+        broadcast_message.str()
+    );
+
+    std::stringstream error_on_any_rank_message;
+    if (rank == size - 1)
+    {
+        error_on_any_rank_message << "Something went wrong in rank " << rank << ".";
+    }
+    else
+    {
+        error_on_any_rank_message << "Stopping because an error was detected on a different rank.";
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        {
+            KRATOS_ERROR_IF(mpi_world_communicator.ErrorIfTrueOnAnyRank(rank == size -1))
+            << "Something went wrong in rank " << rank << "." << std::endl;
+
+        },
+        error_on_any_rank_message.str()
+    );
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        {
+            KRATOS_ERROR_IF_NOT(mpi_world_communicator.ErrorIfFalseOnAnyRank(rank < size -1))
+            << "Something went wrong in rank " << rank << "." << std::endl;
+
+        },
+        error_on_any_rank_message.str()
+    );
+}
+
 }
 }

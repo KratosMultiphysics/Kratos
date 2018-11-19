@@ -288,6 +288,18 @@ class MPIDataCommunicator: public DataCommunicator
     bool IsDistributed() const override;
 
     ///@}
+    ///@name Helper functions for error checking in MPI
+    ///@{
+
+    bool BroadcastErrorIfTrue(bool Condition, const int SourceRank) const override;
+
+    bool BroadcastErrorIfFalse(bool Condition, const int SourceRank) const override;
+
+    bool ErrorIfTrueOnAnyRank(bool Condition) const override;
+
+    bool ErrorIfFalseOnAnyRank(bool Condition) const override;
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -355,12 +367,6 @@ class MPIDataCommunicator: public DataCommunicator
 
     template<class TDataType> void AllGatherDetail(
         const TDataType& rSendValues, TDataType& rRecvValues) const;
-
-    bool BroadcastErrorIfTrue(bool Condition, const int SourceRank) const;
-
-    bool ErrorIfTrueOnAnyRank(bool Condition) const;
-
-    bool ErrorIfFalseOnAnyRank(bool Condition) const;
 
     bool IsEqualOnAllRanks(const int LocalValue) const;
 

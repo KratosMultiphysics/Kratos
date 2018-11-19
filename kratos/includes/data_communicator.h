@@ -312,12 +312,26 @@ class DataCommunicator
 
     // Gather operations
 
+    /// Wrapper for MPI_Gather calls (int version).
+    /** @param rSendValues Values to be gathered from this rank.
+     *  @param rRecvValues Container for the result of the MPI_Allgather call.
+     *  @param DestinationRank The rank where the values will be gathered.
+     *  @note rRecvValues is only meaningful on rank DestinationRank.
+     *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
+     */
     virtual void Gather(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
         const int DestinationRank) const
     {}
 
+    /// Wrapper for MPI_Gather calls (double version).
+    /** @param rSendValues Values to be gathered from this rank.
+     *  @param rRecvValues Container for the result of the MPI_Allgather call.
+     *  @param DestinationRank The rank where the values will be gathered.
+     *  @note rRecvValues is only meaningful on rank DestinationRank.
+     *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
+     */
     virtual void Gather(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
@@ -340,11 +354,21 @@ class DataCommunicator
         const int DestinationRank) const
     {}
 
+    /// Wrapper for MPI_Allgather calls (int version).
+    /** @param rSendValues Values to be gathered from this rank.
+     *  @param rRecvValues Container for the result of the MPI_Allgather call.
+     *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
+     */
     virtual void AllGather(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues) const
     {}
 
+    /// Wrapper for MPI_Allgather calls (double version).
+    /** @param rSendValues Values to be gathered from this rank.
+     *  @param rRecvValues Container for the result of the MPI_Allgather call.
+     *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
+     */
     virtual void AllGather(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues) const
@@ -354,19 +378,126 @@ class DataCommunicator
     ///@name Inquiry
     ///@{
 
+    /// Retrun the parallel rank for this DataCommunicator.
+    /** This is a wrapper for calls to MPI_Comm_rank. */
     virtual int Rank() const
     {
         return 0;
     }
 
+    /// Retrun the parallel size for this DataCommunicator.
+    /** This is a wrapper for calls to MPI_Comm_size. */
     virtual int Size() const
     {
         return 1;
     }
 
+    /// Check whether this DataCommunicator is aware of parallelism.
     virtual bool IsDistributed() const
     {
         return false;
+    }
+
+    ///@}
+    ///@name Helper functions for error checking in MPI
+    ///@{
+
+    /// This function throws an error on ranks != Sourcerank if Condition evaluates to true.
+    /** This method is intended as a helper function to force processes to stop after an error
+     *  is detected on a given rank. A typical use case would be to completely stop the simulation
+     *  if an error is detected on the root process.
+     *  The intended usage is something like:
+     *
+     *  KRATOS_ERROR_IF( data_communicator_instance.BroadcastErrorIfTrue(Condition, Root) )
+     *  << "Detailed error message in Root rank";
+     *
+     *  If an error is detected, processes other than Root will fail with a generic error message.
+     *  Failing on the Root rank is left to the caller, so that a detailed error message can be
+     *  produced.
+     *
+     *  @note: This method should be called from all ranks, it will deadlock if called within
+     *  an if(rank == some_rank) statement.
+     *  @see MPIDataCommunicator.
+     *  @param Condition The condition to check.
+     *  @param SourceRank The rank where the condition is meaningful.
+     *  @return The result of evaluating Condition.
+     */
+    virtual bool BroadcastErrorIfTrue(bool Condition, const int SourceRank) const
+    {
+        return Condition;
+    }
+
+    /// This function throws an error on ranks != Sourcerank if Condition evaluates to false.
+    /** This method is intended as a helper function to force processes to stop after an error
+     *  is detected on a given rank. A typical use case would be to completely stop the simulation
+     *  if an error is detected on the root process.
+     *  The intended usage is something like:
+     *
+     *  KRATOS_ERROR_IF_NOT( data_communicator_instance.BroadcastErrorIfFalse(Condition, Root) )
+     *  << "Detailed error message in Root rank";
+     *
+     *  If an error is detected, processes other than Root will fail with a generic error message.
+     *  Failing on the Root rank is left to the caller, so that a detailed error message can be
+     *  produced.
+     *
+     *  @note: This method should be called from all ranks, it will deadlock if called within
+     *  an if(rank == some_rank) statement.
+     *  @see MPIDataCommunicator.
+     *  @param Condition The condition to check.
+     *  @param SourceRank The rank where the condition is meaningful.
+     *  @return The result of evaluating Condition.
+     */
+    virtual bool BroadcastErrorIfFalse(bool Condition, const int SourceRank) const
+    {
+        return Condition;
+    }
+
+    /// This function throws an error on ranks where Condition evaluates to false, if it evaluated to true on a different rank.
+    /** This method is intended as a helper function to force processes to stop after an error
+     *  is detected on one or more ranks.
+     *  The intended usage is something like:
+     *
+     *  KRATOS_ERROR_IF( data_communicator_instance.ErrorIfTrueOnAnyRank(Condition) )
+     *  << "Detailed error message in ranks where Condition == true.";
+     *
+     *  If an error is detected, processes other than those where it was detected will fail with
+     *  a generic error message.
+     *  Failing on the ranks where the condition is true is left to the caller,
+     *  so that a detailed error message can be produced.
+     *
+     *  @note: This method should be called from all ranks, it will deadlock if called within
+     *  an if(rank == some_rank) statement.
+     *  @see MPIDataCommunicator.
+     *  @param Condition The condition to check.
+     *  @return The result of evaluating Condition.
+     */
+    virtual bool ErrorIfTrueOnAnyRank(bool Condition) const
+    {
+        return Condition;
+    }
+
+    /// This function throws an error on ranks where Condition evaluates to true, if it evaluated to false on a different rank.
+    /** This method is intended as a helper function to force processes to stop after an error
+     *  is detected on one or more ranks.
+     *  The intended usage is something like:
+     *
+     *  KRATOS_ERROR_IF_NOT( data_communicator_instance.ErrorIfFalseOnAnyRank(Condition) )
+     *  << "Detailed error message in ranks where Condition == false.";
+     *
+     *  If an error is detected, processes other than those where it was detected will fail with
+     *  a generic error message.
+     *  Failing on the ranks where the condition is false is left to the caller,
+     *  so that a detailed error message can be produced.
+     *
+     *  @note: This method should be called from all ranks, it will deadlock if called within
+     *  an if(rank == some_rank) statement.
+     *  @see MPIDataCommunicator.
+     *  @param Condition The condition to check.
+     *  @return The result of evaluating Condition.
+     */
+    virtual bool ErrorIfFalseOnAnyRank(bool Condition) const
+    {
+        return Condition;
     }
 
     ///@}

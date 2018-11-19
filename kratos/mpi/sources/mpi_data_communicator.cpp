@@ -808,6 +808,16 @@ bool MPIDataCommunicator::BroadcastErrorIfTrue(bool Condition, const int SourceR
     return Condition;
 }
 
+bool MPIDataCommunicator::BroadcastErrorIfFalse(bool Condition, const int SourceRank) const
+{
+    int ierr = MPI_Bcast(&Condition,1,MPI_C_BOOL,SourceRank,mComm);
+    CheckMPIErrorCode(ierr, "MPI_Bcast");
+    const int rank = Rank();
+    KRATOS_ERROR_IF(!Condition && (rank != SourceRank) )
+    << "Rank " << rank << ": Stopping because of error in rank " << SourceRank << "." << std::endl;
+    return Condition;
+}
+
 bool MPIDataCommunicator::ErrorIfTrueOnAnyRank(bool Condition) const
 {
     bool or_condition;
