@@ -578,7 +578,9 @@ void MPIDataCommunicator::PrintInfo(std::ostream &rOStream) const
 }
 
 void MPIDataCommunicator::PrintData(std::ostream &rOStream) const
-{}
+{
+    rOStream << "This is rank " << Rank() << " of " << Size() << "." << std::endl;
+}
 
 // Error checking
 

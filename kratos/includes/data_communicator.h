@@ -519,7 +519,12 @@ class DataCommunicator
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream &rOStream) const {}
+    virtual void PrintData(std::ostream &rOStream) const
+    {
+        rOStream
+        << "Serial do-nothing version of the Kratos wrapper for MPI communication.\n"
+        << "Rank 0 of 1 assumed." << std::endl;
+    }
 
     ///@}
 
