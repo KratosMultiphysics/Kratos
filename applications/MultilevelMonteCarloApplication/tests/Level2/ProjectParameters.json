@@ -24,7 +24,7 @@
             "solver_type": "convection_diffusion_base_solver",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "../tests/Level0/Level0"
+                "input_filename": "../tests/Level2/Level2"
             },
             "computing_model_part_name" : "thermal_computing_domain",
             "material_import_settings" :{
