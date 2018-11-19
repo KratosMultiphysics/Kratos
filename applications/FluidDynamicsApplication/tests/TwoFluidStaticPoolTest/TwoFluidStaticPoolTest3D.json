@@ -1,46 +1,20 @@
- {
+{
     "problem_data"                     : {
         "problem_name"    : "TwoFluidStaticPoolTest3D",
-        "model_part_name" : "FluidModelPart",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
         "end_time"        : 0.1
     },
-    "output_configuration"             : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "time",
-            "output_control_type" : "time",
-            "output_frequency"    : 0.2,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","DENSITY","DYNAMIC_VISCOSITY"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
-    },
-    "restart_options"                  : {
-        "SaveRestart"      : "False",
-        "RestartFrequency" : 0,
-        "LoadRestart"      : "False",
-        "Restart_Step"     : 0
-    },
-    "solver_settings"                  : {
-        "solver_type"                 : "TwoFluids",
-        "model_import_settings"       : {
+    "solver_settings"             		: {
+        "model_part_name" 	: "FluidModelPart",
+        "domain_size"     	: 3,
+        "solver_type"   	: "TwoFluids",
+        "model_import_settings"       	: {
             "input_type"     : "mdpa",
             "input_filename" : "TwoFluidStaticPoolTest/TwoFluidStaticPoolTest3D"
         },
-        "echo_level"                  : 1,
+        "echo_level"                  : 0,
         "compute_reactions"           : false,
         "dynamic_tau"                 : 1.0,
         "maximum_iterations"          : 10,
@@ -57,7 +31,7 @@
         },
         "linear_solver_settings" : {
             "solver_type" : "SuperLUSolver",
-            "smoother_type" :"damped_jacobi",
+            "smoother_type" : "damped_jacobi",
             "krylov_type" : "lgmres",
             "coarsening_type" : "aggregation",
             "max_iteration" : 500,
@@ -71,31 +45,65 @@
             "coarse_enough" : 500
         }
     },
-    "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [],
-    "gravity"                          : [{
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorByDirectionProcess",
-        "Parameters"    : {
-            "model_part_name" : "Parts_Fluid",
-            "variable_name"   : "BODY_FORCE",
-            "modulus"         : 9.81,
-            "constrained"     : false,
-            "direction"       : [0.0,0.0,-1.0]
-        }
-    }],
-    "auxiliar_process_list"            : [{
-        "python_module" : "apply_distance_modification_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyDistanceModificationProcess",
-        "Parameters"    : {
-            "model_part_name"                        : "Parts_Fluid",
-            "distance_threshold"                     : 0.001,
-            "check_at_each_time_step"                : false,
-            "avoid_almost_empty_elements"            : true,
-            "deactivate_full_negative_elements"      : false,
-            "recover_original_distance_at_each_step" : false
-        }
-    }]
+	"processes"	:	{
+    	"initial_conditions_process_list"  : [],
+    	"boundary_conditions_process_list" : [],
+    	"gravity"                          : [{
+        	"python_module" : "assign_vector_by_direction_process",
+        	"kratos_module" : "KratosMultiphysics",
+        	"process_name"  : "AssignVectorByDirectionProcess",
+        	"Parameters"    : {
+            	"model_part_name" : "Parts_Fluid",
+            	"variable_name"   : "BODY_FORCE",
+            	"modulus"         : 9.81,
+            	"constrained"     : false,
+            	"direction"       : [0.0,0.0,-1.0]
+        	}
+    	}],
+    	"auxiliar_process_list"            : [{
+        	"python_module" : "apply_distance_modification_process",
+        	"kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        	"process_name"  : "ApplyDistanceModificationProcess",
+        	"Parameters"    : {
+            	"model_part_name"                        : "Parts_Fluid",
+            	"distance_threshold"                     : 0.001,
+            	"check_at_each_time_step"                : false,
+            	"avoid_almost_empty_elements"            : true,
+            	"deactivate_full_negative_elements"      : false,
+            	"recover_original_distance_at_each_step" : false
+        	}
+    	}]
+	},
+	"output_processes" 	:	{
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "FluidModelPart",
+                "output_name"            : "FluidModelPart",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "time",
+                        "output_control_type" : "time",
+                        "output_frequency"    : 0.1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","DENSITY","DYNAMIC_VISCOSITY"],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
+	}
 }

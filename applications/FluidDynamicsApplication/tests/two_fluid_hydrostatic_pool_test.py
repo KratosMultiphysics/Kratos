@@ -8,10 +8,12 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 try:
     import KratosMultiphysics.ExternalSolversApplication
     have_external_solvers = True
+except:
+    have_external_solvers = False
 
-import sys
 import time
 import os
+import sys
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
