@@ -686,7 +686,10 @@ public:
 
                 const double exponent = gamma/(gamma -1);
 
-                cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
+                if (base<0) 
+                    cp = 2*a*a*(pow(1e-5,gamma)-1)/(gamma*vinfinity_norm2);   //density correction for very high velocities. imposed: rho/rho_inf=1e-5           
+                else
+                    cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
                 //double cp1 = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
                 // double cp1 = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
@@ -735,9 +738,10 @@ public:
                 const double v_norm2 = inner_prod(v,v);
                 const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
                 const double exponent = gamma/(gamma -1);
-
-                cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);                
-                
+                if (base<0) 
+                    cp = 2*a*a*(pow(1e-5,gamma)-1)/(gamma*vinfinity_norm2);   //density correction for very high velocities. imposed: rho/rho_inf=1e-5           
+                else
+                    cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
                 //cp =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
             }
 
@@ -859,7 +863,7 @@ public:
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
                 }
 
-                array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
+                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
                 
                 for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             }
@@ -882,7 +886,7 @@ public:
                         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
                 }
 
-                array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
+                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
                 double vupnorm = inner_prod(vaux,vaux);
 
                 //taking only negative part
@@ -1188,7 +1192,7 @@ protected:
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
     }
 
     void ComputeVelocityUpperWakeElement(array_1d<double,Dim>& velocity)
@@ -1208,7 +1212,7 @@ protected:
         }         
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
     }
 
     void ComputeVelocityLowerWakeElement(array_1d<double,Dim>& velocity)
@@ -1230,7 +1234,7 @@ protected:
         
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
     }
 
     void CheckWakeCondition()
