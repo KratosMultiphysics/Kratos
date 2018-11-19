@@ -8,9 +8,9 @@ import MainSolid
 
 class PfemSolution(MainSolid.Solution):
 
-    def __init__(self, file_parameters = "ProjectParameters.json", file_name = None):
+    def __init__(self, Model, file_parameters = "ProjectParameters.json", file_name = None):
 
-        super(PfemSolution, self).__init__(file_parameters,file_name)
+        super(PfemSolution, self).__init__(Model, file_parameters, file_name)
 
     #### Main internal methods ####
 

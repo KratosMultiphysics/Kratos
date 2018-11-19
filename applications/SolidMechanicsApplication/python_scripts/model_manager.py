@@ -16,7 +16,7 @@ class ModelManager(object):
     adding nodal variables and dofs.
 
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -48,7 +48,7 @@ class ModelManager(object):
         self.settings["input_file_settings"].ValidateAndAssignDefaults(default_settings["input_file_settings"])
 
         # Set void model
-        self.model = self._create_model()
+        self.model = Model
         self.main_model_part = self._create_main_model_part()
 
         # Process Info
@@ -189,14 +189,8 @@ class ModelManager(object):
 
     #### Model manager internal methods ####
 
-    def _create_model(self):
-        model = KratosMultiphysics.Model()
-        return model
-
     def _create_main_model_part(self):
         # Defining the model_part
-        if not hasattr(self, 'model'):
-            self.model = self._create_model()
         main_model_part = self.model.CreateModelPart(self.settings["model_name"].GetString())
         return main_model_part
 

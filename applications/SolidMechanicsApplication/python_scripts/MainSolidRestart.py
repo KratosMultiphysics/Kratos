@@ -16,7 +16,7 @@ sys.stdout.flush()
 
 class Solution(object):
 
-    def __init__(self, file_parameters="ProjectParameters.json", file_name=None):
+    def __init__(self, Model, file_parameters="ProjectParameters.json", file_name=None):
 
         # Time control starts
         print(timer.ctime())
@@ -37,6 +37,9 @@ class Solution(object):
 
         # Set logger severity level
         self._set_severity_level()
+
+        # Start model manager
+        self.model = self._get_model(Model)
 
         # Defining the number of threads
         num_threads = self._get_parallel_size()
@@ -60,14 +63,11 @@ class Solution(object):
             print(message)
             print(" Trying to restart ")
             self.Restart()
-        
+
         self.Finalize()
-        
+
 
     def Initialize(self):
-
-        # Start model
-        self.model = self._get_model()
 
         # Start solver
         self.solver = self._get_solver()
@@ -262,7 +262,7 @@ class Solution(object):
         print(self._class_prefix()+" [Elapsed Time = %.2f" % (tfw - self.t0w), "seconds] (%.2f" % (tfp - self.t0p), "seconds of cpu/s time)")
         print(timer.ctime())
 
-        
+
     def Restart(self):
         problem_path = os.getcwd()
         label = None
@@ -286,14 +286,14 @@ class Solution(object):
                     self.ProjectParameters["model_settings"]["input_file_settings"].AddEmptyValue("type").SetString("rest")
                 else:
                     self.ProjectParameters["model_settings"]["input_file_settings"]["type"].SetString("rest")
-                    
+
                 if self.ProjectParameters["model_settings"]["input_file_settings"].Has("label") is False:
                     self.ProjectParameters["model_settings"]["input_file_settings"].AddEmptyValue("label").SetString(rest_label)
                 else:
                     self.ProjectParameters["model_settings"]["input_file_settings"]["label"].SetString(rest_label)
             self.Run()
-   
-        
+
+
     #### Main internal methods ####
 
     def _print_output(self):
@@ -348,7 +348,7 @@ class Solution(object):
 
     def _get_model(self):
         import model_manager
-        return model_manager.ModelManager(self.ProjectParameters["model_settings"])
+        return model_manager.ModelManager(Model, self.ProjectParameters["model_settings"])
 
     def _get_solver(self):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())

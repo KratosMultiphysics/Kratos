@@ -16,7 +16,7 @@ sys.stdout.flush()
 
 class Solution(object):
 
-    def __init__(self, file_parameters="ProjectParameters.json", file_name=None):
+    def __init__(self, Model, file_parameters="ProjectParameters.json", file_name=None):
 
         # Time control starts
         print(timer.ctime())
@@ -38,6 +38,9 @@ class Solution(object):
         # Set logger severity level
         self._set_severity_level()
 
+        # Start model manager
+        self.model = self._get_model(Model)
+
         # Defining the number of threads
         num_threads = self._get_parallel_size()
         if self.ProjectParameters.Has("problem_data"):
@@ -57,9 +60,6 @@ class Solution(object):
         self.Finalize()
 
     def Initialize(self):
-
-        # Start model
-        self.model = self._get_model()
 
         # Start solver
         self.solver = self._get_solver()
@@ -304,9 +304,9 @@ class Solution(object):
         processes_variables = self.processes.GetVariables()
         self.model.SetVariables(processes_variables)
 
-    def _get_model(self):
+    def _get_model(self, Model):
         import model_manager
-        return model_manager.ModelManager(self.ProjectParameters["model_settings"])
+        return model_manager.ModelManager(Model, self.ProjectParameters["model_settings"])
 
     def _get_solver(self):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
