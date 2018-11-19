@@ -650,17 +650,14 @@ public:
     {
         KRATOS_TRY
 
-        for (ModelPart::ElementsContainerType::iterator it = mr_mpm_model_part.ElementsBegin();
-                it != mr_mpm_model_part.ElementsEnd(); it++)
-        {
-            it->Check(mr_mpm_model_part.GetProcessInfo());
-        }
+        const auto& mpm_process_info  = mr_mpm_model_part.GetProcessInfo();
+        for (auto& r_element : mr_mpm_model_part.Elements())
+            r_element.Check(mpm_process_info);
 
-        for (ModelPart::ConditionsContainerType::iterator it = mr_grid_model_part.ConditionsBegin();
-                it != mr_grid_model_part.ConditionsEnd(); it++)
-        {
-            it->Check(mr_grid_model_part.GetProcessInfo());
-        }
+        const auto& grid_process_info = mr_grid_model_part.GetProcessInfo();
+        for (auto& r_condition : mr_grid_model_part.Conditions())
+            r_condition.Check(grid_process_info);
+
         return 0;
         KRATOS_CATCH("")
     }
