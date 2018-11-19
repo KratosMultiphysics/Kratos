@@ -82,7 +82,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const int number_of_control_points = GetGeometry().size();
+        const unsigned int number_of_control_points = GetGeometry().size();
 
         if (rResult.size() != 3 * number_of_control_points)
             rResult.resize(3 * number_of_control_points, false);
@@ -482,7 +482,7 @@ namespace Kratos
 		if ((Jacobian.size1() != rWorkingSpaceDimension) || (Jacobian.size2() != rLocalSpaceDimension))
 			Jacobian.resize(rWorkingSpaceDimension, rLocalSpaceDimension);
 		noalias(Jacobian) = ZeroMatrix(rWorkingSpaceDimension, rLocalSpaceDimension);
-        
+
 		for (unsigned int i = 0; i < number_of_control_points; i++)
         {
             for (unsigned int k = 0; k<rWorkingSpaceDimension; k++)

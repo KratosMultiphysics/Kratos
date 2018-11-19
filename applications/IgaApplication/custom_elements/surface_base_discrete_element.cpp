@@ -115,7 +115,7 @@ namespace Kratos
 
         for (int n = 0; n < mat_size; n++)
         {
-            for (unsigned int m = 0; m <= n; m++)
+            for (int m = 0; m <= n; m++)
             {
                 double nm = (SD[0] * SecondVariationsStrain.B11(n, m)
                     + SD[1] * SecondVariationsStrain.B22(n, m)
@@ -176,14 +176,14 @@ namespace Kratos
     {
         const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
-        const int number_of_control_points = GetGeometry().size();
-        const int mat_size = number_of_control_points * 3;
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 3;
 
         if (rB.size1() != mat_size || rB.size2() != mat_size)
             rB.resize(mat_size, mat_size);
         rB = ZeroMatrix(3, mat_size);
 
-        for (int r = 0; r<mat_size; r++)
+        for (int r = 0; r<static_cast<int>(mat_size); r++)
         {
             // local node number kr and dof direction dirr
             int kr = r / 3;
@@ -273,7 +273,7 @@ namespace Kratos
             Vector n = metric.g3 / metric.dA;
 
             double invdA = 1 / metric.dA;
-            double inddA3 = 1 / pow(metric.dA, 3);
+            double inddA3 = 1 / std::pow(metric.dA, 3);
 
             //Matrix S_dg3 = ZeroMatrix(3, mat_size);
             //Matrix S_dn = ZeroMatrix(3, mat_size);
@@ -314,7 +314,7 @@ namespace Kratos
             //    rB(2, r) = mInitialMetric.Q(2, 0)*dK_cu[0] + mInitialMetric.Q(2, 1)*dK_cu[1] + mInitialMetric.Q(2, 2)*dK_cu[2];
 
             //}
-            for (unsigned int i = 0; i < number_of_control_points; i++)
+            for (int i = 0; i < number_of_control_points; i++)
             {
                 unsigned int index = 3 * i;
                 //first line
@@ -693,16 +693,16 @@ namespace Kratos
         double density = this->GetProperties().GetValue(DENSITY);
         double mass = thickness * density * mInitialMetric.dA * integration_weight;
 
-        const int number_of_control_points = ShapeFunctionsN.size();
-        const int mat_size = 3 * number_of_control_points;
+        const unsigned int number_of_control_points = ShapeFunctionsN.size();
+        const unsigned int mat_size = 3 * number_of_control_points;
 
         if (rMassMatrix.size1() != mat_size)
             rMassMatrix.resize(mat_size, mat_size, false);
         rMassMatrix = ZeroMatrix(mat_size, mat_size);
 
-        for (int r = 0; r<number_of_control_points; r++)
+        for (unsigned int r = 0; r<number_of_control_points; r++)
         {
-            for (int s = 0; s<number_of_control_points; s++)
+            for (unsigned int s = 0; s<number_of_control_points; s++)
             {
                 rMassMatrix(3 * s, 3 * r) = ShapeFunctionsN(s)*ShapeFunctionsN(r) * mass;
                 rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
