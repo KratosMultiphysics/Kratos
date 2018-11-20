@@ -28,6 +28,10 @@ pybind11_add_module(KratosMPI MODULE THIN_LTO ${KRATOS_MPI_PYTHON_SOURCES})
 target_link_libraries(KratosMPI PRIVATE KratosMPICore KratosCore )
 # set_target_properties(KratosMPI PROPERTIES PREFIX "")
 
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosMPI)
+endif(USE_COTIRE MATCHES ON)
+
 # Install library
 install(TARGETS KratosMPICore DESTINATION libs )
 install(TARGETS KratosMPI DESTINATION libs)
