@@ -211,6 +211,8 @@ class ApplyChimeraProcessMonolithic : public Process
 		{
 			mrMainModelPart.RemoveMasterSlaveConstraint(i);
 		}
+		
+		//mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels();
 	}
 
 	void ExecuteBeforeOutputStep() override
@@ -428,11 +430,11 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		int MainDomainOrNot = 1 ;
 
-		for(int BG_i= 0; BG_i < NumberOfLevels ;BG_i++) // TODO change the names
+		for(int BG_i= 0; BG_i < NumberOfLevels ;BG_i++) // Iteration for selecting background
 		{
-			for(int BG_j= 0; BG_j < LevelTable[BG_i];BG_j++)
+			for(int BG_j= 0; BG_j < LevelTable[BG_i];BG_j++) //TODO change the names
 			{
-				for(int patch_i= BG_i+1; patch_i < NumberOfLevels ;patch_i++)
+				for(int patch_i= BG_i+1; patch_i < NumberOfLevels ;patch_i++) // Iteration for selecting patch
 				{
 					for(int patch_j= 0; patch_j < LevelTable[patch_i];patch_j++)
 					{

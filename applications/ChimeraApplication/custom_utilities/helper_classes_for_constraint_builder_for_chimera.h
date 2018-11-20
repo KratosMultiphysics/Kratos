@@ -9,12 +9,15 @@
 //  Main authors:    Aditya Ghantasala
 //
 //
+#if !defined (KRATOS_HELPER_CLASSES_FOR_CONSTRAINT_BUILDER_FOR_CHIMERA_H_INCLUDED)
+#define KRATOS_HELPER_CLASSES_FOR_CONSTRAINT_BUILDER_FOR_CHIMERA_H_INCLUDED
 
-#if !defined(AUXILIARY_GLOBAL_MASTER_SLAVE_RELATION)
-#define AUXILIARY_GLOBAL_MASTER_SLAVE_RELATION
+#include "utilities/helper_classes_for_constraint_builder.h"
+
 // System includes
 #include <vector>
 #include <unordered_map>
+
 // project includes
 #include "includes/define.h"
 #include "includes/dof.h"
@@ -32,9 +35,6 @@ namespace Internals
 ///@name Type Definitions
 ///@{
 
-/// Geometric definitions
-typedef Node<3> NodeType;
-typedef Geometry<NodeType> GeometryType;
 
 /// Matrix and vector definition
 typedef Kratos::Matrix MatrixType;
@@ -44,374 +44,13 @@ typedef Kratos::Vector VectorType;
 typedef IndexedObject::IndexType IndexType;
 typedef std::vector<IndexType> VectorIndexType;
 
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-/**
- * @brief this method checks if any of the nodes of the given rGeometry is marked SLAVE.
- * @param rGeometry The geometry to check for.
- */
-bool HasSlaveNode(GeometryType& rGeometry)
-{
-    for(auto& node : rGeometry)
-        if (node.IsDefined(SLAVE))
-            return node.Is(SLAVE);
-
-    return false;
-}
-
-/**
- * @brief   This function resizes the given matrix and vector pair to the new size provided.
- *          And Initializes the extra part added to zero.
- * @param   rMatrix matrix to be resized
- * @param   rVector vector to be resized
- * @param   FinalSize the final size of the resized quantities.
- */
-void ResizeAndInitializeLocalMatrices(MatrixType& rMatrix, VectorType& rVector,
-                                        IndexType FinalSize)
-{
-    KRATOS_TRY
-    // storing the initial matrix and vector and their properties
-    KRATOS_ERROR_IF(rMatrix.size1() != rVector.size())<<"ResizeAndInitializeLocalMatrices :: Dimension of the matrix and vector passed are not the same !"<<std::endl;
-    const IndexType initial_sys_size = rMatrix.size1();
-    MatrixType matrix(initial_sys_size, initial_sys_size);
-    noalias(matrix) = rMatrix;
-    VectorType vector(initial_sys_size);
-    noalias(vector) = rVector;
-
-    rMatrix.resize(FinalSize, FinalSize, false);
-    rVector.resize(FinalSize, false);
-    // reassigning the original part of the matrix
-    for (IndexType m = 0; m < initial_sys_size; ++m)
-    {
-        for (IndexType n = 0; n < initial_sys_size; ++n)
-        {
-            rMatrix(m,n) = matrix(m,n);
-        }
-        rVector(m) = vector(m);
-    }
-    // Making the extra part of matrix zero
-    for (IndexType m = initial_sys_size; m < FinalSize; ++m)
-    {
-        for (IndexType n = 0; n < FinalSize; ++n)
-        {
-            rMatrix(m, n) = 0.0;
-            rMatrix(n, m) = 0.0;
-        }
-        rVector(m) = 0.0;
-    }
-    KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::ResizeAndInitializeLocalMatrices failed ..");
-}
-
-///@}
-///@name Internals Classes
-///@{
-
-/**
- * @class AuxiliaryGlobalMasterSlaveConstraint
- * @ingroup KratosCore
- * @brief This class stores the information regarding the AuxiliaryGlobalMasterSlaveConstraint equation.
- *         Naming convention is defined like this. (each object of this class will store one equation in the given form
- *
- *   SlaveEquationId = w_1*MasterEquationId_1 + w_2*MasterEquationId_2 + ..... + w_n*MasterEquationId_n
- *
- *   This stores the condensed form of the MasterSlaveConstraint objects into one object. if only one relation for a slave is added as
- *   MasterSlaveConstraint then there will only be one entry for master for its corresponding AuxiliaryGlobalMasterSlaveConstraint.
- *   Currently this class is designed to hold only one equation. There is only one unique object of this class for each slave.
- *
- *   Future plan is to also make it possible to work with matrices (T) and vectors (for slave and master equation ids and constants)
- *
- *
- *  IMPORTANT : This is not seen by the user. This is a helper data structure which is exists only in the builder and solver.
- *
- * @author Aditya Ghantasala
- */
-class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    typedef IndexedObject BaseType;
-    typedef Internals::IndexType IndexType;
-    typedef Internals::MatrixType MatrixType;
-    typedef Internals::VectorType VectorType;
-    typedef std::vector<IndexType> EquationIdVectorType;
-
-    /// Pointer definition of AuxiliaryGlobalMasterSlaveConstraint
-    KRATOS_CLASS_POINTER_DEFINITION(AuxiliaryGlobalMasterSlaveConstraint);
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /**
-     * @brief Constructor of the class
-     * @param SlaveEquationId the slave equation id for which this class is being constructed.
-     */
-    explicit AuxiliaryGlobalMasterSlaveConstraint(IndexType SlaveEquationId = 0) : IndexedObject(SlaveEquationId),
-                                                                                    mLhsValue(0.0),
-                                                                                    mRhsValue(0.0)
-    {
-    }
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief Function to get the slave equation Id corresponding to this constraint.
-     * @param Constant the value of the constant to be assigned.
-     */
-    IndexType SlaveEquationId() const { return this->Id(); }
-
-    /**
-     * @brief Function to set the lefthand side of the constraint (the slave dof value)
-     * @param LhsValue the value of the lhs (the slave dof value)
-     */
-    void SetLeftHandSide(const double LhsValue)
-    {
-        mLockObject.SetLock();
-        mLhsValue = LhsValue;
-        mLockObject.UnSetLock();
-    }
-
-    /**
-     * @brief Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
-     * @param RHSValue the value of the lhs (the slave dof value)
-     */
-    void SetRightHandSide(const double RhsValue)
-    {
-        mRhsValue = RhsValue;
-    }
-    void UpdateRightHandSide(const double RhsValueUpdate)
-    {
-        mLockObject.SetLock();
-        mRhsValue = mRhsValue + RhsValueUpdate;
-        mLockObject.UnSetLock();
-    }
-
-    // Get number of masters for this slave
-    IndexType NumberOfMasters() const
-    {
-        return mMasterEquationIdVector.size();
-    }
-
-    /**
-     * @brief this determines the master equation IDs connected to this constraint
-     * @param rResult the elemental equation ID vector
-     */
-    virtual void EquationIdsVector(IndexType& rSlaveEquationId,
-                                  EquationIdVectorType& rMasterEquationIds)
-    {
-        if (rMasterEquationIds.size() != mMasterEquationIdVector.size())
-            rMasterEquationIds.resize(this->NumberOfMasters(), false);
-
-        rSlaveEquationId = this->SlaveEquationId();
-        rMasterEquationIds = mMasterEquationIdVector;
-    }
-
-    /**
-     * @brief   this is called during the assembling process in order
-     *          to calculate all elemental contributions to the global system
-     * matrix and the right hand side
-     * @param rMasterWeightsVector the elemental left hand side matrix
-     * @param rConstant the elemental right hand side
-     */
-    virtual void CalculateLocalSystem(VectorType &rMasterWeightsVector,
-                                      double &rConstant)
-    {
-        if (rMasterWeightsVector.size() != this->NumberOfMasters())
-            rMasterWeightsVector.resize(this->NumberOfMasters(), false);
-
-        for (IndexType i = 0; i < this->NumberOfMasters(); ++i)
-            rMasterWeightsVector(i) = mMasterWeightsVector[i];
-
-        /// Here this is required because, when in the builder and solver , we are actually imposing the constraint on the update
-        /// of the DOF value (residual formulation), this does not necessarily guarantee the DOFs themselves follow the constraint equation.
-        /// So, we calculate the LHS value and RHS value of the constraint equation (with DOF values) and if they are not
-        /// satisfying the constraint, we use the residual as the constant.
-        rConstant = mRhsValue - mLhsValue;
-
-    }
-
-    /**
-     * @brief This method clears the equations ids
-     */
-    void Clear()
-    {
-        //clearing the contents
-        mMasterEquationIdVector.clear();
-        mMasterWeightsVector.clear();
-    }
-
-    /**
-     * @brief This method adds a new master
-     */
-    void AddMaster(const IndexType MasterEquationId, const double Weight)
-    {
-        const int index = GetMasterEquationIdPosition(MasterEquationId);
-        if (index >= 0) {
-            #pragma omp atomic
-            mMasterWeightsVector[index] += Weight;
-        } else {
-            mLockObject.SetLock(); // locking for exclusive access to the vectors mMasterEquationIdVector and mMasterWeightsVectors
-            mMasterEquationIdVector.push_back(MasterEquationId);
-            mMasterWeightsVector.push_back(Weight);
-            mLockObject.UnSetLock(); // unlocking
-        }
-    }
-
-    /**
-     * @brief This method resers the LHS/RHS relationship
-     */
-    void Reset()
-    {
-        this->mLhsValue = 0.0;
-        this->mRhsValue = 0.0;
-    }
-
-    /**
-     * @brief This method returns the correspondin EquationId for the master
-     */
-    int GetMasterEquationIdPosition(const IndexType MasterEquationId) const
-    {
-        auto it = find(mMasterEquationIdVector.begin(), mMasterEquationIdVector.end(), MasterEquationId);
-        if (it != mMasterEquationIdVector.end())
-            return it - mMasterEquationIdVector.begin();
-        else
-            return -1;
-    }
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "AuxiliaryGlobalMasterSlaveConstraint # " << this->Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    double mLhsValue;
-    double mRhsValue;
-
-    EquationIdVectorType mMasterEquationIdVector;
-    std::vector<double> mMasterWeightsVector;
-
-    LockObject mLockObject;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const override
-    {
-        // No need to save anything from this class as they will be reconstructed
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
-    }
-
-    void load(Serializer &rSerializer) override
-    {
-        // No need to load anything from this class as they will be reconstructed
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
-    }
-
-    ///@}
-}; // End of ConstraintEquation class
-
-/**
- * @struct LocalIndices
- * @ingroup KratosCore
- * @brief This class stores the stores three different vectors of local internal, slave, master indices
- *          which are used in constraint builder and solver.
- *
- * @author Aditya Ghantasala
- */
-struct LocalIndices
-{
-    typedef Internals::IndexType IndexType;
-    typedef Internals::VectorIndexType VectorIndexType;
-
-    void Reset()
-    {
-        internal_index_vector.resize(0);
-        master_index_vector.resize(0);
-        slave_index_vector.resize(0);
-        container_master_weights.resize(0);
-        container_master_slaves.resize(0);
-        processed_master_indices.resize(0);
-    }
-
-    VectorIndexType internal_index_vector; // indicies corresponding to internal DOFs
-    VectorIndexType master_index_vector; // indicies corresponding to master DOFs
-    VectorIndexType slave_index_vector; // indicies corresponding to slave DOFs
-
-    std::vector<double> container_master_weights; // list of master weights in the order in which they are processed
-    std::vector<IndexType> container_master_slaves; // list of slave indices corresponding to each master processed
-    std::vector<IndexType> processed_master_indices; // list of master indices in the order in which they are processed.
-};
-
-///@}
-///@name Type Definitions
-///@{
-
-/// AuxiliaryGlobalMasterSlaveConstraint definitions
-typedef Internals::AuxiliaryGlobalMasterSlaveConstraint AuxiliaryGlobalMasterSlaveConstraintType;
-//typedef PointerVectorSet<AuxiliaryGlobalMasterSlaveConstraint, IndexedObject> GlobalMasterSlaveRelationContainerType;
-typedef std::unordered_map< IndexType, unique_ptr< AuxiliaryGlobalMasterSlaveConstraintType > > GlobalMasterSlaveRelationContainerType;
 
 ///@}
 ///@name Internal Classes
 ///@{
 
 /**
- * @class ConstraintImposer
+ * @class ConstraintImposerForChimera
  * @ingroup KratosCore
  * @author Aditya Ghantasala
  */
@@ -419,7 +58,8 @@ template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver
           > // Made template to include the possibility to work with both local and global matrices for imposing the constraints.
-class ConstraintImposer {
+class ConstraintImposerForChimera 
+{
 public:
     ///@name Type Definitions
     ///@{
@@ -438,17 +78,17 @@ public:
     ///@name Life Cycle
     ///@{
 
-    explicit ConstraintImposer(GlobalMasterSlaveRelationContainerType& rGlobalMasterSlaveRelations)
-        : mrGlobalMasterSlaveConstraints(rGlobalMasterSlaveRelations)
+    explicit ConstraintImposerForChimera(GlobalMasterSlaveRelationContainerType& rGlobalMasterSlaveRelations)
+                    : mrGlobalMasterSlaveConstraints(rGlobalMasterSlaveRelations)
     {
     }
 
-    ~ConstraintImposer()
+    ~ConstraintImposerForChimera()
     {
     }
 
-    ConstraintImposer( const ConstraintImposer &OtherObject) :
-                mrGlobalMasterSlaveConstraints (OtherObject.mrGlobalMasterSlaveConstraints) // copy constructor
+    ConstraintImposerForChimera( const ConstraintImposerForChimera &OtherObject) 
+                        : mrGlobalMasterSlaveConstraints (OtherObject.mrGlobalMasterSlaveConstraints) // copy constructor
     {
     }
 
@@ -551,7 +191,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
     GlobalMasterSlaveRelationContainerType& mrGlobalMasterSlaveConstraints;
     // For Formulating which are the internal, slave indices locally.
     LocalIndicesType mLocalIndices;

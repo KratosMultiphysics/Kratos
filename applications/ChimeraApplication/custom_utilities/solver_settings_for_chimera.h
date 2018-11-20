@@ -62,6 +62,9 @@ public:
     typedef typename StrategyType::Pointer StrategyPointerType;
     typedef typename Process::Pointer ProcessPointerType;
 
+    typedef typename StrategyType::TBuilderAndSolverType TBuilderAndSolverType;
+
+
     enum StrategyLabel { Velocity, Pressure, /*EddyViscosity,*/ NumLabels };
 
     //enum TurbulenceModelLabel { SpalartAllmaras, NumTurbModels };
@@ -118,7 +121,8 @@ public:
     virtual void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const std::size_t MaxIter) = 0;
+                             const std::size_t MaxIter,
+                             typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver) = 0;
 
     /* virtual void SetTurbulenceModel(TurbulenceModelLabel const& rTurbulenceModel,
                                     typename TLinearSolver::Pointer pLinearSolver,

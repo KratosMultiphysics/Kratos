@@ -106,7 +106,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
     typedef std::vector<IndexType> VectorIndexType;
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef Vector VectorType;
-    typedef Internals::ConstraintImposer<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerType;
+    typedef Internals::ConstraintImposerForChimera<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerForChimeraType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -558,7 +558,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
     {
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
-        ConstraintImposerType constraint_imposer(mGlobalMasterSlaveConstraints);
+        ConstraintImposerForChimeraType constraint_imposer(mGlobalMasterSlaveConstraints);
 
         const std::size_t equation_size = BaseType::mEquationSystemSize;
 
@@ -706,7 +706,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
         KRATOS_TRY
 
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-        ConstraintImposerType constraint_imposer(mGlobalMasterSlaveConstraints);
+        ConstraintImposerForChimeraType constraint_imposer(mGlobalMasterSlaveConstraints);
 
         // Getting the elements from the model
         const int nelements = static_cast<int>(rModelPart.Elements().size());

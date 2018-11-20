@@ -184,16 +184,21 @@ class NavierStokesSolverFractionalStepForChimera(FluidSolver):
                                                                         self.settings["reform_dofs_at_each_step"].GetBool())
 
         self.solver_settings.SetEchoLevel(self.settings["echo_level"].GetInt())
-
+        
+        builder_and_solver_velocity = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.velocity_linear_solver)
+        builder_and_solver_pressure = KratosChimera.ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera(self.pressure_linear_solver)
+       
         self.solver_settings.SetStrategy(KratosChimera.ChimeraStrategyLabel.Velocity,
                                          self.velocity_linear_solver,
                                          self.settings["velocity_tolerance"].GetDouble(),
-                                         self.settings["maximum_velocity_iterations"].GetInt())
+                                         self.settings["maximum_velocity_iterations"].GetInt(),
+                                         builder_and_solver_velocity)
 
         self.solver_settings.SetStrategy(KratosChimera.ChimeraStrategyLabel.Pressure,
                                          self.pressure_linear_solver,
                                          self.settings["pressure_tolerance"].GetDouble(),
-                                         self.settings["maximum_pressure_iterations"].GetInt())
+                                         self.settings["maximum_pressure_iterations"].GetInt(),
+                                         builder_and_solver_pressure)
 
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:

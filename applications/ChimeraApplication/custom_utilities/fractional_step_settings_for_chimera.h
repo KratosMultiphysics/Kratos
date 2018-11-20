@@ -11,7 +11,6 @@
 
 // Project includes
 #include "includes/define.h"
-//#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
@@ -23,10 +22,7 @@
 #include "processes/process.h"
 
 // Application includes
-//#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_utilities/solver_settings_for_chimera.h"
-#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc_chimera.h"
-//#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_constraints_for_chimera.h"
 
 namespace Kratos
 {
@@ -70,8 +66,11 @@ public:
     typedef typename BaseType::StrategyType StrategyType;
     typedef typename BaseType::StrategyPointerType StrategyPointerType;
     typedef typename BaseType::ProcessPointerType ProcessPointerType;
-
     typedef typename BaseType::StrategyLabel StrategyLabel;
+    //typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+
+
     //typedef typename BaseType::TurbulenceModelLabel TurbulenceModelLabel;
 
     ///@}
@@ -107,14 +106,15 @@ public:
     void SetStrategy(StrategyLabel const& rStrategyLabel,
                              typename TLinearSolver::Pointer pLinearSolver,
                              const double Tolerance,
-                             const std::size_t MaxIter) override
+                             const std::size_t MaxIter,
+                             typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver) override
     {
         KRATOS_TRY;
 
         // pointer types for solution strategy construcion
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
-//         typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
-        typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+        //typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
+        //typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 
         // Default, fixed flags
         bool CalculateReactions = false;
@@ -130,8 +130,8 @@ public:
         if ( rStrategyLabel == BaseType::Velocity )
         {
             // Velocity Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithMpcChimera<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                                (pLinearSolver));
+            //BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver >
+                                                                                //(pLinearSolver));
 
             SchemePointerType pScheme;
             //initializing fractional velocity solution step
@@ -149,18 +149,18 @@ public:
 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+                                                                        (rModelPart, pScheme, pLinearSolver, pNewBuilderAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
 
         }
         else if ( rStrategyLabel == BaseType::Pressure )
         {
             // Pressure Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithMpcChimera<TSparseSpace, TDenseSpace, TLinearSolver > (pLinearSolver));
+            //BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera<TSparseSpace, TDenseSpace, TLinearSolver > (pLinearSolver));
             SchemePointerType pScheme = SchemePointerType(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy
             BaseType::mStrategies[rStrategyLabel] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver >
-                                                                        (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+                                                                        (rModelPart, pScheme, pLinearSolver, pNewBuilderAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
         }
         else
         {

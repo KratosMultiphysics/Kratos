@@ -650,19 +650,18 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 	void CalculateShearAndPressureForceOnStructure(ModelPart &rBoundaryModelPart)
 	{
-	for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
-	{	
-		array_1d<double, 3> zero;
-		zero[0] = 0.0;
-		zero[1] = 0.0;
-		zero[2] = 0.0;
-		inode->GetSolutionStepValue(PRESSURE_FORCE) = zero;
-		double temp = MathUtils<double>::Dot(inode->GetSolutionStepValue(REACTION, 1),inode->GetSolutionStepValue(NORMAL));
-        inode->GetSolutionStepValue(PRESSURE_FORCE) = temp* inode->GetSolutionStepValue(NORMAL);
-        inode->GetSolutionStepValue(SHEAR_FORCE)= inode->GetSolutionStepValue(REACTION, 1)-inode->GetSolutionStepValue(PRESSURE_FORCE);
+		for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
+		{	
+			array_1d<double, 3> zero;
+			zero[0] = 0.0;
+			zero[1] = 0.0;
+			zero[2] = 0.0;
+			inode->GetSolutionStepValue(PRESSURE_FORCE) = zero;
+			double temp = MathUtils<double>::Dot(inode->GetSolutionStepValue(REACTION, 1),inode->GetSolutionStepValue(NORMAL));
+			inode->GetSolutionStepValue(PRESSURE_FORCE) = temp* inode->GetSolutionStepValue(NORMAL);
+			inode->GetSolutionStepValue(SHEAR_FORCE)= inode->GetSolutionStepValue(REACTION, 1)-inode->GetSolutionStepValue(PRESSURE_FORCE);
+		}
 	}
-}
-
 
 	void CalculateNormal2D(ConditionsArrayType::iterator it, array_1d<double, 3> &An, array_1d<double, 3> &centre, int sign)
 	{
@@ -788,7 +787,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 	void ApplyConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
 	{
-
 		for (auto slaveMasterDofMap : pMpc->mDofConstraints)
 		{
 			SlavePairType slaveDofMap = slaveMasterDofMap.first;
@@ -801,7 +799,6 @@ class ApplyChimeraProcessFractionalStep : public Process
 			it->GetSolutionStepValue(0) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
 			it->GetSolutionStepValue(1) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
 		}
-
 		KRATOS_INFO( "Conservative Correction of " )<< pMpc->mName << " is applied" << std::endl;
 	}
 
@@ -826,6 +823,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 		DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
 		AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
 		mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", number_of_constraints, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant); 
+		
 	}
 
 	void AddMasterSlaveRelationWithNodeIdsAndVariableComponents(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableComponentType &MasterVariable, IndexType SlaveNodeId, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
@@ -848,6 +846,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 		DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
 		AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
 		mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", number_of_constraints, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant); 
+		
 	}
 
 	void AddMasterSlaveRelationWithNodeIdsAndVariable(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableType &MasterVariable, IndexType SlaveNodeId, VariableType &SlaveVariable, double weight, double constant = 0.0)

@@ -242,7 +242,6 @@ class CustomHoleCuttingProcess
 					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
 					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
 				}
-
 			}
 		}
 
