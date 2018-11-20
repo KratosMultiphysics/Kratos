@@ -229,6 +229,8 @@ public:
     }
 };
 
+using NodeSurface3D = ANurbs::Surface<NodeSurfaceGeometry3D>;
+
 }
 
 #endif // !defined(KRATOS_NODE_SURFACE_GEOMETRY_3D_H_INCLUDED)
