@@ -17,6 +17,8 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_MPI_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/sources/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
+###############################################################################
+
 ## Define library for the C++ layer
 add_library(KratosMPICore SHARED ${KRATOS_MPI_SOURCES} ${KRATOS_MPI_TEST_SOURCES})
 target_link_libraries(KratosMPICore PUBLIC KratosCore ${MPI_LIBRARIES} )
@@ -29,6 +31,7 @@ target_link_libraries(KratosMPI PRIVATE KratosMPICore KratosCore )
 # set_target_properties(KratosMPI PROPERTIES PREFIX "")
 
 ###############################################################################
+
 if(USE_COTIRE MATCHES ON)
     cotire(KratosMPICore)
     cotire(KratosMPI)
