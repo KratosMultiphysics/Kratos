@@ -2,10 +2,18 @@ from __future__ import absolute_import, division # makes KratosMultiphysics back
 import numpy as np
 # import time
 
-# Import pycompss
-from pycompss.api.task import task
-from pycompss.api.api import compss_wait_on
-from pycompss.api.parameter import *
+# # Import pycompss
+# from pycompss.api.task import task
+# from pycompss.api.api import compss_wait_on
+# from pycompss.api.parameter import *
+
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+# get_value_from_remote is the equivalent of compss_wait_on
+# in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
+
 
 '''
 This file contains all the functions to perform the Monte Carlo (MC) algorithm described in [PNL17]
@@ -19,7 +27,7 @@ M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
 M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
 s_n^2 = M_{2,n} / (n-1)
 '''
-@task(returns=3)
+@ExaquteTask(returns=3)
 def update_onepass_M_VAR(sample, old_mean, old_M2, nsam):
     delta = np.subtract(sample, old_mean)
     if nsam == 1:

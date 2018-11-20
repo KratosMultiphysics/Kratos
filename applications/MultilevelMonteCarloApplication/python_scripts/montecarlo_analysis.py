@@ -16,9 +16,16 @@ KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logg
 from analysis_stage import AnalysisStage
 
 # Import pycompss
-from pycompss.api.task import task
-from pycompss.api.api import compss_wait_on
-from pycompss.api.parameter import *
+# from pycompss.api.task import task
+# from pycompss.api.api import compss_wait_on
+# from pycompss.api.parameter import *
+
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+# get_value_from_remote is the equivalent of compss_wait_on
+# in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 
 # Import Monte Carlo library
 import mc_utilities as mc
@@ -132,7 +139,7 @@ input:
 output:
         QoI         : Quantity of Interest
 '''
-@task(returns=1)
+@ExaquteTask(returns=1)
 def execution_task(model, parameters):
     # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     sample = GenerateBetaSample()
@@ -151,7 +158,7 @@ output:
         ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
-@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=1)
+@ExaquteTask(returns=1)
 def exact_execution_task(model, parameters):
     # parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     sample = 1.0
@@ -170,15 +177,15 @@ output:
         serialized_model      : model serialized
         serialized_parameters : project parameters serialized
 '''
-@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=2)
-def serialize_model_projectparameters(model_part_file_name, parameter_file_name):
-# @task(parameter_file_name=FILE_IN,returns=2)
-# def serialize_model_projectparameters(parameter_file_name):
+# @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=2)
+# def serialize_model_projectparameters(model_part_file_name, parameter_file_name):
+@ExaquteTask(parameter_file_name=FILE_IN,returns=2)
+def serialize_model_projectparameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
     model = KratosMultiphysics.Model()      
-    local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
+    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     fake_sample = 1.0
 
     simulation = MonteCarloAnalysis(model,local_parameters, fake_sample)
@@ -199,7 +206,7 @@ input :
 output :
         relative_error        : relative error
 '''
-@task(returns=1)
+@ExaquteTask(returns=1)
 def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
@@ -220,15 +227,15 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "../tests/Level0/ProjectParameters.json"
+        parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level0/ProjectParameters.json"
 
-    with open(parameter_file_name,'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters = parameters # in case there are more parameters file, we rename them
+    # with open(parameter_file_name,'r') as parameter_file:
+    #     parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    # local_parameters = parameters # in case there are more parameters file, we rename them
 
     '''create a serialization of the model and of the project parameters'''
-    serialized_model,serialized_parameters = serialize_model_projectparameters(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
-    # serialized_model,serialized_parameters = serialize_model_projectparameters(parameter_file_name)
+    # serialized_model,serialized_parameters = serialize_model_projectparameters(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
+    serialized_model,serialized_parameters = serialize_model_projectparameters(parameter_file_name)
 
 
     number_samples = 10
@@ -249,9 +256,9 @@ if __name__ == '__main__':
     '''Evaluation of the relative error between the computed mean value and the expected value of the QoI'''
     relative_error = compare_mean(MC_mean,ExactExpectedValueQoI)
     # print("Values QoI:",Qlist)
-    MC_mean = compss_wait_on(MC_mean)
-    ExactExpectedValueQoI = compss_wait_on(ExactExpectedValueQoI)
-    relative_error = compss_wait_on(relative_error)
+    MC_mean = get_value_from_remote(MC_mean)
+    ExactExpectedValueQoI = get_value_from_remote(ExactExpectedValueQoI)
+    relative_error = get_value_from_remote(relative_error)
     print("\nMC mean = ",MC_mean,"exact mean = ",ExactExpectedValueQoI)
     print("relative error: ",relative_error)
 
