@@ -416,7 +416,7 @@ private:
 
         // In order to avoid recursivity...
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         pConstitutiveLaw->CalculateMaterialResponse(rValues, rStressMeasure);
     }
 
