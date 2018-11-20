@@ -70,11 +70,11 @@ public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     // Definition of the perturbation coefficients
-    static constexpr double PerturbationCoefficient1 = 1.0e-4;
-    static constexpr double PerturbationCoefficient2 = 1.0e-8;
+    static constexpr double PerturbationCoefficient1 = 1.0e-5;
+    static constexpr double PerturbationCoefficient2 = 1.0e-10;
 
     // Definition of the perturbation threshold
-    static constexpr double PerturbationThreshold = 1.0e-5;
+    static constexpr double PerturbationThreshold = 1.0e-6;
 
     ///@}
     ///@name Life Cycle
@@ -125,7 +125,7 @@ public:
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
             // Calculate the perturbation
             double pertubation;
-            CalculatePerturbation(r_perturbed_strain, i_component, pertubation);
+            CalculatePerturbation(unperturbed_strain_vector_gp, i_component, pertubation);
 
             // We check that the perturbation has a threshold value of PerturbationThreshold
             if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
@@ -182,7 +182,7 @@ public:
 
                 // Calculate the perturbation
                 double pertubation;
-                CalculatePerturbationFiniteDeformation(perturbed_deformation_gradient, i_component, j_component, pertubation);
+                CalculatePerturbationFiniteDeformation(unperturbed_deformation_gradient_gp, i_component, j_component, pertubation);
 
                 // We check that the perturbation has a threshold value of PerturbationThreshold
                 if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
