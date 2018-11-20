@@ -82,12 +82,12 @@ namespace Kratos
         struct TrimmingRange
         {
             int trim_index;
-            Vector range;
+            //ANurbs::Interval<double> range;
 
             TrimmingRange(const int& rTrimIndex, const Vector& rRange)
             {
                 trim_index = rTrimIndex;
-                range = rRange;
+                //range = ANurbs::Interval<double>(rRange[0], rRange[1]);
             }
         };
 
@@ -111,12 +111,25 @@ namespace Kratos
 
         bool IsCouplingEdge();
 
-       void GetGeometryIntegration(ModelPart& rModelPart, 
-           const std::string& rType,
-           const std::string& rName,
-           const int& rPropertiesId,
-           const int& rShapeFunctionDerivativesOrder,
-           std::vector<std::string> rVariables);
+        void GetIntegrationGeometry(
+            ModelPart& rModelPart,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
+
+        void BrepEdge::GetIntegrationBrep(
+            ModelPart& rModelPart,
+            const int& trim_index,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
+
+        const EdgeTopology GetEdgeTopology(
+            const int& rTopologyIndex) const;
 
         ///Constructor
         BrepEdge(

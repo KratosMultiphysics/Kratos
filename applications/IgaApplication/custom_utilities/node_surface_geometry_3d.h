@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/variables.h"
+#include "iga_application_variables.h"
 #include "anurbs.h"
 
 namespace Kratos {
@@ -228,6 +229,8 @@ public:
         }, U, V, Order);
     }
 };
+
+using NodeSurface3D = ANurbs::Surface<NodeSurfaceGeometry3D>;
 
 }
 

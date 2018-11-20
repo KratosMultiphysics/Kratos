@@ -62,8 +62,9 @@ namespace Kratos
             for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
             {
                 int brep_id = element_parameter["brep_ids"][j].GetInt();
-                bool success = m_brep_model_vector[0].GetIntegrationDomain(
-                    sub_model_part, brep_id, type, name, property_id, shape_function_derivatives_order, variable_list);
+                bool success = m_brep_model_vector[0].GetIntegrationDomainGeometry(
+                    sub_model_part, brep_id, type, name, 
+                    property_id, shape_function_derivatives_order, variable_list);
             }
         }
     }

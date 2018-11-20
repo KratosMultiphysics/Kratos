@@ -29,85 +29,121 @@ namespace Kratos
             return false;
     }
 
-    void BrepEdge::GetGeometryIntegration(ModelPart& rModelPart, 
+    const BrepEdge::EdgeTopology BrepEdge::GetEdgeTopology(
+        const int& rTopologyIndex) const
+    {
+        KRATOS_ERROR_IF(rTopologyIndex >= m_brep_edge_topology_vector.size()) 
+            << "Number of topology references smaller than selected index!" << std::endl;
+
+        return m_brep_edge_topology_vector[rTopologyIndex];
+    }
+
+    void BrepEdge::GetIntegrationGeometry(ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
         const int& rPropertiesId,
         const int& rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        auto spans = m_node_curve_geometry_3d->Spans();
-
         Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
 
-        for (int i = 0; i < spans.size(); ++i)
-        {
-            ANurbs::Interval<double> domain(spans[i].T0(), spans[i].T1());
+        //for (int trims = 0; trims < m_trimming_range_vector.size(); ++trims)
+        //{
+            //auto this_curve = Kratos::make_unique<ANurbs::Curve3D>(
+            //    m_node_curve_geometry_3d, m_trimming_range_vector[trims].range);
+            auto spans = m_node_curve_geometry_3d->Spans();
 
-            int number_of_points = m_node_curve_geometry_3d->Degree() + 1;
-            auto integration_points = ANurbs::IntegrationPoints<double>::Points1(number_of_points, domain);
-
-            ANurbs::CurveShapeEvaluator<double> shape(m_node_curve_geometry_3d->Degree(), rShapeFunctionDerivativesOrder);
-
-            for (int j = 0; j < integration_points.size(); ++j)
+            for (int i = 0; i < spans.size(); ++i)
             {
-                Vector local_coordinates(1);
-                local_coordinates[0] = integration_points[j].t;
+                ANurbs::Interval<double> domain(spans[i].T0(), spans[i].T1());
 
-                shape.Compute(m_node_curve_geometry_3d->Knots(), integration_points[j].t);
+                int number_of_points = m_node_curve_geometry_3d->Degree() + 1;
+                auto integration_points = ANurbs::IntegrationPoints<double>::Points1(number_of_points, domain);
 
-                Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
-                Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 1);
+                ANurbs::CurveShapeEvaluator<double> shape(m_node_curve_geometry_3d->Degree(), rShapeFunctionDerivativesOrder);
 
-                Element::GeometryType::PointsArrayType non_zero_control_points;
-                //std::vector<Node<3>::Pointer> cps;
-                //std::vector<int> cp_ids;
-                for (int m = shape.FirstNonzeroPole(); m < shape.LastNonzeroPole() + 1; ++m)
+                for (int j = 0; j < integration_points.size(); ++j)
                 {
-                    //cp_ids.push_back(m_node_curve_geometry_3d->Node(m)->Id());
-                    //cps.push_back(m_node_curve_geometry_3d->Node(m));
-                    non_zero_control_points.push_back(m_node_curve_geometry_3d->Node(m));
+                    Vector local_coordinates(1);
+                    local_coordinates[0] = integration_points[j].t;
 
-                    N_0(m) = shape(0, m);
+                    shape.Compute(m_node_curve_geometry_3d->Knots(), integration_points[j].t);
 
-                    N_1(m, 0) = shape(1, m);
-                }
-                if (rType == "element")
-                {
-                    int id = 0;
-                    if (rModelPart.GetRootModelPart().Elements().size()>0)
-                        id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
-                    
-                    auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, this_property);
+                    Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
+                    Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 1);
 
-                    element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                    element->SetValue(INTEGRATION_WEIGHT, integration_points[j].weight);
-                }
-                if (rType == "condition")
-                {
-                    int id = 0;
-                    if (rModelPart.GetRootModelPart().Conditions().size()>0)
-                        int id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-                    auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, this_property);
-
-                    condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
-                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                    condition->SetValue(INTEGRATION_WEIGHT, integration_points[j].weight);
-                }
-                // for strong application of properties on control point nodes
-                if (rType == "node")
-                {
-                    for (int sh_nonzero = 0; sh_nonzero < N_0.size(); ++sh_nonzero)
+                    Element::GeometryType::PointsArrayType non_zero_control_points;
+                    //std::vector<Node<3>::Pointer> cps;
+                    //std::vector<int> cp_ids;
+                    for (int m = shape.FirstNonzeroPole(); m < shape.LastNonzeroPole() + 1; ++m)
                     {
-                        if (N_0(sh_nonzero) > 0.0)
+                        //cp_ids.push_back(m_node_curve_geometry_3d->Node(m)->Id());
+                        //cps.push_back(m_node_curve_geometry_3d->Node(m));
+                        non_zero_control_points.push_back(m_node_curve_geometry_3d->Node(m));
+
+                        N_0(m) = shape(0, m);
+
+                        N_1(m, 0) = shape(1, m);
+                    }
+                    if (rType == "element")
+                    {
+                        int id = 0;
+                        if (rModelPart.GetRootModelPart().Elements().size() > 0)
+                            id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+
+                        auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, this_property);
+
+                        element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
+                        element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
+                        element->SetValue(INTEGRATION_WEIGHT, integration_points[j].weight);
+                    }
+                    if (rType == "condition")
+                    {
+                        int id = 0;
+                        if (rModelPart.GetRootModelPart().Conditions().size() > 0)
+                            int id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+                        auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, this_property);
+
+                        condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
+                        condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
+                        condition->SetValue(INTEGRATION_WEIGHT, integration_points[j].weight);
+                    }
+                    // for strong application of properties on control point nodes
+                    if (rType == "node")
+                    {
+                        for (int sh_nonzero = 0; sh_nonzero < N_0.size(); ++sh_nonzero)
                         {
-                            rModelPart.AddNode(non_zero_control_points(sh_nonzero));
+                            if (N_0(sh_nonzero) > 0.0)
+                            {
+                                rModelPart.AddNode(non_zero_control_points(sh_nonzero));
+                            }
                         }
                     }
                 }
-            }
+            //}
         }
+    }
+
+    void BrepEdge::GetIntegrationBrep(
+        ModelPart& rModelPart,
+        const int& trim_index,
+        const std::string& rType,
+        const std::string& rName,
+        const int& rPropertiesId,
+        const int& rShapeFunctionDerivativesOrder,
+        std::vector<std::string> rVariables)
+    {
+        //for (int ep = 0; ep < m_embedded_points.size(); ++ep)
+        //{
+        //    if (m_embedded_points[ep].trim_index == trim_index)
+        //    {
+        //        ANurbs::CurveShapeEvaluator<double> shape(
+        //            m_node_curve_geometry_3d->Degree(), 
+        //            rShapeFunctionDerivativesOrder);
+
+        //        shape.Compute(m_node_curve_geometry_3d->Knots(), m_embedded_points[ep].local_parameter);
+        //    }
+        //}
     }
 
     ///Constructor

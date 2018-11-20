@@ -816,12 +816,12 @@ void AddCustomUtilitiesToPython(
     RegisterIntegrationPoint2(m, "IntegrationPoint2");
     RegisterIntegrationPoints(m, "IntegrationPoints");
 
-    py::class_<BrepJsonIO, typename BrepJsonIO::Pointer>(m, "BrepJsonIO")
-        .def(py::init<>())
+    pybind11::class_<BrepJsonIO, typename BrepJsonIO::Pointer>(m, "BrepJsonIO")
+        .def(pybind11::init<>())
         ;
 
-    py::class_<NurbsBrepModeler, typename NurbsBrepModeler::Pointer>(m, "NurbsBrepModeler")
-        .def(py::init<ModelPart&>())
+    pybind11::class_<NurbsBrepModeler, typename NurbsBrepModeler::Pointer>(m, "NurbsBrepModeler")
+        .def(pybind11::init<ModelPart&>())
         .def("ImportGeometry", &NurbsBrepModeler::ImportGeometry)
         .def("ImportModelPart", &NurbsBrepModeler::ImportModelPart)
         ;

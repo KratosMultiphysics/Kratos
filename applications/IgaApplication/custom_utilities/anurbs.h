@@ -14,7 +14,7 @@
 // System includes
 
 // External includes
-#include <ANurbs/Core>
+#include <ANurbs\include\ANurbs\Core>
 
 // Project includes
 

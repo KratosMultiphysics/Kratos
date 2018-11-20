@@ -2,7 +2,6 @@
 #define  KRATOS_BREP_MODEL_H_INCLUDED
 
 // System includes
-#include <vector>
 
 // Project includes
 #include "iga_application.h"
@@ -12,6 +11,7 @@
 #include "brep_edge.h"
 #include "brep_vertex.h"
 
+#include <ANurbs/Integration>
 //#include "..\nurbs_brep_modeler.h"
 
 namespace Kratos
@@ -32,7 +32,7 @@ namespace Kratos
         ///@name Life Cycle 
         ///@{
 
-        bool GetIntegrationDomain(
+        bool GetIntegrationDomainGeometry(
             ModelPart& rModelPart, 
             int& brep_id, 
             const std::string& rType,
@@ -40,6 +40,28 @@ namespace Kratos
             const int& rPropertiesId,
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
+
+        bool GetIntegrationDomainBrep(
+            ModelPart& rModelPart,
+            int& brep_id,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
+
+        void GetIntegrationDomainBrepCoupling(
+            ModelPart& rModelPart,
+            int& brep_id,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
+
+        //BrepFace& GetFaceNonConst(const int& brep_id);
+
+        const BrepFace& GetFace(const int& brep_id) const;
 
         std::vector<BrepFace>&   GetFaceVector();
         std::vector<BrepEdge>&   GetEdgeVector();

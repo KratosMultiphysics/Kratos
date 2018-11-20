@@ -247,9 +247,6 @@ namespace Kratos
         array_1d<double, 3>& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        if (rOutput.size() != 1)
-            rOutput.resize(1);
-
         if (rVariable == VELOCITY) {
             const int& number_of_control_points = GetGeometry().size();
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);

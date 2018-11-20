@@ -380,8 +380,8 @@ class IgaSolver(PythonSolver):
 
     def _create_convergence_criterion(self):
         import base_convergence_criteria_factory
-        convergence_criterion = base_convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
-        return convergence_criterion.mechanical_convergence_criterion
+        convergence_criterion = base_convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
+        return convergence_criterion.convergence_criterion
 
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]

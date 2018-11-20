@@ -5,19 +5,20 @@
 // System includes
 
 // External includes
+#include <ANurbs/Integration>
+//#include <ANurbs/Core>
 
 // Project includes
 #include "brep_trimming_curve.h"
 #include "brep_boundary_loop.h"
 
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
-#include "../node_surface_geometry_3d.h"
+#include "custom_utilities/node_surface_geometry_3d.h"
 
 // Kratos includes
 #include "includes/model_part.h"
-#include "includes/node.h"
+
 
 namespace Kratos
 {
@@ -89,21 +90,23 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
-        void GetGeometryIntegration(ModelPart& rModelPart,
+        void GetGeometryIntegration(
+            ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
             const int& rPropertiesId,
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
-        void GetGeometryIntegrationTrimmed(ModelPart& rModelPart,
+        void GetGeometryIntegrationTrimmed(
+            ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
             const int& rPropertiesId,
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
-        void BrepFace::CreateIntegrationElementsConditions(
+        void CreateIntegrationElementsConditions(
             std::vector<ANurbs::IntegrationPoint2<double>> rIntegrationPoints,
             ModelPart& rModelPart,
             const std::string& rType,
@@ -111,6 +114,48 @@ namespace Kratos
             const int& rPropertiesId,
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
+
+        void BrepFace::GetIntegrationBrepEdge(
+            ModelPart& rModelPart,
+            const int& trim_index,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
+
+        //Kratos::Element::Pointer CreateIntegrationElement(
+        //    const int& rU,
+        //    const int& rV,
+        //    ModelPart& rModelPart,
+        //    const std::string& rType,
+        //    const std::string& rName,
+        //    Properties::Pointer pProperty,
+        //    const int& rShapeFunctionDerivativesOrder,
+        //    std::vector<std::string> rVariables) const;
+
+        //void CreateIntegrationElementSlave(
+        //    const int& rU,
+        //    const int& rV,
+        //    Kratos::Element::Pointer pElementPoint,
+        //    const int& rShapeFunctionDerivativesOrder,
+        //    std::vector<std::string> rVariables) const;
+
+        void EvaluatePoint(
+            const int& rU,
+            const int& rV,
+            Element::GeometryType::PointsArrayType& rNonZeroControlPoints,
+            Vector& rShapeFunction,
+            Matrix& rShapeFunctionDerivative,
+            Matrix& rShapeFunctionSecondDerivative
+            ) const;
+
+        const Kratos::shared_ptr<NodeSurfaceGeometry3D> GetSurface() const;
+
+        const Kratos::shared_ptr<ANurbs::Curve<Kratos::array_1d<double, 2>>> GetTrimCurve(
+            const int& trim_index) const;
+
+        //Kratos::shared_ptr<ANurbs::Curve<Kratos::array_1d<double, 2>>> GetTrimCurveNonConst(const int& trim_index);
 
         /// Constructor.
         BrepFace(
