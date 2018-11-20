@@ -28,9 +28,22 @@ pybind11_add_module(KratosMPI MODULE THIN_LTO ${KRATOS_MPI_PYTHON_SOURCES})
 target_link_libraries(KratosMPI PRIVATE KratosMPICore KratosCore )
 # set_target_properties(KratosMPI PROPERTIES PREFIX "")
 
+###############################################################################
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosMPICore)
+    cotire(KratosMPI)
+endif(USE_COTIRE MATCHES ON)
+
+###############################################################################
+
 # Install library
 install(TARGETS KratosMPICore DESTINATION libs )
 install(TARGETS KratosMPI DESTINATION libs)
 
 # Install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/mpi_module_init.py" DESTINATION "KratosMultiphysics/mpi" RENAME "__init__.py" )
+
+if(${INSTALL_TESTING_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
