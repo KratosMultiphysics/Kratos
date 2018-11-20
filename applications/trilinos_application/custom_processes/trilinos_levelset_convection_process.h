@@ -151,9 +151,8 @@ public:
         const bool reform_dof_at_each_iteration = false;
         const bool calculate_norm_Dx_flag = false;
 
-        ModelPart& r_distance_model_part = rBaseModelPart.GetModel().GetModelPart("DistanceConvectionPart");
         (this->mpSolvingStrategy) = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
-            r_distance_model_part,
+            *BaseType::mpDistanceModelPart,
             p_scheme,
             pLinearSolver,
             p_builder_and_solver,
@@ -243,21 +242,22 @@ protected:
         if(rBaseModelPart.GetModel().HasModelPart("DistanceConvectionPart"))
             rBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
 
-        ModelPart& r_distance_model_part = rBaseModelPart.GetModel().CreateModelPart("DistanceConvectionPart");
+        BaseType::mpDistanceModelPart= &(rBaseModelPart.GetModel().CreateModelPart("DistanceConvectionPart"));
+        
 
         // Generate
 
-        r_distance_model_part.Nodes().clear();
-        r_distance_model_part.Conditions().clear();
-        r_distance_model_part.Elements().clear();
+        BaseType::mpDistanceModelPart->Nodes().clear();
+        BaseType::mpDistanceModelPart->Conditions().clear();
+        BaseType::mpDistanceModelPart->Elements().clear();
 
-        r_distance_model_part.SetProcessInfo(rBaseModelPart.pGetProcessInfo());
-        r_distance_model_part.SetBufferSize(base_buffer_size);
-        r_distance_model_part.SetProperties(rBaseModelPart.pProperties());
-        r_distance_model_part.Tables() = rBaseModelPart.Tables();
+        BaseType::mpDistanceModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
+        BaseType::mpDistanceModelPart->SetBufferSize(base_buffer_size);
+        BaseType::mpDistanceModelPart->SetProperties(rBaseModelPart.pProperties());
+        BaseType::mpDistanceModelPart->Tables() = rBaseModelPart.Tables();
 
         // Assigning the nodes to the new model part
-        r_distance_model_part.Nodes() = rBaseModelPart.Nodes();
+        BaseType::mpDistanceModelPart->Nodes() = rBaseModelPart.Nodes();
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof< Variable < double> >(this->mrLevelSetVar, rBaseModelPart);
@@ -277,10 +277,10 @@ protected:
             p_new_comm->pGhostMesh(i)->SetNodes(r_base_comm.pGhostMesh(i)->pNodes());
         }
 
-        r_distance_model_part.SetCommunicator(p_new_comm);
+        BaseType::mpDistanceModelPart->SetCommunicator(p_new_comm);
 
         // Generating the elements
-        (r_distance_model_part.Elements()).reserve(rBaseModelPart.NumberOfElements());
+        (BaseType::mpDistanceModelPart->Elements()).reserve(rBaseModelPart.NumberOfElements());
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
             Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
@@ -290,12 +290,12 @@ protected:
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
             
-            (r_distance_model_part.Elements()).push_back(p_element);
-            (r_distance_model_part.GetCommunicator()).LocalMesh().Elements().push_back(p_element);
+            (BaseType::mpDistanceModelPart->Elements()).push_back(p_element);
+            (BaseType::mpDistanceModelPart->GetCommunicator()).LocalMesh().Elements().push_back(p_element);
         }
        
         // Resize the arrays
-        const auto n_nodes = r_distance_model_part.NumberOfNodes();
+        const auto n_nodes = BaseType::mpDistanceModelPart->NumberOfNodes();
         (this->mVelocity).resize(n_nodes);
         (this->mVelocityOld).resize(n_nodes);
         (this->mOldDistance).resize(n_nodes);
