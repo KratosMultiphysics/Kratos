@@ -47,7 +47,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             #     else:
             #         nneg += 1
             # if not (npos*nneg==0):
-            #     cond.Set(KratosMultiphysics.STRUCTURE,False)
+            #     cond.Set(KratosMultiphysics.STRUCTURE,True)
             # else:
             #     cond.Set(KratosMultiphysics.STRUCTURE,False)
                 
@@ -81,6 +81,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
                 
                 if(tmp < pos+1e-9):
+                    node.Set(KratosMultiphysics.INLET)
                     node.Fix(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
                     node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,self.inlet_phi)
         

@@ -393,6 +393,7 @@ public:
             Matrix lhs_plus_sigma = ZeroMatrix(NumNodes,Dim);
             Matrix lhs_sigma_plus = ZeroMatrix(Dim,NumNodes);
             Matrix lhs_sigma_sigma = ZeroMatrix(Dim,Dim);
+            Matrix lhs_sigma_sigma_no_inv = ZeroMatrix(Dim,Dim);
             Matrix sigma_shape_func = ZeroMatrix(Dim,Dim);
             Matrix lhs_minus_sigma = ZeroMatrix(NumNodes,Dim);
             Matrix lhs_sigma_minus = ZeroMatrix(Dim,NumNodes);
@@ -405,30 +406,49 @@ public:
             Matrix lhs_minus_rhs = ZeroMatrix(NumNodes,Dim);
             Matrix forcing_sigma_plus =ZeroMatrix(NumNodes,Dim);
             Matrix forcing_sigma_minus = ZeroMatrix(NumNodes,Dim); 
-            Matrix forcing_sigma_aux =ZeroMatrix(NumNodes,Dim);
+            Matrix forcing_sigma =ZeroMatrix(NumNodes,Dim);
 
             Matrix K_uu = ZeroMatrix(NumNodes*2,NumNodes*2);
+
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(WAKE_DISTANCE);               
+                
+            const Vector& r_elemental_distances=elemental_distance;
+                
+            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(this->pGetGeometry(), r_elemental_distances);
+            // Matrix positive_side_interface_sh_func;
+            // ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_interface_gradients;
+            // Vector positive_side_interface_weights;
+            // triangle_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+            //     positive_side_interface_sh_func,
+            //     positive_side_sh_func_interface_gradients,
+            //     positive_side_interface_weights,
+            //     GeometryData::GI_GAUSS_1);
+
+            std::vector<Vector> cut_unit_normal;
+            triangle_shape_functions.ComputePositiveSideInterfaceAreaNormals(cut_unit_normal,GeometryData::GI_GAUSS_1);
 
             Vector sigma(Dim);
             Vector n(Dim);
             Vector shape_func(NumNodes);
             for (unsigned int i = 0; i<NumNodes; i++)
                 shape_func(i) = data.N(i);
-            n(0)=0;
-            n(1)=1;
+            n(0)=cut_unit_normal[0][0];
+            n(1)=cut_unit_normal[0][1];
             sigma_shape_func(0,0)=1.0;
             sigma_shape_func(1,1)=1.0;
             Vector normal_gradient=prod(n,sigma_shape_func);
-
+            
             for (unsigned int i = 0; i<NumNodes; ++i){
                 for (unsigned int j= 0; j<Dim; ++j){
-                    forcing_sigma_aux(i,j)=data.N(i)*normal_gradient(j);
+                    forcing_sigma(i,j)=0;//-data.N(i)*normal_gradient(j);
                 }
             }
-      
-            double n_parameter=rCurrentProcessInfo[INITIAL_PENALTY];
             
-            lhs_sigma_sigma=n_parameter*sigma_shape_func*data.vol;
+            double n_parameter=rCurrentProcessInfo[INITIAL_PENALTY];
+
+            lhs_sigma_sigma=n_parameter*sigma_shape_func/data.vol;
+            lhs_sigma_sigma_no_inv=-1/n_parameter*sigma_shape_func*data.vol;
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0){
@@ -437,7 +457,7 @@ public:
                     noalias(lhs_plus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
                     noalias(lhs_sigma_plus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
                     
-                    noalias(forcing_sigma_plus) += Volumes[i]*forcing_sigma_aux;
+                    // noalias(forcing_sigma_plus) += Volumes[i]*forcing_sigma_aux;
                 }
                 else{
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data); //K--
@@ -445,17 +465,17 @@ public:
                     noalias(lhs_minus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
                     noalias(lhs_sigma_minus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
                     
-                    noalias(forcing_sigma_minus) += Volumes[i]*forcing_sigma_aux;
+                    // noalias(forcing_sigma_minus) += Volumes[i]*forcing_sigma_aux;
                 }
             }
             
-            lhs_plus_plus = prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
-            lhs_plus_minus = prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));   
-            lhs_minus_plus = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
-            lhs_minus_minus = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));
-            lhs_plus_rhs = prod(lhs_plus_sigma,lhs_sigma_sigma);
-            lhs_minus_rhs = prod(lhs_minus_sigma,lhs_sigma_sigma);
-            
+            noalias(lhs_plus_plus) = prod(lhs_plus_sigma+forcing_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
+            noalias(lhs_plus_minus) = prod(lhs_plus_sigma+forcing_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));   
+            noalias(lhs_minus_plus) = prod(lhs_minus_sigma+forcing_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
+            noalias(lhs_minus_minus) = prod(lhs_minus_sigma+forcing_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));
+            noalias(lhs_plus_rhs) = prod(lhs_plus_sigma+forcing_sigma,lhs_sigma_sigma);
+            noalias(lhs_minus_rhs) = prod(lhs_minus_sigma+forcing_sigma,lhs_sigma_sigma);
+
             if(kutta_element)
             {
                 for(unsigned int i=0; i<NumNodes; ++i)
@@ -464,13 +484,13 @@ public:
                     {
                         rLeftHandSideMatrix(i,j)                   =  (1.0-1.0/n_parameter)*lhs_positive(i,j)+lhs_plus_plus(i,j); 
                         rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
-                        K_uu(i,j)                                 =  lhs_positive(i,j);
-                        K_uu(i,j+NumNodes)                        =  0.0;  
+                        K_uu(i,j)                                  =  lhs_positive(i,j);
+                        K_uu(i,j+NumNodes)                         =  0.0;  
                         
                         rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0-1.0/n_parameter)*lhs_negative(i,j)+lhs_minus_minus(i,j);
                         rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
-                        K_uu(i+NumNodes,j+NumNodes)               =  lhs_negative(i,j);
-                        K_uu(i+NumNodes,j)                        =  0.0;
+                        K_uu(i+NumNodes,j+NumNodes)                =  lhs_negative(i,j);
+                        K_uu(i+NumNodes,j)                         =  0.0;
                     }
                 }
             }
@@ -482,13 +502,13 @@ public:
                     {
                         rLeftHandSideMatrix(i,j)                   =  (1.0-1.0/n_parameter)*lhs_positive(i,j)+lhs_plus_plus(i,j); 
                         rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
-                        K_uu(i,j)                                 =  lhs_positive(i,j);
-                        K_uu(i,j+NumNodes)                        =  0.0;  
+                        K_uu(i,j)                                  =  lhs_positive(i,j);
+                        K_uu(i,j+NumNodes)                         =  0.0;  
                         
                         rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0-1.0/n_parameter)*lhs_negative(i,j)+lhs_minus_minus(i,j);
                         rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
-                        K_uu(i+NumNodes,j+NumNodes)               =  lhs_negative(i,j);
-                        K_uu(i+NumNodes,j)                        =  0.0;
+                        K_uu(i+NumNodes,j+NumNodes)                =  lhs_negative(i,j);
+                        K_uu(i+NumNodes,j)                         =  0.0;
                     }
                 }
                 
@@ -532,7 +552,7 @@ public:
             Vector rhs_sigma_minus(NumNodes);
 
             GetValuesOnSplitElement(split_element_values, data.distances);
-            
+            std::cout<<"split_element_values"<<split_element_values<<std::endl;
             for (unsigned int i = 0; i<NumNodes; ++i){
                 split_plus(i) = split_element_values(i);
                 split_minus(i)= split_element_values(i+NumNodes);
@@ -547,15 +567,14 @@ public:
 
             // this->GetValue(Y1) = residual_sigma(0);
             // this->GetValue(Y1) = residual_sigma(1);
-
+            std::cout<<split_element_values<<std::endl;
             rhs_sigma_plus=prod(lhs_plus_rhs,residual_sigma);//+prod(forcing_sigma_plus,trans(sigma));
             rhs_sigma_minus=prod(lhs_minus_rhs,residual_sigma);//+prod(forcing_sigma_minus,trans(sigma));
-            
+
             for (unsigned int i = 0; i < NumNodes; ++i){
-                rhs_sigma(i) = rhs_sigma_plus(i);
+                rhs_sigma(i) = rhs_sigma_plus(i);                
                 rhs_sigma(i+NumNodes) = rhs_sigma_minus(i);
-            }     
-            
+            }
             noalias(rRightHandSideVector) = -prod(K_uu,split_element_values)+rhs_sigma;
         }
         
@@ -820,16 +839,16 @@ protected:
 
     void CheckWakeCondition()
     {
-        // array_1d<double, Dim> upper_wake_velocity;
-        // ComputeVelocityUpperWakeElement(upper_wake_velocity);
-        // const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
+        array_1d<double, Dim> upper_wake_velocity;
+        ComputeVelocityUpperWakeElement(upper_wake_velocity);
+        const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
 
-        // array_1d<double, Dim> lower_wake_velocity;
-        // ComputeVelocityLowerWakeElement(lower_wake_velocity);
-        // const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
+        array_1d<double, Dim> lower_wake_velocity;
+        ComputeVelocityLowerWakeElement(lower_wake_velocity);
+        const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
 
-        // if (std::abs(vupnorm - vlownorm) > 0.1)
-            // std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
+        if (std::abs(vupnorm - vlownorm) > 0.1)
+            std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() <<"    " <<std::abs(vupnorm - vlownorm)<<std::endl;
     }
 
     double ComputePressure(const ProcessInfo& rCurrentProcessInfo)
