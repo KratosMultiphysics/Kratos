@@ -645,9 +645,9 @@ public:
         return true;
     }
 
-    bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable) override
+    bool AssembleNonHistoricalData(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable) override
     {
-        AssembleThisNonHistoricalVariable<vector<array_1d<double,3> >,double>(ThisVariable);
+        AssembleThisNonHistoricalVariable<DenseVector<array_1d<double,3> >,double>(ThisVariable);
         return true;
     }
 
@@ -683,13 +683,13 @@ public:
         return true;
     }
 
-    bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable) override
+    bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable) override
     {
         SynchronizeHeterogeneousElementalNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
 
-    bool SynchronizeElementalNonHistoricalVariable(Variable<vector<int> > const& ThisVariable) override
+    bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<int> > const& ThisVariable) override
     {
         SynchronizeHeterogeneousElementalNonHistoricalVariable<int,int>(ThisVariable);
         return true;
@@ -1435,7 +1435,7 @@ private:
 
 
     template< class TDataType, class TSendType >
-    bool SynchronizeHeterogeneousElementalNonHistoricalVariable(Variable<vector<TDataType> > const& ThisVariable)
+    bool SynchronizeHeterogeneousElementalNonHistoricalVariable(Variable<DenseVector<TDataType> > const& ThisVariable)
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -1472,7 +1472,7 @@ private:
                 std::vector<int> sent_vector_of_sizes(send_buffer_size, 0);
                 unsigned int position = 0;
                 for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element) {
-                    vector<TDataType>& variable = i_element->GetValue(ThisVariable);
+                    DenseVector<TDataType>& variable = i_element->GetValue(ThisVariable);
                     size_of_variable = variable.size();
                     sent_vector_of_sizes[position] = size_of_variable;
                     send_buffer_1[position] = size_of_variable;
@@ -1527,7 +1527,7 @@ private:
                 for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element) {
 
                     int size_of_this_one = sent_vector_of_sizes[i];
-                    vector<TDataType>& variable_to_add = i_element->GetValue(ThisVariable);
+                    DenseVector<TDataType>& variable_to_add = i_element->GetValue(ThisVariable);
 
                     for (int j=0; j<size_of_this_one; j++){
                         *(TDataType*) (send_buffer_2 + position + size_of_each_component_of_the_vector*j) = variable_to_add[j];
@@ -1548,7 +1548,7 @@ private:
                 position = 0, i=0;
                 for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element) {
                     int size_of_this_vector = received_vector_of_sizes[i];
-                    vector<TDataType>& variable_to_fill = i_element->GetValue(ThisVariable);
+                    DenseVector<TDataType>& variable_to_fill = i_element->GetValue(ThisVariable);
                     variable_to_fill.resize(size_of_this_vector);
                     for (int j=0; j<size_of_this_vector; j++){
                         variable_to_fill[j] = *reinterpret_cast<TDataType*> (receive_buffer_2 + position + size_of_each_component_of_the_vector*j);

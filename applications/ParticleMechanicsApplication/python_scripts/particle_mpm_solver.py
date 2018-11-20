@@ -72,7 +72,11 @@ class ParticleMPMSolver(PythonSolver):
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
             "processes_sub_model_part_list"      : [],
-            "linear_solver_settings": {
+            "element_search_settings"            : {
+                "max_number_of_results"          : 1000,
+                "searching_tolerance"            : 1.0E-5
+            },
+            "linear_solver_settings"             : {
                 "solver_type" : "AMGCL",
                 "smoother_type":"damped_jacobi",
                 "krylov_type": "cg",
@@ -165,6 +169,10 @@ class ParticleMPMSolver(PythonSolver):
         self.implex                 = self.settings["implex"].GetBool()
         self.move_mesh_flag         = self.settings["move_mesh_flag"].GetBool()
 
+        # Set definition of search element
+        self.max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
+        self.searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
+
         # Set default solver_settings parameters
         self.geometry_element   = self.settings["geometry_element"].GetString()
         self.number_particle    = self.settings["particle_per_element"].GetInt()
@@ -216,8 +224,25 @@ class ParticleMPMSolver(PythonSolver):
     def ComputeDeltaTime(self):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
+    def SearchElement(self):
+        self.solver.SearchElement(self.grid_model_part, self.material_model_part, self.max_number_of_search_results, self.searching_tolerance)
+
+    def InitializeSolutionStep(self):
+        self.SearchElement()
+        self.solver.Initialize()
+        self.solver.InitializeSolutionStep()
+
+    def Predict(self):
+        self.solver.Predict()
+
     def SolveSolutionStep(self):
-        (self.solver).Solve()
+        is_converged = self.solver.SolveSolutionStep()
+        return is_converged
+
+    def FinalizeSolutionStep(self):
+        self.solver.FinalizeSolutionStep()
+
+        self.solver.Clear()
 
     ### Solver private functions
     def _add_model_part_containers(self):

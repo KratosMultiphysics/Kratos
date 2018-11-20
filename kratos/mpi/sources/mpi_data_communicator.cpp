@@ -962,12 +962,20 @@ template<> inline const void* MPIDataCommunicator::MPIBuffer(const double& rValu
 
 template<> inline void* MPIDataCommunicator::MPIBuffer(array_1d<double,3>& rValues) const
 {
+    #ifdef KRATOS_USE_AMATRIX
+    return rValues.data();
+    #else
     return rValues.data().data();
+    #endif
 }
 
 template<> inline const void* MPIDataCommunicator::MPIBuffer(const array_1d<double,3>& rValues) const
 {
+    #ifdef KRATOS_USE_AMATRIX
+    return rValues.data();
+    #else
     return rValues.data().data();
+    #endif
 }
 
 template<> inline void* MPIDataCommunicator::MPIBuffer(std::vector<int>& rValues) const
