@@ -18,7 +18,6 @@
 #define  KRATOS_FILENAME_H_INCLUDED
 
 
-
 // System includes
 #include <string>
 #include <iostream>
@@ -33,202 +32,201 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class ClassName
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
+/// Short class definition.
+/** Detail class definition.
+*/
+class ClassName
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-      /// Pointer definition of ClassName
-      KRATOS_CLASS_POINTER_DEFINITION(ClassName);
+    /// Pointer definition of ClassName
+    KRATOS_CLASS_POINTER_DEFINITION(ClassName);
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-      /// Default constructor.
-      ClassName();
+    /// Default constructor.
+    ClassName();
 
-      /// Destructor.
-      virtual ~ClassName();
+    /// Destructor.
+    virtual ~ClassName();
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-      ///@}
-      ///@name Operators
-      ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
 
-      ///@}
-      ///@name Operations
-      ///@{
 
+    ///@}
+    ///@name Access
+    ///@{
 
-      ///@}
-      ///@name Access
-      ///@{
 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-      ///@}
-      ///@name Inquiry
-      ///@{
 
+    ///@}
+    ///@name Input and output
+    ///@{
 
-      ///@}
-      ///@name Input and output
-      ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const;
 
-      /// Turn back information as a string.
-      virtual std::string Info() const;
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
 
+    ///@}
+    ///@name Friends
+    ///@{
 
-      ///@}
-      ///@name Friends
-      ///@{
 
+    ///@}
 
-      ///@}
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-      ///@}
-      ///@name Protected member Variables
-      ///@{
 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-      ///@}
-      ///@name Protected Operators
-      ///@{
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
 
+    ///@}
 
-      ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
 
-    private:
-      ///@name Static Member Variables
-      ///@{
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-      ///@}
-      ///@name Member Variables
-      ///@{
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-      ///@}
-      ///@name Private Operators
-      ///@{
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-      ///@}
-      ///@name Private Operations
-      ///@{
 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-      ///@}
-      ///@name Private  Access
-      ///@{
 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+    /// Assignment operator.
+    ClassName& operator=(ClassName const& rOther);
 
-      /// Assignment operator.
-      ClassName& operator=(ClassName const& rOther);
+    /// Copy constructor.
+    ClassName(ClassName const& rOther);
 
-      /// Copy constructor.
-      ClassName(ClassName const& rOther);
 
+    ///@}
 
-      ///@}
+}; // Class ClassName
 
-    }; // Class ClassName
+///@}
 
-  ///@}
+///@name Type Definitions
+///@{
 
-  ///@name Type Definitions
-  ///@{
 
+///@}
+///@name Input and output
+///@{
 
-  ///@}
-  ///@name Input and output
-  ///@{
 
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                ClassName& rThis);
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    ClassName& rThis);
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                const ClassName& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const ClassName& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+    return rOStream;
+}
+///@}
 
-      return rOStream;
-    }
-  ///@}
-
-  ///@} addtogroup block
+///@} addtogroup block
 
 }  // namespace Kratos.
 
