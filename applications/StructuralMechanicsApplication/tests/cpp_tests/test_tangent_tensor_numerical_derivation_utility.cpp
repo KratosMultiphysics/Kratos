@@ -98,10 +98,10 @@ void ComputingConvergenceRate(
 {
     // The delta parameters
     const Vector initial_strain_vector = rStrainVector;
-    const Vector delta_strain_vector = rStrainVector;
+    const Vector initial_stress_vector = rStressVector;
     const Matrix initial_deformation_gradient_F = rF;
 //     const double initial_det_deformation_gradient_F = rDetF;
-    const Matrix delta_deformation_gradient_F = rF;
+    Matrix delta_deformation_gradient_F = rF;
     double alpha = 1.0;
 
     // Ensure the proper flag
@@ -109,13 +109,10 @@ void ComputingConvergenceRate(
     const bool use_element_provided_strain = cl_options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     // First error computation
-    Vector expected_stress = rStressVector;
-    Vector expected_previous_stress = rStressVector;
     Vector expected_delta_stress = ZeroVector(6);
     Vector computed_delta_stress = ZeroVector(6);
 
-    Vector final_increment_strain_vector = ZeroVector(6);
-    Matrix final_increment_deformation_gradient_F = ZeroMatrix(3, 3);
+    Vector delta_strain_vector = rStrainVector;
 
     const double quadratic_threshold = 1.8;
 
@@ -124,36 +121,47 @@ void ComputingConvergenceRate(
     for (std::size_t iter = 0; iter < max_number_iters; ++iter) {
         alpha *= 0.5;
 
-        if (use_element_provided_strain) {
-            noalias(final_increment_strain_vector) = alpha * delta_strain_vector;
-            noalias(rStrainVector) =  initial_strain_vector + final_increment_strain_vector;
-        } else {
-            noalias(final_increment_deformation_gradient_F) = alpha * delta_deformation_gradient_F;
-            noalias(rF) = initial_deformation_gradient_F + final_increment_deformation_gradient_F;
-            rDetF = MathUtils<double>::DetMat(rF);
-        }
-
-        noalias(expected_previous_stress) = expected_stress;
-        expected_stress = pConstitutiveLaw->CalculateValue(rCLConfigurationValues,CAUCHY_STRESS_VECTOR, expected_stress);
-        noalias(expected_delta_stress) = (expected_stress - expected_previous_stress);
-
-        rStressVector = pConstitutiveLaw->CalculateValue(rCLConfigurationValues,CAUCHY_STRESS_VECTOR, rStressVector);
-        if (FiniteDeformation) {
-            TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(rCLConfigurationValues, pConstitutiveLaw.get());
-        } else {
-            TangentOperatorCalculatorUtility::CalculateTangentTensor(rCLConfigurationValues, pConstitutiveLaw.get());
-        }
-
+        noalias(delta_strain_vector) = alpha * initial_strain_vector;
+        noalias(rStrainVector) =  initial_strain_vector + delta_strain_vector;
         if (!use_element_provided_strain) {
-            noalias(rF) = final_increment_deformation_gradient_F;
+            for (int i = 0; i < 3; ++i) {
+                delta_deformation_gradient_F(i, i) = 1.0 + delta_strain_vector[i];
+            }
+
+            for (int i = 3; i < 6; ++i) {
+                const int equivalent_i = (i == 3) ? 0 : (i == 4) ? 1 : 0;
+                const int equivalent_j = (i == 3) ? 1 : 2;
+                delta_deformation_gradient_F(equivalent_i, equivalent_j) = 0.5 * delta_strain_vector[i];
+                delta_deformation_gradient_F(equivalent_j, equivalent_i) = 0.5 * delta_strain_vector[i];
+            }
+            noalias(rF) = prod(initial_deformation_gradient_F, delta_deformation_gradient_F);
             rDetF = MathUtils<double>::DetMat(rF);
-            final_increment_strain_vector = pConstitutiveLaw->CalculateValue(rCLConfigurationValues,ALMANSI_STRAIN_VECTOR, final_increment_strain_vector);
+            rCLConfigurationValues.SetDeformationGradientF(rF);
+            rCLConfigurationValues.SetDeterminantF(rDetF);
         }
-        noalias(computed_delta_stress) = prod(rTangentModuli, final_increment_strain_vector);
+
+        pConstitutiveLaw->CalculateMaterialResponse(rCLConfigurationValues, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+        noalias(expected_delta_stress) = (rStressVector - initial_stress_vector);
+
+        if (FiniteDeformation) {
+            TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(rCLConfigurationValues, pConstitutiveLaw.get(), ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+        } else {
+            TangentOperatorCalculatorUtility::CalculateTangentTensor(rCLConfigurationValues, pConstitutiveLaw.get(), ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+        }
+
+//         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+//         pConstitutiveLaw->CalculateMaterialResponse(rCLConfigurationValues, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+//         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        noalias(computed_delta_stress) = prod(rTangentModuli, delta_strain_vector);
         const Vector aux_error_vector = computed_delta_stress - expected_delta_stress;
         const double error = norm_2(aux_error_vector);
 
         vector_errors[iter] = error;
+
+        if (Debug) {
+            KRATOS_WATCH(error)
+        }
     }
 
     for (int i = 1; i < max_number_iters - 4; ++i) { // We discard the first solution
@@ -246,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, Kr
     SettingBasicCase(cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
-    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_Cauchy);
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
 
     ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, true);
 }
@@ -264,7 +272,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticHyperElasticCasePertubationTensorUtility, Kra
     SettingBasicCase(cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("HyperElastic3DLaw").Clone();
-    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_Cauchy);
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
 
     ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, true);
 }
