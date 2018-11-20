@@ -11,9 +11,7 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
+
 
 // External includes
 
@@ -48,53 +46,58 @@ namespace Kratos
  * Constructor.
  */
 @{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId)
-    : Condition(NewId) @{KRATOS_INIT_MEMBER_LIST} {
+    : Condition(NewId) @{KRATOS_INIT_MEMBER_LIST}
+{
 }
 
 /**
  * Constructor using an array of nodes
  */
 @{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId, const NodesArrayType& ThisNodes)
-    : Condition(NewId, ThisNodes) @{KRATOS_INIT_MEMBER_LIST} {
+    : Condition(NewId, ThisNodes) @{KRATOS_INIT_MEMBER_LIST}
+{
 }
 
 /**
  * Constructor using Geometry
  */
 @{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry) @{KRATOS_INIT_MEMBER_LIST} {
+    : Condition(NewId, pGeometry) @{KRATOS_INIT_MEMBER_LIST}
+{
 }
 
 /**
  * Constructor using Properties
  */
 @{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties) @{KRATOS_INIT_MEMBER_LIST} {
+    : Condition(NewId, pGeometry, pProperties) @{KRATOS_INIT_MEMBER_LIST}
+{
 }
 
 /**
  * Copy Constructor
  */
 @{KRATOS_NAME_CAMEL}::@{KRATOS_NAME_CAMEL}(@{KRATOS_NAME_CAMEL} const& rOther)
-    : Condition(rOther) @{KRATOS_CC_INIT_MEMBER_LIST} {
+    : Condition(rOther) @{KRATOS_CC_INIT_MEMBER_LIST}
+{
 }
 
 /**
  * Destructor
  */
-@{KRATOS_NAME_CAMEL}::~@{KRATOS_NAME_CAMEL}() {
-}
+@{KRATOS_NAME_CAMEL}::~@{KRATOS_NAME_CAMEL}() { }
 
 ///@}
 ///@name Operators
 ///@{
 
 /// Assignment operator.
-@{KRATOS_NAME_CAMEL} & @{KRATOS_NAME_CAMEL}::operator=(@{KRATOS_NAME_CAMEL} const& rOther) {
-  BaseType::operator=(rOther);
-  Flags::operator =(rOther);
-  // mpProperties = rOther.mpProperties;
-  return *this;
+@{KRATOS_NAME_CAMEL} & @{KRATOS_NAME_CAMEL}::operator=(@{KRATOS_NAME_CAMEL} const& rOther)
+{
+    BaseType::operator=(rOther);
+    Flags::operator =(rOther);
+    // mpProperties = rOther.mpProperties;
+    return *this;
 }
 
 ///@}
@@ -116,11 +119,12 @@ namespace Kratos
 Condition::Pointer @{KRATOS_NAME_CAMEL}::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties) const {
+    PropertiesType::Pointer pProperties) const
+{
 
-  KRATOS_TRY
-  return Condition::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pProperties));
-  KRATOS_CATCH("");
+    KRATOS_TRY
+    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    KRATOS_CATCH("");
 }
 
 /**
@@ -133,11 +137,12 @@ Condition::Pointer @{KRATOS_NAME_CAMEL}::Create(
 Condition::Pointer @{KRATOS_NAME_CAMEL}::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
-    PropertiesType::Pointer pProperties) const {
+    PropertiesType::Pointer pProperties) const
+{
 
-  KRATOS_TRY
-  return Condition::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, pGeom, pProperties));
-  KRATOS_CATCH("");
+    KRATOS_TRY
+    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}(NewId, pGeom, pProperties);
+    KRATOS_CATCH("");
 }
 
 /**
@@ -147,10 +152,11 @@ Condition::Pointer @{KRATOS_NAME_CAMEL}::Create(
  * @param pProperties: the properties assigned to the new condition
  * @return a Pointer to the new condition
  */
-Condition::Pointer @{KRATOS_NAME_CAMEL}::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const {
-  KRATOS_TRY
-  return Condition::Pointer(new @{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
-  KRATOS_CATCH("");
+Condition::Pointer @{KRATOS_NAME_CAMEL}::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
+{
+    KRATOS_TRY
+    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    KRATOS_CATCH("");
 }
 
 /**
@@ -159,12 +165,13 @@ Condition::Pointer @{KRATOS_NAME_CAMEL}::Clone(IndexType NewId, NodesArrayType c
  * @param rResult: the condition equation ID vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) {
-  unsigned int number_of_nodes = GetGeometry().PointsNumber();
-  if (rResult.size() != number_of_nodes)
-    rResult.resize(number_of_nodes, false);
+void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+{
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    if (rResult.size() != number_of_nodes)
+        rResult.resize(number_of_nodes, false);
 
-@{KRATOS_CONDITION_ECUATION_ID_DOFS}
+    @{KRATOS_CONDITION_ECUATION_ID_DOFS}
 }
 
 /**
@@ -172,12 +179,13 @@ void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, Proce
  * @param ConditionDofList: the list of DOFs
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& CurrentProcessInfo) {
-  unsigned int number_of_nodes = GetGeometry().PointsNumber();
-  if (rConditionDofList.size() != number_of_nodes)
-    rConditionDofList.resize(number_of_nodes);
+void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& CurrentProcessInfo)
+{
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    if (rConditionDofList.size() != number_of_nodes)
+        rConditionDofList.resize(number_of_nodes);
 
-@{KRATOS_CONDITION_LIST_DOFS}
+    @{KRATOS_CONDITION_LIST_DOFS}
 }
 
 /**
@@ -198,7 +206,8 @@ void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& rConditionDofList, Process
 void @{KRATOS_NAME_CAMEL}::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
+    ProcessInfo& rCurrentProcessInfo)
+{
 }
 
 /**
@@ -207,7 +216,8 @@ void @{KRATOS_NAME_CAMEL}::CalculateLocalSystem(
  * @param rLeftHandSideMatrix: the condition left hand side matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
+void @{KRATOS_NAME_CAMEL}::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
 }
 
 /**
@@ -216,7 +226,8 @@ void @{KRATOS_NAME_CAMEL}::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
  * @param rRightHandSideVector: the condition right hand side vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+void @{KRATOS_NAME_CAMEL}::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
 }
 
 /**
@@ -229,12 +240,12 @@ void @{KRATOS_NAME_CAMEL}::CalculateRightHandSide(VectorType& rRightHandSideVect
 void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesContributions(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
-
-  if (rLeftHandSideMatrix.size1() != 0)
-    rLeftHandSideMatrix.resize(0, 0, false);
-  if (rRightHandSideVector.size() != 0)
-    rRightHandSideVector.resize(0, false);
+    ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != 0)
+        rLeftHandSideMatrix.resize(0, 0, false);
+    if (rRightHandSideVector.size() != 0)
+        rRightHandSideVector.resize(0, false);
 }
 
 /**
@@ -243,9 +254,10 @@ void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesContributions(
  * @param rLeftHandSideMatrix: the condition left hand side matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
-  if (rLeftHandSideMatrix.size1() != 0)
-    rLeftHandSideMatrix.resize(0, 0, false);
+void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != 0)
+        rLeftHandSideMatrix.resize(0, 0, false);
 }
 
 /**
@@ -254,8 +266,9 @@ void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSid
  * @param rRightHandSideVector: the condition right hand side vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
-  if (rRightHandSideVector.size() != 0)
+void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    if (rRightHandSideVector.size() != 0)
     rRightHandSideVector.resize(0, false);
 }
 
@@ -279,12 +292,12 @@ void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesRHS(VectorType& rRightHandSi
 void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesContributions(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
-
-  if (rLeftHandSideMatrix.size1() != 0)
-    rLeftHandSideMatrix.resize(0, 0, false);
-  if (rRightHandSideVector.size() != 0)
-    rRightHandSideVector.resize(0, false);
+    ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != 0)
+        rLeftHandSideMatrix.resize(0, 0, false);
+    if (rRightHandSideVector.size() != 0)
+        rRightHandSideVector.resize(0, false);
 }
 
 /**
@@ -295,10 +308,10 @@ void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesContributions(
  */
 void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesLHS(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo) {
-
-  if (rLeftHandSideMatrix.size1() != 0)
-    rLeftHandSideMatrix.resize(0, 0, false);
+    ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != 0)
+        rLeftHandSideMatrix.resize(0, 0, false);
 }
 
 /**
@@ -309,10 +322,10 @@ void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesLHS(
  */
 void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesRHS(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo) {
-
-  if (rRightHandSideVector.size() != 0)
-    rRightHandSideVector.resize(0, false);
+    ProcessInfo& rCurrentProcessInfo)
+{
+    if (rRightHandSideVector.size() != 0)
+        rRightHandSideVector.resize(0, false);
 }
 
 /**
@@ -321,9 +334,10 @@ void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesRHS(
  * @param rMassMatrix: the condition mass matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {
-  if (rMassMatrix.size1() != 0)
-    rMassMatrix.resize(0, 0, false);
+void @{KRATOS_NAME_CAMEL}::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    if (rMassMatrix.size1() != 0)
+        rMassMatrix.resize(0, 0, false);
 }
 
 /**
@@ -332,9 +346,10 @@ void @{KRATOS_NAME_CAMEL}::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
  * @param rDampingMatrix: the condition damping matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {
-  if (rDampingMatrix.size1() != 0)
-    rDampingMatrix.resize(0, 0, false);
+void @{KRATOS_NAME_CAMEL}::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    if (rDampingMatrix.size1() != 0)
+        rDampingMatrix.resize(0, 0, false);
 }
 
 /**
@@ -346,22 +361,18 @@ void @{KRATOS_NAME_CAMEL}::CalculateDampingMatrix(MatrixType& rDampingMatrix, Pr
  * @param rCurrentProcessInfo
  * this method is: MANDATORY
  */
-int @{KRATOS_NAME_CAMEL}::Check(const ProcessInfo& rCurrentProcessInfo) {
+int @{KRATOS_NAME_CAMEL}::Check(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
 
-  KRATOS_TRY
+    KRATOS_ERROR_IF(this->Id() < 1) <<"@{KRATOS_NAME_CAMEL} found with Id 0 or negative" << std::endl;
 
-  if (this->Id() < 1) {
-    KRATOS_THROW_ERROR(std::logic_error, "@{KRATOS_NAME_CAMEL} found with Id 0 or negative","")
-  }
+    KRATOS_ERROR_IF(this->GetGeometry().Area() <= 0) << "On @{KRATOS_NAME_CAMEL} -> "
+        << this->Id() <<  "; Area cannot be less than or equal to 0" << std::endl;
 
-  if (this->GetGeometry().Area() <= 0) {
-    std::cout << "error on @{KRATOS_NAME_CAMEL} -> " << this->Id() << std::endl;
-    KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0","")
-  }
+    return 0;
 
-  return 0;
-
-  KRATOS_CATCH("");
+    KRATOS_CATCH("");
 }
 
 ///@}
@@ -381,21 +392,21 @@ int @{KRATOS_NAME_CAMEL}::Check(const ProcessInfo& rCurrentProcessInfo) {
 /// Turn back information as a string.
 
 std::string @{KRATOS_NAME_CAMEL}::Info() const {
-  std::stringstream buffer;
-  buffer << "@{KRATOS_NAME_CAMEL} #" << Id();
-  return buffer.str();
+    std::stringstream buffer;
+    buffer << "@{KRATOS_NAME_CAMEL} #" << Id();
+    return buffer.str();
 }
 
 /// Print information about this object.
 
 void @{KRATOS_NAME_CAMEL}::PrintInfo(std::ostream& rOStream) const {
-  rOStream << "@{KRATOS_NAME_CAMEL} #" << Id();
+    rOStream << "@{KRATOS_NAME_CAMEL} #" << Id();
 }
 
 /// Print object's data.
 
 void @{KRATOS_NAME_CAMEL}::PrintData(std::ostream& rOStream) const {
-  pGetGeometry()->PrintData(rOStream);
+    pGetGeometry()->PrintData(rOStream);
 }
 
 ///@}
@@ -453,17 +464,17 @@ void @{KRATOS_NAME_CAMEL}::PrintData(std::ostream& rOStream) const {
 ///@{
 
 void @{KRATOS_NAME_CAMEL}::save(Serializer& rSerializer) const {
-  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
 
-  // List
-  // To be completed with the class member list
+    // List
+    // To be completed with the class member list
 }
 
 void @{KRATOS_NAME_CAMEL}::load(Serializer& rSerializer) {
-  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, @{KRATOS_CLASS_BASE} );
 
-  // List
-  // To be completed with the class member list
+    // List
+    // To be completed with the class member list
 }
 
 ///@}
@@ -491,10 +502,10 @@ inline std::istream & operator >> (std::istream& rIStream, @{KRATOS_NAME_CAMEL}&
 
 /// output stream function
 inline std::ostream & operator << (std::ostream& rOStream, const @{KRATOS_NAME_CAMEL}& rThis) {
-  rThis.PrintInfo(rOStream);
-  rOStream << " : " << std::endl;
-  rThis.PrintData(rOStream);
-  return rOStream;
+    rThis.PrintInfo(rOStream);
+    rOStream << " : " << std::endl;
+    rThis.PrintData(rOStream);
+    return rOStream;
 }
 
 } // namespace Kratos.
