@@ -47,8 +47,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
 
-        updateIsAvailable = False
-        # retrieve information if the values were updated 
+        # retrieve information if the values were updated
         updated = self.MassConservationCheckProcess.GetUpdateStatus()
 
         if ( updated ):

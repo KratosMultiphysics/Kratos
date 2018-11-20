@@ -71,7 +71,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
-        
+
         self.min_buffer_size = 3
 
         # There is only a single rank in OpenMP, we always print

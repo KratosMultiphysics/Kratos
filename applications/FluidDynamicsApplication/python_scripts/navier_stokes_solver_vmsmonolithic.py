@@ -334,4 +334,4 @@ class NavierStokesSolverMonolithic(FluidSolver):
         '''Overwrite time stepping parameters so that they do not interfere with steady state simulations.'''
         self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
         if self.settings["formulation"].Has("dynamic_tau"):
-self.settings["formulation"]["dynamic_tau"].SetDouble(0.0)
+            self.settings["formulation"]["dynamic_tau"].SetDouble(0.0)

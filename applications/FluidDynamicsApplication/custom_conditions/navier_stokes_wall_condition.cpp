@@ -617,7 +617,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideCo
 
     // Retrieve the nodal normal vectors, normalize, and store them in matrix
 	for (unsigned int nnode=0; nnode < TNumNodes; nnode++){
-		NodeIds[nnode] = rGeom[nnode].Id();
         NodalNormals[nnode].resize(3,1);
 
         double sumOfSquares = 0.0;
