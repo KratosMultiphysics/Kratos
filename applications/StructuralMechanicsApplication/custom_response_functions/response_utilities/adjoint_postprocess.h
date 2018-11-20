@@ -112,6 +112,8 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    void SetAllSensitivityVariablesToZero();
+
     template <typename TDataType>
     void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
     template <typename TDataType>
@@ -153,6 +155,7 @@ private:
     ///@{
 
     std::string mSensitivityModelPartName;
+    std::string mBuildMode;
 
     std::vector<std::vector<Variable<double>>> mNodalSensitivityScalarVariables;
     std::vector<std::vector<Variable<double>>> mElementSensitivityScalarVariables;

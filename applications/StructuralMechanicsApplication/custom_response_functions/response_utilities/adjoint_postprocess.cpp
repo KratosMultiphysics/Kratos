@@ -25,17 +25,29 @@ namespace Kratos
 {
 
     /// Constructor.
-    AdjointPostprocess::AdjointPostprocess(ModelPart& rModelPart, AdjointStructuralResponseFunction& rResponseFunction, Parameters ResponseSettings)
+    AdjointPostprocess::AdjointPostprocess(ModelPart& rModelPart, AdjointStructuralResponseFunction& rResponseFunction, Parameters SensitivitySettings)
       : mrModelPart(rModelPart) , mrResponseFunction(rResponseFunction)
     {
         KRATOS_TRY;
 
-        mSensitivityModelPartName = ResponseSettings["sensitivity_model_part_name"].GetString();
+        Parameters default_settings(R"(
+        {
+            "sensitivity_model_part_name": "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART",
+            "nodal_sensitivity_variables": [],
+            "element_sensitivity_variables": [],
+            "condition_sensitivity_variables": [],
+            "build_mode": "static"
+        })");
 
-        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, ResponseSettings["nodal_sensitivity_variables"]);
-        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, ResponseSettings["element_sensitivity_variables"]);
-        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, ResponseSettings["condition_sensitivity_variables"]);
+        mSensitivityModelPartName = SensitivitySettings["sensitivity_model_part_name"].GetString();
 
+        mBuildMode = SensitivitySettings["build_mode"].GetString();
+
+        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, SensitivitySettings["nodal_sensitivity_variables"]);
+        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, SensitivitySettings["element_sensitivity_variables"]);
+        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, SensitivitySettings["condition_sensitivity_variables"]);
+
+        //MFusseder TODO: evalutate if gradient mode should also a memeber of this class?
         KRATOS_CATCH("");
     }
 
@@ -95,6 +107,17 @@ namespace Kratos
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Elements());
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Conditions());
 
+        this->SetAllSensitivityVariablesToZero();
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointPostprocess::SetAllSensitivityVariablesToZero()
+    {
+        KRATOS_TRY;
+
+        ModelPart& r_model_part = this->GetModelPart();
+
         // Set nodal sensitivity result variables to zero.
         for (const auto& variable_pair : mNodalSensitivityScalarVariables)
             VariableUtils().SetToZero_ScalarVar(variable_pair[1], r_model_part.Nodes());
@@ -149,6 +172,16 @@ namespace Kratos
     void AdjointPostprocess::UpdateSensitivities()
     {
         KRATOS_TRY;
+
+        if (mBuildMode == "static")
+        {
+            // overwrite existing.
+            this->SetAllSensitivityVariablesToZero();
+        }
+        else
+        {
+            KRATOS_ERROR << "Unsupported \"build_mode\": " << mBuildMode << std::endl;
+        }
 
         for (const auto& variable_pair : mNodalSensitivityScalarVariables)
             this->UpdateNodalSensitivities(variable_pair[0], variable_pair[1]);
