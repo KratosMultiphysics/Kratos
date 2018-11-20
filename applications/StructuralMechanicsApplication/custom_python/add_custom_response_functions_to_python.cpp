@@ -74,8 +74,7 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         .def("Initialize", &AdjointStructuralResponseFunction::Initialize)
         .def("InitializeSolutionStep", &AdjointStructuralResponseFunction::InitializeSolutionStep)
         .def("FinalizeSolutionStep", &AdjointStructuralResponseFunction::FinalizeSolutionStep)
-        .def("CalculateValue", &AdjointStructuralResponseFunction::CalculateValue)
-        .def("UpdateSensitivities", &AdjointStructuralResponseFunction::UpdateSensitivities);
+        .def("CalculateValue", &AdjointStructuralResponseFunction::CalculateValue);
 
     py::class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointStructuralResponseFunction>
         (m, "AdjointLocalStressResponseFunction")
