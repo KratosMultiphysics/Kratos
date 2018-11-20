@@ -66,13 +66,7 @@ void NavierStokesWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rRes
 }
 
 
-/// Calculates the LHS and RHS condition contributions
-/**
- * Clones the selected element variables, creating a new one
- * @param rLeftHandSideMatrix reference to the LHS matrix
- * @param rRightHandSideVector reference to the RHS matrix
- * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
- */
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
@@ -145,12 +139,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
 }
 
 
-/// Calculates the RHS condition contributions
-/**
- * Clones the selected element variables, creating a new one
- * @param rLeftHandSideMatrix reference to the LHS matrix
- * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
- */
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                    ProcessInfo& rCurrentProcessInfo)
@@ -169,12 +158,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLeftHandSide(MatrixType
 }
 
 
-/// Calculates the RHS condition contributions
-/**
- * Clones the selected element variables, creating a new one
- * @param rRightHandSideVector reference to the RHS matrix
- * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
- */
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                     ProcessInfo& rCurrentProcessInfo)
@@ -306,13 +290,7 @@ void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofLis
 }
 
 
-/**
- * @brief Finds the parent element of the condition
- * 
- * @tparam TDim Spatial dimension of problem
- * @tparam TNumNodes Number of nodes of condition
- * @param rParent Reference to the parent element (output of function)
- */
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::FindParent(Element& rParent){
 
@@ -374,9 +352,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::FindParent(Element& rParent){
 }
 
 
-/**
- * @see NavierStokesWallCondition::GetDofList
- */
+
 template <>
 void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
                                                 ProcessInfo& rCurrentProcessInfo)
@@ -399,11 +375,8 @@ void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofLis
 }
 
 
-/// Computes the Gauss pt. LHS contribution
-/**
-* @param lhs_gauss reference to the local LHS matrix
-* @param data Gauss pt. data structure
-*/
+
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs_gauss,
 const ConditionDataStruct& data)
@@ -413,11 +386,7 @@ const ConditionDataStruct& data)
 }
 
 
-/// Computes the Gauss pt. RHS contribution
-/**
-* @param rhs_gauss reference to the local RHS vector
-* @param data Gauss pt. data structure
-*/
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
 const ConditionDataStruct& data)
@@ -437,11 +406,7 @@ const ConditionDataStruct& data)
 }
 
 
-/// Computes the condition RHS Neumann BC contribution
-/**
-* @param rhs_gauss reference to the local RHS vector
-* @param data Gauss pt. data structure
-*/
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
                                                                               const ConditionDataStruct& data)
@@ -466,11 +431,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSNeumannContribution(ar
 }
 
 
-/// Computes the condition RHS outlet inflow prevention contribution
-/**
-* @param rhs_gauss reference to the local RHS vector
-* @param data Gauss pt. data structure
-*/
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs_gauss,
                                                                                    const ConditionDataStruct& data)
@@ -547,15 +508,7 @@ void NavierStokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
 }
 
 
-/**
- * @brief Computes the left-hand side contribution for the BEHR2004 slip condition
- * This specific implementation of the slip condition avoids spurious velocities 
- * at points were the normal directions of the adjacent boundary geometries do not 
- * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
- * @param rLeftHandSideMatrix reference to the LHS matrix
- * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
- * @param rDataStruct reference to a struct to hand over data
- */
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipLeftHandSideContribution(  MatrixType& rLeftHandSideMatrix,
                                                                                             ProcessInfo& rCurrentProcessInfo,
@@ -645,15 +598,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipLeftHandSideCon
 }
 
 
-/**
- * @brief Computes the right-hand side contribution for the BEHR2004 slip condition
- * This specific implementation of the slip condition avoids spurious velocities 
- * at points were the normal directions of the adjacent boundary geometries do not 
- * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
- * @param rRightHandSideMatrix reference to the LHS matrix
- * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
- * @param rDataStruct reference to a struct to hand over data
- */
+
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideContribution( VectorType& rRightHandSideVector,
                                                                                             const ProcessInfo& rCurrentProcessInfo,
