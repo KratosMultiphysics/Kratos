@@ -112,12 +112,18 @@ public:
         const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
+        // Converged values to be storaged (only used in case of elements that not provide the strain)
+        const Matrix& unperturbed_deformation_gradient_gp = rValues.GetDeformationGradientF();
+        const double& det_unperturbed_deformation_gradient_gp = rValues.GetDeterminantF();
+        Matrix equivalent_F;
+        double det_equivalent_F;
+
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
 
         // Ensure the proper flag
         Flags& cl_options = rValues.GetOptions();
-        cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        const bool use_element_provided_strain = cl_options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         const SizeType num_components = unperturbed_strain_vector_gp.size();
         // Loop over components of the strain
@@ -133,6 +139,15 @@ public:
             // Apply the perturbation
             PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
 
+            // In case the element uses F as input instead of the strain vector
+            if (!use_element_provided_strain) {
+                noalias(equivalent_F) = ComputeEquivalentDeformationGradient(rValues);
+                // Reset the values to the initial ones
+                rValues.SetDeformationGradientF(equivalent_F);
+                det_equivalent_F = MathUtils<double>::DetMat(equivalent_F);
+                rValues.SetDeterminantF(det_equivalent_F);
+            }
+
             // We continue with the calculations
             IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
@@ -143,6 +158,13 @@ public:
             // Reset the values to the initial ones
             noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
             noalias(perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+
+            // In case the element uses F as input instead of the strain vector
+            if (!use_element_provided_strain){
+                // Reset the values to the initial ones
+                rValues.SetDeformationGradientF(unperturbed_deformation_gradient_gp);
+                rValues.SetDeterminantF(det_unperturbed_deformation_gradient_gp);
+            }
         }
     }
 
@@ -161,8 +183,8 @@ public:
         const Variable<Vector>& r_stress_variable = rStressMeasure == ConstitutiveLaw::StressMeasure_PK2 ? PK2_STRESS_VECTOR : KIRCHHOFF_STRESS_VECTOR;
 
         // Converged values to be storaged
-        const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
-        const double det_unperturbed_deformation_gradient_gp = double(rValues.GetDeterminantF());
+        const Matrix& unperturbed_deformation_gradient_gp = rValues.GetDeformationGradientF();
+        const double& det_unperturbed_deformation_gradient_gp = rValues.GetDeterminantF();
 
         // The size of the deformation gradient
         const SizeType size1 = unperturbed_deformation_gradient_gp.size1();
@@ -345,6 +367,33 @@ private:
     {
         rPerturbedDeformationGradient = rDeformationGradientGP;
         rPerturbedDeformationGradient(ComponentI, ComponentJ) += Perturbation;
+    }
+
+    /**
+     * @brief This method computes the equivalent deformation gradient for the elements which provide the deformation gradient as input
+     * @param rValues The properties of the CL
+     */
+    static Matrix ComputeEquivalentDeformationGradient(ConstitutiveLaw::Parameters& rValues)
+    {
+        // We update the deformation gradient
+        const Vector& r_strain_vector = rValues.GetStrainVector();
+        const SizeType size = r_strain_vector.size();
+        const SizeType F_size = (size == 6) ?  3 : 2;
+
+        Matrix equivalent_F(F_size, F_size);
+
+        for (IndexType i = 0; i < F_size; ++i) {
+            equivalent_F(i, i) = 1.0 + r_strain_vector[i];
+        }
+
+        for (IndexType i = F_size; i < size; ++i) {
+            const IndexType equivalent_i = (i == F_size) ? 0 : (i == 4) ? 1 : 0;
+            const IndexType equivalent_j = (i == F_size) ? 1 : 2;
+            equivalent_F(equivalent_i, equivalent_j) = 0.5 * r_strain_vector[i];
+            equivalent_F(equivalent_j, equivalent_i) = 0.5 * r_strain_vector[i];
+        }
+
+        return equivalent_F;
     }
 
     /**
