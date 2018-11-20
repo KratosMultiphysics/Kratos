@@ -524,6 +524,15 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords, const double tol)
+            {
+                Element::Pointer pelem;
+                Vector N(3);
+                int max_results = 1000;
+                bool found = self.FindPointOnMeshSimplified(coords, N, pelem, max_results, tol);
+                return py::make_tuple(found, N, pelem);
+            }
+            )
         ;
 
     py::class_< BinBasedFastPointLocator < 3 > >(m,"BinBasedFastPointLocator3D")
@@ -531,6 +540,15 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords, const double tol)
+            {
+                Element::Pointer pelem;
+                Vector N(3);
+                int max_results = 1000;
+                bool found = self.FindPointOnMeshSimplified(coords, N, pelem, max_results, tol);
+                return py::make_tuple(found, N, pelem);
+            }
+            )
         ;
 
     py::class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
