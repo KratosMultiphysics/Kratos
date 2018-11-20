@@ -83,6 +83,13 @@ template <int TDimension>
 using CurveOnSurface = ANurbs::CurveOnSurface<
     Kratos::array_1d<double, 2>, Kratos::array_1d<double, TDimension>>;
 
+template <int TDimension>
+using PointOnCurveProjection = ANurbs::PointOnCurveProjection<
+    Kratos::array_1d<double, TDimension>>;
+
+using TrimmedSurfaceClipping = ANurbs::TrimmedSurfaceClipping<
+    Kratos::array_1d<double, 2>>;
+
 } // namespace Kratos
 
 #endif // !defined(KRATOS_ANURBS_H_INCLUDED)
