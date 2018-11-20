@@ -50,21 +50,23 @@ void SettingBasicCase(
     rProperties.SetValue(POISSON_RATIO, 0.22);
 
     rStressVector = ZeroVector(6);
-    rStressVector[0] = 5.40984e+06;
-    rStressVector[1] = 5.40984e+06;
-    rStressVector[2] = 1.91803e+07;
-    rStressVector[5] = 1.45804e-10;
 
     rStrainVector = ZeroVector(6);
     rStrainVector[2] = 8.0e-5;
     rStrainVector[5] = 1.6941e-21;
 
-    rF = ZeroMatrix(3, 3);
-    rF(0,0) = 1.0;
-    rF(1,1) = 1.0;
-    rF(2,2) = (1.0 - 8.0e-5);
-    rF(2,0) = 0.5 * -1.6941e-21;
-    rF(0,2) = 0.5 * -1.6941e-21;
+    // Compute equivalent F
+    rF = IdentityMatrix(3);
+    for (int i = 0; i < 3; ++i) {
+        rF(i, i) = 1.0 + rStrainVector[i];
+    }
+
+    for (int i = 3; i < 6; ++i) {
+        const int equivalent_i = (i == 3) ? 0 : (i == 4) ? 1 : 0;
+        const int equivalent_j = (i == 3) ? 1 : 2;
+        rF(equivalent_i, equivalent_j) = 0.5 * rStrainVector[i];
+        rF(equivalent_j, equivalent_i) = 0.5 * rStrainVector[i];
+    }
     rDetF = MathUtils<double>::DetMat(rF);
 
     rTangentModuli = ZeroMatrix(6, 6);
@@ -180,6 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosStruc
     SettingBasicCase(cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_Cauchy);
 
     Matrix C = ZeroMatrix(6, 6);
     C = p_constitutive_law->CalculateValue(cl_configuration_values,CONSTITUTIVE_MATRIX, C);
@@ -211,6 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosStruct
     SettingBasicCase(cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("HyperElastic3DLaw").Clone();
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
 
     Matrix C = ZeroMatrix(6, 6);
     C = p_constitutive_law->CalculateValue(cl_configuration_values,CONSTITUTIVE_MATRIX_PK2, C);
@@ -242,6 +246,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, Kr
     SettingBasicCase(cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_Cauchy);
 
     ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, true);
 }
@@ -259,6 +264,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticHyperElasticCasePertubationTensorUtility, Kra
     SettingBasicCase(cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false);
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("HyperElastic3DLaw").Clone();
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_Cauchy);
 
     ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, true);
 }
