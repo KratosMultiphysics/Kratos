@@ -43,16 +43,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(AdjointStructuralResponseFunction);
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
-
-    typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
-
-    typedef ModelPart::NodesContainerType NodesContainerType;
-
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
-
-    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
-
     typedef std::size_t IndexType;
 
     typedef std::size_t SizeType;
