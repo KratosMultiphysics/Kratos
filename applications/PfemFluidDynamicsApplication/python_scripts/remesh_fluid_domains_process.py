@@ -230,6 +230,9 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                 node.SetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION,1.0)
                 node.SetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION_OLD,1.0)
                 node.SetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION_RATE,0.0)
+        if(currentStep == 2):
+            for node in self.main_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION_RATE,0.0)
 
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
