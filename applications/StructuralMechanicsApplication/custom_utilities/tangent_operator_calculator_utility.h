@@ -496,8 +496,6 @@ private:
             }
         }
 
-        KRATOS_ERROR_IF(counter == 0) << "The strain vector is full of 0's..." << std::endl;
-
         rMinValue = aux;
     }
 
@@ -528,8 +526,6 @@ private:
                 }
             }
         }
-
-        KRATOS_ERROR_IF(counter == 0) << "The deformation gradient is an identity matrix" << std::endl;
 
         rMinValue = aux;
     }
