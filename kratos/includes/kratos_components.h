@@ -79,15 +79,15 @@ public:
 
     static void Add(std::string const& Name, TComponentType const& ThisComponent)
     {
-        msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
+        msComponents.insert(ValueType(Name , &ThisComponent));
     }
 
     static TComponentType const& Get(std::string const& Name)
     {
-        typename ComponentsContainerType::iterator i =  msComponents.find(Name);
-        if(i == msComponents.end())
+        auto it_comp =  msComponents.find(Name);
+        if(it_comp == msComponents.end())
           KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name);
-        return *(i->second);
+        return *(it_comp->second);
     }
 
     static ComponentsContainerType & GetComponents()
@@ -269,7 +269,7 @@ public:
 
     static void Add(std::string const& Name, VariableData& ThisComponent)
     {
-        msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
+        msComponents.insert(ValueType(Name ,&ThisComponent));
     }
 
     static std::size_t Size()
