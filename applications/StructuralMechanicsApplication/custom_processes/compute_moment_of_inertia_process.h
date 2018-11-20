@@ -67,7 +67,7 @@ public:
         ModelPart& rThisModelPart,
         const Point& rPoint1,
         const Point& rPoint2
-        ):mrThisModelPart(rThisModelPart), mrPoint1(rPoint1), mrPoint2(rPoint2)
+        ):mrThisModelPart(rThisModelPart) , mrPoint1(rPoint1), mrPoint2(rPoint2)
     {
         KRATOS_TRY
 
