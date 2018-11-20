@@ -12,14 +12,12 @@
 
 
 // System includes
-#include "includes/define.h"
 
 // External includes
 
 // Project includes
 #include "custom_elements/base_discrete_element.h"
 
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
 
@@ -82,7 +80,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const int number_of_control_points = GetGeometry().size();
+        const unsigned int number_of_control_points = GetGeometry().size();
 
         if (rResult.size() != 3 * number_of_control_points)
             rResult.resize(3 * number_of_control_points, false);
@@ -108,7 +106,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const int number_of_control_points = GetGeometry().size();
+        const unsigned int number_of_control_points = GetGeometry().size();
 
         rElementalDofList.resize(0);
         rElementalDofList.reserve(3 * number_of_control_points);
@@ -183,10 +181,10 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
-        const int number_of_control_points = GetGeometry().size();
+        const unsigned int number_of_control_points = GetGeometry().size();
 
         // Resizing as needed the LHS
-        const int mat_size = number_of_control_points * 3;
+        const unsigned int mat_size = number_of_control_points * 3;
 
         if (rDampingMatrix.size1() != mat_size)
             rDampingMatrix.resize(mat_size, mat_size, false);
@@ -252,7 +250,7 @@ namespace Kratos
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
             array_1d<double, 3> velocity = ZeroVector(3);
-            for (SizeType i = 0; i < number_of_control_points; i++)
+            for (int i = 0; i < number_of_control_points; i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
                 const array_1d<double, 3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, 0);
@@ -280,7 +278,7 @@ namespace Kratos
             const int& number_of_control_points = GetGeometry().size();
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
             Vector condition_coords = ZeroVector(3);
-            for (SizeType i = 0; i < number_of_control_points; i++)
+            for (int i = 0; i < number_of_control_points; i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
                 const array_1d<double, 3>& coords = iNode.Coordinates();
@@ -295,7 +293,7 @@ namespace Kratos
             const int& number_of_control_points = GetGeometry().size();
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
             Vector condition_coords = ZeroVector(3);
-            for (SizeType i = 0; i < number_of_control_points; i++)
+            for (int i = 0; i < number_of_control_points; i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
                 const array_1d<double, 3>& forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
@@ -347,7 +345,7 @@ namespace Kratos
         const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
         if (rVariable == EXTERNAL_FORCES_VECTOR) {
-            for (SizeType i = 0; i < number_of_control_points; i++)
+            for (int i = 0; i < number_of_control_points; i++)
             {
                 NodeType & iNode = GetGeometry()[i];
 
@@ -394,8 +392,8 @@ namespace Kratos
         Vector& rValues,
         int Step)
     {
-        const int number_of_control_points = GetGeometry().size();
-        const int mat_size = number_of_control_points * 3;
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -417,8 +415,8 @@ namespace Kratos
         Vector& rValues,
         int Step)
     {
-        const int number_of_control_points = GetGeometry().size();
-        const int mat_size = number_of_control_points * 3;
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -439,8 +437,8 @@ namespace Kratos
         Vector& rValues,
         int Step)
     {
-        const int number_of_control_points = GetGeometry().size();
-        const int mat_size = number_of_control_points * 3;
+        const unsigned int number_of_control_points = GetGeometry().size();
+        const unsigned int mat_size = number_of_control_points * 3;
 
         if (rValues.size() != mat_size)
             rValues.resize(mat_size, false);
@@ -471,15 +469,15 @@ namespace Kratos
     //***********************************************************************************/
     void BaseDiscreteElement::Jacobian(const Matrix& DN_De,
         Matrix& Jacobian,
-        const int rWorkingSpaceDimension,
-        const int rLocalSpaceDimension) const
+        const unsigned int rWorkingSpaceDimension,
+        const unsigned int rLocalSpaceDimension) const
     {
-        const int number_of_control_points = GetGeometry().size();
+        const unsigned int number_of_control_points = GetGeometry().size();
 
 		if ((Jacobian.size1() != rWorkingSpaceDimension) || (Jacobian.size2() != rLocalSpaceDimension))
 			Jacobian.resize(rWorkingSpaceDimension, rLocalSpaceDimension);
 		noalias(Jacobian) = ZeroMatrix(rWorkingSpaceDimension, rLocalSpaceDimension);
-        
+
 		for (unsigned int i = 0; i < number_of_control_points; i++)
         {
             for (unsigned int k = 0; k<rWorkingSpaceDimension; k++)

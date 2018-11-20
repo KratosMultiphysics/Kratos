@@ -17,7 +17,6 @@
 
 // Project includes
 #include "brep_json_io.h"
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
 
@@ -282,8 +281,8 @@ namespace Kratos
                 std::cout << "> Reading face " << face_id << " finishing" << std::endl;
                 //ModelPart sub_model_part_face = sub_model_part_face.GetSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
                 // create face
-                BrepFace face(face_id, is_trimmed, is_rational, 
-                    trimming_loops, embedded_loops, embedded_points, 
+                BrepFace face(face_id, is_trimmed, is_rational,
+                    trimming_loops, embedded_loops, embedded_points,
                     knot_vector_u, knot_vector_v, p, q,
                     control_points_ids, model_part);
                 faces_vector.push_back(face);

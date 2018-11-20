@@ -4,7 +4,6 @@
 // System includes
 
 // Project includes
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
 #include "brep_face.h"
@@ -12,8 +11,6 @@
 #include "brep_vertex.h"
 
 #include <ANurbs/Integration>
-//#include "..\nurbs_brep_modeler.h"
-
 namespace Kratos
 {
     ///@name Kratos Classes
@@ -29,12 +26,12 @@ namespace Kratos
         //KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
 
         ///@}
-        ///@name Life Cycle 
+        ///@name Life Cycle
         ///@{
 
         bool GetIntegrationDomainGeometry(
-            ModelPart& rModelPart, 
-            int& brep_id, 
+            ModelPart& rModelPart,
+            int& brep_id,
             const std::string& rType,
             const std::string& rName,
             const int& rPropertiesId,

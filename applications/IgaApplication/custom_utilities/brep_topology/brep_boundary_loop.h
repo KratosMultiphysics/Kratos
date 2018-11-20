@@ -7,7 +7,6 @@
 // Project includes
 #include "brep_trimming_curve.h"
 
-#include "iga_application.h"
 #include "iga_application_variables.h"
 
 namespace Kratos
@@ -16,7 +15,7 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
     /// Collection of all trimming curves which comply one full boundary loop.
-    /** This class contains a collection of trimming curves that imply a boundary 
+    /** This class contains a collection of trimming curves that imply a boundary
     loop of the underlying surface. The loop can either be an inner or outer loop.
     */
     class BrepBoundaryLoop
@@ -29,8 +28,8 @@ namespace Kratos
         KRATOS_CLASS_POINTER_DEFINITION(BrepBoundaryLoop);
 
         ///@}
-        ///@name Life Cycle 
-        ///@{ 
+        ///@name Life Cycle
+        ///@{
 
         std::vector<BrepTrimmingCurve>& GetTrimmingCurves();
 
@@ -48,7 +47,7 @@ namespace Kratos
         /// Destructor.
         virtual ~BrepBoundaryLoop() {};
 
-        ///@} 
+        ///@}
     protected:
 
     private:
@@ -56,8 +55,8 @@ namespace Kratos
         ///@{
         std::vector<BrepTrimmingCurve> m_brep_trimming_curves;
         bool m_is_outer_loop;
-        ///@} 
-    }; // Class BrepBoundaryLoop 
+        ///@}
+    }; // Class BrepBoundaryLoop
 
 } // namespace Kratos.
 

@@ -34,8 +34,8 @@ namespace Kratos
         KRATOS_CLASS_POINTER_DEFINITION(BrepTrimmingCurve);
 
         ///@}
-        ///@name Life Cycle 
-        ///@{ 
+        ///@name Life Cycle
+        ///@{
         // Utilities
         /* Returns trimming curve index
         */
@@ -45,7 +45,7 @@ namespace Kratos
 
         /// Constructor.
         BrepTrimmingCurve(
-            int& rTrimIndex, 
+            int& rTrimIndex,
             Vector& rKnotVector,
             int& rDegree,
             std::vector<BoundedVector<double, 4>>& rControlPoints,
@@ -56,25 +56,25 @@ namespace Kratos
         /// Destructor.
         virtual ~BrepTrimmingCurve() {};
 
-        ///@} 
+        ///@}
     protected:
 
     private:
         ///@name Member Variables
-        ///@{ 
+        ///@{
         int m_trim_index;
         bool m_curve_direction;
 
         std::shared_ptr<ANurbs::CurveGeometry2D> m_geometry;
         std::shared_ptr<ANurbs::Curve<Kratos::array_1d<double, 2>>> m_curve;
         ///@}
-        ///@name Un accessible methods 
+        ///@name Un accessible methods
         ///@{
 
 
         ///@}
 
-    }; // Class BrepTrimmingCurve 
+    }; // Class BrepTrimmingCurve
 
 }  // namespace Kratos.
 

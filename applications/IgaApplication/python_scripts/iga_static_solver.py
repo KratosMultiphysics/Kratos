@@ -31,12 +31,12 @@ class StaticIgaSolver(iga_solver.IgaSolver):
         # Set defaults and validate custom settings in the base class.
         # Construct the base solver.
         super(StaticIgaSolver, self).__init__(model, custom_settings)
-        self.print_on_rank_zero("::[StaticIgaSolver]:: ", "Construction finished")
+        KratosMultiphysics.Logger.PrintInfo("::[StaticIgaSolver]:: ", "Construction finished")
 
     def Initialize(self):
-        self.print_on_rank_zero("::[StaticIgaSolver]:: ", "Initializing ...")
+        KratosMultiphysics.Logger.PrintInfo("::[StaticIgaSolver]:: ", "Initializing ...")
         super(StaticIgaSolver, self).Initialize() # The mechanical solver is created here.
-        self.print_on_rank_zero("::[StaticIgaSolver]:: ", "Finished initialization.")
+        KratosMultiphysics.Logger.PrintInfo("::[StaticIgaSolver]:: ", "Finished initialization.")
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

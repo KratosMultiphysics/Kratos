@@ -19,14 +19,10 @@
 // System includes
 
 // Project includes
-#include "iga_application.h"
-#include "iga_application_variables.h"
-
-#include "../node_curve_geometry_3d.h"
-
-// Kratos includes
-#include "includes/node.h"
 #include "includes/model_part.h"
+#include "iga_application_variables.h"
+#include "custom_utilities/node_curve_geometry_3d.h"
+
 
 namespace Kratos
 {
@@ -106,10 +102,18 @@ namespace Kratos
             }
         };
 
-        ///@name Life Cycle 
-        ///@{ 
+        ///@name Life Cycle
+        ///@{
 
         bool IsCouplingEdge();
+
+
+       void GetGeometryIntegration(ModelPart& rModelPart, 
+           const std::string& rType,
+           const std::string& rName,
+           const int& rPropertiesId,
+           const int& rShapeFunctionDerivativesOrder,
+           std::vector<std::string> rVariables);
 
         void GetIntegrationGeometry(
             ModelPart& rModelPart,
@@ -118,7 +122,6 @@ namespace Kratos
             const int& rPropertiesId,
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
-
         void BrepEdge::GetIntegrationBrep(
             ModelPart& rModelPart,
             const int& trim_index,
@@ -146,13 +149,13 @@ namespace Kratos
         /// Destructor.
         virtual ~BrepEdge() {};
 
-        ///@} 
+        ///@}
     protected:
 
     private:
 
         ///@name Member Variables
-        ///@{ 
+        ///@{
         // topology parameter
         std::vector<EdgeTopology>              m_brep_edge_topology_vector;
         std::vector<TrimmingRange>             m_trimming_range_vector;
@@ -165,8 +168,8 @@ namespace Kratos
         Vector                        m_active_range;
         std::vector<int>              m_control_point_ids;
         ModelPart&                    m_model_part;
-        ///@}    
-    }; // Class BrepEdge 
+        ///@}
+    }; // Class BrepEdge
 
 }  // namespace Kratos.
 
