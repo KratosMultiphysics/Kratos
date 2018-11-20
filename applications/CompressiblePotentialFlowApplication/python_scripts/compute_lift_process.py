@@ -88,7 +88,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         title="Cl: %.5f, Cd: %.5f" % (Cl,Cd)
         plt.title(title)
         plt.gca().invert_yaxis()
-        plt.savefig('./Figures/'+self.problem_name+'.png', bbox_inches='tight')
+        plt.savefig(self.problem_name+'.png', bbox_inches='tight')
         plt.close('all')
         print('RZ = ', RZ)
 
