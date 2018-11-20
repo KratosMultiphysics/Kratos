@@ -48,6 +48,7 @@ Import_DelaunayMeshingApplication = False
 Import_FluidRveLagrangeMultipliersApplication=False
 Import_PoromechanicsApplication = False
 Import_FluidTransportApplication = False
+Import_FemToDemApplication = False
 
 print("Applications Available:")
 print("Import_FluidRveLagrangeMultipliersApplication: False")
@@ -95,6 +96,7 @@ print("Import_ChimeraApplication: False")
 print("Import_DelaunayMeshingApplication: False")
 print("Import_PoromechanicsApplication: False")
 print("Import_FluidTransportApplication: False")
+print("Import_FemToDemApplication: False")
 
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -146,6 +148,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_DelaunayMeshingApplication: " + str(Import_DelaunayMeshingApplication))
     print("Import_PoromechanicsApplication: " + str(Import_PoromechanicsApplication))
     print("Import_FluidTransportApplication: " + str(Import_FluidTransportApplication))
+    print("Import_FemToDemApplication: " + str(Import_FemToDemApplication))
 
     if(Import_FluidRveLagrangeMultipliersApplication):
         print("importing KratosFluidRveLagrangeMultipliersApplication ...")
@@ -537,6 +540,15 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.AddApplication(fluid_transport_application)
         print("KratosFluidTransportApplication Succesfully imported")
 
+    if(Import_FemToDemApplication):
+        print("importing KratosFemToDemApplication ...")
+        sys.path.append(applications_path + '/FemToDem/python_scripts')
+        sys.path.append(applications_path + '/FemToDem/Linux')
+        from KratosFemToDemApplication import *
+        fem_to_dem_application = KratosFemToDemApplication()
+        kernel.AddApplication(fem_to_dem_application)
+        print("KratosFemToDemApplication Succesfully imported")
+		
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
 
@@ -626,6 +638,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(poromechanics_application)
     if(Import_FluidTransportApplication):
         kernel.InitializeApplication(fluid_transport_application)
+    if(Import_FemToDemApplication):
+        kernel.InitializeApplication(fem_to_dem_application)
 
 # def ImportApplications(kernel  ):
     # import os.path

@@ -92,7 +92,7 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer BaseDiscreteElement::Create(
+    Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override

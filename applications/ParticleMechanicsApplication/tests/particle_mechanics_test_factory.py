@@ -92,3 +92,7 @@ class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
 ### Gravity Application Tests
 class GravityApplicationTest(ParticleMechanicsTestFactory):
     file_name = "gravity_tests/dynamic_gravity_application_test"
+
+### Slip Boundary Tests
+class SlipBoundaryTest(ParticleMechanicsTestFactory):
+    file_name = "slip_tests/slip_boundary_test"

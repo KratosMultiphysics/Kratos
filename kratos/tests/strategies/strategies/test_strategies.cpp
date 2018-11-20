@@ -134,7 +134,7 @@ namespace Kratos
          * Checks if the Linear strategy performs correctly the resolution of the system
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementLinearStrategy, KratosCoreStrategiesFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(DisplacementLinearStrategy, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -174,7 +174,7 @@ namespace Kratos
          * Checks if the Newton Rapshon strategy performs correctly the resolution of the system
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(DisplacementNRStrategy, KratosCoreStrategiesFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(DisplacementNRStrategy, KratosCoreFastSuite)
         {
             Model current_model;
             
