@@ -2,22 +2,22 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author1 Fullname
-//                   Author2 Fullname 
+//                   Author2 Fullname
 //
-	           
+
 #error Please change the author fullname and if your license is different please state it above
 #error Please remove these error pragmas
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -25,15 +25,15 @@
 
 
 namespace Kratos {
-	namespace Testing {
+namespace Testing {
 
 #error Please change the TestCaseName to the name of your test case
-		KRATOS_TEST_CASE(TestCaseName)
-		{
+KRATOS_TEST_CASE(TestCaseName)
+{
 
-		}
+}
 
-	}
+}
 }  // namespace Kratos.
 
 
