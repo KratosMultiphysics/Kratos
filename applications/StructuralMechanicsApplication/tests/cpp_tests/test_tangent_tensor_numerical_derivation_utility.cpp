@@ -25,6 +25,9 @@ namespace Kratos
 namespace Testing
 {
 
+/**
+ * @brief This sets the basic case
+ */
 void SettingBasicCase(
     ConstitutiveLaw::Parameters& rCLConfigurationValues,
     Properties& rProperties,
@@ -73,6 +76,63 @@ void SettingBasicCase(
     rCLConfigurationValues.SetOptions(constitutive_law_options);
     rCLConfigurationValues.SetProcessInfo(current_process_info);
     rCLConfigurationValues.SetConstitutiveMatrix(rTangentModuli);
+}
+
+/**
+ * This computes the convergence rate of the CL
+ */
+void ComputingConvergenceRate(
+    ConstitutiveLaw::Pointer pConstitutiveLaw,
+    ConstitutiveLaw::Parameters& rCLConfigurationValues,
+    Vector& rStressVector,
+    Vector& rStrainVector,
+    Matrix& rTangentModuli,
+    const bool Debug = false
+    )
+{
+    // The delta parameters
+    const Vector initial_strain_vector = rStrainVector;
+    const Vector delta_strain_vector = rStrainVector;
+    double alpha = 1.0;
+
+    // First error computation
+    Vector expected_stress = rStressVector;
+    Vector expected_previous_stress = rStressVector;
+    Vector expected_delta_stress = ZeroVector(6);
+    Vector computed_delta_stress = ZeroVector(6);
+
+    const double quadratic_threshold = 1.8;
+
+    const std::size_t max_number_iters = 10;
+    std::vector<double> vector_errors(max_number_iters);
+    for (std::size_t iter = 0; iter < max_number_iters; ++iter) {
+        alpha *= 0.5;
+        const Vector final_increment_strain_vector = alpha * delta_strain_vector;
+        noalias(rStrainVector) =  initial_strain_vector + final_increment_strain_vector;
+
+        noalias(expected_previous_stress) = expected_stress;
+        expected_stress = pConstitutiveLaw->CalculateValue(rCLConfigurationValues,CAUCHY_STRESS_VECTOR, expected_stress);
+        noalias(expected_delta_stress) = (expected_stress - expected_previous_stress);
+
+        rStressVector = pConstitutiveLaw->CalculateValue(rCLConfigurationValues,CAUCHY_STRESS_VECTOR, rStressVector);
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rCLConfigurationValues, pConstitutiveLaw.get());
+
+        noalias(computed_delta_stress) = prod(rTangentModuli, final_increment_strain_vector);
+        const Vector aux_error_vector = computed_delta_stress - expected_delta_stress;
+        const double error = norm_2(aux_error_vector);
+
+        vector_errors[iter] = error;
+    }
+
+    for (int i = 0; i < max_number_iters - 4; ++i) {
+        const double slope = std::log((vector_errors[i + 3] - vector_errors[i + 2])/(vector_errors[i + 2] - vector_errors[i + 1]))/std::log((vector_errors[i + 2] - vector_errors[i + 1])/(vector_errors[i + 1] - vector_errors[i + 0]));
+
+        if (Debug) {
+            KRATOS_WATCH(slope)
+        } else { // Check
+            KRATOS_CHECK_GREATER_EQUAL(slope, quadratic_threshold);
+        }
+    }
 }
 
 /**
@@ -148,46 +208,23 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, Kr
 
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
 
-    // The delta parameters
-    const Vector initial_strain_vector = strain_vector;
-    const Vector delta_strain_vector = strain_vector;
-    double alpha = 1.0;
+    ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, true);
+}
 
-    // First error computation
-    Vector expected_stress = stress_vector;
-    Vector expected_previous_stress = stress_vector;
-    Vector expected_delta_stress = ZeroVector(6);
-    Vector computed_delta_stress = ZeroVector(6);
+/**
+ * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
+ */
+KRATOS_TEST_CASE_IN_SUITE(QuadraticHyperElasticCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite2)
+{
+    ConstitutiveLaw::Parameters cl_configuration_values;
+    Properties material_properties;
+    Vector stress_vector, strain_vector;
+    Matrix tangent_moduli, deformation_gradient_F;
+    SettingBasicCase(cl_configuration_values, material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, false);
 
-    const double quadratic_threshold = 1.8;
+    auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("HyperElastic3DLaw").Clone();
 
-    const std::size_t max_number_iters = 10;
-    std::vector<double> vector_errors(max_number_iters);
-    for (std::size_t iter = 0; iter < max_number_iters; ++iter) {
-        alpha *= 0.5;
-        const Vector final_increment_strain_vector = alpha * delta_strain_vector;
-        noalias(strain_vector) =  initial_strain_vector + final_increment_strain_vector;
-
-        noalias(expected_previous_stress) = expected_stress;
-        expected_stress = p_constitutive_law->CalculateValue(cl_configuration_values,CAUCHY_STRESS_VECTOR, expected_stress);
-        noalias(expected_delta_stress) = (expected_stress - expected_previous_stress);
-
-        stress_vector = p_constitutive_law->CalculateValue(cl_configuration_values,CAUCHY_STRESS_VECTOR, stress_vector);
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(cl_configuration_values, p_constitutive_law.get());
-
-        noalias(computed_delta_stress) = prod(tangent_moduli, final_increment_strain_vector);
-        const Vector aux_error_vector = computed_delta_stress - expected_delta_stress;
-        const double error = norm_2(aux_error_vector);
-
-        vector_errors[iter] = error;
-
-//         KRATOS_CHECK_GREATER_EQUAL(error, quadratic_threshold);
-    }
-
-    for (int i = 0; i < max_number_iters - 4; ++i) {
-        const double slope = std::log((vector_errors[i + 3] - vector_errors[i + 2])/(vector_errors[i + 2] - vector_errors[i + 1]))/std::log((vector_errors[i + 2] - vector_errors[i + 1])/(vector_errors[i + 1] - vector_errors[i + 0]));
-        KRATOS_WATCH(slope)
-    }
+    ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, true);
 }
 
 } // namespace Testing
