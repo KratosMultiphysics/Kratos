@@ -134,7 +134,7 @@ void ComputingConvergenceRate(
                 delta_deformation_gradient_F(equivalent_i, equivalent_j) = 0.5 * delta_strain_vector[i];
                 delta_deformation_gradient_F(equivalent_j, equivalent_i) = 0.5 * delta_strain_vector[i];
             }
-            noalias(rF) = prod(initial_deformation_gradient_F, delta_deformation_gradient_F);
+            noalias(rF) = prod(delta_deformation_gradient_F, initial_deformation_gradient_F);
             rDetF = MathUtils<double>::DetMat(rF);
             rCLConfigurationValues.SetDeformationGradientF(rF);
             rCLConfigurationValues.SetDeterminantF(rDetF);
@@ -149,9 +149,14 @@ void ComputingConvergenceRate(
             TangentOperatorCalculatorUtility::CalculateTangentTensor(rCLConfigurationValues, pConstitutiveLaw.get(), ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
         }
 
+//         const Matrix C = rTangentModuli;
+//
 //         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 //         pConstitutiveLaw->CalculateMaterialResponse(rCLConfigurationValues, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
 //         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+//
+//         const Matrix aux_error = rTangentModuli - C;
+//         const double error = norm_frobenius(aux_error);
 
         noalias(computed_delta_stress) = prod(rTangentModuli, delta_strain_vector);
         const Vector aux_error_vector = computed_delta_stress - expected_delta_stress;
@@ -165,7 +170,7 @@ void ComputingConvergenceRate(
     }
 
     for (int i = 1; i < max_number_iters - 4; ++i) { // We discard the first solution
-        if ((vector_errors[i + 3] + vector_errors[i + 2] + vector_errors[i + 1] + vector_errors[i]) > std::numeric_limits<double>::epsilon()) { // If zero means exact solution
+        if ((vector_errors[i + 3] + vector_errors[i + 2] + vector_errors[i + 1] + vector_errors[i]) > 1.0e-6) { // If zero means exact solution
             const double slope = std::log((vector_errors[i + 3] - vector_errors[i + 2])/(vector_errors[i + 2] - vector_errors[i + 1]))/std::log((vector_errors[i + 2] - vector_errors[i + 1])/(vector_errors[i + 1] - vector_errors[i + 0]));
 
             if (Debug) {
@@ -244,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosStruct
 /**
  * @brief This test tests that the perturbation utility is valid for computing the elastic linear tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite2)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_configuration_values;
     Properties material_properties;
@@ -256,7 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, Kr
     auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("LinearElastic3DLaw").Clone();
     p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
 
-    ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, true);
+    ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, false);
 }
 
 /**

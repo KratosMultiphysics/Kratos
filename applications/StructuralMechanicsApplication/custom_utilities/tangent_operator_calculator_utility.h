@@ -139,6 +139,7 @@ public:
 
         // Loop over components of the strain
         Vector& r_perturbed_strain = rValues.GetStrainVector();
+
         Vector& perturbed_integrated_stress = rValues.GetStressVector();
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
             // Apply the perturbation
@@ -289,7 +290,7 @@ private:
      */
     static void CalculatePerturbation(
         const Vector& rStrainVector,
-        const std::size_t Component,
+        const IndexType Component,
         double& rPerturbation
         )
     {
@@ -316,8 +317,8 @@ private:
      */
     static void CalculatePerturbationFiniteDeformation(
         const Matrix& rDeformationGradient,
-        const std::size_t ComponentI,
-        const std::size_t ComponentJ,
+        const IndexType ComponentI,
+        const IndexType ComponentJ,
         double& rPerturbation
         )
     {
@@ -365,8 +366,8 @@ private:
         Matrix& rPerturbedDeformationGradient,
         const Matrix& rDeformationGradientGP,
         const double Perturbation,
-        const SizeType ComponentI,
-        const SizeType ComponentJ
+        const IndexType ComponentI,
+        const IndexType ComponentJ
         )
     {
         rPerturbedDeformationGradient = rDeformationGradientGP;
