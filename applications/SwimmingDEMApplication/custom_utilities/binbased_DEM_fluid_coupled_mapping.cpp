@@ -1525,7 +1525,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
         const double fluid_fraction = geom[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION);
         const double nodal_volume   = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA);
         const double density        = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY);
-        const double nodal_mass_inv = mParticlesPerDepthDistance;
+        double nodal_mass_inv = mParticlesPerDepthDistance;
         const double denominator = fluid_fraction * density * nodal_volume;
         if(std::abs(denominator) > 1.0e-15){
             nodal_mass_inv /= denominator;
@@ -1540,7 +1540,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
         const double particles_mass_fraction = 1.0 - geom[i_nearest_node].FastGetSolutionStepValue(PHASE_FRACTION);
         const double total_particles_mass    = particles_mass_fraction / (1.0 - particles_mass_fraction) * fluid_fraction * fluid_density * nodal_fluid_volume;
         const double particle_mass           = p_node->FastGetSolutionStepValue(NODAL_MASS);
-        const double weight = particle_mass;
+        double weight = particle_mass;
         if(std::abs(total_particles_mass) > 1.0e-15)
         {
             weight /= total_particles_mass;
@@ -1576,7 +1576,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             const double& density                           = geom[i].FastGetSolutionStepValue(DENSITY);
             const double denominator = fluid_fraction * density * nodal_volume;
             if(std::abs(denominator) < 1.0e-15){
-                noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / 1.0;
+                noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / 1.0 * origin_data;
             }
             else{
                 noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / denominator * origin_data;
