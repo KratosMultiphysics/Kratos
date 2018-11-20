@@ -80,17 +80,11 @@ public:
     ///@name Operations
     ///@{
 
-    ModelPart& GetModelPart();
-
-    ModelPart& GetModelPart() const;
-
     virtual void Initialize();
 
     virtual void InitializeSolutionStep(){};
 
     virtual void FinalizeSolutionStep(){};
-
-    virtual void Check();
 
     virtual void Clear();
 
@@ -101,9 +95,6 @@ public:
 protected:
     ///@name Protected member Variables
     ///@{
-
-    ModelPart& mrModelPart;
-    AdjointStructuralResponseFunction& mrResponseFunction;
 
     ///@}
     ///@name Protected Operators
@@ -154,7 +145,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mSensitivityModelPartName;
+    ModelPart* mpSensitivityModelPart = nullptr;
+    ModelPart& mrModelPart;
+    AdjointStructuralResponseFunction& mrResponseFunction;
     std::string mBuildMode;
 
     std::vector<std::vector<Variable<double>>> mNodalSensitivityScalarVariables;

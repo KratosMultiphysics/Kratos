@@ -39,7 +39,20 @@ namespace Kratos
             "build_mode": "static"
         })");
 
-        mSensitivityModelPartName = SensitivitySettings["sensitivity_model_part_name"].GetString();
+        SensitivitySettings.ValidateAndAssignDefaults(default_settings);
+
+        auto sensitivity_model_part_name =
+            SensitivitySettings["sensitivity_model_part_name"].GetString();
+        if (sensitivity_model_part_name !=
+            "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART")
+        {
+            mpSensitivityModelPart =
+                &mrModelPart.GetSubModelPart(sensitivity_model_part_name);
+        }
+        else
+        {
+            mpSensitivityModelPart = &mrModelPart;
+        }
 
         mBuildMode = SensitivitySettings["build_mode"].GetString();
 
@@ -56,42 +69,16 @@ namespace Kratos
     {
     }
 
-    ModelPart& AdjointPostprocess::GetModelPart()
-    {
-      return mrModelPart;
-    }
-
-    ModelPart& AdjointPostprocess::GetModelPart() const
-    {
-      return mrModelPart;
-    }
-
     void AdjointPostprocess::Initialize()
     {
         KRATOS_TRY;
 
         this->Clear();
-        this->Check();
-
-        ModelPart& r_model_part = this->GetModelPart();
-        ModelPart& r_sensitivity_model_part = r_model_part.GetSubModelPart(mSensitivityModelPartName);
 
         // Initialize flags.
-        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Nodes());
-        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Elements());
-        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Conditions());
-
-        KRATOS_CATCH("");
-    }
-
-    void AdjointPostprocess::Check()
-    {
-        KRATOS_TRY;
-
-        ModelPart& r_model_part = this->GetModelPart();
-
-        KRATOS_ERROR_IF_NOT(r_model_part.HasSubModelPart(mSensitivityModelPartName))
-            << "No sub model part \"" << mSensitivityModelPartName << "\"" << std::endl;
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Nodes());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Elements());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, mpSensitivityModelPart->Conditions());
 
         KRATOS_CATCH("");
     }
@@ -100,12 +87,10 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = this->GetModelPart();
-
         // Reset flags.
-        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Nodes());
-        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Elements());
-        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, r_model_part.Conditions());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, mrModelPart.Nodes());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, mrModelPart.Elements());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false, mrModelPart.Conditions());
 
         this->SetAllSensitivityVariablesToZero();
 
@@ -116,29 +101,27 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = this->GetModelPart();
-
         // Set nodal sensitivity result variables to zero.
         for (const auto& variable_pair : mNodalSensitivityScalarVariables)
-            VariableUtils().SetToZero_ScalarVar(variable_pair[1], r_model_part.Nodes());
+            VariableUtils().SetToZero_ScalarVar(variable_pair[1], mrModelPart.Nodes());
         for (const auto& variable_pair : mNodalSensitivityVectorVariables)
-            VariableUtils().SetToZero_VectorVar(variable_pair[1], r_model_part.Nodes());
+            VariableUtils().SetToZero_VectorVar(variable_pair[1], mrModelPart.Nodes());
         // Set elemental sensitivity result variables to zero.
         for (const auto& variable_pair : mElementSensitivityScalarVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
+            for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfElements()); ++i)
             {
-                auto it = r_model_part.ElementsBegin() + i;
+                auto it = mrModelPart.ElementsBegin() + i;
                 it->SetValue(variable_pair[1], variable_pair[1].Zero());
             }
         }
         for (const auto& variable_pair : mElementSensitivityVectorVariables)
         {
              #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
+            for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfElements()); ++i)
             {
-                auto it = r_model_part.ElementsBegin() + i;
+                auto it = mrModelPart.ElementsBegin() + i;
                 it->SetValue(variable_pair[1], variable_pair[1].Zero());
             }
         }
@@ -146,9 +129,9 @@ namespace Kratos
         for (const auto& variable_pair : mConditionSensitivityScalarVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
+            for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfConditions()); ++i)
             {
-                auto it = r_model_part.ConditionsBegin() + i;
+                auto it = mrModelPart.ConditionsBegin() + i;
                 const SizeType number_of_nodes = it->GetGeometry().size();
                 for(IndexType j = 0; j < number_of_nodes; ++j)
                     it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
@@ -157,9 +140,9 @@ namespace Kratos
         for (const auto& variable_pair : mConditionSensitivityVectorVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
+            for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfConditions()); ++i)
             {
-                auto it = r_model_part.ConditionsBegin() + i;
+                auto it = mrModelPart.ConditionsBegin() + i;
                 const SizeType number_of_nodes = it->GetGeometry().size();
                 for(IndexType j = 0; j < number_of_nodes; ++j)
                     it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
@@ -204,8 +187,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = this->GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         const int num_threads = 1;
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
@@ -214,7 +196,7 @@ namespace Kratos
 
         int k = 0;
 
-        for (auto& elem_i : r_model_part.Elements())
+        for (auto& elem_i : mrModelPart.Elements())
         {
             Element::GeometryType& r_geom = elem_i.GetGeometry();
             bool update_sensitivities = false;
@@ -274,7 +256,7 @@ namespace Kratos
         }
 
         // Assemble condition contributions.
-        for (auto& cond_i : r_model_part.Conditions())
+        for (auto& cond_i : mrModelPart.Conditions())
         {
             Condition::GeometryType& r_geom = cond_i.GetGeometry();
             bool update_sensitivities = false;
@@ -331,7 +313,7 @@ namespace Kratos
                 this->AssembleNodalSensitivityContribution(rOutputVariable, sensitivity_vector[k], r_geom);
         }
 
-        r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
+        mrModelPart.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
         KRATOS_CATCH("");
     }
@@ -341,8 +323,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = this->GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         const int num_threads = OpenMPUtils::GetNumThreads();
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
@@ -350,10 +331,10 @@ namespace Kratos
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
         #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
+        for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfElements()); ++i)
         {
             const unsigned int k = OpenMPUtils::ThisThread();
-            auto it = r_model_part.ElementsBegin() + i;
+            auto it = mrModelPart.ElementsBegin() + i;
 
             if (!(it->GetValue(UPDATE_SENSITIVITIES)))
                 continue;
@@ -403,7 +384,7 @@ namespace Kratos
             }
         }
 
-        r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
+        mrModelPart.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
         KRATOS_CATCH("");
     }
@@ -413,8 +394,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = this->GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         const int num_threads = OpenMPUtils::GetNumThreads();
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
@@ -423,10 +403,10 @@ namespace Kratos
 
         //  Assemble condition contributions.
         #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
+        for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfConditions()); ++i)
         {
             const unsigned int k = OpenMPUtils::ThisThread();
-            auto it = r_model_part.ConditionsBegin() + i;
+            auto it = mrModelPart.ConditionsBegin() + i;
 
             if (!(it->GetValue(UPDATE_SENSITIVITIES)))
                 continue;
@@ -477,7 +457,7 @@ namespace Kratos
             }
         }
 
-        r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
+        mrModelPart.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
         KRATOS_CATCH("");
     }
