@@ -4,6 +4,11 @@ from __future__ import print_function, absolute_import, division
 # importing the Kratos Library
 from KratosMultiphysics import *
 import structural_mechanics_analysis
+import KratosMultiphysics
+
+#importing python libraries
+import h5py
+import numpy as np
 
 import time as timer
 
@@ -363,4 +368,195 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
+# ==============================================================================
+class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
+    """nonlinear static adjoint strain energy response function.
+    - runs the primal analysis (writes the primal results to an .h5 file)
+    - reads the primal results from the .h5 file into the adjoint model part
+    - uses primal results to calculate value
+    - uses primal results to calculate gradient by running the adjoint analysis
 
+    Attributes
+    ----------
+    primal_analysis : Primal analysis object of the response function
+    adjoint_analysis : Adjoint analysis object of the response function
+    """
+    def __init__(self, identifier, project_parameters, model):
+        self.identifier = identifier
+
+        # Create the primal solver
+        with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
+            ProjectParametersPrimal = Parameters( parameter_file.read() )
+
+        self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
+
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
+
+        # Create the adjoint solver
+        with open(project_parameters["adjoint_settings"].GetString(),'r') as parameter_file:
+            ProjectParametersAdjoint = Parameters( parameter_file.read() )
+        ProjectParametersAdjoint["solver_settings"].AddValue("response_function_settings", project_parameters)
+
+        adjoint_model = Model()
+
+        self.adjoint_model_part = _GetModelPart(adjoint_model, ProjectParametersAdjoint["solver_settings"])
+
+        # TODO find out why it is not possible to use the same model_part
+        self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_model, ProjectParametersAdjoint)
+
+    def Initialize(self):
+        self.primal_analysis.Initialize()
+        self.adjoint_analysis.Initialize()
+
+    def InitializeSolutionStep(self):
+        # synchronize the modelparts # TODO this should happen automatically
+       # Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
+
+       # self._SynchronizeAdjointFromPrimal()
+
+        # Run the primal analysis.
+        # TODO if primal_analysis.status==solved: return
+        Logger.PrintInfo("\n> Starting primal analysis for response:", self.identifier)
+        startTime = timer.time()
+        if not self.primal_analysis.time < self.primal_analysis.end_time:
+            self.primal_analysis.end_time += 1
+        
+        self.strain_energy = 0
+        # initializing the load and displacement vectors
+        self.elements_load_vectors = []
+        self.elements_displacement_vector_previous_step = []
+        self.element_displacement_vector = []
+        for element in self.primal_model_part.Elements:
+            self.elements_load_vectors.append(np.zeros(6))
+            self.elements_displacement_vector_previous_step.append(np.zeros(6))
+            self.element_displacement_vector.append(np.zeros(6))
+
+        self.LHS = KratosMultiphysics.Matrix(6,6)
+        self.RHS = KratosMultiphysics.Vector(6)
+        
+        #self.primal_analysis.RunSolutionLoop()
+        ## run the solution loop
+        while self.primal_analysis.time < self.primal_analysis.end_time:
+            self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
+            self.primal_analysis.InitializeSolutionStep()
+            self.primal_analysis._GetSolver().Predict()
+            self.primal_analysis._GetSolver().SolveSolutionStep()
+            self.primal_analysis.FinalizeSolutionStep()
+            self.primal_analysis.OutputSolutionStep()
+            
+            #self.ReadDisplacementData(self.primal_analysis.time)
+            #self.CalculateStrainEnergy()
+            self.strain_energy += self.CalculateStrainEnergyIncrement()
+            print(self.strain_energy)
+        
+        Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+
+        # TODO the response value calculation for stresses currently only works on the adjoint modelpart
+        # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
+    #    self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
+    #    self.adjoint_analysis.InitializeSolutionStep()
+
+    #AdjointNonlinearStrainEnergyResponseFunction
+
+    def CalculateStrainEnergyIncrement(self):
+        startTime = timer.time()
+        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
+        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+
+        return value
+
+    # def CalculateValue(self):
+    #     startTime = timer.time()
+    #     value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
+    #     Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+
+    #     self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+
+    # ## this function calculates the response only in the python interface
+    # def CalculateStrainEnergy(self):
+    #     for element in self.primal_model_part.Elements:
+    #         element.CalculateLocalSystem(self.LHS, self.RHS,self.primal_model_part.ProcessInfo)
+    #         LHS_numpy = np.zeros([6,6]) 
+    #         for i in range(0,6):
+    #             for j in range(0,6):
+    #                 LHS_numpy[i][j] = self.LHS[i , j]
+    #         displacement_increment = self.element_displacement_vector[element.Id - 1] - self.elements_displacement_vector_previous_step[element.Id - 1]
+    #         load_increment = np.inner(LHS_numpy , displacement_increment)
+    #         self.elements_load_vectors[element.Id - 1] += load_increment
+    #         self.strain_energy += np.dot(self.elements_load_vectors[element.Id - 1] - (0.5 * load_increment) , displacement_increment)
+    #     print("strain energy" ,  self.strain_energy)
+    #     print("load vector" ,  self.elements_load_vectors)
+    #     print("RHS" ,self.RHS )
+    #     print("LHS")
+        
+    # # function that reads in the HDF5 file data
+    # def ReadDisplacementData(self , time_step):
+    #     time_step_string = f"{time_step:.4f}"
+    #     file_name = "primal_output_truss-" + time_step_string + ".h5" 
+            
+    #     element_connectivities = []
+    #     for element in self.primal_model_part.Elements:
+    #         Nodes = element.GetNodes()
+    #         node_Ids = []
+    #         for node in Nodes:
+    #             node_Ids.append(node.Id)
+    #         element_connectivities.append(node_Ids)
+        
+    #     import copy
+    #     self.elements_displacement_vector_previous_step = copy.copy(self.element_displacement_vector)
+    #     # reading the hdf file data
+    #     hdf5_file = h5py.File(file_name, 'r')
+    #     nodal_data = hdf5_file["ResultsData/NodalSolutionStepData"]
+    #     nodal_displacement_hdf = np.array(nodal_data['DISPLACEMENT'])
+    #     hdf5_file.close()
+    #     for element in self.primal_model_part.Elements:
+    #         node_displacement = []
+    #         for i in range(0,2):
+    #             node_displacement.append(nodal_displacement_hdf[element_connectivities[element.Id - 1][i] - 1])
+    #         element_displacement = np.concatenate([node_displacement[0], node_displacement[1]])
+    #         self.element_displacement_vector[element.Id - 1] = element_displacement     
+
+
+    # def CalculateGradient(self):
+    #     Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
+    #     startTime = timer.time()
+    # #    self.adjoint_analysis._GetSolver().Predict()
+    # #    self.adjoint_analysis._GetSolver().SolveSolutionStep()
+    #     Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+
+    # def GetValue(self):
+    #     return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
+
+
+    # def GetShapeGradient(self):
+    #     gradient = {}
+    #  #   for node in self.adjoint_model_part.Nodes:
+    #  #       gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+    #     return gradient
+
+
+    # def FinalizeSolutionStep(self):
+    #     self.adjoint_analysis.FinalizeSolutionStep()
+    #     self.adjoint_analysis.OutputSolutionStep()
+
+
+    def Finalize(self):
+        self.primal_analysis.Finalize()
+     #   self.adjoint_analysis.Finalize()
+
+
+    def _GetResponseFunctionUtility(self):
+        return self.adjoint_analysis._GetSolver().response_function
+
+
+    # def _SynchronizeAdjointFromPrimal(self):
+    #     if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
+    #         raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
+    #     for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+    #         adjoint_node.X0 = primal_node.X0
+    #         adjoint_node.Y0 = primal_node.Y0
+    #         adjoint_node.Z0 = primal_node.Z0
+    #         adjoint_node.X = primal_node.X
+    #         adjoint_node.Y = primal_node.Y
+    #         adjoint_node.Z = primal_node.Z

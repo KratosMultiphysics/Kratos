@@ -71,6 +71,8 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.response_function_settings)
         elif self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_nonlinear_strain_energy":
+            self.response_function = StructuralMechanicsApplication.AdjointNonlinearStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
