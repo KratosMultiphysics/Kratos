@@ -154,11 +154,11 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  py::class_< Newtonian3DLaw, typename Newtonian3DLaw::Pointer, ConstitutiveLawBaseType >(m, "Newtonian3DLaw")
+  py::class_< NewtonianFluid3DLaw, typename NewtonianFluid3DLaw::Pointer, ConstitutiveLawBaseType >(m, "NewtonianFluid3DLaw")
       .def( py::init<>() )
       ;
 
-  py::class_< NewtonianPlaneStrain2DLaw, typename NewtonianPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >(m, "NewtonianPlaneStrain2DLaw")
+  py::class_< NewtonianFluidPlaneStrain2DLaw, typename NewtonianFluidPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >(m, "NewtonianFluidPlaneStrain2DLaw")
       .def( py::init<>() )
       ;
 
