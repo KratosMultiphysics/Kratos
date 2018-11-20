@@ -114,15 +114,18 @@ void SearchPointsImplementation(
     PointSetType::ContainerType nodes_temp;
     PointSetType::ContainerType nodes_to_find_temp;
 
+    std::map<Point::Pointer, Node<3>::Pointer> map_point_to_node;
+
     nodes_temp.reserve(nodes.size());
-    nodes_to_find_temp.reserve(nodes_to_find.size());
 
     for (NodesContainerType::ContainerType::iterator it = nodes.begin(); it != nodes.end(); ++it){
-        nodes_temp.push_back(std::make_shared<Point>(it->Coordinates()));
+        nodes_temp.push_back(std::make_shared<Point>((*it)->Coordinates()));
     }
 
+    nodes_to_find_temp.reserve(nodes_to_find.size());
+
     for (NodesContainerType::ContainerType::iterator it = nodes_to_find.begin(); it != nodes_to_find.end(); ++it){
-        nodes_to_find_temp.push_back(std::make_shared<Point>(it->Coordinates()));
+        nodes_to_find_temp.push_back(std::make_shared<Point>((*it)->Coordinates()));
     }
 
     PointBinsType bins(nodes_to_find_temp.begin(), nodes_to_find_temp.end());
@@ -143,12 +146,13 @@ void SearchPointsImplementation(
             r_results[i].reserve(n_of_results);
 
             for (PointSetType::ContainerType::iterator it = local_results.begin(); it != local_results.begin() + n_of_results; ++it){
-                Node<3>::Pointer p_node = Kratos::dynamic_pointer_cast<Node<3> >(*it);
-                r_results[i].push_back(p_node);
+                r_results[i].push_back(map_point_to_node[ *(it.base() )]);
             }
 
             r_results_distances[i].insert(r_results_distances[i].begin(), local_results_distances.begin(), local_results_distances.begin() + n_of_results);
         }
+
+            KRATOS_WATCH(r_results_distances.size())
     }
 
     KRATOS_CATCH("")
