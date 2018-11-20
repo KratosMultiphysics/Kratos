@@ -12,10 +12,6 @@
     "kratos_response_settings":{
         "response_type"    : "adjoint_nodal_displacement",
         "gradient_mode"     : "semi_analytic",
-        "sensitivity_model_part_name" :"Parts_AREAS",
-        "nodal_sensitivity_variables"  : ["SHAPE"],
-        "element_sensitivity_variables"  : [],
-        "condition_sensitivity_variables"  : [],
         "step_size"         : 1.0e-6,
         "traced_node_id"       : 5,
         "traced_dof"        : "DISPLACEMENT_Z",
