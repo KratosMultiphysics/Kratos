@@ -57,90 +57,187 @@ class DataCommunicator
     ///@name Operations
     ///@{
 
+    /// Create a new DataCommunicator as a copy of this one.
+    /** This method is used in ParallelEnvironment to register DataCommunicators
+     *  @see ParallelEnvironment.
+     *  @return a unique pointer to the new DataCommunicator.
+     */
     virtual DataCommunicator::UniquePointer Clone() const
     {
         return Kratos::make_unique<DataCommunicator>();
     }
 
+    /// Pause program exectution until all threads reach this call.
+    /** Wrapper for MPI_Barrier. */
     virtual void Barrier() const {}
 
     // Reduce operations
 
+    /// Sum rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local contribution to the sum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The summed quantity (meaningful only in Root).
+     */
     virtual int Sum(const int rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Sum rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local contribution to the sum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The summed quantity (meaningful only in Root).
+     */
     virtual double Sum(const double rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Sum rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local contribution to the sum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The summed quantity (meaningful only in Root).
+     */
     virtual array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Sum rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contributions to the sum.
+     *  @param[out] rGlobalValues Total sums (meaningful only in Root).
+     *  @param[in] Root The rank where the result will be computed.
+     */
     virtual void Sum(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
     {}
 
+    /// Sum rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contributions to the sum.
+     *  @param[out] rGlobalValues Total sums (meaningful only in Root).
+     *  @param[in] Root The rank where the result will be computed.
+     */
     virtual void Sum(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const
     {}
 
+    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local value to consider in computing the minimum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The minimum value (meaningful only in Root).
+     */
     virtual int Min(const int rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local value to consider in computing the minimum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The minimum value (meaningful only in Root).
+     */
     virtual double Min(const double rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local value to consider in computing the minimum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The minimum value (meaningful only in Root).
+     */
     virtual array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the minimum (for each term) of rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contributions to the minimum.
+     *  @param[out] rGlobalValues Global minima (meaningful only in Root).
+     *  @param[in] Root The rank where the result will be computed.
+     */
     virtual void Min(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
     {}
 
+    /// Obtain the minimum (for each term) of rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contributions to the minimum.
+     *  @param[out] rGlobalValues Global minima (meaningful only in Root).
+     *  @param[in] Root The rank where the result will be computed.
+     */
     virtual void Min(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
         const int Root) const
     {}
 
+    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local value to consider in computing the maximum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The maximum value (meaningful only in Root).
+     */
     virtual int Max(const int rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local value to consider in computing the maximum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The maximum value (meaningful only in Root).
+     */
     virtual double Max(const double rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValue Local value to consider in computing the maximum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The maximum value (meaningful only in Root).
+     */
     virtual array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the maximum (for each term) of rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contributions to the maximum.
+     *  @param[out] rGlobalValues Global maxima (meaningful only in Root).
+     *  @param[in] Root The rank where the result will be computed.
+     */
     virtual void Max(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
         const int Root) const
     {}
 
+    /// Obtain the maximum (for each term) of rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contributions to the maximum.
+     *  @param[out] rGlobalValues Global maxima (meaningful only in Root).
+     *  @param[in] Root The rank where the result will be computed.
+     */
     virtual void Max(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues,
@@ -149,76 +246,151 @@ class DataCommunicator
 
     // Allreduce operations
 
+    /// Sum rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Alleduce.
+     *  @param[in] rLocalValue Local contribution to the sum.
+     *  @return The summed quantity.
+     */
     virtual int SumAll(const int rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Sum rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Alleduce.
+     *  @param[in] rLocalValue Local contribution to the sum.
+     *  @return The summed quantity.
+     */
     virtual double SumAll(const double rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Sum rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Alleduce.
+     *  @param[in] rLocalValue Local contribution to the sum.
+     *  @return The summed quantity.
+     */
     virtual array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Sum rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local contributions to the sum.
+     *  @param[out] rGlobalValues Total sums.
+     */
     virtual void SumAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
     {}
 
+    /// Sum rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local contributions to the sum.
+     *  @param[out] rGlobalValues Total sums.
+     */
     virtual void SumAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
     {}
 
+    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValue Local value to consider in computing the minimum.
+     *  @return The minimum value.
+     */
     virtual int MinAll(const int rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValue Local value to consider in computing the minimum.
+     *  @return The minimum value.
+     */
     virtual double MinAll(const double rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValue Local value to consider in computing the minimum.
+     *  @return The minimum value.
+     */
     virtual array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the minimum (for each term) of rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local contributions to the minimum.
+     *  @param[out] rGlobalValues Global minima.
+     */
     virtual void MinAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
     {}
 
+    /// Obtain the minimum (for each term) of rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local contributions to the minimum.
+     *  @param[out] rGlobalValues Global minima.
+     */
     virtual void MinAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
     {}
 
+    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValue Local value to consider in computing the maximum.
+     *  @return The maximum value.
+     */
     virtual int MaxAll(const int rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValue Local value to consider in computing the maximum.
+     *  @return The maximum value.
+     */
     virtual double MaxAll(const double rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValue Local value to consider in computing the maximum.
+     *  @return The maximum value.
+     */
     virtual array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Obtain the maximum (for each term) of rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local contributions to the maximum.
+     *  @param[out] rGlobalValues Global maxima.
+     */
     virtual void MaxAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
     {}
 
+    /// Obtain the maximum (for each term) of rLocalValues across all processes in the Communicator.
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local contributions to the maximum.
+     *  @param[out] rGlobalValues Global maxima.
+     */
     virtual void MaxAll(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
@@ -226,21 +398,45 @@ class DataCommunicator
 
     // Scan operations
 
+    /// Compute the partial sums of rLocalValue across all processes in the Communicator.
+    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
+     *  This is a wrapper to MPI_Scan.
+     *  @param[in] rLocalValue Local contribution to the partial sum.
+     *  @return The summed quantity.
+     */
     virtual int ScanSum(const int rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Compute the partial sums of rLocalValue across all processes in the Communicator.
+    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
+     *  This is a wrapper to MPI_Scan.
+     *  @param[in] rLocalValue Local contribution to the partial sum.
+     *  @return The summed quantity.
+     */
     virtual double ScanSum(const double rLocalValue) const
     {
         return rLocalValue;
     }
 
+    /// Compute the partial sums of rLocalValues across all processes in the Communicator.
+    /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
+     *  This is a wrapper to MPI_Scan.
+     *  @param[in] rLocalValues Local contributions to the partial sum.
+     *  @param[out] rPartialSums Partial sums for the quantities.
+     */
     virtual void ScanSum(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rPartialSums) const
     {}
 
+    /// Compute the partial sums of rLocalValues across all processes in the Communicator.
+    /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
+     *  This is a wrapper to MPI_Scan.
+     *  @param[in] rLocalValues Local contributions to the partial sum.
+     *  @param[out] rPartialSums Partial sums for the quantities.
+     */
     virtual void ScanSum(
         const std::vector<double>& rLocalValues,
         std::vector<double>& rPartialSums) const
