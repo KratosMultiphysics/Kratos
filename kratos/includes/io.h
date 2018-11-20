@@ -96,7 +96,6 @@ public:
 
     typedef DenseMatrix<int> GraphType;
 
-
     ///@}
     ///@name Life Cycle
     ///@{
