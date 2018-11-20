@@ -23,7 +23,14 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
+        self.write_to_log = settings["write_to_log_file"].GetBool()
         self.MassConservationCheckProcess = KratosFluid.MassConservationCheckProcess(self.fluid_model_part, settings)
+
+        # writing first line in file
+        if ( self.write_to_log ):
+            file = open("ApplyMassConservationCheckProcess.log","w+")
+            file.write( "positiveVolume" + "\t" + "negativeVolume" + "\n" )
+            file.close()
 
 
     def ExecuteInitialize(self):
@@ -39,4 +46,27 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
 
     def ExecuteFinalizeSolutionStep(self):
-        self.MassConservationCheckProcess.ExecuteFinalizeSolutionStep()
+
+        updateIsAvailable = False
+        # retrieve information if the values were updated 
+        updated = self.MassConservationCheckProcess.GetUpdateStatus()
+
+        if ( updated ):
+            posVol = self.MassConservationCheckProcess.GetPositiveVolume()
+            negVol = self.MassConservationCheckProcess.GetNegativeVolume()
+            initPosVol = self.MassConservationCheckProcess.GetInitialPositiveVolume()
+            initNegVol = self.MassConservationCheckProcess.GetInitialNegativeVolume()
+
+            # managing the output to the console
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
+            KratosMultiphysics.Logger.Flush()
+
+            # adds additional lines to the log file
+            if ( self.write_to_log ):
+                file = open("ApplyMassConservationCheckProcess.log","a+")
+                file.write( str(posVol) + "\t" + str(negVol) + "\n" )
+                file.close()
+
+
+

@@ -63,53 +63,41 @@ MassConservationCheckProcess::MassConservationCheckProcess(
 }
 
 
-void MassConservationCheckProcess::ExecuteFinalizeSolutionStep(){
-  
-    double negVol = 0.0;
-    double posVol = 0.0;
+bool MassConservationCheckProcess::GetUpdateStatus(){
 
     const int time_step = mrModelPart.GetProcessInfo()[STEP];
 
-    KRATOS_WATCH( time_step );
-
-    if ( mCompareToInitial && time_step == 3){
+    if ( mCompareToInitial && time_step == 1){
         // getting initial values and storing as reference
         this->ComputeVolumesOfFluids( mInitialPositiveVolume, mInitialNegativeVolume );
     }
 
     if ( time_step % this->mMassComputationFreq == 0){
+        
         // writing an output at a given frequncy
-        this->ComputeVolumesOfFluids( posVol, negVol );
+        this->ComputeVolumesOfFluids( mCurrentPositiveVolume, mCurrentNegativeVolume );
 
+#ifdef KRATOS_DEBUG
         std::cout << " --- Volume Checking Process --- " << std::endl;
-        std::cout << " - positive Volume = " << posVol << std::endl;
+        std::cout << " - positive Volume = " << mCurrentPositiveVolume << std::endl;
         if ( mCompareToInitial ){ 
-            std::cout << "   ( " << posVol / mInitialPositiveVolume * 100.0 << "% of initial )" << std::endl; 
+            std::cout << "   ( " << mCurrentPositiveVolume / mInitialPositiveVolume * 100.0 << "% of initial )" << std::endl; 
         }
-        std::cout << " - negative Volume = " << negVol << std::endl;
+        std::cout << " - negative Volume = " << mCurrentNegativeVolume << std::endl;
         if ( mCompareToInitial ){ 
-            std::cout << "   ( " << negVol / mInitialNegativeVolume * 100.0 << "% of initial )" << std::endl; 
+            std::cout << "   ( " << mCurrentNegativeVolume / mInitialNegativeVolume * 100.0 << "% of initial )" << std::endl; 
         }
         std::cout << " --- --- --- --- --- --- --- --- " << std::endl;
+#endif
+        mIsUpdated = true;
+        return true;
 
-        if (mWriteToLogFile){
-            std::ofstream myfile;
-            myfile.open ("volumeLog.txt", std::ios::out | std::ios::app);
-            if ( myfile.is_open() ){
+    } else {
 
-                myfile << time_step << "    ";
-                myfile << posVol << "    ";
-                if ( mCompareToInitial ){ 
-                    myfile << posVol / mInitialPositiveVolume * 100.0 << "    "; 
-                }
-                myfile << negVol << "    ";
-                if ( mCompareToInitial ){ 
-                    myfile << negVol / mInitialNegativeVolume * 100.0 << "\n"; 
-                } 
-                myfile.close();
-            }
-        }
-    } 
+        mCurrentPositiveVolume = -1.0;
+        mCurrentNegativeVolume = -1.0;
+        return false;
+    }
 };
 
 

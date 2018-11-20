@@ -118,6 +118,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     (m,"MassConservationCheckProcess")
     .def(init < ModelPart&, const int, const bool, const bool >())
     .def(init< ModelPart&, Parameters& >())
+    .def("GetUpdateStatus", &MassConservationCheckProcess::GetUpdateStatus)
+    .def("GetPositiveVolume", &MassConservationCheckProcess::GetPositiveVolume)
+    .def("GetNegativeVolume", &MassConservationCheckProcess::GetNegativeVolume)
+    .def("GetInitialPositiveVolume", &MassConservationCheckProcess::GetInitialPositiveVolume)
+    .def("GetInitialNegativeVolume", &MassConservationCheckProcess::GetInitialNegativeVolume)
     ;
 }
 

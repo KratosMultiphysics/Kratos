@@ -112,7 +112,51 @@ public:
     void ExecuteInitializeSolutionStep() override
     {    };
 
-    void ExecuteFinalizeSolutionStep() override;
+    void ExecuteFinalizeSolutionStep() override
+    {    };
+
+    /**
+     * @brief Get the Update Status object to determine whether the volumes were recaculated
+     * 
+     * @return true indicates a recent recomputation of the volume fractions
+     * @return false indicates outdated values of the volume fractions
+     */
+    bool GetUpdateStatus();
+
+    /**
+     * @brief Get the Positive Volume object to obtain the volume fraction with positive distance value
+     * 
+     * @return double volume
+     */
+    double GetPositiveVolume(){  
+        return mCurrentPositiveVolume;
+    };
+
+    /**
+     * @brief Get the Negative Volume object to obtain the volume fraction with negative distance value
+     * 
+     * @return double volume
+     */
+    double GetNegativeVolume(){  
+        return mCurrentNegativeVolume;
+    };
+    /**
+     * @brief Get the Initial Positive Volume object to obtain the positive volume fraction at the beginning
+     * 
+     * @return double volume
+     */
+    double GetInitialPositiveVolume(){  
+        return mInitialPositiveVolume;
+    };
+
+    /**
+     * @brief Get the Initial Negative Volume object to obtain the negative volume fraction at the beginning
+     * 
+     * @return double volume
+     */
+    double GetInitialNegativeVolume(){  
+        return mInitialNegativeVolume;
+    };
 
     // ///@}
     // ///@name Inquiry
@@ -152,12 +196,20 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+
     int mMassComputationFreq;
     bool mCompareToInitial; 
     bool mWriteToLogFile;
 
-    double mInitialNegativeVolume;
-    double mInitialPositiveVolume;
+    bool mIsUpdated;
+
+    double mInitialNegativeVolume = 1.0;
+    
+    double mInitialPositiveVolume = 1.0;
+
+    double mCurrentNegativeVolume = -1.0;
+
+    double mCurrentPositiveVolume = -1.0;
 
     ///@}
     ///@name Protected Operators
@@ -167,6 +219,12 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Computes the fractions of the fluid domain with positive or negative values of the distance functions
+     * 
+     * @param positiveVolume volume ("Air) with positive distance function (output) 
+     * @param negativeVolume volume ("Water") with negative distance function (output)
+     */
     void ComputeVolumesOfFluids( double& positiveVolume, double& negativeVolume );
 
     ///@}
