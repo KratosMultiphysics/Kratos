@@ -523,20 +523,23 @@ namespace Kratos
         }
     }
 
-    void AdjointPostprocess::AssembleElementSensitivityContribution(Variable<double> const& rSensitivityVariable,
+    void AdjointPostprocess::AssembleElementSensitivityContribution(Variable<double> const& rVariable,
                                                 Vector const& rSensitivityVector,
-                                                Element& rElem)
+                                                Element& rElement)
     {
-        rElem.SetValue(rSensitivityVariable , rSensitivityVector[0]);
-        // attention: one has to ensure that element is able to print the variable type later on his Gauss-Points
+        KRATOS_DEBUG_ERROR_IF(rSensitivityVector.size() != 1) << "rSensitivityVector.size() = " << rSensitivityVector.size() << std::endl;
+        rElement.GetValue(rVariable) += rSensitivityVector[0];
     }
 
-    void AdjointPostprocess::AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
+    void AdjointPostprocess::AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rVariable,
                                                 Vector const& rSensitivityVector,
-                                                Element& rElem)
+                                                Element& rElement)
     {
-        rElem.SetValue(rSensitivityVariable , rSensitivityVector);
-        // attention: one has to ensure that element is able to print the variable type later on his Gauss-Points
+        array_1d<double, 3>& r_sensitivity = rElement.GetValue(rVariable);
+        const auto ws_dim = rElement.GetGeometry().WorkingSpaceDimension();
+        KRATOS_DEBUG_ERROR_IF(rSensitivityVector.size() != ws_dim) << "rSensitivityVector.size() = " << rSensitivityVector.size() << std::endl;
+        for (unsigned d = 0; d < ws_dim; ++d)
+            r_sensitivity[d] += rSensitivityVector[d];
     }
 
     void AdjointPostprocess::AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
