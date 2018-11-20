@@ -12,6 +12,8 @@ from . import zhang_guo_recoverer
 from . import L2_projection_recoverer
 from . import pouliot_2012_recoverer
 from . import pouliot_2012_edge_recoverer
+from . import lagrangian_recoverer
+
 import weakref
 
 class DerivativeRecoveryStrategy:
