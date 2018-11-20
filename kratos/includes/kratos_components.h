@@ -11,7 +11,6 @@
 //                   Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_KRATOS_COMPONENTS_H_INCLUDED )
 #define  KRATOS_KRATOS_COMPONENTS_H_INCLUDED
 
@@ -21,7 +20,6 @@
 #include <map>
 
 // External includes
-#include <boost/ref.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -62,11 +60,6 @@ public:
 
     KratosComponents() {}
 
-//       KratosComponents(std::string const& Name, TComponentType const& ThisComponent)
-//       {
-//  	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//       }
-
     /// Destructor.
 
     virtual ~KratosComponents() {}
@@ -76,24 +69,14 @@ public:
     ///@{
 
 
-
     ///@}
     ///@name Operations
     ///@{
-
 
     static void Add(std::string const& Name, TComponentType const& ThisComponent)
     {
         msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
     }
-
-
-//     static void Add(std::string const& Name, TComponentType const& ThisComponent, ComponentsContainerType& ThisComponents)
-//     {
-    ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//     }
-
 
     static TComponentType const& Get(std::string const& Name)
     {
@@ -268,11 +251,6 @@ public:
     /// Default constructor.
     KratosComponents() {}
 
-//       KratosComponents(std::string const& Name, TComponentType const& ThisComponent)
-//       {
-//  	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-//       }
-
     /// Destructor.
     virtual ~KratosComponents() {}
 
@@ -294,12 +272,6 @@ public:
     {
         return msComponents.size();
     }
-
-//     static void Add(std::string const& Name, VariableData& ThisComponent, ComponentsContainerType& ThisComponents)
-//     {
-    ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::ref(ThisComponent)));
-//     }
 
     static VariableData & Get(std::string const& Name)
     {
@@ -481,13 +453,6 @@ typename KratosComponents<TComponentType>::ComponentsContainerType KratosCompone
 
 ///@name Input and output
 ///@{
-
-/// input stream function
-//   template<class TComponentType>
-//   inline std::istream& operator >> (std::istream& rIStream,
-// 				    KratosComponents<TComponentType>& rThis);
-
-
 
 /// output stream function
 template<class TComponentType>
