@@ -238,7 +238,7 @@ namespace Kratos
       }
 
 
-    if(RigidNodes >= size)
+    if(RigidNodes >= size-1)
     {
 
       //Baricenter
@@ -324,37 +324,36 @@ namespace Kratos
     const unsigned int size = rGeometry.size();
 
     for(unsigned int i = 0; i < size; ++i)
+    {
+      if(rGeometry[i].Is(BOUNDARY))
       {
-	if(rGeometry[i].Is(BOUNDARY))
-	  {
-	    BoundaryNodes += 1;
-	  }
+        BoundaryNodes += 1;
       }
+    }
 
 
     if(BoundaryNodes == size)
+    {
+      //Baricenter
+      array_1d<double, 3>  Center;
+      noalias(Center) = ZeroVector(3);
+      array_1d<double, 3>  Normal;
+
+      std::vector<array_1d<double, 3> > Vertices;
+      array_1d<double, 3>  Vertex;
+
+
+      for(unsigned int i = 0; i < size; ++i)
       {
+        Vertex  = rGeometry[i].Coordinates();
 
-	//Baricenter
-	array_1d<double, 3>  Center;
-	Center.clear();
-	array_1d<double, 3>  Normal;
+        Vertices.push_back(Vertex);
 
-	std::vector<array_1d<double, 3> > Vertices;
-	array_1d<double, 3>  Vertex;
+        Center += Vertex;
+      }
 
 
-	for(unsigned int i = 0; i < size; ++i)
-	  {
-	    Vertex  = rGeometry[i].Coordinates();
-
-	    Vertices.push_back(Vertex);
-
-	    Center += Vertex;
-	  }
-
-
-	Center /= (double)size;
+      Center /= (double)size;
 
 	array_1d<double, 3> Corner;
 
@@ -368,15 +367,15 @@ namespace Kratos
 	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 
 	    double NormNormal = norm_2(Normal);
-	    if( NormNormal != 0)
-	      Normal /= NormNormal;
+        if( NormNormal != 0)
+          Normal /= NormNormal;
 
-	    //change position to be the vector from the vertex to the geometry center
-	    Corner = Center-Vertices[i];
+        //change position to be the vector from the vertex to the geometry center
+        Corner = Center-Vertices[i];
 
-	    double NormCorner = norm_2(Corner);
-	    if( NormCorner != 0 )
-	      Corner/= NormCorner;
+        double NormCorner = norm_2(Corner);
+        if( NormCorner != 0 )
+          Corner/= NormCorner;
 
 	    double projection = inner_prod(Corner,Normal);
 

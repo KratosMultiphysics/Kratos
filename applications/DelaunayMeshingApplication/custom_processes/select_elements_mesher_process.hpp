@@ -985,7 +985,7 @@ class SelectElementsMesherProcess
               rAlpha *= 0.80;
             }
           }
-          //there are no wall vertices (impossible)
+          //there are no wall vertices (maybe impossible)
           else{
             rAlpha*=0.80;
             //std::cout<<" WARNING: new element with non-fluid particles and non wall-particles (rigid: "<<rVerticesFlags.Rigid<<" solid: "<<rVerticesFlags.Solid<<" fluid: "<<rVerticesFlags.Fluid<<" free-surface: "<<rVerticesFlags.FreeSurface<<" new_entity: "<<rVerticesFlags.NewEntity<<" isolated: "<<rVerticesFlags.Isolated<<" old_entity: "<<rVerticesFlags.OldEntity<<")"<<std::endl;
@@ -998,10 +998,11 @@ class SelectElementsMesherProcess
           //if the element does not change the volume (all rigid or moving tangentially to the wall)
           if( VolumeChange > 0 && VolumeChange < VolumeTolerance && rVerticesFlags.Rigid == NumberOfVertices ){
             rAlpha*=0.80;
-            //std::cout<<" CONSIDERING VOLUME CHANGE "<<VolumeChange<<std::endl;
           }
           else{
-            rAlpha=0;
+            //if( !(VolumeChange == 0 && MesherUtils.CheckInnerCentre(rVertices)) ){//no moving elements VolumeChange == 0 are accepted if previously inside
+              rAlpha=0;
+            //}
           }
 
         }
@@ -1011,7 +1012,7 @@ class SelectElementsMesherProcess
       rAlpha*=1.10;
 
     }
-    //all nodes are fluid (pre-existing elements) or new elements formed inside of in the fulle free-surface
+    //all nodes are fluid (pre-existing elements) or new elements formed inside or in the free-surface
     else{ //fluid element
 
       //all nodes in the free-surface

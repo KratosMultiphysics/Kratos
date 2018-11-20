@@ -745,7 +745,7 @@ namespace Kratos
 
  	  }
           else{
-          //set nodes to BOUNDARY for elements outside of the working space dimension
+            //set nodes to BOUNDARY for elements outside of the working space dimension
             for(unsigned int j=0; j<rElementGeometry.size(); ++j)
             {
               rElementGeometry[j].Set(BOUNDARY,true);
@@ -945,7 +945,7 @@ namespace Kratos
 
  	  }
           else{
-          //set nodes to BOUNDARY for elements outside of the working space dimension
+            //set nodes to BOUNDARY for elements outside of the working space dimension
             for(unsigned int j=0; j<rElementGeometry.size(); ++j)
             {
               rElementGeometry[j].Set(BOUNDARY,true);
