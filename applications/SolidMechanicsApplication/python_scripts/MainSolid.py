@@ -99,10 +99,10 @@ class Solution(object):
         if self.time_process is not None:
             self.time_process.ExecuteInitialize()
 
-    def Solve(self):
-
         # Initialize solution Loop
         self.InitializeSolutionLoop()
+
+    def Solve(self):
 
         # Solving the problem (time integration)
         while self.time < self.end_time:
