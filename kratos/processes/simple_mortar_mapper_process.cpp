@@ -28,16 +28,14 @@ template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNum
 SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMortarMapperProcess(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
-    TVarType& OriginVariable,
-    TVarType& DestinationVariable,
     Parameters ThisParameters,
     LinearSolverType::Pointer pThisLinearSolver
-    ): mOriginModelPart(rOriginModelPart),
-       mDestinationModelPart(rDestinationModelPart),
-       mOriginVariable(OriginVariable),
-       mDestinationVariable(DestinationVariable),
-       mThisParameters(ThisParameters),
-       mpThisLinearSolver(pThisLinearSolver)
+    ):  mOriginModelPart(rOriginModelPart),
+        mDestinationModelPart(rDestinationModelPart),
+        mOriginVariable(KratosComponents<TVarType>::Get(ThisParameters["origin_variable"].GetString())),
+        mDestinationVariable((ThisParameters["destination_variable"].GetString() == "") ? mOriginVariable : KratosComponents<TVarType>::Get(ThisParameters["destination_variable"].GetString())),
+        mThisParameters(ThisParameters),
+        mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
@@ -65,6 +63,34 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
         mDestinationVariable(ThisVariable),
         mThisParameters(ThisParameters),
         mpThisLinearSolver(pThisLinearSolver)
+{
+    // The default parameters
+    Parameters default_parameters = GetDefaultParameters();
+    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+    // We set some values
+    mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
+    mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
+    mEchoLevel = mThisParameters["echo_level"].GetInt();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster >
+SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMortarMapperProcess(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    TVarType& OriginVariable,
+    TVarType& DestinationVariable,
+    Parameters ThisParameters,
+    LinearSolverType::Pointer pThisLinearSolver
+    ): mOriginModelPart(rOriginModelPart),
+       mDestinationModelPart(rDestinationModelPart),
+       mOriginVariable(OriginVariable),
+       mDestinationVariable(DestinationVariable),
+       mThisParameters(ThisParameters),
+       mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
@@ -835,6 +861,8 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "distance_threshold"               : 1.0e24,
         "origin_variable_historical"       : true,
         "destination_variable_historical"  : true,
+        "origin_variable"                  : "TEMPERATURE",
+        "destination_variable"             : "",
         "search_parameters"                : {
             "allocation_size"                  : 1000,
             "bucket_size"                      : 4,
