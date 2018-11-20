@@ -73,7 +73,7 @@ class DataCommunicator
 
     // Reduce operations
 
-    /// Sum rLocalValue across all processes in the Communicator.
+    /// Sum rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local contribution to the sum.
      *  @param[in] Root The rank where the result will be computed.
@@ -84,7 +84,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Sum rLocalValue across all processes in the Communicator.
+    /// Sum rLocalValue across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local contribution to the sum.
      *  @param[in] Root The rank where the result will be computed.
@@ -95,7 +95,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Sum rLocalValue across all processes in the Communicator.
+    /// Sum rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local contribution to the sum.
      *  @param[in] Root The rank where the result will be computed.
@@ -106,7 +106,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Sum rLocalValues across all processes in the Communicator.
+    /// Sum rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the sum.
      *  @param[out] rGlobalValues Total sums (meaningful only in Root).
@@ -118,7 +118,7 @@ class DataCommunicator
         const int Root) const
     {}
 
-    /// Sum rLocalValues across all processes in the Communicator.
+    /// Sum rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the sum.
      *  @param[out] rGlobalValues Total sums (meaningful only in Root).
@@ -130,7 +130,7 @@ class DataCommunicator
         const int Root) const
     {}
 
-    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local value to consider in computing the minimum.
      *  @param[in] Root The rank where the result will be computed.
@@ -141,7 +141,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local value to consider in computing the minimum.
      *  @param[in] Root The rank where the result will be computed.
@@ -152,7 +152,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local value to consider in computing the minimum.
      *  @param[in] Root The rank where the result will be computed.
@@ -163,7 +163,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the minimum (for each term) of rLocalValues across all processes in the Communicator.
+    /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the minimum.
      *  @param[out] rGlobalValues Global minima (meaningful only in Root).
@@ -175,7 +175,7 @@ class DataCommunicator
         const int Root) const
     {}
 
-    /// Obtain the minimum (for each term) of rLocalValues across all processes in the Communicator.
+    /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the minimum.
      *  @param[out] rGlobalValues Global minima (meaningful only in Root).
@@ -187,7 +187,7 @@ class DataCommunicator
         const int Root) const
     {}
 
-    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local value to consider in computing the maximum.
      *  @param[in] Root The rank where the result will be computed.
@@ -198,7 +198,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local value to consider in computing the maximum.
      *  @param[in] Root The rank where the result will be computed.
@@ -209,7 +209,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValue Local value to consider in computing the maximum.
      *  @param[in] Root The rank where the result will be computed.
@@ -220,7 +220,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the maximum (for each term) of rLocalValues across all processes in the Communicator.
+    /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the maximum.
      *  @param[out] rGlobalValues Global maxima (meaningful only in Root).
@@ -232,7 +232,7 @@ class DataCommunicator
         const int Root) const
     {}
 
-    /// Obtain the maximum (for each term) of rLocalValues across all processes in the Communicator.
+    /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the maximum.
      *  @param[out] rGlobalValues Global maxima (meaningful only in Root).
@@ -246,7 +246,7 @@ class DataCommunicator
 
     // Allreduce operations
 
-    /// Sum rLocalValue across all processes in the Communicator.
+    /// Sum rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Alleduce.
      *  @param[in] rLocalValue Local contribution to the sum.
      *  @return The summed quantity.
@@ -256,7 +256,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Sum rLocalValue across all processes in the Communicator.
+    /// Sum rLocalValue across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Alleduce.
      *  @param[in] rLocalValue Local contribution to the sum.
      *  @return The summed quantity.
@@ -266,7 +266,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Sum rLocalValue across all processes in the Communicator.
+    /// Sum rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Alleduce.
      *  @param[in] rLocalValue Local contribution to the sum.
      *  @return The summed quantity.
@@ -276,7 +276,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Sum rLocalValues across all processes in the Communicator.
+    /// Sum rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the sum.
      *  @param[out] rGlobalValues Total sums.
@@ -286,7 +286,7 @@ class DataCommunicator
         std::vector<int>& rGlobalValues) const
     {}
 
-    /// Sum rLocalValues across all processes in the Communicator.
+    /// Sum rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the sum.
      *  @param[out] rGlobalValues Total sums.
@@ -296,7 +296,7 @@ class DataCommunicator
         std::vector<double>& rGlobalValues) const
     {}
 
-    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValue Local value to consider in computing the minimum.
      *  @return The minimum value.
@@ -306,7 +306,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValue Local value to consider in computing the minimum.
      *  @return The minimum value.
@@ -316,7 +316,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the minimum of rLocalValue across all processes in the Communicator.
+    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValue Local value to consider in computing the minimum.
      *  @return The minimum value.
@@ -326,7 +326,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the minimum (for each term) of rLocalValues across all processes in the Communicator.
+    /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the minimum.
      *  @param[out] rGlobalValues Global minima.
@@ -336,7 +336,7 @@ class DataCommunicator
         std::vector<int>& rGlobalValues) const
     {}
 
-    /// Obtain the minimum (for each term) of rLocalValues across all processes in the Communicator.
+    /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the minimum.
      *  @param[out] rGlobalValues Global minima.
@@ -346,7 +346,7 @@ class DataCommunicator
         std::vector<double>& rGlobalValues) const
     {}
 
-    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValue Local value to consider in computing the maximum.
      *  @return The maximum value.
@@ -356,7 +356,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValue Local value to consider in computing the maximum.
      *  @return The maximum value.
@@ -366,7 +366,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the maximum of rLocalValue across all processes in the Communicator.
+    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValue Local value to consider in computing the maximum.
      *  @return The maximum value.
@@ -376,7 +376,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Obtain the maximum (for each term) of rLocalValues across all processes in the Communicator.
+    /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the maximum.
      *  @param[out] rGlobalValues Global maxima.
@@ -386,7 +386,7 @@ class DataCommunicator
         std::vector<int>& rGlobalValues) const
     {}
 
-    /// Obtain the maximum (for each term) of rLocalValues across all processes in the Communicator.
+    /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (double version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the maximum.
      *  @param[out] rGlobalValues Global maxima.
@@ -398,7 +398,7 @@ class DataCommunicator
 
     // Scan operations
 
-    /// Compute the partial sums of rLocalValue across all processes in the Communicator.
+    /// Compute the partial sums of rLocalValue across all ranks in the Communicator (int version).
     /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
      *  This is a wrapper to MPI_Scan.
      *  @param[in] rLocalValue Local contribution to the partial sum.
@@ -409,7 +409,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Compute the partial sums of rLocalValue across all processes in the Communicator.
+    /// Compute the partial sums of rLocalValue across all ranks in the Communicator (double version).
     /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
      *  This is a wrapper to MPI_Scan.
      *  @param[in] rLocalValue Local contribution to the partial sum.
@@ -420,7 +420,7 @@ class DataCommunicator
         return rLocalValue;
     }
 
-    /// Compute the partial sums of rLocalValues across all processes in the Communicator.
+    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (int version).
     /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
      *  This is a wrapper to MPI_Scan.
      *  @param[in] rLocalValues Local contributions to the partial sum.
@@ -431,7 +431,7 @@ class DataCommunicator
         std::vector<int>& rPartialSums) const
     {}
 
-    /// Compute the partial sums of rLocalValues across all processes in the Communicator.
+    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (double version).
     /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
      *  This is a wrapper to MPI_Scan.
      *  @param[in] rLocalValues Local contributions to the partial sum.
@@ -444,11 +444,25 @@ class DataCommunicator
 
     // Sendrecv operations
 
+    /// Exchange data with other ranks (int version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[out] rRecvValues Received values from rank RecvSource.
+     *  @param[in] RecvSource Rank values are expected from.
+     */
     virtual void SendRecv(
         const std::vector<int>& rSendValues, const int SendDestination,
         std::vector<int>& rRecvValues, const int RecvSource) const
     {}
 
+    /// Exchange data with other ranks (double version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[out] rRecvValues Received values from rank RecvSource.
+     *  @param[in] RecvSource Rank values are expected from.
+     */
     virtual void SendRecv(
         const std::vector<double>& rSendValues, const int SendDestination,
         std::vector<double>& rRecvValues, const int RecvSource) const
@@ -456,21 +470,41 @@ class DataCommunicator
 
     // Broadcast
 
+    /// Synchronize a buffer to the value held by the broadcasting rank (int version).
+    /** This is a wrapper for MPI_Bcast.
+     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+     *  @param[in] SourceRank The rank transmitting the value.
+     */
     virtual void Broadcast(
         int& rBuffer,
         const int SourceRank) const
     {}
 
+    /// Synchronize a buffer to the value held by the broadcasting rank (double version).
+    /** This is a wrapper for MPI_Bcast.
+     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+     *  @param[in] SourceRank The rank transmitting the value.
+     */
     virtual void Broadcast(
         double& rBuffer,
         const int SourceRank) const
     {}
 
+    /// Synchronize a buffer to the value held by the broadcasting rank (int version).
+    /** This is a wrapper for MPI_Bcast.
+     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+     *  @param[in] SourceRank The rank transmitting the value.
+     */
     virtual void Broadcast(
         std::vector<int>& rBuffer,
         const int SourceRank) const
     {}
 
+    /// Synchronize a buffer to the value held by the broadcasting rank (double version).
+    /** This is a wrapper for MPI_Bcast.
+     *  @param[in/out] The broadcast value (input on SourceRank, output on all other ranks).
+     *  @param[in] SourceRank The rank transmitting the value.
+     */
     virtual void Broadcast(
         std::vector<double>& rBuffer,
         const int SourceRank) const
@@ -478,18 +512,38 @@ class DataCommunicator
 
     // Scatter operations
 
+    /// Wrapper for MPI_Scatter calls (int version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[out] rRecvValues Container for the values to be sent.
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @note The expected size of rSendValues is the size of rRecvValues times DataCommunicator::Size().
+     */
     virtual void Scatter(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
         const int SourceRank) const
     {}
 
+    /// Wrapper for MPI_Scatter calls (double version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[out] rRecvValues Container for the values to be sent.
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @note The expected size of rSendValues is the size of rRecvValues times DataCommunicator::Size().
+     */
     virtual void Scatter(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
         const int SourceRank) const
     {}
 
+    /// Wrapper for MPI_Scatterv calls (int version).
+    /** @param[in] rSendValues Values to be scattered (meaningul only on SourceRank).
+     *  @param[in] rSendCounts Number of values to be sent per rank, in order of increasing rank.
+     *  @param[in] rSendOffsets Offset from the start of rSendValues of the first value to be sent to each rank.
+     *  @param[out] rRecvValues Received values.
+     *  The received values at rank i correspond to the range rSendValues[rSendOffsets[i]] to
+     *  rSendValues[rSendOffsets[i] + rSendCounts[i]].
+     */
     virtual void Scatterv(
         const std::vector<int>& rSendValues,
         const std::vector<int>& rSendCounts,
@@ -498,6 +552,14 @@ class DataCommunicator
         const int SourceRank) const
     {}
 
+    /// Wrapper for MPI_Scatterv calls (double version).
+    /** @param[in] rSendValues Values to be scattered (meaningul only on SourceRank).
+     *  @param[in] rSendCounts Number of values to be sent per rank, in order of increasing rank.
+     *  @param[in] rSendOffsets Offset from the start of rSendValues of the first value to be sent to each rank.
+     *  @param[out] rRecvValues Received values.
+     *  The received values at rank i correspond to the range rSendValues[rSendOffsets[i]] to
+     *  rSendValues[rSendOffsets[i] + rSendCounts[i]].
+     */
     virtual void Scatterv(
         const std::vector<double>& rSendValues,
         const std::vector<int>& rSendCounts,
@@ -509,9 +571,9 @@ class DataCommunicator
     // Gather operations
 
     /// Wrapper for MPI_Gather calls (int version).
-    /** @param rSendValues Values to be gathered from this rank.
-     *  @param rRecvValues Container for the result of the MPI_Allgather call.
-     *  @param DestinationRank The rank where the values will be gathered.
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[out] rRecvValues Container for the result of the MPI_Allgather call.
+     *  @param[in] DestinationRank The rank where the values will be gathered.
      *  @note rRecvValues is only meaningful on rank DestinationRank.
      *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
      */
@@ -522,9 +584,9 @@ class DataCommunicator
     {}
 
     /// Wrapper for MPI_Gather calls (double version).
-    /** @param rSendValues Values to be gathered from this rank.
-     *  @param rRecvValues Container for the result of the MPI_Allgather call.
-     *  @param DestinationRank The rank where the values will be gathered.
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[out] rRecvValues Container for the result of the MPI_Allgather call.
+     *  @param[in] DestinationRank The rank where the values will be gathered.
      *  @note rRecvValues is only meaningful on rank DestinationRank.
      *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
      */
@@ -534,6 +596,14 @@ class DataCommunicator
         const int DestinationRank) const
     {}
 
+    /// Wrapper for MPI_Gatherv calls (int version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[out] rRecvValues Received values (meaningful only on DestinationRank).
+     *  @param[in] rRecvCounts Number of values to be received per rank, in order of increasing rank.
+     *  @param[in] rRecvOffsets Offset from the start of rRecvValues of the first value received from each rank.
+     *  The gathered values are arranged so that the first rRecvCounts[i] values in rSendValues of rank i
+     *  are placed on the range rRecvValues[rRecvOffsets[i]] to rRecvValues[rRecvOffsets[i] + rRecvCounts[i]].
+     */
     virtual void Gatherv(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
@@ -542,6 +612,14 @@ class DataCommunicator
         const int DestinationRank) const
     {}
 
+    /// Wrapper for MPI_Gatherv calls (int version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[out] rRecvValues Received values (meaningful only on DestinationRank).
+     *  @param[in] rRecvCounts Number of values to be received per rank, in order of increasing rank.
+     *  @param[in] rRecvOffsets Offset from the start of rRecvValues of the first value received from each rank.
+     *  The gathered values are arranged so that the first rRecvCounts[i] values in rSendValues of rank i
+     *  are placed on the range rRecvValues[rRecvOffsets[i]] to rRecvValues[rRecvOffsets[i] + rRecvCounts[i]].
+     */
     virtual void Gatherv(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
@@ -551,8 +629,8 @@ class DataCommunicator
     {}
 
     /// Wrapper for MPI_Allgather calls (int version).
-    /** @param rSendValues Values to be gathered from this rank.
-     *  @param rRecvValues Container for the result of the MPI_Allgather call.
+    /** @param rSendValues[in] Values to be gathered from this rank.
+     *  @param rRecvValues[out] Container for the result of the MPI_Allgather call.
      *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
      */
     virtual void AllGather(
@@ -561,8 +639,8 @@ class DataCommunicator
     {}
 
     /// Wrapper for MPI_Allgather calls (double version).
-    /** @param rSendValues Values to be gathered from this rank.
-     *  @param rRecvValues Container for the result of the MPI_Allgather call.
+    /** @param rSendValues[in] Values to be gathered from this rank.
+     *  @param rRecvValues[out] Container for the result of the MPI_Allgather call.
      *  @note The expected size of rRecvValues is the size of rSendValues times DataCommunicator::Size().
      */
     virtual void AllGather(
@@ -599,7 +677,7 @@ class DataCommunicator
     ///@{
 
     /// This function throws an error on ranks != Sourcerank if Condition evaluates to true.
-    /** This method is intended as a helper function to force processes to stop after an error
+    /** This method is intended as a helper function to force ranks to stop after an error
      *  is detected on a given rank. A typical use case would be to completely stop the simulation
      *  if an error is detected on the root process.
      *  The intended usage is something like:
@@ -607,7 +685,7 @@ class DataCommunicator
      *  KRATOS_ERROR_IF( data_communicator_instance.BroadcastErrorIfTrue(Condition, Root) )
      *  << "Detailed error message in Root rank";
      *
-     *  If an error is detected, processes other than Root will fail with a generic error message.
+     *  If an error is detected, ranks other than Root will fail with a generic error message.
      *  Failing on the Root rank is left to the caller, so that a detailed error message can be
      *  produced.
      *
@@ -624,7 +702,7 @@ class DataCommunicator
     }
 
     /// This function throws an error on ranks != Sourcerank if Condition evaluates to false.
-    /** This method is intended as a helper function to force processes to stop after an error
+    /** This method is intended as a helper function to force ranks to stop after an error
      *  is detected on a given rank. A typical use case would be to completely stop the simulation
      *  if an error is detected on the root process.
      *  The intended usage is something like:
@@ -632,7 +710,7 @@ class DataCommunicator
      *  KRATOS_ERROR_IF_NOT( data_communicator_instance.BroadcastErrorIfFalse(Condition, Root) )
      *  << "Detailed error message in Root rank";
      *
-     *  If an error is detected, processes other than Root will fail with a generic error message.
+     *  If an error is detected, ranks other than Root will fail with a generic error message.
      *  Failing on the Root rank is left to the caller, so that a detailed error message can be
      *  produced.
      *
@@ -649,14 +727,14 @@ class DataCommunicator
     }
 
     /// This function throws an error on ranks where Condition evaluates to false, if it evaluated to true on a different rank.
-    /** This method is intended as a helper function to force processes to stop after an error
+    /** This method is intended as a helper function to force ranks to stop after an error
      *  is detected on one or more ranks.
      *  The intended usage is something like:
      *
      *  KRATOS_ERROR_IF( data_communicator_instance.ErrorIfTrueOnAnyRank(Condition) )
      *  << "Detailed error message in ranks where Condition == true.";
      *
-     *  If an error is detected, processes other than those where it was detected will fail with
+     *  If an error is detected, ranks other than those where it was detected will fail with
      *  a generic error message.
      *  Failing on the ranks where the condition is true is left to the caller,
      *  so that a detailed error message can be produced.
@@ -673,14 +751,14 @@ class DataCommunicator
     }
 
     /// This function throws an error on ranks where Condition evaluates to true, if it evaluated to false on a different rank.
-    /** This method is intended as a helper function to force processes to stop after an error
+    /** This method is intended as a helper function to force ranks to stop after an error
      *  is detected on one or more ranks.
      *  The intended usage is something like:
      *
      *  KRATOS_ERROR_IF_NOT( data_communicator_instance.ErrorIfFalseOnAnyRank(Condition) )
      *  << "Detailed error message in ranks where Condition == false.";
      *
-     *  If an error is detected, processes other than those where it was detected will fail with
+     *  If an error is detected, ranks other than those where it was detected will fail with
      *  a generic error message.
      *  Failing on the ranks where the condition is false is left to the caller,
      *  so that a detailed error message can be produced.

@@ -34,6 +34,11 @@ namespace Kratos
 
 /// Wrapper for common MPI calls within Kratos.
 /** This class is designed to isolate the Kratos core and applications from direct calls to MPI routines.
+ *
+ *  For function operating on std::vectors, no effort is made to resize inconsistent vectors.
+ *  The sizes of the sending and receiving buffers will only be checked if the code is compiled in Debug
+ *  mode. This is done for efficiency (size checks can force multi-stage communications).
+ *
  *  @see DataCommunicator in the KratosCore for the full interface and a serial do-nothing implementation.
  */
 class MPIDataCommunicator: public DataCommunicator
