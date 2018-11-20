@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division
 # importing the Kratos Library
 from KratosMultiphysics import *
 import structural_mechanics_analysis
-#import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 import time as timer
 
@@ -286,14 +285,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # TODO find out why it is not possible to use the same model_part
         self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_model, ProjectParametersAdjoint)
 
-        self.response_function_settings = project_parameters.Clone()
-
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize()
-        response_function = self._GetResponseFunctionUtility()
-        self.adjoint_postprocess = StructuralMechanicsApplication.AdjointPostprocess(self.adjoint_model_part, response_function, self.response_function_settings)
-        self.adjoint_postprocess.Initialize()
 
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
@@ -329,7 +323,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
         startTime = timer.time()
         self.adjoint_analysis._GetSolver().Predict()
         self.adjoint_analysis._GetSolver().SolveSolutionStep()
-        self.adjoint_postprocess.UpdateSensitivities()
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
 
