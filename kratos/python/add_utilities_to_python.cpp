@@ -527,7 +527,7 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords, const double tol)
             {
                 Element::Pointer pelem;
-                Vector N(3);
+                Vector N;
                 int max_results = 1000;
                 bool found = self.FindPointOnMeshSimplified(coords, N, pelem, max_results, tol);
                 return py::make_tuple(found, N, pelem);
@@ -543,7 +543,7 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords, const double tol)
             {
                 Element::Pointer pelem;
-                Vector N(3);
+                Vector N;
                 int max_results = 1000;
                 bool found = self.FindPointOnMeshSimplified(coords, N, pelem, max_results, tol);
                 return py::make_tuple(found, N, pelem);
