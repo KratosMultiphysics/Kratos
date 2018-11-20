@@ -30,7 +30,9 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.scheme_settings = adjoint_settings["scheme_settings"]
 
         self.response_function_settings = custom_settings["response_function_settings"].Clone()
+        self.sensitivity_settings = custom_settings["sensitivity_settings"].Clone()
         custom_settings.RemoveValue("response_function_settings")
+        custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(StructuralMechanicsAdjointStaticSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Construction finished")
@@ -74,6 +76,9 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
+        self.adjoint_postprocess = StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
+        self.adjoint_postprocess.Initialize()
+
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
 
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
@@ -92,6 +97,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def FinalizeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
+        self.adjoint_postprocess.UpdateSensitivities()
 
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
