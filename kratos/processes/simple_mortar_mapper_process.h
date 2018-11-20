@@ -435,6 +435,8 @@ private:
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
 
+    double mMappingCoefficient = 1.0;             /// The mapping coefficient
+
     bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
     bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical
 
@@ -984,6 +986,7 @@ protected:
             "destination_variable"             : "",
             "origin_variable_historical"       : true,
             "destination_variable_historical"  : true,
+            "mapping_coefficient "             : 1.0,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,

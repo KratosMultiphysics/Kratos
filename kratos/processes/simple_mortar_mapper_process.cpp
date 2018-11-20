@@ -42,6 +42,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     // We set some values
+    mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -69,6 +70,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     // We set some values
+    mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -97,6 +99,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     // We set some values
+    mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
     mOriginHistorical = mThisParameters["origin_variable_historical"].GetBool();
     mDestinationHistorical = mThisParameters["destination_variable_historical"].GetBool();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -114,6 +117,25 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
         ExecuteExplicitMapping();
     else
         ExecuteImplicitMapping();
+
+    // We apply the coeffcient if different of one
+    if (mMappingCoefficient != 1.0) {
+        NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
+
+        if (mDestinationHistorical) {
+            #pragma omp parallel for
+            for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
+                auto it_node = r_nodes_array.begin() + k;
+                it_node->FastGetSolutionStepValue(mDestinationVariable) *= mMappingCoefficient;
+            }
+        } else {
+            #pragma omp parallel for
+            for (int k = 0; k< static_cast<int> (r_nodes_array.size()); ++k) {
+                auto it_node = r_nodes_array.begin() + k;
+                it_node->GetValue(mDestinationVariable) *= mMappingCoefficient;
+            }
+        }
+    }
 
     KRATOS_CATCH("");
 }
@@ -863,6 +885,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "destination_variable_historical"  : true,
         "origin_variable"                  : "TEMPERATURE",
         "destination_variable"             : "",
+        "mapping_coefficient "             : 1.0,
         "search_parameters"                : {
             "allocation_size"                  : 1000,
             "bucket_size"                      : 4,
