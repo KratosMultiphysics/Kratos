@@ -119,13 +119,16 @@ void SearchPointsImplementation(
     nodes_temp.reserve(nodes.size());
 
     for (NodesContainerType::ContainerType::iterator it = nodes.begin(); it != nodes.end(); ++it){
-        nodes_temp.push_back(std::make_shared<Point>((*it)->Coordinates()));
+        auto p_point = std::make_shared<Point>((*it)->Coordinates());
+        nodes_temp.push_back(p_point);
     }
 
     nodes_to_find_temp.reserve(nodes_to_find.size());
 
     for (NodesContainerType::ContainerType::iterator it = nodes_to_find.begin(); it != nodes_to_find.end(); ++it){
-        nodes_to_find_temp.push_back(std::make_shared<Point>((*it)->Coordinates()));
+        auto p_point = std::make_shared<Point>((*it)->Coordinates());
+        nodes_to_find_temp.push_back(p_point);
+        map_point_to_node[p_point] = *(it.base());
     }
 
     PointBinsType bins(nodes_to_find_temp.begin(), nodes_to_find_temp.end());
@@ -151,8 +154,6 @@ void SearchPointsImplementation(
 
             r_results_distances[i].insert(r_results_distances[i].begin(), local_results_distances.begin(), local_results_distances.begin() + n_of_results);
         }
-
-            KRATOS_WATCH(r_results_distances.size())
     }
 
     KRATOS_CATCH("")
