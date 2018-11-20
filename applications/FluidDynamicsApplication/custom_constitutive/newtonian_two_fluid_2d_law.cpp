@@ -102,24 +102,9 @@ void NewtonianTwoFluid2DLaw::EvaluateInPoint(
     rResult /= n_avg;
 }
 
-double NewtonianTwoFluid2DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters& rParameters) const
-{
-    // Calculate Symetric gradient (Voigt notation)
-    const SizeType n_nodes = 3;
-    const SizeType voigt_vector_size = 3;
-    const GeometryType &r_geom = rParameters.GetElementGeometry();
-    
-    const BoundedMatrix<double,3,2> &rDN_DX = rParameters.GetShapeFunctionsDerivatives();
-    BoundedMatrix<double, voigt_vector_size, 3*n_nodes> StrainMatrix;
+double NewtonianTwoFluid2DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters& rParameters) const{
 
-    FluidElementUtilities<n_nodes>::GetStrainMatrix( rDN_DX, StrainMatrix );
-    Vector dofs(9, 0.0);
-    for ( unsigned int i = 0; i < n_nodes; i++){
-        dofs[3*i + 0] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X);
-        dofs[3*i + 1] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y);
-    }
-
-    Vector S = prod( StrainMatrix, dofs);
+    const Vector& S = rParameters.GetStrainVector(); 
 
     // Norm of symetric gradient (cross terms don't get the 2)
     return std::sqrt(2.0*S[0]*S[0] + 2.0*S[1]*S[1] + S[2]*S[2]);
