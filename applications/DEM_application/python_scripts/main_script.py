@@ -412,7 +412,6 @@ class Solution(object):
         self.all_model_parts.ComputeMaxIds()
 
 
-
     def RunMainTemporalLoop(self):
 
         self.step = 0
@@ -476,7 +475,7 @@ class Solution(object):
 
 
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
 
     def UpdateTimeInOneModelPart(self):
         pass

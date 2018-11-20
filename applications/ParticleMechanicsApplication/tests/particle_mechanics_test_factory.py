@@ -88,3 +88,11 @@ class CooksMembraneUPIncompressibleTest(ParticleMechanicsTestFactory):
 ### Constitutive Law Tests
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
+
+### Gravity Application Tests
+class GravityApplicationTest(ParticleMechanicsTestFactory):
+    file_name = "gravity_tests/dynamic_gravity_application_test"
+
+### Slip Boundary Tests
+class SlipBoundaryTest(ParticleMechanicsTestFactory):
+    file_name = "slip_tests/slip_boundary_test"

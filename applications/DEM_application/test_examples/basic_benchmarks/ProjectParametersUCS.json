@@ -89,7 +89,6 @@
 "PredefinedSkinOption"             : false,
 "PostRollingResistanceMoment"      : false,
 "post_vtk_option"                  : false,
-"MeanRadius"                       : 0.0001,
 "virtual_sea_surface_settings"     : {
 "print_sea_surface"                : false
 },

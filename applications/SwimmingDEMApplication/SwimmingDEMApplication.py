@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosSwimmingDEMApplication import *
 application = KratosSwimmingDEMApplication()
 application_name = "KratosSwimmingDEMApplication"
-application_folder = "swimming_DEM_application"
+application_folder = "SwimmingDEMApplication"
 
 # The following lines are common for all applications
 from . import application_importer

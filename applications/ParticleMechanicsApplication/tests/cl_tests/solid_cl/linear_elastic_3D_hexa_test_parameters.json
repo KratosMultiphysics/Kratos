@@ -37,11 +37,7 @@
             "input_filename" : "cl_tests/solid_cl/linear_elastic_3D_hexa_test_Grid"
         },
         "particle_per_element"               : 4,
-        "pressure_dofs"                      : false,
-        "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
-        }
+        "pressure_dofs"                      : false
     },
     "processes"        : {
         "constraints_process_list" : [{

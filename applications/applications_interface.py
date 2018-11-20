@@ -425,7 +425,7 @@ def ImportApplications(kernel, applications_path=application_directory):
 
     if(Import_KratosSwimmingDEMApplication):
         print("importing KratosSwimmingDEMApplication ...")
-        sys.path.append(applications_path + '/swimming_DEM_application/python_scripts')
+        sys.path.append(applications_path + '/SwimmingDEMApplication/python_scripts')
         from KratosSwimmingDEMApplication import *
         swimming_DEM_application = KratosSwimmingDEMApplication()
         kernel.ImportApplication(swimming_DEM_application)

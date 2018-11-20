@@ -81,7 +81,7 @@ namespace Kratos {
  *     FATHER_CONDITION         : the pointer to the coarse condition
  * @author Miguel Maso Sotomayor
  */
-class MultiscaleRefiningProcess : public Process
+class KRATOS_API(MESHING_APPLICATION) MultiscaleRefiningProcess : public Process
 {
 public:
 
