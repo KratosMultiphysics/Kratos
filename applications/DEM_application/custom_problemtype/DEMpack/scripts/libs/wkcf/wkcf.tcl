@@ -202,7 +202,6 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     ::wkcf::CopyClusterDefinitionFiles
 
     if {$AppId == "DEM"} {
-	::wkcf::WriteExplicitSolverVariables
 	::wkcf::WriteExplicitSolverVariablesInJsonFile
     }
 
