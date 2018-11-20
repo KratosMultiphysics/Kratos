@@ -258,6 +258,11 @@ class DataCommunicator
         std::vector<double>& rRecvValues, const int RecvSource) const
     {}
 
+    virtual void SendRecv(
+        const std::string& rSendValues, const int SendDestination,
+        std::string& rRecvValues, const int RecvSource) const
+    {}
+
     // Broadcast
 
     virtual void Broadcast(

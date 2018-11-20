@@ -302,6 +302,13 @@ void MPIDataCommunicator::SendRecv(
     SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
 }
 
+void MPIDataCommunicator::SendRecv(
+        const std::string& rSendValues, const int SendDestination,
+        std::string& rRecvValues, const int RecvSource) const
+{
+    SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
+}
+
 // Broadcast
 
 void MPIDataCommunicator::Broadcast(
@@ -926,6 +933,11 @@ template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::vector<int>
     return MPI_INT;
 }
 
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::string>(const std::string&) const
+{
+    return MPI_CHAR;
+}
+
 // Buffer argument deduction
 
 template<> inline void* MPIDataCommunicator::MPIBuffer(int& rValues) const
@@ -978,6 +990,16 @@ template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<d
     return rValues.data();
 }
 
+template<> inline void* MPIDataCommunicator::MPIBuffer(std::string& rValues) const
+{
+    return const_cast<char *>(rValues.data());
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::string& rValues) const
+{
+    return rValues.data();
+}
+
 // MPI message size deduction
 
 template<> inline int MPIDataCommunicator::MPIMessageSize(const int& rValues) const
@@ -1001,6 +1023,11 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<int>
 }
 
 template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<double>& rValues) const
+{
+    return rValues.size();
+}
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const std::string& rValues) const
 {
     return rValues.size();
 }

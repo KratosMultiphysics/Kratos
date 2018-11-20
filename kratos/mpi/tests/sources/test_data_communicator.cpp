@@ -730,6 +730,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
     std::vector<double> send_buffer_double = {2.0*world_rank, 2.0*world_rank};
     std::vector<double> recv_buffer_double = {0.0, 0.0};
 
+    std::string send_buffer_string = "test";
+    std::string recv_buffer_string;
+    recv_buffer_string.reserve(4);
+
+
     serial_communicator.SendRecv(send_buffer_int, send_rank, recv_buffer_int, recv_rank);
     serial_communicator.SendRecv(send_buffer_double, send_rank, recv_buffer_double, recv_rank);
     for (int i = 0; i < 2; i++)
@@ -751,6 +756,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
             KRATOS_CHECK_EQUAL(recv_buffer_int[i], expected_recv_int);
             KRATOS_CHECK_EQUAL(recv_buffer_double[i], expected_recv_double);
         }
+
+        
+        mpi_world_communicator.SendRecv(send_buffer_string, send_rank, recv_buffer_string, recv_rank);
+        KRATOS_CHECK_EQUAL(recv_buffer_string, "test");
+
+
     }
 
     #ifdef KRATOS_DEBUG

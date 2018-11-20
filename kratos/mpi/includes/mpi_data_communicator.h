@@ -177,6 +177,10 @@ class MPIDataCommunicator: public DataCommunicator
         const std::vector<double>& rSendValues, const int SendDestination,
         std::vector<double>& rRecvValues, const int RecvSource) const override;
 
+    void SendRecv(
+        const std::string& rSendValues, const int SendDestination,
+        std::string& rRecvValues, const int RecvSource) const override;
+
     // Broadcast
 
     void Broadcast(
