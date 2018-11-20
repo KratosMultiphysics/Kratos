@@ -2,6 +2,18 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosIgaApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
+if(NOT DEFINED ANURBS_ROOT)
+    message(FATAL_ERROR
+        "ANURBS_ROOT not defined!\n"
+        "  - Download ANurbs from https://github.com/oberbichler/ANurbs\n"
+        "  - Add '-DANURBS_ROOT=<path to ANurbs>' to your build script")
+else()
+    message(STATUS "ANURBS_ROOT = ${ANURBS_ROOT}")
+endif()
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/kratos
     ${ANURBS_ROOT}/include
