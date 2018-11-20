@@ -5,8 +5,9 @@
 // System includes
 
 // External includes
-#include <ANurbs/Integration>
+//#include <ANurbs/Integration>
 //#include <ANurbs/Core>
+#include "custom_utilities/anurbs.h"
 
 // Project includes
 #include "includes/model_part.h"
@@ -15,11 +16,9 @@
 #include "brep_trimming_curve.h"
 #include "brep_boundary_loop.h"
 
-#include "iga_application_variables.h"
-#include "custom_utilities/node_surface_geometry_3d.h"
-
 // Kratos includes
 #include "includes/model_part.h"
+
 namespace Kratos
 {
     ///@name Type Definitions
@@ -152,7 +151,7 @@ namespace Kratos
 
         const Kratos::shared_ptr<NodeSurfaceGeometry3D> GetSurface() const;
 
-        const Kratos::shared_ptr<ANurbs::Curve<Kratos::array_1d<double, 2>>> GetTrimCurve(
+        const Kratos::shared_ptr<Curve<2>> GetTrimCurve(
             const int& trim_index) const;
 
         //Kratos::shared_ptr<ANurbs::Curve<Kratos::array_1d<double, 2>>> GetTrimCurveNonConst(const int& trim_index);

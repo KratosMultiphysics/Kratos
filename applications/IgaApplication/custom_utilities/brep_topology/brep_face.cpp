@@ -214,11 +214,11 @@ namespace Kratos
 
         auto curve_2d = GetTrimCurve(trim_index);
 
-        //auto curveGeometry2d = Kratos::make_shared<CurveGeometry<2>>(
-        //    2,      // DegreeU
-        //    4,      // NumberOfPoles
-        //    false   // IsRational
-        //    );
+        auto curveGeometry2d = Kratos::make_shared<CurveGeometry<2>>(
+            2,      // DegreeU
+            4,      // NumberOfPoles
+            false   // IsRational
+            );
 
 
 
@@ -509,7 +509,7 @@ namespace Kratos
         return m_node_surface_geometry_3d;
     }
 
-    const Kratos::shared_ptr<ANurbs::Curve<Kratos::array_1d<double, 2>>> BrepFace::GetTrimCurve(const int& trim_index) const
+    const Kratos::shared_ptr<Curve<2>> BrepFace::GetTrimCurve(const int& trim_index) const
     {
         for (int i = 0; i < m_trimming_loops.size(); ++i)
         {

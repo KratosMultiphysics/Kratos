@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "iga_application_variables.h"
 #include "custom_utilities/node_curve_geometry_3d.h"
+#include "custom_utilities/anurbs.h"
 
 
 namespace Kratos

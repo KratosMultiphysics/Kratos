@@ -5,14 +5,14 @@
 // System includes
 
 // External includes
-#pragma once
-#include <ANurbs/src/Curve.h>
-#include <ANurbs/src/CurveGeometry.h>
+//#pragma once
+//#include <ANurbs/src/Curve.h>
+//#include <ANurbs/src/CurveGeometry.h>
 //#include <ANurbs/Integration>
-//#include "custom_utilities/anurbs.h"
+#include "custom_utilities/anurbs.h"
 //#include "../node_surface_geometry_3d.h"
 //#include <ANurbs/Integration>
-#include <ANurbs/Core>
+//#include "anurbs.h"
 
 // Project includes
 #include "iga_application_variables.h"
@@ -41,7 +41,7 @@ namespace Kratos
         */
         int& GetTrimIndex();
 
-        const Kratos::shared_ptr<ANurbs::Curve<Kratos::array_1d<double, 2>>> GetCurve2D() const;
+        const Kratos::shared_ptr<Curve<2>> GetCurve2D() const;
 
         /// Constructor.
         BrepTrimmingCurve(
@@ -65,8 +65,8 @@ namespace Kratos
         int m_trim_index;
         bool m_curve_direction;
 
-        std::shared_ptr<ANurbs::CurveGeometry2D> m_geometry;
-        std::shared_ptr<ANurbs::Curve<Kratos::array_1d<double, 2>>> m_curve;
+        std::shared_ptr<CurveGeometry<2>> m_geometry;
+        std::shared_ptr<Curve<2>> m_curve;
         ///@}
         ///@name Un accessible methods
         ///@{

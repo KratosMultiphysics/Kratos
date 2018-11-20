@@ -17,6 +17,7 @@
 
 // Project includes
 #include "iga_application_variables.h"
+#include "includes/model_part.h"
 
 
 namespace Kratos
@@ -54,9 +55,9 @@ namespace Kratos
             std::vector<VertexTopology>& rBrepVertexTopologyVector,
             int rControlPointId,
             Vector& rPoint)
-            : m_brep_vertex_topology_vector(rBrepVertexTopologyVector),
-              m_control_point_id(rControlPointId),
-              m_point(rPoint),
+            : m_BrepVertexTopologyVector(rBrepVertexTopologyVector),
+              m_ControlPointId(rControlPointId),
+              m_Point(rPoint),
               IndexedObject(rVertexId),
               Flags()
         {};
@@ -71,13 +72,13 @@ namespace Kratos
         ///@name Member Variables
         ///@{
         // topology
-        std::vector<VertexTopology> m_brep_vertex_topology_vector;
+        std::vector<VertexTopology> m_BrepVertexTopologyVector;
 
         //3d point
         // TODO include KRATOS node as spatial coordinates, this would allow to neglect
         // following attributes.
-        int    m_control_point_id;
-        Vector m_point;
+        int    m_ControlPointId;
+        Vector m_Point;
         ///@}
     }; // Class BrepVertex
 

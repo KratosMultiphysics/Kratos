@@ -19,10 +19,10 @@ namespace Kratos
     const BrepVertex::VertexTopology BrepVertex::GetVertexTopology(
         const int& rTopologyIndex) const
     {
-        KRATOS_ERROR_IF(rTopologyIndex >= m_brep_vertex_topology_vector.size())
+        KRATOS_ERROR_IF(rTopologyIndex >= m_BrepVertexTopologyVector.size())
             << "Number of topology references smaller than selected index!" << std::endl;
 
-        return m_brep_vertex_topology_vector[rTopologyIndex];
+        return m_BrepVertexTopologyVector[rTopologyIndex];
     }
 }  // namespace Kratos.
 
