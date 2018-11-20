@@ -319,7 +319,7 @@ class Solution(object):
 
     def SetGraphicalOutput(self):
         if( self.ProjectParameters.Has("output_configuration") ):
-            from gid_output_process import GiDOutputProcess
+            from pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = self.ProjectParameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
 
@@ -348,33 +348,7 @@ class Solution(object):
         self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if( self.ProjectParameters.Has("output_configuration") ):
             if(self.graphical_output.IsOutputStep()):
-
-                self.post_process_model_part.Elements.clear()
-                self.post_process_model_part.Nodes.clear()
-                for node in self.main_model_part.Nodes:
-                    self.post_process_model_part.AddNode(node, 0)
-
-                elements_to_be_added = []
-                for smp in self.main_model_part.SubModelParts:
-                    for elem in smp.Elements:
-                        if self.main_model_part.GetMesh(0).HasElement(elem.Id):
-                            if self.main_model_part.GetElement(elem.Id).GetGeometry() == elem.GetGeometry():
-                                self.post_process_model_part.AddElement(elem, 0)
-                            else:
-                                elements_to_be_added.append(elem)
-                        else:
-                            elements_to_be_added.append(elem)
-
-                max_id = 1
-                for elem in self.post_process_model_part.Elements:
-                    max_id = max(max_id, elem.Id)
-
-                for elem in elements_to_be_added:
-                    max_id += 1
-                    elem.Id = max_id
-                    elem.Set(KratosMultiphysics.ACTIVE, True)
-                    self.post_process_model_part.AddElement(elem, 0)
-
+                KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
                 print("")
                 print("**********************************************************")
                 print("---> Print Output at [STEP:",self.step," TIME:",self.time," DT:",self.delta_time,"]")
