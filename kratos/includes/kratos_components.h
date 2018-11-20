@@ -124,22 +124,23 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    static std::string Info()
     {
         return "Kratos components";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    static void PrintInfo(std::ostream& rOStream)
     {
         rOStream << "Kratos components";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    static void PrintData(std::ostream& rOStream)
     {
-        for(typename ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
-            rOStream << "    " << i->first << std::endl;
+        for (const auto& r_comp : msComponents) {
+            rOStream << "    " << r_comp.first << std::endl;
+        }
     }
 
     ///@}
@@ -321,22 +322,23 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    static std::string Info()
     {
         return "Kratos components";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    static void PrintInfo(std::ostream& rOStream)
     {
         rOStream << "Kratos components";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    static void PrintData(std::ostream& rOStream)
     {
-        for(ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
-            rOStream << "    " << *(i->second) << std::endl;
+        for (const auto& r_comp : msComponents) {
+            rOStream << "    " << r_comp.second << std::endl;
+        }
     }
 
     ///@}
