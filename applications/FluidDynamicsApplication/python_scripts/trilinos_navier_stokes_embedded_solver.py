@@ -185,7 +185,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Initialize()
-        (self.solver).Check()
 
         # For the primitive Ausas formulation, set the find nodal neighbours process
         # Recall that the Ausas condition requires the nodal neighbouts.
