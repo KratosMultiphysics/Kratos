@@ -274,42 +274,48 @@ void CrBeamElement2D2N::CalculateLeftHandSide(
 
 BoundedVector<double, CrBeamElement2D2N::msElementSize>
 CrBeamElement2D2N::CalculateBodyForces() {
-  KRATOS_TRY
-  // getting shapefunctionvalues for linear SF
-  const Matrix &Ncontainer =
-      this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+    KRATOS_TRY
+    // getting shapefunctionvalues for linear SF
+    const Matrix &Ncontainer =
+        this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
 
-  BoundedVector<double, 3> equivalent_line_load = ZeroVector(3);
-  BoundedVector<double, msElementSize> body_forces_global =
-      ZeroVector(msElementSize);
+    BoundedVector<double, 3> equivalent_line_load = ZeroVector(3);
+    BoundedVector<double, msElementSize> body_forces_global =
+        ZeroVector(msElementSize);
 
-  const double A = this->GetProperties()[CROSS_AREA];
-  const double l = this->CalculateLength();
-  const double rho = this->GetProperties()[DENSITY];
+    const double A = this->GetProperties()[CROSS_AREA];
+    const double l = this->CalculateLength();
+    const double rho = this->GetProperties()[DENSITY];
 
-  // calculating equivalent line load
-  for (int i = 0; i < msNumberOfNodes; ++i) {
-    equivalent_line_load +=
-        A * rho *
-        this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
-        Ncontainer(0, i);
-  }
-
-  // adding the nodal forces
-  for (int i = 0; i < msNumberOfNodes; ++i) {
-    int index = i * msLocalSize;
-    for (int j = 0; j < msDimension; ++j) {
-      body_forces_global[j + index] =
-          equivalent_line_load[j] * Ncontainer(0, i) * l;
+    // Calculating equivalent line load
+    if (GetProperties().Has( VOLUME_ACCELERATION ))
+        noalias(equivalent_line_load) = A * rho * GetProperties()[VOLUME_ACCELERATION];
+    else if (this->Has( VOLUME_ACCELERATION ))
+        noalias(equivalent_line_load) = A * rho * this->GetValue(VOLUME_ACCELERATION);
+    else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        for (int i = 0; i < msNumberOfNodes; ++i) {
+            noalias(equivalent_line_load) +=
+                A * rho *
+                this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+                Ncontainer(0, i);
+        }
     }
-  }
 
-  // adding the nodal moments
-  this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(equivalent_line_load,
-                                                         body_forces_global, l);
-  // return the total ForceVector
-  return body_forces_global;
-  KRATOS_CATCH("")
+    // adding the nodal forces
+    for (int i = 0; i < msNumberOfNodes; ++i) {
+        int index = i * msLocalSize;
+        for (int j = 0; j < msDimension; ++j) {
+        body_forces_global[j + index] =
+            equivalent_line_load[j] * Ncontainer(0, i) * l;
+        }
+    }
+
+    // adding the nodal moments
+    this->CalculateAndAddWorkEquivalentNodalForcesLineLoad(equivalent_line_load,
+                                                            body_forces_global, l);
+    // return the total ForceVector
+    return body_forces_global;
+    KRATOS_CATCH("")
 }
 
 void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(

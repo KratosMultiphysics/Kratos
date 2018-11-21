@@ -185,12 +185,18 @@ TrussElement3D2N::CalculateBodyForces() {
   BoundedVector<double, msLocalSize> body_forces_global =
       ZeroVector(msLocalSize);
 
-  // assemble global Vector
+  // Assemble global Vector
   for (int i = 0; i < msNumberOfNodes; ++i) {
-    body_forces_node =
-        total_mass *
-        this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
-        Ncontainer(0, i);
+    if (GetProperties().Has( VOLUME_ACCELERATION ))
+        noalias(body_forces_node) = total_mass * GetProperties()[VOLUME_ACCELERATION];
+    else if (this->Has( VOLUME_ACCELERATION ))
+        noalias(body_forces_node) = total_mass * this->GetValue(VOLUME_ACCELERATION);
+    else if( GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        noalias(body_forces_node) =
+            total_mass *
+            this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
+            Ncontainer(0, i);
+    }
 
     for (unsigned int j = 0; j < msDimension; ++j) {
       body_forces_global[(i * msDimension) + j] = body_forces_node[j];

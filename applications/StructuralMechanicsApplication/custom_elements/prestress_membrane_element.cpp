@@ -1,4 +1,4 @@
-// KRATOS  ___|  |                   |                   |
+// // KRATOS  ___|  |                   |                   |
 //       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
@@ -540,8 +540,14 @@ void PrestressMembraneElement::CalculateAndAdd_BodyForce(
 
 
     noalias(BodyForce) = ZeroVector(3);
-    for (unsigned int i = 0; i<number_of_nodes; i++)
-        BodyForce += rN[i] * this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    if (GetProperties().Has( VOLUME_ACCELERATION ))
+        noalias(BodyForce) = GetProperties()[VOLUME_ACCELERATION];
+    else if (this->Has( VOLUME_ACCELERATION ))
+        noalias(BodyForce) = this->GetValue(VOLUME_ACCELERATION);
+    else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+        for (unsigned int i = 0; i<number_of_nodes; i++)
+            noalias(BodyForce) += rN[i] * this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    }
     BodyForce *= density;
 
     for (unsigned int i = 0; i < number_of_nodes; i++)

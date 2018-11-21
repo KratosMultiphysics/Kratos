@@ -4210,10 +4210,12 @@ void SolidShellElementSprism3D6N::CalculateVolumeForce(
 
     array_1d<double,3> volume_acceleration = ZeroVector(3);
     if (GetProperties().Has( VOLUME_ACCELERATION ))
-        volume_acceleration = GetProperties()[VOLUME_ACCELERATION];
+        noalias(volume_acceleration) = GetProperties()[VOLUME_ACCELERATION];
+    else if (this->Has( VOLUME_ACCELERATION ))
+        noalias(volume_acceleration) = this->GetValue(VOLUME_ACCELERATION);
     else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
         for (unsigned int i_node = 0; i_node < this->GetGeometry().size(); ++i_node)
-            volume_acceleration += rVariables.N[i_node] * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            noalias(volume_acceleration) += rVariables.N[i_node] * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
 
     // Compute volume change

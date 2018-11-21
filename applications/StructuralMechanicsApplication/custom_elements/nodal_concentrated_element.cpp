@@ -302,8 +302,12 @@ void NodalConcentratedElement::CalculateRightHandSide(VectorType& rRightHandSide
     const array_1d<double, 3 >& current_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
     array_1d<double, 3 > volume_acceleration = ZeroVector(3);
 
-    if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
-        volume_acceleration = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    if (GetProperties().Has( VOLUME_ACCELERATION ))
+        noalias(volume_acceleration) = GetProperties()[VOLUME_ACCELERATION];
+    else if (this->Has( VOLUME_ACCELERATION ))
+        noalias(volume_acceleration) =  this->GetValue(VOLUME_ACCELERATION);
+    else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) )
+        noalias(volume_acceleration) = GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
     // We get the reference
     const auto& rconst_this = *this;

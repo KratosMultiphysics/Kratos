@@ -397,7 +397,7 @@ void BaseSolidElement::CalculateMassMatrix(
     const bool compute_lumped_mass_matrix =  rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ? rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] : false;
 
     // LUMPED MASS MATRIX
-    if (compute_lumped_mass_matrix == true) {
+    if (compute_lumped_mass_matrix) {
         const double total_mass = GetGeometry().Volume() * density * thickness;
 
         Vector lumping_factors;
@@ -1667,13 +1667,14 @@ Vector BaseSolidElement::GetBodyForce(
     Vector body_force = ZeroVector(3);
 
     double density = 0.0;
-    if (GetProperties().Has( DENSITY ) == true)
+    if (GetProperties().Has( DENSITY ))
         density = GetProperties()[DENSITY];
 
-    if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
-        body_force += density * GetProperties()[VOLUME_ACCELERATION];
-
-    if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+    if (GetProperties().Has( VOLUME_ACCELERATION ))
+        noalias(body_force) = density * GetProperties()[VOLUME_ACCELERATION];
+    else if (this->Has( VOLUME_ACCELERATION ))
+        noalias(body_force) = density * this->GetValue(VOLUME_ACCELERATION);
+    else if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
         Vector N;
         N = GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
         for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node)
