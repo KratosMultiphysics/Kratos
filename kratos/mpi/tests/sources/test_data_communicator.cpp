@@ -732,7 +732,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
 
     std::string send_buffer_string = "test";
     std::string recv_buffer_string;
-    recv_buffer_string.resize(4); //here i allocate a message with the same lenght as the one sent
+    recv_buffer_string.resize(4);
 
 
     serial_communicator.SendRecv(send_buffer_int, send_rank, recv_buffer_int, recv_rank);
@@ -759,8 +759,6 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
 
         mpi_world_communicator.SendRecv(send_buffer_string, send_rank, recv_buffer_string, recv_rank);
         KRATOS_CHECK_EQUAL(recv_buffer_string, "test");
-
-
     }
 
     #ifdef KRATOS_DEBUG

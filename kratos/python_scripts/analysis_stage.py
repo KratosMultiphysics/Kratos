@@ -78,6 +78,7 @@ class AnalysisStage(object):
             process.ExecuteInitialize()
 
         self._GetSolver().Initialize()
+        self.Check()
 
         self.ModifyAfterSolverInitialize()
 
@@ -107,8 +108,8 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
-        self._GetSolver().Finalize()   
-          
+        self._GetSolver().Finalize()
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
@@ -159,7 +160,7 @@ class AnalysisStage(object):
     def Check(self):
         """This function checks the AnalysisStage
         """
-        pass
+        self._GetSolver().Check()
 
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """

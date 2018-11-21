@@ -12,8 +12,7 @@ cmake .. \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp"                               \
 -DBOOST_ROOT="${BOOST_DIR}"                                                                     \
 -DPYTHON_EXECUTABLE="/usr/bin/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"                    \
--DMESH_MOVING_APPLICATION=ON                                                                            \
--DADJOINT_FLUID_APPLICATION=OFF                                                                 \
+-DMESH_MOVING_APPLICATION=ON                                                                    \
 -DCONVECTION_DIFFUSION_APPLICATION=ON                                                           \
 -DHDF5_APPLICATION=ON                                                                           \
 -DDAM_APPLICATION=ON                                                                            \
