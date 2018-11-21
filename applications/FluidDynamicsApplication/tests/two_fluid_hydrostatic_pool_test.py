@@ -111,7 +111,7 @@ class FluidDynamicsAnalysisWithFlush2D(FluidDynamicsAnalysis):
         self.last_flush = time.time()
 
     def ModifyInitialGeometry(self):
-        
+
         init_h = 0.5
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             distance = node.Y - init_h
@@ -218,7 +218,3 @@ if __name__ == "__main__":
     test = TwoFluidHydrostaticPoolTest()
     test.runTwoFluidHydrostaticTest2D()
     test.runTwoFluidHydrostaticTest3D()
-
-
-
-

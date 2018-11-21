@@ -12,7 +12,6 @@
 //
 
 // System includes
-#include <fstream>
 
 // External includes
 
@@ -76,19 +75,6 @@ bool MassConservationCheckProcess::GetUpdateStatus(){
         
         // writing an output at a given frequncy
         this->ComputeVolumesOfFluids( mCurrentPositiveVolume, mCurrentNegativeVolume );
-
-#ifdef KRATOS_DEBUG
-        std::cout << " --- Volume Checking Process --- " << std::endl;
-        std::cout << " - positive Volume = " << mCurrentPositiveVolume << std::endl;
-        if ( mCompareToInitial ){ 
-            std::cout << "   ( " << mCurrentPositiveVolume / mInitialPositiveVolume * 100.0 << "% of initial )" << std::endl; 
-        }
-        std::cout << " - negative Volume = " << mCurrentNegativeVolume << std::endl;
-        if ( mCompareToInitial ){ 
-            std::cout << "   ( " << mCurrentNegativeVolume / mInitialNegativeVolume * 100.0 << "% of initial )" << std::endl; 
-        }
-        std::cout << " --- --- --- --- --- --- --- --- " << std::endl;
-#endif
         mIsUpdated = true;
         return true;
 
@@ -103,7 +89,7 @@ bool MassConservationCheckProcess::GetUpdateStatus(){
 
 /* Private functions ****************************************************/
 
-void MassConservationCheckProcess::ComputeVolumesOfFluids( double &positiveVolume, double &negativeVolume ){
+void MassConservationCheckProcess::ComputeVolumesOfFluids( double positiveVolume, double negativeVolume ){
     
     // useless containers
     Matrix rShapeFunctionsPos, rShapeFunctionsNeg;

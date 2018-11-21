@@ -36,23 +36,23 @@ namespace Kratos
 
         ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
         #pragma omp parallel for
-        for(unsigned int count = 0; count < static_cast<unsigned int>(rNodes.size()); count++)
+        for(int count = 0; count < static_cast<int>(rNodes.size()); count++)
         {
             ModelPart::NodesContainerType::iterator i = rNodes.begin() + count;
 
             // retrieving velocities of current and last time step
-            array_1d<double, 3> &v  = i->FastGetSolutionStepValue( Kratos::VELOCITY, 0 );
-            const array_1d<double, 3> vn = i->FastGetSolutionStepValue( Kratos::VELOCITY, 1 );
+            array_1d<double, 3> &v  = i->FastGetSolutionStepValue( VELOCITY, 0 );
+            const array_1d<double, 3> vn = i->FastGetSolutionStepValue( VELOCITY, 1 );
 
             array_1d<double, 3> delta_v = v - vn;
             double norm_delta_v = sqrt( delta_v[0]*delta_v[0] + delta_v[1]*delta_v[1] + delta_v[2]*delta_v[2] );
 
-            double alpha = norm_delta_v / ( dt * mMaximalAccelaration * 9.81 );
+            const double alpha = norm_delta_v / ( dt * mMaximalAccelaration * 9.81 );
 
             if ( alpha > 1.0){
                 // setting a new and "reasonable" velocity by scaling
-                v = vn + ( 1 / alpha ) * delta_v;
-                i->FastGetSolutionStepValue( Kratos::VELOCITY, 0 ) = v;
+                v = vn + ( 1.0 / alpha ) * delta_v;
+                i->FastGetSolutionStepValue( VELOCITY, 0 ) = v;
             }
         }
 

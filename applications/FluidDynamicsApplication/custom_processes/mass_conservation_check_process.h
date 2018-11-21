@@ -16,17 +16,12 @@
 
 // System includes
 #include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/variables.h"
-#include "includes/cfd_variables.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
-#include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
@@ -102,18 +97,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
-    void ExecuteInitialize() override
-    {    };
-
-    void ExecuteBeforeSolutionLoop() override
-    {    };
-
-    void ExecuteInitializeSolutionStep() override
-    {    };
-
-    void ExecuteFinalizeSolutionStep() override
-    {    };
 
     /**
      * @brief Get the Update Status object to determine whether the volumes were recaculated
@@ -225,7 +208,7 @@ private:
      * @param positiveVolume volume ("Air) with positive distance function (output) 
      * @param negativeVolume volume ("Water") with negative distance function (output)
      */
-    void ComputeVolumesOfFluids( double& positiveVolume, double& negativeVolume );
+    void ComputeVolumesOfFluids( double positiveVolume, double negativeVolume );
 
     ///@}
     ///@name Private  Access
