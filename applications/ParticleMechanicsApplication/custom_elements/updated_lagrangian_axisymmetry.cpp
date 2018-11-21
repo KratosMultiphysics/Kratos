@@ -96,7 +96,8 @@ void UpdatedLagrangianAxisymmetry::Initialize()
 
     const array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
     const double mp_volume = this->GetValue(MP_VOLUME);
-    const double mp_mass = mp_volume * 2* GetPI() * xg[0] * GetProperties()[DENSITY];
+    const double pi = std::atan(1.0)*4.0;
+    const double mp_mass = mp_volume * 2* pi * xg[0] * GetProperties()[DENSITY];
     this->SetValue(MP_MASS, mp_mass);
 
     mDeterminantF0 = 1;
@@ -769,12 +770,6 @@ void UpdatedLagrangianAxisymmetry::GetSecondDerivativesVector( Vector& values, i
 
 //************************************************************************************
 //************************************************************************************
-
-double GetPI()
-{
-    return std::atan(1.0)*4.0;
-}
-
 
 void UpdatedLagrangianAxisymmetry::save( Serializer& rSerializer ) const
 {

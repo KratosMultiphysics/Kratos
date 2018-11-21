@@ -427,11 +427,6 @@ protected:
                                       const double & rCurrentRadius,
                                       const double & rReferenceRadius);
 
-    /**
-     * Return PI
-     */
-    double GetPI();
-
     ///@}
     ///@name Protected  Access
     ///@{
