@@ -141,11 +141,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+				this->SetNonConvPlasticDissipation(plastic_dissipation);
+				this->SetNonConvPlasticStrain(plastic_strain);
+				this->SetNonConvThreshold(threshold);
+				this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+
                 this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-                this->SetNonConvPlasticDissipation(plastic_dissipation);
-                this->SetNonConvPlasticStrain(plastic_strain);
-                this->SetNonConvThreshold(threshold);
-                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         }
     }
