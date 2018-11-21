@@ -121,7 +121,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
         const double F = uniaxial_stress - threshold;
 
-        if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
+        // KRATOS_WATCH(F)
+		// 	KRATOS_WATCH(uniaxial_stress)
+		// KRATOS_WATCH(threshold)
+
+        if (F <= std::abs(1.0e-8 * threshold)) { // Elastic case
+            // KRATOS_WATCH("elastic")
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -132,6 +137,20 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
                 this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         } else { // Plastic case
+
+            // KRATOS_WATCH("plastic")
+            // KRATOS_WATCH(predictive_stress_vector)
+            // KRATOS_WATCH(r_strain_vector)
+            // KRATOS_WATCH(uniaxial_stress)
+            // KRATOS_WATCH(plastic_denominator)
+            //  KRATOS_WATCH(f_flux)
+            //   KRATOS_WATCH(g_flux)
+            //    KRATOS_WATCH(plastic_dissipation)
+            //     KRATOS_WATCH(threshold)
+            //      KRATOS_WATCH(threshold)
+            //       KRATOS_WATCH(threshold)
+            
+            //KRATOS_WATCH(integrated_stress_vector)
             // while loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
             TConstLawIntegratorType::IntegrateStressVector(
@@ -143,13 +162,22 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+				//KRATOS_WATCH(integrated_stress_vector)
                 this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
                 noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
-                
+
+                // KRATOS_WATCH(integrated_stress_vector)
+                // KRATOS_WATCH(tangent_tensor)
+
                 this->SetNonConvPlasticDissipation(plastic_dissipation);
                 this->SetNonConvPlasticStrain(plastic_strain);
                 this->SetNonConvThreshold(threshold);
                 this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+
+                // KRATOS_WATCH(plastic_dissipation)
+                // KRATOS_WATCH(plastic_strain)
+                // KRATOS_WATCH(threshold)
+                // std::cout << "" << std::endl;
             }
         }
     }
@@ -180,9 +208,9 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::InitializeM
     ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
 
     // We call the integrator
-    double initial_threshold;
-    TConstLawIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
-    this->SetThreshold(initial_threshold);
+    // double initial_threshold;
+    // TConstLawIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
+    // this->SetThreshold(initial_threshold);
 }
 
 /***********************************************************************************/
