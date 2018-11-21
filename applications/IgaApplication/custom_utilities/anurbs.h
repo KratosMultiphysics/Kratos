@@ -12,6 +12,7 @@
 #define KRATOS_ANURBS_H_INCLUDED
 
 // System includes
+#include <containers/array_1d.h>
 
 // External includes
 #include <ANurbs/Core>
