@@ -39,7 +39,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
 {
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -67,7 +67,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
 {
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -96,7 +96,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
 {
     // The default parameters
     Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -881,11 +881,11 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "max_number_iterations"            : 10,
         "integration_order"                : 2,
         "distance_threshold"               : 1.0e24,
-        "origin_variable_historical"       : true,
-        "destination_variable_historical"  : true,
+        "mapping_coefficient"              : 1.0e0,
         "origin_variable"                  : "TEMPERATURE",
         "destination_variable"             : "",
-        "mapping_coefficient "             : 1.0,
+        "origin_variable_historical"       : true,
+        "destination_variable_historical"  : true,
         "search_parameters"                : {
             "allocation_size"                  : 1000,
             "bucket_size"                      : 4,

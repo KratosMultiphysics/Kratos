@@ -53,8 +53,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
             "integration_order"                : 2,
-            "origin_variable"                  : "TEMPERATURE",
-            "mapping_coefficient "             : 1.0
+            "origin_variable"                  : "TEMPERATURE"
         }
         """)
 

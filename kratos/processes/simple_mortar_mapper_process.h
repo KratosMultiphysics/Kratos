@@ -983,11 +983,11 @@ protected:
             "max_number_iterations"            : 10,
             "integration_order"                : 2,
             "distance_threshold"               : 1.0e24,
+            "mapping_coefficient"              : 1.0e0,
             "origin_variable"                  : "TEMPERATURE",
             "destination_variable"             : "",
             "origin_variable_historical"       : true,
             "destination_variable_historical"  : true,
-            "mapping_coefficient "             : 1.0,
             "search_parameters"                : {
                 "allocation_size"                  : 1000,
                 "bucket_size"                      : 4,
