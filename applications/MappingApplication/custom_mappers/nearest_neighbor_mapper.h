@@ -164,12 +164,15 @@ public:
     // Default constructor, needed for registration
     NearestNeighborMapper(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination)
-                          : Mapper<TSparseSpace, TDenseSpace>() {}
+                          : mrModelPartOrigin(rModelPartOrigin),
+                            mrModelPartDestination(rModelPartDestination) {}
 
     NearestNeighborMapper(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters)
-                          : Mapper<TSparseSpace, TDenseSpace>()
+                          : mrModelPartOrigin(rModelPartOrigin),
+                            mrModelPartDestination(rModelPartDestination),
+                            mMapperSettings(JsonParameters)
     {
         // The Initialize function has to be called here bcs it internally calls virtual
         // functions that would not exist yet if it was called from the BaseClass!
@@ -299,7 +302,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    // MapperUniquePointerType mpInverseMapper = nullptr;
+    ModelPart& mrModelPartOrigin;
+    ModelPart& mrModelPartDestination;
+
+    Parameters mMapperSettings;
+
+    MapperUniquePointerType mpInverseMapper = nullptr;
 
     ///@}
     ///@name Private Operations
