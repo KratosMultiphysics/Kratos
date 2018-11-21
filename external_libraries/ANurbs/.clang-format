@@ -1,0 +1,17 @@
+---
+BasedOnStyle: WebKit
+
+AlwaysBreakAfterDefinitionReturnType: All
+AlwaysBreakAfterReturnType: All
+AlwaysBreakTemplateDeclarations: 'true'
+BinPackArguments: 'true'
+BinPackParameters: 'true'
+BraceWrapping:
+    AfterClass: true
+    AfterEnum: true
+    AfterStruct: true
+    AfterFunction: true
+BreakBeforeBraces: Custom
+NamespaceIndentation: None
+
+...
