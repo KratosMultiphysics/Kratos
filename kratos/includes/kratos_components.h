@@ -131,19 +131,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    static std::string Info()
+    virtual std::string Info() const
     {
         return "Kratos components";
     }
 
     /// Print information about this object.
-    static void PrintInfo(std::ostream& rOStream)
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "Kratos components";
     }
 
     /// Print object's data.
-    static void PrintData(std::ostream& rOStream)
+    virtual void PrintData(std::ostream& rOStream) const
     {
         for (const auto& r_comp : msComponents) {
             rOStream << "    " << r_comp.first << std::endl;
@@ -329,19 +329,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    static std::string Info()
+    virtual std::string Info() const
     {
         return "Kratos components";
     }
 
     /// Print information about this object.
-    static void PrintInfo(std::ostream& rOStream)
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "Kratos components";
     }
 
     /// Print object's data.
-    static void PrintData(std::ostream& rOStream)
+    virtual void PrintData(std::ostream& rOStream) const
     {
         for (const auto& r_comp : msComponents) {
             rOStream << "    " << r_comp.second << std::endl;
