@@ -84,6 +84,8 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         # Fluid solver variables addition
         self.fluid_solver.AddVariables()
+        #TODO: REMOVE THIS! ONLY ADDED FOR DEBUGGING WITHOUT MODIFYING THE JSON WHEN THE FM-ALE ALGORITHM IS SWITCHED OFF.
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
 
         # FSI coupling required variables addition
         self.structure_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -127,9 +129,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
         # Initialize the iteration value vector
         self._initialize_iteration_value_vector()
-
-        # Compute the fluid domain NODAL_AREA values (required as weight in the residual norm computation)
-        KratosMultiphysics.CalculateNodalAreaProcess(self.fluid_solver.GetComputingModelPart(), self.domain_size).Execute()
 
         # Coupling utility initialization
         # The _get_convergence_accelerator is supposed to construct the convergence accelerator in here
@@ -240,6 +239,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
                 if (nl_it == self.max_nl_it):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
 
+    def FinalizeSolutionStep(self):
         ## Finalize solution step
         self.fluid_solver.FinalizeSolutionStep()
         self.structure_solver.FinalizeSolutionStep()
@@ -401,12 +401,8 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Set the INTERFACE flag to the structure skin
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, str_interface_submodelpart.Nodes)
 
-        # Initialize Dirichlet fluid interface (generate the intersections skin)
-        #TODO
-        # self._get_embedded_skin_utility().GenerateSkin()
-
-    def _solve_fluid(self):
-        # Update de EMBEDDED_VELOCITY value
+    def _solve_fluid(self):       
+        # Update the EMBEDDED_VELOCITY value
         self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
             KratosMultiphysics.VELOCITY,
             KratosMultiphysics.EMBEDDED_VELOCITY)
