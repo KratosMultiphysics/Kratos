@@ -97,12 +97,13 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 model_part_name = materials["properties"][i]["model_part_name"].GetString()
                 if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
                     model_part_name = model_part_name.replace(main_model_part_name+".", "")
-                if model_part_name not in list_domain_smp_names:
-                    warn_msg  = 'The SubModelPart with name "' + model_part_name + '"\n'
-                    warn_msg += 'is used for assigning materials but is not added to the ComputingModelPart!\n'
-                    warn_msg += 'This can be done by adding it to "problem_domain_sub_model_part_list" '
-                    warn_msg += 'in "solver_settings"\n'
-                    KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
+                if model_part_name != "Structure":
+                    if model_part_name not in list_domain_smp_names:
+                        warn_msg  = 'The SubModelPart with name "' + model_part_name + '"\n'
+                        warn_msg += 'is used for assigning materials but is not added to the ComputingModelPart!\n'
+                        warn_msg += 'This can be done by adding it to "problem_domain_sub_model_part_list" '
+                        warn_msg += 'in "solver_settings"\n'
+                        KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
 
         # Checking if the processes-submodelparts are added to the ComputingModelPart
         if self.project_parameters.Has("processes"): # TODO this check is only for backwards-compatibility => to be removed
@@ -118,12 +119,13 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                         model_part_name = process_params["model_part_name"].GetString()
                         if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
                             model_part_name = model_part_name.replace(main_model_part_name+".", "")
-                        if model_part_name not in list_proc_smp_names:
-                            warn_msg  = 'The SubModelPart with name "' + model_part_name + '"\n'
-                            warn_msg += 'is used for a process but is not added to the ComputingModelPart!\n'
-                            warn_msg += 'This can be done by adding it to "processes_sub_model_part_list" '
-                            warn_msg += 'in "solver_settings"\n'
-                            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
+                        if model_part_name != "Structure":
+                            if model_part_name not in list_proc_smp_names:
+                                warn_msg  = 'The SubModelPart with name "' + model_part_name + '"\n'
+                                warn_msg += 'is used for a process but is not added to the ComputingModelPart!\n'
+                                warn_msg += 'This can be done by adding it to "processes_sub_model_part_list" '
+                                warn_msg += 'in "solver_settings"\n'
+                                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis; Warning", warn_msg)
 
     #### Internal functions ####
     def _CreateSolver(self):
