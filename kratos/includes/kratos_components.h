@@ -93,7 +93,8 @@ public:
         err_msg << "The component \"" << Name << "\" is not registered!\n"
                 << "Maybe you need to import the application where it is defined?\n"
                 << "The following components of this type are registered:" << std::endl;
-        PrintData(err_msg);
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(err_msg);
         KRATOS_ERROR << err_msg.str() << std::endl;
     }
 
