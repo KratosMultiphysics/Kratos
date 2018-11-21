@@ -103,8 +103,8 @@ public:
         )
     {
         // Converged values to be storaged
-        const Vector& strain_vector_gp = rValues.GetStrainVector();
-        const Vector& stress_vector_gp = rValues.GetStressVector();
+        const Vector strain_vector_gp = rValues.GetStrainVector();
+        const Vector stress_vector_gp = rValues.GetStressVector();
 
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         tangent_tensor.clear();
