@@ -385,7 +385,7 @@ protected:
 #endif
         )
     {
-        SizeType local_size_1 = rTransformationMatrix.size1();
+        const SizeType local_size_1 = rTransformationMatrix.size1();
 
         for (IndexType i_local = 0; i_local < local_size_1; ++i_local) {
             IndexType i_global = rSlaveEquationId[i_local];
