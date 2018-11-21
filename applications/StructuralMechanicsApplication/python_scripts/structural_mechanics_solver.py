@@ -88,7 +88,8 @@ class MechanicalSolver(PythonSolver):
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
-            "auxiliary_reaction_list" : []
+            "auxiliary_reaction_list" : [],
+            "retrocompatibility_on_loads" : true
         }
         """)
 
@@ -141,18 +142,21 @@ class MechanicalSolver(PythonSolver):
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        # Add specific variables for the problem conditions.
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        # Add specific variables for the problem (rotation dofs).
         if self.settings["rotation_dofs"].GetBool():
-            # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        if (self.settings["retrocompatibility_on_loads"].GetBool() is True):
+            # Add specific variables for the problem conditions.
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+            # Add specific variables for the problem (rotation dofs).
+            if self.settings["rotation_dofs"].GetBool():
+                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
