@@ -28,6 +28,11 @@ namespace Kratos {
 
     typedef ModelPart::IndexType IndexType;
     typedef ModelPart::NodeIterator NodeIteratorType;
+    void CreateNodes(ModelPart& rModelPart){         
+      rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+      rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+      rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+    }
 
     void GenerateElement(ModelPart& rModelPart)
     {
@@ -39,9 +44,7 @@ namespace Kratos {
       Properties::Pointer pProp = rModelPart.pGetProperties(0);
 
       // Geometry creation
-      rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-      rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-      rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+      CreateNodes(rModelPart);
       std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
       rModelPart.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pProp);
       std::vector<ModelPart::IndexType> condNodes1{ 1, 2};
@@ -63,9 +66,7 @@ namespace Kratos {
       Properties::Pointer pProp = rModelPart.pGetProperties(0);
 
       // Geometry creation
-      rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-      rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-      rModelPart.CreateNewNode(3, 1.0, 1.0, 0.0);
+      CreateNodes(rModelPart);
       std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
       std::vector<ModelPart::IndexType> condNodes1{ 1, 2};
       std::vector<ModelPart::IndexType> condNodes2{ 2, 3};
@@ -153,21 +154,25 @@ namespace Kratos {
 			Condition::Pointer pCondition = model_part.pGetCondition(i_cond);
 			Matrix lhs = ZeroMatrix(2,2);
 			Vector rhs = ZeroVector(2);
-      // if ((i_cond ==1) || (i_cond == 3))
+      if ((i_cond ==1) || (i_cond == 3))
         pCondition -> Set(STRUCTURE);
 			pCondition -> GetValue(VELOCITY_INFINITY) = vinf;
 			pCondition -> CalculateLocalSystem(lhs,rhs,model_part.GetProcessInfo());
       if (pCondition->Is(STRUCTURE)){
         for (unsigned int i_node=0; i_node<2;i_node++){
-          int I = pCondition -> GetGeometry()[i_node].Id();
-          std::cout<<"I"<<I<<std::endl;
-          RHS_cond(I)+= rhs(i_node);
+          int I = (pCondition -> GetGeometry()[i_node].Id())-1;
+          RHS_cond(I) += rhs(i_node);
           RHS_cond(I+NumNodes) += rhs(i_node+2);
         }
+      }else{
+        for (unsigned int i_node=0;i_node<2;i_node++){
+          int I = (pCondition -> GetGeometry()[i_node].Id())-1;
+          if(distances[i_node] > 0)
+            RHS_cond(I) += rhs(i_node);          
+          else            
+            RHS_cond(I+NumNodes) += rhs(i_node);    
+        }
       }
-      // for (unsigned int j_cond=0;j_cond<2;j_cond++){
-      //   RHS(j_cond)
-      // }
       std::cout<<"rhs"<<rhs<<std::endl;
 		}
 		std::cout<< "Incompressible_stresses" << std::endl;
@@ -193,9 +198,10 @@ namespace Kratos {
 
       // Define the nodal values
       Vector potential(3);
-      potential(0) = 1.0;
-      potential(1) = 2.0;
-      potential(2) = 3.0;
+
+      for (unsigned int i = 0; i < 3; i++){
+        potential(i) = pElement -> GetGeometry()[i].X()+pElement->GetGeometry()[i].Y();
+      }
       Vector vinf = ZeroVector(3);
 		  vinf(0)=1.0;
       vinf(1)=1.0;
@@ -204,25 +210,28 @@ namespace Kratos {
 
       // Compute RHS and LHS
       Vector RHS = ZeroVector(3);
+      Vector RHS_cond = ZeroVector(3);
+
       Matrix LHS = ZeroMatrix(3, 3);
 
       pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 
-      for (unsigned int i_cond=1; i_cond<4;i_cond++){
-			
-			Condition::Pointer pCondition = model_part.pGetCondition(i_cond);
-			Matrix lhs = ZeroMatrix(2,2);
-			Vector rhs = ZeroVector(2);
-      // if ((i_cond ==1) || (i_cond == 3))
-        // pCondition -> Set(STRUCTURE);
-			pCondition -> GetValue(VELOCITY_INFINITY) = vinf;
-			pCondition -> CalculateLocalSystem(lhs,rhs,model_part.GetProcessInfo());
-      // for (unsigned int j_cond=0;j_cond<2;j_cond++){
-      //   RHS(j_cond)
-      // }
-			std::cout << rhs << std::endl;
-		}
-
+      for (unsigned int i_cond=1; i_cond<4;i_cond++){			
+        Condition::Pointer pCondition = model_part.pGetCondition(i_cond);
+        Matrix lhs = ZeroMatrix(2,2);
+        Vector rhs = ZeroVector(2);
+        // if ((i_cond ==1) || (i_cond == 3))
+          // pCondition -> Set(STRUCTURE);
+        pCondition -> GetValue(VELOCITY_INFINITY) = vinf;
+        pCondition -> CalculateLocalSystem(lhs,rhs,model_part.GetProcessInfo());
+        for (unsigned int i_node=0; i_node<2;i_node++){
+            int I = (pCondition -> GetGeometry()[i_node].Id())-1;
+            RHS_cond(I) += rhs(i_node);
+        }
+        std::cout << rhs << std::endl;  
+      }
+      std::cout << "RHS: " << RHS << std::endl;
+      std::cout << "RHS_cond: "<< RHS_cond<< std::endl;
       // Check the RHS values (the RHS is computed as the LHS x previous_solution, 
       // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
       KRATOS_CHECK_NEAR(RHS(0), 0.5, 1e-7);

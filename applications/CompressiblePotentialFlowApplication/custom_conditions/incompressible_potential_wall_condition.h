@@ -30,6 +30,7 @@
 #include "includes/condition.h"
 #include "includes/process_info.h"
 #include "includes/cfd_variables.h"
+#include "utilities/geometry_utilities.h"
 
 // Application includes
 #include "compressible_potential_flow_application_variables.h"
@@ -267,8 +268,8 @@ public:
             const IncompressiblePotentialWallCondition &r_this = *this;
             const array_1d<double, 3> &v = r_this.GetValue(VELOCITY_INFINITY);
             const double value = -inner_prod(v, An) / static_cast<double>(TNumNodes);
-            std::cout<<"An"<<An<<std::endl;
-           
+            std::cout<<"value "<<this-> Id()<<" :"<<value<<std::endl;
+
             for (unsigned int i = 0; i < TNumNodes; ++i)
                 rRightHandSideVector[i] = value;
         }     
@@ -280,29 +281,31 @@ public:
             rLeftHandSideMatrix.clear(); 
 
             array_1d<double, 3> An_pos,An_neg;
+            array_1d<double, 2 > N;
 
             array_1d<double,TNumNodes> distances;
             GetWakeDistances(distances);
-            if (TDim == 2)
+            if (TDim == 2){
                 CalculateNormal2DCut(An_pos,An_neg,distances);
+                ComputeShapeFunction2DCut(N,distances);
+            }
             else
                 KRATOS_ERROR << "3D cut condition not implemented";
-            std::cout<<"An_pos"<<An_pos<<std::endl;
-            std::cout<<"An_neg"<<An_neg<<std::endl;
+
             const array_1d<double, 3> &v = this-> GetValue(VELOCITY_INFINITY);
             double value_neg,value_pos;
-           
-
-            value_pos = -inner_prod(v, An_pos) / static_cast<double>(2*TNumNodes);
-            value_neg = -inner_prod(v, An_neg) / static_cast<double>(2*TNumNodes);
+            std::cout<<"N:" << N<<std::endl;
+            
+            value_pos = -inner_prod(v, An_pos);
+            value_neg = -inner_prod(v, An_neg);
             //positive part
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
                 
                 if(distances[i] > 0)
-                    rRightHandSideVector[i] = value_pos;
+                    rRightHandSideVector[i] = value_pos*N[0];
                 else
-                    rRightHandSideVector[i] = value_neg;
+                    rRightHandSideVector[i] = value_pos*N[1];
             }
 
             //negative part - sign is opposite to the previous case
@@ -310,9 +313,9 @@ public:
             {   
                 
                 if(distances[i] < 0)
-                    rRightHandSideVector[TNumNodes+i] = value_pos;
+                    rRightHandSideVector[TNumNodes+i] = value_neg*N[1];
                 else
-                    rRightHandSideVector[TNumNodes+i] = value_neg;
+                    rRightHandSideVector[TNumNodes+i] = value_neg*N[0];
             }           
         }
         
@@ -598,6 +601,18 @@ private:
         bool mInitializeWasPerformed = false;
         double mMinEdgeLength;
         ElementWeakPointerType mpElement;
+
+        void ComputeShapeFunction2DCut(array_1d<double, 2> &N, array_1d<double,TNumNodes>& distances)
+        {
+            Geometry<Node<3>> &pGeometry = this->GetGeometry();
+            double length = sqrt(pow(pGeometry[1].X() - pGeometry[0].X(),2)+pow(pGeometry[1].Y() - pGeometry[0].Y(),2));
+            double x_p,y_p;
+            x_p = pGeometry[0].X() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].X()-pGeometry[0].X());
+            y_p = pGeometry[0].Y() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].Y()-pGeometry[0].Y());
+            double length_p = 0.5*sqrt(pow(x_p - pGeometry[0].X(),2)+pow(y_p - pGeometry[0].Y(),2));
+            N[0] = 1-length_p/length;
+            N[1] = length_p/length;
+        }
 
         void CalculateNormal2D(array_1d<double, 3> &An)
         {
