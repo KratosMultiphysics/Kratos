@@ -819,7 +819,7 @@ public:
 
         // The condition iterators
         auto it_cond_origin_begin = rOriginModelPart.Conditions().begin();
-        auto it_cond_destination_begin = rOriginModelPart.Conditions().begin();
+        auto it_cond_destination_begin = rDestinationModelPart.Conditions().begin();
 
         // The dimensions
         const SizeType dimension = it_cond_origin_begin->GetGeometry().WorkingSpaceDimension();
@@ -865,13 +865,13 @@ public:
                 } else {
                     mpMapperProcess = Kratos::make_shared<SimpleMortarMapperProcess<3, 4, Variable<array_1d< double, 3>>>>(rOriginModelPart, rDestinationModelPart, ThisParameters, pThisLinearSolver);
                 }
-            } else if (size_1 == 3 && size_2 == 4) {
+            } else if (size_1 == 4 && size_2 == 3) {
                 if (double_variable) {
                     mpMapperProcess = Kratos::make_shared<SimpleMortarMapperProcess<3, 3, Variable<double>, 4>>(rOriginModelPart, rDestinationModelPart, ThisParameters, pThisLinearSolver);
                 } else {
                     mpMapperProcess = Kratos::make_shared<SimpleMortarMapperProcess<3, 3, Variable<array_1d< double, 3>>, 4>>(rOriginModelPart, rDestinationModelPart, ThisParameters, pThisLinearSolver);
                 }
-            } else if (size_1 == 4 && size_2 == 3) {
+            } else if (size_1 == 3 && size_2 == 4) {
                 if (double_variable) {
                     mpMapperProcess = Kratos::make_shared<SimpleMortarMapperProcess<3, 4, Variable<double>, 3>>(rOriginModelPart, rDestinationModelPart, ThisParameters, pThisLinearSolver);
                 } else {
