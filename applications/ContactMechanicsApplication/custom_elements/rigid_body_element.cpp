@@ -794,7 +794,7 @@ void RigidBodyElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
   // add inertia RHS
   this->CalculateAndAddInertiaLHS(rLeftHandSideMatrix, rVariables);
 
-  // std::cout<<" Rigid body LHS "<<rLeftHandSideMatrix<<std::endl;
+  std::cout<<" Rigid body LHS "<<rLeftHandSideMatrix<<std::endl;
 }
 
 //************************************************************************************
@@ -809,7 +809,7 @@ void RigidBodyElement::CalculateAndAddRHS(VectorType& rRightHandSideVector,
   // calculate and add external forces
   this->CalculateAndAddExternalForces(rRightHandSideVector, rVariables);
 
-  // std::cout<<" Rigid body RHS "<<rRightHandSideVector<<std::endl;
+  std::cout<<" Rigid body RHS "<<rRightHandSideVector<<std::endl;
 
 }
 
@@ -1141,8 +1141,20 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
 
 
-    std::cout<<" [ Rotation:"<<CurrentCompoundRotationVector<<"]"<<std::endl;
-    std::cout<<" [ Acceleration:"<<CurrentLinearAccelerationVector<<"]"<<std::endl;
+    //for writting purposes
+    ArrayType CurrentStepRotationVector = GetGeometry()[0].FastGetSolutionStepValue(STEP_ROTATION);
+    CurrentStepRotationVector = MapToInitialLocalFrame(CurrentStepRotationVector);
+    ArrayType CurrentDisplacementVector = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    CurrentDisplacementVector = MapToInitialLocalFrame(CurrentDisplacementVector);
+    ArrayType CurrentStepDisplacementVector = GetGeometry()[0].FastGetSolutionStepValue(STEP_DISPLACEMENT);
+    CurrentStepDisplacementVector = MapToInitialLocalFrame(CurrentStepDisplacementVector);
+    ArrayType CurrentVelocityVector = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    CurrentVelocityVector = MapToInitialLocalFrame(CurrentVelocityVector);
+
+
+    std::cout<<" [ Rotation:"<<CurrentCompoundRotationVector<<",StepRotation:"<<CurrentStepRotationVector<<"]"<<std::endl;
+    std::cout<<" [ Displacement:"<<CurrentDisplacementVector<<",StepDisplacement:"<<CurrentStepDisplacementVector<<"]"<<std::endl;
+    std::cout<<" [ Velocity:"<<CurrentVelocityVector<<",Acceleration:"<<CurrentLinearAccelerationVector<<"]"<<std::endl;
     std::cout<<" [ AngularVelocity:"<<AngularVelocityVector<<",AngularAcceleration:"<<CurrentAngularAccelerationVector<<"]"<<std::endl;
 
 
@@ -1319,20 +1331,20 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
      ArrayType&  AngularVelocity     = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_VELOCITY);
      ArrayType&  AngularAcceleration = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-     std::cout<<" [ MasterElement "<<this->Id()<<" ]"<<rCenterOfGravity->Coordinates()<<std::endl;
-     std::cout<<" [ Nodes_size "<<mpNodes->size()<<" ]"<<std::endl;
-     std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<"]"<<std::endl;
-     std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<"]"<<std::endl;
-     std::cout<<" [ AngularVelocity:"<<AngularVelocity<<",AngularAcceleration:"<<AngularAcceleration<<"]"<<std::endl;
- 
+     // std::cout<<" [ MasterElement "<<this->Id()<<" ]"<<rCenterOfGravity->Coordinates()<<std::endl;
+     // std::cout<<" [ Nodes_size "<<mpNodes->size()<<" ]"<<std::endl;
+     // std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<"]"<<std::endl;
+     // std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<"]"<<std::endl;
+     // std::cout<<" [ AngularVelocity:"<<AngularVelocity<<",AngularAcceleration:"<<AngularAcceleration<<"]"<<std::endl;
+
      ArrayType Radius;
      ArrayType Variable;
      QuaternionType TotalQuaternion;
      Matrix RotationMatrix(3,3);
-     
+
      if( rCenterOfGravity->SolutionStepsDataHas(STEP_DISPLACEMENT) ){
        ArrayType& StepDisplacement = rCenterOfGravity->FastGetSolutionStepValue(STEP_DISPLACEMENT);
-       std::cout<<" [ StepDisplacement"<<StepDisplacement<<"]"<<std::endl;
+       //std::cout<<" [ StepDisplacement"<<StepDisplacement<<"]"<<std::endl;
 
        for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
        {
@@ -1359,7 +1371,7 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
      for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
      {
        if( (i)->Id() != this->Id() ){
-         
+
          Radius = (i)->GetInitialPosition() - Center;
          TotalQuaternion.ToRotationMatrix(RotationMatrix);
          Radius = prod(RotationMatrix, Radius);
