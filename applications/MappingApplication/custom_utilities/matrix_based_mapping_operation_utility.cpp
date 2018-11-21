@@ -191,93 +191,93 @@ void UtilityType::BuildMappingSystem(
     KRATOS_CATCH("")
 }
 
-template<>
-void UtilityType::InitializeMappingStep(
-    TSystemMatrixType& rMdo,
-    TSystemVectorType& rQo,
-    TSystemVectorType& rQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    const DoubleVariableType& rOriginVariable,
-    const DoubleVariableType& rDestinationVariable,
-    const Kratos::Flags MappingOptions,
-    const bool UseTranspose) const
-{
-    TInitializeMappingStep(rQo, rQd,
-                           rModelPartOrigin, rModelPartDestination,
-                           rOriginVariable, rDestinationVariable,
-                           MappingOptions, UseTranspose);
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qo.mm", rQo);
-        SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qd.mm", rQd);
-    }
-}
+// template<>
+// void UtilityType::InitializeMappingStep(
+//     TSystemMatrixType& rMdo,
+//     TSystemVectorType& rQo,
+//     TSystemVectorType& rQd,
+//     ModelPart& rModelPartOrigin,
+//     ModelPart& rModelPartDestination,
+//     const DoubleVariableType& rOriginVariable,
+//     const DoubleVariableType& rDestinationVariable,
+//     const Kratos::Flags MappingOptions,
+//     const bool UseTranspose) const
+// {
+//     TInitializeMappingStep(rQo, rQd,
+//                            rModelPartOrigin, rModelPartDestination,
+//                            rOriginVariable, rDestinationVariable,
+//                            MappingOptions, UseTranspose);
+//     if (GetEchoLevel() > 2) {
+//         SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qo.mm", rQo);
+//         SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qd.mm", rQd);
+//     }
+// }
 
-template<>
-void UtilityType::InitializeMappingStep(
-    TSystemMatrixType& rMdo,
-    TSystemVectorType& rQo,
-    TSystemVectorType& rQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    const ComponentVariableType& rOriginVariable,
-    const ComponentVariableType& rDestinationVariable,
-    const Kratos::Flags MappingOptions,
-    const bool UseTranspose) const
-{
-    TInitializeMappingStep(rQo, rQd,
-                           rModelPartOrigin, rModelPartDestination,
-                           rOriginVariable, rDestinationVariable,
-                           MappingOptions, UseTranspose);
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qo.mm", rQo);
-        SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qd.mm", rQd);
-    }
-}
+// template<>
+// void UtilityType::InitializeMappingStep(
+//     TSystemMatrixType& rMdo,
+//     TSystemVectorType& rQo,
+//     TSystemVectorType& rQd,
+//     ModelPart& rModelPartOrigin,
+//     ModelPart& rModelPartDestination,
+//     const ComponentVariableType& rOriginVariable,
+//     const ComponentVariableType& rDestinationVariable,
+//     const Kratos::Flags MappingOptions,
+//     const bool UseTranspose) const
+// {
+//     TInitializeMappingStep(rQo, rQd,
+//                            rModelPartOrigin, rModelPartDestination,
+//                            rOriginVariable, rDestinationVariable,
+//                            MappingOptions, UseTranspose);
+//     if (GetEchoLevel() > 2) {
+//         SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qo.mm", rQo);
+//         SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qd.mm", rQd);
+//     }
+// }
 
-template<>
-void UtilityType::FinalizeMappingStep(
-    TSystemMatrixType& rMdo,
-    TSystemVectorType& rQo,
-    TSystemVectorType& rQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    const DoubleVariableType& rOriginVariable,
-    const DoubleVariableType& rDestinationVariable,
-    const Kratos::Flags MappingOptions,
-    const bool UseTranspose) const
-{
-    TFinalizeMappingStep(rQo, rQd,
-                         rModelPartOrigin, rModelPartDestination,
-                         rOriginVariable, rDestinationVariable,
-                         MappingOptions, UseTranspose);
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qo.mm", rQo);
-        SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qd.mm", rQd);
-    }
-}
+// template<>
+// void UtilityType::FinalizeMappingStep(
+//     TSystemMatrixType& rMdo,
+//     TSystemVectorType& rQo,
+//     TSystemVectorType& rQd,
+//     ModelPart& rModelPartOrigin,
+//     ModelPart& rModelPartDestination,
+//     const DoubleVariableType& rOriginVariable,
+//     const DoubleVariableType& rDestinationVariable,
+//     const Kratos::Flags MappingOptions,
+//     const bool UseTranspose) const
+// {
+//     TFinalizeMappingStep(rQo, rQd,
+//                          rModelPartOrigin, rModelPartDestination,
+//                          rOriginVariable, rDestinationVariable,
+//                          MappingOptions, UseTranspose);
+//     if (GetEchoLevel() > 2) {
+//         SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qo.mm", rQo);
+//         SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qd.mm", rQd);
+//     }
+// }
 
-template<>
-void UtilityType::FinalizeMappingStep(
-    TSystemMatrixType& rMdo,
-    TSystemVectorType& rQo,
-    TSystemVectorType& rQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    const ComponentVariableType& rOriginVariable,
-    const ComponentVariableType& rDestinationVariable,
-    const Kratos::Flags MappingOptions,
-    const bool UseTranspose) const
-{
-    TFinalizeMappingStep(rQo, rQd,
-                         rModelPartOrigin, rModelPartDestination,
-                         rOriginVariable, rDestinationVariable,
-                         MappingOptions, UseTranspose);
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qo.mm", rQo);
-        SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qd.mm", rQd);
-    }
-}
+// template<>
+// void UtilityType::FinalizeMappingStep(
+//     TSystemMatrixType& rMdo,
+//     TSystemVectorType& rQo,
+//     TSystemVectorType& rQd,
+//     ModelPart& rModelPartOrigin,
+//     ModelPart& rModelPartDestination,
+//     const ComponentVariableType& rOriginVariable,
+//     const ComponentVariableType& rDestinationVariable,
+//     const Kratos::Flags MappingOptions,
+//     const bool UseTranspose) const
+// {
+//     TFinalizeMappingStep(rQo, rQd,
+//                          rModelPartOrigin, rModelPartDestination,
+//                          rOriginVariable, rDestinationVariable,
+//                          MappingOptions, UseTranspose);
+//     if (GetEchoLevel() > 2) {
+//         SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qo.mm", rQo);
+//         SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qd.mm", rQd);
+//     }
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation

@@ -104,29 +104,29 @@ class MatrixBasedMappingOperationUtility
         ModelPart& rModelPartDestination,
         MapperLocalSystemPointerVector& rMapperLocalSystems) const override;
 
-    // The "Solve" function
-    void InitializeMappingStep(
-        TSystemMatrixType& rMdo,
-        TSystemVectorType& rQo,
-        TSystemVectorType& rQd,
-        ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination,
-        const DoubleVariableType& rOriginVariable,
-        const DoubleVariableType& rDestinationVariable,
-        const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const override;
+    // // The "Solve" function
+    // void InitializeMappingStep(
+    //     TSystemMatrixType& rMdo,
+    //     TSystemVectorType& rQo,
+    //     TSystemVectorType& rQd,
+    //     ModelPart& rModelPartOrigin,
+    //     ModelPart& rModelPartDestination,
+    //     const DoubleVariableType& rOriginVariable,
+    //     const DoubleVariableType& rDestinationVariable,
+    //     const Kratos::Flags MappingOptions,
+    //     const bool UseTranspose) const override;
 
-    // The "Solve" function
-    void InitializeMappingStep(
-        TSystemMatrixType& rMdo,
-        TSystemVectorType& rQo,
-        TSystemVectorType& rQd,
-        ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination,
-        const ComponentVariableType& rOriginVariable,
-        const ComponentVariableType& rDestinationVariable,
-        const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const override;
+    // // The "Solve" function
+    // void InitializeMappingStep(
+    //     TSystemMatrixType& rMdo,
+    //     TSystemVectorType& rQo,
+    //     TSystemVectorType& rQd,
+    //     ModelPart& rModelPartOrigin,
+    //     ModelPart& rModelPartDestination,
+    //     const ComponentVariableType& rOriginVariable,
+    //     const ComponentVariableType& rDestinationVariable,
+    //     const Kratos::Flags MappingOptions,
+    //     const bool UseTranspose) const override;
 
     // The "Solve" function
     void ExecuteMappingStep(
@@ -158,29 +158,29 @@ class MatrixBasedMappingOperationUtility
         ExecuteMapping(rMdo, rQo, rQd, UseTranspose);
     }
 
-    // The "Solve" function
-    void FinalizeMappingStep(
-        TSystemMatrixType& rMdo,
-        TSystemVectorType& rQo,
-        TSystemVectorType& rQd,
-        ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination,
-        const DoubleVariableType& rOriginVariable,
-        const DoubleVariableType& rDestinationVariable,
-        const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const override;
+    // // The "Solve" function
+    // void FinalizeMappingStep(
+    //     TSystemMatrixType& rMdo,
+    //     TSystemVectorType& rQo,
+    //     TSystemVectorType& rQd,
+    //     ModelPart& rModelPartOrigin,
+    //     ModelPart& rModelPartDestination,
+    //     const DoubleVariableType& rOriginVariable,
+    //     const DoubleVariableType& rDestinationVariable,
+    //     const Kratos::Flags MappingOptions,
+    //     const bool UseTranspose) const override;
 
-    // The "Solve" function
-    void FinalizeMappingStep(
-        TSystemMatrixType& rMdo,
-        TSystemVectorType& rQo,
-        TSystemVectorType& rQd,
-        ModelPart& rModelPartOrigin,
-        ModelPart& rModelPartDestination,
-        const ComponentVariableType& rOriginVariable,
-        const ComponentVariableType& rDestinationVariable,
-        const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const override;
+    // // The "Solve" function
+    // void FinalizeMappingStep(
+    //     TSystemMatrixType& rMdo,
+    //     TSystemVectorType& rQo,
+    //     TSystemVectorType& rQd,
+    //     ModelPart& rModelPartOrigin,
+    //     ModelPart& rModelPartDestination,
+    //     const ComponentVariableType& rOriginVariable,
+    //     const ComponentVariableType& rDestinationVariable,
+    //     const Kratos::Flags MappingOptions,
+    //     const bool UseTranspose) const override;
 
 
     ///@}

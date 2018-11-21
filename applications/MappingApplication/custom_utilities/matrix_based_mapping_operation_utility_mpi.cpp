@@ -234,137 +234,137 @@ void UtilityType::BuildMappingSystem(
     rpQo.swap(p_new_vector_origin);
 }
 
-template<>
-void UtilityType::InitializeMappingStep(
-    TSystemMatrixType& rMdo,
-    TSystemVectorType& rQo,
-    TSystemVectorType& rQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    const DoubleVariableType& rOriginVariable,
-    const DoubleVariableType& rDestinationVariable,
-    const Kratos::Flags MappingOptions,
-    const bool UseTranspose) const
-{
-    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
-                          != rQo.MyLength())
-        << "The local number of nodes in origin is different from the number "
-        << "of local entries in the Vector!" << std::endl;
+// template<>
+// void UtilityType::InitializeMappingStep(
+//     TSystemMatrixType& rMdo,
+//     TSystemVectorType& rQo,
+//     TSystemVectorType& rQd,
+//     ModelPart& rModelPartOrigin,
+//     ModelPart& rModelPartDestination,
+//     const DoubleVariableType& rOriginVariable,
+//     const DoubleVariableType& rDestinationVariable,
+//     const Kratos::Flags MappingOptions,
+//     const bool UseTranspose) const
+// {
+//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
+//                           != rQo.MyLength())
+//         << "The local number of nodes in origin is different from the number "
+//         << "of local entries in the Vector!" << std::endl;
 
-    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
-                          != rQd.MyLength())
-        << "The local number of nodes in destination is different from the number "
-        << "of local entries in the Vector!" << std::endl;
+//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
+//                           != rQd.MyLength())
+//         << "The local number of nodes in destination is different from the number "
+//         << "of local entries in the Vector!" << std::endl;
 
-    // rQo and rQd are Multivectors, only using the first one
-    TInitializeMappingStep(rQo[0], rQd[0],
-                           rModelPartOrigin, rModelPartDestination,
-                           rOriginVariable, rDestinationVariable,
-                           MappingOptions, UseTranspose);
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qo.mm", rQo);
-        SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qd.mm", rQd);
-    }
-}
+//     // rQo and rQd are Multivectors, only using the first one
+//     TInitializeMappingStep(rQo[0], rQd[0],
+//                            rModelPartOrigin, rModelPartDestination,
+//                            rOriginVariable, rDestinationVariable,
+//                            MappingOptions, UseTranspose);
+//     if (GetEchoLevel() > 2) {
+//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qo.mm", rQo);
+//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qd.mm", rQd);
+//     }
+// }
 
-template<>
-void UtilityType::InitializeMappingStep(
-    TSystemMatrixType& rMdo,
-    TSystemVectorType& rQo,
-    TSystemVectorType& rQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    const ComponentVariableType& rOriginVariable,
-    const ComponentVariableType& rDestinationVariable,
-    const Kratos::Flags MappingOptions,
-    const bool UseTranspose) const
-{
-    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
-                          != rQo.MyLength())
-        << "The local number of nodes in origin is different from the number "
-        << "of local entries in the Vector!" << std::endl;
+// template<>
+// void UtilityType::InitializeMappingStep(
+//     TSystemMatrixType& rMdo,
+//     TSystemVectorType& rQo,
+//     TSystemVectorType& rQd,
+//     ModelPart& rModelPartOrigin,
+//     ModelPart& rModelPartDestination,
+//     const ComponentVariableType& rOriginVariable,
+//     const ComponentVariableType& rDestinationVariable,
+//     const Kratos::Flags MappingOptions,
+//     const bool UseTranspose) const
+// {
+//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
+//                           != rQo.MyLength())
+//         << "The local number of nodes in origin is different from the number "
+//         << "of local entries in the Vector!" << std::endl;
 
-    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
-                          != rQd.MyLength())
-        << "The local number of nodes in destination is different from the number "
-        << "of local entries in the Vector!" << std::endl;
+//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
+//                           != rQd.MyLength())
+//         << "The local number of nodes in destination is different from the number "
+//         << "of local entries in the Vector!" << std::endl;
 
-    // rQo and rQd are Multivectors, only using the first one
-    TInitializeMappingStep(rQo[0], rQd[0],
-                           rModelPartOrigin, rModelPartDestination,
-                           rOriginVariable, rDestinationVariable,
-                           MappingOptions, UseTranspose);
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qo.mm", rQo);
-        SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qd.mm", rQd);
-    }
-}
+//     // rQo and rQd are Multivectors, only using the first one
+//     TInitializeMappingStep(rQo[0], rQd[0],
+//                            rModelPartOrigin, rModelPartDestination,
+//                            rOriginVariable, rDestinationVariable,
+//                            MappingOptions, UseTranspose);
+//     if (GetEchoLevel() > 2) {
+//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qo.mm", rQo);
+//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qd.mm", rQd);
+//     }
+// }
 
-template<>
-void UtilityType::FinalizeMappingStep(
-    TSystemMatrixType& rMdo,
-    TSystemVectorType& rQo,
-    TSystemVectorType& rQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    const DoubleVariableType& rOriginVariable,
-    const DoubleVariableType& rDestinationVariable,
-    const Kratos::Flags MappingOptions,
-    const bool UseTranspose) const
-{
-    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
-                          != rQo.MyLength())
-        << "The local number of nodes in origin is different from the number "
-        << "of local entries in the Vector!" << std::endl;
+// template<>
+// void UtilityType::FinalizeMappingStep(
+//     TSystemMatrixType& rMdo,
+//     TSystemVectorType& rQo,
+//     TSystemVectorType& rQd,
+//     ModelPart& rModelPartOrigin,
+//     ModelPart& rModelPartDestination,
+//     const DoubleVariableType& rOriginVariable,
+//     const DoubleVariableType& rDestinationVariable,
+//     const Kratos::Flags MappingOptions,
+//     const bool UseTranspose) const
+// {
+//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
+//                           != rQo.MyLength())
+//         << "The local number of nodes in origin is different from the number "
+//         << "of local entries in the Vector!" << std::endl;
 
-    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
-                          != rQd.MyLength())
-        << "The local number of nodes in destination is different from the number "
-        << "of local entries in the Vector!" << std::endl;
+//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
+//                           != rQd.MyLength())
+//         << "The local number of nodes in destination is different from the number "
+//         << "of local entries in the Vector!" << std::endl;
 
-    // rQo and rQd are Multivectors, only using the first one
-    TFinalizeMappingStep(rQo[0], rQd[0],
-                         rModelPartOrigin, rModelPartDestination,
-                         rOriginVariable, rDestinationVariable,
-                         MappingOptions, UseTranspose);
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qo.mm", rQo);
-        SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qd.mm", rQd);
-    }
-}
+//     // rQo and rQd are Multivectors, only using the first one
+//     TFinalizeMappingStep(rQo[0], rQd[0],
+//                          rModelPartOrigin, rModelPartDestination,
+//                          rOriginVariable, rDestinationVariable,
+//                          MappingOptions, UseTranspose);
+//     if (GetEchoLevel() > 2) {
+//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qo.mm", rQo);
+//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qd.mm", rQd);
+//     }
+// }
 
-template<>
-void UtilityType::FinalizeMappingStep(
-    TSystemMatrixType& rMdo,
-    TSystemVectorType& rQo,
-    TSystemVectorType& rQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    const ComponentVariableType& rOriginVariable,
-    const ComponentVariableType& rDestinationVariable,
-    const Kratos::Flags MappingOptions,
-    const bool UseTranspose) const
-{
-    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
-                          != rQo.MyLength())
-        << "The local number of nodes in origin is different from the number "
-        << "of local entries in the Vector!" << std::endl;
+// template<>
+// void UtilityType::FinalizeMappingStep(
+//     TSystemMatrixType& rMdo,
+//     TSystemVectorType& rQo,
+//     TSystemVectorType& rQd,
+//     ModelPart& rModelPartOrigin,
+//     ModelPart& rModelPartDestination,
+//     const ComponentVariableType& rOriginVariable,
+//     const ComponentVariableType& rDestinationVariable,
+//     const Kratos::Flags MappingOptions,
+//     const bool UseTranspose) const
+// {
+//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
+//                           != rQo.MyLength())
+//         << "The local number of nodes in origin is different from the number "
+//         << "of local entries in the Vector!" << std::endl;
 
-    KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
-                          != rQd.MyLength())
-        << "The local number of nodes in destination is different from the number "
-        << "of local entries in the Vector!" << std::endl;
+//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
+//                           != rQd.MyLength())
+//         << "The local number of nodes in destination is different from the number "
+//         << "of local entries in the Vector!" << std::endl;
 
-    // rQo and rQd are Multivectors, only using the first one
-    TFinalizeMappingStep(rQo[0], rQd[0],
-                         rModelPartOrigin, rModelPartDestination,
-                         rOriginVariable, rDestinationVariable,
-                         MappingOptions, UseTranspose);
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qo.mm", rQo);
-        SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qd.mm", rQd);
-    }
-}
+//     // rQo and rQd are Multivectors, only using the first one
+//     TFinalizeMappingStep(rQo[0], rQd[0],
+//                          rModelPartOrigin, rModelPartDestination,
+//                          rOriginVariable, rDestinationVariable,
+//                          MappingOptions, UseTranspose);
+//     if (GetEchoLevel() > 2) {
+//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qo.mm", rQo);
+//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qd.mm", rQd);
+//     }
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation

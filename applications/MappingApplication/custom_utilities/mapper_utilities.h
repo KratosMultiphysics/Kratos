@@ -120,47 +120,6 @@ GetUpdateFunction(const Kratos::Flags& rMappingOptions)
     return &UpdateFunction<TVarType>;
 }
 
-template< class TVectorType, class TVarType >
-void UpdateSystemVectorFromModelPart(TVectorType& rVector,
-                        ModelPart& rModelPart,
-                        const TVarType& rVariable,
-                        const Kratos::Flags& rMappingOptions)
-{
-    // Here we construct a function pointer to not have the if all the time inside the loop
-    const auto fill_fct = MapperUtilities::GetFillFunction<TVarType>(rMappingOptions);
-
-    const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes; i++) {
-        fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    }
-}
-
-template< class TVectorType, class TVarType >
-void UpdateModelPartFromSystemVector(TVectorType& rVector,
-            ModelPart& rModelPart,
-            const TVarType& rVariable,
-            const Kratos::Flags& rMappingOptions)
-{
-    const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
-
-    // Here we construct a function pointer to not have the if all the time inside the loop
-    const auto update_fct = std::bind(MapperUtilities::GetUpdateFunction<TVarType>(rMappingOptions),
-                                        std::placeholders::_1,
-                                        std::placeholders::_2,
-                                        std::placeholders::_3,
-                                        factor);
-    const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes; i++) {
-        update_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    }
-}
-
 /**
 * @brief Assigning INTERFACE_EQUATION_IDs to the nodes, with and without MPI
 * This function assigns the INTERFACE_EQUATION_IDs to the nodes, which
