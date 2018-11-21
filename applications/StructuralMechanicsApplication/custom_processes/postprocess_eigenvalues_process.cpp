@@ -31,45 +31,58 @@ namespace Kratos
     {
         Parameters default_parameters(R"(
             {
-                "result_file_name" : "",
-                "result_file_format_use_ascii" : false,
-                "animation_steps"   :  1,
-                "label_type" : "angular_frequency",
-                "list_of_result_variables" : []
+                "result_file_name"              : "Structure",
+                "file_label"                    : "step",
+                "result_file_format_use_ascii"  : false,
+                "animation_steps"               : 20,
+                "label_type"                    : "frequency",
+                "list_of_result_variables"      : ["DISPLACEMENT"]
             }  )"
         );
 
         mOutputParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
     }
 
-    void PostprocessEigenvaluesProcess::Execute()
+    void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
     {
+        // note that the parameters are read each time output is written
+        // this is done in order to limit the members of this class
+
         std::string result_file_name = mOutputParameters["result_file_name"].GetString();
 
         if (result_file_name == "") { // use the name of the ModelPart in case nothing was assigned
             result_file_name = mrModelPart.Name();
         }
 
-        result_file_name += "_EigenResults";
+        result_file_name += "_EigenResults_";
+
+        const std::string file_label = mOutputParameters["file_label"].GetString();
+
+        if (file_label == "step") {
+            result_file_name += std::to_string(mrModelPart.GetProcessInfo()[STEP]);
+        } else if (file_label == "time") {
+            result_file_name += std::to_string(mrModelPart.GetProcessInfo()[TIME]);
+        } else {
+            KRATOS_ERROR << "\"file_label\" can only be \"step\" or \"time\"" << std::endl;
+        }
 
         auto post_mode = GiD_PostBinary;
         if (mOutputParameters["result_file_format_use_ascii"].GetBool()) { // this format is only needed for testing
             post_mode = GiD_PostAscii;
         }
 
-       const auto p_gid_eigen_io = Kratos::make_unique<GidEigenIO>(
+        GidEigenIO gid_eigen_io(
             result_file_name,
             post_mode,
             MultiFileFlag::SingleFile,
             WriteDeformedMeshFlag::WriteUndeformed,
             WriteConditionsFlag::WriteConditions);
 
-        KRATOS_ERROR_IF_NOT(p_gid_eigen_io) << "EigenIO could not be initialized!" << std::endl;
-
-        p_gid_eigen_io->InitializeMesh(0.0);
-        p_gid_eigen_io->WriteMesh(mrModelPart.GetMesh());
-        p_gid_eigen_io->WriteNodeMesh(mrModelPart.GetMesh());
-        p_gid_eigen_io->FinalizeMesh();
+        // deliberately rewritting the mesh in case the geometry is updated
+        gid_eigen_io.InitializeMesh(0.0);
+        gid_eigen_io.WriteMesh(mrModelPart.GetMesh());
+        gid_eigen_io.WriteNodeMesh(mrModelPart.GetMesh());
+        gid_eigen_io.FinalizeMesh();
 
         const auto& eigenvalue_vector = mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR];
         // Note: this is omega^2
@@ -83,7 +96,7 @@ namespace Kratos
         std::vector<Variable<array_1d<double,3>>> requested_vector_results;
         GetVariables(requested_double_results, requested_vector_results);
 
-        p_gid_eigen_io->InitializeResults(0.0, mrModelPart.GetMesh());
+        gid_eigen_io.InitializeResults(0.0, mrModelPart.GetMesh());
 
         for (SizeType i=0; i < num_animation_steps; ++i)
         {
@@ -108,15 +121,15 @@ namespace Kratos
                 }
 
                 for (const auto& variable : requested_double_results) {
-                    p_gid_eigen_io->WriteEigenResults(mrModelPart, variable, label, i);
+                    gid_eigen_io.WriteEigenResults(mrModelPart, variable, label, i);
                 }
 
                 for (const auto& variable : requested_vector_results) {
-                    p_gid_eigen_io->WriteEigenResults(mrModelPart, variable, label, i);
+                    gid_eigen_io.WriteEigenResults(mrModelPart, variable, label, i);
                 }
             }
         }
-        p_gid_eigen_io->FinalizeResults();
+        gid_eigen_io.FinalizeResults();
     }
 
     void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& rRequestedDoubleResults,
