@@ -34,7 +34,7 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
         self.work_folder = "TwoFluidStaticPoolTest"
         self.settings = "TwoFluidStaticPoolTest2D.json"
         self.check_tolerance = 1e-10
-        self.check_toleranceDistance = 0.03
+        self.check_toleranceDistance = 0.05
         self.gravitationalAcceleration = 9.81
         self.domainHeight = 1.0
         self.rho1 = 1000.0
@@ -193,7 +193,7 @@ class FluidDynamicsAnalysisWithFlush3D(FluidDynamicsAnalysis):
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0.0)
                 # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, v_zero)
 
-        nFix = 1726
+        nFix = 3
         v_zero = KratosMultiphysics.Vector(3,0.0)
         self._GetSolver().GetComputingModelPart().GetNode(nFix).Fix(KratosMultiphysics.VELOCITY_X)
         self._GetSolver().GetComputingModelPart().GetNode(nFix).Fix(KratosMultiphysics.VELOCITY_Y)
