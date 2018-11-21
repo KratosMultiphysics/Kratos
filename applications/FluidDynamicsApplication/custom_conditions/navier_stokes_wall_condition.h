@@ -32,6 +32,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/cfd_variables.h"
+#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
 {
@@ -76,11 +77,12 @@ public:
 
     struct ConditionDataStruct
     {
-        double wGauss;                  // Gauss point weight
-        double charVel;                 // Problem characteristic velocity (used in the outlet inflow prevention)
-        double delta;                   // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
-        array_1d<double, 3> Normal;     // Condition normal
-        array_1d<double, TNumNodes> N;  // Gauss point shape functions values
+        double wGauss;                                  // Gauss point weight
+        double charVel;                                 // Problem characteristic velocity (used in the outlet inflow prevention)
+        double delta;                                   // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
+        array_1d<double, 3> Normal;                     // Condition normal
+        array_1d<double, TNumNodes> N;                  // Gauss point shape functions values
+        Vector ViscousStress;                           // Viscous stresses that are retrieved from parent
     };
 
     typedef Node < 3 > NodeType;
@@ -393,10 +395,8 @@ private:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      * @param rDataStruct reference to a struct to hand over data
      */
-    void CalculateBehrSlipLeftHandSideContribution( MatrixType& rLeftHandSideMatrix,
-                                                    ProcessInfo& rCurrentProcessInfo, 
-                                                    ConditionDataStruct& rDataStruct,
-                                                    Element& rParentElement );
+    void ComputeGaussPointBehrSlipLHSContribution(  Matrix& rLeftHandSideMatrix,
+                                                    const ConditionDataStruct& rDataStruct );
 
 
     /**
@@ -408,10 +408,8 @@ private:
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      * @param rDataStruct reference to a struct to hand over data
      */
-    void CalculateBehrSlipRightHandSideContribution(    VectorType& rRightHandSideVector,
-                                                        const ProcessInfo& rCurrentProcessInfo,
-                                                        const ConditionDataStruct& rDataStruct,
-                                                        Element& rParentElement );
+    void ComputeGaussPointBehrSlipRHSContribution(  VectorType& rRightHandSideVector,
+                                                    const ConditionDataStruct& rDataStruct );
 
 
     /**

@@ -107,6 +107,14 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
     Vector GaussPtsJDet = ZeroVector(NumGauss);
     rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
     const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+    if ( this->Is(SLIP) ){
+        // finding parent element to retrieve viscous stresses which are later stored in "data"
+        Element parent;
+        FindParent( parent );
+        data.ViscousStress = ZeroVector( 3*(TDim-1) );
+        parent.Calculate(FLUID_STRESS, data.ViscousStress, rCurrentProcessInfo);
+    }
     
     // Loop on gauss points
     for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
@@ -120,21 +128,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
         noalias(rRightHandSideVector) += rhs_gauss;
     }
     
-    // Adding the BEHR2004 contribution if a slip BC is detected
-    // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
-    if (this->Is(SLIP)){
-
-        Element parent;
-        FindParent( parent );
-
-        MatrixType rBehrSlipLeftHandSideMatrix = ZeroMatrix(MatrixSize,MatrixSize);
-        VectorType rBehrSlipRightHandSideVector = ZeroVector(MatrixSize); 
-        CalculateBehrSlipLeftHandSideContribution(rBehrSlipLeftHandSideMatrix, rCurrentProcessInfo, data, parent); 
-        CalculateBehrSlipRightHandSideContribution(rBehrSlipRightHandSideVector, rCurrentProcessInfo, data, parent);
-        noalias(rLeftHandSideMatrix) += rBehrSlipLeftHandSideMatrix;
-        noalias(rRightHandSideVector) += rBehrSlipRightHandSideVector; 
-    }
-
     KRATOS_CATCH("")
 }
 
@@ -194,7 +187,15 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
     Vector GaussPtsJDet = ZeroVector(NumGauss);
     rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
     const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-    
+
+    if ( this->Is(SLIP) ){
+        // finding parent element to retrieve viscous stresses which are later stored in "data"
+        Element parent;
+        FindParent( parent );
+        data.ViscousStress = ZeroVector( 3*(TDim-1) );
+        parent.Calculate(FLUID_STRESS, data.ViscousStress, rCurrentProcessInfo);
+    }
+
     for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
     {
         data.N = row(Ncontainer, igauss);
@@ -317,7 +318,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::FindParent(Element& rParent){
                 "Check that the FindNodalNeighboursProcess has been executed ( e.g in Solver.Initialize() )" << std::endl;
 
             for (SizeType j = 0; j < rNodeElementCandidates.size(); j++){
-
                 ElementCandidates.push_back(rNodeElementCandidates(j));
             }
         }
@@ -339,8 +339,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::FindParent(Element& rParent){
             }
 
             std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
-            if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) )
-            {
+            if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) ){
                 rParent = ElementCandidates[i];
                 return;
             }
@@ -376,13 +375,22 @@ void NavierStokesWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofLis
 
 
 
-
 template<unsigned int TDim, unsigned int TNumNodes>
 void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs_gauss,
 const ConditionDataStruct& data)
 {
     const unsigned int LocalSize = TDim+1;
-    noalias(lhs_gauss) = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
+    lhs_gauss = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
+    
+    // contribution to avoid tangential components in the residual (BEHR2004)
+    // Adding the BEHR2004 contribution if a slip BC is detected
+    // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
+    if (this->Is(SLIP)){
+
+        Matrix lhs_gauss_behr = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
+        ComputeGaussPointBehrSlipLHSContribution( lhs_gauss_behr, data );
+        lhs_gauss += lhs_gauss_behr;
+    }
 }
 
 
@@ -399,9 +407,18 @@ const ConditionDataStruct& data)
     this->ComputeRHSNeumannContribution(rhs_gauss, data);
 
     // Gauss pt. outlet inflow prevention contribution
-    if (this->Is(OUTLET))
-    {
+    if (this->Is(OUTLET)){
         this->ComputeRHSOutletInflowContribution(rhs_gauss, data);
+    }
+
+    // contribution to avoid tangential components in the residual (BEHR2004)
+    // Adding the BEHR2004 contribution if a slip BC is detected
+    // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
+    if (this->Is(SLIP)){
+
+        Vector rhs_gauss_behr = ZeroVector(TNumNodes*LocalSize);
+        ComputeGaussPointBehrSlipRHSContribution( rhs_gauss_behr, data );
+        rhs_gauss += rhs_gauss_behr;
     }
 }
 
@@ -429,7 +446,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeRHSNeumannContribution(ar
         }
     }
 }
-
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
@@ -510,74 +526,48 @@ void NavierStokesWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipLeftHandSideContribution(  MatrixType& rLeftHandSideMatrix,
-                                                                                            ProcessInfo& rCurrentProcessInfo,
-                                                                                            ConditionDataStruct& rDataStruct,
-                                                                                            Element& rParentElement )
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSContribution(  Matrix& rLeftHandSideMatrix,
+                                                                                           const ConditionDataStruct& rDataStruct )
 {
     KRATOS_TRY
 
     GeometryType& rGeom = this->GetGeometry();
 
-    std::vector< Matrix > NodalNormals(TNumNodes);
+    // Retrieve the nodal consistent normal vectors, normalize, and store them for each node
+    std::vector<array_1d<double,3>> NodalNormals(TNumNodes);
+	for (unsigned int nnode=0; nnode < TNumNodes; nnode++){
 
-    // Retrieving the nodal normal vectors and storing them in matrix format
-	for (SizeType nnode = 0; nnode < TNumNodes; nnode++){
-
-        NodalNormals[nnode].resize(3,1);
-
-        double sum = 0.0;
-        for (int j = 0; j < 3; j++){
-            NodalNormals[nnode](j,0) = rGeom[nnode].FastGetSolutionStepValue(NORMAL)(j);
-            sum += NodalNormals[nnode](j,0)*NodalNormals[nnode](j,0);
+        NodalNormals[nnode] = rGeom[nnode].FastGetSolutionStepValue(NORMAL);
+        double sumOfSquares = 0.0;
+        for (unsigned int j = 0; j < 3; j++){
+            sumOfSquares += NodalNormals[nnode][j] * NodalNormals[nnode][j];
         }
-        for (int j = 0; j < 3; j++){
-            NodalNormals[nnode](j,0) /= sqrt(sum);
-        }
-    }
+        NodalNormals[nnode] = ( 1.0 / sqrt(sumOfSquares) ) *  NodalNormals[nnode];
+	}
 
     MatrixType BaseLHSMatrix = zero_matrix<double>( TNumNodes*(TNumNodes+1) , TNumNodes*(TNumNodes+1) );
     MatrixType ProjectionLHSMatrix = zero_matrix<double>( TNumNodes*(TNumNodes+1) , TNumNodes*(TNumNodes+1) );
-    MatrixType BaseLHSMatrixGPcontribution = zero_matrix<double>( TNumNodes*(TNumNodes+1) , TNumNodes*(TNumNodes+1) );
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-    const unsigned int NumGauss = IntegrationPoints.size();
-    Vector GaussPtsJDet = ZeroVector(NumGauss);
-    rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-    const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    // Loop on gauss points removed (!!!)
+    BaseLHSMatrix = ZeroMatrix( (TNumNodes + 1)*TNumNodes , (TNumNodes + 1)*TNumNodes );
 
+    array_1d<double, TNumNodes> N = rDataStruct.N;
+    const double wGauss = rDataStruct.wGauss;
 
-    // Loop on gauss points
-    for(unsigned int igauss = 0; igauss < NumGauss; igauss++) {
-        
-        BaseLHSMatrixGPcontribution = ZeroMatrix( (TNumNodes + 1)*TNumNodes , (TNumNodes + 1)*TNumNodes );
+    for (unsigned int lineBlock = 0; lineBlock < TNumNodes; lineBlock++){
+        for(unsigned int rowBlock = 0; rowBlock < TNumNodes; rowBlock++){
+            for(unsigned int i = 0; i < TNumNodes; i++){
 
-        array_1d<double, TNumNodes> N = row(Ncontainer, igauss);
-        const double J = GaussPtsJDet[igauss];
-        const double wGauss = J * IntegrationPoints[igauss].Weight();
-
-        for (unsigned int lineBlock = 0; lineBlock < TNumNodes; lineBlock++){
-            for(unsigned int rowBlock = 0; rowBlock < TNumNodes; rowBlock++){
-                for(unsigned int i = 0; i < TNumNodes; i++){
-
-                    BaseLHSMatrixGPcontribution( lineBlock * (TNumNodes + 1) + i , rowBlock * (TNumNodes + 1) + TNumNodes ) 
-                    = rDataStruct.Normal[i] * N[lineBlock] * N[rowBlock] * wGauss;
-
-                }
+                BaseLHSMatrix( lineBlock * (TNumNodes + 1) + i , rowBlock * (TNumNodes + 1) + TNumNodes ) 
+                = rDataStruct.Normal[i] * N[lineBlock] * N[rowBlock] * wGauss;
             }
         }
- 
-        BaseLHSMatrix += BaseLHSMatrixGPcontribution;
     }
-
-    // Computation of NodalMultMatrix = ( [I] - (na)(na) ) for each node
-    std::vector<MatrixType> NodalMultMatrix(TNumNodes);
-    const MatrixType auxIdentMatrix = identity_matrix<double>(3);
-    MatrixType auxMatrix = zero_matrix<double>(3,3);
-    
-    for (SizeType nnode=0; nnode < TNumNodes; nnode++){
-        auxMatrix = prod( NodalNormals[nnode], trans(NodalNormals[nnode]) );
-        NodalMultMatrix[nnode] = auxIdentMatrix - auxMatrix;
+ 
+    // Computation of NodalProjectionMatrix = ( [I] - (na)(na) ) for all nodes and store it
+    std::vector< BoundedMatrix<double, 3, 3> > NodalProjectionMatrix(TNumNodes);
+    for(unsigned int node = 0; node < TNumNodes; node++){
+        FluidElementUtilities<3>::SetTangentialProjectionMatrix( NodalNormals[node], NodalProjectionMatrix[node] );
     }
 
     for(unsigned int nnode = 0; nnode < TNumNodes; nnode++){
@@ -586,106 +576,67 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipLeftHandSideCon
 
                 const unsigned int istart = nnode * (TNumNodes+1);
                 const unsigned int jstart = nnode * (TNumNodes+1);
-                ProjectionLHSMatrix(istart + i, jstart + j) = NodalMultMatrix[nnode](i,j);
-
+                ProjectionLHSMatrix(istart + i, jstart + j) = NodalProjectionMatrix[nnode](i,j);
             }
         }
     }
-
-    rLeftHandSideMatrix = prod( ProjectionLHSMatrix, BaseLHSMatrixGPcontribution );
+    rLeftHandSideMatrix = prod( ProjectionLHSMatrix, BaseLHSMatrix );
 
     KRATOS_CATCH("");
 }
 
 
 
+
 template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideContribution( VectorType& rRightHandSideVector,
-                                                                                            const ProcessInfo& rCurrentProcessInfo,
-                                                                                            const ConditionDataStruct& rDataStruct,
-                                                                                            Element& rParentElement )
+void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSContribution(   VectorType& rRightHandSideVector,
+                                                                                            const ConditionDataStruct& rDataStruct )
 {
     KRATOS_TRY
+    const unsigned int voigtSize = 3 * (TDim-1);
 
     GeometryType& rGeom = this->GetGeometry();
-
-    std::vector< IndexType > NodeIds(TNumNodes), ElementNodeIds;
-    std::vector< Matrix > NodalNormals(TNumNodes);
-    std::vector< Matrix > NodalEntriesRHS(TNumNodes);
-    Matrix sigmaVoigtMatrix;
-    Matrix stressTimesNormal;
-
-    // Retrieve the nodal normal vectors, normalize, and store them in matrix
+    
+    // Retrieve the nodal consistent normal vectors, normalize, and store them for each node
+    std::vector<array_1d<double,3>> NodalNormals(TNumNodes);
 	for (unsigned int nnode=0; nnode < TNumNodes; nnode++){
-        NodalNormals[nnode].resize(3,1);
 
+        NodalNormals[nnode] = rGeom[nnode].FastGetSolutionStepValue(NORMAL);
         double sumOfSquares = 0.0;
-        for (unsigned int j = 0; j < 3; j++)
-        {
-            NodalNormals[nnode](j,0) = rGeom[nnode].FastGetSolutionStepValue(NORMAL)(j); 
-            sumOfSquares += NodalNormals[nnode](j,0) * NodalNormals[nnode](j,0);
+        for (unsigned int j = 0; j < 3; j++){
+            sumOfSquares += NodalNormals[nnode][j] * NodalNormals[nnode][j];
         }
-        // normalization
-        for (unsigned int j = 0; j < 3; j++)
-        {
-            NodalNormals[nnode](j,0) /= sqrt(sumOfSquares);
-        }
+
+        NodalNormals[nnode] = ( 1.0 / sqrt(sumOfSquares) ) *  NodalNormals[nnode];
 	}
 
-    // Computation of NodalMultMatrix = ( [I] - (na)(na) ) (for all nodes)
-    std::vector<MatrixType> NodalProjectionMatrix(TNumNodes);
-    const MatrixType auxIdentMatrix = identity_matrix<double>(3);
-    
-    for (unsigned int nnode=0; nnode < TNumNodes; nnode++){
-        NodalProjectionMatrix[nnode] = auxIdentMatrix - prod( NodalNormals[nnode], trans(NodalNormals[nnode]) );
+    // Computation of NodalProjectionMatrix = ( [I] - (na)(na) ) for all nodes and store it
+    std::vector< BoundedMatrix<double, 3, 3> > NodalProjectionMatrix(TNumNodes);
+    for(unsigned int node = 0; node < TNumNodes; node++){
+        FluidElementUtilities<3>::SetTangentialProjectionMatrix( NodalNormals[node], NodalProjectionMatrix[node] );
     }
 
-    MatrixType normalVoigtMatrix = zero_matrix<double>(3,3);
+    // Computation of a matrix to replace [S] n by [A(n)] [Svoigt]
+    BoundedMatrix<double, TNumNodes, voigtSize> conditionNormalForVoigt = ZeroMatrix( TNumNodes, voigtSize );
+    FluidElementUtilities<3>::VoigtTransformForProduct( rDataStruct.Normal, conditionNormalForVoigt );
 
-    if ( TNumNodes == 2 ){
-        if (normalVoigtMatrix.size2() != 3){
-            normalVoigtMatrix.resize( 3, 3, false );
-        }
-        normalVoigtMatrix = zero_matrix<double>(3,3);
-        sigmaVoigtMatrix = zero_matrix<double>(3,1);
-        normalVoigtMatrix(0,0) = rDataStruct.Normal(0);
-        normalVoigtMatrix(1,1) = rDataStruct.Normal(1);
-        normalVoigtMatrix(0,2) = rDataStruct.Normal(1);
-        normalVoigtMatrix(1,2) = rDataStruct.Normal(0);
-    } else if ( TNumNodes == 3 ){
-        if (normalVoigtMatrix.size2() != 6){
-            normalVoigtMatrix.resize( 3, 6, false );
-        }
-        normalVoigtMatrix = zero_matrix<double>(3,6);
-        sigmaVoigtMatrix = zero_matrix<double>(6,1);
-        normalVoigtMatrix(0,0) = rDataStruct.Normal(0);
-        normalVoigtMatrix(1,1) = rDataStruct.Normal(1);
-        normalVoigtMatrix(2,2) = rDataStruct.Normal(2);
-        normalVoigtMatrix(0,3) = rDataStruct.Normal(1);
-        normalVoigtMatrix(0,5) = rDataStruct.Normal(2);
-        normalVoigtMatrix(1,3) = rDataStruct.Normal(0);
-        normalVoigtMatrix(1,4) = rDataStruct.Normal(2);
-        normalVoigtMatrix(2,4) = rDataStruct.Normal(1);
-        normalVoigtMatrix(2,5) = rDataStruct.Normal(0);
-    } 
 
-    VectorType ShearStressOfElement( (TDim-1)*3 , 0.0);
-    ShearStressOfElement = ZeroVector( (TDim-1)*3 );
-    
-    rParentElement.Calculate( FLUID_STRESS, ShearStressOfElement, rCurrentProcessInfo );
+    // Computing the full stress for the nodes (still in Voigt notation)
+    Vector ShearStressOfElement( voigtSize, 0.0);
 
-    // adding PRESSURE to the viscous shear stresses
-    std::vector< Matrix > CompleteNodalSigma(TNumNodes);
+    // step 1: Retrieving viscous pressure from the element (constant in element assumed)
+    ShearStressOfElement = rDataStruct.ViscousStress;
+
+
+    // step 2: adding pressure (different at nodes) to the viscous shear stresses
+    std::vector< array_1d< double, voigtSize > > CompleteNodalSigma(TNumNodes);
 
     if ( TNumNodes == 2 ){
         for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
-            if ( CompleteNodalSigma[nnode].size1() != 3 ){
-                CompleteNodalSigma[nnode].resize(3,1);
-            }
-            CompleteNodalSigma[nnode](0,0) = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](1,0) = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2]; // no pressure in shear component
-
+            CompleteNodalSigma[nnode] = ZeroVector( voigtSize );
+            CompleteNodalSigma[nnode][0] = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode][1] = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode][2] = ShearStressOfElement[2]; // no pressure in shear component
 #ifdef KRATOS_DEBUG
             if ( abs( ShearStressOfElement[0] ) > 0.001 || abs( ShearStressOfElement[1] ) > 0.001 ){
                 KRATOS_WARNING("Behr Contribution in SLIP condition") << "The normal components of the viscous stress are still present" << std::endl;
@@ -694,16 +645,13 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideCo
         }
     } else if ( TNumNodes == 3 ){
         for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
-            if ( CompleteNodalSigma[nnode].size1() != 6 ){
-                CompleteNodalSigma[nnode].resize(6,1);
-            }
-            CompleteNodalSigma[nnode](0,0) = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](1,0) = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](2,0) = ShearStressOfElement[2] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
-            CompleteNodalSigma[nnode](3,0) = ShearStressOfElement[3];  // no pressure in shear component
-            CompleteNodalSigma[nnode](4,0) = ShearStressOfElement[4];  // no pressure in shear component
-            CompleteNodalSigma[nnode](5,0) = ShearStressOfElement[5];  // no pressure in shear component
-
+            CompleteNodalSigma[nnode] = ZeroVector( voigtSize );
+            CompleteNodalSigma[nnode][0] = ShearStressOfElement[0] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode][1] = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode][2] = ShearStressOfElement[2] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
+            CompleteNodalSigma[nnode][3] = ShearStressOfElement[3];  // no pressure in shear component
+            CompleteNodalSigma[nnode][4] = ShearStressOfElement[4];  // no pressure in shear component
+            CompleteNodalSigma[nnode][5] = ShearStressOfElement[5];  // no pressure in shear component
 #ifdef KRATOS_DEBUG
             if ( abs( ShearStressOfElement[0] ) > 0.001 || abs( ShearStressOfElement[1] ) > 0.001 || abs( ShearStressOfElement[2] ) > 0.001 ){
                 KRATOS_WARNING("Behr Contribution in SLIP condition") << "The normal components of the viscous stress are still present" << std::endl;
@@ -712,55 +660,36 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateBehrSlipRightHandSideCo
         }
     }
 
-    // retrieving Gauss integration point data
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-    const unsigned int NumGauss = IntegrationPoints.size();
-    Vector GaussPtsJDet = ZeroVector(NumGauss);
-    rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-    const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    Vector CompleteSigmaInterpolated;
+    CompleteSigmaInterpolated = ZeroVector(3);
 
-    Matrix CompleteSigmaInterpolated;
-    CompleteSigmaInterpolated = ZeroMatrix(3,1);
+    std::vector<array_1d<double,TNumNodes+1>> NodalEntriesRHS(TNumNodes);
 
-    // Loop on nodes
+    // Loop all nodal contributions
     for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
 
-        if (NodalEntriesRHS[nnode].size1() != TNumNodes+1){
-            NodalEntriesRHS[nnode].resize(TNumNodes+1, 1);
-        }
-
-        NodalEntriesRHS[nnode] = zero_matrix<double>(3, 1);
+        NodalEntriesRHS[nnode] = zero_vector<double>(3);
+        const array_1d<double, TNumNodes> N = rDataStruct.N;
+        const double wGauss = rDataStruct.wGauss;
         
-        // Loop on gauss points
-        for(unsigned int igauss = 0; igauss < NumGauss; igauss++){
+        CompleteSigmaInterpolated = ZeroVector(3);
+        for( unsigned int comp = 0; comp < TNumNodes; comp++){
 
-            array_1d<double, TNumNodes> N = row(Ncontainer, igauss);
-            const double J = GaussPtsJDet[igauss];
-            const double wGauss = J * IntegrationPoints[igauss].Weight();
-
-            CompleteSigmaInterpolated = ZeroMatrix(3,1);
-
-            for( unsigned int comp = 0; comp < TNumNodes; comp++){
-
-                CompleteSigmaInterpolated += N[comp] * prod( normalVoigtMatrix, CompleteNodalSigma[comp] );
-            }
-            
-            NodalEntriesRHS[nnode] += ( wGauss * N(nnode) * CompleteSigmaInterpolated );
+            CompleteSigmaInterpolated += N[comp] * prod( conditionNormalForVoigt, CompleteNodalSigma[comp] );
         }
 
+        NodalEntriesRHS[nnode] = ( wGauss * N(nnode) * CompleteSigmaInterpolated );
         NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], NodalEntriesRHS[nnode] );
     }
 
-    for (unsigned int entry = 0; entry < 3; entry++){
-
-        for (unsigned int node = 0; node < TNumNodes; node++){
-            rRightHandSideVector(entry + node*(TNumNodes+1) ) = NodalEntriesRHS[node](entry,0);
+    for (unsigned int node = 0; node < TNumNodes; node++){
+        for (unsigned int entry = 0; entry < TNumNodes; entry++){
+            rRightHandSideVector( node*(TNumNodes+1) + entry ) = NodalEntriesRHS[node][entry];
         }
     }
 
     KRATOS_CATCH("")
 }
-
 
 template class NavierStokesWallCondition<2,2>;
 template class NavierStokesWallCondition<3,3>;
