@@ -271,7 +271,7 @@ void StructuralMeshMovingElement::CalculateLocalSystem(
     // Compute RHS
     VectorType last_values;
     this->GetValuesVector(last_values, 0);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, last_values);
+    noalias(rRightHandSideVector) = (-1)*prod(rLeftHandSideMatrix, last_values);
   }
 
   KRATOS_CATCH("");
