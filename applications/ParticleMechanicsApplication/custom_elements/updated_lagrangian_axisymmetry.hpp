@@ -252,14 +252,6 @@ public:
      */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
-    /**
-     * Called at the end of eahc solution step
-     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
-    void Calculate(const Variable<Vector >& rVariable,
-                           Vector& Output,
-                           const ProcessInfo& rCurrentProcessInfo);
     //************* COMPUTING  METHODS
 
 
@@ -569,12 +561,12 @@ protected:
      /**
      * Initialize Element General Variables
      */
-    virtual void Initialize();
+    void Initialize() override;
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
    /**
