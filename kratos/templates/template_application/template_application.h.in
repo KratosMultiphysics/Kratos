@@ -51,165 +51,165 @@ namespace Kratos {
 */
 class Kratos@{APP_NAME_CAMEL}Application : public KratosApplication {
 public:
-	///@name Type Definitions
-	///@{
+    ///@name Type Definitions
+    ///@{
 
-	/// Pointer definition of Kratos@{APP_NAME_CAMEL}Application
-	KRATOS_CLASS_POINTER_DEFINITION(Kratos@{APP_NAME_CAMEL}Application);
+    /// Pointer definition of Kratos@{APP_NAME_CAMEL}Application
+    KRATOS_CLASS_POINTER_DEFINITION(Kratos@{APP_NAME_CAMEL}Application);
 
-	///@}
-	///@name Life Cycle
-	///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-	/// Default constructor.
-	Kratos@{APP_NAME_CAMEL}Application();
+    /// Default constructor.
+    Kratos@{APP_NAME_CAMEL}Application();
 
-	/// Destructor.
-	~Kratos@{APP_NAME_CAMEL}Application() override {}
+    /// Destructor.
+    ~Kratos@{APP_NAME_CAMEL}Application() override {}
 
-	///@}
-	///@name Operators
-	///@{
-
-
-	///@}
-	///@name Operations
-	///@{
-
-	void Register() override;
-
-	///@}
-	///@name Access
-	///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-	///@}
-	///@name Inquiry
-	///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void Register() override;
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-	///@}
-	///@name Input and output
-	///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-	/// Turn back information as a string.
-	std::string Info() const override
-	{
-		return "Kratos@{APP_NAME_CAMEL}Application";
-	}
 
-	/// Print information about this object.
-	void PrintInfo(std::ostream& rOStream) const override
-	{
-		rOStream << Info();
-		PrintData(rOStream);
-	}
+    ///@}
+    ///@name Input and output
+    ///@{
 
-	///// Print object's data.
-	void PrintData(std::ostream& rOStream) const override
-	{
-  		KRATOS_WATCH("in my application");
-  		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "Kratos@{APP_NAME_CAMEL}Application";
     }
 
-	///@}
-	///@name Friends
-	///@{
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
+
+    ///// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+          KRATOS_WATCH("in my application");
+          KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-	///@}
+    ///@}
 
 protected:
-	///@name Protected static Member Variables
-	///@{
+    ///@name Protected static Member Variables
+    ///@{
 
 
-	///@}
-	///@name Protected member Variables
-	///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-	///@}
-	///@name Protected Operators
-	///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-	///@}
-	///@name Protected Operations
-	///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-	///@}
-	///@name Protected  Access
-	///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-	///@}
-	///@name Protected Inquiry
-	///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-	///@}
-	///@name Protected LifeCycle
-	///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-	///@}
+    ///@}
 
 private:
-	///@name Static Member Variables
-	///@{
+    ///@name Static Member Variables
+    ///@{
 
-	// static const ApplicationCondition  msApplicationCondition;
+    // static const ApplicationCondition  msApplicationCondition;
 
-	///@}
-	///@name Member Variables
-	///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-	// const Elem2D   mElem2D;
-	// const Elem3D   mElem3D;
+    // const Elem2D   mElem2D;
+    // const Elem3D   mElem3D;
 
-	///@}
-	///@name Private Operators
-	///@{
-
-
-	///@}
-	///@name Private Operations
-	///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-	///@}
-	///@name Private  Access
-	///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-	///@}
-	///@name Private Inquiry
-	///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-	///@}
-	///@name Un accessible methods
-	///@{
-
-	/// Assignment operator.
-	Kratos@{APP_NAME_CAMEL}Application& operator=(Kratos@{APP_NAME_CAMEL}Application const& rOther);
-
-	/// Copy constructor.
-	Kratos@{APP_NAME_CAMEL}Application(Kratos@{APP_NAME_CAMEL}Application const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-	///@}
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    Kratos@{APP_NAME_CAMEL}Application& operator=(Kratos@{APP_NAME_CAMEL}Application const& rOther);
+
+    /// Copy constructor.
+    Kratos@{APP_NAME_CAMEL}Application(Kratos@{APP_NAME_CAMEL}Application const& rOther);
+
+
+    ///@}
 
 }; // Class Kratos@{APP_NAME_CAMEL}Application
 
