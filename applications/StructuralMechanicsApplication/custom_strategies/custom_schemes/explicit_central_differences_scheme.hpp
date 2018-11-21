@@ -176,6 +176,7 @@ public:
 
         if ((mDeltaTime.PredictionLevel > 0) && (!BaseType::SchemeIsInitialized())) {
             CalculateDeltaTime(rModelPart);
+            KRATOS_INFO("EXPLICIT_TIME_INTEGRATION") << " Delta Time Step checked ! " << std::endl;
         }
 
 
@@ -322,7 +323,11 @@ public:
             if (check_has_all_variables) {
                 const double length = it_node->GetGeometry().Length();
 
-                stable_delta_time = it_node->GetGeometry().Length() * std::sqrt(roh/E);
+                //stable_delta_time = it_node->GetGeometry().Length() * std::sqrt(roh/E);
+                const double resolve_steps = 20.0;
+                stable_delta_time = Globals::Pi * 2.0;
+                stable_delta_time /= (resolve_steps/length);
+                stable_delta_time /= std::sqrt((2.0*E)/roh);
 
                 if (stable_delta_time > 0.0) {
                     #pragma omp critical
@@ -334,6 +339,7 @@ public:
         }
 
         std::cout << "________________________________________________________________" << std::endl;
+        KRATOS_INFO("MAX_TIME_STEP") << delta_time << std::endl;
         std::cout << "________________________________________________________________" << std::endl;
         KRATOS_ERROR_IF (mDeltaTime.Maximum > delta_time) << "chosen time step too big --> use max " << delta_time << std::endl;
 
