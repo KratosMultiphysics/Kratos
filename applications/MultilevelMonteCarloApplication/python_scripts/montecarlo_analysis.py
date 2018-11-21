@@ -141,7 +141,6 @@ output:
 '''
 @ExaquteTask(returns=1)
 def execution_task(model, parameters):
-    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     sample = GenerateBetaSample()
     simulation = MonteCarloAnalysis(model,parameters,sample)
     simulation.Run()
@@ -160,7 +159,6 @@ OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
 @ExaquteTask(returns=1)
 def exact_execution_task(model, parameters):
-    # parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     sample = 1.0
     simulation = MonteCarloAnalysis(model,parameters,sample)
     simulation.Run()
