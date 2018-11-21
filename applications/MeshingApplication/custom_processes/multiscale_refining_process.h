@@ -353,7 +353,7 @@ public:
     /**
      * @brief Perform a check with the parameters
      */
-    void Check();
+    int Check() override;
 
     /**
      * @brief

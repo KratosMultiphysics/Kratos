@@ -60,7 +60,7 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
 
     mStepDataSize = mrCoarseModelPart.GetNodalSolutionStepDataSize();
 
-    Check();
+    //Check();
 
     // Initialize the coarse model part
     InitializeCoarseModelPart();
@@ -77,7 +77,7 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
 }
 
 
-void MultiscaleRefiningProcess::Check()
+int MultiscaleRefiningProcess::Check()
 {
     KRATOS_TRY
 
@@ -89,6 +89,8 @@ void MultiscaleRefiningProcess::Check()
     KRATOS_CHECK_EQUAL(mStepDataSize, mrVisualizationModelPart.GetNodalSolutionStepDataSize());
 
     KRATOS_CATCH("")
+
+    return 0;
 }
 
 
