@@ -80,6 +80,8 @@ public:
 
     double CalculateValue(ModelPart& rModelPart) override;
 
+    void CalculateResponseIncrement(ModelPart& rModelPart);
+
     ///@}
     ///@name Access
     ///@{
@@ -134,6 +136,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
+    double response_value = 0;
 
     ///@}
     ///@name Private Operators

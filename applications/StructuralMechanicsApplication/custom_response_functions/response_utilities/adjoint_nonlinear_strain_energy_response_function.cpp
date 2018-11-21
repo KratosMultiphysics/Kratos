@@ -28,12 +28,12 @@ namespace Kratos
     }
 
 // Calculates the response value increment for one time step during the primal analysis
-double AdjointNonlinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
+void AdjointNonlinearStrainEnergyResponseFunction::CalculateResponseIncrement(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
     ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
-    double response_value = 0.0;
+    double response_increment_value = 0.0;
 
     // Check if there is adjoint elements, because response function calculation is done for primal analysis
     KRATOS_ERROR_IF( r_current_process_info.Has(IS_ADJOINT) && r_current_process_info[IS_ADJOINT] )
@@ -47,24 +47,30 @@ double AdjointNonlinearStrainEnergyResponseFunction::CalculateValue(ModelPart& r
     Vector external_force_Previous_Step;
     Vector disp_Previous_Step;
     Vector disp_increment;
-    Vector sum_of_loads;
     Vector average_load;
 
     for (auto& elem_i : rModelPart.Elements())
     {
         elem_i.GetValuesVector(disp,0);
         elem_i.GetValuesVector(disp_Previous_Step, 1);
-
         elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
         disp_increment = disp - disp_Previous_Step;
-        external_force = RHS * -1.0;
+        external_force = -1.0 * RHS;
         external_force_Previous_Step = external_force - prod(LHS , disp_increment);
         average_load = 0.5 * (external_force + external_force_Previous_Step);
 
-        std::cout<< "external force" << external_force <<", external force pervious step" << external_force_Previous_Step <<std::endl;
-        response_value += inner_prod(average_load , disp_increment);
+        response_increment_value += inner_prod(average_load , disp_increment);
     }
+
+    response_value += response_increment_value; 
+
+    KRATOS_CATCH("");
+}
+
+double AdjointNonlinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
+{
+    KRATOS_TRY;
 
     return response_value;
 
