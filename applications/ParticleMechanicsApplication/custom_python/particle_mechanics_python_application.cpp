@@ -28,6 +28,7 @@
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
+#include "custom_elements/updated_lagrangian_axisymmetry.hpp"
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_2d_3.h"
@@ -42,6 +43,7 @@ namespace Python{
 
     namespace py = pybind11;
 
+    // Triangular and Tetrahedral 2D and 3D
     Element::Pointer CreateUpdatedLagragian2D3N()
     {
         return Kratos::make_shared<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
@@ -56,6 +58,8 @@ namespace Python{
     {
         return Kratos::make_shared<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
     }
+
+    // Quadrilateral and Hexahedral 2D and 3D
     Element::Pointer CreateUpdatedLagragian2D4N()
     {
         return Kratos::make_shared<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
@@ -66,6 +70,16 @@ namespace Python{
         return Kratos::make_shared<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) );
     }
 
+    // Axis Symmetry Element 2D (Triangular and Quadrilateral)
+    Element::Pointer CreateUpdatedLagragianAxis2D3N()
+    {
+        return Kratos::make_shared<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
+    }
+
+    Element::Pointer CreateUpdatedLagragianAxis2D4N()
+    {
+        return Kratos::make_shared<UpdatedLagrangianAxisymmetry>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
+    }
 
     PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
     {
@@ -85,6 +99,8 @@ namespace Python{
         m.def("CreateUpdatedLagragian3D4N", &CreateUpdatedLagragian3D4N);
         m.def("CreateUpdatedLagragian2D4N", &CreateUpdatedLagragian2D4N);
         m.def("CreateUpdatedLagragian3D8N", &CreateUpdatedLagragian3D8N);
+        m.def("CreateUpdatedLagragianAxis2D3N", &CreateUpdatedLagragianAxis2D3N);
+	    m.def("CreateUpdatedLagragianAxis2D4N", &CreateUpdatedLagragianAxis2D4N);
 
         // Registering variables in python
         KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  GAUSS_COORD )

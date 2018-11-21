@@ -43,6 +43,7 @@
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
+#include "custom_elements/updated_lagrangian_axisymmetry.hpp"
 
 //---constitutive laws
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
@@ -219,6 +220,8 @@ private:
     const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian3D8N;
+    const UpdatedLagrangianAxisymmetry mUpdatedLagrangianAxisymmetry2D3N;
+    const UpdatedLagrangianAxisymmetry mUpdatedLagrangianAxisymmetry2D4N;
 
     // Conditions
     const MPMPointLoadCondition mMPMPointLoadCondition2D1N;
