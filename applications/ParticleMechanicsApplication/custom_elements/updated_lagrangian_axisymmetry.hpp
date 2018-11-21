@@ -106,7 +106,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -115,7 +115,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //************* GETTING METHODS
@@ -225,7 +225,7 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     //************* COMPUTING  METHODS
 
@@ -256,25 +256,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "MPM Element #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "MPM Element #" << Id();
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-      GetGeometry().PrintData(rOStream);
-    }
     ///@}
     ///@name Friends
     ///@{
@@ -359,9 +340,9 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
-                                     double& rIntegrationWeight);
+                                     double& rIntegrationWeight) override;
 
     /**
      * Clear Nodal Forces
@@ -493,10 +474,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
-
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
