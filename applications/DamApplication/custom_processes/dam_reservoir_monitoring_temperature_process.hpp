@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_DAM_BOFANG_CONDITION_TEMPERATURE_PROCESS)
-#define KRATOS_DAM_BOFANG_CONDITION_TEMPERATURE_PROCESS
+#if !defined(KRATOS_DAM_RESERVOIR_MONITORING_TEMPERATURE_PROCESS)
+#define KRATOS_DAM_RESERVOIR_MONITORING_TEMPERATURE_PROCESS
 
 #include <cmath>
 
@@ -27,18 +27,18 @@
 namespace Kratos
 {
 
-class DamBofangConditionTemperatureProcess : public Process
+class DamReservoirMonitoringTemperatureProcess : public Process
 {
 
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(DamBofangConditionTemperatureProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(DamReservoirMonitoringTemperatureProcess);
 
     typedef Table<double, double> TableType;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamBofangConditionTemperatureProcess(ModelPart &rModelPart,
+    DamReservoirMonitoringTemperatureProcess(ModelPart &rModelPart,
                                          Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
     {
         KRATOS_TRY
@@ -51,15 +51,20 @@ class DamBofangConditionTemperatureProcess : public Process
                 "is_fixed"                                         : false,
                 "Gravity_Direction"                                : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
-                "Surface_Temp"                                     : 0.0,
-                "Bottom_Temp"                                      : 0.0,
                 "Height_Dam"                                       : 0.0,
-                "Temperature_Amplitude"                            : 0.0,
-                "Day_Ambient_Temp"                                 : 1,
+                "Ambient_temp"                                     : 0.0,
+                "Ambient_temp_Table"                               : 0,
                 "Water_level"                                      : 0.0,
                 "Water_level_Table"                                : 0,
-                "Month"                                            : 1.0,
-                "Month_Table"                                      : 0
+                "Z_Coord_1"                                        : 0.0,
+                "Water_temp_1"                                     : 0.0,
+                "Water_temp_Table_1"                               : 0,
+                "Z_Coord_2"                                        : 0.0,
+                "Water_temp_2"                                     : 0.0,
+                "Water_temp_Table_2"                               : 0,
+                "Z_Coord_3"                                        : 0.0,
+                "Water_temp_3"                                     : 0.0,
+                "Water_temp_Table_3"                               : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -75,24 +80,41 @@ class DamBofangConditionTemperatureProcess : public Process
         mIsFixed = rParameters["is_fixed"].GetBool();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
-        mSurfaceTemp = rParameters["Surface_Temp"].GetDouble();
-        mBottomTemp = rParameters["Bottom_Temp"].GetDouble();
         mHeight = rParameters["Height_Dam"].GetDouble();
-        mAmplitude = rParameters["Temperature_Amplitude"].GetDouble();
-        mDay = rParameters["Day_Ambient_Temp"].GetInt();
+        mAmbientTemp = rParameters["Ambient_temp"].GetDouble();
         mWaterLevel = rParameters["Water_level"].GetDouble();
-        mMonth = rParameters["Month"].GetDouble();
-        mFreq = 0.52323;
+        mZCoord1 = rParameters["Z_Coord_1"].GetDouble();
+        mWaterTemp1 = rParameters["Water_temp_1"].GetDouble();
+        mZCoord2 = rParameters["Z_Coord_2"].GetDouble();
+        mWaterTemp2 = rParameters["Water_temp_2"].GetDouble();
+        mZCoord3 = rParameters["Z_Coord_3"].GetDouble();
+        mWaterTemp3 = rParameters["Water_temp_3"].GetDouble();
 
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableIdWater = rParameters["Water_level_Table"].GetInt();
-        mTableIdMonth = rParameters["Month_Table"].GetInt();
+        mTableIdAmbientTemp = rParameters["Ambient_temp_Table"].GetInt();
+        mTableIdWaterTemp1 = rParameters["Water_temp_Table_1"].GetInt();
+        mTableIdWaterTemp2 = rParameters["Water_temp_Table_2"].GetInt();
+        mTableIdWaterTemp3 = rParameters["Water_temp_Table_3"].GetInt();
+
+// ELIMINAR        mTableIdMonth = rParameters["Month_Table"].GetInt();
 
         if (mTableIdWater != 0)
             mpTableWater = mrModelPart.pGetTable(mTableIdWater);
 
-        if (mTableIdMonth != 0)
-            mpTableMonth = mrModelPart.pGetTable(mTableIdMonth);
+        if (mTableIdAmbientTemp != 0)
+            mpTableAmbientTemp = mrModelPart.pGetTable(mTableIdAmbientTemp);
+
+        if (mTableIdWaterTemp1 != 0)
+            mpTableWaterTemp1 = mrModelPart.pGetTable(mTableIdWaterTemp1);
+
+        if (mTableIdWaterTemp2 != 0)
+            mpTableWaterTemp2 = mrModelPart.pGetTable(mTableIdWaterTemp2);
+
+        if (mTableIdWaterTemp3 != 0)
+            mpTableWaterTemp3 = mrModelPart.pGetTable(mTableIdWaterTemp3);
+
+
 
         KRATOS_CATCH("");
     }
@@ -100,7 +122,7 @@ class DamBofangConditionTemperatureProcess : public Process
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    virtual ~DamBofangConditionTemperatureProcess() {}
+    virtual ~DamReservoirMonitoringTemperatureProcess() {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -135,17 +157,33 @@ class DamBofangConditionTemperatureProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
-                if (aux >= 0.0)
+                double aux = it->Coordinates()[direction];
+                if (aux < (mReferenceCoordinate + mWaterLevel))
                 {
                     if (mIsFixed)
                     {
                         it->Fix(var);
                     }
-                    double aux1 = ((mBottomTemp - (mSurfaceTemp * exp(-0.04 * mHeight))) / (1 - (exp(-0.04 * mHeight))));
-                    double Temperature = (aux1 + ((mSurfaceTemp - aux1) * (exp(-0.04 * aux))) + (mAmplitude * (exp(-0.018 * aux)) * (cos(mFreq * (mMonth - (mDay / 30.0) - 2.15 + (1.30 * exp(-0.085 * aux)))))));
-
-                    it->FastGetSolutionStepValue(var) = Temperature;
+                    if (aux > mZCoord1)
+                    {
+                        double Temperature = ((mAmbientTemp - mWaterTemp1)/((mReferenceCoordinate + mWaterLevel) - mZCoord1)) * (aux - mZCoord1) + mWaterTemp1;
+                        it->FastGetSolutionStepValue(var) = Temperature;
+                    }
+                    else if ((aux <= mZCoord1) && (aux > mZCoord2))
+                    {
+                        double Temperature = ((mWaterTemp1 - mWaterTemp2)/(mZCoord1 - mZCoord2)) * (aux - mZCoord2) + mWaterTemp2;
+                        it->FastGetSolutionStepValue(var) = Temperature;
+                    }
+                    else if ((aux <= mZCoord2) && (aux > mZCoord3))
+                    {
+                        double Temperature = ((mWaterTemp2 - mWaterTemp3)/(mZCoord2 - mZCoord3)) * (aux - mZCoord3) + mWaterTemp3;
+                        it->FastGetSolutionStepValue(var) = Temperature;
+                    }
+                    else if (aux <= mZCoord3)
+                    {
+                        double Temperature = ((mWaterTemp3 - mWaterTemp2)/(mZCoord3 - mZCoord2)) * (aux - mZCoord3) + mWaterTemp3;
+                        it->FastGetSolutionStepValue(var) = Temperature;
+                    }
                 }
             }
         }
@@ -170,11 +208,32 @@ class DamBofangConditionTemperatureProcess : public Process
             mWaterLevel = mpTableWater->GetValue(time);
         }
 
-        if (mTableIdMonth != 0)
+        if (mTableIdAmbientTemp != 0)
         {
             double time = mrModelPart.GetProcessInfo()[TIME];
             time = time / mTimeUnitConverter;
-            mMonth = mpTableMonth->GetValue(time);
+            mAmbientTemp = mpTableAmbientTemp->GetValue(time);
+        }
+
+        if (mTableIdWaterTemp1 != 0)
+        {
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time / mTimeUnitConverter;
+            mWaterTemp1 = mpTableWaterTemp1->GetValue(time);
+        }
+
+        if (mTableIdWaterTemp2 != 0)
+        {
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time / mTimeUnitConverter;
+            mWaterTemp2 = mpTableWaterTemp2->GetValue(time);
+        }
+
+        if (mTableIdWaterTemp3 != 0)
+        {
+            double time = mrModelPart.GetProcessInfo()[TIME];
+            time = time / mTimeUnitConverter;
+            mWaterTemp3 = mpTableWaterTemp3->GetValue(time);
         }
 
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
@@ -196,17 +255,33 @@ class DamBofangConditionTemperatureProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
-                if (aux >= 0.0)
+                double aux = it->Coordinates()[direction];
+                if (aux < (mReferenceCoordinate + mWaterLevel))
                 {
                     if (mIsFixed)
                     {
                         it->Fix(var);
                     }
-                    double aux1 = ((mBottomTemp - (mSurfaceTemp * exp(-0.04 * mHeight))) / (1 - (exp(-0.04 * mHeight))));
-                    double Temperature = (aux1 + ((mSurfaceTemp - aux1) * (exp(-0.04 * aux))) + (mAmplitude * (exp(-0.018 * aux)) * (cos(mFreq * (mMonth - (mDay / 30.0) - 2.15 + (1.30 * exp(-0.085 * aux)))))));
-
-                    it->FastGetSolutionStepValue(var) = Temperature;
+                    if (aux > mZCoord1)
+                    {
+                        double Temperature = ((mAmbientTemp - mWaterTemp1)/((mReferenceCoordinate + mWaterLevel) - mZCoord1)) * (aux - mZCoord1) + mWaterTemp1;
+                        it->FastGetSolutionStepValue(var) = Temperature;
+                    }
+                    else if ((aux <= mZCoord1) && (aux > mZCoord2))
+                    {
+                        double Temperature = ((mWaterTemp1 - mWaterTemp2)/(mZCoord1 - mZCoord2)) * (aux - mZCoord2) + mWaterTemp2;
+                        it->FastGetSolutionStepValue(var) = Temperature;
+                    }
+                    else if ((aux <= mZCoord2) && (aux > mZCoord3))
+                    {
+                        double Temperature = ((mWaterTemp2 - mWaterTemp3)/(mZCoord2 - mZCoord3)) * (aux - mZCoord3) + mWaterTemp3;
+                        it->FastGetSolutionStepValue(var) = Temperature;
+                    }
+                    else if (aux <= mZCoord3)
+                    {
+                        double Temperature = ((mWaterTemp3 - mWaterTemp2)/(mZCoord3 - mZCoord2)) * (aux - mZCoord3) + mWaterTemp3;
+                        it->FastGetSolutionStepValue(var) = Temperature;
+                    }
                 }
             }
         }
@@ -244,13 +319,13 @@ class DamBofangConditionTemperatureProcess : public Process
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "DamBofangConditionTemperatureProcess";
+        return "DamReservoirMonitoringTemperatureProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "DamBofangConditionTemperatureProcess";
+        rOStream << "DamReservoirMonitoringTemperatureProcess";
     }
 
     /// Print object's data.
@@ -268,35 +343,42 @@ class DamBofangConditionTemperatureProcess : public Process
     std::string mGravityDirection;
     bool mIsFixed;
     double mReferenceCoordinate;
-    double mSurfaceTemp;
-    double mBottomTemp;
     double mHeight;
-    double mAmplitude;
-    int mDay;
-    double mMonth;
+    double mAmbientTemp;
     double mWaterLevel;
-    double mFreq;
+    double mZCoord1;
+    double mWaterTemp1;
+    double mZCoord2;
+    double mWaterTemp2;
+    double mZCoord3;
+    double mWaterTemp3;
     double mTimeUnitConverter;
     TableType::Pointer mpTableWater;
-    TableType::Pointer mpTableMonth;
+    TableType::Pointer mpTableAmbientTemp;
+    TableType::Pointer mpTableWaterTemp1;
+    TableType::Pointer mpTableWaterTemp2;
+    TableType::Pointer mpTableWaterTemp3;
     int mTableIdWater;
-    int mTableIdMonth;
+    int mTableIdAmbientTemp;
+    int mTableIdWaterTemp1;
+    int mTableIdWaterTemp2;
+    int mTableIdWaterTemp3;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
   private:
     /// Assignment operator.
-    DamBofangConditionTemperatureProcess &operator=(DamBofangConditionTemperatureProcess const &rOther);
+    DamReservoirMonitoringTemperatureProcess &operator=(DamReservoirMonitoringTemperatureProcess const &rOther);
 
 }; //Class
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
-                                DamBofangConditionTemperatureProcess &rThis);
+                                DamReservoirMonitoringTemperatureProcess &rThis);
 
 /// output stream function
 inline std::ostream &operator<<(std::ostream &rOStream,
-                                const DamBofangConditionTemperatureProcess &rThis)
+                                const DamReservoirMonitoringTemperatureProcess &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -307,4 +389,4 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_DAM_BOFANG_CONDITION_TEMPERATURE_PROCESS defined */
+#endif /* KRATOS_DAM_RESERVOIR_MONITORING_TEMPERATURE_PROCESS defined */

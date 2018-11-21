@@ -457,7 +457,7 @@ template <typename TDataType, std::size_t TSize1, std::size_t TSize2> using Boun
 
 template <typename TDataType, std::size_t TSize> using BoundedVector=Internals::Matrix<TDataType,TSize, 1>;
 
-template <typename T> T& noalias(T& TheMatrix){return TheMatrix.noalias();}
+template <typename T> T& noalias(T& TheMatrix){return TheMatrix;}
 
 template <typename T> AMatrix::TransposeMatrix<const T> trans(const T& TheMatrix){ return AMatrix::TransposeMatrix<const T>(TheMatrix);}
 

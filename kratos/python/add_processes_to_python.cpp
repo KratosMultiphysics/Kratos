@@ -120,6 +120,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
+    .def("Check",&Process::Check)
     .def("__str__", PrintObject<Process>)
     ;
 
