@@ -22,7 +22,8 @@ class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysis):
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
             nodal_results = result_file_configuration["nodal_results"]
             gauss_point_results = result_file_configuration["gauss_point_results"]
-            self.pp.nodal_results = [nodal_results[i].GetString() for i in range(nodal_results.size())]
+            nodal_variables = self.parameters["output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+            self.pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
             self.pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
         self.pp.fluid_parameters = self.parameters
 
