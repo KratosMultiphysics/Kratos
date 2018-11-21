@@ -135,7 +135,6 @@ function executing the problem
 input:
         model       : serialization of the model
         parameters  : serialization of the Project Parameters
-        sample      : stochastic random variable
 output:
         QoI         : Quantity of Interest
 '''
@@ -169,7 +168,6 @@ def exact_execution_task(model, parameters):
 '''
 function serializing the model and the parameters of the problem
 input:
-        model_part_file_name  : path of the model part file
         parameter_file_name   : path of the Project Parameters file
 output:
         serialized_model      : model serialized
@@ -186,7 +184,7 @@ def serialize_model_projectparameters(parameter_file_name):
     # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     fake_sample = 1.0
 
-    simulation = MonteCarloAnalysis(model,local_parameters, fake_sample)
+    simulation = MonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
 
     serialized_model = KratosMultiphysics.StreamSerializer()
