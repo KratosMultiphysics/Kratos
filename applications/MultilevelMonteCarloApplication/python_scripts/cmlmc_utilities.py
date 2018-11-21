@@ -4,6 +4,14 @@ from multilevel_montecarlo_analysis import MultilevelMonteCarloAnalysis
 import KratosMultiphysics
 # import time
 
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+# get_value_from_remote is the equivalent of compss_wait_on
+# in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
+
+
 '''
 This file contains all the functions to perform the Continuation Multilevel Monte Carlo (CMLMC) algorithm described in [PNL17]
 
@@ -17,6 +25,7 @@ function that gives as output the mesh discretization parameter
 the mesh parameter is the degrees of freedom of the mesh
 TODO: read from the serialized model the number of nodes
 '''
+@ExaquteTask(returns=1)
 def compute_mesh_parameter(level):
     parameter_file_name = "../tests/Level"+str(level)+"/ProjectParameters.json"
     with open(parameter_file_name,'r') as parameter_file:
@@ -35,6 +44,7 @@ M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
 M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
 s_n^2 = M_{2,n} / (n-1)
 '''
+@ExaquteTask(returns=3)
 def update_onepass_M_VAR(sample, old_mean, old_M2, nsam):
     delta = np.subtract(sample, old_mean)
     if nsam == 1:
@@ -58,6 +68,7 @@ def compute_sample_variance_from_M2(M2,nsam):
 '''
 function performing the Bayesian update of the variance using samples generated on all levels in order to locally improve the estimation of Var[Y_l]
 '''
+@ExaquteTask(returns=1)
 def EstimateBayesianVariance(mean,variance,settings_ML,ratesLS,nDoF,nsam,level_local):
     k0 = settings_ML[0]
     k1 = settings_ML[1]
@@ -96,6 +107,7 @@ the first i_E iterations are needed to obtain increasingly accurate estimates of
 the iterations i>i_E prevent redundant computations due to fluctuations in the estimate of P=[calpha,alpha,cbeta,beta,cgamma,gamma] by solving the problem for a slightly smaller tolerance than the desired one
 the function "compute_tolerance_i" computes the tolerance for itaeration "i"
 '''
+@ExaquteTask(returns=1)
 def compute_iE_cmlmc(settings_ML):
     tolF = settings_ML[5]
     tol0 = settings_ML[4]
@@ -104,6 +116,7 @@ def compute_iE_cmlmc(settings_ML):
     iE_cmlmc = np.floor((-np.log(tolF)+np.log(r2)+np.log(tol0))/(np.log(r1)))
     return iE_cmlmc
 
+@ExaquteTask(returns=1)
 def compute_tolerance_i(settings_ML,iE,iter_def):
     r1 = settings_ML[2]
     r2 = settings_ML[3]
@@ -121,6 +134,7 @@ def compute_tolerance_i(settings_ML,iE,iter_def):
 function computing the problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma] using least squares fit
 we consider level > 0 to compute calpha,alpha,cbeta,beta for robustness reasons
 '''
+@ExaquteTask(returns=1)
 def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
     bias_ratesLS = np.abs(bias_ratesLS)
 
@@ -151,6 +165,7 @@ def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
 '''
 function computing the splitting parameter theta \in (0,1)
 '''
+@ExaquteTask(returns=1)
 def theta_model(ratesLS,tol,nDoF):
     Calpha = ratesLS[0]
     alpha = ratesLS[1]
@@ -161,6 +176,7 @@ def theta_model(ratesLS,tol,nDoF):
 '''
 function computing the number of levels for iteration "i" of the cmlmc algorithm
 '''
+@ExaquteTask(returns=3)
 def compute_levels(tol,nsam,ratesLS,ndof_all,BayesianVariance,mean,variance,settings_ML,Lmax,Lmin):
     '''observe I have already computed ndof_all for all the possible levels, i.e. up to Lmax'''
     Wmin   = 1e10
@@ -217,6 +233,7 @@ def compute_levels(tol,nsam,ratesLS,ndof_all,BayesianVariance,mean,variance,sett
 '''
 function computing the new number of samples for each level for the iteration "i" of the cmlmc algorithm
 '''
+@ExaquteTask(returns=3)
 def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,settings_ML):
     minNadd = np.multiply(np.ones(L_opt+1),6.)
     Cgamma = ratesLS[4]
@@ -273,6 +290,7 @@ def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,se
 '''
 function computing the mlmc estimator for the mean of the Quantity of Interest
 '''
+@ExaquteTask(returns=1)
 def compute_mean_mlmc_QoI(mean_array):
     mean_mlmc = np.sum(mean_array)
     return mean_mlmc
@@ -284,6 +302,7 @@ TErr = bias contrinution + statistical error contribution
 bias contribution B ~= abs(E^MC[Q_{L}-Q_{L-1}])
 statistical error contribution SE = \sum_{i=0}^{L}(Var^MC[Y_l]/N_l)
 '''
+@ExaquteTask(returns=1)
 def compute_total_error_MLMC(mean_difference_QoI,number_samples,L_opt,BayesianVariance,settings_ML):
     bias_error = np.abs(mean_difference_QoI[L_opt])
     var_bayes = np.zeros(np.size(number_samples))
