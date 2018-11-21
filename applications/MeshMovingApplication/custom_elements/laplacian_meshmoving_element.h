@@ -108,6 +108,8 @@ public:
   void CalculateRightHandSide(VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override;
 
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
   ///@{
 
   ///@}

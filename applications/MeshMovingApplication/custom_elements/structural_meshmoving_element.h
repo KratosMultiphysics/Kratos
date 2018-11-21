@@ -127,6 +127,8 @@ public:
 
   void GetValuesVector(VectorType &rValues, int Step = 0) override;
 
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
   ///@}
   ///@name Access
   ///@{
