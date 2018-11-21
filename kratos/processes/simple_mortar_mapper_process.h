@@ -832,11 +832,12 @@ public:
 
         bool double_variable = true;
         if(KratosComponents<Variable<double>>::Has(origin_variable_name)) {
-            if (!(KratosComponents<Variable<double>>::Has(destination_variable_name)))
+            if (destination_variable_name != "" && !(KratosComponents<Variable<double>>::Has(destination_variable_name))) {
                 KRATOS_ERROR << "The destination variable is not the same type (double) as the origin" << std::endl;
+            }
         } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(origin_variable_name)) {
             double_variable = false;
-            if (!(KratosComponents<Variable<array_1d< double, 3>>>::Has(destination_variable_name)))
+            if (destination_variable_name != "" && !(KratosComponents<Variable<array_1d< double, 3>>>::Has(destination_variable_name)))
                 KRATOS_ERROR << "The destination variable is not the same type (array_1d< double, 3>) as the origin" << std::endl;
         } else {
             KRATOS_ERROR << "The types of the variables are not supported array_1d< double, 3> or double" << std::endl;
