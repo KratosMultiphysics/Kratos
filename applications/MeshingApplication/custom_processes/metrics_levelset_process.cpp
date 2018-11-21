@@ -39,7 +39,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
             "interpolation"                         : "Linear"
         }
     })" );
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
