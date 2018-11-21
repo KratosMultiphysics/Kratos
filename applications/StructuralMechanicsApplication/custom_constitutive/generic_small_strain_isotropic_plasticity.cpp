@@ -124,13 +124,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
-            this->SetNonConvPlasticDissipation(plastic_dissipation);
-            this->SetNonConvPlasticStrain(plastic_strain);
-            this->SetNonConvThreshold(threshold);
-            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
-
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 noalias(tangent_tensor) = r_constitutive_matrix;
+                this->SetNonConvPlasticDissipation(plastic_dissipation);
+                this->SetNonConvPlasticStrain(plastic_strain);
+                this->SetNonConvThreshold(threshold);
+                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         } else { // Plastic case
             // while loop backward euler
@@ -143,14 +142,14 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
                 characteristic_length);
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
-            this->SetNonConvPlasticDissipation(plastic_dissipation);
-            this->SetNonConvPlasticStrain(plastic_strain);
-            this->SetNonConvThreshold(threshold);
-            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
-
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
                 noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
+                
+                this->SetNonConvPlasticDissipation(plastic_dissipation);
+                this->SetNonConvPlasticStrain(plastic_strain);
+                this->SetNonConvThreshold(threshold);
+                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         }
     }
