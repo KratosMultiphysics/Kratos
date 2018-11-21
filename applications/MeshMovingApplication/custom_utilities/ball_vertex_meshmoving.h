@@ -20,6 +20,7 @@
 #include <string>
 
 // External includes
+#include <boost/numeric/ublas/vector.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -205,7 +206,7 @@ public:
       }
 
       // noalias(rhs_vector) = ZeroVector((TDim+1)*TDim);
-      noalias(rhs_vector) = -prod(K_matrix, disps);
+      noalias(rhs_vector) = (-1)*prod(K_matrix, disps);
       // KRATOS_WATCH(K_matrix);
       // KRATOS_WATCH(disps);
 
