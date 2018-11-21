@@ -715,7 +715,7 @@
             <Item id="PotentialEnergyReferencePointY" pid="Potential Energy Reference Point Y" DEM-ComputeEnergy="Yes" dv="0.0" help="Potential Energy Reference Point Y"/>
             <Item id="PotentialEnergyReferencePointZ" pid="Potential Energy Reference Point Z" DEM-ComputeEnergy="Yes" dv="0.0" help="Potential Energy Reference Point Z"/>
         </Container>
-            <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Show Bond Elements"/>
+        <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Show Bond Elements"/>
         <Container id="DEM-BondElem" pid="On bond elements" DEM-ShowBondElements="Yes" help="Results on bond elements">
             <Item id="DEM-ContactSigma" pid="Contact sigma" dv="No" ivalues="Yes,No" values="Yes,No" help="Contact sigma"/>
             <Item id="DEM-ContactTau" pid="Contact tau" dv="No" ivalues="Yes,No" values="Yes,No" help="Contact tau"/>

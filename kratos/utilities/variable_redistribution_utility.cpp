@@ -225,8 +225,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
 
     // Initial guess (NodalValue / NodalSize)
     #pragma omp parallel for
-    for (int i = 0; i < number_of_nodes_in_model_part; i++)
-    {
+    for (int i = 0; i < number_of_nodes_in_model_part; i++) {
         ModelPart::NodeIterator node_iter = rModelPart.NodesBegin() + i;
         node_iter->FastGetSolutionStepValue(rDistributedVariable) = node_iter->FastGetSolutionStepValue(rPointVariable) / node_iter->GetValue(NODAL_MAUX);
     }
@@ -237,8 +236,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
     // Iteration: LumpedMass * delta_distributed = point_value - ConsistentMass * distributed_old
     double error_l2_norm = 0.0;
     unsigned int iteration = 0;
-    while ( iteration < MaximumIterations )
-    {
+    while (iteration < MaximumIterations) {
         UpdateDistributionRHS<TPointNumber,TValueType>(rModelPart,rPointVariable, rDistributedVariable, mass_matrix);
 
         error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
@@ -246,8 +244,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
 
         // Check convergence
         iteration++;
-        if (error_l2_norm <= Tolerance*Tolerance)
-        {
+        if (error_l2_norm <= Tolerance*Tolerance) {
             break;
         }
     }
@@ -269,15 +266,15 @@ void VariableRedistributionUtility::DummySpecializedDistributePointValues(
     // Iteration: LumpedMass * delta_distributed = point_value - ConsistentMass * distributed_old
     double error_l2_norm = 0.0;
     unsigned int iteration = 0;
-    while ( iteration < MaximumIterations )
-    {
+    while (iteration < MaximumIterations) {
         DummyUpdateDistributionRHS<TValueType>(rModelPart, rDistributedVariable);
 
+        error_l2_norm = DummySolveDistributionIteration(rModelPart,rDistributedVariable);;
         rModelPart.GetCommunicator().SumAll(error_l2_norm);
 
         // Check convergence
         iteration++;
-        if (error_l2_norm <= Tolerance*Tolerance){
+        if (error_l2_norm <= Tolerance*Tolerance) {
             break;
         }
     }
@@ -443,6 +440,14 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     }
 
     return error_l2_norm /= domain_size;
+}
+
+template< class TValueType >
+double VariableRedistributionUtility::DummySolveDistributionIteration(
+    ModelPart& rModelPart,
+    const Variable< TValueType >& rDistributedVariable)
+{
+    return 0.0;
 }
 
 template<>

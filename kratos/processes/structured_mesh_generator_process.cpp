@@ -60,7 +60,6 @@ namespace Kratos
         mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
 
         Check();
-
     }
 
 	StructuredMeshGeneratorProcess::~StructuredMeshGeneratorProcess() {
@@ -236,7 +235,7 @@ namespace Kratos
 		}
 	}
 
-    void StructuredMeshGeneratorProcess::Check()
+    int StructuredMeshGeneratorProcess::Check()
     {
         KRATOS_TRY
 
@@ -248,6 +247,8 @@ namespace Kratos
             KRATOS_ERROR << "An unsupported geometry was given. Only Quadrilateral2D4 and Hexahedra3D8 are supported and given geometry is : " << mrGeometry << std::endl;
 
         KRATOS_CHECK_NOT_EQUAL(mNumberOfDivisions, 0);
+
+        return 0;
 
         KRATOS_CATCH("")
     }

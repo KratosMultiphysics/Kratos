@@ -1007,23 +1007,24 @@ class DEMFEMProcedures(object):
         #         node.SetSolutionStepValue(DISPLACEMENT, displacement)
 
     @classmethod
-    def UpdateTimeInModelParts(self, all_model_parts, time, dt, step):
+    def UpdateTimeInModelParts(self, all_model_parts, time, dt, step, is_time_to_print = False):
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         cluster_model_part = all_model_parts.Get("ClusterPart")
         DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
 
-        self.UpdateTimeInOneModelPart(spheres_model_part, time, dt, step)
-        self.UpdateTimeInOneModelPart(cluster_model_part, time, dt, step)
-        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, dt, step)
-        self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step)
+        self.UpdateTimeInOneModelPart(spheres_model_part, time, dt, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(cluster_model_part, time, dt, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, dt, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(rigid_face_model_part, time, dt, step, is_time_to_print)
 
     @classmethod
-    def UpdateTimeInOneModelPart(self, model_part, time, dt, step):
+    def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print = False):
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step
+        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def close_graph_files(self, RigidFace_model_part):
 
@@ -1251,7 +1252,6 @@ class PreUtils(object):
     def __init__(self):
         pass
 
-
 class MaterialTest(object):
 
     def __init__(self):
@@ -1439,7 +1439,7 @@ class DEMIo(object):
     def OpenMultiFileLists(self):
         one_level_up_path = os.path.join(self.post_path, "..")
         self.multifiles = (
-            #MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
+            MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
             MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
             MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
             MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
@@ -1583,9 +1583,9 @@ class DEMIo(object):
 
     def AddContactVariables(self):
         # Contact Elements Variables
-        if self.DEM_parameters["ElementType"].GetString() in self.continuum_element_types:
-            if self.DEM_parameters["ContactMeshOption"].GetBool():
-                self.PushPrintVar(self.PostLocalContactForce, LOCAL_CONTACT_FORCE, self.contact_variables)
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            self.PushPrintVar(self.PostLocalContactForce, LOCAL_CONTACT_FORCE, self.contact_variables)
+            if self.DEM_parameters["ElementType"].GetString() in self.continuum_element_types:
                 self.PushPrintVar(self.PostFailureCriterionState, FAILURE_CRITERION_STATE, self.contact_variables)
                 self.PushPrintVar(self.PostContactFailureId, CONTACT_FAILURE, self.contact_variables)
                 self.PushPrintVar(self.PostContactTau, CONTACT_TAU, self.contact_variables)

@@ -33,7 +33,7 @@ namespace Kratos
          * Checks if the area of the triangle is calculated correctly using Heron equation.
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsHeronTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsHeron, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -46,7 +46,7 @@ namespace Kratos
          * Checks if It gives you the absolute value of a given value
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsAbsTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsAbs, KratosCoreFastSuite)
         {
             const double absolute = MathUtils<double>::Abs(-1.0);
 
@@ -57,7 +57,7 @@ namespace Kratos
          * Checks if It gives you the minimum value of a given value
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMinTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMin, KratosCoreFastSuite)
         {
             const double min = MathUtils<double>::Min(0.0,1.0);
 
@@ -68,7 +68,7 @@ namespace Kratos
          * Checks if It gives you the maximum value of a given value
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMaxTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMax, KratosCoreFastSuite)
         {
             const double max = MathUtils<double>::Max(0.0,1.0);
 
@@ -79,7 +79,7 @@ namespace Kratos
          * Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDetMatTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDetMat, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -118,7 +118,7 @@ namespace Kratos
             KRATOS_CHECK_NEAR(det, 1.0, tolerance);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactorTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactor, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -148,7 +148,7 @@ namespace Kratos
             KRATOS_CHECK_NEAR(cofactor, 9.0, tolerance);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactorMatrixTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactorMatrix, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -172,7 +172,7 @@ namespace Kratos
          * Checks if it calculates the generalized determinant of a non-square matrix
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsGenDetMatTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsGenDetMat, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -202,7 +202,7 @@ namespace Kratos
          * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvMatTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvMat, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -309,7 +309,7 @@ namespace Kratos
          * Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvertMatrixTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsInvertMatrix, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -461,7 +461,7 @@ namespace Kratos
          * Checks if it can solve a dense system of equations
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsSolveTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsSolve, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -509,7 +509,7 @@ namespace Kratos
          * Checks if it calculates correctly the inverse of a non square matrix
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsGeneralizedInvertMatrixTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsGeneralizedInvertMatrix, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -584,7 +584,7 @@ namespace Kratos
          * Checks if it calculates the sign function
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsSignTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsSign, KratosCoreFastSuite)
         {
             int sign = MathUtils<double>::Sign(-1.0);
 
@@ -599,7 +599,7 @@ namespace Kratos
          * Checks if it calculates the eigen decomposition of a 3x3 system
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsEigenTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsEigen, KratosCoreFastSuite)
         {
             constexpr double tolerance = 1e-6;
 
@@ -637,7 +637,7 @@ namespace Kratos
          * Checks if it calculates the dot product
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDotTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDot, KratosCoreFastSuite)
         {
             Vector a = ZeroVector(3);
             a[1] = 1.0;
@@ -655,7 +655,7 @@ namespace Kratos
          * Checks if it calculates the norm of a vector
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsNormTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsNorm, KratosCoreFastSuite)
         {
             array_1d<double, 3> a = ZeroVector(3);
             a[0] = 1.0;
@@ -671,7 +671,7 @@ namespace Kratos
          * Checks if it calculates the norm of a vector without underflow
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsStableNormUnderflowTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsStableNormUnderflow, KratosCoreFastSuite)
         {
             array_1d<double, 3> a = ZeroVector(3);
             a[0] = 1e-162;
@@ -685,7 +685,7 @@ namespace Kratos
          * Checks if it calculates the norm of a vector without overflow
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsStableNormOverflowTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsStableNormOverflow, KratosCoreFastSuite)
         {
             array_1d<double, 3> a = ZeroVector(3);
             a[0] = 1e155;
@@ -751,7 +751,7 @@ namespace Kratos
          * Checks if it calculates the angle between two vectors
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCrossTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsCross, KratosCoreFastSuite)
         {
             array_1d<double, 3> a = ZeroVector(3);
             a[1] = 2.0;
@@ -799,7 +799,7 @@ namespace Kratos
          * Checks if it calculates the tensor product
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsTensorTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsTensor, KratosCoreFastSuite)
         {
             Vector a = ZeroVector(3);
             a[1] = 2.0;
@@ -818,7 +818,7 @@ namespace Kratos
          * Checks if it calculates the  matrix operations
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMatrixOperationsTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMatrixOperations, KratosCoreFastSuite)
         {
             Matrix a = IdentityMatrix(3);
             Matrix b = IdentityMatrix(3);

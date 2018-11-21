@@ -65,10 +65,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # ADDITIONAL VARIABLES AND OPTIONS
         self.spheres_model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS, self.max_amplification_ratio_of_search_radius)
-        if self.contact_mesh_option:
-            self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 1)
-        else:
-            self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
 
         if ((self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
@@ -103,12 +99,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
     def Initial_Critical_Time(self):        # Calls deprecated function
         (self.cplusplus_strategy).InitialTimeStepCalculation()
 
-    def PrepareContactElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
-
     def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
+        spheres_model_part.AddNodalSolutionStepVariable(DEM_PRECONSOLIDATION_PRESSURE)
+        spheres_model_part.AddNodalSolutionStepVariable(DEM_M_CAMCLAY_SLOPE)
 
     def ModifyProperties(self, properties, param = 0):
         BaseExplicitStrategy.ModifyProperties(self, properties, param)

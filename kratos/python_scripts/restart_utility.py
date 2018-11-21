@@ -96,7 +96,7 @@ class RestartUtility(object):
         self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
-        serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
+        serializer = KratosMultiphysics.FileSerializer(restart_path, self.serializer_flag)
         serializer.Load(self.model_part_name, self.model_part)
 
         self._ExecuteAfterLoad()
@@ -127,7 +127,7 @@ class RestartUtility(object):
         file_name = self.__GetFileNameSave(control_label)
 
         # Save the ModelPart
-        serializer = KratosMultiphysics.Serializer(file_name, self.serializer_flag)
+        serializer = KratosMultiphysics.FileSerializer(file_name, self.serializer_flag)
         serializer.Save(self.model_part.Name, self.model_part)
         if self.echo_level > 0:
             self._PrintOnRankZero("::[Restart Utility]::", "Saved restart file", file_name + ".rest")

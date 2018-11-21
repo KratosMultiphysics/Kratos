@@ -24,11 +24,9 @@
 // External includes
 
 // Project includes
-#include "mesh_moving_application.h"
-#include "mesh_moving_application.h"
 #include "includes/define.h"
+#include "includes/mesh_moving_variables.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos {
