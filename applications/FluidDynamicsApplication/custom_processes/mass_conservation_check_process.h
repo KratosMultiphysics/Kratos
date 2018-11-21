@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    under supervision of Ruben Zorrilla
+//  Main authors:    Simon Wenczowski
 //
 //
 
