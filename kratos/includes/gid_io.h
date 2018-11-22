@@ -1155,7 +1155,7 @@ public:
      * or undeformed state
      * @param Mode either GiD_PostAscii (default) or GiD_PostBinary
      */
-    virtual void WriteNodeMesh( MeshType& rThisMesh )
+    void WriteNodeMesh( MeshType& rThisMesh ) override
     {
         KRATOS_TRY
 

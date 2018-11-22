@@ -55,7 +55,7 @@ namespace Kratos
 
 /// IO provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
 /** IO provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
- * An automatic configurable IO module is added to these components providing the complete set of solutions necessary for dealing with multi-disciplinary problems. 
+ * An automatic configurable IO module is added to these components providing the complete set of solutions necessary for dealing with multi-disciplinary problems.
  * This IO module uses different component lists to adjust itself when reading and writing new concepts originating from different fields of analysis.
  */
 class KRATOS_API(KRATOS_CORE) IO
@@ -212,10 +212,15 @@ public:
     {
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
-    
+
     virtual void WriteModelPart(ModelPart & rThisModelPart)
     {
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
+    }
+
+    virtual void WriteNodeMesh( MeshType& rThisMesh )
+    {
+        KRATOS_ERROR <<  "Calling base class method (WriteNodeMesh). Please check the implementation of derived classes" << std::endl;
     }
 
     virtual std::size_t ReadNodalGraph(ConnectivitiesContainerType& aux_connectivities)
