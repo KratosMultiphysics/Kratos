@@ -49,7 +49,7 @@ namespace Kratos
         mDirOfTranslation = mParameters["dir_of_translation"].GetVector()
 
         mModulus = mParameters["magnitude"].GetDouble();
-        mTheta = mParameters["angle"].GetDouble() * 2 * 3.1416 / 360.0;
+        mTheta = mParameters["angle"].GetDouble() * 2 * Globals::Pi / 360.0;
 
         mTransformationMatrix.resize(4,4);
         mTransformationMatrixVariable.resize(4,4);
