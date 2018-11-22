@@ -486,6 +486,60 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(elem.GetValue(PRESSURE), 15.0)
             self.assertEqual(elem.GetValue(VISCOSITY), 2)
 
+    def test_assign_scalar_value_to_constraints(self):
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        VariableUtils().AddDof(DISPLACEMENT_X, model_part)
+
+        model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, model_part.Nodes[1], DISPLACEMENT_X, model_part.Nodes[2], DISPLACEMENT_X, 1.0, 0)
+        model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, model_part.Nodes[1], DISPLACEMENT_X, model_part.Nodes[3], DISPLACEMENT_X, 1.0, 0)
+        model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, model_part.Nodes[1], DISPLACEMENT_X, model_part.Nodes[4], DISPLACEMENT_X, 1.0, 0)
+        model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 4, model_part.Nodes[1], DISPLACEMENT_X, model_part.Nodes[5], DISPLACEMENT_X, 1.0, 0)
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_scalar_variable_to_constraints_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignScalarVariableToConstraintsProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "variable_name": "PRESSURE",
+                            "value" : 15.0
+                        }
+                    },
+                    {
+                        "python_module"   : "assign_scalar_variable_to_constraints_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignScalarVariableToConstraintsProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "variable_name": "VISCOSITY",
+                            "value" : 2
+                        }
+                    }
+                    ]
+                }
+            """
+            )
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for const in model_part.MasterSlaveConstraints:
+            self.assertEqual(const.GetValue(PRESSURE), 15.0)
+            self.assertEqual(const.GetValue(VISCOSITY), 2)
+
 
     def test_assign_scalar_field_to_conditions(self):
         current_model = Model()
