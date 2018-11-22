@@ -232,7 +232,7 @@ if __name__ == '__main__':
     '''create a serialization of the model and of the project parameters'''
     # serialized_model,serialized_parameters = serialize_model_projectparameters(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
     serialized_model,serialized_parameters = serialize_model_projectparameters(parameter_file_name)
-
+    print("\n############## Serialization completed ##############\n")
 
     number_samples = 10
     Qlist = []
