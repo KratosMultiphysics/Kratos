@@ -33,7 +33,7 @@
 namespace Kratos
 {
 
-class ApplyPeriodicConditionProcess : public Process
+class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
 {
 
   public:

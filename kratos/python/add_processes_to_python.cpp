@@ -479,8 +479,8 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init< ModelPart&, Parameters >())
         ;
 
-    class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
-            .def(init<ModelPart&,ModelPart&, Parameters>())
+    py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
+            .def(py::init<ModelPart&,ModelPart&, Parameters>())
     ;
 }
 
