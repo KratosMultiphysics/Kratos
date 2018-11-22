@@ -44,10 +44,10 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
         """
         )
 
-        # assign this here since it will change the "interval" prior to validation
+        # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        # here i do a trick, since i want to allow "value" to be a string or a double value
+        # Here i do a trick, since i want to allow "value" to be a string or a double value
         if(settings.Has("value")):
             if(settings["value"].IsString()):
                 default_settings["value"].SetString("0.0")
@@ -60,7 +60,7 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
 
         # Define entities
         if (settings["entities"].size() == 0):
-           raise Exception("This process requires a list of entities. The options are: nodes, conditions, elements and model_part")
+           raise Exception("This process requires a list of entities. The options are: conditions, elements and constraints")
         self.entities = []
         for i in range(settings["entities"].size()):
             self.entities.append(settings["entities"][i].GetString())
