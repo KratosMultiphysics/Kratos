@@ -345,8 +345,8 @@ class Solution(object):
         self.graphical_output.ExecuteFinalizeSolutionStep()
 
     def GraphicalOutputPrintOutput(self):
-        self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         if( self.ProjectParameters.Has("output_configuration") ):
+            self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if(self.graphical_output.IsOutputStep()):
                 KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
                 print("")
