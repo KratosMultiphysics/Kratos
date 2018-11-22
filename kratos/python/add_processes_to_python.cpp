@@ -52,6 +52,7 @@
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
+#include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
 #include "includes/node.h"
 
