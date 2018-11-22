@@ -39,12 +39,47 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
         self.domainHeight = 1.0
         self.rho1 = 1000.0
         self.rho2 = 1.0
+        # switch here for output
+        self.print_output = False
 
     # runs the two dimensinal test case
     def runTwoFluidHydrostaticTest2D(self):
         with open("TwoFluidStaticPoolTest/TwoFluidStaticPoolTest2D.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
             model = KratosMultiphysics.Model()
+
+            if self.print_output:
+                parameters["output_processes"].AddValue("gid_output", KratosMultiphysics.Parameters(R'''[{
+                    "python_module" : "gid_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "GiDOutputProcess",
+                    "help"          : "This process writes postprocessing files for GiD",
+                    "Parameters"    : {
+                        "model_part_name"        : "FluidModelPart",
+                        "output_name"            : "FluidModelPart",
+                        "postprocess_parameters" : {
+                            "result_file_configuration" : {
+                                "gidpost_flags"       : {
+                                    "GiDPostMode"           : "GiD_PostBinary",
+                                    "WriteDeformedMeshFlag" : "WriteDeformed",
+                                    "WriteConditionsFlag"   : "WriteConditions",
+                                    "MultiFileFlag"         : "SingleFile"
+                                },
+                                "file_label"          : "time",
+                                "output_control_type" : "time",
+                                "output_frequency"    : 0.1,
+                                "body_output"         : true,
+                                "node_output"         : false,
+                                "skin_output"         : false,
+                                "plane_output"        : [],
+                                "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","DENSITY","DYNAMIC_VISCOSITY"],
+                                "gauss_point_results" : []
+                            },
+                            "point_data_configuration"  : []
+                        }
+                    }
+                }]''') )
+
             # running
             self.simulation = FluidDynamicsAnalysisWithFlush2D(model,parameters)
             self.simulation.Run()
@@ -76,6 +111,39 @@ class TwoFluidHydrostaticPoolTest(UnitTest.TestCase):
         with open("TwoFluidStaticPoolTest/TwoFluidStaticPoolTest3D.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
             model = KratosMultiphysics.Model()
+
+            if self.print_output:
+                parameters["output_processes"].AddValue("gid_output", KratosMultiphysics.Parameters(R'''[{
+                    "python_module" : "gid_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "GiDOutputProcess",
+                    "help"          : "This process writes postprocessing files for GiD",
+                    "Parameters"    : {
+                        "model_part_name"        : "FluidModelPart",
+                        "output_name"            : "FluidModelPart",
+                        "postprocess_parameters" : {
+                            "result_file_configuration" : {
+                                "gidpost_flags"       : {
+                                    "GiDPostMode"           : "GiD_PostBinary",
+                                    "WriteDeformedMeshFlag" : "WriteDeformed",
+                                    "WriteConditionsFlag"   : "WriteConditions",
+                                    "MultiFileFlag"         : "SingleFile"
+                                },
+                                "file_label"          : "time",
+                                "output_control_type" : "time",
+                                "output_frequency"    : 0.1,
+                                "body_output"         : true,
+                                "node_output"         : false,
+                                "skin_output"         : false,
+                                "plane_output"        : [],
+                                "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","DENSITY","DYNAMIC_VISCOSITY"],
+                                "gauss_point_results" : []
+                            },
+                            "point_data_configuration"  : []
+                        }
+                    }
+                }]''') )
+
             # running
             self.simulation = FluidDynamicsAnalysisWithFlush3D(model,parameters)
             self.simulation.Run()
