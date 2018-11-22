@@ -94,6 +94,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.__computeShapeUpdate()
 
+            self.__performLineSearch()
+
             self.__logCurrentOptimizationStep()
 
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
@@ -142,6 +144,73 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.Mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
 
         self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
+
+    # --------------------------------------------------------------------------
+    def __performLineSearch(self):
+        current_step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+
+        fa1 = self.Communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
+
+        df1da1 = 0.0
+        for node in self.DesignSurface.Nodes:
+            vec1 = 1/current_step_size*node.GetSolutionStepValue(SHAPE_UPDATE)
+            vec2 = node.GetSolutionStepValue(DF1DX)
+            df1da1 = df1da1 + vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]
+
+        old_node_coordinates = []
+        for node in self.OptimizationModelPart.Nodes:
+            old_node_coordinates.append(node.X0)
+            old_node_coordinates.append(node.Y0)
+            old_node_coordinates.append(node.Z0)
+
+        self.ModelPartController.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.ModelPartController.SetReferenceMeshToMesh()
+
+        self.Communicator.initializeCommunication()
+        self.Communicator.requestValueOf(self.only_obj["identifier"].GetString())
+        self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimization_iteration, self.Communicator)
+
+        fa2 = self.Communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
+
+        a1 = 0
+        a2 = 1
+
+        a_optimized = a1 - 0.5* (a1-a2) * df1da1 / (df1da1 - (fa1-fa2)/(a1-a2) )
+
+        a_optimized = min(a_optimized,1)
+
+        # Update shape update and reset additional mesh motion
+        for node in self.DesignSurface.Nodes:
+            corrected_update = a_optimized*node.GetSolutionStepValue(SHAPE_UPDATE)
+            node.SetSolutionStepValue(SHAPE_UPDATE, corrected_update)
+
+        for counter, node in enumerate(self.OptimizationModelPart.Nodes):
+            node.X = old_node_coordinates[3*counter+0]
+            node.Y = old_node_coordinates[3*counter+1]
+            node.Z = old_node_coordinates[3*counter+2]
+
+            node.X0 = node.X
+            node.Y0 = node.Y
+            node.Z0 = node.Z
+
+        # Update step size
+        new_step_size = a_optimized * current_step_size
+        self.algorithm_settings["line_search"]["step_size"].SetDouble(new_step_size)
+
+        self.Communicator.reportValue(self.only_obj["identifier"].GetString(), fa1)
+
+        # # Go half way back
+        # for node in self.DesignSurface.Nodes:
+        #     node.SetSolutionStepValue(SHAPE_UPDATE,-0.5*node.GetSolutionStepValue(SHAPE_UPDATE))
+
+        # self.ModelPartController.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        # self.ModelPartController.SetReferenceMeshToMesh()
+
+        # self.Communicator.initializeCommunication()
+        # self.Communicator.requestValueOf(self.only_obj["identifier"].GetString())
+        # self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimization_iteration, self.Communicator)
+
+        # f2 = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
