@@ -28,7 +28,7 @@
 #include "includes/condition.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
-#include "../applications/DEM_application/custom_utilities/properties_proxies.h"
+#include "../applications/DEMApplication/custom_utilities/properties_proxies.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
