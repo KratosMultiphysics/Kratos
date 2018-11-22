@@ -341,9 +341,9 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters >())
     ;
 
-//     py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
-//     .def(py::init<ModelPart&, Parameters >())
-//     ;
+    py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
 
     py::class_<AssignScalarFieldToConditionsProcess, AssignScalarFieldToConditionsProcess::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
     .def(py::init<ModelPart&, Parameters >())

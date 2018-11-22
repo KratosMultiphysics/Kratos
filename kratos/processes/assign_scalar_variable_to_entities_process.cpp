@@ -104,20 +104,20 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarVariableToEntitiesProcess<
     return mrModelPart.GetMesh(mMeshId).Elements();
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
-//
-// template<>
-// PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainer()
-// {
-//     return mrModelPart.GetMesh(mMeshId).MasterSlaveConstraints();
-// }
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).MasterSlaveConstraints();
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template class AssignScalarVariableToEntitiesProcess<Condition>;
 template class AssignScalarVariableToEntitiesProcess<Element>;
-// template class AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>;
+template class AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>;
 
 }  // namespace Kratos.
