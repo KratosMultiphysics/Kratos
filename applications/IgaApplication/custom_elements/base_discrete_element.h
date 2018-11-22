@@ -18,7 +18,6 @@
 // System includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/variables.h"
 
 // External includes
 
@@ -49,7 +48,7 @@ namespace Kratos
 /**
 * @class BaseDiscreteElement
 * @ingroup IGAStructuralMechanicsApplication
-* @brief This is base clase used to define discrete elements, 
+* @brief This is base clase used to define discrete elements,
 *        it is based on displacement degrees of freedom
 * @author Tobias Teschemacher
 */
@@ -76,7 +75,7 @@ public:
     {};
 
     // Constructor using an array of nodes with properties
-    BaseDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) 
+    BaseDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         :Element(NewId, pGeometry, pProperties)
     {};
 
@@ -336,7 +335,8 @@ public:
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override
+    {
         pGetGeometry()->PrintData(rOStream);
     }
     ///@}
@@ -374,14 +374,14 @@ protected:
     * Jacobian computes the mapping from Geometry to Parameter Space.
     *
     * @param[in] DN_De derivatives of shape functions in two directions.
-    * @param[out] Jacobian calculated Jacobian. 
+    * @param[out] Jacobian calculated Jacobian.
     * @param[in] rWorkingSpaceDimension GeometrySpace coordinates. For surfaces default 3.
     * @param[in] rLocalSpaceDimension ParameterSpace coordinates For surfaces default 2.
     */
     void Jacobian(const Matrix& DN_De,
         Matrix& Jacobian,
-        const int rWorkingSpaceDimension = 3,
-        const int rLocalSpaceDimension = 2) const;
+        const unsigned int rWorkingSpaceDimension = 3,
+        const unsigned int rLocalSpaceDimension = 2) const;
 
     ///@}
 private:
