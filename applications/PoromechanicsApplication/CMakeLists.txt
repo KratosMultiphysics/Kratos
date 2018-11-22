@@ -11,13 +11,13 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
-    
+
     ## Application class and variables
-    ${CMAKE_CURRENT_SOURCE_DIR}/poromechanics_application.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/poromechanics_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/poromechanics_application_variables.cpp
 
     # Utilities
-    
+
     # Processes
 
     # Constitutive Laws
@@ -26,6 +26,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/exponential_cohesive_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/exponential_cohesive_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/local_damage_plane_stress_2D_law.cpp
@@ -41,7 +42,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/modified_mises_nonlocal_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/modified_mises_nonlocal_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
-    
+
     # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_element.cpp
@@ -49,7 +50,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_link_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_FIC_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_strain_U_Pw_diff_order_element.cpp
-    
+
     # Conditions
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/U_Pw_force_condition.cpp
@@ -72,7 +73,7 @@ if(${USE_PORO_MPI} MATCHES ON)
 
     include_directories( ${CMAKE_SOURCE_DIR}/applications/trilinos_application )
     include_directories(${TRILINOS_INCLUDE_DIR})
-    
+
     ## Define python interface sources
     set( KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES
 
@@ -121,12 +122,12 @@ target_link_libraries(KratosPoromechanicsApplication PRIVATE KratosPoromechanics
 set_target_properties(KratosPoromechanicsApplication PROPERTIES PREFIX "")
 
 ###############################################################################
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosPoromechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPoromechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

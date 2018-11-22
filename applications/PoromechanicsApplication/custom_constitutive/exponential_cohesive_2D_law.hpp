@@ -59,17 +59,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -83,19 +73,12 @@ protected:
 
     void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    void ComputeDamageVariable(ConstitutiveLawVariables& rVariables, Parameters& rValues);
-
-    void ComputeCriticalDisplacement(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    void ComputeCriticalDisplacement(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
     void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                     ConstitutiveLawVariables& rVariables,
                                     Parameters& rValues) override;
 
-    void ComputeStressVector(Vector& rStressVector,
-                                ConstitutiveLawVariables& rVariables,
-                                Parameters& rValues) override;
-
-    double MacaulayBrackets(const double& Value);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

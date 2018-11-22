@@ -86,7 +86,7 @@ protected:
 
     void ComputeDamageVariable(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
-    void ComputeCriticalDisplacement(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    virtual void ComputeCriticalDisplacement(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
     void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                     ConstitutiveLawVariables& rVariables,

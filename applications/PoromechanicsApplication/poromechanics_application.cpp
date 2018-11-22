@@ -182,9 +182,10 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",mBilinearCohesive3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",mBilinearCohesive2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive3DLaw",mExponentialCohesive3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ExponentialCohesive2DLaw",mExponentialCohesive2DLaw);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW( "LocalDamageFlowRule", mLocalDamageFlowRule );
-    KRATOS_REGISTER_CONSTITUTIVE_LAW( "NonlocalDamageFlowRule", mNonlocalDamageFlowRule );
+    Serializer::Register( "LocalDamageFlowRule", mLocalDamageFlowRule );
+    Serializer::Register( "NonlocalDamageFlowRule", mNonlocalDamageFlowRule );
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamage3DLaw",mSimoJuLocalDamage3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SimoJuLocalDamagePlaneStrain2DLaw",mSimoJuLocalDamagePlaneStrain2DLaw);
@@ -247,6 +248,8 @@ void KratosPoromechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_AREA )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_WIDTH )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_DAMAGE )
+
+    KRATOS_REGISTER_VARIABLE( SHEAR_FRACTURE_ENERGY )
 }
 
 }// namespace Kratos.
