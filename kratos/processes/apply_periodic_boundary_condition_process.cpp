@@ -193,8 +193,6 @@ namespace Kratos
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
         {
-                int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
-
                 const double master_weight = rWeights(master_index);
 
                 const double constant_x = master_weight * mTransformationMatrixVariable(0,3);
@@ -203,6 +201,7 @@ namespace Kratos
 
                 #pragma omp critical
                 {
+                    int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
                     mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
                     mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
                     mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
@@ -231,11 +230,10 @@ namespace Kratos
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
         {
-            int current_num_constraint = mrMasterModelPart.NumberOfMasterSlaveConstraints();
-
             const double master_weight = rWeights(master_index);
             #pragma omp critical
             {
+                int current_num_constraint = mrMasterModelPart.NumberOfMasterSlaveConstraints();
                 mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
             }
             master_index++;
