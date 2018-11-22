@@ -114,9 +114,9 @@ public:
     /// The definition of the element container type
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
 
-    /// Pointer definition of ResidualBasedEliminationBuilderAndSolverWithConstraints
+    /// Pointer definition of BuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(BuilderAndSolver);
-
+  
     /**
      * @brief This struct is used in the component wise calculation only is defined here and is used to declare a member variable in the component wise builder and solver
      * @details Private pointers can only be accessed by means of set and get functions this allows to set and not copy the Element_Variables and Condition_Variables which will be asked and set by another strategy object
@@ -304,6 +304,11 @@ public:
      * @brief This method sets the linear solver to be used
      * @param pLinearSystemSolver The linear solver to be used
      */
+    void SetLinearSystemSolver(typename TLinearSolver::Pointer pLinearSystemSolver)
+    {
+       mpLinearSystemSolver = pLinearSystemSolver;
+    }
+
     void SetLinearSystemSolver(typename TLinearSolver::Pointer pLinearSystemSolver)
     {
        mpLinearSystemSolver = pLinearSystemSolver;

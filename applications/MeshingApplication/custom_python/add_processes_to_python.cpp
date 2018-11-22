@@ -27,6 +27,7 @@
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 #include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
+#include "custom_processes/multiscale_refining_process.h"
 
 #ifdef INCLUDE_MMG
     #include "custom_processes/mmg_process.h"
@@ -121,6 +122,29 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>())
     ;
 
+    /* MULTI SCALE PROCESS */
+    py::class_<MultiscaleRefiningProcess, MultiscaleRefiningProcess::Pointer, Process>(m, "MultiscaleRefiningProcess")
+    .def(py::init<ModelPart&, ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, ModelPart&, Parameters>())
+    .def("ExecuteRefinement", &MultiscaleRefiningProcess::ExecuteRefinement)
+    .def("ExecuteCoarsening", &MultiscaleRefiningProcess::ExecuteCoarsening)
+    .def("InitializeNewModelPart", &MultiscaleRefiningProcess::InitializeNewModelPart)
+    .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart)
+    .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<double>>)
+    .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,3>>>)
+    .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,4>>>)
+    .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,6>>>)
+    .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,9>>>)
+    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<Variable<double>>)
+    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
+    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,4>>>>)
+    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,6>>>>)
+    .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,9>>>>)
+    .def("GetCoarseModelPart", &MultiscaleRefiningProcess::GetCoarseModelPart)
+    .def("GetRefinedModelPart", &MultiscaleRefiningProcess::GetRefinedModelPart)
+    .def("GetVisualizationModelPart", &MultiscaleRefiningProcess::GetVisualizationModelPart)
+    ;
+
     /* MMG PROCESS */
 #ifdef INCLUDE_MMG
     // 2D
@@ -146,5 +170,3 @@ void  AddProcessesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-
-

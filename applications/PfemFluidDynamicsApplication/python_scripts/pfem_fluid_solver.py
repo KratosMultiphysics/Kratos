@@ -175,6 +175,9 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_OLD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLUID_FRACTION_RATE)
 
         # PFEM fluid variables
         # self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NORMVELOCITY)
@@ -268,7 +271,7 @@ class PfemFluidSolver:
             # self.serializer_flag = SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
             # self.serializer_flag = SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-            serializer = Serializer(restart_path, self.serializer_flag)
+            serializer = FileSerializer(restart_path, self.serializer_flag)
 
             serializer.Load(self.main_model_part.Name, self.main_model_part)
             print("    Load input restart file.")

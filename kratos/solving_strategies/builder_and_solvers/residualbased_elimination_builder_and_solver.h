@@ -118,9 +118,26 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
      */
-    ResidualBasedEliminationBuilderAndSolver(
+    explicit ResidualBasedEliminationBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief Constructor.
+     */
+    explicit ResidualBasedEliminationBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
@@ -784,8 +801,8 @@ public:
             rb.resize(BaseType::mEquationSystemSize, false);
 
         //if needed resize the vector for the calculation of reactions
-        if (BaseType::mCalculateReactionsFlag) {
-            const SizeType reactions_vector_size = BaseType::mDofSet.size();
+        if (BaseType::mCalculateReactionsFlag == true) {
+            const std::size_t reactions_vector_size = BaseType::mDofSet.size() - BaseType::mEquationSystemSize;
             if (BaseType::mpReactionsVector->size() != reactions_vector_size)
                 BaseType::mpReactionsVector->resize(reactions_vector_size, false);
         }
@@ -813,15 +830,15 @@ public:
         //refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
-        int i;
-        int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
-
-        //updating variables
-        TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
+        // Updating variables
+        std::size_t i;
+        TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
         for (auto it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2) {
             i = (*it2)->EquationId();
-            i -= systemsize;
-            (*it2)->GetSolutionStepReactionValue() = -ReactionsVector[i];
+            if (i >= BaseType::mEquationSystemSize) {
+                i -= BaseType::mEquationSystemSize;
+                (*it2)->GetSolutionStepReactionValue() = -r_reactions_vector[i];
+            }
 
         }
     }
