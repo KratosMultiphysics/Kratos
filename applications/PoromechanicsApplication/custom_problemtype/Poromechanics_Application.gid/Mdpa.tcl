@@ -1,19 +1,19 @@
 proc WriteMdpa { basename dir problemtypedir } {
-    
+
     ## Source auxiliar procedures
     source [file join $problemtypedir MdpaAuxProcs.tcl]
-    
+
     ## Start MDPA file
     set filename [file join $dir ${basename}.mdpa]
     set FileVar [open $filename w]
-    
+
     ## ModelPart Data
     #puts $FileVar "Begin ModelPartData"
     #puts $FileVar "  // VARIABLE_NAME value"
     #puts $FileVar "End ModelPartData"
     #puts $FileVar ""
     #puts $FileVar ""
-    
+
     ## Tables
     set TableId 0
     set TableDict [dict create]
@@ -36,7 +36,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Body_Acceleration
     VectorTable FileVar TableId TableDict Body_Acceleration VOLUME_ACCELERATION
     puts $FileVar ""
-    
+
     ## Properties
     set PropertyId 0
     set PropertyDict [dict create]
@@ -245,10 +245,57 @@ proc WriteMdpa { basename dir problemtypedir } {
             puts $FileVar "  FRICTION_COEFFICIENT [lindex [lindex $Groups $i] 19]"
             puts $FileVar "End Properties"
             puts $FileVar ""
+        } elseif {[lindex [lindex $Groups $i] 4] eq "ExponentialCohesive3DLaw"} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            puts $FileVar "Begin Properties $PropertyId"
+            puts $FileVar "  CONSTITUTIVE_LAW_NAME ExponentialCohesive3DLaw"
+            puts $FileVar "  YOUNG_MODULUS [lindex [lindex $Groups $i] 5]"
+            puts $FileVar "  POISSON_RATIO [lindex [lindex $Groups $i] 6]"
+            puts $FileVar "  DENSITY_SOLID [lindex [lindex $Groups $i] 7]"
+            puts $FileVar "  DENSITY_WATER [lindex [lindex $Groups $i] 8]"
+            puts $FileVar "  POROSITY [lindex [lindex $Groups $i] 9]"
+            puts $FileVar "  BULK_MODULUS_SOLID [lindex [lindex $Groups $i] 10]"
+            puts $FileVar "  BULK_MODULUS_FLUID [lindex [lindex $Groups $i] 11]"
+            puts $FileVar "  TRANSVERSAL_PERMEABILITY [lindex [lindex $Groups $i] 12]"
+            puts $FileVar "  DYNAMIC_VISCOSITY [lindex [lindex $Groups $i] 13]"
+            puts $FileVar "  DAMAGE_THRESHOLD [lindex [lindex $Groups $i] 15]"
+            puts $FileVar "  MINIMUM_JOINT_WIDTH [lindex [lindex $Groups $i] 16]"
+            puts $FileVar "  CRITICAL_DISPLACEMENT [lindex [lindex $Groups $i] 17]"
+            puts $FileVar "  YIELD_STRESS [lindex [lindex $Groups $i] 18]"
+            puts $FileVar "  FRICTION_COEFFICIENT [lindex [lindex $Groups $i] 19]"
+            puts $FileVar "  FRACTURE_ENERGY [lindex [lindex $Groups $i] 22]"
+            puts $FileVar "  SHEAR_FRACTURE_ENERGY [lindex [lindex $Groups $i] 23]"
+            puts $FileVar "End Properties"
+            puts $FileVar ""
+        } elseif {[lindex [lindex $Groups $i] 4] eq "ExponentialCohesivePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 4] eq "ExponentialCohesivePlaneStress2DLaw"} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            puts $FileVar "Begin Properties $PropertyId"
+            puts $FileVar "  CONSTITUTIVE_LAW_NAME ExponentialCohesive2DLaw"
+            puts $FileVar "  YOUNG_MODULUS [lindex [lindex $Groups $i] 5]"
+            puts $FileVar "  POISSON_RATIO [lindex [lindex $Groups $i] 6]"
+            puts $FileVar "  DENSITY_SOLID [lindex [lindex $Groups $i] 7]"
+            puts $FileVar "  DENSITY_WATER [lindex [lindex $Groups $i] 8]"
+            puts $FileVar "  POROSITY [lindex [lindex $Groups $i] 9]"
+            puts $FileVar "  BULK_MODULUS_SOLID [lindex [lindex $Groups $i] 10]"
+            puts $FileVar "  BULK_MODULUS_FLUID [lindex [lindex $Groups $i] 11]"
+            puts $FileVar "  TRANSVERSAL_PERMEABILITY [lindex [lindex $Groups $i] 12]"
+            puts $FileVar "  DYNAMIC_VISCOSITY [lindex [lindex $Groups $i] 13]"
+            puts $FileVar "  THICKNESS [lindex [lindex $Groups $i] 14]"
+            puts $FileVar "  DAMAGE_THRESHOLD [lindex [lindex $Groups $i] 15]"
+            puts $FileVar "  MINIMUM_JOINT_WIDTH [lindex [lindex $Groups $i] 16]"
+            puts $FileVar "  CRITICAL_DISPLACEMENT [lindex [lindex $Groups $i] 17]"
+            puts $FileVar "  YIELD_STRESS [lindex [lindex $Groups $i] 18]"
+            puts $FileVar "  FRICTION_COEFFICIENT [lindex [lindex $Groups $i] 19]"
+            puts $FileVar "  FRACTURE_ENERGY [lindex [lindex $Groups $i] 22]"
+            puts $FileVar "  SHEAR_FRACTURE_ENERGY [lindex [lindex $Groups $i] 23]"
+            puts $FileVar "End Properties"
+            puts $FileVar ""
         }
     }
     puts $FileVar ""
-    
+
     ## Nodes
     set Nodes [GiD_Info Mesh Nodes]
     puts $FileVar "Begin Nodes"
@@ -264,7 +311,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar "End Nodes"
     puts $FileVar ""
     puts $FileVar ""
-    
+
     ## Elements
     set FIC [GiD_AccessValue get gendata FIC_Stabilization]
     set IsQuadratic [GiD_Info Project Quadratic]
@@ -275,7 +322,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             for {set i 0} {$i < [llength $Groups]} {incr i} {
                 # Elements Property
                 set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-                
+
                 # UPwSmallStrainElement2D3N
                 WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainElement2D3N $BodyElemsProp Triangle2D3Connectivities
                 # UPwSmallStrainElement2D4N
@@ -289,7 +336,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             for {set i 0} {$i < [llength $Groups]} {incr i} {
                 # Elements Property
                 set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-                
+
                 # UPwSmallStrainFICElement2D3N
                 WriteElements FileVar [lindex $Groups $i] triangle UPwSmallStrainFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
                 # UPwSmallStrainFICElement2D4N
@@ -304,7 +351,7 @@ proc WriteMdpa { basename dir problemtypedir } {
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             # Elements Property
             set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-            
+
             # SmallStrainUPwDiffOrderElement2D6N
             WriteElements FileVar [lindex $Groups $i] triangle SmallStrainUPwDiffOrderElement2D6N $BodyElemsProp Triangle2D6Connectivities
             # SmallStrainUPwDiffOrderElement2D8N
@@ -351,7 +398,7 @@ proc WriteMdpa { basename dir problemtypedir } {
             WriteElements FileVar [lindex $Groups $i] prism UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp Triangle2D6Connectivities
             WriteElements FileVar [lindex $Groups $i] tetrahedra UPwSmallStrainLinkInterfaceElement3D6N $LinkInterfaceElemsProp TetrahedronInterface3D6Connectivities
             # UPwSmallStrainLinkInterfaceElement3D8N
-            WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainLinkInterfaceElement3D8N $LinkInterfaceElemsProp Hexahedron3D8Connectivities            
+            WriteElements FileVar [lindex $Groups $i] hexahedra UPwSmallStrainLinkInterfaceElement3D8N $LinkInterfaceElemsProp Hexahedron3D8Connectivities
         }
     }
     # PropagationUnion (InterfaceElement)
@@ -597,13 +644,13 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteLoadSubmodelPart FileVar Interface_Normal_Fluid_Flux $TableDict $ConditionDict
     # Body_Acceleration
     WriteConstraintSubmodelPart FileVar Body_Acceleration $TableDict
-    
+
     # Periodic_Bars
     if {$IsPeriodic eq true} {
         WritePeriodicBarsSubmodelPart FileVar Interface_Part $ConditionDict
     }
-    
+
     close $FileVar
-    
+
     return $TableDict
 }

@@ -73,9 +73,9 @@ CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces volumes
 QUESTION: Link#CB#(true,false)
 VALUE: false
-QUESTION: Constitutive_Law#CB#(BilinearCohesivePlaneStrain2DLaw,BilinearCohesivePlaneStress2DLaw,BilinearCohesive3DLaw)
+QUESTION: Constitutive_Law#CB#(BilinearCohesivePlaneStrain2DLaw,BilinearCohesivePlaneStress2DLaw,BilinearCohesive3DLaw,ExponentialCohesivePlaneStrain2DLaw,ExponentialCohesivePlaneStress2DLaw,ExponentialCohesive3DLaw)
 VALUE: BilinearCohesivePlaneStrain2DLaw
-DEPENDENCIES: (BilinearCohesivePlaneStrain2DLaw,HIDE,Thickness,1.0)(BilinearCohesivePlaneStress2DLaw,RESTORE,Thickness,#CURRENT#)(BilinearCohesive3DLaw,HIDE,Thickness,#CURRENT#)
+DEPENDENCIES: (BilinearCohesivePlaneStrain2DLaw,HIDE,Thickness,1.0)(BilinearCohesivePlaneStress2DLaw,RESTORE,Thickness,#CURRENT#)(BilinearCohesive3DLaw,HIDE,Thickness,#CURRENT#)(ExponentialCohesivePlaneStrain2DLaw,HIDE,Thickness,1.0)(ExponentialCohesivePlaneStress2DLaw,RESTORE,Thickness,#CURRENT#)(ExponentialCohesive3DLaw,HIDE,Thickness,#CURRENT#)
 QUESTION: Young_Modulus
 VALUE: 3.0e7
 HELP: It defines the normal stiffness in contact cases. Units in IS: N/m2
@@ -126,6 +126,12 @@ DEPENDENCIES: (true,RESTORE,Stress_Limit,#CURRENT#)(false,HIDE,Stress_Limit,#CUR
 QUESTION: Stress_Limit
 VALUE: 100.0e6
 HELP: Principal stress S1 after which the joint is activated.
+QUESTION: Fracture_Energy
+VALUE: 100.0
+HELP: Units in IS: N·m/m2
+QUESTION: Shear_Fracture_Energy
+VALUE: 100.0
+HELP: Units in IS: N·m/m2
 END CONDITION
 
 
