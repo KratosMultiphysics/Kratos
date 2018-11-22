@@ -32,23 +32,26 @@ namespace Kratos
     {
         Parameters default_parameters(R"(
                                             {
-                                            "variable_names":[],
-                                            "transformation_settings":{
-                                                "rotation_settings":{
-                                                    "center":[0,0,0],
-                                                    "axis_of_rotation":[0.0,0.0,0.0],
-                                                    "angle_degree":0.0
+                                                "variable_names":[],
+                                                "transformation_settings":{
+                                                    "rotation_settings":{
+                                                        "center":[0,0,0],
+                                                        "axis_of_rotation":[0.0,0.0,0.0],
+                                                        "angle_degree":0.0
+                                                    },
+                                                    "translation_settings":{
+                                                        "dir_of_translation":[0.0,0.0,0.0],
+                                                        "magnitude":0.0
+                                                    }
                                                 },
-                                                "translation_settings":{
-                                                    "dir_of_translation":[0.0,0.0,0.0],
-                                                    "magnitude":0.0
+                                                "search_settings":{
+                                                    "max_results":100000,
+                                                    "tolerance": 1E-6
                                                 }
-                                            }
                                             }  )");
 
         // Initializing
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
 
         mCenterOfRotation = mParameters["transformation_settings"]["rotation_settings"]["center"].GetVector();
         mAxisOfRotationVector = mParameters["transformation_settings"]["rotation_settings"]["axis_of_rotation"].GetVector();
@@ -59,6 +62,9 @@ namespace Kratos
 
         mTransformationMatrix.resize(4,4);
         mTransformationMatrixVariable.resize(4,4);
+
+        mSearchMaxResults = mParameters["search_settings"]["max_results"].GetInt();
+        mSearchTolerance = mParameters["search_settings"]["tolerance"].GetDouble();
 
         RemoveCommonNodesFromSlaveModelPart();
 
@@ -140,68 +146,43 @@ namespace Kratos
     template <int TDim>
     void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     {
-        auto& root_model_part = mrMasterModelPart.GetRootModelPart();
-        if(root_model_part.NumberOfMasterSlaveConstraints()>0)
-        {
-            root_model_part.MasterSlaveConstraints().Sort();
-            auto last_constraint_it = root_model_part.MasterSlaveConstraintsEnd()- 1;
-            mLastIndex = last_constraint_it->Id();
-        } else {
-            mLastIndex = 0;
-        }
-
         const double start_apply = OpenMPUtils::GetCurrentTime();
         const int num_vars = mParameters["variable_names"].size();
         BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
         bin_based_point_locator.UpdateSearchDatabase();
-
-        // for bin based point locator
-		VectorType shape_function_values;
-		const int max_results = 10000;
-		typename BinBasedFastPointLocatorConditions<TDim>::ResultContainerType results(max_results);
-        typename BinBasedFastPointLocatorConditions<TDim>::ResultIteratorType result_begin = results.begin();
 
         const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
         const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.NodesBegin();
 
         unsigned int num_slaves_found = 0;
 
-        #pragma omp parallel reduction( + : num_slaves_found )
+        #pragma omp parallel for schedule(guided, 512) reduction( + : num_slaves_found )
+        for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
         {
-            ConstraintContainerType constraints_buffer;
+            Condition::Pointer p_host_cond;
+            VectorType shape_function_values;
+            NodeIteratorType it_slave_node = it_slave_node_begin;
+            std::advance(it_slave_node, i_node);
+            array_1d<double, 3 > transformed_slave_coordinates;
+            TransformNode(it_slave_node->Coordinates(), transformed_slave_coordinates);
 
-            #pragma omp parallel for schedule(guided, 512)
-            for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
+            // Finding the host element for this node
+            const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(transformed_slave_coordinates, shape_function_values, p_host_cond, mSearchMaxResults, mSearchTolerance);
+            if(is_found)
             {
-                Condition::Pointer p_host_cond;
-                NodeIteratorType it_slave_node = it_slave_node_begin;
-                std::advance(it_slave_node, i_node);
-                array_1d<double, 3 > transformed_slave_coordinates;
-                TransformNode(it_slave_node->Coordinates(), transformed_slave_coordinates);
-
-                // Finding the host element for this node
-                const bool is_found = bin_based_point_locator.FindPointOnMesh(transformed_slave_coordinates, shape_function_values, p_host_cond, result_begin, max_results);
-                if(is_found)
+                ++num_slaves_found;
+                for (int j = 0; j < num_vars; j++)
                 {
-                    ++num_slaves_found;
-                    for (int j = 0; j < num_vars; j++)
+                    const std::string var_name = mParameters["variable_names"][j].GetString();
+                    // Checking if the variable is a vector variable
+                    if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
+                    {   // TODO: Look for a better alternative to do this.
+                        ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
+                    } else if (KratosComponents<VariableType>::Has(var_name))
                     {
-                        const std::string var_name = mParameters["variable_names"][j].GetString();
-                        // Checking if the variable is a vector variable
-                        if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
-                        {   // TODO: Look for a better alternative to do this.
-                            ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name, constraints_buffer);
-                        } else if (KratosComponents<VariableType>::Has(var_name))
-                        {
-                            ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name, constraints_buffer);
-                        }
+                        ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
                     }
                 }
-            }
-
-            #pragma omp critical
-            {
-                mrMasterModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
             }
         }
         KRATOS_WARNING_IF("",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
@@ -211,7 +192,7 @@ namespace Kratos
 
     template <int TDim>
     void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
-                                                                                            const std::string& rVarName, ConstraintContainerType& rConstraintsBuffer )
+                                                                                            const std::string& rVarName )
     {
         const VariableComponentType& r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
         const VariableComponentType& r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
@@ -229,39 +210,35 @@ namespace Kratos
             const double constant_y = master_weight * mTransformationMatrixVariable(1,3);
             const double constant_z = master_weight * mTransformationMatrixVariable(2,3);
 
-            auto constraint1 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                            master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-            auto constraint2 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                            master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-            auto constraint3 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                            master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
-
-            auto constraint4 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                            master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-            auto constraint5 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                            master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-            auto constraint6 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                            master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
-
-            rConstraintsBuffer.push_back(constraint1);
-            rConstraintsBuffer.push_back(constraint2);
-            rConstraintsBuffer.push_back(constraint3);
-            rConstraintsBuffer.push_back(constraint4);
-            rConstraintsBuffer.push_back(constraint5);
-            rConstraintsBuffer.push_back(constraint6);
-
-            if (TDim == 3)
+            #pragma omp critical
             {
-                auto constraint7 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                                master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
-                auto constraint8 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                                master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
-                auto constraint9 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
-                                                                master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
+                int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
+                auto constraint1 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
+                auto constraint2 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
+                auto constraint3 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
 
-                rConstraintsBuffer.push_back(constraint7);
-                rConstraintsBuffer.push_back(constraint8);
-                rConstraintsBuffer.push_back(constraint9);
+                auto constraint4 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
+                auto constraint5 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
+                auto constraint6 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
+
+                mrMasterModelPart.AddMasterSlaveConstraint(constraint1);
+                mrMasterModelPart.AddMasterSlaveConstraint(constraint2);
+                mrMasterModelPart.AddMasterSlaveConstraint(constraint3);
+                mrMasterModelPart.AddMasterSlaveConstraint(constraint4);
+                mrMasterModelPart.AddMasterSlaveConstraint(constraint5);
+                mrMasterModelPart.AddMasterSlaveConstraint(constraint6);
+
+
+                if (TDim == 3)
+                {
+                    auto constraint7 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
+                    auto constraint8 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
+                    auto constraint9 = r_clone_constraint.Create(++current_num_constraint, master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
+
+                    mrMasterModelPart.AddMasterSlaveConstraint(constraint7);
+                    mrMasterModelPart.AddMasterSlaveConstraint(constraint8);
+                    mrMasterModelPart.AddMasterSlaveConstraint(constraint9);
+                }
             }
 
             master_index++;
@@ -270,7 +247,7 @@ namespace Kratos
 
     template <int TDim>
     void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
-                                                                                            const std::string& rVarName, ConstraintContainerType& rConstraintsBuffer )
+                                                                                            const std::string& rVarName )
     {
         const VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
 
@@ -281,9 +258,12 @@ namespace Kratos
         for (auto& master_node : rHostedGeometry)
         {
             const double master_weight = rWeights(master_index);
-            auto constraint = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()) , rSlaveNode.Id() ),
-                                                            master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
-            rConstraintsBuffer.push_back(constraint);
+            #pragma omp critical
+            {
+                int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
+                auto constraint = r_clone_constraint.Create(++current_num_constraint,master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
+                mrMasterModelPart.AddMasterSlaveConstraint(constraint);
+            }
             master_index++;
         }
     }
@@ -385,12 +365,6 @@ namespace Kratos
         }
 
         rTransformedCoordinates(0) = transformed_node[0]; rTransformedCoordinates(1) = transformed_node[1]; rTransformedCoordinates(2) = transformed_node[2];
-    }
-
-
-    ApplyPeriodicConditionProcess::IndexType ApplyPeriodicConditionProcess::ComputeCantorPairing(const IndexType NumOne, const IndexType NumTwo)
-    {
-        return (0.5*(NumOne+NumTwo+1)*(NumOne+NumTwo)) + NumTwo;
     }
 
 }  // namespace Kratos.

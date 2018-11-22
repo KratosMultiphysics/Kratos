@@ -98,7 +98,8 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     std::string mType;
     double mMagnitude;
     DenseVector<double> mDirOfTranslation;
-    IndexType mLastIndex;
+    double mSearchTolerance;
+    IndexType mSearchMaxResults;
 
     /**
      * @brief  Function to remove the common nodes of slave and master modelparts from the slave modelpart
@@ -122,7 +123,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rVarName The name of the vector variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName, ConstraintContainerType& rConstraintsBuffer );
+    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
 
     /**
      * @brief   The function adds the linear master-slave constraint to mrMasterModelPart. This function is specifically for applying
@@ -134,7 +135,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rVarName The name of the scalar variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName, ConstraintContainerType& rConstraintsBuffer );
+    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName);
 
     /**
      * @brief   Calculate the transformation matrix to account for the moving the two periodic condition modelparts together.
@@ -164,14 +165,6 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      */
     void TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates);
 
-
-    /*
-     * @brief Computes the CantorPair of given two numbers. The pair number generated is used as the id for the constraint added.
-     * @see   https://en.wikipedia.org/wiki/Pairing_function
-     * @param NumOne First number
-     * @param NumTwo Second number
-     */
-    IndexType ComputeCantorPairing(const IndexType NumOne, const IndexType NumTwo);
 
 
 }; // Class
