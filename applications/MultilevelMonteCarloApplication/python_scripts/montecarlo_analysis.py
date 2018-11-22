@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import numpy as np
 import time
+import copy
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -53,31 +54,54 @@ class MonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for Monte Carlo simulations'''
 
     def __init__(self,serialized_model,serialized_parameters,sample):
-        if (type(serialized_model) == KratosMultiphysics.StreamSerializer):
+ 
+        if (type(serialized_model) == KratosMultiphysics.StreamSerializer) and (type(serialized_parameters) == KratosMultiphysics.StreamSerializer):
+            print("taking serialized model and parameters")
             #pickle dataserialized_data
             pickled_data = pickle.dumps(serialized_model, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
             #overwrite the old serializer with the unpickled one
             serialized_model = pickle.loads(pickled_data)
-            model = KratosMultiphysics.Model()
-            serialized_model.Load("ModelSerialization",model)
-        else:
-            model = serialized_model
-            del(serialized_model)
+            current_model = KratosMultiphysics.Model()
+            serialized_model.Load("ModelSerialization",current_model)
 
-        if (type(serialized_parameters) == KratosMultiphysics.StreamSerializer):
             #pickle dataserialized_data
             pickled_data = pickle.dumps(serialized_parameters, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
             #overwrite the old serializer with the unpickled one
             serialized_parameters = pickle.loads(pickled_data)
-            parameters = KratosMultiphysics.Parameters()
-            serialized_parameters.Load("ParametersSerialization",parameters)
+            current_parameters = KratosMultiphysics.Parameters()
+            serialized_parameters.Load("ParametersSerialization",current_parameters)
+
+            self.sample = sample
+            super(MonteCarloAnalysis,self).__init__(current_model,current_parameters)
+            self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+
         else:
-            parameters = serialized_parameters
+            print("serializing model and parameters")
+            serializing_model = serialized_model
+            del(serialized_model)
+            serializing_parameters = serialized_parameters
             del(serialized_parameters)
 
-        self.sample = sample
-        super(MonteCarloAnalysis,self).__init__(model,parameters)
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+            self.sample = sample
+            super(MonteCarloAnalysis,self).__init__(serializing_model,serializing_parameters)
+            self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+
+        # if (type(serialized_parameters) == KratosMultiphysics.StreamSerializer):
+        #     print("taking serialized parameters")
+        #     #pickle dataserialized_data
+        #     pickled_data = pickle.dumps(serialized_parameters, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        #     #overwrite the old serializer with the unpickled one
+        #     serialized_parameters = pickle.loads(pickled_data)
+        #     parameters = KratosMultiphysics.Parameters()
+        #     serialized_parameters.Load("ParametersSerialization",parameters)
+        # else:
+        #     print("serialiizing parameters")
+        #     parameters = serialized_parameters
+        #     del(serialized_parameters)
+
+        # self.sample = sample
+        # super(MonteCarloAnalysis,self).__init__(model,parameters)
+        # self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _CreateSolver(self):
         import convection_diffusion_stationary_solver
@@ -179,12 +203,11 @@ output:
 def serialize_model_projectparameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters = parameters
     model = KratosMultiphysics.Model()      
     # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     fake_sample = 1.0
 
-    simulation = MonteCarloAnalysis(model,local_parameters,fake_sample)
+    simulation = MonteCarloAnalysis(model,parameters,fake_sample)
     simulation.Initialize()
 
     serialized_model = KratosMultiphysics.StreamSerializer()
