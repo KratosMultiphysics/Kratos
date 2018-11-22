@@ -46,7 +46,7 @@
 #include "processes/check_skin_process.h"
 #include "processes/replace_elements_and_condition_process.h"
 #include "processes/compute_nodal_gradient_process.h"
-#include "processes/assign_scalar_variable_to_conditions_process.h"
+#include "processes/assign_scalar_variable_to_entities_process.h"
 #include "processes/assign_scalar_field_to_conditions_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
@@ -333,13 +333,20 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, Parameters>())
             ;
 
-
-    py::class_<AssignScalarVariableToConditionsProcess, AssignScalarVariableToConditionsProcess::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
-            .def(py::init<ModelPart&, Parameters >())
+    py::class_<AssignScalarVariableToEntitiesProcess<Condition>, AssignScalarVariableToEntitiesProcess<Condition>::Pointer, Process>(m,"AssignScalarVariableToConditionsProcess")
+    .def(py::init<ModelPart&, Parameters >())
     ;
 
+    py::class_<AssignScalarVariableToEntitiesProcess<Element>, AssignScalarVariableToEntitiesProcess<Element>::Pointer, Process>(m,"AssignScalarVariableToElementsProcess")
+    .def(py::init<ModelPart&, Parameters >())
+    ;
+
+//     py::class_<AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>, AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::Pointer, Process>(m,"AssignScalarVariableToMasterSlaveConstraintsProcess")
+//     .def(py::init<ModelPart&, Parameters >())
+//     ;
+
     py::class_<AssignScalarFieldToConditionsProcess, AssignScalarFieldToConditionsProcess::Pointer, Process>(m,"AssignScalarFieldToConditionsProcess")
-            .def(py::init<ModelPart&, Parameters >())
+    .def(py::init<ModelPart&, Parameters >())
     ;
 
 
