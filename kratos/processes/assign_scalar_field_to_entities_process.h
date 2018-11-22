@@ -13,8 +13,8 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ASSIGN_SCALAR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED )
-#define  KRATOS_ASSIGN_SCALAR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_SCALAR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED )
+#define  KRATOS_ASSIGN_SCALAR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -34,19 +34,20 @@ namespace Kratos
 ///@{
 
 /**
- * @class AssignScalarFieldToConditionsProcess
+ * @class AssignScalarFieldToEntitiesProcess
  * @ingroup KratosCore
- * @brief This process is used in order to assign a function to a condition
+ * @brief This process is used in order to assign a function to a entity
  * @details This function assigns a value depending on a function to a variable in all of the conditions in a given mesh.
  * The behaviour is the following:
- * - Option 1 - Variable<double>: It is evaluated in the center of the condition
+ * - Option 1 - Variable<double>: It is evaluated in the center of the entities
  * - Option 2 - array_1d_component_type: The same as Variable evaluated in the center of the element
  * - Option 3 - Variable< Vector > : The vector has to have a size equal to the number of nodes, and its values are computed per each entry of the vector using the coordinates of the nodes which occupies the same position in the geometry
  * @author Riccardo Rossi
  * @author Josep Maria Carbonell
  * @author Vicente Mataix Ferrandiz
 */
-class AssignScalarFieldToConditionsProcess
+template<class TEntity>
+class AssignScalarFieldToEntitiesProcess
     : public Process
 {
 public:
@@ -65,11 +66,14 @@ public:
     /// The sizeType definition
     typedef std::size_t SizeType;
 
+    /// The container of the entities
+    typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
+
     /// The defition of a component of an array
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
-    /// Pointer definition of AssignScalarFieldToConditionsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToConditionsProcess);
+    /// Pointer definition of AssignScalarFieldToEntitiesProcess
+    KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToEntitiesProcess);
 
     ///@}
     ///@name Life Cycle
@@ -80,13 +84,13 @@ public:
      * @param rModelPart The model part where the scalar field will be applied
      * @param rParameters The configuration parameters
      */
-    AssignScalarFieldToConditionsProcess(
+    AssignScalarFieldToEntitiesProcess(
         ModelPart& rModelPart,
         Parameters rParameters
         );
 
     /// Destructor.
-    ~AssignScalarFieldToConditionsProcess() override {}
+    ~AssignScalarFieldToEntitiesProcess() override {}
 
     ///@}
     ///@name Operators
@@ -103,7 +107,7 @@ public:
     ///@{.
 
     /**
-     * @brief Execute method is used to execute the AssignScalarFieldToConditionsProcess algorithms.
+     * @brief Execute method is used to execute the AssignScalarFieldToEntitiesProcess algorithms.
      */
     void Execute() override;
 
@@ -132,13 +136,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "AssignScalarFieldToConditionsProcess";
+        return "AssignScalarFieldToEntitiesProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AssignScalarFieldToConditionsProcess";
+        rOStream << "AssignScalarFieldToEntitiesProcess";
     }
 
     /// Print object's data.
@@ -163,7 +167,7 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignScalarFieldToConditionsProcess(AssignScalarFieldToConditionsProcess const& rOther);
+    AssignScalarFieldToEntitiesProcess(AssignScalarFieldToEntitiesProcess const& rOther);
 
     ///@}
     ///@name Protected Operations
@@ -201,61 +205,61 @@ private:
 
     /**
      * @brief It calls the function for a vector variable
-     * @param pCondition The pointer to the condition where set the function
+     * @param pEntity The pointer to the condition where set the function
      * @param Time The current time
      * @param rValue The value to set
      */
     void CallFunction(
-        const Condition::Pointer& pCondition,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
         Vector& rValue
         );
 
     /**
      * @brief It calls the function for components
-     * @param pCondition The pointer to the condition where set the function
+     * @param pEntity The pointer to the condition where set the function
      * @param Time The current time
      * @param rValue The value to set
      */
     void CallFunctionComponents(
-        const Condition::Pointer& pCondition,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
         double& rValue
         );
 
     /**
      * @brief It calls the function (local system)
-     * @param pCondition The pointer to the condition where set the function
+     * @param pEntity The pointer to the condition where set the function
      * @param Time The current time
      * @param rValue The value to set
      */
     void CallFunctionLocalSystem(
-        const Condition::Pointer& pCondition,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
         Vector& rValue
         );
 
     /**
      * @brief It calls the function (local system) for components
-     * @param pCondition The pointer to the condition where set the function
+     * @param pEntity The pointer to the condition where set the function
      * @param Time The current time
      * @param rValue The value to set
      */
     void CallFunctionLocalSystemComponents(
-        const Condition::Pointer& pCondition,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
         double& rValue
         );
 
     /**
      * @brief It assigns time dependency
-     * @param pCondition The pointer to the condition where set the function
+     * @param pEntity The pointer to the condition where set the function
      * @param Time The current time
      * @param rValue The value to set
      * @param Value The dependency value
      */
     void AssignTimeDependentValue(
-        const Condition::Pointer& pCondition,
+        const typename TEntity::Pointer& pEntity,
         const double Time,
         Vector& rValue,
         const double Value
@@ -272,36 +276,37 @@ private:
         const double Time
         )
     {
-        const SizeType nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
+        auto& r_entities_array = GetEntitiesContainer();
+        const int number_of_entities = static_cast<int>(r_entities_array.size());
 
         Vector Value;
 
-        if(nconditions != 0) {
-            auto it_begin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();
+        if(number_of_entities != 0) {
+            auto it_begin = r_entities_array.begin();
 
             if(mpFunction->DependsOnSpace()) {
                 if(mpFunction->UseLocalSystem()) {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(IndexType i = 0; i<nconditions; ++i) {
-                        auto it_cond = it_begin + i;
-                        this->CallFunctionLocalSystem(*(it_cond.base()), Time, Value);
-                        it_cond->SetValue(rVar, Value);
+                    for(IndexType i = 0; i<number_of_entities; ++i) {
+                        auto it_entity = it_begin + i;
+                        this->CallFunctionLocalSystem(*(it_entity.base()), Time, Value);
+                        it_entity->SetValue(rVar, Value);
                     }
                 } else {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(IndexType i = 0; i<nconditions; ++i) {
-                        auto it_cond = it_begin + i;
-                        this->CallFunction(*(it_cond.base()), Time, Value);
-                        it_cond->SetValue(rVar, Value);
+                    for(IndexType i = 0; i<number_of_entities; ++i) {
+                        auto it_entity = it_begin + i;
+                        this->CallFunction(*(it_entity.base()), Time, Value);
+                        it_entity->SetValue(rVar, Value);
                     }
                 }
             } else { // only varies in time
                 const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  Time);
                 // WARNING: do not parallelize with openmp. python GIL prevents it
-                for(IndexType i = 0; i<nconditions; ++i) {
-                    auto it_cond = it_begin + i;
-                    this->AssignTimeDependentValue(*(it_cond.base()), Time, Value,  TimeValue);
-                    it_cond->SetValue(rVar, Value);
+                for(IndexType i = 0; i<number_of_entities; ++i) {
+                    auto it_entity = it_begin + i;
+                    this->AssignTimeDependentValue(*(it_entity.base()), Time, Value,  TimeValue);
+                    it_entity->SetValue(rVar, Value);
                 }
             }
         }
@@ -318,40 +323,47 @@ private:
         const double Time
         )
     {
-        const SizeType nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
+        auto& r_entities_array = GetEntitiesContainer();
+        const int number_of_entities = static_cast<int>(r_entities_array.size());
 
-        if(nconditions != 0) {
-            auto it_begin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();
+        if(number_of_entities != 0) {
+            auto it_begin = r_entities_array.begin();
 
             if(mpFunction->DependsOnSpace()) {
                 double Value;
 
                 if(mpFunction->UseLocalSystem()) {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(IndexType i = 0; i<nconditions; ++i) {
-                        auto it_cond = it_begin + i;
-                        this->CallFunctionLocalSystemComponents(*(it_cond.base()), Time, Value);
-                        it_cond->SetValue(rVar, Value);
+                    for(IndexType i = 0; i<number_of_entities; ++i) {
+                        auto it_entity = it_begin + i;
+                        this->CallFunctionLocalSystemComponents(*(it_entity.base()), Time, Value);
+                        it_entity->SetValue(rVar, Value);
                     }
                 } else {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
-                    for(IndexType i = 0; i<nconditions; ++i) {
-                        auto it_cond = it_begin + i;
-                        this->CallFunctionComponents(*(it_cond.base()), Time, Value);
-                        it_cond->SetValue(rVar, Value);
+                    for(IndexType i = 0; i<number_of_entities; ++i) {
+                        auto it_entity = it_begin + i;
+                        this->CallFunctionComponents(*(it_entity.base()), Time, Value);
+                        it_entity->SetValue(rVar, Value);
                     }
                 }
             } else { // only varies in time
                 const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  Time);
                 // WARNING: do not parallelize with openmp. python GIL prevents it
-                for(IndexType i = 0; i<nconditions; ++i) {
-                    auto it_cond = it_begin + i;
-                    it_cond->SetValue(rVar, TimeValue);
+                for(IndexType i = 0; i<number_of_entities; ++i) {
+                    auto it_entity = it_begin + i;
+                    it_entity->SetValue(rVar, TimeValue);
                 }
 
             }
         }
     }
+
+    /**
+     * @brief This method returns the current entity container
+     * @return The current entity container
+     */
+    EntityContainerType& GetEntitiesContainer();
 
     ///@}
     ///@name Private Operations
@@ -361,7 +373,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    AssignScalarFieldToConditionsProcess& operator=(AssignScalarFieldToConditionsProcess const& rOther);
+    AssignScalarFieldToEntitiesProcess& operator=(AssignScalarFieldToEntitiesProcess const& rOther);
 
 
     ///@}
@@ -374,7 +386,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AssignScalarFieldToConditionsProcess
+}; // Class AssignScalarFieldToEntitiesProcess
 
 
 ///@}
@@ -389,12 +401,14 @@ private:
 
 
 /// input stream function
+template<class TEntity>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  AssignScalarFieldToConditionsProcess& rThis);
+                                  AssignScalarFieldToEntitiesProcess<TEntity>& rThis);
 
 /// output stream function
+template<class TEntity>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const AssignScalarFieldToConditionsProcess& rThis)
+                                  const AssignScalarFieldToEntitiesProcess<TEntity>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -407,4 +421,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSIGN_SCALAR_FIELD_TO_CONDITIONS_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_SCALAR_FIELD_TO_ENTITIES_PROCESS_H_INCLUDED  defined

@@ -17,11 +17,12 @@
 // External includes
 
 // Project includes
-#include "processes/assign_scalar_field_to_conditions_process.h"
+#include "processes/assign_scalar_field_to_entities_process.h"
 
 namespace Kratos
 {
-AssignScalarFieldToConditionsProcess::AssignScalarFieldToConditionsProcess(
+template<class TEntity>
+AssignScalarFieldToEntitiesProcess<TEntity>::AssignScalarFieldToEntitiesProcess(
     ModelPart& rModelPart,
     Parameters rParameters
     ) : Process() ,
@@ -53,20 +54,21 @@ AssignScalarFieldToConditionsProcess::AssignScalarFieldToConditionsProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignScalarFieldToConditionsProcess::Execute()
+template<class TEntity>
+void AssignScalarFieldToEntitiesProcess<TEntity>::Execute()
 {
     KRATOS_TRY;
 
-    ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+    ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
-    const double rCurrentTime = rCurrentProcessInfo[TIME];
+    const double r_current_time = r_current_process_info[TIME];
 
     if( KratosComponents< Variable<double> >::Has( mVariableName ) ) { //case of scalar variable
-        InternalAssignValueScalar<>(KratosComponents< Variable<double> >::Get(mVariableName), rCurrentTime);
+        InternalAssignValueScalar<>(KratosComponents< Variable<double> >::Get(mVariableName), r_current_time);
     } else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) { //case of component variable
-        InternalAssignValueScalar<>(KratosComponents< array_1d_component_type >::Get(mVariableName), rCurrentTime);
+        InternalAssignValueScalar<>(KratosComponents< array_1d_component_type >::Get(mVariableName), r_current_time);
     } else if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
-        InternalAssignValueVector<>(KratosComponents< Variable<Vector> >::Get(mVariableName), rCurrentTime);
+        InternalAssignValueVector<>(KratosComponents< Variable<Vector> >::Get(mVariableName), r_current_time);
     } else {
         KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mVariableName << std::endl;
     }
@@ -77,36 +79,37 @@ void AssignScalarFieldToConditionsProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-
-void AssignScalarFieldToConditionsProcess::CallFunction(
-    const Condition::Pointer& pCondition,
+template<class TEntity>
+void AssignScalarFieldToEntitiesProcess<TEntity>::CallFunction(
+    const typename TEntity::Pointer& pEntity,
     const double Time,
     Vector& rValue
     )
 {
-    GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    const SizeType size = rConditionGeometry.size();
+    GeometryType& r_entity_geometry = pEntity->GetGeometry();
+    const SizeType size = r_entity_geometry.size();
 
     if(rValue.size() !=  size) {
         rValue.resize(size,false);
     }
 
     for (IndexType i=0; i<size; ++i) {
-        rValue[i] = mpFunction->CallFunction(rConditionGeometry[i].X(),rConditionGeometry[i].Y(),rConditionGeometry[i].Z(),Time  );
+        rValue[i] = mpFunction->CallFunction(r_entity_geometry[i].X(),r_entity_geometry[i].Y(),r_entity_geometry[i].Z(),Time  );
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignScalarFieldToConditionsProcess::CallFunctionComponents(
-    const Condition::Pointer& pCondition,
+template<class TEntity>
+void AssignScalarFieldToEntitiesProcess<TEntity>::CallFunctionComponents(
+    const typename TEntity::Pointer& pEntity,
     const double Time,
     double& rValue
     )
 {
-    GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    const array_1d<double,3>& center = rConditionGeometry.Center();
+    GeometryType& r_entity_geometry = pEntity->GetGeometry();
+    const array_1d<double,3>& center = r_entity_geometry.Center();
 
     rValue = mpFunction->CallFunction(center[0],center[1],center[2], Time  );
 }
@@ -114,37 +117,39 @@ void AssignScalarFieldToConditionsProcess::CallFunctionComponents(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignScalarFieldToConditionsProcess::CallFunctionLocalSystem(
-    const Condition::Pointer& pCondition,
+template<class TEntity>
+void AssignScalarFieldToEntitiesProcess<TEntity>::CallFunctionLocalSystem(
+    const typename TEntity::Pointer& pEntity,
     const double Time,
     Vector& rValue
     )
 {
 
-    GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    const SizeType size = rConditionGeometry.size();
+    GeometryType& r_entity_geometry = pEntity->GetGeometry();
+    const SizeType size = r_entity_geometry.size();
 
     if (rValue.size() !=  size) {
         rValue.resize(size,false);
     }
 
     for (IndexType i=0; i<size; ++i) {
-        rValue[i] = mpFunction->RotateAndCallFunction(rConditionGeometry[i].X(),rConditionGeometry[i].Y(),rConditionGeometry[i].Z(), Time  );
+        rValue[i] = mpFunction->RotateAndCallFunction(r_entity_geometry[i].X(),r_entity_geometry[i].Y(),r_entity_geometry[i].Z(), Time  );
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignScalarFieldToConditionsProcess::CallFunctionLocalSystemComponents(
-    const Condition::Pointer& pCondition,
+template<class TEntity>
+void AssignScalarFieldToEntitiesProcess<TEntity>::CallFunctionLocalSystemComponents(
+    const typename TEntity::Pointer& pEntity,
     const double Time,
     double& rValue
     )
 {
-    GeometryType& rConditionGeometry = pCondition->GetGeometry();
+    GeometryType& r_entity_geometry = pEntity->GetGeometry();
 
-    const array_1d<double,3>& center = rConditionGeometry.Center();
+    const array_1d<double,3>& center = r_entity_geometry.Center();
 
     rValue = mpFunction->RotateAndCallFunction(center[0],center[1],center[2], Time  );
 }
@@ -152,15 +157,16 @@ void AssignScalarFieldToConditionsProcess::CallFunctionLocalSystemComponents(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AssignScalarFieldToConditionsProcess::AssignTimeDependentValue(
-    const Condition::Pointer& pCondition,
+template<class TEntity>
+void AssignScalarFieldToEntitiesProcess<TEntity>::AssignTimeDependentValue(
+    const typename TEntity::Pointer& pEntity,
     const double Time,
     Vector& rValue,
     const double Value
     )
 {
-    GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    const SizeType size = rConditionGeometry.size();
+    GeometryType& r_entity_geometry = pEntity->GetGeometry();
+    const SizeType size = r_entity_geometry.size();
 
     if(rValue.size() !=  size) {
         rValue.resize(size,false);
@@ -170,4 +176,29 @@ void AssignScalarFieldToConditionsProcess::AssignTimeDependentValue(
         rValue[i] = Value;
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Condition, IndexedObject>& AssignScalarFieldToEntitiesProcess<Condition>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).Conditions();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+PointerVectorSet<Element, IndexedObject>& AssignScalarFieldToEntitiesProcess<Element>::GetEntitiesContainer()
+{
+    return mrModelPart.GetMesh(mMeshId).Elements();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class AssignScalarFieldToEntitiesProcess<Condition>;
+template class AssignScalarFieldToEntitiesProcess<Element>;
+
+}  // namespace Kratos.
