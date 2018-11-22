@@ -120,7 +120,7 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
-			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
+			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 			KRATOS_CHECK_NEAR(RHS(0), -42.7102445, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(1), 29.7509341, 1e-7);
@@ -217,7 +217,7 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
-			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
+			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 			KRATOS_CHECK_NEAR(RHS(0), -118.03889688, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(1), 14.78243843, 1e-7);
@@ -244,7 +244,8 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NHydrostatic, FluidDynamicsApplicationFastSuite)
 		{
 
-			ModelPart modelPart("Main");
+			Model current_model;
+			ModelPart& modelPart = current_model.CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -262,7 +263,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
 			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
-				
+
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 3.0/(2.0*delta_time);
 			bdf_coefs[1] = -2.0/delta_time;
@@ -282,7 +283,7 @@ namespace Kratos {
 			modelPart.CreateNewNode(3, 0.0, 2.0, 0.0);	// 2 = node 3
 
 			std::vector<ModelPart::IndexType> elemNodes1 {1, 2, 3};
-			
+
 			modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes1, pElemProp);
 
 			Element::Pointer pElement = modelPart.pGetElement(1);
@@ -345,14 +346,14 @@ namespace Kratos {
 			MathUtils<double>::InvertMatrix(LHS, LHS, det);
 
 			const Vector solVec = prod(LHS, RHS);
-			
+
 			// The remaining residuals in the velocities have the size of the boundary integrals over the enriched pressure.
 			// If the "standard" pressure shape functions are used, the results do not hold.
 			KRATOS_CHECK_NEAR(RHS(0), 0.0, 1e-7);		// U_x at node 1
-			KRATOS_CHECK_NEAR(RHS(1), -17.5, 1e-7); 	// U_y at node 1  
+			KRATOS_CHECK_NEAR(RHS(1), -17.5, 1e-7); 	// U_y at node 1
 			KRATOS_CHECK_NEAR(RHS(2), 0.0, 1e-7);		// P   at node 1
 
-			KRATOS_CHECK_NEAR(RHS(3), 7.5, 1e-7);		// U_x at node 2		
+			KRATOS_CHECK_NEAR(RHS(3), 7.5, 1e-7);		// U_x at node 2
 			KRATOS_CHECK_NEAR(RHS(4), 0.0, 1e-7);		// U_y at node 2
 			KRATOS_CHECK_NEAR(RHS(5), 0.0, 1e-7);		// P   at node 2
 
@@ -370,7 +371,8 @@ namespace Kratos {
 	     */
 		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NHydrostaticBehr, FluidDynamicsApplicationFastSuite){
 
-            ModelPart modelPart("TestPart");
+			Model current_model;
+			ModelPart& modelPart = current_model.CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -428,6 +430,15 @@ namespace Kratos {
 			pCondition1->SetFlags(SLIP);
 			pCondition2->SetFlags(SLIP);
 
+			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
+			WeakPointerVector<Element> wpParent1;
+			wpParent1.push_back(modelPart.pGetElement(1));
+			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
+
+			WeakPointerVector<Element> wpParent2;
+			wpParent2.push_back(modelPart.pGetElement(2));
+			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
+
             Vector elemRHS1 = ZeroVector(9);
             Vector elemRHS2 = ZeroVector(9);
             Matrix elemLHS = ZeroMatrix(9,9);
@@ -467,7 +478,7 @@ namespace Kratos {
 					pElement2->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
 				}
 			}
-            
+
             pElement2->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)    = 20000.0;
             pElement2->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)    = 30000.0;
             pElement2->GetGeometry()[2].FastGetSolutionStepValue(PRESSURE)    = 20000.0;
@@ -479,7 +490,7 @@ namespace Kratos {
 			pElement2->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -3.0;
 			pElement2->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
 
-            // Initialization 
+            // Initialization
             pElement1->Initialize();
             pElement2->Initialize();
 
@@ -528,15 +539,16 @@ namespace Kratos {
 			KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
         }
 
-		
-		/** Includes 3 elements of TwoFluidNavierStokes3D4N element 
+
+		/** Includes 3 elements of TwoFluidNavierStokes3D4N element
 		 *  and 3 conditions of type BEHR2004 slip boundary condition in a hydrostatic case.
 	     *  The BEHR2004 contribution is activated, if the flag SLIP is set for the NavierStokesWallCondition3D3N wall condition
 		 *  Checks the computation of the RHS for components in tangential direction
 	     */
 		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes3D4NHydrostaticBehr, FluidDynamicsApplicationFastSuite){
 
-            ModelPart modelPart("TestPart");
+			Model current_model;
+			ModelPart& modelPart = current_model.CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -573,7 +585,7 @@ namespace Kratos {
 			// Geometry creation (following MDPA file from GiD)
 			// if y coordinate is altered, the pressure must be adapted (all other: random values)
 			modelPart.CreateNewNode(1,  2.0,  0.0,  -1.0);		// y = 0
-			modelPart.CreateNewNode(2, -1.0,  7.0,  2.0);		// y = 7 
+			modelPart.CreateNewNode(2, -1.0,  7.0,  2.0);		// y = 7
             modelPart.CreateNewNode(3,  0.0,  5.0,  5.0);		// y = 5  (will be used to check)
 			modelPart.CreateNewNode(4, -3.0, 10.0,  3.0);		// y = 10
 			modelPart.CreateNewNode(5,  6.0, 10.0,  1.0);		// y = 10
@@ -607,6 +619,19 @@ namespace Kratos {
 			pCondition1->SetFlags(SLIP);
 			pCondition2->SetFlags(SLIP);
 			pCondition3->SetFlags(SLIP);
+
+			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
+			WeakPointerVector<Element> wpParent1;
+			wpParent1.push_back(modelPart.pGetElement(3));
+			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
+
+			WeakPointerVector<Element> wpParent2;
+			wpParent2.push_back(modelPart.pGetElement(2));
+			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
+
+			WeakPointerVector<Element> wpParent3;
+			wpParent3.push_back(modelPart.pGetElement(1));
+			pCondition3->SetValue( NEIGHBOUR_ELEMENTS, wpParent3 );
 
             Vector elemRHS1 = ZeroVector(16);
 			Vector elemRHS2 = ZeroVector(16);
@@ -664,7 +689,7 @@ namespace Kratos {
 			// std::vector<ModelPart::IndexType> elemNodes1 {5, 4, 2, 3};     	// start at position 12
 			// std::vector<ModelPart::IndexType> elemNodes2 {3, 4, 2, 1};		// start at position 0
 			// std::vector<ModelPart::IndexType> elemNodes3 {3, 2, 5, 1};		// start at position 0
-					
+
             pElement1->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)    = 100000.0;
             pElement1->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)    = 100000.0;
             pElement1->GetGeometry()[2].FastGetSolutionStepValue(PRESSURE)    = 130000.0;
@@ -701,7 +726,7 @@ namespace Kratos {
             Vector contriFromCond2 = ZeroVector(3);
 			Vector contriFromCond3 = ZeroVector(3);
 
-            // Initialization 
+            // Initialization
             pElement1->Initialize();
 			pElement2->Initialize();
 			pElement3->Initialize();
@@ -753,7 +778,7 @@ namespace Kratos {
 
 			Vector tangentialComponent;
 			Vector normalComponent;
-			
+
 			tangentialComponent = MathUtils<double>::CrossProduct( normalAtNodeTwo, residualAtNodeTwo );
 			tangentialComponent = - MathUtils<double>::CrossProduct( normalAtNodeTwo, tangentialComponent );
 
@@ -772,7 +797,8 @@ namespace Kratos {
 	     */
 		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NStressBehr, FluidDynamicsApplicationFastSuite){
 
-            ModelPart modelPart("TestPart");
+			Model current_model;
+			ModelPart& modelPart = current_model.CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -831,6 +857,15 @@ namespace Kratos {
 			pCondition1->SetFlags(SLIP);
 			pCondition2->SetFlags(SLIP);
 
+			// artificially assigning parents (regularly done by check_and_prepare_model_part_process)
+			WeakPointerVector<Element> wpParent1;
+			wpParent1.push_back(modelPart.pGetElement(1));
+			pCondition1->SetValue( NEIGHBOUR_ELEMENTS, wpParent1 );
+
+			WeakPointerVector<Element> wpParent2;
+			wpParent2.push_back(modelPart.pGetElement(2));
+			pCondition2->SetValue( NEIGHBOUR_ELEMENTS, wpParent2 );
+
             Vector elemRHS1 = ZeroVector(9);
             Vector elemRHS2 = ZeroVector(9);
             Matrix elemLHS = ZeroMatrix(9,9);
@@ -842,7 +877,7 @@ namespace Kratos {
 			for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
 				it_node->FastGetSolutionStepValue(DENSITY) = 1000.0;
 				it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
-				
+
 				it_node->FastGetSolutionStepValue(BODY_FORCE_X) = 0.0;
 				it_node->FastGetSolutionStepValue(BODY_FORCE_Y) = 0.0;
 				it_node->FastGetSolutionStepValue(BODY_FORCE_Z) = 0.0;
@@ -870,7 +905,7 @@ namespace Kratos {
 				}
 			}
 
-			
+
 			for (unsigned int time = 0; time < 3; time++){
 					pElement1->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, time)[0] = 0.0;
 					pElement1->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, time)[1] = 0.0; // 1.0
@@ -880,7 +915,7 @@ namespace Kratos {
 					pElement2->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, time)[1] = 0.0; // 1.0
 					pElement2->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, time)[2] = 0.0;
 			}
-            
+
 
             pElement1->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)    = 0.0;
             pElement1->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)    = 0.0;
@@ -896,7 +931,7 @@ namespace Kratos {
 			pElement2->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -3.0;
 			pElement2->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -2.0;
 
-            // Initialization 
+            // Initialization
             pElement1->Initialize();
             pElement2->Initialize();
 
