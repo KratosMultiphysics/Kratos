@@ -81,7 +81,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
@@ -99,7 +99,7 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() override
     {
         return 2;
     };
@@ -107,7 +107,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 4;
     };
@@ -162,7 +162,7 @@ protected:
      * @param rStrainVector
      */
     virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector );
+            Vector& rStrainVector ) override;
 
 
     /**
@@ -171,11 +171,11 @@ protected:
      * @param rStrainVector
      */
     virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector );
+                                         Vector& rStrainVector ) override;
 
 
     //virtual void ConvertConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix);
-	virtual Matrix SetConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix,const Matrix& rElastoPlasticTangentMatrix);
+	virtual Matrix SetConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix,const Matrix& rElastoPlasticTangentMatrix) override;
 
 	//virtual Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix);
 
@@ -214,12 +214,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
