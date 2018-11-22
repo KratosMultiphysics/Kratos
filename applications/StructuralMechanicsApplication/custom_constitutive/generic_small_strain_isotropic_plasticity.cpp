@@ -177,9 +177,9 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::InitializeM
     ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
 
     // We call the integrator
-    // double initial_threshold;
-    // TConstLawIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
-    // this->SetThreshold(initial_threshold);
+    double initial_threshold;
+    TConstLawIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
+    this->SetThreshold(initial_threshold);
 }
 
 /***********************************************************************************/
