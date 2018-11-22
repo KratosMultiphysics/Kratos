@@ -33,23 +33,29 @@ namespace Kratos
         Parameters default_parameters(R"(
                                             {
                                             "variable_names":[],
-                                            "center":[0,0,0],
-                                            "axis_of_rotation":[0.0,0.0,0.0],
-                                            "angle_degree":0.0,
-                                            "dir_of_translation":[0.0,0.0,0.0],
-                                            "magnitude":0.0
+                                            "transformation_settings":{
+                                                "rotation_settings":{
+                                                    "center":[0,0,0],
+                                                    "axis_of_rotation":[0.0,0.0,0.0],
+                                                    "angle_degree":0.0
+                                                },
+                                                "translation_settings":{
+                                                    "dir_of_translation":[0.0,0.0,0.0],
+                                                    "magnitude":0.0
+                                                }
+                                            }
                                             }  )");
 
         // Initializing
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
 
-        mCenterOfRotation = mParameters["center"].GetVector();
-        mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector();
-        mDirOfTranslation = mParameters["dir_of_translation"].GetVector();
+        mCenterOfRotation = mParameters["transformation_settings"]["rotation_settings"]["center"].GetVector();
+        mAxisOfRotationVector = mParameters["transformation_settings"]["rotation_settings"]["axis_of_rotation"].GetVector();
+        mDirOfTranslation = mParameters["transformation_settings"]["translation_settings"]["dir_of_translation"].GetVector();
 
-        mMagnitude = mParameters["magnitude"].GetDouble();
-        mAngleOfRotation = mParameters["angle_degree"].GetDouble() * 2 * Globals::Pi / 360.0;
+        mMagnitude = mParameters["transformation_settings"]["translation_settings"]["magnitude"].GetDouble();
+        mAngleOfRotation = mParameters["transformation_settings"]["rotation_settings"]["angle_degree"].GetDouble() * 2 * Globals::Pi / 360.0;
 
         mTransformationMatrix.resize(4,4);
         mTransformationMatrixVariable.resize(4,4);
@@ -135,9 +141,14 @@ namespace Kratos
     void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     {
         auto& root_model_part = mrMasterModelPart.GetRootModelPart();
-        root_model_part.MasterSlaveConstraints().Sort();
-        auto last_constraint_it = root_model_part.MasterSlaveConstraintsEnd()- 1;
-        mLastIndex = last_constraint_it->Id();
+        if(root_model_part.NumberOfMasterSlaveConstraints()>0)
+        {
+            root_model_part.MasterSlaveConstraints().Sort();
+            auto last_constraint_it = root_model_part.MasterSlaveConstraintsEnd()- 1;
+            mLastIndex = last_constraint_it->Id();
+        } else {
+            mLastIndex = 0;
+        }
 
         const double start_apply = OpenMPUtils::GetCurrentTime();
         const int num_vars = mParameters["variable_names"].size();
@@ -218,18 +229,18 @@ namespace Kratos
             const double constant_y = master_weight * mTransformationMatrixVariable(1,3);
             const double constant_z = master_weight * mTransformationMatrixVariable(2,3);
 
-            auto constraint1 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+1)*rSlaveNode.Id(), rSlaveNode.Id()+9 ),
+            auto constraint1 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                             master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-            auto constraint2 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+2)*rSlaveNode.Id(), rSlaveNode.Id()+8 ),
+            auto constraint2 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                             master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-            auto constraint3 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+3)*rSlaveNode.Id(), rSlaveNode.Id()+7 ),
+            auto constraint3 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                             master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
 
-            auto constraint4 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+4)*rSlaveNode.Id(), rSlaveNode.Id()+6 ),
+            auto constraint4 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                             master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-            auto constraint5 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+5)*rSlaveNode.Id(), rSlaveNode.Id()+5 ),
+            auto constraint5 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                             master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-            auto constraint6 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+6)*rSlaveNode.Id(), rSlaveNode.Id()+4 ),
+            auto constraint6 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                             master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
 
             rConstraintsBuffer.push_back(constraint1);
@@ -241,11 +252,11 @@ namespace Kratos
 
             if (TDim == 3)
             {
-                auto constraint7 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+7)*rSlaveNode.Id(), rSlaveNode.Id()+3 ),
+                auto constraint7 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                                 master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
-                auto constraint8 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+8)*rSlaveNode.Id(), rSlaveNode.Id()+2 ),
+                auto constraint8 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                                 master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
-                auto constraint9 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+9)*rSlaveNode.Id(), rSlaveNode.Id()+1 ),
+                auto constraint9 = r_clone_constraint.Create(ComputeCantorPairing( master_node.Id()*rSlaveNode.Id()+master_index , rSlaveNode.Id()+master_index ) + mLastIndex,
                                                                 master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
 
                 rConstraintsBuffer.push_back(constraint7);
@@ -270,7 +281,7 @@ namespace Kratos
         for (auto& master_node : rHostedGeometry)
         {
             const double master_weight = rWeights(master_index);
-            auto constraint = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id())*rSlaveNode.Id(), rSlaveNode.Id() ),
+            auto constraint = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()) , rSlaveNode.Id() ),
                                                             master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
             rConstraintsBuffer.push_back(constraint);
             master_index++;
