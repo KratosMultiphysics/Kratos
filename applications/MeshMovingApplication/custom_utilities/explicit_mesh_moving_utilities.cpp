@@ -34,11 +34,12 @@ namespace Kratos
         const double SearchRadius) : 
         mSearchRadius(SearchRadius),
         mrVirtualModelPart(rModelPart),
-        mrStructureModelPart(rStructureModelPart){
-
-        KRATOS_WARNING_IF("ExplicitMeshMovingUtilities",mrStructureModelPart.GetBufferSize() == 1) << 
-            "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
-        mrStructureModelPart.SetBufferSize(2);
+        mrStructureModelPart(rStructureModelPart)
+    {
+        if (mrStructureModelPart.GetBufferSize() < 2) {
+            (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
+            KRATOS_WARNING("ExplicitMeshMovingUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
+        }
     }
 
     void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart){

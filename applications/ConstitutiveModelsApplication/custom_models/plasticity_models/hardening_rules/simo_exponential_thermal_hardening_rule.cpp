@@ -77,18 +77,18 @@ namespace Kratos
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
 
     //linear hardening properties
-    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-    double  YieldStress                    = rMaterialProperties[YIELD_STRESS];
-    double  KinematicHardeningConstant     = rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
+    const Properties& rProperties      = rModelData.GetProperties();
+    double  YieldStress                = rProperties[YIELD_STRESS];
+    double  KinematicHardeningConstant = rProperties[KINEMATIC_HARDENING_MODULUS];
 
     //exponential saturation properties
-    double  K_reference         =  rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    double  K_infinity          =  rMaterialProperties[INFINITY_HARDENING_MODULUS];
-    const double& Delta         =  rMaterialProperties[HARDENING_EXPONENT];
+    double  K_reference         =  rProperties[REFERENCE_HARDENING_MODULUS];
+    double  K_infinity          =  rProperties[INFINITY_HARDENING_MODULUS];
+    const double& Delta         =  rProperties[HARDENING_EXPONENT];
 
     //parameters for the thermal solution
-    const double& ReferenceConductivity = rMaterialProperties[REFERENCE_CONDUCTIVITY];
-    const double& HardnessConductivity  = rMaterialProperties[HARDNESS_CONDUCTIVITY];
+    const double& ReferenceConductivity = rProperties[REFERENCE_CONDUCTIVITY];
+    const double& HardnessConductivity  = rProperties[HARDNESS_CONDUCTIVITY];
 
 
     double ThermalFactor        = this->CalculateThermalReferenceEffect(rVariables,ThermalFactor);
@@ -125,12 +125,12 @@ namespace Kratos
     const ModelDataType& rModelData = rVariables.GetModelData();
 
     //get values
-    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-    const double& rTemperature             = rModelData.GetTemperature();
+    const Properties& rProperties  = rModelData.GetProperties();
+    const double& rTemperature     = rModelData.GetTemperature();
 
     //parameters for the thermal solution
-    const double& ReferenceConductivity = rMaterialProperties[REFERENCE_CONDUCTIVITY];
-    const double& ReferenceTemperature  = rMaterialProperties[REFERENCE_TEMPERATURE];
+    const double& ReferenceConductivity = rProperties[REFERENCE_CONDUCTIVITY];
+    const double& ReferenceTemperature  = rProperties[REFERENCE_TEMPERATURE];
 
     //thermal effect in the initial parameters
     rThermalFactor = ( 1.0 - ReferenceConductivity * (rTemperature - ReferenceTemperature) );
@@ -150,12 +150,12 @@ namespace Kratos
     const ModelDataType& rModelData = rVariables.GetModelData();
 
     //get values
-    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-    const double& rTemperature             = rModelData.GetTemperature();
+    const Properties& rProperties  = rModelData.GetProperties();
+    const double& rTemperature     = rModelData.GetTemperature();
 
     //parameters for the thermal solution
-    const double& HardnessConductivity  = rMaterialProperties[HARDNESS_CONDUCTIVITY];
-    const double& ReferenceTemperature  = rMaterialProperties[REFERENCE_TEMPERATURE];
+    const double& HardnessConductivity  = rProperties[HARDNESS_CONDUCTIVITY];
+    const double& ReferenceTemperature  = rProperties[REFERENCE_TEMPERATURE];
 
     //thermal effect in the final parameters
     rThermalFactor = ( 1.0 - HardnessConductivity * (rTemperature - ReferenceTemperature) );

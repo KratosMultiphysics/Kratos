@@ -937,12 +937,17 @@ proc ::wkcf::WritePostProcessData {fileid} {
     set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "PostNodalArea                    = [::wkcf::TranslateToBinary $PrintOrNot]"
 
+    # Write Dem Bond Elem Force
     puts $fileid "# Results on bond elements"
+	set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
+	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
+	puts $fileid "PostLocalContactForce            = [::wkcf::TranslateToBinary $PrintOrNot]"
+
     if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 		# PostStressStrainOnSpheres
 		puts $fileid "PostStressStrainOption           = [::wkcf::TranslateToBinary [::xmlutils::setXml $cxpathtoDEMresults//i.DEM-Stresses dv]]"
 
-		# Write all Dem Bond Elem Properties
+		# Write Dem Bond Elem Properties For Continuum
 		set basexpath "DEM//c.DEM-Results//c.DEM-BondElem"
 		set ilist [::xmlutils::setXmlContainerIds $basexpath "Item"]
 		set kxpath "Applications/DEM"
@@ -954,10 +959,6 @@ proc ::wkcf::WritePostProcessData {fileid} {
 		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-ContactTau"
 		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
 		puts $fileid "PostContactTau                   = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
-		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-		puts $fileid "PostLocalContactForce            = [::wkcf::TranslateToBinary $PrintOrNot]"
 
 		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-FailureCrit"
 		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
@@ -1324,8 +1325,13 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
 	puts $fileid "\"PostStressStrainOption\"           : [::wkcf::TranslateToBinaryJson [::xmlutils::setXml $cxpathtoDEMresults//i.DEM-Stresses dv]],"
    }
 
+    # Write Dem Bond Elem Force
+    set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
+    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
+    puts $fileid "\"PostLocalContactForce\"            : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
+
    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-       # Write all Dem Bond Elem Properties
+       # Write Dem Bond Elem Properties For Continuum
        set basexpath "DEM//c.DEM-Results//c.DEM-BondElem"
        set ilist [::xmlutils::setXmlContainerIds $basexpath "Item"]
        set kxpath "Applications/DEM"
@@ -1337,10 +1343,6 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
        set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-ContactTau"
        set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
        puts $fileid "\"PostContactTau\"                   : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
-
-       set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
-       set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-       puts $fileid "\"PostLocalContactForce\"            : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
 
        set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-FailureCrit"
        set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
@@ -1479,564 +1481,6 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
 
 	# SWIMMING-SPECIFIC SECTION ENDS ###########################################################################
     }
-}
-
-proc ::wkcf::WriteExplicitSolverVariables {} {
-    # Write constitutive laws properties
-    variable dprops;  variable ActiveAppList
-    global KPriv
-    variable ndime
-    set AppId "DEM"
-    set filename "DEM_explicit_solver_var.py"
-    set PDir [::KUtils::GetPaths "PDir"]
-    set fullname [file native [file join $PDir $filename]]
-    # First delete the file
-    if {[file exists $fullname]} {
-	set res [file delete -force -- $fullname]
-    }
-    if {[catch {set fileid [open $fullname w+]}]} {
-	WarnWin [= "Cannot write file %s. Permission denied" $fullname].
-	return 0
-    }
-    # Write the group properties
-    set cproperty "dv"
-    set rootid $AppId
-    puts $fileid ""
-    puts $fileid "# DEM General Options"
-
-    # Dimension
-    set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
-    set ndim [string range [::xmlutils::setXml $cxpath $cproperty] 0 0]
-    puts $fileid "Dimension                        = $ndim"
-    #if {$KPriv(what_dempack_package) ne "C-DEMPack"} {}
-    # Periodicity of the DEM domain
-    set cxpath "$rootid//c.DEM-Options//c.DEM-Physical-opts//i.PeriodicDomainOption"
-    set PeriodicDomainOption [::xmlutils::setXml $cxpath $cproperty]
-
-    if {$PeriodicDomainOption == "Yes"} {
-	puts $fileid "PeriodicDomainOption             = \"ON\""
-    } else {
-	puts $fileid "PeriodicDomainOption             = \"OFF\""
-    }
-    #
-    # Get the use bounding box
-    set cxpath "$rootid//c.DEM-Options//c.DEM-Boundingbox//i.UseBoundingBox"
-    set UseBoundingBox [::xmlutils::setXml $cxpath $cproperty]
-    if {$UseBoundingBox == "Yes"} {
-	puts $fileid "BoundingBoxOption                = \"ON\""
-
-	# Get the enlargement factor
-	set enl_fct_path "$rootid//c.DEM-Options//c.DEM-Boundingbox//i.EnlargementFactor"
-	set EnlargementFactor [::xmlutils::setXml $enl_fct_path $cproperty]
-
-	# Get the bounding box type
-	set cxpath "$rootid//c.DEM-Options//c.DEM-Boundingbox//i.BoundingBoxType"
-	set BoundingBoxType [::xmlutils::setXml $cxpath $cproperty]
-	set cxpath "$rootid//c.DEM-Options//c.DEM-Boundingbox//i.StartTime"
-	set BoundingBoxStartTime [::xmlutils::setXml $cxpath $cproperty]
-	set cxpath "$rootid//c.DEM-Options//c.DEM-Boundingbox//i.StopTime"
-	set BoundingBoxStopTime [::xmlutils::setXml $cxpath $cproperty]
-	if {$BoundingBoxType eq "Automatic"} {
-	    puts $fileid "AutomaticBoundingBoxOption       = \"ON\""
-	    puts $fileid "BoundingBoxEnlargementFactor     = $EnlargementFactor"
-	    puts $fileid "BoundingBoxStartTime             = $BoundingBoxStartTime"
-	    puts $fileid "BoundingBoxStopTime              = $BoundingBoxStopTime"
-	    # Write default bounding box values
-	    ::wkcf::WriteBoundingBoxDefaults $fileid
-
-	} elseif {$BoundingBoxType eq "Fixed"} {
-	    puts $fileid "AutomaticBoundingBoxOption       = \"OFF\""
-	    puts $fileid "BoundingBoxEnlargementFactor     = 1.0"
-	    puts $fileid "BoundingBoxStartTime             = $BoundingBoxStartTime"
-	    puts $fileid "BoundingBoxStopTime              = $BoundingBoxStopTime"
-
-	    # Get the bounding limit
-	    set varlist [list MaxX MaxY MaxZ MinX MinY MinZ]
-	    foreach varid $varlist {
-		set cxpath "$rootid//c.DEM-Options//c.DEM-Boundingbox//i.$varid"
-		set $varid [::xmlutils::setXml $cxpath $cproperty]
-		puts $fileid "BoundingBox$varid                  = [set $varid]"
-	    }
-	}
-    } else {
-	puts $fileid "BoundingBoxOption                = \"OFF\""
-	puts $fileid "BoundingBoxEnlargementFactor     = 1.0"
-	puts $fileid "AutomaticBoundingBoxOption       = \"OFF\""
-
-	# Write default bounding box values
-	::wkcf::WriteBoundingBoxDefaults $fileid
-    }
-    puts $fileid ""
-
-    #Inlet
-    set cxpath "$rootid//c.DEM-Conditions//c.DEM-Inlet"
-    set group [::xmlutils::setXmlContainerIds $cxpath]
-
-    if {$group != ""} {
-	puts $fileid "dem_inlet_option                 = 1"
-    } else {
-	puts $fileid "dem_inlet_option                 = 0"
-    }
-
-    # Get the gravity
-    if {"Fluid" in $ActiveAppList} {
-	set cxpathtogravity "GeneralApplicationData//c.SDEM-Physical-opts"
-    } else {
-	set cxpathtogravity "$rootid//c.DEM-Options//c.DEM-Physical-opts"
-    }
-
-    set cxpath "$cxpathtogravity//i.GravityValue"
-    set usergravitymod [::xmlutils::setXml $cxpath $cproperty]
-    set cxpath "$cxpathtogravity//i.Cx"
-    set gravityCx [::xmlutils::setXml $cxpath $cproperty]
-    set cxpath "$cxpathtogravity//i.Cy"
-    set gravityCy [::xmlutils::setXml $cxpath $cproperty]
-    set cxpath "$cxpathtogravity//i.Cz"
-    if {$ndime eq "3D"} {
-	set gravityCz [::xmlutils::setXml $cxpath $cproperty]
-    } else {
-	set gravityCz "0.0"
-    }
-
-    set gravityvector [list $gravityCx $gravityCy $gravityCz]
-    set gravitymod [::MathUtils::VectorModulus $gravityvector]
-
-    if {$gravitymod==0.0} {
-	W "The null vector is not a valid direction for the gravity force!"
-	W "Computations will proceed anyway...\nPlease make sure that value was intentional..."
-    }
-
-    if {$gravitymod !=0.0} {
-	set endgravityCx [expr {($gravityCx*$usergravitymod)/$gravitymod}]
-	set endgravityCy [expr {($gravityCy*$usergravitymod)/$gravitymod}]
-	set endgravityCz [expr {($gravityCz*$usergravitymod)/$gravitymod}]
-    } else {
-	set endgravityCx $gravityCx
-	set endgravityCy $gravityCy
-	set endgravityCz $gravityCz
-    }
-    puts $fileid "GravityX                         = $endgravityCx"
-    puts $fileid "GravityY                         = $endgravityCy"
-    puts $fileid "GravityZ                         = $endgravityCz"
-    puts $fileid ""
-
-    # Compute energies
-    set UseComputeEnergies [::xmlutils::setXml "$rootid//c.DEM-Results//c.DEM-Graphs//i.UseComputeEnergies" dv]
-    if {$UseComputeEnergies eq "Yes"} {
-	puts $fileid "EnergyCalculationOption          = 1"
-	# Get the bounding limit
-	set varlist [list PotentialEnergyReferencePointX PotentialEnergyReferencePointY PotentialEnergyReferencePointZ]
-	foreach varid $varlist {
-	    set cxpath "$rootid//c.DEM-Results//c.DEM-Graphs//i.$varid"
-	    set $varid [::xmlutils::setXml $cxpath $cproperty]
-	    puts $fileid "$varid   = [set $varid]"
-	}
-    } else {
-	puts $fileid "EnergyCalculationOption          = 0"
-    }
-
-    # Get the use velocity trap
-    set cxpath "$rootid//c.DEM-Results//c.DEM-VelocityTrap//i.UseVelocityTrap"
-    set UseVelocityTrap [::xmlutils::setXml $cxpath $cproperty]
-    if {$UseVelocityTrap eq "Yes"} {
-	puts $fileid "VelocityTrapOption               = 1"
-
-	# Get the bounding limit
-	set varlist [list MaxX MaxY MaxZ MinX MinY MinZ]
-	foreach varid $varlist {
-	    set cxpath "$rootid//c.DEM-Results//c.DEM-VelocityTrap//i.$varid"
-	    set $varid [::xmlutils::setXml $cxpath $cproperty]
-	    puts $fileid "VelocityTrap$varid                  = [set $varid]"
-	}
-
-    } else {
-	puts $fileid "VelocityTrapOption               = 0"
-    }
-
-    # Calculate Rotations
-    set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CalculateRotations"
-    set useRotationOption [::xmlutils::setXml $cxpath $cproperty]
-    if {$useRotationOption == "Yes"} {
-	puts $fileid "RotationOption                   = \"ON\""
-    } else {
-	puts $fileid "RotationOption                   = \"OFF\""
-    }
-
-    # Clean IndentationsOption
-    set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CleanInitialIndentations"
-    set CleanIndentationsOption [::xmlutils::setXml $cxpath $cproperty]
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-	puts $fileid "CleanIndentationsOption          = \"OFF\""
-    } elseif {$CleanIndentationsOption == "Yes"} {
-	puts $fileid "CleanIndentationsOption          = \"ON\""
-    } else {
-	puts $fileid "CleanIndentationsOption          = \"OFF\""
-    }
-
-    if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
-	# RemoveBallsInEmbedded
-	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RemoveBallsInEmbedded"
-	set RemoveBallsInEmbedded [::xmlutils::setXml $cxpath $cproperty]
-	if {$RemoveBallsInEmbedded == "Yes"} {
-	    puts $fileid "RemoveBallsInEmbeddedOption      = 1"
-	} else {
-	    puts $fileid "RemoveBallsInEmbeddedOption      = 0"
-	}
-	puts $fileid ""
-    }
-
-    # Tangency Tolerance
-    set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-TangencyTolerance"
-    set TangencyToleranceType [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "DeltaOption                      = \"$TangencyToleranceType\""
-
-    if {$TangencyToleranceType eq "Absolute"} {
-	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-TangencyToleranceValueAbsolute"
-	set TangenTolerValue [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "SearchTolerance                  = $TangenTolerValue"
-    }
-
-    if {$TangencyToleranceType eq "Coordination_Number"} {
-	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-TangencyCoordinationNumber"
-	set CoordNumber [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "CoordinationNumber               = $CoordNumber"
-    }
-
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-	# Amplified Search Radius Extension
-	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-NeighbourSearchAcceptedGap"
-	set AcceptedGap [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "AmplifiedSearchRadiusExtension   = $AcceptedGap"
-
-	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-MaxAmplificationRatioOfSearchRadius"
-	set MaxAmplificationRatioOfSearchRadius [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "MaxAmplificationRatioOfSearchRadius = $MaxAmplificationRatioOfSearchRadius"
-
-    } else {
-	puts $fileid "AmplifiedSearchRadiusExtension   = 0.0"
-    }
-
-    # Export Model Data Info
-    set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-ExportModelDataInformation"
-    set modatainfo [::xmlutils::setXml $cxpath $cproperty]
-    if {$modatainfo eq "Yes"} {
-	puts $fileid "ModelDataInfo                    = \"ON\""
-    } else {
-	puts $fileid "ModelDataInfo                    = \"OFF\""
-    }
-
-    # Virtual Mass Coefficient
-    set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-VirtualMassCoef"
-    set vm [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "VirtualMassCoefficient           = $vm"
-
-    # Rolling Friction
-    set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RollingFriction"
-    set rf [::xmlutils::setXml $cxpath $cproperty]
-    if {$rf eq "Yes"} {
-	puts $fileid "RollingFrictionOption            = \"ON\""
-    } else {
-	puts $fileid "RollingFrictionOption            = \"OFF\""
-    }
-
-
-    # Compute Stress Tensor
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-	set tensor [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-ComputeStressTensorOption" "dv"]
-	if {$tensor eq "Yes"} {
-	    puts $fileid "ComputeStressTensorOption        = \"ON\""
-	} else {
-	    puts $fileid "ComputeStressTensorOption        = \"OFF\""
-	}
-    }
-
-    # Poisson Effect Option
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-	set pe [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-PoissonEffect" "dv"]
-	if {$pe eq "Yes"} {
-	    puts $fileid "PoissonEffectOption              = \"ON\""
-	} else {
-	    puts $fileid "PoissonEffectOption              = \"OFF\""
-	}
-    }
-
-    # Shear Strains Parallel To Bonds Effect Option
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-	set ssptb [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-ShearStrainParallelToBondEffect" "dv"]
-	if {$ssptb eq "Yes"} {
-	    puts $fileid "ShearStrainParallelToBondOption  = \"ON\""
-	} else {
-	    puts $fileid "ShearStrainParallelToBondOption  = \"OFF\""
-	}
-    }
-
-    #set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-ComputeEnergies"
-    #set ceo [::xmlutils::setXml $cxpath $cproperty]
-    #if {$ceo eq "Activate"} {
-	#    set ceo 1
-	#} else {
-	#    set ceo 0
-	#}
-    #puts $fileid "ComputeEnergiesOption            = $ceo"
-
-    # Dont search until failure
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-	set io [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-DontSearchUntilFail" "dv"]
-	if {$io eq "Yes"} {
-	    puts $fileid {DontSearchUntilFailure           = "ON"}
-	} else {
-	    puts $fileid {DontSearchUntilFailure           = "OFF"}
-	}
-    }
-
-    #set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-DontSearchUntilFail"
-    #set DSUF [::xmlutils::setXml $cxpath $cproperty]
-    #puts $fileid "DontSearchUntilFailure           = \"$DSUF\""
-
-    # Contact Mesh Option
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-	set CMO [::xmlutils::setXml "$rootid//c.DEM-Results//i.DEM-ShowBondElements" dv]
-	if {$CMO eq "Yes"} {
-	    puts $fileid "ContactMeshOption                = \"ON\""
-	} else {
-	    puts $fileid "ContactMeshOption                = \"OFF\""
-	}
-    } else {
-	puts $fileid "ContactMeshOption                = \"OFF\""
-    }
-
-    # Output file Type
-    if {"Fluid" in $ActiveAppList} {
-	set cxpath "GeneralApplicationData//c.SDEM-Results//c.GiDOptions//i.GiDPostMode"
-    } else {
-	set cxpath "$rootid//c.DEM-Results//c.GiDOptions//i.GiDPostMode"
-    }
-    set GiDMode [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "OutputFileType                   = \"$GiDMode\""
-
-    # Multifile
-    if {"Fluid" in $ActiveAppList} {
-	set cxpath "GeneralApplicationData//c.SDEM-Results//c.GiDOptions//i.GiDMultiFileFlag"
-    } else {
-	set cxpath "$rootid//c.DEM-Results//c.GiDOptions//i.GiDMultiFileFlag"
-    }
-    set GiDMultiFileFlag [::xmlutils::setXml $cxpath $cproperty]
-    if {$GiDMultiFileFlag eq "Single"} {
-	puts $fileid "Multifile                        = \"single_file\""
-    } else {
-	puts $fileid "Multifile                        = \"multiple_files\""
-    }
-
-    puts $fileid "ElementType                      = \"[::wkcf::GetElementType]\""
-    ######################################################################################
-
-    puts $fileid ""
-    puts $fileid "# Solution Strategy"
-
-    # Translational Integration Scheme
-    set cxpath "$rootid//c.DEM-SolutionStrategy//i.DEM-TimeTranslationalIntegrationScheme"
-    set TransIntegScheme [::xmlutils::setXml $cxpath $cproperty]
-
-    puts $fileid "TranslationalIntegrationScheme       = \"$TransIntegScheme\""
-
-    # Rotational Integration Scheme
-    set cxpath "$rootid//c.DEM-SolutionStrategy//i.DEM-TimeRotationalIntegrationScheme"
-    set RotIntegScheme [::xmlutils::setXml $cxpath $cproperty]
-
-    puts $fileid "RotationalIntegrationScheme          = \"$RotIntegScheme\""
-
-    # Auto Reduction of Time Step Option
-    set cxpath "$rootid//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.UseAutomaticDeltaTime"
-    set DTimeSelection [::xmlutils::setXml $cxpath $cproperty]
-
-    if {$DTimeSelection eq "Fixed"} {
-	puts $fileid "AutomaticTimestep                = \"OFF\""
-    } else {
-	puts $fileid "AutomaticTimestep                = \"ON\""
-    }
-    set cxpath "$rootid//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DeltaTimeSafetyFactor"
-    set SafetyFact [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "DeltaTimeSafetyFactor            = $SafetyFact"
-
-    set cxpath "$rootid//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DeltaTime"
-    set MaxTimeStep [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "MaxTimeStep                      = $MaxTimeStep"
-
-    # Final Time
-    if {"Fluid" in $ActiveAppList} {
-	set cxpath "GeneralApplicationData//c.SimulationOptions//i.EndTime"
-	set TTime [::xmlutils::setXml $cxpath $cproperty]
-    } else {
-	set cxpath "$rootid//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DEM-TotalTime"
-	set TTime [::xmlutils::setXml $cxpath $cproperty]
-    }
-    puts $fileid "FinalTime                        = $TTime"
-
-    # Control Time
-    set cxpath "$rootid//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DEM-ScreenInfoOutput"
-    set CTime [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "ControlTime                      = $CTime"
-
-    # Neighbour Search Frequency
-    set cxpath "$rootid//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DEM-NeighbourSearchFrequency"
-    set FrecTime [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "NeighbourSearchFrequency         = $FrecTime"
-
-    # Material Test Data #########################################################################################
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-		set cproperty "dv"
-		set cxpath "DEM//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-MaterialTestActivate"
-		set material_option [::xmlutils::setXml $cxpath $cproperty]
-		if {$material_option eq "Yes"} {
-		        ::wkcf::WriteMatTestData $fileid
-		}
-    }
-
-    # SWIMMING-SPECIFIC SECTION BEGINS ###########################################################################
-    if {"Fluid" in $ActiveAppList} {
-	set cxpath "$rootid//c.DEM-Fluid-interaction//i.DEM-TwoWayCoupling"
-	set cproperty "dv"
-	set cxpath "GeneralApplicationData//c.CouplingParameters//i.CouplingLevel"
-	set coupling_level_type [::xmlutils::setXml $cxpath $cproperty]
-    set cproperty "dv"
-    set cxpath "GeneralApplicationData//c.CouplingParameters//i.TimeAveragingType"
-    set time_averaging_type [::xmlutils::setXml $cxpath $cproperty]
-
-    set interaction_start_time [::xmlutils::setXml {GeneralApplicationData//c.CouplingParameters//i.InteractionStartTime} dv]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.PickIndividualForces"
-	set pick_individual_forces_option [::wkcf::TranslateToBinary [::xmlutils::setXml $cxpath $cproperty]]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.BuoyancyForceType"
-	set buoyancy_force_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.DragForceType"
-	set drag_force_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.VirtualMassForceType"
-	set virtual_mass_force_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.SaffmanLiftForceType"
-	set lift_force_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.MagnusLiftForceType"
-	set magnus_force_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.HydrodynamicTorqueType"
-	set hydro_torque_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.DragModifier"
-	set drag_modifier_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.ViscosityModificationType"
-	set viscosity_modification_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//c.MaxeyRileyEquations//i.MRDragModifier"
-	set MR_drag_modifier_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.PostProcessingVariables//i.GradientCalculationType"
-	set gradient_calculation_type [::xmlutils::setXml $cxpath $cproperty]
-
-	set cxpath "GeneralApplicationData//c.PostProcessingVariables//i.VelocityLaplacianCalculationType"
-	set velocity_laplacian_calculation_type [::xmlutils::setXml $cxpath $cproperty]
-
-	if {$velocity_laplacian_calculation_type == "0"} {
-	    set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.IncludeFaxenTerms0"
-	} elseif {$velocity_laplacian_calculation_type == "1"} {
-	    set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.IncludeFaxenTerms1"
-	} elseif {$velocity_laplacian_calculation_type == "2"} {
-	    set cxpath "GeneralApplicationData//c.CouplingParameters//c.HydrodynamicForceModel//i.IncludeFaxenTerms"
-	}
-
-	set include_faxen_terms_option [::wkcf::TranslateToBinary [::xmlutils::setXml $cxpath $cproperty]]
-
-	if {!$pick_individual_forces_option} { # Maxey-Riley
-	    if {!$include_faxen_terms_option} {
-		set drag_force_type 2
-		set virtual_mass_force_type 0
-	    } else {
-		set drag_force_type 11
-		set virtual_mass_force_type 11
-	    }
-	    set lift_force_type 0
-	    set magnus_force_type 0
-	    set hydro_torque_type 0
-	    set drag_modifier_type $MR_drag_modifier_type
-
-		set buoyancy_force_type 2
-	}
-
-	puts $fileid ""
-	puts $fileid "# Swimming DEM-specific section begins"
-	puts $fileid "#-------------------------------------"
-	puts $fileid "coupling_level_type                    = $coupling_level_type"
-    puts $fileid "time_averaging_type                    = $time_averaging_type"
-    puts $fileid "interaction_start_time                 = $interaction_start_time"
-    puts $fileid "pick_individual_forces_option          = $pick_individual_forces_option"
-    puts $fileid "include_faxen_terms_option             = $include_faxen_terms_option # (relevant if the Maxey Riley equation is used)"
-    puts $fileid "gradient_calculation_type              = $gradient_calculation_type # (Not calculated (0), volume-weighed average(1), Superconvergent recovery(2))"
-    puts $fileid "laplacian_calculation_type             = $velocity_laplacian_calculation_type # (Not calculated (0), Finite element projection (1), Superconvergent recovery(2))"
-    puts $fileid "buoyancy_force_type                    = $buoyancy_force_type # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity"
-    puts $fileid "drag_force_type                        = $drag_force_type # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4), Newtonian Regime (5)"
-    puts $fileid "virtual_mass_force_type                = $virtual_mass_force_type # null virtual mass force (0)"
-    puts $fileid "lift_force_type                        = $lift_force_type # null lift force (0), Saffman (1)"
-    puts $fileid "magnus_force_type                      = $magnus_force_type # null magnus force (0), Rubinow and Keller (1), Oesterle and Bui Dihn (2)"
-    puts $fileid "hydro_torque_type                      = $hydro_torque_type # null hydrodynamic torque (0), Dennis (1)"
-    puts $fileid "drag_modifier_type                     = $drag_modifier_type"
-    puts $fileid "viscosity_modification_type            = $viscosity_modification_type"
-    puts $fileid ""
-    puts $fileid "# Parameters not yet settable from interface"
-    puts $fileid ""
-	puts $fileid "coupling_weighing_type                 = 2 # {fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)"
-	puts $fileid "fluid_model_type                       = 1 # untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)"
-	puts $fileid "coupling_scheme_type                   = \"UpdatedFluid\" # \"UpdatedFluid\", \"UpdatedDEM\""
-	puts $fileid "print_particles_results_option         = 0"
-	puts $fileid "add_each_hydro_force_option            = 1 # add each of the hydrodynamic forces (drag, lift and virtual mass)"
-	puts $fileid "project_at_every_substep_option        = 1"
-	puts $fileid "velocity_trap_option                   = 0"
-	puts $fileid "inlet_option                           = 1"
-	puts $fileid "manually_imposed_drag_law_option       = 0"
-	puts $fileid "stationary_problem_option              = 0 # stationary, stop calculating the fluid after it reaches the stationary state"
-	puts $fileid "flow_in_porous_medium_option           = 0 # the porosity is an imposed field"
-	puts $fileid "flow_in_porous_DEM_medium_option       = 0 # the DEM part is kept static"
-	puts $fileid "embedded_option                        = 1 # the embedded domain tools are to be used"
-	puts $fileid "make_results_directories_option        = 1 # results are written into a folder (../results) inside the problem folder"
-	puts $fileid "body_force_on_fluid_option             = 1"
-	puts $fileid "print_debug_info_option                = 0 # print a summary of global physical measures"
-	puts $fileid "print_particles_results_cycle          = 1 # number of 'ticks' per printing cycle"
-	puts $fileid "debug_tool_cycle                       = 10 # number of 'ticks' per debug computations cycle"
-	puts $fileid "similarity_transformation_type         = 0 # no transformation (0), Tsuji (1)"
-	puts $fileid "dem_inlet_element_type                 = \"SphericSwimmingParticle3D\"  # \"SphericParticle3D\", \"SphericSwimmingParticle3D\""
-	puts $fileid "drag_modifier_type                     = 2 # Hayder (2), Chien (3) # problemtype option"
-	puts $fileid "drag_porosity_correction_type          = 0 # No correction (0), Richardson and Zaki (1)"
-	puts $fileid "min_fluid_fraction                     = 0.2"
-	puts $fileid "initial_drag_force                     = 0.0   # problemtype option"
-	puts $fileid "drag_law_slope                         = 0.0   # problemtype option"
-	puts $fileid "power_law_tol                          = 0.0"
-	puts $fileid "model_over_real_diameter_factor        = 1.0 # not active if similarity_transformation_type = 0"
-	puts $fileid "max_pressure_variation_rate_tol        = 1e-3 # for stationary problems, criterion to stop the fluid calculations"
-	puts $fileid "time_steps_per_stationarity_step       = 15 # number of fluid time steps between consecutive assessment of stationarity steps"
-	puts $fileid "meso_scale_length                      = 0.2 # the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)"
-	puts $fileid "shape_factor                           = 0.5 # the density function's maximum over its support's radius (only relevant if coupling_weighing_type == 3)"
-	puts $fileid "#-------------------------------------"
-	puts $fileid "# Swimming DEM-specific section ends"
-	puts $fileid ""
-    }
-    # SWIMMING-SPECIFIC SECTION ENDS ###########################################################################
-
-    puts $fileid ""
-    ::wkcf::WritePostProcessData $fileid
-    puts $fileid ""
-    # Get the problem name
-    set PName [::KUtils::GetPaths "PName"]
-    puts $fileid "#"
-    puts $fileid "problem_name=\"${PName}\""
-
-    # Get the kratos path
-    set KratosPath [::xmlutils::setXml {GeneralApplicationData//c.ProjectConfiguration//i.KratosPath} dv]
-    set KratosPath [file native $KratosPath]
-
-    close $fileid
 }
 
 proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
@@ -2230,6 +1674,19 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	puts $fileid "\"CleanIndentationsOption\"          : false,"
     }
 
+	puts $fileid "\"strategy_parameters\" : {"
+
+	# Remove initially indented balls with walls
+	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RemoveBallsInitiallyTouchingWalls"
+    set RemoveBallsInitiallyTouchingWallsOption [::xmlutils::setXml $cxpath $cproperty]
+  	if {$RemoveBallsInitiallyTouchingWallsOption == "Yes"} {
+		puts $fileid "    \"RemoveBallsInitiallyTouchingWalls\"          : true"
+    } else {
+		puts $fileid "    \"RemoveBallsInitiallyTouchingWalls\"          : false"
+    }
+
+	puts $fileid "},"
+
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
 	# RemoveBallsInEmbedded
 	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RemoveBallsInEmbedded"
@@ -2353,16 +1810,12 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     #puts $fileid "\"DontSearchUntilFailure\"           : \"$DSUF\""
 
     # Contact Mesh Option
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set CMO [::xmlutils::setXml "$rootid//c.DEM-Results//i.DEM-ShowBondElements" dv]
 	if {$CMO eq "Yes"} {
 	    puts $fileid "\"ContactMeshOption\"                : true,"
 	} else {
 	    puts $fileid "\"ContactMeshOption\"                : false,"
 	}
-    } else {
-	puts $fileid "\"ContactMeshOption\"                : false,"
-    }
 
     # Output file Type
     if {"Fluid" in $ActiveAppList} {
@@ -3186,8 +2639,6 @@ proc ::wkcf::WriteDEMElementMeshProperties {AppId} {
 	GiD_File fprintf $filechannel "  ANGULAR_VELOCITY_STOP_TIME $AngularVelocityEndTime"
     }
     GiD_File fprintf $filechannel "  RIGID_BODY_MOTION $RigidBodyMotion"
-    GiD_File fprintf $filechannel "  TABLE_NUMBER $TableNumber"
-    GiD_File fprintf $filechannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
     GiD_File fprintf $filechannel "  IDENTIFIER $cgroupid"
     GiD_File fprintf $filechannel "  End SubModelPartData"
     GiD_File fprintf $filechannel "  Begin SubModelPartNodes"
@@ -3358,6 +2809,8 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
     variable demfemchannel
     variable demfem_ref_to_props_number
     set demfem_ref_to_props_number  0
+	variable demfem_motion_table
+    set demfem_motion_table  0
     global KPriv
     set rootid $AppId
 
@@ -3451,13 +2904,8 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    foreach {FreeBodyMotion RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0 0.0 0.0 0.0 1.0 1.0 1.0 "No"} {}
 	    set type_of_motion [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.DEM-RBImposedMotion" dv]
 	    if {$type_of_motion=="None"} {
-		foreach {LinearVelocityX LinearVelocityY LinearVelocityZ AngularVelocityX AngularVelocityY AngularVelocityZ RigidBodyMotionOption} {0.0 0.0 0.0 0.0 0.0 0.0 0} {}
+		    foreach {LinearVelocityX LinearVelocityY LinearVelocityZ AngularVelocityX AngularVelocityY AngularVelocityZ RigidBodyMotionOption} {0.0 0.0 0.0 0.0 0.0 0.0 0} {}
 	    }
-	if {$type_of_motion=="FromATable"} {
-	    set TableNumber $dem_group_mesh_property_number
-	    set TableVelocityComponent [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.TableVelocityComponent" dv]
-	    set RigidBodyMotionOption 0
-	}
 	if {$type_of_motion=="FreeMotion"} {
 	    set RigidBodyMotionOption 0
 	    set FreeBodyMotion 1
@@ -3468,12 +2916,151 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    set InertiaX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-Inertias//i.IX" dv]
 	    set InertiaY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-Inertias//i.IY" dv]
 	    set InertiaZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-Inertias//i.IZ" dv]
-	    set ExternalFX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalForces//i.FX" dv]
-	    set ExternalFY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalForces//i.FY" dv]
-	    set ExternalFZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalForces//i.FZ" dv]
-	    set ExternalMX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MX" dv]
-	    set ExternalMY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MY" dv]
-	    set ExternalMZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MZ" dv]
+	    #Imposed velocities
+		set imposed_velocity_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Ax" dv]
+		set imposed_velocity_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Ay" dv]
+		set imposed_velocity_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Az" dv]
+		set imposed_angular_velocity_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Bx" dv]
+		set imposed_angular_velocity_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.By" dv]
+		set imposed_angular_velocity_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Bz" dv]
+		foreach {TableNumberVX TableNumberVY TableNumberVZ TableNumberAVX TableNumberAVY TableNumberAVZ} {0 0 0 0 0 0} {}
+	    if {$imposed_velocity_X=="Constant"} {
+			set VelocityX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vx" dv]
+	    }
+	    if {$imposed_velocity_X=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberVX $demfem_motion_table
+	    }
+	    if {$imposed_velocity_Y=="Constant"} {
+			set VelocityY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vy" dv]
+	    }
+	    if {$imposed_velocity_Y=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberVY $demfem_motion_table
+	    }
+	    if {$imposed_velocity_Z=="Constant"} {
+			set VelocityZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vz" dv]
+	    }
+	    if {$imposed_velocity_Z=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberVZ $demfem_motion_table
+	    }
+	    if {$imposed_angular_velocity_X=="Constant"} {
+			set AngularVelocityX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AVx" dv]
+	    }
+	    if {$imposed_angular_velocity_X=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberAVX $demfem_motion_table
+	    }
+	    if {$imposed_angular_velocity_Y=="Constant"} {
+			set AngularVelocityY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AVy" dv]
+	    }
+	    if {$imposed_angular_velocity_Y=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberAVY $demfem_motion_table
+	    }
+	    if {$imposed_angular_velocity_Z=="Constant"} {
+			set AngularVelocityZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AVz" dv]
+	    }
+	    if {$imposed_angular_velocity_Z=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberAVZ $demfem_motion_table
+	    }
+		set velocity_start_time [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VStart" dv]
+	    set velocity_stop_time [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VEnd" dv]
+	    #Initial velocities
+		set initial_velocity_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Ax" dv]
+		set initial_velocity_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Ay" dv]
+		set initial_velocity_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Az" dv]
+		set initial_angular_velocity_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Bx" dv]
+		set initial_angular_velocity_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.By" dv]
+		set initial_angular_velocity_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Bz" dv]
+	    if {$initial_velocity_X=="Yes"} {
+		    set InitialVelocityX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Vx" dv]
+	    }
+	    if {$initial_velocity_Y == "Yes" } {
+		    set InitialVelocityY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Vy" dv]
+	    }
+	    if {$initial_velocity_Z == "Yes" } {
+		    set InitialVelocityZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Vz" dv]
+	    }
+	    if {$initial_angular_velocity_X == "Yes" } {
+		    set InitialAngularVelocityX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.AVx" dv]
+	    }
+	    if {$initial_angular_velocity_Y == "Yes" } {
+		    set InitialAngularVelocityY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.AVy" dv]
+	    }
+	    if {$initial_angular_velocity_Z == "Yes" } {
+		    set InitialAngularVelocityZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.AVz" dv]
+	    }
+        #External forces and moments
+	    set external_force_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
+	    set external_force_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
+	    set external_force_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
+	    set external_moment_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
+	    set external_moment_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
+	    set external_moment_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
+		foreach {TableNumberFX TableNumberFY TableNumberFZ TableNumberMX TableNumberMY TableNumberMZ} {0 0 0 0 0 0} {}
+	    if {$external_force_X=="None"} {
+		    set ExternalFX 0.0
+	    }
+	    if {$external_force_Y=="None"} {
+		    set ExternalFY 0.0
+	    }
+	    if {$external_force_Z=="None"} {
+		    set ExternalFZ 0.0
+	    }
+	    if {$external_force_X=="Constant"} {
+	        set ExternalFX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FX" dv]
+		}
+	    if {$external_force_Y=="Constant"} {
+	        set ExternalFY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FY" dv]
+		}
+	    if {$external_force_Z=="Constant"} {
+	        set ExternalFZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FZ" dv]
+		}
+	    if {$external_force_X=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberFX $demfem_motion_table
+		}
+	    if {$external_force_Y=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberFY $demfem_motion_table
+		}
+	    if {$external_force_Z=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberFZ $demfem_motion_table
+		}
+	    if {$external_moment_X=="None"} {
+		    set ExternalMX 0.0
+	    }
+	    if {$external_moment_Y=="None"} {
+		    set ExternalMY 0.0
+	    }
+	    if {$external_moment_Z=="None"} {
+		    set ExternalMZ 0.0
+	    }
+	    if {$external_moment_X=="Constant"} {
+	        set ExternalMX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MX" dv]
+	    }
+	    if {$external_moment_Y=="Constant"} {
+	        set ExternalMY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MY" dv]
+	    }
+	    if {$external_moment_Z=="Constant"} {
+	        set ExternalMZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MZ" dv]
+	    }
+	    if {$external_moment_X=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberMX $demfem_motion_table
+	    }
+	    if {$external_moment_Y=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberMY $demfem_motion_table
+	    }
+	    if {$external_moment_Z=="FromATable"} {
+			incr demfem_motion_table
+	        set TableNumberMZ $demfem_motion_table
+	    }
 	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.ShipElement"
 		    set Buoyancy [::xmlutils::setXml $cxpath dv]
@@ -3496,6 +3083,129 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		    set dragconstanty [::xmlutils::setXml $cxpath dv]
 		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.DragConstantZ"
 		    set dragconstantz [::xmlutils::setXml $cxpath dv]
+	    }
+
+        #Imposed velocity tables
+	    if {$imposed_velocity_X=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameVx" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberVX TIME VELOCITY_X"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_velocity_Y=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameVy" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberVY TIME VELOCITY_Y"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_velocity_Z=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameVz" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberVZ TIME VELOCITY_Z"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_angular_velocity_X=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameAVx" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberAVX TIME ANGULAR_VELOCITY_X"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_angular_velocity_Y=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameAVy" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberAVY TIME ANGULAR_VELOCITY_Y"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$imposed_angular_velocity_Z=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.FilenameAVz" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberAVZ TIME ANGULAR_VELOCITY_Z"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+        #Imposed external applied force tables
+	    if {$external_force_X=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFX" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFX TIME EXTERNAL_APPLIED_FORCE_X"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+		}
+	    if {$external_force_Y=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFY" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFY TIME EXTERNAL_APPLIED_FORCE_Y"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+		}
+	    if {$external_force_Z=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FilenameFZ" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberFZ TIME EXTERNAL_APPLIED_FORCE_Z"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+	    }
+	    if {$external_moment_X=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.FilenameMX" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMX TIME EXTERNAL_APPLIED_MOMENT_X"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+		}
+	    if {$external_moment_Y=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.FilenameMY" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMY TIME EXTERNAL_APPLIED_MOMENT_Y"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
+		}
+	    if {$external_moment_Z=="FromATable"} {
+			set filename [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.FilenameMZ" dv]
+	        GiD_File fprintf $demfemchannel "Begin Table $TableNumberMZ TIME EXTERNAL_APPLIED_MOMENT_Z"
+	        set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	        set file_data [read $file_open]
+	        close $file_open
+	        GiD_File fprintf -nonewline $demfemchannel $file_data
+	        GiD_File fprintf $demfemchannel "End Table"
+	        GiD_File fprintf $demfemchannel ""
 	    }
 	}
 	    # Write mesh properties for this group
@@ -3521,47 +3231,68 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
 	    #Imposed velocities
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Ax" "dv"] eq "Yes"} {
-		GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_X_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vx" "dv"]"
+	    if {$imposed_velocity_X=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_X_VALUE $VelocityX"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Ay" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Y_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vy" "dv"]"
+	    if {$imposed_velocity_Y=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Y_VALUE $VelocityY"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Az" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Z_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vz" "dv"]"
+	    if {$imposed_velocity_Z=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_Z_VALUE $VelocityZ"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Bx" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_X_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AVx" "dv"]"
+		GiD_File fprintf $demfemchannel "  TABLE_NUMBER_VELOCITY \[3\] ($TableNumberVX,$TableNumberVY,$TableNumberVZ)"
+	    if {$imposed_angular_velocity_X=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_X_VALUE $AngularVelocityX"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.By" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Y_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AVy" "dv"]"
+	    if {$imposed_angular_velocity_Y=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Y_VALUE $AngularVelocityY"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Bz" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Z_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AVz" "dv"]"
+	    if {$imposed_angular_velocity_Z=="Constant"} {
+			GiD_File fprintf $demfemchannel "  IMPOSED_ANGULAR_VELOCITY_Z_VALUE $AngularVelocityZ"
 	    }
+	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_ANGULAR_VELOCITY \[3\] ($TableNumberAVX,$TableNumberAVY,$TableNumberAVZ)"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME $velocity_start_time"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME $velocity_stop_time"
 	    #Initial velocities
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Ax" "dv"] eq "Yes"} {
-		GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_X_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Vx" "dv"]"
+	    if {$initial_velocity_X=="Yes"} {
+		    GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_X_VALUE $InitialVelocityX"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Ay" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_Y_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Vy" "dv"]"
+	    if {$initial_velocity_Y=="Yes"} {
+    		GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_Y_VALUE $InitialVelocityY"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Az" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_Z_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Vz" "dv"]"
+	    if {$initial_velocity_Z=="Yes"} {
+	    	GiD_File fprintf $demfemchannel "  INITIAL_VELOCITY_Z_VALUE $InitialVelocityZ"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Bx" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_X_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.AVx" "dv"]"
+	    if {$initial_angular_velocity_X=="Yes"} {
+		    GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_X_VALUE $InitialAngularVelocityX"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.By" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Y_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.AVy" "dv"]"
+	    if {$initial_angular_velocity_Y=="Yes"} {
+    		GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Y_VALUE $InitialAngularVelocityY"
 	    }
-	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.Bz" "dv"] eq "Yes" } {
-		GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Z_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-InitialVelocities//i.AVz" "dv"]"
+	    if {$initial_angular_velocity_Z=="Yes"} {
+	    	GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Z_VALUE $InitialAngularVelocityZ"
 	    }
-	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VStart" "dv"]"
-	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VEnd" "dv"]"
-	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE \[3\] ($ExternalFX,$ExternalFY,$ExternalFZ)"
-	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT \[3\] ($ExternalMX,$ExternalMY,$ExternalMZ)"
+        #External forces
+	    if {$external_force_X=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_X $ExternalFX"
+		}
+        if {$external_force_Y=="Constant"} {
+	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Y $ExternalFY"
+		}
+        if {$external_force_Z=="Constant"} {
+	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Z $ExternalFZ"
+		}
+	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE \[3\] ($TableNumberFX,$TableNumberFY,$TableNumberFZ)"
+	    if {$external_moment_X=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_X $ExternalMX"
+		}
+	    if {$external_moment_Y=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Y $ExternalMY"
+		}
+	    if {$external_moment_Z=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Z $ExternalMZ"
+		}
+	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT \[3\] ($TableNumberMX,$TableNumberMY,$TableNumberMZ)"
 	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 		GiD_File fprintf $demfemchannel "  FLOATING_OPTION $Buoyancy"
 		GiD_File fprintf $demfemchannel "  DEM_ENGINE_POWER $enginepower"
@@ -3574,8 +3305,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    }
 	    }
         GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
-	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER $TableNumber"
-	    GiD_File fprintf $demfemchannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
 	    GiD_File fprintf $demfemchannel "  IDENTIFIER $cgroupid"
 
 	    set TOP 0
@@ -3606,27 +3335,52 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
             }
             GiD_File fprintf $demfemchannel "  End SubModelPartConditions"
         }
+        GiD_File fprintf $demfemchannel "  Begin SubModelPartTables"
+	if {$type_of_motion=="FreeMotion"} {
+        if {$TableNumberVX>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberVX"
+		}
+        if {$TableNumberVY>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberVY"
+		}
+        if {$TableNumberVZ>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberVZ"
+		}
+        if {$TableNumberAVX>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberAVX"
+		}
+        if {$TableNumberAVY>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberAVY"
+		}
+        if {$TableNumberAVZ>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberAVZ"
+		}
+        if {$TableNumberFX>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberFX"
+		}
+        if {$TableNumberFY>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberFY"
+		}
+        if {$TableNumberFZ>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberFZ"
+		}
+        if {$TableNumberMX>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberMX"
+		}
+        if {$TableNumberMY>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberMY"
+		}
+        if {$TableNumberMZ>0} {
+			GiD_File fprintf $demfemchannel "  $TableNumberMZ"
+		}
+	}
+        GiD_File fprintf $demfemchannel "  End SubModelPartTables"
 	    #
 	    GiD_File fprintf $demfemchannel "End SubModelPart"
 	    GiD_File fprintf $demfemchannel ""
 	    incr demfem_ref_to_props_number
-	    if {$type_of_motion=="FromATable"} {
-	    set filename [::xmlutils::setXml "$rootid//c.DEM-Conditions//c.DEM-FEM-Wall//c.[list ${cgroupid}]//i.VelocitiesFilename" dv]
-	    GiD_File fprintf $demfemchannel "Begin Table $TableNumber TIME VELOCITY"
-	    set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
-	    set file_data [read $file_open]
-	    close $file_open
-	    GiD_File fprintf -nonewline $demfemchannel $file_data
-	    GiD_File fprintf $demfemchannel "End Table"
-	    GiD_File fprintf $demfemchannel ""
-	}
 	}
     }
-    GiD_File fprintf $demfemchannel "Begin Table 0 TIME VELOCITY"
-    GiD_File fprintf $demfemchannel "0.0  0.0"
-    GiD_File fprintf $demfemchannel "1.0  0.0"
-    GiD_File fprintf $demfemchannel "End Table"
-    GiD_File fprintf $demfemchannel ""
 }
 
 
@@ -3778,10 +3532,8 @@ proc ::wkcf::WriteInletGroupMeshProperties {AppId} {
 		GiD_File fprintf $deminletchannel "  ANGULAR_VELOCITY_START_TIME $AngularVelocityStartTime"
 		GiD_File fprintf $deminletchannel "  ANGULAR_VELOCITY_STOP_TIME $AngularVelocityEndTime"
 		GiD_File fprintf $deminletchannel "  RIGID_BODY_MOTION 1"
-		GiD_File fprintf $deminletchannel "  TABLE_NUMBER 0"
 	    } else {
 		GiD_File fprintf $deminletchannel "  RIGID_BODY_MOTION 0"
-		GiD_File fprintf $deminletchannel "  TABLE_NUMBER $TableNumber"
 		GiD_File fprintf $deminletchannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
 		}
 	    GiD_File fprintf $deminletchannel "  IDENTIFIER $cgroupid"

@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
@@ -49,9 +50,11 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalGradient1, KratosNodalGradientFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient1, KratosCoreFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -127,9 +130,11 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalGradient2, KratosNodalGradientFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient2, KratosCoreFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);

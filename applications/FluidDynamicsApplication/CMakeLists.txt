@@ -16,6 +16,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/drag_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/element_size_calculator.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics_record.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vorticity_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/acceleration_limitation_utilities.cpp
 
@@ -26,6 +27,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element_discontinuous.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fic.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step.cpp
@@ -40,6 +42,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes2D.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes3D.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_fluid_navier_stokes.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_element.cpp
 
   # conditions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
@@ -77,6 +80,7 @@ set( KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_python_application.cpp
 )
 

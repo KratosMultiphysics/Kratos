@@ -38,6 +38,7 @@ class RestartUtility(object):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model_part
+        self.model_part_name = model_part.Name
 
         # the path is splitted in case it already contains a path (neeeded if files are moved to a folder)
         self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
@@ -77,7 +78,7 @@ class RestartUtility(object):
 
     #### Public functions ####
 
-    def LoadRestart(self, restart_file_name=""):
+    def LoadRestart(self,  restart_file_name=""):
         """
         This function loads a restart file into a ModelPart
         """
@@ -95,8 +96,8 @@ class RestartUtility(object):
         self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
-        serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
-        serializer.Load(self.model_part.Name, self.model_part)
+        serializer = KratosMultiphysics.FileSerializer(restart_path, self.serializer_flag)
+        serializer.Load(self.model_part_name, self.model_part)
 
         self._ExecuteAfterLoad()
 
@@ -126,7 +127,7 @@ class RestartUtility(object):
         file_name = self.__GetFileNameSave(control_label)
 
         # Save the ModelPart
-        serializer = KratosMultiphysics.Serializer(file_name, self.serializer_flag)
+        serializer = KratosMultiphysics.FileSerializer(file_name, self.serializer_flag)
         serializer.Save(self.model_part.Name, self.model_part)
         if self.echo_level > 0:
             self._PrintOnRankZero("::[Restart Utility]::", "Saved restart file", file_name + ".rest")

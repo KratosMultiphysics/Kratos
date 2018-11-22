@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Antonia Larese
@@ -34,17 +34,17 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;
 
 
 
   PYBIND11_MODULE(KratosFreeSurfaceApplication, pymodule)
   {
 
-	  class_<KratosFreeSurfaceApplication,
+	  py::class_<KratosFreeSurfaceApplication,
 			  KratosFreeSurfaceApplication::Pointer,
 			  KratosApplication >(pymodule,"KratosFreeSurfaceApplication")
-                          .def(init<>())
+                          .def(py::init<>())
 			;
 
 	AddCustomStrategiesToPython(pymodule);

@@ -56,7 +56,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template<class TPlasticPotentialType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerYieldSurface
+class DruckerPragerYieldSurface
 {
 public:
     ///@name Type Definitions
@@ -286,6 +286,27 @@ public:
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
+	/**
+     * @brief This method returns true if the yield
+	 * surfacecompares with the tension tield stress
+     */
+    static bool IsWorkingWithTensionThreshold()
+    {
+        return true;
+    }
+
+	/**
+     * @brief This method returns the scaling factor of the
+     * yield surface
+	 * surfacecompares with the tension tield stress
+     */
+    static double GetScaleFactorTension(const Properties& rMaterialProperties)
+    {
+        const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        const double sin_phi = std::sin(friction_angle);
+        return 1.0 / std::abs((3.0 + sin_phi) / (3.0 * sin_phi - 3.0));
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -360,18 +381,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

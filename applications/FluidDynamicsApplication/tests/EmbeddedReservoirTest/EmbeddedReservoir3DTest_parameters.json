@@ -41,7 +41,6 @@
             "input_type"     : "mdpa",
             "input_filename" : "reservoir_3D"
         },
-        "dynamic_tau"                  : 0.001,
         "echo_level"                   : 0,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
@@ -56,6 +55,11 @@
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 0.1
+        },
+        "formulation": {
+            "element_type": "embedded_navier_stokes",
+            "is_slip": false,
+            "dynamic_tau": 1.0
         }
     },
     "initial_conditions_process_list"  : [],

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "spaces/ublas_space.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
@@ -43,7 +44,8 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
 		{
 
-			ModelPart modelPart("Main");
+			Model current_model;
+			ModelPart& modelPart = current_model.CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -137,8 +139,8 @@ namespace Kratos {
 	    //  */
 	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes3D4N, FluidDynamicsApplicationFastSuite)
 		{
-
-			ModelPart modelPart("Main");
+			Model current_model;
+			ModelPart& modelPart = current_model.CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition

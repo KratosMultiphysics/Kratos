@@ -37,7 +37,7 @@ class MeshSolverBase(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type"           : "mesh_solver_structural_similarity",
-            "buffer_size"           : 3,
+            "buffer_size"           : 1,
             "echo_level"            : 0,
             "domain_size"           : -1,
             "model_part_name"       : "",
@@ -78,7 +78,7 @@ class MeshSolverBase(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.mesh_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.mesh_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.mesh_model_part = model.CreateModelPart(model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
@@ -93,7 +93,6 @@ class MeshSolverBase(PythonSolver):
     def AddVariables(self):
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
-        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_RHS)
         if (self.settings["calculate_mesh_velocities"].GetBool() == True):
             self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.print_on_rank_zero("::[MeshSolverBase]:: Variables ADDED.")
@@ -138,18 +137,17 @@ class MeshSolverBase(PythonSolver):
     def Clear(self):
         self.get_mesh_motion_solving_strategy().Clear()
 
-    def Check(self):
-        self.get_mesh_motion_solving_strategy().Check()
-
     def GetMinimumBufferSize(self):
-        time_order = self.settings["time_order"].GetInt()
-        if time_order == 1:
-            buffer_size = 2
-        elif time_order == 2:
-            buffer_size = 3
-        else:
-            raise Exception('"time_order" can only be 1 or 2!')
-        return max(buffer_size, self.settings["buffer_size"].GetInt())
+        buffer_size = 0
+        if (self.settings["calculate_mesh_velocities"].GetBool() == True):
+            time_order = self.settings["time_order"].GetInt()
+            if time_order == 1:
+                buffer_size = 2
+            elif time_order == 2:
+                buffer_size = 3
+            else:
+                raise Exception('"time_order" can only be 1 or 2!')
+        return max(buffer_size, self.settings["buffer_size"].GetInt(), self.mesh_model_part.GetBufferSize())
 
     def MoveMesh(self):
         self.get_mesh_motion_solving_strategy().MoveMesh()
@@ -161,9 +159,6 @@ class MeshSolverBase(PythonSolver):
     def PrepareModelPart(self):
         if not self.mesh_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self._set_and_fill_buffer()
-
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.mesh_model_part)
 
     def GetComputingModelPart(self):
         return self.mesh_model_part

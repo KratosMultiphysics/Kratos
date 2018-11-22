@@ -42,8 +42,8 @@ namespace Kratos
  *
  * @ingroup StructuralMechanicsApplication
  *
- * @brief This method computes the tonal mass of a structure
- * @details It takes into account the beam, shells and solid elements
+ * @brief This method computes the total mass of a structure
+ * @details It takes into account the nodal-mass, beam, shells and solid elements
  *
  * @author Vicente Mataix Ferrandiz
 */
@@ -56,15 +56,6 @@ public:
 
     /// Pointer definition of TotalStructuralMassProcess
     KRATOS_CLASS_POINTER_DEFINITION(TotalStructuralMassProcess);
-
-    // General type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Point                                           PointType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef Geometry<PointType>                     GeometryPointType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -114,6 +105,8 @@ public:
     ///@{
 
     void Execute() override;
+
+    static double CalculateElementMass(Element& rElement, const std::size_t DomainSize);
 
     ///@}
     ///@name Access
@@ -227,7 +220,7 @@ private:
     TotalStructuralMassProcess& operator=(TotalStructuralMassProcess const& rOther) = delete;
 
     /// Copy constructor.
-    //TotalStructuralMassProcess(TotalStructuralMassProcess const& rOther);
+    TotalStructuralMassProcess(TotalStructuralMassProcess const& rOther) = delete;
 
 
     ///@}

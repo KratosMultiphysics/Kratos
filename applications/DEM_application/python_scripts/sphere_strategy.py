@@ -213,6 +213,10 @@ class ExplicitStrategy(object):
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
         self.spheres_model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
+        if self.contact_mesh_option:
+            self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 1)
+        else:
+            self.spheres_model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, 0)
 
         # PRINTING VARIABLES
 
@@ -221,7 +225,7 @@ class ExplicitStrategy(object):
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
-        os.chdir('..')
+        #-----os.chdir('..')   # check functionality
 
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
@@ -272,14 +276,16 @@ class ExplicitStrategy(object):
 
         self.SetVariablesAndOptions()
 
+        strategy_parameters = self.DEM_parameters["strategy_parameters"]
+
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              self.search_strategy, self.do_search_neighbours)
+                                                              self.search_strategy, strategy_parameters, self.do_search_neighbours)
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             self.search_strategy, self.do_search_neighbours)
+                                                             self.search_strategy, strategy_parameters, self.do_search_neighbours)
 
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
@@ -341,6 +347,9 @@ class ExplicitStrategy(object):
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
+
+    def PrepareContactElementsForPrinting(self):
+        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
 
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 

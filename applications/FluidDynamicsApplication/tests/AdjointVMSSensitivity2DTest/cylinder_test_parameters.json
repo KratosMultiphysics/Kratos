@@ -1,11 +1,6 @@
 {
-    "test_settings" : {
-        "execute_solve" : true
-    },
     "problem_data"                     : {
         "problem_name"    : "cylinder_test",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "start_time"      : 0.0,
         "end_time"        : 0.095,
         "echo_level"      : 0,
@@ -43,9 +38,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
+        "model_part_name"              : "MainModelPart",
+        "domain_size"                  : 2,
         "maximum_iterations"           : 10,
-        "dynamic_tau"                  : 1.0,
-        "oss_switch"                   : 0,
         "echo_level"                   : 0,
         "consider_periodic_conditions" : false,
         "compute_reactions"            : true,
@@ -65,6 +60,11 @@
         "time_stepping"               : {
             "automatic_time_step" : false,
             "time_step"           : 0.01
+        },
+        "stabilization" : {
+            "formulation"              : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 1.0
         }
     },
     "initial_conditions_process_list"  : [],
@@ -139,14 +139,16 @@
             }
         }
     },{
-        "kratos_module" : "KratosMultiphysics.AdjointFluidApplication",
-        "python_module" : "print_drag_process",
-        "help"          : "",
-        "process_name"  : "PrintDragProcess",
-        "Parameters" : {
-        "drag_model_part_name" : "NoSlip2D_Cylinder",
-        "drag_file_name"       : "AdjointVMSSensitivity2DTest/cylinder_test.dat"
-        }
+        "python_module" : "compute_body_fitted_drag_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters" : {
+                "model_part_name"           : "NoSlip2D_Cylinder",
+                "interval"                  : [0.0, 1e30],
+                "write_drag_output_file"    : true,
+                "print_drag_to_screen"      : false,
+                "print_format"              : "22.15e"
+            }
      },{
         "kratos_module"   : "KratosMultiphysics",
         "python_module"   : "point_output_process",
@@ -190,7 +192,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/cylinder_test_probe1.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
-            "decimal_places"      : 7
+            "tolerance"           : 1e-7
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -201,7 +203,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/cylinder_test_probe2.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe2_ref.dat",
             "comparison_type"     : "dat_file",
-	        "decimal_places"      : 7
+            "tolerance"           : 1e-7
         }
     }]
 }

@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
@@ -35,10 +36,10 @@ namespace Kratos
         * Checks the correct work of the binbased fast point locator
         * Test triangle 
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestBinBasedFastPointLocator1, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator1, KratosCoreFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
@@ -116,10 +117,10 @@ namespace Kratos
         * Checks the correct work of the binbased fast point locator
         * Test tetrahedra
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestBinBasedFastPointLocator2, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator2, KratosCoreFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
@@ -276,10 +277,10 @@ namespace Kratos
         * Test triangle for conditions
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestBinBasedFastPointLocator3, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator3, KratosCoreFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("test_model_part",2);
             
             Properties::Pointer p_cond_prop = this_model_part.pGetProperties(0);
             
