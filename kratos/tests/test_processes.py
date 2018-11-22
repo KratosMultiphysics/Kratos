@@ -440,6 +440,52 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(cond.GetValue(PRESSURE), 15.0)
             self.assertEqual(cond.GetValue(VISCOSITY), 2)
 
+    def test_assign_scalar_value_to_elements(self):
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_scalar_variable_to_elements_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignScalarVariableToElementsProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "variable_name": "PRESSURE",
+                            "value" : 15.0
+                        }
+                    },
+                    {
+                        "python_module"   : "assign_scalar_variable_to_elements_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignScalarVariableToElementsProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "variable_name": "VISCOSITY",
+                            "value" : 2
+                        }
+                    }
+                    ]
+                }
+            """
+            )
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for elem in model_part.Elements:
+            self.assertEqual(elem.GetValue(PRESSURE), 15.0)
+            self.assertEqual(elem.GetValue(VISCOSITY), 2)
+
 
     def test_assign_scalar_field_to_conditions(self):
         current_model = Model()
@@ -714,8 +760,8 @@ class TestProcesses(KratosUnittest.TestCase):
                     }
                 ]
             }
-            """)    
- 
+            """)
+
         import process_factory
         list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
@@ -743,6 +789,71 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for cond in model_part.Conditions:
             tmp = cond.GetValue(DISPLACEMENT)
+            self.assertEqual(tmp[0], 2.0*8.0-0.75)
+            self.assertEqual(tmp[1], 0.0)
+            self.assertEqual(tmp[2], 0.0)
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+    def test_assign_vector_variable_to_elements(self):
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+
+        model_part.CreateNewNode(1,0.5,0.5,0.5)
+        model_part.CreateNewNode(2,1.0,1.0,1.0)
+
+        model_part.CreateNewElement("Element2D2N",1,[1,2], model_part.GetProperties()[1])
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module" : "assign_vector_by_direction_to_element_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorByDirectionToElementProcess",
+                        "Parameters"            : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "DISPLACEMENT",
+                            "modulus"         : "2.0*t-y",
+                            "direction"       : [1.0,0.0,0.0],
+                            "interval"        : [0.0,"End"]
+                            }
+                    }
+                ]
+            }
+            """)    
+ 
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        ################### here we are within the interval
+        model_part.CloneTimeStep(3.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for elem in model_part.Elements:
+            tmp = elem.GetValue(DISPLACEMENT)
+            self.assertEqual(tmp[0], 2.0*3.0-0.75)
+            self.assertEqual(tmp[1], 0.0)
+            self.assertEqual(tmp[2], 0.0)
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+
+        ################### here we are outside of the interval - values do not change but everything is free
+        model_part.CloneTimeStep(8.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for elem in model_part.Elements:
+            tmp = elem.GetValue(DISPLACEMENT)
             self.assertEqual(tmp[0], 2.0*8.0-0.75)
             self.assertEqual(tmp[1], 0.0)
             self.assertEqual(tmp[2], 0.0)
