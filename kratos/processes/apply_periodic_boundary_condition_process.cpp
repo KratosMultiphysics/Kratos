@@ -43,19 +43,12 @@ namespace Kratos
         // Initializing
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-        mCenterOfRotation.push_back(mParameters["center"][0].GetDouble());
-        mCenterOfRotation.push_back(mParameters["center"][1].GetDouble());
-        mCenterOfRotation.push_back(mParameters["center"][2].GetDouble());
 
-        mAxisOfRotationVector.push_back(mParameters["axis_of_rotation"][0].GetDouble());
-        mAxisOfRotationVector.push_back(mParameters["axis_of_rotation"][1].GetDouble());
-        mAxisOfRotationVector.push_back(mParameters["axis_of_rotation"][2].GetDouble());
+        mCenterOfRotation = mParameters["center"].GetVector()
+        mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector()
+        mDirOfTranslation = mParameters["dir_of_translation"].GetVector()
 
         mModulus = mParameters["magnitude"].GetDouble();
-        mDirOfTranslation.push_back(mParameters["dir_of_translation"][0].GetDouble());
-        mDirOfTranslation.push_back(mParameters["dir_of_translation"][1].GetDouble());
-        mDirOfTranslation.push_back(mParameters["dir_of_translation"][2].GetDouble());
-
         mTheta = mParameters["angle"].GetDouble() * 2 * 3.1416 / 360.0;
 
         mTransformationMatrix.resize(4,4);

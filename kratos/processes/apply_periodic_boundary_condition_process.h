@@ -91,11 +91,11 @@ class ApplyPeriodicConditionProcess : public Process
     Parameters mParameters;          // parameters
     double mTheta;
     bool mIsInitialized;
-    std::vector<double> mCenterOfRotation;
-    std::vector<double> mAxisOfRotationVector;
+    DenseVector<double> mCenterOfRotation;
+    DenseVector<double> mAxisOfRotationVector;
     std::string mType;
     double mModulus;
-    std::vector<double> mDirOfTranslation;
+    DenseVector<double> mDirOfTranslation;
 
     /**
      * @brief  Function to remove the common nodes of slave and master modelparts from the slave modelpart
