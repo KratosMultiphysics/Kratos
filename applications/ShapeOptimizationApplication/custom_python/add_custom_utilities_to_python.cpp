@@ -116,7 +116,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // For performing individual steps of an optimization algorithm
     // ========================================================================
     py::class_<OptimizationUtilities >(m, "OptimizationUtilities")
-        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<ModelPart&, Parameters&>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
@@ -131,6 +131,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // ----------------------------------------------------------------
         .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
         .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
+        .def("ComputeL2NormOfNodalVariable", &OptimizationUtilities::ComputeL2NormOfNodalVariable)
+        .def("ComputeMaxNormOfNodalVariable", &OptimizationUtilities::ComputeMaxNormOfNodalVariable)
         ;
 
     // ========================================================================

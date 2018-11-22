@@ -106,21 +106,11 @@ public:
         double step_size = mOptimizationSettings["optimization_algorithm"]["line_search"]["step_size"].GetDouble();
         bool normalize_search_direction = mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool();
 
-
         // Computation of update of design variable. Normalization is applied if specified.
         if(normalize_search_direction)
         {
             // Compute max norm of search direction
-            double max_norm_search_dir = 0.0;
-            for (auto & node_i : mrDesignSurface.Nodes())
-            {
-                array_3d& search_dir = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
-                double squared_length = inner_prod(search_dir,search_dir);
-
-                if(squared_length>max_norm_search_dir)
-                    max_norm_search_dir = squared_length;
-            }
-            max_norm_search_dir = std::sqrt(max_norm_search_dir);
+            double max_norm_search_dir = ComputeMaxNormOfNodalVariable(SEARCH_DIRECTION);
 
             // Normalize by max norm
             if(max_norm_search_dir>1e-10)
@@ -147,6 +137,33 @@ public:
     {
         for (auto & node_i : mrDesignSurface.Nodes())
             noalias(node_i.FastGetSolutionStepValue(rSecondVariable)) += node_i.FastGetSolutionStepValue(rFirstVariable);
+    }
+
+    // --------------------------------------------------------------------------
+    double ComputeL2NormOfNodalVariable( const Variable<array_3d> &rVariable)
+    {
+        double l2_norm = 0.0;
+        for (auto & node_i : mrDesignSurface.Nodes())
+        {
+            array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
+            l2_norm += inner_prod(variable_vector,variable_vector);
+        }
+        return std::sqrt(l2_norm);
+    }
+
+    // --------------------------------------------------------------------------
+    double ComputeMaxNormOfNodalVariable( const Variable<array_3d> &rVariable)
+    {
+        double max_norm = 0.0;
+        for (auto & node_i : mrDesignSurface.Nodes())
+        {
+            array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
+            double squared_value = inner_prod(variable_vector,variable_vector);
+
+            if(squared_value>max_norm)
+                max_norm = squared_value;
+        }
+        return std::sqrt(max_norm);
     }
 
     // ==============================================================================
