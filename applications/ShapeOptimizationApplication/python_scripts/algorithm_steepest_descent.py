@@ -149,13 +149,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __performLineSearch(self):
         current_step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
 
-        fa1 = self.Communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
+        f0 = self.Communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
 
-        df1da1 = 0.0
+        dfda = 0.0
         for node in self.DesignSurface.Nodes:
-            vec1 = 1/current_step_size*node.GetSolutionStepValue(SHAPE_UPDATE)
+            vec1 = 1/current_step_size * node.GetSolutionStepValue(SHAPE_UPDATE)
             vec2 = node.GetSolutionStepValue(DF1DX)
-            df1da1 = df1da1 + vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]
+            dfda = dfda + vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]
 
         old_node_coordinates = []
         for node in self.OptimizationModelPart.Nodes:
@@ -170,19 +170,25 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.Communicator.requestValueOf(self.only_obj["identifier"].GetString())
         self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimization_iteration, self.Communicator)
 
-        fa2 = self.Communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
+        fa = self.Communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
 
-        a1 = 0
-        a2 = 1
+        is_decrease_condition_fullfilled = fa < f0 + 1e-4*current_step_size*dfda
 
-        a_optimized = a1 - 0.5* (a1-a2) * df1da1 / (df1da1 - (fa1-fa2)/(a1-a2) )
+        if is_decrease_condition_fullfilled:
+            return
+        else:
+            a = current_step_size
 
-        a_optimized = min(a_optimized,1)
+            # aparab = (fa - f0 - dfda * a ) / a**2
+            # bparab = dfda
+            # cparab = f0
 
-        # Update shape update and reset additional mesh motion
-        for node in self.DesignSurface.Nodes:
-            corrected_update = a_optimized*node.GetSolutionStepValue(SHAPE_UPDATE)
-            node.SetSolutionStepValue(SHAPE_UPDATE, corrected_update)
+            a_optimized = - 0.5 * dfda * a**2 / (fa - f0 - dfda * a )
+
+            # Update shape update and reset additional mesh motion
+            for node in self.DesignSurface.Nodes:
+                corrected_update = a_optimized*node.GetSolutionStepValue(SHAPE_UPDATE)
+                node.SetSolutionStepValue(SHAPE_UPDATE, corrected_update)
 
         for counter, node in enumerate(self.OptimizationModelPart.Nodes):
             node.X = old_node_coordinates[3*counter+0]
@@ -193,11 +199,11 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             node.Y0 = node.Y
             node.Z0 = node.Z
 
-        # Update step size
-        new_step_size = a_optimized * current_step_size
-        self.algorithm_settings["line_search"]["step_size"].SetDouble(new_step_size)
+            # Update step size
+            # new_step_size = a_optimized * current_step_size
+            self.algorithm_settings["line_search"]["step_size"].SetDouble(a_optimized)
 
-        self.Communicator.reportValue(self.only_obj["identifier"].GetString(), fa1)
+        self.Communicator.reportValue(self.only_obj["identifier"].GetString(), f0)
 
         # # Go half way back
         # for node in self.DesignSurface.Nodes:
