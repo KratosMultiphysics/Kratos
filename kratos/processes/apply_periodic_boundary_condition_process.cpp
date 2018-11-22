@@ -134,6 +134,11 @@ namespace Kratos
     template <int TDim>
     void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     {
+        auto& root_model_part = mrMasterModelPart.GetRootModelPart();
+        root_model_part.MasterSlaveConstraints().Sort();
+        auto last_constraint_it = root_model_part.MasterSlaveConstraintsEnd()- 1;
+        mLastIndex = last_constraint_it->Id();
+
         const double start_apply = OpenMPUtils::GetCurrentTime();
         const int num_vars = mParameters["variable_names"].size();
         BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
@@ -207,30 +212,46 @@ namespace Kratos
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
         {
-                const double master_weight = rWeights(master_index);
+            const double master_weight = rWeights(master_index);
 
-                const double constant_x = master_weight * mTransformationMatrixVariable(0,3);
-                const double constant_y = master_weight * mTransformationMatrixVariable(1,3);
-                const double constant_z = master_weight * mTransformationMatrixVariable(2,3);
+            const double constant_x = master_weight * mTransformationMatrixVariable(0,3);
+            const double constant_y = master_weight * mTransformationMatrixVariable(1,3);
+            const double constant_z = master_weight * mTransformationMatrixVariable(2,3);
 
-                #pragma omp critical
-                {
-                    int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
+            auto constraint1 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+1)*rSlaveNode.Id(), rSlaveNode.Id()+9 ),
+                                                            master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
+            auto constraint2 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+2)*rSlaveNode.Id(), rSlaveNode.Id()+8 ),
+                                                            master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
+            auto constraint3 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+3)*rSlaveNode.Id(), rSlaveNode.Id()+7 ),
+                                                            master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
 
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
+            auto constraint4 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+4)*rSlaveNode.Id(), rSlaveNode.Id()+6 ),
+                                                            master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
+            auto constraint5 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+5)*rSlaveNode.Id(), rSlaveNode.Id()+5 ),
+                                                            master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
+            auto constraint6 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+6)*rSlaveNode.Id(), rSlaveNode.Id()+4 ),
+                                                            master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
 
-                    if (TDim == 3)
-                    {
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
-                    }
-                }
+            rConstraintsBuffer.push_back(constraint1);
+            rConstraintsBuffer.push_back(constraint2);
+            rConstraintsBuffer.push_back(constraint3);
+            rConstraintsBuffer.push_back(constraint4);
+            rConstraintsBuffer.push_back(constraint5);
+            rConstraintsBuffer.push_back(constraint6);
+
+            if (TDim == 3)
+            {
+                auto constraint7 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+7)*rSlaveNode.Id(), rSlaveNode.Id()+3 ),
+                                                                master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
+                auto constraint8 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+8)*rSlaveNode.Id(), rSlaveNode.Id()+2 ),
+                                                                master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
+                auto constraint9 = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id()+9)*rSlaveNode.Id(), rSlaveNode.Id()+1 ),
+                                                                master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
+
+                rConstraintsBuffer.push_back(constraint7);
+                rConstraintsBuffer.push_back(constraint8);
+                rConstraintsBuffer.push_back(constraint9);
+            }
 
             master_index++;
         }
@@ -242,15 +263,16 @@ namespace Kratos
     {
         const VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
 
+        // Reference constraint
+        const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
         {
             const double master_weight = rWeights(master_index);
-            #pragma omp critical
-            {
-                int current_num_constraint = mrMasterModelPart.NumberOfMasterSlaveConstraints();
-                mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
-            }
+            auto constraint = r_clone_constraint.Create(ComputeCantorPairing( (master_node.Id())*rSlaveNode.Id(), rSlaveNode.Id() ),
+                                                            master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
+            rConstraintsBuffer.push_back(constraint);
             master_index++;
         }
     }

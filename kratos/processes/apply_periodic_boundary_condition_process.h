@@ -98,6 +98,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     std::string mType;
     double mMagnitude;
     DenseVector<double> mDirOfTranslation;
+    IndexType mLastIndex;
 
     /**
      * @brief  Function to remove the common nodes of slave and master modelparts from the slave modelpart
