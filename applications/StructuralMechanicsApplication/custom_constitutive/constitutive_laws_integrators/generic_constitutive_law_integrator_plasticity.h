@@ -547,12 +547,6 @@ class GenericConstitutiveLawIntegratorPlasticity
         const double ultimate_stress = r_material_properties[MAXIMUM_STRESS];              // sikpi
         const double max_stress_position = r_material_properties[MAXIMUM_STRESS_POSITION]; // cappi
 
-        // KRATOS_WATCH(TensileIndicatorFactor)
-        // KRATOS_WATCH(CompressionIndicatorFactor)
-        // KRATOS_WATCH(rEquivalentStressThreshold)
-        // KRATOS_WATCH(rSlope)
-        // KRATOS_WATCH(PlasticDissipation)
-
         if (PlasticDissipation < 1.0) {
             const double ro = std::sqrt(1.0 - initial_threshold / ultimate_stress);
             double alpha = std::log((1.0 - (1.0 - ro) * (1.0 - ro)) / ((3.0 - ro) * (1.0 + ro) * max_stress_position));
