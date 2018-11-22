@@ -178,7 +178,10 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             else:
                 # Search approximation of optimal step using interpolation
                 a = current_step_size
-                new_step_size = - 0.5 * dfd0 * a**2 / (fa - f0 - dfd0 * a )
+                corrected_step_size = - 0.5 * dfd0 * a**2 / (fa - f0 - dfd0 * a )
+
+                # Starting from the new design, and assuming an opposite gradient direction, the step size to the approximated optimum behaves reciprocal
+                new_step_size = current_step_size-corrected_step_size
 
             self.algorithm_settings["line_search"]["step_size"].SetDouble(new_step_size)
 
