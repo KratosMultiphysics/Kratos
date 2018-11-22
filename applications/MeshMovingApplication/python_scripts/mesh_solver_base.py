@@ -137,9 +137,6 @@ class MeshSolverBase(PythonSolver):
     def Clear(self):
         self.get_mesh_motion_solving_strategy().Clear()
 
-    def Check(self):
-        self.get_mesh_motion_solving_strategy().Check()
-
     def GetMinimumBufferSize(self):
         buffer_size = 0
         if (self.settings["calculate_mesh_velocities"].GetBool() == True):

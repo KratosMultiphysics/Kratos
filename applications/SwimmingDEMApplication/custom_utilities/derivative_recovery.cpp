@@ -145,6 +145,17 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
 
     KRATOS_INFO("DEM-FLUID") << "Finished constructing the material derivative by derivating nodal averages..." << std::endl;
 }
+//***************************************************************************************************************
+//***************************************************************************************************************
+template <std::size_t TDim>
+void DerivativeRecovery<TDim>::RecoverLagrangianAcceleration(ModelPart& r_model_part)
+{
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        const array_1d <double, 3>& lagrangian_acceleration = inode->FastGetSolutionStepValue(ACCELERATION);
+        array_1d <double, 3>& material_acceleration = inode->FastGetSolutionStepValue(MATERIAL_ACCELERATION);
+        noalias(material_acceleration) = lagrangian_acceleration;
+    }
+}
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 // This function modifies the material derivative using the pre-computed value of the gradient
