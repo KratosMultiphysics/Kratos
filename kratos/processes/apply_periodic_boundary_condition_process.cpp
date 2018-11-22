@@ -80,10 +80,10 @@ namespace Kratos
     void ApplyPeriodicConditionProcess::RemoveCommonNodesFromSlaveModelPart()
     {
         const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
-        const ModelPart::NodeIterator it_slave_node_begin = mrSlaveModelPart.NodesBegin();
+        const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.NodesBegin();
         for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
         {
-            ModelPart::NodeIterator it_slave_node = it_slave_node_begin;
+            NodeIteratorType it_slave_node = it_slave_node_begin;
             std::advance(it_slave_node, i_node);
             auto iterator = mrMasterModelPart.Nodes().find(it_slave_node->Id());
             if(iterator != mrMasterModelPart.NodesEnd()){
@@ -147,14 +147,14 @@ namespace Kratos
         typename BinBasedFastPointLocatorConditions<TDim>::ResultIteratorType result_begin = results.begin();
 
         const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
-        const ModelPart::NodeIterator it_slave_node_begin = mrSlaveModelPart.NodesBegin();
+        const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.NodesBegin();
 
         unsigned int num_slaves_found = 0;
 #pragma omp parallel for schedule(guided, 512)
         for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
         {
             Condition::Pointer p_host_cond;
-            ModelPart::NodeIterator it_slave_node = it_slave_node_begin;
+            NodeIteratorType it_slave_node = it_slave_node_begin;
             std::advance(it_slave_node, i_node);
             array_1d<double, 3 > transformed_slave_coordinates;
             TransformNode(it_slave_node->Coordinates(), transformed_slave_coordinates);
