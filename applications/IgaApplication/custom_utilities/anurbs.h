@@ -23,19 +23,19 @@
 namespace ANurbs {
 namespace Internals {
 
-template <typename TScalar, int TDimension>
+template <typename TScalar, std::size_t TDimension>
 struct Dimension<Kratos::array_1d<TScalar, TDimension>>
 {
-    static int constexpr value = TDimension;
+    static int constexpr value = static_cast<int>(TDimension);
 };
 
-template <typename TScalar, int TDimension>
+template <typename TScalar, std::size_t TDimension>
 struct Scalar<Kratos::array_1d<TScalar, TDimension>>
 {
     using type = TScalar;
 };
 
-template <typename TScalar, int TDimension>
+template <typename TScalar, std::size_t TDimension>
 struct Zero<Kratos::array_1d<TScalar, TDimension>>
 {
     static Kratos::array_1d<TScalar, TDimension> get()
