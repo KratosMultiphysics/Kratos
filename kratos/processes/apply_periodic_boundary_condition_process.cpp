@@ -69,7 +69,6 @@ namespace Kratos
         mIsInitialized = false;
     }
 
-
     ApplyPeriodicConditionProcess::~ApplyPeriodicConditionProcess()
     {
     }
@@ -150,32 +149,43 @@ namespace Kratos
         const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.NodesBegin();
 
         unsigned int num_slaves_found = 0;
-#pragma omp parallel for schedule(guided, 512)
-        for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
-        {
-            Condition::Pointer p_host_cond;
-            NodeIteratorType it_slave_node = it_slave_node_begin;
-            std::advance(it_slave_node, i_node);
-            array_1d<double, 3 > transformed_slave_coordinates;
-            TransformNode(it_slave_node->Coordinates(), transformed_slave_coordinates);
 
-            // Finding the host element for this node
-            const bool is_found = bin_based_point_locator.FindPointOnMesh(transformed_slave_coordinates, shape_function_values, p_host_cond, result_begin, max_results);
-            if(is_found)
+        #pragma omp parallel reduction( + : num_slaves_found )
+        {
+            ConstraintContainerType constraints_buffer;
+
+            #pragma omp parallel for schedule(guided, 512)
+            for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
             {
-                ++num_slaves_found;
-                for (int j = 0; j < num_vars; j++)
+                Condition::Pointer p_host_cond;
+                NodeIteratorType it_slave_node = it_slave_node_begin;
+                std::advance(it_slave_node, i_node);
+                array_1d<double, 3 > transformed_slave_coordinates;
+                TransformNode(it_slave_node->Coordinates(), transformed_slave_coordinates);
+
+                // Finding the host element for this node
+                const bool is_found = bin_based_point_locator.FindPointOnMesh(transformed_slave_coordinates, shape_function_values, p_host_cond, result_begin, max_results);
+                if(is_found)
                 {
-                    const std::string var_name = mParameters["variable_names"][j].GetString();
-                    // Checking if the variable is a vector variable
-                    if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
-                    {   // TODO: Look for a better alternative to do this.
-                        ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
-                    } else if (KratosComponents<VariableType>::Has(var_name))
+                    ++num_slaves_found;
+                    for (int j = 0; j < num_vars; j++)
                     {
-                        ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
+                        const std::string var_name = mParameters["variable_names"][j].GetString();
+                        // Checking if the variable is a vector variable
+                        if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
+                        {   // TODO: Look for a better alternative to do this.
+                            ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name, constraints_buffer);
+                        } else if (KratosComponents<VariableType>::Has(var_name))
+                        {
+                            ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name, constraints_buffer);
+                        }
                     }
                 }
+            }
+
+            #pragma omp critical
+            {
+                mrMasterModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
             }
         }
         KRATOS_WARNING_IF("",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
@@ -184,11 +194,15 @@ namespace Kratos
     }
 
     template <int TDim>
-    void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName )
+    void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
+                                                                                            const std::string& rVarName, ConstraintContainerType& rConstraintsBuffer )
     {
         const VariableComponentType& r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
         const VariableComponentType& r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
         const VariableComponentType& r_var_z = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Z"));
+
+        // Reference constraint
+        const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
@@ -223,7 +237,8 @@ namespace Kratos
     }
 
     template <int TDim>
-    void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName )
+    void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights,
+                                                                                            const std::string& rVarName, ConstraintContainerType& rConstraintsBuffer )
     {
         const VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
 
@@ -337,6 +352,12 @@ namespace Kratos
         }
 
         rTransformedCoordinates(0) = transformed_node[0]; rTransformedCoordinates(1) = transformed_node[1]; rTransformedCoordinates(2) = transformed_node[2];
+    }
+
+
+    ApplyPeriodicConditionProcess::IndexType ApplyPeriodicConditionProcess::ComputeCantorPairing(const IndexType NumOne, const IndexType NumTwo)
+    {
+        return (0.5*(NumOne+NumTwo+1)*(NumOne+NumTwo)) + NumTwo;
     }
 
 }  // namespace Kratos.

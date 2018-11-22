@@ -54,6 +54,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     typedef Matrix                                          MatrixType;
     typedef Vector                                          VectorType;
     typedef Geometry<NodeType>                              GeometryType;
+    typedef ModelPart::MasterSlaveConstraintContainerType   ConstraintContainerType;
 
     /**
      * @brief Constructor of the process to apply periodic boundary condition
@@ -120,7 +121,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rVarName The name of the vector variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName );
+    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName, ConstraintContainerType& rConstraintsBuffer );
 
     /**
      * @brief   The function adds the linear master-slave constraint to mrMasterModelPart. This function is specifically for applying
@@ -132,7 +133,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rVarName The name of the scalar variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName );
+    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName, ConstraintContainerType& rConstraintsBuffer );
 
     /**
      * @brief   Calculate the transformation matrix to account for the moving the two periodic condition modelparts together.
@@ -161,6 +162,16 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rTransformedCoordinates The new coordinates which are transformed with rTransformationMatrix.
      */
     void TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates);
+
+
+    /*
+     * @brief Computes the CantorPair of given two numbers. The pair number generated is used as the id for the constraint added.
+     * @see   https://en.wikipedia.org/wiki/Pairing_function
+     * @param NumOne First number
+     * @param NumTwo Second number
+     */
+    IndexType ComputeCantorPairing(const IndexType NumOne, const IndexType NumTwo);
+
 
 }; // Class
 
