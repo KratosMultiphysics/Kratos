@@ -61,6 +61,28 @@ array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValu
     return global_value;
 }
 
+std::vector<int> MPIDataCommunicator::Sum(const std::vector<int>& rLocalValues, const int Root) const
+{
+    std::vector<int> reduced_values;
+    if (Rank() == Root)
+    {
+        reduced_values.resize(rLocalValues.size());
+    }
+    ReduceDetail(rLocalValues, reduced_values, MPI_SUM, Root);
+    return reduced_values;
+}
+
+std::vector<double> MPIDataCommunicator::Sum(const std::vector<double>& rLocalValues, const int Root) const
+{
+    std::vector<double> reduced_values;
+    if (Rank() == Root)
+    {
+        reduced_values.resize(rLocalValues.size());
+    }
+    ReduceDetail(rLocalValues, reduced_values, MPI_SUM, Root);
+    return reduced_values;
+}
+
 void MPIDataCommunicator::Sum(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
@@ -98,6 +120,28 @@ array_1d<double,3> MPIDataCommunicator::Min(const array_1d<double,3>& rLocalValu
     return global_value;
 }
 
+std::vector<int> MPIDataCommunicator::Min(const std::vector<int>& rLocalValues, const int Root) const
+{
+    std::vector<int> reduced_values;
+    if (Rank() == Root)
+    {
+        reduced_values.resize(rLocalValues.size());
+    }
+    ReduceDetail(rLocalValues, reduced_values, MPI_MIN, Root);
+    return reduced_values;
+}
+
+std::vector<double> MPIDataCommunicator::Min(const std::vector<double>& rLocalValues, const int Root) const
+{
+    std::vector<double> reduced_values;
+    if (Rank() == Root)
+    {
+        reduced_values.resize(rLocalValues.size());
+    }
+    ReduceDetail(rLocalValues, reduced_values, MPI_MIN, Root);
+    return reduced_values;
+}
+
 void MPIDataCommunicator::Min(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
@@ -133,6 +177,28 @@ array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValu
     array_1d<double,3> global_value(rLocalValue);
     ReduceDetail(rLocalValue,global_value,MPI_MAX,Root);
     return global_value;
+}
+
+std::vector<int> MPIDataCommunicator::Max(const std::vector<int>& rLocalValues, const int Root) const
+{
+    std::vector<int> reduced_values;
+    if (Rank() == Root)
+    {
+        reduced_values.resize(rLocalValues.size());
+    }
+    ReduceDetail(rLocalValues,reduced_values,MPI_MAX,Root);
+    return reduced_values;
+}
+
+std::vector<double> MPIDataCommunicator::Max(const std::vector<double>& rLocalValues, const int Root) const
+{
+    std::vector<double> reduced_values;
+    if (Rank() == Root)
+    {
+        reduced_values.resize(rLocalValues.size());
+    }
+    ReduceDetail(rLocalValues,reduced_values,MPI_MAX,Root);
+    return reduced_values;
 }
 
 void MPIDataCommunicator::Max(
@@ -174,6 +240,20 @@ array_1d<double,3> MPIDataCommunicator::SumAll(const array_1d<double,3>& rLocalV
     return global_value;
 }
 
+std::vector<int> MPIDataCommunicator::SumAll(const std::vector<int>& rLocalValues) const
+{
+    std::vector<int> global_values(rLocalValues.size());
+    AllReduceDetail(rLocalValues,global_values,MPI_SUM);
+    return global_values;
+}
+
+std::vector<double> MPIDataCommunicator::SumAll(const std::vector<double>& rLocalValues) const
+{
+    std::vector<double> global_values(rLocalValues.size());
+    AllReduceDetail(rLocalValues,global_values,MPI_SUM);
+    return global_values;
+}
+
 void MPIDataCommunicator::SumAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
@@ -207,6 +287,20 @@ array_1d<double,3> MPIDataCommunicator::MinAll(const array_1d<double,3>& rLocalV
     array_1d<double,3> global_value(rLocalValue);
     AllReduceDetail(rLocalValue,global_value,MPI_MIN);
     return global_value;
+}
+
+std::vector<int> MPIDataCommunicator::MinAll(const std::vector<int>& rLocalValues) const
+{
+    std::vector<int> global_values(rLocalValues.size());
+    AllReduceDetail(rLocalValues,global_values,MPI_MIN);
+    return global_values;
+}
+
+std::vector<double> MPIDataCommunicator::MinAll(const std::vector<double>& rLocalValues) const
+{
+    std::vector<double> global_values(rLocalValues.size());
+    AllReduceDetail(rLocalValues,global_values,MPI_MIN);
+    return global_values;
 }
 
 void MPIDataCommunicator::MinAll(
@@ -244,6 +338,20 @@ array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalV
     return global_value;
 }
 
+std::vector<int> MPIDataCommunicator::MaxAll(const std::vector<int>& rLocalValues) const
+{
+    std::vector<int> global_values(rLocalValues);
+    AllReduceDetail(rLocalValues,global_values,MPI_MAX);
+    return global_values;
+}
+
+std::vector<double> MPIDataCommunicator::MaxAll(const std::vector<double>& rLocalValues) const
+{
+    std::vector<double> global_values(rLocalValues);
+    AllReduceDetail(rLocalValues,global_values,MPI_MAX);
+    return global_values;
+}
+
 void MPIDataCommunicator::MaxAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const
@@ -271,6 +379,20 @@ double MPIDataCommunicator::ScanSum(const double rLocalValue) const
 {
     double partial_total;
     ScanDetail(rLocalValue,partial_total,MPI_SUM);
+    return partial_total;
+}
+
+std::vector<int> MPIDataCommunicator::ScanSum(const std::vector<int>& rLocalValues) const
+{
+    std::vector<int> partial_total(rLocalValues.size());
+    ScanDetail(rLocalValues,partial_total,MPI_SUM);
+    return partial_total;
+}
+
+std::vector<double> MPIDataCommunicator::ScanSum(const std::vector<double>& rLocalValues) const
+{
+    std::vector<double> partial_total(rLocalValues.size());
+    ScanDetail(rLocalValues,partial_total,MPI_SUM);
     return partial_total;
 }
 

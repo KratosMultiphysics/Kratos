@@ -106,6 +106,28 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Sum rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contribution to the sum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The summed quantity (meaningful only in Root).
+     */
+    virtual std::vector<int> Sum(const std::vector<int>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
+    /// Sum rLocalValues across all ranks in the Communicator (double version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contribution to the sum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The summed quantity (meaningful only in Root).
+     */
+    virtual std::vector<double> Sum(const std::vector<double>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
     /// Sum rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the sum.
@@ -161,6 +183,28 @@ class DataCommunicator
     virtual array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
+    }
+
+    /// Obtain the minimum of rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local values to consider in computing the minimum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The minimum values (meaningful only in Root).
+     */
+    virtual std::vector<int> Min(const std::vector<int>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
+    /// Obtain the minimum of rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local values to consider in computing the minimum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The minimum values (meaningful only in Root).
+     */
+    virtual std::vector<double> Min(const std::vector<double>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
     }
 
     /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (int version).
@@ -220,6 +264,28 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Obtain the maximum of rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local values to consider in computing the maximum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The maximum values (meaningful only in Root).
+     */
+    virtual std::vector<int> Max(const std::vector<int>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
+    /// Obtain the maximum of rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local values to consider in computing the maximum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The maximum values (meaningful only in Root).
+     */
+    virtual std::vector<double> Max(const std::vector<double>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
     /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the maximum.
@@ -276,6 +342,26 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Sum rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Alleduce.
+     *  @param[in] rLocalValues Local contribution to the sum.
+     *  @return The summed quantites.
+     */
+    virtual std::vector<int> SumAll(const std::vector<int>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
+    /// Sum rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Alleduce.
+     *  @param[in] rLocalValues Local contribution to the sum.
+     *  @return The summed quantities.
+     */
+    virtual std::vector<double> SumAll(const std::vector<double>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
     /// Sum rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the sum.
@@ -324,6 +410,26 @@ class DataCommunicator
     virtual array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const
     {
         return rLocalValue;
+    }
+
+    /// Obtain the minima of rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local values to consider in computing minima.
+     *  @return The minimum values.
+     */
+    virtual std::vector<int> MinAll(const std::vector<int>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
+    /// Obtain the minima of rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local values to consider in computing minima.
+     *  @return The minimum values.
+     */
+    virtual std::vector<double> MinAll(const std::vector<double>& rLocalValues) const
+    {
+        return rLocalValues;
     }
 
     /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (int version).
@@ -376,6 +482,26 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Obtain the maxima of rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local values to consider in computing maxima.
+     *  @return The maximum values.
+     */
+    virtual std::vector<int> MaxAll(const std::vector<int>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
+    /// Obtain the maxima of rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local values to consider in computing maxima.
+     *  @return The maximum values.
+     */
+    virtual std::vector<double> MaxAll(const std::vector<double>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
     /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the maximum.
@@ -418,6 +544,28 @@ class DataCommunicator
     virtual double ScanSum(const double rLocalValue) const
     {
         return rLocalValue;
+    }
+
+    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (int vector version).
+    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
+     *  This is a wrapper to MPI_Scan.
+     *  @param[in] rLocalValues Local contributions to the partial sum.
+     *  @return The summed quantities.
+     */
+    virtual std::vector<int> ScanSum(const std::vector<int>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
+    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (double vector version).
+    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
+     *  This is a wrapper to MPI_Scan.
+     *  @param[in] rLocalValues Local contributions to the partial sum.
+     *  @return The summed quantities.
+     */
+    virtual std::vector<double> ScanSum(const std::vector<double>& rLocalValues) const
+    {
+        return rLocalValues;
     }
 
     /// Compute the partial sums of rLocalValues across all ranks in the Communicator (int version).
