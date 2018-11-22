@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.36">
+<Kratos_Data version="1.2.38">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -82,74 +82,75 @@
             <Item id="cutting" pid="Cutting Test" dv="0" rpath=""/>
         </Container>
         <Container id="DEM-Elements" pid="Elements" help="Elements assignation" open="0" icon="demelements.gif">
-        <Container id="DEM-Element" pid="DEM Element" state="normal" class="Groups" GiDEntity="all" idTemplate="DEM-Element" icon="demelements.gif" help="Assign this atribute to a group containing Volumes which will be meshed as Spheres or to a group containing Spheres of the Mesh. Only the Spheres tagged with this attribute as DEM Element will be actually calculated. Double click to add a group." open="0"/>
+            <Container id="DEM-Element" pid="DEM Element" state="normal" class="Groups" GiDEntity="all" idTemplate="DEM-Element" icon="demelements.gif" help="Assign this atribute to a group containing Volumes which will be meshed as Spheres or to a group containing Spheres of the Mesh. Only the Spheres tagged with this attribute as DEM Element will be actually calculated. Double click to add a group." open="0"/>
         </Container>
         <Container id="DEM-Cohesivegroup" pid="Cohesive groups" class="Groups" GiDEntity="all" icon="hand-shake.gif" idTemplate="DEM-Cohesivegroups" help="Assign this atribute to a group containing cohesive entities. Only the particles tagged with this attribute will have cohesive properties and use a continuum material law. Double click to add a group." open="0"/>
-        <Container id="DEM-Conditions" pid="Boundary conditions" class="Tab" help="Boundary Conditions, including inlets, moving walls, prescribed degrees of freedom and initial conditions" icon="trianglesmesh.gif" open="0">
-        <Container id="DEM-FEM-Wall" pid="DEM-FEM wall" class="Groups" idTemplate="DEM-FEM-Wall" GiDEntity="all" icon="trianglesmesh.gif" help="Apply this attribute to a Group containing a FEM mesh. The Group will act as a wall which cannot be crossed by DEM Spheres. Double click to add a group." open="0"/>
-        <Container id="DEM-Inlet" pid="Inlet" class="Groups" idTemplate="DEM-InletBC" GiDEntity="all" icon="demelements.gif" help="It allows the insertion of new DEM elements into the domain. Double click to add a group." open="0"/>
-        <Container id="DEM-VelocityBC" pid="Prescribe motion on Spheres" class="Groups" idTemplate="DEM-VelocityBC" GiDEntity="all" icon="handball.gif" help="It allows to impose a rigid body motion, an initial velocity or to constrict certain degrees of freedom of a group of spheres. Double click to add a group." open="0"/>
-        <Container id="DEM-VelocityIC" pid="Initial conditions on Elements" class="Groups" idTemplate="DEM-VelocityIC" GiDEntity="all" icon="beginning.gif" help="It allows to impose initial velocities or angular velocities to a group of elements. Double click to add a group." open="0"/>
+            <Container id="DEM-Conditions" pid="Boundary conditions" class="Tab" help="Boundary Conditions, including inlets, moving walls, prescribed degrees of freedom and initial conditions" icon="trianglesmesh.gif" open="0">
+            <Container id="DEM-FEM-Wall" pid="DEM-FEM wall" class="Groups" idTemplate="DEM-FEM-Wall" GiDEntity="all" icon="trianglesmesh.gif" help="Apply this attribute to a Group containing a FEM mesh. The Group will act as a wall which cannot be crossed by DEM Spheres. Double click to add a group." open="0"/>
+            <Container id="DEM-Inlet" pid="Inlet" class="Groups" idTemplate="DEM-InletBC" GiDEntity="all" icon="demelements.gif" help="It allows the insertion of new DEM elements into the domain. Double click to add a group." open="0"/>
+            <Container id="DEM-VelocityBC" pid="Prescribe motion on Spheres" class="Groups" idTemplate="DEM-VelocityBC" GiDEntity="all" icon="handball.gif" help="It allows to impose a rigid body motion, an initial velocity or to constrict certain degrees of freedom of a group of spheres. Double click to add a group." open="0"/>
+            <Container id="DEM-VelocityIC" pid="Initial conditions on Elements" class="Groups" idTemplate="DEM-VelocityIC" GiDEntity="all" icon="beginning.gif" help="It allows to impose initial velocities or angular velocities to a group of elements. Double click to add a group." open="0"/>
         </Container>
         <Container id="DEM-LoadConditions" pid="Applied Loads" state="hiddenAll" class="Tab" help="Loading Conditions, including Blast" icon="loads.gif" open="0">
         <Container id="BlastLoad" pid="Blast Loads" class="Groups" idTemplate="BlastLoad" GiDEntity="point" icon="boom.gif" help="It allows to impose a blast load" open="0"/>
         </Container>
         <Container id="DEM-Options" pid="General options" class="Tab" help="DEM general options" icon="aplicationTree.gif" open="0">
-        <Container id="DEM-Boundingbox" pid="Bounding box" icon="cube.gif" help="Any Discrete Element going outside of the Bounding Box will be deleted" class="Tab">
-            <Item id="UseBoundingBox" pid="Bounding box" dv="No" class="DEM-BBox" ivalues="Yes,No" values="Active,Not active" help="Any Discrete element going out of the bounding box will be deleted"/>
-            <Item id="BoundingBoxType" pid="Bounding box type" DEM-BBox="Yes" class="DEM-BBoxType" dv="Fixed" ivalues="Automatic,Fixed" values="Automatic,Fixed" help="If Automatic is chosen, the bounding box will be created using the existing entities at the beginning of the computation"/>
-            <Item id="EnlargementFactor" pid="Enlargement factor" DEM-BBox="Yes" DEM-BBoxType="Automatic" dv="1.1" help="Enlargement factor"/>
-            <Item id="MaxX" pid="Max X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max X"/>
-            <Item id="MaxY" pid="Max Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/>
-            <Item id="MaxZ" pid="Max Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Z"/>
-            <Item id="MinX" pid="Min X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min X"/>
-            <Item id="MinY" pid="Min Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
-            <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
-            <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
-            <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
-            <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
-        </Container>
-        <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">
-            <Item id="GravityValue" pid="Gravity value" dv="9.81" help="Gravity value"/>
-            <Item id="Cx" pid="Gx" dv="0.0" help="X Vector"/>
-            <Item id="Cy" pid="Gy" dv="0.0" help="Y Vector"/>
-            <Item id="Cz" pid="Gz" dv="-1.0" nDim="3D" help="Z Vector"/>
-            <Item id="PeriodicDomainOption" pid="Periodic Domain" dv="No" class="PeriodicDomain" ivalues="Yes,No" values="Yes,No" help="Consider a parallepipedic periodic domain defined by the bounding box for the DEM problem"/>
-        </Container>
-        <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" help="Advanced Options" open='0'>
-            <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" state="normal" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
-            <Item id="DEM-TangencyTolerance" pid="Tangency tolerance" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose if you want to set manually the maximum gap between particles at the beginning of the computation (Absolute) or if you prefer an automatic gap that tries to match a certain average Coordination Number"/>
-            <Item id="DEM-TangencyToleranceValueAbsolute" pid="Tangency tolerance value" dv="0.0001" DEM-TangTolerance="Absolute" help="Choose the maximum admissible gap between two particles to consider them cohesive at the beginning of the computation"/>
-            <Item id="DEM-TangencyCoordinationNumber" pid="Coordination number" dv="10" DEM-TangTolerance="Coordination_Number" help="Average number of contacts for each particle."/>
-            <Item id="DEM-NeighbourSearchAcceptedGap" pid="Accepted gap between neighbours (m)" state="normal" dv="1e-4" help="If the gap between two spheres is bigger than this value, they are no longer neighbours and the bond between them breaks. "/>
-            <Item id="DEM-MaxAmplificationRatioOfSearchRadius" pid="Maximum allowed amplification ratio of the search radius" state="normal" dv="100" help="The search radius must be amplified after the first search because particles separate, but a bond still joins them. In order to keep finding all neighbours, search is amplified according the the mechanical resistance, but up to this limit."/>
-            <Item id="DEM-VirtualMassCoef" pid="Virtual mass coefficient" dv="1.0" help="For no mass reduction set this field to 1"/>
-            <Item id="DEM-CalculateRotations" pid="Calculate rotations" dv="Yes" ivalues="Yes,No" values="Yes,No" class="DEM-Rotation" help="If activated, torques and rotations will be calculated on the Discrete Elements. Will increase computation time slightly. "/>
-            <Item id="DEM-RollingFriction" pid="Rolling friction" dv="No" ivalues="Yes,No" class="DEM-Rolling" values="Yes,No" help="If activated, rolling friction between particles will be considered."/>
-            <Item id="DEM-GlobalDamping" pid="Global Damping" dv="0.0" help="Choose the value for the damping. 0.0 means no damping at all, while 1.0 means full damping."/>
-            <Item id="DEM-PoissonEffect" pid="Add Poisson Effect" dv="Yes" ivalues="Yes,No" class="DEM-Poisson" values="Yes,No" help="If activated, the Poisson effect will be introduced."/>
-            <Item id="DEM-ShearStrainParallelToBondEffect" pid="Add the effect of shear strains parallel to bonds" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If activated, the effect of shear strains parallel to bonds will be taken into account."/>
-            <Item id="DEM-DontSearchUntilFail" pid="Don't search until failure" dv="No" ivalues="Yes,No" values="Yes,No" help="If activated, search for new particle neighbours will be disabled until the simulation detects the first contact failure."/>
-            <Item id="DEM-MaterialTestActivate" pid="Material Analysis" dv="No" class="DEM-MaterialTestLab" ivalues="Yes,No" values="Yes,No" help="Activate this option to show the material test (UCS,BTS) additional options"/>
-            <Item id="DEM-Thermal" pid="Thermal Analysis" dv="No" class="DEM-Thermal" ivalues="No,Yes" values="No,Yes" help="Changes the default DEM element to Thermal-type elements and shows additional options"/>
-            <Item id="DEM-ExportModelDataInformation" pid="Export model data information" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Export Model Data Information"/>
-        </Container>
+            <Container id="DEM-Boundingbox" pid="Bounding box" icon="cube.gif" help="Any Discrete Element going outside of the Bounding Box will be deleted" class="Tab">
+                <Item id="UseBoundingBox" pid="Bounding box" dv="No" class="DEM-BBox" ivalues="Yes,No" values="Active,Not active" help="Any Discrete element going out of the bounding box will be deleted"/>
+                <Item id="BoundingBoxType" pid="Bounding box type" DEM-BBox="Yes" class="DEM-BBoxType" dv="Fixed" ivalues="Automatic,Fixed" values="Automatic,Fixed" help="If Automatic is chosen, the bounding box will be created using the existing entities at the beginning of the computation"/>
+                <Item id="EnlargementFactor" pid="Enlargement factor" DEM-BBox="Yes" DEM-BBoxType="Automatic" dv="1.1" help="Enlargement factor"/>
+                <Item id="MaxX" pid="Max X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max X"/>
+                <Item id="MaxY" pid="Max Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/>
+                <Item id="MaxZ" pid="Max Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Z"/>
+                <Item id="MinX" pid="Min X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min X"/>
+                <Item id="MinY" pid="Min Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
+                <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
+                <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
+                <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
+                <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
+            </Container>
+            <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">
+                <Item id="GravityValue" pid="Gravity value" dv="9.81" help="Gravity value"/>
+                <Item id="Cx" pid="Gx" dv="0.0" help="X Vector"/>
+                <Item id="Cy" pid="Gy" dv="0.0" help="Y Vector"/>
+                <Item id="Cz" pid="Gz" dv="-1.0" nDim="3D" help="Z Vector"/>
+                <Item id="PeriodicDomainOption" pid="Periodic Domain" dv="No" class="PeriodicDomain" ivalues="Yes,No" values="Yes,No" help="Consider a parallepipedic periodic domain defined by the bounding box for the DEM problem"/>
+            </Container>
+            <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" help="Advanced Options" open='0'>
+                <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" state="normal" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
+                <Item id="DEM-RemoveBallsInitiallyTouchingWalls" pid="Remove spheres initially touching walls" dv="No" ivalues="Yes,No" values="Yes,No" help="If activated, all spheres touching any wall at the beginning of the computations will be eliminated"/>
+                <Item id="DEM-TangencyTolerance" pid="Tangency tolerance" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose if you want to set manually the maximum gap between particles at the beginning of the computation (Absolute) or if you prefer an automatic gap that tries to match a certain average Coordination Number"/>
+                <Item id="DEM-TangencyToleranceValueAbsolute" pid="Tangency tolerance value" dv="0.0001" DEM-TangTolerance="Absolute" help="Choose the maximum admissible gap between two particles to consider them cohesive at the beginning of the computation"/>
+                <Item id="DEM-TangencyCoordinationNumber" pid="Coordination number" dv="10" DEM-TangTolerance="Coordination_Number" help="Average number of contacts for each particle."/>
+                <Item id="DEM-NeighbourSearchAcceptedGap" pid="Accepted gap between neighbours (m)" state="normal" dv="1e-4" help="If the gap between two spheres is bigger than this value, they are no longer neighbours and the bond between them breaks. "/>
+                <Item id="DEM-MaxAmplificationRatioOfSearchRadius" pid="Maximum allowed amplification ratio of the search radius" state="normal" dv="100" help="The search radius must be amplified after the first search because particles separate, but a bond still joins them. In order to keep finding all neighbours, search is amplified according the the mechanical resistance, but up to this limit."/>
+                <Item id="DEM-VirtualMassCoef" pid="Virtual mass coefficient" dv="1.0" help="For no mass reduction set this field to 1"/>
+                <Item id="DEM-CalculateRotations" pid="Calculate rotations" dv="Yes" ivalues="Yes,No" values="Yes,No" class="DEM-Rotation" help="If activated, torques and rotations will be calculated on the Discrete Elements. Will increase computation time slightly. "/>
+                <Item id="DEM-RollingFriction" pid="Rolling friction" dv="No" ivalues="Yes,No" class="DEM-Rolling" values="Yes,No" help="If activated, rolling friction between particles will be considered."/>
+                <Item id="DEM-GlobalDamping" pid="Global Damping" dv="0.0" help="Choose the value for the damping. 0.0 means no damping at all, while 1.0 means full damping."/>
+                <Item id="DEM-PoissonEffect" pid="Add Poisson Effect" dv="Yes" ivalues="Yes,No" class="DEM-Poisson" values="Yes,No" help="If activated, the Poisson effect will be introduced."/>
+                <Item id="DEM-ShearStrainParallelToBondEffect" pid="Add the effect of shear strains parallel to bonds" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If activated, the effect of shear strains parallel to bonds will be taken into account."/>
+                <Item id="DEM-DontSearchUntilFail" pid="Don't search until failure" dv="No" ivalues="Yes,No" values="Yes,No" help="If activated, search for new particle neighbours will be disabled until the simulation detects the first contact failure."/>
+                <Item id="DEM-MaterialTestActivate" pid="Material Analysis" dv="No" class="DEM-MaterialTestLab" ivalues="Yes,No" values="Yes,No" help="Activate this option to show the material test (UCS,BTS) additional options"/>
+                <Item id="DEM-Thermal" pid="Thermal Analysis" dv="No" class="DEM-Thermal" ivalues="No,Yes" values="No,Yes" help="Changes the default DEM element to Thermal-type elements and shows additional options"/>
+                <Item id="DEM-ExportModelDataInformation" pid="Export model data information" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Export Model Data Information"/>
+            </Container>
         </Container>
         <Container id="DEM-SolutionStrategy" pid="Solution strategy" class="Tab" help="Options and parameters that change the numerical strategy" icon="gear.gif" open="0">
             <Item id="DEM-TimeTranslationalIntegrationScheme" pid="Translational integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Newmark_Beta_Method,Velocity_Verlet" values="Symplectic Euler,Forward Euler,Taylor Scheme,Newmark Beta Method,Velocity Verlet" help="Time Integration Scheme for translational motion"/>
             <Item id="DEM-TimeRotationalIntegrationScheme" pid="Rotational integration scheme" dv="Direct_Integration" ivalues="Direct_Integration,Runge_Kutta,Quaternion_Integration" values="Direct Integration,Runge Kutta,Quaternion Integration" help="Time Integration Scheme for rotational motion"/>
-        <Container id="DEM-ParallelType" pid="Parallel type" help="Locked to OpenMP (MPI will be available in the future)" class="Tab">
-            <Item id="ParallelType" pid="Parallel type" state="disabled" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help="Locked to OpenMP (MPI will be available in the future)"/>
-            <Item id="NumberOfThreads" pid="Number of threads"  dv="1" help="Set the number of threads you want to use for this computation. Do not choose more than the available threads on your computer or the computation will be slower"/>
-        </Container>
-        <Container id="DEM-TimeParameters" pid="Time parameters" icon="hourglass.gif" help="Define the timestep and simulation time" class="Tab">
-            <Item id="UseAutomaticDeltaTime" pid="Delta time selection" state="normal" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Automatic option will compute a suitable timestep for the current problem."/>
-            <Item id="DeltaTime" DEM-deltatimetype="Fixed" pid="Delta time (s)" dv="5.0e-5"  help="Delta time used by DEM"/>
-            <Item id="DeltaTimeSafetyFactor" DEM-deltatimetype="Automatic" pid="Delta time safety factor" dv="1.0" help="Delta time safety factor"/>
-            <Item id="DEM-TotalTime" pid="Total time (s)" dv="2.0"  help="Total Time"/>
-            <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
-            <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency" dv="10" unit="Hz" help="Neighbour search frequency can be modified to speed up the simulation. Set to 1 to search every timestep with increased accuracy and increased computational cost."/>
-        </Container>
+            <Container id="DEM-ParallelType" pid="Parallel type" help="Locked to OpenMP (MPI will be available in the future)" class="Tab">
+                <Item id="ParallelType" pid="Parallel type" state="disabled" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help="Locked to OpenMP (MPI will be available in the future)"/>
+                <Item id="NumberOfThreads" pid="Number of threads"  dv="1" help="Set the number of threads you want to use for this computation. Do not choose more than the available threads on your computer or the computation will be slower"/>
+            </Container>
+            <Container id="DEM-TimeParameters" pid="Time parameters" icon="hourglass.gif" help="Define the timestep and simulation time" class="Tab">
+                <Item id="UseAutomaticDeltaTime" pid="Delta time selection" state="normal" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Automatic option will compute a suitable timestep for the current problem."/>
+                <Item id="DeltaTime" DEM-deltatimetype="Fixed" pid="Delta time (s)" dv="5.0e-5"  help="Delta time used by DEM"/>
+                <Item id="DeltaTimeSafetyFactor" DEM-deltatimetype="Automatic" pid="Delta time safety factor" dv="1.0" help="Delta time safety factor"/>
+                <Item id="DEM-TotalTime" pid="Total time (s)" dv="2.0"  help="Total Time"/>
+                <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
+                <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency" dv="10" unit="Hz" help="Neighbour search frequency can be modified to speed up the simulation. Set to 1 to search every timestep with increased accuracy and increased computational cost."/>
+            </Container>
         </Container>
         <Container id="DEM-MaterialTest" pid="Material test" DEM-MaterialTestLab="Yes" class="Tab" help="Material test virtual lab (UCS,Triaxial,Oedometric,Hydrostatic,BTS) " >
             <Item id="DEM-TestType" pid="Test type" dv="UCS" ivalues="UCS,Triaxial,Oedometric,Hydrostatic,BTS,Shear" values="UCS,Triaxial,Oedometric,Hydrostatic,BTS,Shear" class="DEM-TestType" help="Select test type"/>
@@ -178,7 +179,7 @@
             <Item id="DEM-OTimeStepDetail" pid="Time interval (s)" dv="1e-2" DEM-OTimestepType="Detail_priority" state="normal" help="Set printing interval for GiD results"/>
             <Item id="DEM-OTimeStepStorage" pid="Number of files" dv="100" DEM-OTimestepType="Storage_priority" help="Select the amount of GiD result files to print"/>
             <Item id="DEM-Granulometry" pid="Granulometry" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Size distribution curve"/>
-        <Container id="DEM-PartElem" pid="Print in Post-Process" help="Results on DEM elements that can be colored or shown as vectors on GiD, among other options">
+            <Container id="DEM-PartElem" pid="Print in Post-Process" help="Results on DEM elements that can be colored or shown as vectors on GiD, among other options">
             <Item id="DEM-Displacement" pid="Displacement (DEM+FEM)" dv="No" ivalues="No,Yes" values="No,Yes" help="Displacement"/>
             <Item id="DEM-PostVel" pid="Velocity (DEM+FEM)" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
             <Item id="DEM-AngularVelocity" pid="Angular velocity (DEM)" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Angular velocity"/>
@@ -202,7 +203,7 @@
             <Item id="DEM-ExportId" pid="Export Id" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="ExportId"/>
             <Item id="DEM-Rhs" pid="Rhs" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Rhs"/>
             <Item id="DEM-DampForces" pid="Damp forces" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Damp forces"/>
-            <Item id="DEM-AppliedForces" pid="Applied forces" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
+            <Item id="DEM-AppliedForces" pid="Applied forces" dv="No" state="normal" ivalues="Yes,No" values="Yes,No" help="Applied forces"/>
             <Item id="DEM-RollingResistanceMoment" pid="Rolling resistance moment" DEM-Rotation="Yes" dv="No" ivalues="Yes,No" values="Yes,No" help="Rolling resistance moment"/>
             <Item id="DEM-SeaSurface" pid="Print Virtual Sea Surface" class="DEM-PrintSeaSurface" dv="No" ivalues="No,Yes" values="No,Yes" help="Use this option if you want to print a virtual sea surface as a mesh in PostProcess. Enter the four pairs of coordinates that will define the quadrilateral surface representing the virtual sea surface. A z=0 sea level is assumed"/>
             <Item id="DEM-VirtualSeaSurfaceX1" pid="X1" DEM-PrintSeaSurface="Yes" dv="10"/>
@@ -227,7 +228,7 @@
             <Item id="DEM-ParticleTemperature" pid="Particle Temperature" dv="No" ivalues="No,Yes" values="No,Yes" help=""/>
             <Item id="DEM-ParticleHeatFlux" pid="Particle HeatFlux" dv="No" ivalues="No,Yes" values="No,Yes" help=""/>
         </Container>
-            <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" dv="No" ivalues="Yes,No" values="Yes,No" help="Activate this option to display the particle bonds at postprocessing stage"/>
+        <Item id="DEM-ShowBondElements" pid="Show bond elements" class="DEM-ShowBondElements" dv="No" ivalues="Yes,No" values="Yes,No" help="Activate this option to display the particle bonds at postprocessing stage"/>
         <Container id="DEM-BondElem" pid="On bond elements" DEM-ShowBondElements="Yes" help="Results on bond elements">
             <Item id="DEM-ContactSigma" pid="Contact sigma" dv="No" ivalues="Yes,No" values="Yes,No" help="Normal stress on contact"/>
             <Item id="DEM-ContactTau" pid="Contact tau" dv="No" ivalues="Yes,No" values="Yes,No" help="Tangential stress on contact"/>
@@ -244,7 +245,7 @@
             <Item id="MinX" pid="Min X" DEM-VTrap="Yes" dv="-100.0" help="Min X"/>
             <Item id="MinY" pid="Min Y" DEM-VTrap="Yes" dv="-100.0" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
             <Item id="MinZ" pid="Min Z" DEM-VTrap="Yes" dv="-100.0" help="Min Z"/>
-            <Item id="DEM-VelTrapGraphExportFreq" pid="Printing time step (s)" DEM-VTrap="Yes" dv="1e0" help="Printing delta time for the velocity trap" />
+            <Item id="DEM-VelTrapGraphExportFreq" pid="Printing time step (s)" DEM-VTrap="Yes" dv="1e-3" help="Printing delta time for the velocity trap" />
         </Container>
         <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess additional options" open="0">
             <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format. Choose Binary or Ascii. Ascii takes more hard disk space, but is human readable"/>
@@ -399,10 +400,8 @@
         </Template>
         <Template id="DEM-FEM-Wall" help="DEM-FEM wall boundary condition">
             <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>
-            <Item id="DEM-RBImposedMotion" pid="Type of Motion" class="DEM-RBImposedMotion" DEM-GeneralActivation="Yes" dv="None" ivalues="None,LinearPeriodic,FromATable,FreeMotion" values="None,Linear/Periodic,From a table,Free motion" help="Set Yes to impose a predefined motion to the group"/>
+            <Item id="DEM-RBImposedMotion" pid="Type of Motion" class="DEM-RBImposedMotion" DEM-GeneralActivation="Yes" dv="None" ivalues="None,LinearPeriodic,FreeMotion" values="None,Linear/Periodic,Free motion" help="Set Yes to impose a predefined motion to the group"/>
             <Container id="Rigid_Body_Motion" pid="Rigid_Body_Motion" DEM-RBImposedMotion="LinearPeriodic" class="Groups" idTemplate="RigidBodyMotion" help="" open="0"/>
-                <Item id="VelocitiesFilename" pid="Filename" DEM-RBImposedMotion="FromATable" dv="velocities.dat" help="Insert here the name of the file containing the velocity data"/>
-                <Item id="TableVelocityComponent" pid="Velocity Component" DEM-RBImposedMotion="FromATable" DEM-GeneralActivation="Yes" dv="0" ivalues="0,1,2" values="X,Y,Z" help="Choose the Component of the Table of Velocity"/>
                 <Item id="Mass" pid="Mass(Kg)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="1.0" help=""/>
             <Container id="Centroid" pid="Centroid" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
                 <Item id="CX" pid="Cx(m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
@@ -414,29 +413,25 @@
                 <Item id="IY" pid="Iy(Kg*m2)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="1.0" help=""/>
                 <Item id="IZ" pid="Iz(Kg*m2)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="1.0" help=""/>
             </Container>
-            <Container id="ExternalForces" pid="ExternalForces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
-                <Item id="FX" pid="Fx(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-                <Item id="FY" pid="Fy(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-                <Item id="FZ" pid="Fz(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-            </Container>
-            <Container id="ExternalMoments" pid="ExternalMoments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
-                <Item id="MX" pid="Mx(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-                <Item id="MY" pid="My(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-                <Item id="MZ" pid="Mz(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-            </Container>
             <Container id="DEM-RBE-DOFS" pid="Degrees of Freedom" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
-                <Item id="Ax" pid="Fix Velocity X" class="DEM-RBE-FixVelocityX" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Velocity X"/>
-                <Item id="Vx" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityX="Yes" dv="0.0" help="X Velocity"/>
-                <Item id="Ay" pid="Fix Velocity Y" class="DEM-RBE-FixVelocityY" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Velocity Y"/>
-                <Item id="Vy" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityY="Yes" dv="0.0" help="Y Velocity"/>
-                <Item id="Az" pid="Fix Velocity Z" class="DEM-RBE-FixVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Velocity Z"/>
-                <Item id="Vz" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityZ="Yes" dv="0.0" help="Z Velocity"/>
-                <Item id="Bx" pid="Fix Angular Velocity X" class="DEM-RBE-FixAngularVelocityX" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Angular Velocity X"/>
-                <Item id="AVx" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityX="Yes" dv="0.0" help="X Angular Velocity"/>
-                <Item id="By" pid="Fix Angular Velocity Y" class="DEM-RBE-FixAngularVelocityY" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Angular Velocity Y"/>
-                <Item id="AVy" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityY="Yes" dv="0.0" help="Y Angular Velocity"/>
-                <Item id="Bz" pid="Fix Angular Velocity Z" class="DEM-RBE-FixAngularVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Angular Velocity Z"/>
-                <Item id="AVz" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityZ="Yes" dv="0.0" help="Z Angular Velocity"/>
+                <Item id="Ax" pid="Fix Velocity X" class="DEM-RBE-FixVelocityX" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Velocity X"/>
+                <Item id="Vx" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityX="Constant" dv="0.0" help="X Velocity"/>
+                <Item id="FilenameVx" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityX="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="Ay" pid="Fix Velocity Y" class="DEM-RBE-FixVelocityY" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Velocity Y"/>
+                <Item id="Vy" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityY="Constant" dv="0.0" help="Y Velocity"/>
+                <Item id="FilenameVy" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityY="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="Az" pid="Fix Velocity Z" class="DEM-RBE-FixVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Velocity Z"/>
+                <Item id="Vz" pid="   Value (m/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityZ="Constant" dv="0.0" help="Z Velocity"/>
+                <Item id="FilenameVz" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityZ="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="Bx" pid="Fix Angular Velocity X" class="DEM-RBE-FixAngularVelocityX" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Angular Velocity X"/>
+                <Item id="AVx" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityX="Constant" dv="0.0" help="X Angular Velocity"/>
+                <Item id="FilenameAVx" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityX="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="By" pid="Fix Angular Velocity Y" class="DEM-RBE-FixAngularVelocityY" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Angular Velocity Y"/>
+                <Item id="AVy" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityY="Constant" dv="0.0" help="Y Angular Velocity"/>
+                <Item id="FilenameAVy" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityY="FromATable" dv="- No file -" help="X Velocity file"/>
+                <Item id="Bz" pid="Fix Angular Velocity Z" class="DEM-RBE-FixAngularVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Fix Angular Velocity Z"/>
+                <Item id="AVz" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityZ="Constant" dv="0.0" help="Z Angular Velocity"/>
+                <Item id="FilenameAVz" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityZ="FromATable" dv="- No file -" help="X Velocity file"/>
                 <Item id="VStart" pid="Start time (s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0.0" help="Start Time"/>
                 <Item id="VEnd" pid="End time (s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="100.0" help="Start Time"/>
             </Container>
@@ -453,6 +448,28 @@
                 <Item id="AVy" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityY="Yes" dv="0.0" help="Y Angular Velocity"/>
                 <Item id="Bz" pid="Set Initial Angular Velocity Z" class="DEM-RBE-SetInitialAngularVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Ang Velocity Z"/>
                 <Item id="AVz" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityZ="Yes" dv="0.0" help="Z Angular Velocity"/>
+            </Container>
+            <Container id="DEM-RBImposedForces" pid="Impose external forces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
+                <Item id="DEM-RBE-ExternalForceX" pid="External Forces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalForceX" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force in the X direction to the group"/>
+                <Item id="FX" pid="   Fx(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceX="Constant" dv="0.0" help="Insert the value of the external force in X direction"/>
+                <Item id="FilenameFX" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceX="FromATable" dv="- No file -" help="Insert here the name of the file containing the external force in X direction"/>
+                <Item id="DEM-RBE-ExternalForceY" pid="External Forces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalForceY" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force in the Y direction  to the group"/>
+                <Item id="FY" pid="   Fy(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceY="Constant" dv="0.0" help="Insert the value of the external force in Y direction"/>
+                <Item id="FilenameFY" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceY="FromATable" dv="- No file -" help="Insert here the name of the file containing the external force in Y direction"/>
+                <Item id="DEM-RBE-ExternalForceZ" pid="External Forces" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalForceZ" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force in the Z direction  to the group"/>
+                <Item id="FZ" pid="   Fz(N)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceZ="Constant" dv="0.0" help="Insert the value of the external force in Z direction"/>
+                <Item id="FilenameFZ" pid="   Filename" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalForceZ="FromATable" dv="- No file -" help="Insert here the name of the file containing the external force in Z direction"/>
+            </Container>
+            <Container id="DEM-RBImposedMoments" pid="Impose external moments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
+                <Item id="DEM-RBE-ExternalMomentX" pid="External Moments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalMomentX" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force to the group"/>
+                <Item id="MX" pid="   Mx(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentX="Constant" dv="0.0" help="Insert the value of the external moment in X direction"/>
+                <Item id="FilenameMX" pid="   FilenameMx(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentX="FromATable" dv="- No file -" help="Insert here the name of the file containing the external moment in X direction"/>
+                <Item id="DEM-RBE-ExternalMomentY" pid="External Moments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalMomentY" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force to the group"/>
+                <Item id="MY" pid="   My(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentY="Constant" dv="0.0" help="Insert the value of the external moment in Y direction"/>
+                <Item id="FilenameMY" pid="   FilenameMy(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentY="FromATable" dv="- No file -" help="Insert here the name of the file containing the external moment in Y direction"/>
+                <Item id="DEM-RBE-ExternalMomentZ" pid="External Moments" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" class="DEM-RBE-ExternalMomentZ" dv="No" ivalues="No,Constant,FromATable" values="No,Constant,From a table" help="Choose the way of imposing the external force to the group"/>
+                <Item id="MZ" pid="   Mz(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentZ="Constant" dv="0.0" help="Insert the value of the external moment in Z direction"/>
+                <Item id="FilenameMZ" pid="   FilenameMz(N*m)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-ExternalMomentZ="FromATable" dv="- No file -" help="Insert here the name of the file containing the external moment in Z direction"/>
             </Container>
             <Container id="Options" pid="Settings" DEM-GeneralActivation="Yes" help="Options that will affect the behaviour during the contact bewteen Discrete Elements and this wall">
                 <Item id="fixed_wall" pid="Update velocity, not displacements" DEM-RBImposedMotion="LinearPeriodic" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will not move and will just have an imposed velocity field"/>
@@ -551,6 +568,7 @@
         <Class>,DEM-CohesiveWall,DEM-ShowGraphsVars,DEM-ComputeEnergy,DEM-InletElementType,DEM-RigidWall,DEM-AdvancedMeshingFeatures,DEM-VelocityBCMotionType,DEM-InletImposedMotion,</Class>
         <Class>,DEM-FEMImposedMotion,DEM-FEMWallActivation,DEM-VelocityBCActivation,DEM-InletBCActivation,DEM-ElementActivation,DEM-FEMtoDEMAlgorithm,DEM-RBImposedMotion,</Class>
         <Class>,DEM-GeneralActivation,DEM-FixVelocityX,DEM-FixVelocityY,DEM-FixVelocityZ,DEM-FixAngularVelocityX,DEM-FixAngularVelocityY,DEM-FixAngularVelocityZ,DEM-ConstitutiveLaw,</Class>
+        <Class>,DEM-RBE-ExternalForceX,DEM-RBE-ExternalForceY,DEM-RBE-ExternalForceZ,DEM-RBE-ExternalMomentX,DEM-RBE-ExternalMomentY,DEM-RBE-ExternalMomentZ,</Class>
         <Class>,DEM-Cluster,DEM-AdvancedMeshingFeaturesAlgorithmType,DEM-PrintSeaSurface,DEM-RBE-FixVelocityX,DEM-RBE-FixVelocityY,DEM-RBE-FixVelocityZ,</Class>
         <Class>,DEM-RBE-FixAngularVelocityX,DEM-RBE-FixAngularVelocityY,DEM-RBE-FixAngularVelocityZ,</Class>
         <Class>,DEM-RBE-SetInitialVelocityX,DEM-RBE-SetInitialVelocityY,DEM-RBE-SetInitialVelocityZ,</Class>

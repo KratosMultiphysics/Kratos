@@ -44,7 +44,7 @@ namespace Python
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -55,17 +55,17 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     //********************************************************************
     //********************************************************************
-    class_< ResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>,
+    py::class_< ResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>,
         typename ResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>::Pointer,
 	    ResidualBasedIncrementalUpdateStaticScheme <SparseSpaceType, LocalSpaceType> >
 	    (m, "ResidualBasedIncrementalUpdateStaticVariablePropertyScheme")
-        .def( init< >() );
+        .def( py::init< >() );
 
-    class_< GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>,
+    py::class_< GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>,
         typename GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>::Pointer,
 	    ResidualBasedIncrementalUpdateStaticScheme <SparseSpaceType, LocalSpaceType> >
 	    (m, "GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme")
-        .def( init< >() );
+        .def( py::init< >() );
 
 // 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
 // 					bases< BaseSolvingStrategyType >,  boost::noncopyable >

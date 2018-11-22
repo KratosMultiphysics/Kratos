@@ -150,23 +150,20 @@ public:
     }
 
 
+    /*
+    * @brief This function return the hardening constant at given hardening parameters
+    * @param[in/out] rHardening Hardening value
+    * @param[in] rValues Hardening parameters
+    * @param[in] rAlpha Hardening parameters
+    * @param[in] rBeta Hardening parameters
+    * @param[in] rThisVariable Identifier variables
+    * @return Value of Hardening
+    */
     virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
 
-    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double rTemperature = 0.0) {return rHardening; };
+    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double& rBeta) {return rHardening; };
 
     virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const Variable<double>& rThisVariable) {return rHardening;};
-    
-    virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues){ return rIsotropicHardening; };
-
-    virtual double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues){ return rKinematicHardening; };
-
-    virtual double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues){ return rDeltaHardening; };
-
-    virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues){ return rDeltaIsotropicHardening; };
-
-    virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const Parameters& rValues){ return rDeltaKinematicHardening; };
-
-    virtual double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const Parameters& rValues){ return rDeltaThermalHardening; };
 
     ///@}
     ///@name Access

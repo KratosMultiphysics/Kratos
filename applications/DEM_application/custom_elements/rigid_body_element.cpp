@@ -85,14 +85,16 @@ namespace Kratos {
 
     void RigidBodyElement3D::CustomInitialize(ModelPart& rigid_body_element_sub_model_part) {
 
-        GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>::Identity();
-        Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
+        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
+
+        central_node.FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>::Identity();
+        Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         Orientation.normalize();
 
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = 1.0;
+        central_node.FastGetSolutionStepValue(NODAL_MASS) = 1.0;
 
         if (rigid_body_element_sub_model_part.Has(RIGID_BODY_MASS)) {
-            GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = rigid_body_element_sub_model_part[RIGID_BODY_MASS];
+            central_node.FastGetSolutionStepValue(NODAL_MASS) = rigid_body_element_sub_model_part[RIGID_BODY_MASS];
         }
 
         mInertias = ZeroVector(3);
@@ -110,29 +112,68 @@ namespace Kratos {
         }
 
         const array_1d<double,3>& reference_inertias = mInertias;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0];
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1];
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2];
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = reference_inertias[0];
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = reference_inertias[1];
+        central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = reference_inertias[2];
 
-        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        array_1d<double, 3> base_principal_moments_of_inertia = central_node.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
 
-        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = ZeroVector(3);
+        central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = ZeroVector(3);
 
         if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE)) {
-            GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][0];
-            GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][1];
-            GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][2];
+
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            KRATOS_INFO("DEM") << "** Warning ** since 1 January 2019 the external applied force on rigid" << std::endl;
+            KRATOS_INFO("DEM") << "elements should be defined by its three components: EXTERNAL_APPLIED_FORCE_X," << std::endl;
+            KRATOS_INFO("DEM") << "EXTERNAL_APPLIED_FORCE_Y and EXTERNAL_APPLIED_FORCE_Z" << std::endl;
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][0];
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][1];
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE][2];
         }
 
-        GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = ZeroVector(3);
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE_X)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE_X];
+        }
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE_Y)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE_Y];
+        }
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_FORCE_Z)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_FORCE_Z];
+        }
+
+        central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT) = ZeroVector(3);
 
         if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT)) {
-            GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
-            GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
-            GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            KRATOS_INFO("DEM") << "** Warning ** since 1 January 2019 the external applied moments on rigid" << std::endl;
+            KRATOS_INFO("DEM") << "elements should be defined by its three components: EXTERNAL_APPLIED_MOMENT_X," << std::endl;
+            KRATOS_INFO("DEM") << "EXTERNAL_APPLIED_MOMENT_Y and EXTERNAL_APPLIED_MOMENT_Z" << std::endl;
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][0];
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][1];
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT][2];
         }
 
-        array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT_X)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT_X];
+        }
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT_Y)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT_Y];
+        }
+        if (rigid_body_element_sub_model_part.Has(EXTERNAL_APPLIED_MOMENT_Z)) {
+            central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = rigid_body_element_sub_model_part[EXTERNAL_APPLIED_MOMENT_Z];
+        }
+
+        if (rigid_body_element_sub_model_part.Has(TABLE_NUMBER)) {
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+            KRATOS_INFO("DEM") << "** Warning ** in 1 January 2019 TABLE_NUMBER variable will disappear, the new" << std::endl;
+            KRATOS_INFO("DEM") << " variables are TABLE_NUMBER_VELOCITY, TABLE_NUMBER_ANGULAR_VELOCITY," << std::endl;
+            KRATOS_INFO("DEM") << " TABLE_NUMBER_FORCE and TABLE_NUMBER_MOMENT for defining each variable" << std::endl;
+            KRATOS_INFO("DEM") << "============================================================================" << std::endl;
+        }
+
+        array_1d<double, 3> angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3> angular_momentum;
         double LocalTensor[3][3];
         double GlobalTensor[3][3];

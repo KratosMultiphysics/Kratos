@@ -412,7 +412,6 @@ class Solution(object):
         self.all_model_parts.ComputeMaxIds()
 
 
-
     def RunMainTemporalLoop(self):
 
         self.step = 0
@@ -433,7 +432,6 @@ class Solution(object):
             self.AfterSolveOperations()
 
             self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
-            #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
             ##### adding DEM elements by the inlet ######
             if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -477,7 +475,7 @@ class Solution(object):
 
 
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
 
     def UpdateTimeInOneModelPart(self):
         pass
@@ -597,6 +595,48 @@ class Solution(object):
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
+
+
+    #these functions are needed for coupling, so that single time loops can be done
+
+    def InitializeTime(self):
+        self.step = 0
+        self.time = 0.0
+        self.time_old_print = 0.0
+
+    def UpdateTimeParameters(self):
+        self.InitializeTimeStep()
+        self.time = self.time + self.dt
+        self.step += 1
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+
+    def FinalizeSingleTimeStep(self):
+        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
+        #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
+        ##### adding DEM elements by the inlet ######
+        if self.DEM_parameters["dem_inlet_option"].GetBool():
+            self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
+        print(self.time,self.step)
+        stepinfo = self.report.StepiReport(timer, self.time, self.step)
+        if stepinfo:
+            self.KRATOSprint(stepinfo)
+
+    def OutputSingleTimeLoop(self):
+        #### PRINTING GRAPHS ####
+        os.chdir(self.graphs_path)
+        self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
+        self.materialTest.MeasureForcesAndPressure()
+        self.materialTest.PrintGraph(self.time)
+        self.DEMFEMProcedures.PrintGraph(self.time)
+        self.DEMFEMProcedures.PrintBallsGraph(self.time)
+        self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
+        self.BeforePrintingOperations(self.time)
+        #### GiD IO ##########################################
+        time_to_print = self.time - self.time_old_print
+        if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt:
+            self.PrintResultsForGid(self.time)
+            self.time_old_print = self.time
+        self.FinalizeTimeStep(self.time)
 
 
 if __name__ == "__main__":

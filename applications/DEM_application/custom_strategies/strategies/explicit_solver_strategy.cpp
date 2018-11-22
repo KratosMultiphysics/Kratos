@@ -174,6 +174,22 @@ namespace Kratos {
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
 
+        if (mRemoveBallsInitiallyTouchingWallsOption) {
+            MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
+            mpParticleCreatorDestructor->DestroyParticles(r_model_part);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+
+            // Search Neighbours and related operations
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
+            SearchNeighbours();
+            ComputeNewNeighboursHistoricalData();
+
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
+            SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
+            ComputeNewRigidFaceNeighboursHistoricalData();
+        }
+
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
 
@@ -189,12 +205,29 @@ namespace Kratos {
 
         r_process_info[PARTICLE_INELASTIC_FRICTIONAL_ENERGY] = 0.0;
 
-        // 5. Finalize Solution Step.
         //FinalizeSolutionStep();
+
         ComputeNodalArea();
 
         KRATOS_CATCH("")
-    }// Initialize()
+    } // Initialize()
+
+    void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
+
+        ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)pElements.size(); k++) {
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            Element* p_element = &(*it);
+            SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
+
+            if (p_sphere->mNeighbourRigidFaces.size()) {
+                p_sphere->Set(TO_ERASE);
+                p_sphere->GetGeometry()[0].Set(TO_ERASE);
+            }
+        }
+    }
 
     void ExplicitSolverStrategy::ComputeNodalArea() {
 
@@ -389,6 +422,7 @@ namespace Kratos {
         int time_step = r_process_info[TIME_STEPS];
         const double time = r_process_info[TIME];
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
+        const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
         const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
         BoundingBoxUtility(is_time_to_mark_and_remove);
 
@@ -416,6 +450,11 @@ namespace Kratos {
             //ReorderParticles();
         } else {
             mSearchControl = 1; // Search is active but no search has been done this time step;
+        }
+
+        if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
+            CreateContactElements();
+            InitializeContactElements();
         }
 
         //RebuildPropertiesProxyPointers(mListOfSphericParticles);
@@ -451,18 +490,18 @@ namespace Kratos {
     void ExplicitSolverStrategy::ForceOperations(ModelPart& r_model_part) {
 
         KRATOS_TRY
-        // 3. Get and Calculate the forces
+
         CleanEnergies();
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
         GetClustersForce();
+        GetRigidBodyElementsForce();
 
         if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
             CalculateNodalPressuresAndStressesOnWalls();
-            GetRigidBodyElementsForce();
         }
 
-        // 4. Synchronize (should be just FORCE and TORQUE)
+        // Synchronize (should be just FORCE and TORQUE)
         SynchronizeRHS(r_model_part);
 
         KRATOS_CATCH("")
@@ -652,6 +691,10 @@ namespace Kratos {
         } else if (is_time_to_mark_and_remove) {
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(*mpCluster_model_part);
             mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(r_model_part);
+        }
+        if (r_process_info[CONTACT_MESH_OPTION] == 1) {
+            mpParticleCreatorDestructor->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
+            mpParticleCreatorDestructor->DestroyContactElements(*mpContact_model_part);
         }
         KRATOS_CATCH("")
     }
@@ -1063,27 +1106,118 @@ namespace Kratos {
                     if (submp.Has(VELOCITY_STOP_TIME)) vel_stop = submp[VELOCITY_STOP_TIME];
 
                     if (time > vel_start && time < vel_stop) {
-                        if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE];
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-                        if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE];
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-                        if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE];
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
-                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+
+                        if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                        }
+                        if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                        }
+                        if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                        }
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                        }
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                        }
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
+                            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                        }
+
+                        if (submp.Has(TABLE_NUMBER_VELOCITY)) { // JIG: Backward compatibility, it should be removed in the future
+                            if (submp[TABLE_NUMBER_VELOCITY][0] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_VELOCITY_X];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                            }
+                            if (submp[TABLE_NUMBER_VELOCITY][1] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_VELOCITY_Y];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                            }
+                            if (submp[TABLE_NUMBER_VELOCITY][2] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_VELOCITY_Z];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                            }
+                        }
+                        if (submp.Has(TABLE_NUMBER_ANGULAR_VELOCITY)) { // JIG: Backward compatibility, it should be removed in the future
+                            if (submp[TABLE_NUMBER_ANGULAR_VELOCITY][0] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_ANGULAR_VELOCITY_X];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                            }
+                            if (submp[TABLE_NUMBER_ANGULAR_VELOCITY][1] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_ANGULAR_VELOCITY_Y];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                            }
+                            if (submp[TABLE_NUMBER_ANGULAR_VELOCITY][2] != 0) {
+                                const int table_number = submp[TABLE_NUMBER_ANGULAR_VELOCITY_Z];
+                                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp.GetTable(table_number).GetValue(time);
+                                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                            }
+                        }
                     }
 
                     else {
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = 0.0;
+                        rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = 0.0;
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
                         rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                    }
+
+                    if (submp.Has(TABLE_NUMBER_FORCE)) { // JIG: Backward compatibility, it should be removed in the future
+                        if (submp[TABLE_NUMBER_FORCE][0] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_FORCE][0];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0] = submp.GetTable(table_number).GetValue(time);
+                        }
+                        if (submp[TABLE_NUMBER_FORCE][1] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_FORCE][1];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1] = submp.GetTable(table_number).GetValue(time);
+                        }
+                        if (submp[TABLE_NUMBER_FORCE][2] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_FORCE][2];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2] = submp.GetTable(table_number).GetValue(time);
+                        }
+                    }
+
+                    if (submp.Has(TABLE_NUMBER_MOMENT)) { // JIG: Backward compatibility, it should be removed in the future
+                        if (submp[TABLE_NUMBER_MOMENT][0] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_MOMENT][0];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[0] = submp.GetTable(table_number).GetValue(time);
+                        }
+                        if (submp[TABLE_NUMBER_MOMENT][1] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_MOMENT][1];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[1] = submp.GetTable(table_number).GetValue(time);
+                        }
+                        if (submp[TABLE_NUMBER_MOMENT][2] != 0) {
+                            const int table_number = submp[TABLE_NUMBER_MOMENT][2];
+                            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)[2] = submp.GetTable(table_number).GetValue(time);
+                        }
                     }
                 }
             }
@@ -1240,6 +1374,183 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
+
+    void ExplicitSolverStrategy::CreateContactElements() {
+        KRATOS_TRY
+
+        std::string ElementName;
+        ElementName = std::string("ParticleContactElement");
+        const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
+
+        //Here we are going to create contact elements when we are on a target particle and we see a neighbor whose id is higher than ours.
+        //We create also a pointer from the node to the element, after creating it.
+        //When our particle has a higher ID than the neighbor we also create a pointer to the (previously) created contact element.
+        //We proceed in this way because we want to have the pointers to contact elements in a list in the same order as the initial elements order.
+
+        const int number_of_particles = (int) mListOfSphericParticles.size();
+        int used_bonds_counter = 0;
+
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighbourElements.size();
+                mListOfSphericParticles[i]->mBondElements.resize(neighbors_size);
+                for (unsigned int j = 0; j < mListOfSphericParticles[i]->mBondElements.size(); j++) {
+                    mListOfSphericParticles[i]->mBondElements[j] = NULL;
+                }
+            }
+
+            int private_counter = 0;
+            Element::Pointer p_new_contact_element;
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                bool add_new_bond = true;
+                std::vector<SphericParticle*>& neighbour_elements = mListOfSphericParticles[i]->mNeighbourElements;
+                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighbourElements.size();
+
+                for (unsigned int j = 0; j < neighbors_size; j++) {
+                    SphericParticle* neighbour_element = dynamic_cast<SphericParticle*> (neighbour_elements[j]);
+                    if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
+                    if (mListOfSphericParticles[i]->Id() > neighbour_element->Id()) continue;
+
+                    #pragma omp critical
+                    {
+                        if (used_bonds_counter < (int) (*mpContact_model_part).Elements().size()) {
+                            add_new_bond = false;
+                            private_counter = used_bonds_counter;
+                            used_bonds_counter++;
+                        }
+                    }
+                    if (!add_new_bond) {
+                        Element::Pointer& p_old_contact_element = (*mpContact_model_part).Elements().GetContainer()[private_counter];
+                        p_old_contact_element->GetGeometry()(0) = mListOfSphericParticles[i]->GetGeometry()(0);
+                        p_old_contact_element->GetGeometry()(1) = neighbour_element->GetGeometry()(0);
+                        p_old_contact_element->SetId(used_bonds_counter);
+                        p_old_contact_element->SetProperties(mListOfSphericParticles[i]->pGetProperties());
+                        ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (p_old_contact_element.get());
+                        mListOfSphericParticles[i]->mBondElements[j] = p_bond;
+                    } else {
+                        Geometry<Node<3> >::PointsArrayType NodeArray(2);
+                        NodeArray.GetContainer()[0] = mListOfSphericParticles[i]->GetGeometry()(0);
+                        NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);
+                        const Properties::Pointer& properties = mListOfSphericParticles[i]->pGetProperties();
+                        p_new_contact_element = rReferenceElement.Create(used_bonds_counter + 1, NodeArray, properties);
+
+                        #pragma omp critical
+                        {
+                            (*mpContact_model_part).Elements().push_back(p_new_contact_element);
+                            used_bonds_counter++;
+                        }
+                        ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (p_new_contact_element.get());
+                        mListOfSphericParticles[i]->mBondElements[j] = p_bond;
+                    }
+
+                }
+            }
+
+            #pragma omp single
+            {
+                if ((int) (*mpContact_model_part).Elements().size() > used_bonds_counter) {
+                    (*mpContact_model_part).Elements().erase((*mpContact_model_part).Elements().ptr_begin() + used_bonds_counter, (*mpContact_model_part).Elements().ptr_end());
+                }
+            }
+
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                std::vector<SphericParticle*>& neighbour_elements = mListOfSphericParticles[i]->mNeighbourElements;
+                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighbourElements.size();
+
+                for (unsigned int j = 0; j < neighbors_size; j++) {
+                    SphericParticle* neighbour_element = dynamic_cast<SphericParticle*> (neighbour_elements[j]);
+                    if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
+                    //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
+                    if (mListOfSphericParticles[i]->Id() < neighbour_element->Id()) continue;
+                    //In all functions using mBondElements we must check that this bond is not used.
+
+                    for (unsigned int k = 0; k < neighbour_element->mNeighbourElements.size(); k++) {
+                        //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
+                        //In all functions using mBondElements we must check that this bond is not used.
+                        if (neighbour_element->mNeighbourElements[k] == NULL) continue; //The initial neighbor was deleted at some point in time!!
+                        if (neighbour_element->mNeighbourElements[k]->Id() == mListOfSphericParticles[i]->Id()) {
+                            ParticleContactElement* bond = neighbour_element->mBondElements[k];
+                            mListOfSphericParticles[i]->mBondElements[j] = bond;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //Renumbering the Id's of the bonds to make them unique and consecutive (otherwise the Id's are repeated)
+            #pragma omp for
+            for(int i=0; i<(int)(*mpContact_model_part).Elements().size(); i++) {
+                (*mpContact_model_part).Elements().GetContainer()[i]->SetId(i+1);
+            }
+
+        } //#pragma omp parallel
+        KRATOS_CATCH("")
+    } //CreateContactElements
+
+    void ExplicitSolverStrategy::InitializeContactElements() {
+        KRATOS_TRY
+        //CONTACT MODEL PART
+        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
+        DenseVector<unsigned int> contact_element_partition;
+        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+
+        #pragma omp parallel for
+        for (int k = 0; k < mNumberOfThreads; k++) {
+            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
+            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
+
+            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
+                (it_contact)->Initialize();
+            } //loop over CONTACT ELEMENTS
+        }// loop threads OpenMP
+
+        KRATOS_CATCH("")
+    }
+
+    // void ExplicitSolverStrategy::ContactInitializeSolutionStep() {
+    //     ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
+    //     ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
+
+    //     DenseVector<unsigned int> contact_element_partition;
+
+    //     OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+    //     #pragma omp parallel for
+    //     for (int k = 0; k < mNumberOfThreads; k++) {
+    //         ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
+    //         ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
+
+    //         for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
+    //             (it_contact)->InitializeSolutionStep(r_process_info);
+    //         } //loop over CONTACT ELEMENTS
+
+    //     }// loop threads OpenMP
+
+    // } //Contact_InitializeSolutionStep
+
+    void ExplicitSolverStrategy::PrepareContactElementsForPrinting() {
+
+        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
+        DenseVector<unsigned int> contact_element_partition;
+
+        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+
+        #pragma omp parallel for
+        for (int k = 0; k < mNumberOfThreads; k++) {
+            ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
+            ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
+
+            for (ElementsArrayType::iterator it_contact = it_contact_begin; it_contact != it_contact_end; ++it_contact) {
+                Element* raw_p_contact_element = &(*it_contact);
+                ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (raw_p_contact_element);
+                p_bond->PrepareForPrinting();
+            } //loop over CONTACT ELEMENTS
+        }// loop threads OpenMP
+        //Important TODO: renumber all id's to avoid repetition across partitions
+    } //PrepareContactElementsForPrinting
 
     void ExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
         KRATOS_TRY

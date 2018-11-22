@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_Q4_Thin_linear_dynamic_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.125,
         "start_time"      : 0.0,
         "end_time"        : 25,
         "echo_level"      : 0
@@ -15,7 +12,12 @@
     "INFO: Linear refers to the BCs, the element-formulation is Nonlinear, thats why a mon-lin anaylsis has to be used!": 1,
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
+        "model_part_name" : "Structure",
         "echo_level"                         : 0,
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.125
+        },
         "analysis_type"                      : "non_linear",
         "time_integration_method"            : "implicit",
         "scheme_type"                        : "newmark",
@@ -42,6 +44,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_edge","DISPLACEMENT_sample","ROTATION_edge","SurfaceLoad3D_surface"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -105,7 +108,7 @@
             "time_frequency"   : 0.001
         }
     }
-    ],
+    ]},
     "print_output_process" : [
     {
         "python_module" : "json_output_process",
