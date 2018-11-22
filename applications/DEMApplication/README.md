@@ -31,7 +31,7 @@ The fundamental theoretical background corresponding to the discontinuous (granu
 
 ### Contact Laws
 
-The contact laws are implemented in [this folder](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/DEM_application/custom_constitutive). Note that a letter 'D' or 'd' in the file name means 'discontiuum'. It is, related to non cohesive or slightly cohesive contacts.
+The contact laws are implemented in [this folder](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/DEMApplication/custom_constitutive). Note that a letter 'D' or 'd' in the file name means 'discontiuum'. It is, related to non cohesive or slightly cohesive contacts.
 
 #### Linear Repulsive Force
 
