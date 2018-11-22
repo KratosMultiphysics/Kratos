@@ -78,7 +78,7 @@ HenckyMCPlasticAxisym2DLaw::~HenckyMCPlasticAxisym2DLaw()
 
 int HenckyMCPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
 {
-    HenckyElasticPlastic3DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
+    HenckyElasticPlasticAxisym2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 
     KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rProperties[YOUNG_MODULUS]<= 0.00) << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 

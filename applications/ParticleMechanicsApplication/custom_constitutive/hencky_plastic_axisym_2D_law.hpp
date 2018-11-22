@@ -25,7 +25,7 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law in plane strain 2D
+ * Defines a hyperelastic-plastic isotropic constitutive law in 2D axis-symmetric plane
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
