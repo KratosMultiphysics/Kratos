@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hencky_mc_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
 #include "particle_mechanics_application.h"
 
 namespace Kratos
@@ -40,7 +40,7 @@ HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw()
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+HenckyBorjaCamClayPlasticAxisym2DLaw::HenckyBorjaCamClayPlasticAxisym2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
     mpYieldCriterion  =  MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );

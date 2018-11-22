@@ -40,11 +40,11 @@ HenckyMCPlasticAxisym2DLaw::HenckyMCPlasticAxisym2DLaw()
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-HenckyMCPlasticAxisym2DLaw::HenckyMCPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+HenckyMCPlasticAxisym2DLaw::HenckyMCPlasticAxisym2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
   mpHardeningLaw       =  pHardeningLaw;
   mpYieldCriterion     =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-  mpMPMFlowRule        =  pFlowRule;
+  mpMPMFlowRule        =  pMPMFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

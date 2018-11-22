@@ -71,7 +71,7 @@ public:
     HenckyBorjaCamClayPlasticAxisym2DLaw();
 
 
-    HenckyBorjaCamClayPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+    HenckyBorjaCamClayPlasticAxisym2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
