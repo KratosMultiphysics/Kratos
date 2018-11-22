@@ -89,7 +89,7 @@ class MechanicalSolver(PythonSolver):
             "auxiliary_variables_list" : [],
             "auxiliary_dofs_list" : [],
             "auxiliary_reaction_list" : [],
-            "retrocompatibility_on_loads" : true
+            "consider_histocally_loads" : true
         }
         """)
 
@@ -146,7 +146,7 @@ class MechanicalSolver(PythonSolver):
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
-        if (self.settings["retrocompatibility_on_loads"].GetBool() is True):
+        if (self.settings["consider_histocally_loads"].GetBool() is True):
             # Add specific variables for the problem conditions.
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
