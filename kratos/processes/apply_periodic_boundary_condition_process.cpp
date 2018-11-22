@@ -48,7 +48,7 @@ namespace Kratos
         mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector()
         mDirOfTranslation = mParameters["dir_of_translation"].GetVector()
 
-        mModulus = mParameters["magnitude"].GetDouble();
+        mMagnitude = mParameters["magnitude"].GetDouble();
         mAngleOfRotation = mParameters["angle"].GetDouble() * 2 * Globals::Pi / 360.0;
 
         mTransformationMatrix.resize(4,4);
@@ -56,14 +56,14 @@ namespace Kratos
 
         RemoveCommonNodesFromSlaveModelPart();
 
-        if (mAngleOfRotation == 0 && mModulus != 0)
+        if (mAngleOfRotation == 0 && mMagnitude != 0)
             mType = "translation";
-        else if (mAngleOfRotation != 0.0 && mModulus == 0.0)
+        else if (mAngleOfRotation != 0.0 && mMagnitude == 0.0)
             mType = "rotation";
         else
-            KRATOS_ERROR_IF(mAngleOfRotation == 0.0 && mModulus == 0.0)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
+            KRATOS_ERROR_IF(mAngleOfRotation == 0.0 && mMagnitude == 0.0)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
         else
-            KRATOS_ERROR_IF(mAngleOfRotation != 0.0 && mModulus != 0.0)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
+            KRATOS_ERROR_IF(mAngleOfRotation != 0.0 && mMagnitude != 0.0)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
 
         CalculateTransformationMatrix();
         mIsInitialized = false;
@@ -245,7 +245,7 @@ namespace Kratos
     void ApplyPeriodicConditionProcess::CalculateTransformationMatrix()
     {
         if (mType == "translation"){
-            CalculateTranslationMatrix(-1*mModulus, mTransformationMatrix);
+            CalculateTranslationMatrix(-1*mMagnitude, mTransformationMatrix);
             CalculateTranslationMatrix(0.0, mTransformationMatrixVariable);
         }
         else if (mType == "rotation"){

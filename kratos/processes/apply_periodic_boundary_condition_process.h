@@ -94,7 +94,7 @@ class ApplyPeriodicConditionProcess : public Process
     DenseVector<double> mCenterOfRotation;
     DenseVector<double> mAxisOfRotationVector;
     std::string mType;
-    double mModulus;
+    double mMagnitude;
     DenseVector<double> mDirOfTranslation;
 
     /**
@@ -139,7 +139,7 @@ class ApplyPeriodicConditionProcess : public Process
     void CalculateTransformationMatrix();
 
     /**
-     * @brief   Calculates the transformation matrix which translates the given vector alone mDirOfTranslation by mModulus
+     * @brief   Calculates the transformation matrix which translates the given vector alone mDirOfTranslation by mMagnitude
      * @param   Modulus is the magnitude by which the translation should happen in the direction of mDirOfTranslation.
      * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
      */
