@@ -49,8 +49,8 @@ namespace Kratos
 
         //for (int trims = 0; trims < m_trimming_range_vector.size(); ++trims)
         //{
-            //auto this_curve = Kratos::make_unique<ANurbs::Curve3D>(
-            //    m_node_curve_geometry_3d, m_trimming_range_vector[trims].range);
+            //auto this_curve = Kratos::make_unique<Kratos::Curve<3>>(
+                //m_node_curve_geometry_3d, m_trimming_range_vector[trims].range);
             auto spans = m_node_curve_geometry_3d->Spans();
 
             for (int i = 0; i < spans.size(); ++i)
@@ -73,12 +73,8 @@ namespace Kratos
                     Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 1);
 
                     Element::GeometryType::PointsArrayType non_zero_control_points;
-                    //std::vector<Node<3>::Pointer> cps;
-                    //std::vector<int> cp_ids;
                     for (int m = shape.FirstNonzeroPole(); m < shape.LastNonzeroPole() + 1; ++m)
                     {
-                        //cp_ids.push_back(m_node_curve_geometry_3d->Node(m)->Id());
-                        //cps.push_back(m_node_curve_geometry_3d->Node(m));
                         non_zero_control_points.push_back(m_node_curve_geometry_3d->Node(m));
 
                         N_0(m) = shape(0, m);
@@ -120,8 +116,8 @@ namespace Kratos
                         }
                     }
                 }
-            //}
-        }
+            }
+        //}
     }
 
     void BrepEdge::GetIntegrationBrep(
@@ -133,17 +129,17 @@ namespace Kratos
         const int& rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        //for (int ep = 0; ep < m_embedded_points.size(); ++ep)
-        //{
-        //    if (m_embedded_points[ep].trim_index == trim_index)
-        //    {
-        //        ANurbs::CurveShapeEvaluator<double> shape(
-        //            m_node_curve_geometry_3d->Degree(), 
-        //            rShapeFunctionDerivativesOrder);
+        for (int ep = 0; ep < m_embedded_points.size(); ++ep)
+        {
+            if (m_embedded_points[ep].trim_index == trim_index)
+            {
+                ANurbs::CurveShapeEvaluator<double> shape(
+                    m_node_curve_geometry_3d->Degree(), 
+                    rShapeFunctionDerivativesOrder);
 
-        //        shape.Compute(m_node_curve_geometry_3d->Knots(), m_embedded_points[ep].local_parameter);
-        //    }
-        //}
+                shape.Compute(m_node_curve_geometry_3d->Knots(), m_embedded_points[ep].local_parameter);
+            }
+        }
     }
 
     ///Constructor

@@ -22,7 +22,6 @@
 #include "includes/model_part.h"
 #include "iga_application_variables.h"
 #include "custom_utilities/node_curve_geometry_3d.h"
-#include "custom_utilities/anurbs.h"
 
 
 namespace Kratos
@@ -79,12 +78,12 @@ namespace Kratos
         struct TrimmingRange
         {
             int trim_index;
-            //ANurbs::Interval<double> range;
+            ANurbs::Interval<double> range;
 
             TrimmingRange(const int& rTrimIndex, const Vector& rRange)
             {
                 trim_index = rTrimIndex;
-                //range = ANurbs::Interval<double>(rRange[0], rRange[1]);
+                range = ANurbs::Interval<double>(rRange[0], rRange[1]);
             }
         };
 
@@ -109,13 +108,6 @@ namespace Kratos
         bool IsCouplingEdge();
 
 
-       void GetGeometryIntegration(ModelPart& rModelPart, 
-           const std::string& rType,
-           const std::string& rName,
-           const int& rPropertiesId,
-           const int& rShapeFunctionDerivativesOrder,
-           std::vector<std::string> rVariables);
-
         void GetIntegrationGeometry(
             ModelPart& rModelPart,
             const std::string& rType,
@@ -123,6 +115,7 @@ namespace Kratos
             const int& rPropertiesId,
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
+
         void BrepEdge::GetIntegrationBrep(
             ModelPart& rModelPart,
             const int& trim_index,

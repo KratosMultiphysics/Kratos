@@ -52,19 +52,35 @@ namespace Kratos
 
             std::string sub_model_part_name = element_parameter["iga_model_part"].GetString();
 
-            //if (!model_part.HasSubModelPart(sub_model_part_name))
-            //{
-            //    model_part.CreateSubModelPart(sub_model_part_name);
-            //}
             ModelPart& sub_model_part = model_part.HasSubModelPart(sub_model_part_name) 
                 ? model_part.GetSubModelPart(sub_model_part_name) 
                 : model_part.CreateSubModelPart(sub_model_part_name);
-            for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
+
+            if (element_parameter.Has("brep_ids"))
             {
-                int brep_id = element_parameter["brep_ids"][j].GetInt();
-                bool success = m_brep_model_vector[0].GetIntegrationDomainGeometry(
-                    sub_model_part, brep_id, type, name, 
-                    property_id, shape_function_derivatives_order, variable_list);
+                for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
+                {
+                    int brep_id = element_parameter["brep_ids"][j].GetInt();
+                    if (geometry_type == "Geometry3D")
+                        bool success = m_brep_model_vector[0].GetIntegrationDomainGeometry(
+                            sub_model_part, brep_id, type, name,
+                            property_id, shape_function_derivatives_order, variable_list);
+                    if (geometry_type == "BrepCoupling")
+                        bool success = m_brep_model_vector[0].GetIntegrationDomainBrepCoupling(
+                            sub_model_part, brep_id, type, name,
+                            property_id, shape_function_derivatives_order, variable_list);
+                    if (geometry_type == "Brep")
+                        bool success = m_brep_model_vector[0].GetIntegrationDomainBrep(
+                            sub_model_part, brep_id, type, name,
+                            property_id, shape_function_derivatives_order, variable_list);
+                }
+            }
+            else
+            {
+                if (geometry_type == "BrepCoupling")
+                    bool success = m_brep_model_vector[0].GetIntegrationDomainBrepCoupling(
+                        sub_model_part, type, name,
+                        property_id, shape_function_derivatives_order, variable_list);
             }
         }
     }

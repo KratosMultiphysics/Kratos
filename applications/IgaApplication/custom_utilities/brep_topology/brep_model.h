@@ -47,7 +47,7 @@ namespace Kratos
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
-        void GetIntegrationDomainBrepCoupling(
+        bool GetIntegrationDomainBrepCoupling(
             ModelPart& rModelPart,
             int& brep_id,
             const std::string& rType,
@@ -56,13 +56,31 @@ namespace Kratos
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
+        bool GetIntegrationDomainBrepCoupling(
+            ModelPart& rModelPart,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables);
+
+        void GetIntegrationBrepCouplingEdge(
+            const BrepEdge::EdgeTopology& master,
+            const BrepEdge::EdgeTopology& slave,
+            ModelPart& rModelPart,
+            const std::string& rType,
+            const std::string& rName,
+            const int& rPropertiesId,
+            const int& rShapeFunctionDerivativesOrder,
+            std::vector<std::string> rVariables) const;
+
         //BrepFace& GetFaceNonConst(const int& brep_id);
 
         const BrepFace& GetFace(const int& brep_id) const;
 
-        std::vector<BrepFace>&   GetFaceVector();
-        std::vector<BrepEdge>&   GetEdgeVector();
-        std::vector<BrepVertex>& GetVertexVector();
+        const std::vector<BrepFace>&   GetFaceVector() const;
+        const std::vector<BrepEdge>&   GetEdgeVector() const;
+        const std::vector<BrepVertex>& GetVertexVector() const;
 
         /// Constructor
         BrepModel(

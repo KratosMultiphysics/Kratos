@@ -278,7 +278,7 @@ namespace Kratos
             const int& number_of_control_points = GetGeometry().size();
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
             Vector condition_coords = ZeroVector(3);
-            for (int i = 0; i < number_of_control_points; i++)
+            for (int i = 0; i < N.size(); i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
                 const array_1d<double, 3>& coords = iNode.Coordinates();

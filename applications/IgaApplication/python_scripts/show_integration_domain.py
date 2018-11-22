@@ -53,9 +53,6 @@ class ShowIntegrationDomain(KratosMultiphysics.Process):
             x_coords_nodes.append(node.X)
             y_coords_nodes.append(node.Y)
             z_coords_nodes.append(node.Z)
-        print(x_coords_nodes)
-        print(y_coords_nodes)
-        print(z_coords_nodes)
 
         ax.scatter(x_coords, y_coords, z_coords)
         ax.scatter(x_coords_nodes, y_coords_nodes, z_coords_nodes)

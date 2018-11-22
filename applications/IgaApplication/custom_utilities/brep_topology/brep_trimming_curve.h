@@ -8,7 +8,6 @@
 //#pragma once
 //#include <ANurbs/src/Curve.h>
 //#include <ANurbs/src/CurveGeometry.h>
-//#include <ANurbs/Integration>
 #include "custom_utilities/anurbs.h"
 //#include "../node_surface_geometry_3d.h"
 //#include <ANurbs/Integration>
@@ -31,7 +30,7 @@ namespace Kratos
         ///@{
 
         /// Pointer definition of KratosNurbsBrepApplication
-        KRATOS_CLASS_POINTER_DEFINITION(BrepTrimmingCurve);
+        //KRATOS_CLASS_POINTER_DEFINITION(BrepTrimmingCurve);
 
         ///@}
         ///@name Life Cycle
@@ -41,7 +40,7 @@ namespace Kratos
         */
         int& GetTrimIndex();
 
-        const Kratos::shared_ptr<Curve<2>> GetCurve2D() const;
+        const Kratos::shared_ptr<Kratos::Curve<2>> GetCurve2D() const;
 
         /// Constructor.
         BrepTrimmingCurve(
@@ -66,7 +65,7 @@ namespace Kratos
         bool m_curve_direction;
 
         std::shared_ptr<CurveGeometry<2>> m_geometry;
-        std::shared_ptr<Curve<2>> m_curve;
+        std::shared_ptr<Kratos::Curve<2>> m_curve;
         ///@}
         ///@name Un accessible methods
         ///@{
