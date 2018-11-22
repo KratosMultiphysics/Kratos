@@ -371,7 +371,7 @@ void RegisterNodeCurveGeometry(
             "Index"_a,
             "Value"_a)
         .def("Knots", &Type::Knots)
-        .def("Node", &Type::Node,
+        .def("Node", &Type::GetNode,
             "Index"_a)
         .def("SetNode", &Type::SetNode,
             "Index"_a,
@@ -454,7 +454,7 @@ void RegisterNodeSurfaceGeometry(
         .def("SetKnotV", &Type::SetKnotV,
             "Index"_a,
             "Value"_a)
-        .def("Node", &Type::Node,
+        .def("Node", &Type::GetNode,
             "IndexU"_a,
             "IndexV"_a)
         .def("SetNode", &Type::SetNode,
