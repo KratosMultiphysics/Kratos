@@ -113,25 +113,25 @@ class ApplyPeriodicConditionProcess : public Process
      * @brief   The function add the linear master-slave constraint to rModelPart. This function is specifically for applying
      *          periodic conditions for vector variable. This distinction is because, for vector variables the variable should also be
      *          transformed according to the transfromation specified in the settings.
-     * @param rSalveNode The slave node which is to be connected to the rHostGeometry.
+     * @param rSlaveNode The slave node which is to be connected to the rHostGeometry.
      * @param rHostedGeometry the Host geometry which has the rSlaveNode.
      * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.
      * @param rVarName The name of the vector variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSalveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName );
+    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName );
 
     /**
      * @brief   The function add the linear master-slave constraint to rModelPart. This function is specifically for applying
      *          periodic conditions for scalar variable. This distinction is because, for scalar variables the variable need NOT be
      *          transformed according to the transfromation specified in the settings.
-     * @param rSalveNode The slave node which is to be connected to the rHostGeometry.
+     * @param rSlaveNode The slave node which is to be connected to the rHostGeometry.
      * @param rHostedGeometry the Host geometry which has the rSlaveNode.
      * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.
      * @param rVarName The name of the scalar variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSalveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName );
+    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName );
 
     /**
      * @brief   Fuctions calculates the transformation matrix to account for the moving the two periodic condition modelparts together.

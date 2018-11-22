@@ -44,9 +44,9 @@ namespace Kratos
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
 
-        mCenterOfRotation = mParameters["center"].GetVector()
-        mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector()
-        mDirOfTranslation = mParameters["dir_of_translation"].GetVector()
+        mCenterOfRotation = mParameters["center"].GetVector();
+        mAxisOfRotationVector = mParameters["axis_of_rotation"].GetVector();
+        mDirOfTranslation = mParameters["dir_of_translation"].GetVector();
 
         mMagnitude = mParameters["magnitude"].GetDouble();
         mAngleOfRotation = mParameters["angle_degree"].GetDouble() * 2 * Globals::Pi / 360.0;
@@ -184,7 +184,7 @@ namespace Kratos
     }
 
     template <int TDim>
-    void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSalveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName )
+    void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName )
     {
         const VariableComponentType& r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
         const VariableComponentType& r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
@@ -203,19 +203,19 @@ namespace Kratos
 
                 #pragma omp critical
                 {
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSlaveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
 
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSlaveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
 
                     if (TDim == 3)
                     {
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSlaveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
                     }
                 }
 
@@ -224,7 +224,7 @@ namespace Kratos
     }
 
     template <int TDim>
-    void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSalveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName )
+    void ApplyPeriodicConditionProcess::ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName )
     {
         const VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
 
@@ -236,7 +236,7 @@ namespace Kratos
             const double master_weight = rWeights(master_index);
             #pragma omp critical
             {
-                mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var, rSalveNode, r_var, master_weight, 0.0);
+                mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var, rSlaveNode, r_var, master_weight, 0.0);
             }
             master_index++;
         }
