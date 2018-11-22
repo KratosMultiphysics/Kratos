@@ -51,10 +51,10 @@ class IGA_IO_Process(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
-        dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
+        time = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
+        dt = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         self.step = self.step + 1
-        step = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME_STEPS)
+        step = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME_STEPS)
         self.time_counter += dt
 
         if self.time_counter + 0.00001 >= self.frequency:
@@ -73,7 +73,7 @@ class IGA_IO_Process(KratosMultiphysics.Process):
                     file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " " + type_name + " OnNodes\n")
 
                     file.write("Values\n")
-                    for node in self.sub_model_part.Nodes:
+                    for node in self.model_part.Nodes:
                         value = node.GetSolutionStepValue(variable, 0)
                         if isinstance(value,float):
                             file.write(str(node.Id) + "  " + str(value) + "\n")
@@ -93,8 +93,8 @@ class IGA_IO_Process(KratosMultiphysics.Process):
                     file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " " + type_name + " OnGaussPoints\n")
 
                     file.write("Values\n")
-                    for element in self.sub_model_part.Elements:
-                        value = element.Calculate(variable, self.sub_model_part.ProcessInfo)
+                    for element in self.model_part.Elements:
+                        value = element.Calculate(variable, self.model_part.ProcessInfo)
                         if isinstance(value,float):
                             file.write(str(element.Id) + "  " + str(value) + "\n")
                         else: # It is a vector
