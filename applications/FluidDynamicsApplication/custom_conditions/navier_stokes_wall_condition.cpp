@@ -89,17 +89,17 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
     // LHS and RHS contributions initialization
     noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
     noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-    
+
     // Compute condition unit normal vector
     this->CalculateNormal(data.Normal); //this already contains the area
     const double A = norm_2(data.Normal);
     data.Normal /= A;
-    
+
     // Store the outlet inflow prevention constants in the data structure
     data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
     const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
     data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
-    
+
     // Gauss point information
     GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
@@ -110,12 +110,17 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
 
     if ( this->Is(SLIP) ){
         // finding parent element to retrieve viscous stresses which are later stored in "data"
-        Element parent;
-        FindParent( parent );
+        WeakPointerVector<Element> parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
+        KRATOS_ERROR_IF( parentElement.size() > 1 ) << "A condition was assigned more than one parent element." << std::endl;
+        KRATOS_ERROR_IF( parentElement.size() == 0 ) << "A condition was NOT assigned a parent element. "
+        << "This leads to errors for the slip condition [BEHR2004] "
+        << "Please execute the check_and_prepare_model_process_fluid process." << std::endl;
+
+        Element& parent = parentElement[0];
         data.ViscousStress = ZeroVector( 3*(TDim-1) );
         parent.Calculate(FLUID_STRESS, data.ViscousStress, rCurrentProcessInfo);
     }
-    
+
     // Loop on gauss points
     for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
     {
@@ -127,7 +132,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLocalSystem(MatrixType&
         noalias(rLeftHandSideMatrix) += lhs_gauss;
         noalias(rRightHandSideVector) += rhs_gauss;
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -143,7 +148,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateLeftHandSide(MatrixType
 
     if (rLeftHandSideMatrix.size1() != MatrixSize)
         rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
-    
+
     // LHS contributions initialization
     noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
 
@@ -162,14 +167,14 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
 
     if (rRightHandSideVector.size() != MatrixSize)
         rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
-    
+
     // Struct to pass around the data
     ConditionDataStruct data;
     // Allocate memory needed
     array_1d<double,MatrixSize> rhs_gauss;
     // Loop on gauss points
     noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-    
+
     // Compute condition normal
     this->CalculateNormal(data.Normal); //this already contains the area
     const double A = norm_2(data.Normal);
@@ -179,7 +184,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
     data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
     const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
     data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
-    
+
     // Gauss point information
     GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
@@ -190,8 +195,13 @@ void NavierStokesWallCondition<TDim,TNumNodes>::CalculateRightHandSide(VectorTyp
 
     if ( this->Is(SLIP) ){
         // finding parent element to retrieve viscous stresses which are later stored in "data"
-        Element parent;
-        FindParent( parent );
+        WeakPointerVector<Element> parentElement = this->GetValue( NEIGHBOUR_ELEMENTS );
+        KRATOS_ERROR_IF( parentElement.size() > 1 ) << "A condition was assigned more than one parent element." << std::endl;
+        KRATOS_ERROR_IF( parentElement.size() == 0 ) << "A condition was NOT assigned a parent element. "
+        << "This leads to errors for the slip condition [BEHR2004] "
+        << "Please execute the check_and_prepare_model_process_fluid process." << std::endl;
+
+        Element& parent = parentElement[0];
         data.ViscousStress = ZeroVector( 3*(TDim-1) );
         parent.Calculate(FLUID_STRESS, data.ViscousStress, rCurrentProcessInfo);
     }
@@ -237,7 +247,7 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
             KRATOS_ERROR << "DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.";
         if(EXTERNAL_PRESSURE.Key() == 0)
             KRATOS_ERROR << "EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.";
-        
+
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -264,7 +274,7 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
     }
 
     KRATOS_CATCH("");
-}   
+}
 
 
 /**
@@ -288,66 +298,6 @@ void NavierStokesWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofLis
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
     }
-}
-
-
-
-template<unsigned int TDim, unsigned int TNumNodes>
-void NavierStokesWallCondition<TDim,TNumNodes>::FindParent(Element& rParent){
-
-    KRATOS_TRY;
-
-    if ( this->Is(SLIP) ){
-    
-        const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
-
-        if (norm_2(rNormal) == 0.0){
-            KRATOS_ERROR << "NORMAL must be calculated before using this condition. Error on condition " << this->Id() << std::endl;
-        }
-
-        array_1d<double,3> Edge;
-        GeometryType& rGeom = this->GetGeometry();
-        WeakPointerVector<Element> ElementCandidates;
-        
-        for (SizeType i = 0; i < TNumNodes; i++){
-            WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-
-            // Check that the condition has candidate parent elements
-            KRATOS_ERROR_IF(rNodeElementCandidates.size() == 0) <<
-                "Condition " << this->Id() << " has no candidate parent elements.\n" <<
-                "Check that the FindNodalNeighboursProcess has been executed ( e.g in Solver.Initialize() )" << std::endl;
-
-            for (SizeType j = 0; j < rNodeElementCandidates.size(); j++){
-                ElementCandidates.push_back(rNodeElementCandidates(j));
-            }
-        }
-
-        std::vector<IndexType> NodeIds(TNumNodes), ElementNodeIds;
-        for (SizeType i=0; i < TNumNodes; i++){
-            NodeIds[i] = rGeom[i].Id();
-        }
-
-        std::sort(NodeIds.begin(), NodeIds.end());
-
-        for (SizeType i=0; i < ElementCandidates.size(); i++)
-        {
-            GeometryType& rElemGeom = ElementCandidates[i].GetGeometry();
-            ElementNodeIds.resize(rElemGeom.PointsNumber());
-
-            for (SizeType j=0; j < rElemGeom.PointsNumber(); j++){
-                ElementNodeIds[j] = rElemGeom[j].Id();
-            }
-
-            std::sort(ElementNodeIds.begin(), ElementNodeIds.end());
-            if ( std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()) ){
-                rParent = ElementCandidates[i];
-                return;
-            }
-        }
-        KRATOS_ERROR << "PARENT NOT FOUND : error in condition -> " << this->Id() << std::endl;
-    }
-
-    KRATOS_CATCH("");
 }
 
 
@@ -381,7 +331,7 @@ const ConditionDataStruct& data)
 {
     const unsigned int LocalSize = TDim+1;
     lhs_gauss = ZeroMatrix(TNumNodes*LocalSize, TNumNodes*LocalSize);
-    
+
     // contribution to avoid tangential components in the residual (BEHR2004)
     // Adding the BEHR2004 contribution if a slip BC is detected
     // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
@@ -558,12 +508,12 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSCont
         for(unsigned int rowBlock = 0; rowBlock < TNumNodes; rowBlock++){
             for(unsigned int i = 0; i < TNumNodes; i++){
 
-                BaseLHSMatrix( lineBlock * (TNumNodes + 1) + i , rowBlock * (TNumNodes + 1) + TNumNodes ) 
+                BaseLHSMatrix( lineBlock * (TNumNodes + 1) + i , rowBlock * (TNumNodes + 1) + TNumNodes )
                 = rDataStruct.Normal[i] * N[lineBlock] * N[rowBlock] * wGauss;
             }
         }
     }
- 
+
     // Computation of NodalProjectionMatrix = ( [I] - (na)(na) ) for all nodes and store it
     std::vector< BoundedMatrix<double, 3, 3> > NodalProjectionMatrix(TNumNodes);
     for(unsigned int node = 0; node < TNumNodes; node++){
@@ -596,7 +546,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
     const unsigned int voigtSize = 3 * (TDim-1);
 
     GeometryType& rGeom = this->GetGeometry();
-    
+
     // Retrieve the nodal consistent normal vectors, normalize, and store them for each node
     std::vector<array_1d<double,3>> NodalNormals(TNumNodes);
 	for (unsigned int nnode=0; nnode < TNumNodes; nnode++){
@@ -671,7 +621,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
         NodalEntriesRHS[nnode] = zero_vector<double>(3);
         const array_1d<double, TNumNodes> N = rDataStruct.N;
         const double wGauss = rDataStruct.wGauss;
-        
+
         CompleteSigmaInterpolated = ZeroVector(3);
         for( unsigned int comp = 0; comp < TNumNodes; comp++){
 

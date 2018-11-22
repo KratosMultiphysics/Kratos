@@ -327,11 +327,11 @@ protected:
     void CalculateNormal(array_1d<double,3>& An);
 
     void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
-    
+
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
-    
+
     void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     ///@}
@@ -388,8 +388,8 @@ private:
 
     /**
      * @brief Computes the left-hand side contribution for the BEHR2004 slip condition
-     * This specific implementation of the slip condition avoids spurious velocities 
-     * at points were the normal directions of the adjacent boundary geometries do not 
+     * This specific implementation of the slip condition avoids spurious velocities
+     * at points were the normal directions of the adjacent boundary geometries do not
      * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
@@ -401,8 +401,8 @@ private:
 
     /**
      * @brief Computes the right-hand side contribution for the BEHR2004 slip condition
-     * This specific implementation of the slip condition avoids spurious velocities 
-     * at points were the normal directions of the adjacent boundary geometries do not 
+     * This specific implementation of the slip condition avoids spurious velocities
+     * at points were the normal directions of the adjacent boundary geometries do not
      * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
      * @param rRightHandSideMatrix reference to the LHS matrix
      * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
@@ -410,15 +410,6 @@ private:
      */
     void ComputeGaussPointBehrSlipRHSContribution(  VectorType& rRightHandSideVector,
                                                     const ConditionDataStruct& rDataStruct );
-
-
-    /**
-     * @brief Finds the parent element of the condition
-     * @comment The parent element is needed to retrieve the viscous stress for the BEHR2004 slip condition
-     * Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
-     * @param parent 
-     */
-    void FindParent(Element& parent);
 
     ///@}
     ///@name Private  Access
