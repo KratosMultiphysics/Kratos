@@ -228,7 +228,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             KratosMultiphysics.VariableUtils().SetScalarVar(VOLUME_ACCELERATION, volume_acceleration, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetScalarVar(FLUID_FRACTION, 1.0, self.main_model_part.Nodes)
             KratosMultiphysics.VariableUtils().SetScalarVar(FLUID_FRACTION_OLD, 1.0, self.main_model_part.Nodes)
-            KratosMultiphysics.VariableUtils().SetScalarVar(FLUID_FRACTION_RATE, 1.0, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetScalarVar(FLUID_FRACTION_RATE, 0.0, self.main_model_part.Nodes)
 
         if(currentStep == 2):
             KratosMultiphysics.VariableUtils().SetScalarVar(FLUID_FRACTION_RATE, 0.0, self.main_model_part.Nodes)
