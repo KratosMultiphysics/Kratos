@@ -57,7 +57,8 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
 
     /**
      * @brief Constructor of the process to apply periodic boundary condition
-     * @param rModelPart The main model part where the boundary conditions are applied.
+     * @param rMasterModelPart The master model part for the constraints. Constraints are added on here.
+     * @param rSlaveModelPart The slave model part for the constraints.
      * @param rParameters parameters for the periodic condition to be applied
      */
     ApplyPeriodicConditionProcess(ModelPart &rMasterModelPart, ModelPart &rSlaveModelPart,
@@ -110,7 +111,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     void ApplyConstraintsForPeriodicConditions();
 
     /**
-     * @brief   The function add the linear master-slave constraint to rModelPart. This function is specifically for applying
+     * @brief   The function adds the linear master-slave constraint to mrMasterModelPart. This function is specifically for applying
      *          periodic conditions for vector variable. This distinction is because, for vector variables the variable should also be
      *          transformed according to the transfromation specified in the settings.
      * @param rSlaveNode The slave node which is to be connected to the rHostGeometry.
@@ -122,7 +123,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName );
 
     /**
-     * @brief   The function add the linear master-slave constraint to rModelPart. This function is specifically for applying
+     * @brief   The function adds the linear master-slave constraint to mrMasterModelPart. This function is specifically for applying
      *          periodic conditions for scalar variable. This distinction is because, for scalar variables the variable need NOT be
      *          transformed according to the transfromation specified in the settings.
      * @param rSlaveNode The slave node which is to be connected to the rHostGeometry.
@@ -134,27 +135,28 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSlaveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName );
 
     /**
-     * @brief   Fuctions calculates the transformation matrix to account for the moving the two periodic condition modelparts together.
+     * @brief   Calculate the transformation matrix to account for the moving the two periodic condition modelparts together.
      */
     void CalculateTransformationMatrix();
 
     /**
-     * @brief   Calculates the transformation matrix which translates the given vector alone mDirOfTranslation by mMagnitude
+     * @brief   Calculate the transformation matrix which translates the given vector along mDirOfTranslation by mMagnitude
      * @param   Modulus is the magnitude by which the translation should happen in the direction of mDirOfTranslation.
      * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
      */
     void CalculateTranslationMatrix(const double Modulus, MatrixType& rMatrix);
 
     /**
-     * @brief   Calculates the transformation matrix which rotates the given vector around mAxisOfRotationVector and mCenterOfRotation
+     * @brief   Calculate the transformation matrix which rotates the given vector around mAxisOfRotationVector and mCenterOfRotation
      *          by provided Theta and stores the result in rMatrix The following code is generated from MATLAB and is adapted here.
+     * @see     http://paulbourke.net/geometry/rotate/
      * @param   Theta is the angle of rotation about mAxisOfRotationVector and mCenterOfRotation.
      * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
      */
     void CalculateRotationMatrix(const double Theta, MatrixType& rMatrix );
 
     /*
-     * @brief Rotates a given point(node_cords) in space around a given mAxisOfRotationVector by an angle thetha
+     * @brief Transform the point(node_cords) using the mTransformationMatrix calculated in CalculateTransformationMatrix function
      * @param rCoordinates The original coordinates which have to be transformed
      * @param rTransformedCoordinates The new coordinates which are transformed with rTransformationMatrix.
      */
@@ -193,4 +195,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_APPLY_CONSTANT_VECTORVALUE_PROCESS_H_INCLUDED  defined
+#endif // APPLY_PERIODIC_CONDITION_PROCESS_H  defined
