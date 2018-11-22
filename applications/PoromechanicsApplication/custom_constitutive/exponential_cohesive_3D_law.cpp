@@ -115,14 +115,20 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     const double MinusNormalStrain = -1.0*StrainVector[2];
     rVariables.CompressionMatrix.resize(3,3);
     noalias(rVariables.CompressionMatrix) = ZeroMatrix(3,3);
-    rVariables.CompressionMatrix(2,2) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
+    if(std::abs(MinusNormalStrain) > 1.0e-15)
+        rVariables.CompressionMatrix(2,2) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
+    else
+        rVariables.CompressionMatrix(2,2) = 0.0;
 
     const double WeightingParameter = 1.0; // TODO ?
     rVariables.WeightMatrix.resize(3,3);
     noalias(rVariables.WeightMatrix) = ZeroMatrix(3,3);
     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter;
     rVariables.WeightMatrix(1,1) = WeightingParameter*WeightingParameter;
-    rVariables.WeightMatrix(2,2) = this->MacaulayBrackets(StrainVector[2])/StrainVector[2];
+    if(std::abs(StrainVector[2]) > 1.0e-15)
+        rVariables.WeightMatrix(2,2) = this->MacaulayBrackets(StrainVector[2])/StrainVector[2];
+    else
+        rVariables.WeightMatrix(2,2) = 0.0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -143,6 +149,11 @@ void ExponentialCohesive3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables&
     const Vector& StrainVector = rValues.GetStrainVector();
     const array_1d<double,3> Aux = prod(rVariables.WeightMatrix,StrainVector);
     rVariables.EquivalentStrain = std::sqrt(inner_prod(StrainVector,Aux));
+    const double EquivalentStrain2 = inner_prod(StrainVector,Aux);
+    if(EquivalentStrain2 > 0.0)
+        rVariables.EquivalentStrain = std::sqrt(EquivalentStrain2);
+    else
+        rVariables.EquivalentStrain = 0.0;
 }
 
 //----------------------------------------------------------------------------------------
@@ -170,7 +181,11 @@ void ExponentialCohesive3DLaw::ComputeCriticalDisplacement(ConstitutiveLawVariab
     const double ShearStrain2 = StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1];
     const double PositiveNormalStrain = this->MacaulayBrackets(StrainVector[2]);
     const double TotalStrain2 = PositiveNormalStrain*PositiveNormalStrain+ShearStrain2;
-    const double ModeMixingRatio = ShearStrain2 / TotalStrain2;
+    double ModeMixingRatio;
+    if(TotalStrain2 > 1.0e-15)
+        ModeMixingRatio = ShearStrain2 / TotalStrain2;
+    else
+        ModeMixingRatio = 1.0;
     const double CurveFittingParameter = 1.0; // TODO ?
     const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,CurveFittingParameter);
 
