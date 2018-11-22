@@ -35,7 +35,7 @@ namespace Kratos
                                             "variable_names":[],
                                             "center":[0,0,0],
                                             "axis_of_rotation":[0.0,0.0,0.0],
-                                            "angle":0.0,
+                                            "angle_degree":0.0,
                                             "dir_of_translation":[0.0,0.0,0.0],
                                             "magnitude":0.0
                                             }  )");
@@ -49,7 +49,7 @@ namespace Kratos
         mDirOfTranslation = mParameters["dir_of_translation"].GetVector()
 
         mMagnitude = mParameters["magnitude"].GetDouble();
-        mAngleOfRotation = mParameters["angle"].GetDouble() * 2 * Globals::Pi / 360.0;
+        mAngleOfRotation = mParameters["angle_degree"].GetDouble() * 2 * Globals::Pi / 360.0;
 
         mTransformationMatrix.resize(4,4);
         mTransformationMatrixVariable.resize(4,4);
