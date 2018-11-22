@@ -1,1 +1,1 @@
-/home/maceli/kratos/applications/DEM_application/python_scripts/KratosDEM.py
+/home/maceli/kratos/applications/DEMApplication/python_scripts/KratosDEM.py
