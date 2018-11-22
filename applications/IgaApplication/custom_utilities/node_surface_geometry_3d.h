@@ -135,7 +135,6 @@ public:
     {
         NodeType& node = *GetNode(IndexU, IndexV);
 
-        VectorType pole;
         for (std::size_t i = 0; i < 3; i++) {
             node[i] = Value[i];
         }
