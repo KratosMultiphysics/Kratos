@@ -40,7 +40,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 template<class TEntity>
-class AssignScalarVariableToEntitiesProcess
+class KRATOS_API(KRATOS_CORE) AssignScalarVariableToEntitiesProcess
     : public Process
 {
 public:
