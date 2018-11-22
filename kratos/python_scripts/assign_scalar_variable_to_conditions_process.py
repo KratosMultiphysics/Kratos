@@ -45,10 +45,10 @@ class AssignScalarVariableToConditionsProcess(assign_scalar_variable_to_entities
 
         # Ensure proper entities
         if (settings["entities"].size() != 1):
-            settings["entities"].SetValue(default_settings["entities"])
+            settings["entities"] = default_settings["entities"]
         else:
             if (settings["entities"][0].GetString() != "conditions"):
-                settings["entities"].SetValue(default_settings["entities"])
+                settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
         super(AssignScalarVariableToConditionsProcess, self).__init__(Model, settings)

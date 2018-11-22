@@ -56,10 +56,10 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
 
         # Ensure proper entities
         if (settings["entities"].size() != 1):
-            settings["entities"].SetValue(default_settings["entities"])
+            settings["entities"] = default_settings["entities"]
         else:
             if (settings["entities"][0].GetString() != "conditions"):
-                settings["entities"].SetValue(default_settings["entities"])
+                settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
         super(AssignVectorByDirectionToConditionProcess, self).__init__(Model, settings)
