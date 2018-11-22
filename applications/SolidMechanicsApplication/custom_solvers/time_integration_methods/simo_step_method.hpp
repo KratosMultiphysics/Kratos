@@ -172,9 +172,6 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      // predict variable from variable
-
-
       KRATOS_CATCH( "" )
     }
 
@@ -190,6 +187,10 @@ namespace Kratos
 
       CurrentVariable  = PreviousVariable + (CurrentFirstDerivative) * (1.0/this->mNewmark.c1);
 
+      TValueType& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
+      CurrentSecondDerivative -= CurrentSecondDerivative;
+
+      
       KRATOS_CATCH( "" )
     }
 
@@ -214,7 +215,12 @@ namespace Kratos
     void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
+          
+      // const TValueType& CurrentStepVariable = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
+      // TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
 
+      // CurrentVariable += CurrentStepVariable;
+      
       KRATOS_CATCH( "" )
     }
 
