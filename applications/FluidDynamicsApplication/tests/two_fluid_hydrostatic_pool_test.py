@@ -164,7 +164,6 @@ class FluidDynamicsAnalysisWithFlush3D(FluidDynamicsAnalysis):
         self.last_flush = time.time()
 
     def ModifyInitialGeometry(self):
-        
         init_h = 0.5
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             distance = node.Z - init_h
