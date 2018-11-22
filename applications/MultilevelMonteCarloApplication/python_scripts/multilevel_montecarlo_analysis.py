@@ -7,7 +7,7 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.MultilevelMonteCarloApplication as Poisson
+import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
@@ -16,9 +16,16 @@ KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logg
 from analysis_stage import AnalysisStage
 
 # Import pycompss
-from pycompss.api.task import task
-from pycompss.api.api import compss_wait_on
-from pycompss.api.parameter import *
+# from pycompss.api.task import task
+# from pycompss.api.api import compss_wait_on
+# from pycompss.api.parameter import *
+
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+# get_value_from_remote is the equivalent of compss_wait_on
+# in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 
 # Import Continuation Multilevel Monte Carlo library
 import cmlmc_utilities as mlmc
@@ -30,9 +37,20 @@ except ImportError:
     import pickle
 
 
+'''Adapt the following class depending on the problem, deriving the MultilevelMonteCarloAnalysis class from the problem of interest'''
+
+'''This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
+-lapl(u) = xi*f,    f= -432*x*(x-1)*y*(y-1)
+                    f= -432*(x**2+y**2-x-y)
+where xi is a Beta(2,6) random variable, and computes statistic of the QoI
+Q = int_(0,1)^2 u(x,y)dxdy
+more details in Section 5.2 of [PKN17]
+
+References:
+[PKN17] M. Pisaroni; S. Krumscheid; F. Nobile : Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; MATHICSE technical report no. 23.2017.
+'''
 class MultilevelMonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for MultilevelMonte Carlo simulations'''
-
 
     def __init__(self,serialized_model,serialized_parameters,sample):
         if (type(serialized_model) == KratosMultiphysics.StreamSerializer):
@@ -118,7 +136,7 @@ input:
 output:
         QoI         : Quantity of Interest
 '''
-@task(returns=1)
+@ExaquteTask(returns=1)
 def execution_task(model, parameters, sample):
     simulation = MultilevelMonteCarloAnalysis(model,parameters,sample)
     simulation.Run()
@@ -135,9 +153,8 @@ output:
         ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
-@task(returns=1)
+@ExaquteTask(returns=1)
 def exact_execution_task(model, parameters):
-    # parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     sample = 1.0
     simulation = MultilevelMonteCarloAnalysis(model,parameters,sample)
     simulation.Run()
@@ -149,29 +166,29 @@ def exact_execution_task(model, parameters):
 '''
 function serializing the model and the parameters of the problem
 input:
-        model_part_file_name  : path of the model part file
         parameter_file_name   : path of the Project Parameters file
 output:
         serialized_model      : model serialized
         serialized_parameters : project parameters serialized
 '''
-@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=2)
-def serialize_model_projectparameters(model_part_file_name, parameter_file_name):
+@ExaquteTask(parameter_file_name=FILE_IN,returns=1)
+def serialize_model_projectparameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
     model = KratosMultiphysics.Model()      
-    local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
+    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     fake_sample = 1.0
 
-    simulation = MultilevelMonteCarloAnalysis(model,local_parameters, fake_sample)
+    simulation = MultilevelMonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
 
     serialized_model = KratosMultiphysics.StreamSerializer()
     serialized_model.Save("ModelSerialization",simulation.model)
     serialized_parameters = KratosMultiphysics.StreamSerializer()
     serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
-    return (serialized_model, serialized_parameters)
+    objects_serialized = [serialized_model, serialized_parameters]
+    return objects_serialized
 
 '''
 function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
@@ -181,7 +198,7 @@ input :
 output :
         relative_error        : relative error
 '''
-@task(returns=1)
+@ExaquteTask(returns=1)
 def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
@@ -208,26 +225,12 @@ if __name__ == '__main__':
     set the ProjectParameters.json path in the parameter_file_name list
     '''
     parameter_file_name =[]
-    parameter_file_name.append("../tests/Level0/ProjectParameters.json")
-    with open(parameter_file_name[0],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_0 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("../tests/Level1/ProjectParameters.json")
-    with open(parameter_file_name[1],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_1 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("../tests/Level2/ProjectParameters.json")
-    with open(parameter_file_name[2],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_2 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("../tests/Level3/ProjectParameters.json")
-    with open(parameter_file_name[3],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_3 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("../tests/Level4/ProjectParameters.json")
-    with open(parameter_file_name[4],'r') as parameter_file:
-        parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    local_parameters_4 = parameters # in case there are more parameters file, we rename them
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level0/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level1/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level2/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level3/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level4/ProjectParameters.json")
+    
     L_max = len(parameter_file_name) - 1
     print("Maximum number of levels = ",L_max)
 
@@ -235,15 +238,20 @@ if __name__ == '__main__':
     output_serialization = []
     serialized_model = []
     serialized_parameters = []
-    output_serialization.append(serialize_model_projectparameters(local_parameters_0["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[0]))
-    output_serialization.append(serialize_model_projectparameters(local_parameters_1["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[1]))
-    output_serialization.append(serialize_model_projectparameters(local_parameters_2["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[2]))
-    output_serialization.append(serialize_model_projectparameters(local_parameters_3["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[3]))
-    output_serialization.append(serialize_model_projectparameters(local_parameters_4["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[4]))
+    output_serialization.append(serialize_model_projectparameters(parameter_file_name[0]))
+    output_serialization.append(serialize_model_projectparameters(parameter_file_name[1]))
+    output_serialization.append(serialize_model_projectparameters(parameter_file_name[2]))
+    output_serialization.append(serialize_model_projectparameters(parameter_file_name[3]))
+    output_serialization.append(serialize_model_projectparameters(parameter_file_name[4]))
+
+    output_serialization = get_value_from_remote(output_serialization)
+
     for lst in range (0,L_max+1):
         serialized_model.append(output_serialization[lst][0])
         serialized_parameters.append(output_serialization[lst][1])
     
+    print("\nSerialization completed")
+
     '''
     evaluate the exact expected value of Q (sample = 1.0)
     need to change both local_parameters_LEVEL and parameter_file_name[LEVEL] to compute for level LEVEL
