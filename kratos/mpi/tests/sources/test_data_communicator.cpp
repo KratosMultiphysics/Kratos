@@ -140,24 +140,32 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumVector, KratosMPICoreFastSuite)
     // local version: do nothing
     serial_communicator.Sum(local_int_vector, reduced_int_vector, root);
     serial_communicator.Sum(local_double_vector, reduced_double_vector, root);
+    std::vector<int> result_ints = serial_communicator.Sum(local_int_vector, root);
+    std::vector<double> result_doubles = serial_communicator.Sum(local_double_vector, root);
     if (world_rank == root)
     {
         for (int i = 0; i < 2; i++)
         {
             KRATOS_CHECK_EQUAL(reduced_int_vector[i], -1);
             KRATOS_CHECK_EQUAL(reduced_double_vector[i], -1.0);
+            KRATOS_CHECK_EQUAL(result_ints[i], local_int_vector[i]);
+            KRATOS_CHECK_EQUAL(result_doubles[i], local_double_vector[i]);
         }
     }
 
     // MPI version
     mpi_world_communicator.Sum(local_int_vector, reduced_int_vector, root);
     mpi_world_communicator.Sum(local_double_vector, reduced_double_vector, root);
+    result_ints = mpi_world_communicator.Sum(local_int_vector, root);
+    result_doubles = mpi_world_communicator.Sum(local_double_vector, root);
     if (world_rank == root)
     {
         for (int i = 0; i < 2; i++)
         {
             KRATOS_CHECK_EQUAL(reduced_int_vector[i], world_size);
             KRATOS_CHECK_EQUAL(reduced_double_vector[i], 2.0*world_size);
+            KRATOS_CHECK_EQUAL(result_ints[i], world_size);
+            KRATOS_CHECK_EQUAL(result_doubles[i], 2.0*world_size);
         }
     }
 
@@ -247,24 +255,34 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinVector, KratosMPICoreFastSuite)
     // local version: do nothing
     serial_communicator.Min(local_int_vector, reduced_int_vector, root);
     serial_communicator.Min(local_double_vector, reduced_double_vector, root);
+    std::vector<int> result_ints = serial_communicator.Min(local_int_vector, root);
+    std::vector<double> result_doubles = serial_communicator.Min(local_double_vector, root);
     if (world_rank == root)
     {
         for (int i = 0; i < 2; i++)
         {
             KRATOS_CHECK_EQUAL(reduced_int_vector[i], 0);
             KRATOS_CHECK_EQUAL(reduced_double_vector[i], 0.0);
+            KRATOS_CHECK_EQUAL(result_ints[i], local_int_vector[i]);
+            KRATOS_CHECK_EQUAL(result_doubles[i], local_double_vector[i]);
         }
     }
 
     // MPI version
     mpi_world_communicator.Min(local_int_vector, reduced_int_vector, root);
     mpi_world_communicator.Min(local_double_vector, reduced_double_vector, root);
+    result_ints = mpi_world_communicator.Min(local_int_vector, root);
+    result_doubles = mpi_world_communicator.Min(local_double_vector, root);
     if (world_rank == root)
     {
         KRATOS_CHECK_EQUAL(reduced_int_vector[0], 0);
         KRATOS_CHECK_EQUAL(reduced_int_vector[1], 1-world_size);
+        KRATOS_CHECK_EQUAL(result_ints[0], 0);
+        KRATOS_CHECK_EQUAL(result_ints[1], 1-world_size);
         KRATOS_CHECK_EQUAL(reduced_double_vector[0], 0.0);
         KRATOS_CHECK_EQUAL(reduced_double_vector[1], 2.0*(1-world_size));
+        KRATOS_CHECK_EQUAL(result_doubles[0], 0.0);
+        KRATOS_CHECK_EQUAL(result_doubles[1], 2.0*(1-world_size));
     }
 
     #ifdef KRATOS_DEBUG
@@ -353,24 +371,34 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxVector, KratosMPICoreFastSuite)
     // local version: do nothing
     serial_communicator.Max(local_int_vector, reduced_int_vector, root);
     serial_communicator.Max(local_double_vector, reduced_double_vector, root);
+    std::vector<int> result_ints = serial_communicator.Max(local_int_vector, root);
+    std::vector<double> result_doubles = serial_communicator.Max(local_double_vector, root);
     if (world_rank == root)
     {
         for (int i = 0; i < 2; i++)
         {
             KRATOS_CHECK_EQUAL(reduced_int_vector[i], 0);
             KRATOS_CHECK_EQUAL(reduced_double_vector[i], 0.0);
+            KRATOS_CHECK_EQUAL(result_ints[i], local_int_vector[i]);
+            KRATOS_CHECK_EQUAL(result_doubles[i], local_double_vector[i]);
         }
     }
 
     // MPI version
     mpi_world_communicator.Max(local_int_vector, reduced_int_vector, root);
     mpi_world_communicator.Max(local_double_vector, reduced_double_vector, root);
+    result_ints = mpi_world_communicator.Max(local_int_vector, root);
+    result_doubles = mpi_world_communicator.Max(local_double_vector, root);
     if (world_rank == root)
     {
         KRATOS_CHECK_EQUAL(reduced_int_vector[0], world_size-1);
         KRATOS_CHECK_EQUAL(reduced_int_vector[1], 0);
+        KRATOS_CHECK_EQUAL(result_ints[0], world_size-1);
+        KRATOS_CHECK_EQUAL(result_ints[1], 0);
         KRATOS_CHECK_EQUAL(reduced_double_vector[0], 2.0*(world_size-1));
         KRATOS_CHECK_EQUAL(reduced_double_vector[1], 0.0);
+        KRATOS_CHECK_EQUAL(result_doubles[0], 2.0*(world_size-1));
+        KRATOS_CHECK_EQUAL(result_doubles[1], 0.0);
     }
 
     #ifdef KRATOS_DEBUG
