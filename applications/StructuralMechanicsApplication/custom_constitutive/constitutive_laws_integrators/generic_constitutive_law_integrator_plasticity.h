@@ -190,7 +190,7 @@ class GenericConstitutiveLawIntegratorPlasticity
 
             F = rUniaxialStress - rThreshold;
 
-            if (F <= std::abs(1.0e-8 * rThreshold)) { // Has converged
+            if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
             } else {
                 iteration++;

@@ -121,7 +121,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
         const double F = uniaxial_stress - threshold;
 
-        if (F <= std::abs(1.0e-8 * threshold)) { // Elastic case
+        if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
