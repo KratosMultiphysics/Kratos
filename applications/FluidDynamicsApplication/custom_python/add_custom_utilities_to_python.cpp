@@ -172,8 +172,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // Limit the maximal accelearation inside a time step to a physically possible value
-    class_<AccelerationLimitationUtilities> (m,"AccelerationLimitationUtilities")
-        .def(init< ModelPart&, const double >())
+    py::class_<
+        AccelerationLimitationUtilities>
+        (m,"AccelerationLimitationUtilities")
+        .def(py::init< ModelPart&, const double >())
         .def("SetLimitAsMultipleOfGravitionalAcceleration", &AccelerationLimitationUtilities::SetLimitAsMultipleOfGravitionalAcceleration)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
         ;
