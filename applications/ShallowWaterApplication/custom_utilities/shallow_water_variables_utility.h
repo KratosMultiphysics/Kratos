@@ -196,28 +196,18 @@ public:
         const int nelem = static_cast<int>(mrModelPart.Elements().size());
         ModelPart::ElementsContainerType::iterator elem_begin = mrModelPart.ElementsBegin();
 
-        int nodes;      // Number of element nodes
-        bool wet_node;  // The nodal flag
-
-        // KRATOS_WATCH("GOING TO CEHCK DRY AND WET NODES")
-
         // And now, if an element has all nodes dry, it is not active
         #pragma omp parallel for
         for(int k = 0; k < nelem; k++)
         {
             auto elem = elem_begin + k;
-
-            // KRATOS_WATCH(elem->Id())
-
-            nodes = elem->GetGeometry().size();
-            wet_node = false;
-            for(int l = 0; l < nodes; l++)
+            bool wet_node = false;                     // The nodal flag
+            for(Node<3>& node : elem->GetGeometry())
             {
-                // KRATOS_WATCH(mDryHeight)
-                // KRATOS_WATCH(elem->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT))
-                // KRATOS_WATCH(elem->GetGeometry()[l].FastGetSolutionStepValue(RAIN))
-                if (elem->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
-                    elem->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mDryHeight )
+                double dry_height = 0.2 * std::sqrt(node.FastGetSolutionStepValue(NODAL_AREA)) * norm_2(node.FastGetSolutionStepValue(TOPOGRAPHY_GRADIENT));
+                dry_height = std::max(dry_height, mDryHeight);
+                if (node.FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
+                    node.FastGetSolutionStepValue(RAIN)   >= mDryHeight )
                     wet_node = true;  // It means there is almost a wet node
             }
 

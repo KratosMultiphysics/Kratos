@@ -34,5 +34,4 @@ class SetBathymetryProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess2D(
-            self.model_part, Shallow.BATHYMETRY, Shallow.TOPOGRAPHY_GRADIENT, KratosMultiphysics.NODAL_AREA
-        )
+            self.model_part, Shallow.BATHYMETRY, Shallow.TOPOGRAPHY_GRADIENT, KratosMultiphysics.NODAL_AREA)

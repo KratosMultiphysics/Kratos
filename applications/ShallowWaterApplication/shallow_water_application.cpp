@@ -67,7 +67,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(RAIN)                                  // Source term
         KRATOS_REGISTER_VARIABLE(FREE_SURFACE_ELEVATION)                // Free surface elevation from z=0 (HEIGHT = FREE_SURFACE - BATHYMETRY)
         KRATOS_REGISTER_VARIABLE(MANNING)                               // Friction coefficient
-        KRATOS_REGISTER_VARIABLE(TOPOGRAPHY_SLOPE)
         KRATOS_REGISTER_VARIABLE(TOPOGRAPHY_GRADIENT)
 
         // Specific variableS for PFEM2
