@@ -68,6 +68,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         x_params.AddValue("interval",settings["interval"])
         x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
         x_params.AddValue("local_axes",settings["local_axes"])
+        x_params.AddValue("entities",settings["entities"])
 
         # Component Y
         y_params.AddValue("model_part_name",settings["model_part_name"])
@@ -75,6 +76,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         y_params.AddValue("interval",settings["interval"])
         y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
         y_params.AddValue("local_axes",settings["local_axes"])
+        y_params.AddValue("entities",settings["entities"])
 
         # Component Z
         z_params.AddValue("model_part_name",settings["model_part_name"])
@@ -82,6 +84,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         z_params.AddValue("interval",settings["interval"])
         z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
         z_params.AddValue("local_axes",settings["local_axes"])
+        z_params.AddValue("entities",settings["entities"])
 
         # "Automatic" direction: get the inwards direction
         if(settings["direction"].IsString()):
