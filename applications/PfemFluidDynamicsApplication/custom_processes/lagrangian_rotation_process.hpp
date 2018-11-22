@@ -90,7 +90,7 @@ public:
     {
         KRATOS_TRY;
 
-        // Constructing auxiliary Rodrigues matrices
+        // Initializing auxiliary Rodrigues matrices
         array_1d<double,3> = rotation_axis;
         noalias(rotation_axis) = maxis_final_point - maxis_initial_point;
         const double axis_norm = norm_2(rotation_axis);
@@ -119,9 +119,10 @@ public:
         mantisym_axis_matrix(2, 0) = - rotation_axis[1];
         mantisym_axis_matrix(2, 1) =   rotation_axis[0];
 
-        // Fixing DOFs and perform initial rotation if necessary
+        // Fixing DOFs (and perform initial rotation if necessary)?
 
-        //TODO: seguir
+        const double Time = mr_model_part.GetProcessInfo()[TIME];
+        this->CalculateRodriguesMatrices(Time);
 
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
@@ -131,42 +132,30 @@ public:
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+            array_1d<double, 3> point_initial_position;
 
-            #pragma omp parallel for
+            #pragma omp parallel for private(point_initial_position)
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                noalias(point_initial_position) = it->GetInitialPosition().Coordinates();
 
                 if(mis_fixed)
                 {
                     it->Fix(var_component);
                 }
 
-                it->FastGetSolutionStepValue(var_component) = minitial_value;
+                // TODO: is this necessary?
+                // RotateNode(*(it.base()), P0, P);
+                // array_1d<double, 3>& displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
+                // noalias(displacement) = P - P0;
+
+                // TODO: is this necessary?
+                // array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(var_component);
+                // noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
             }
         }
-
-
-    CalculateRodriguesMatrices(time);
-
-    const int nnodes = r_model_part.Nodes().size();
-
-    if (nnodes > 0){
-        auto it_begin = r_model_part.NodesBegin();
-        array_1d<double, 3> P0;
-        array_1d<double, 3> P;
-
-        #pragma omp parallel for private(P0, P)
-        for (int i = 0; i < nnodes; ++i){
-            auto it = it_begin + i;
-            RotateNode(*(it.base()), P0, P);
-            array_1d<double, 3>& displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-            noalias(displacement) = P - P0;
-            array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(MESH_VELOCITY);
-            noalias(velocity) = prod(mRp, P0 - mAInit);
-        }
-    }
-
 
         KRATOS_CATCH("");
     }
@@ -176,24 +165,40 @@ public:
     {
         KRATOS_TRY;
 
+        // Fixing DOFs and perform rotation
+
+        const double Time = mr_model_part.GetProcessInfo()[TIME];
+        this->CalculateRodriguesMatrices(Time);
+
         typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
         component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-
-        const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
-        double value = mpTable->GetValue(Time);
 
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+            array_1d<double, 3> point_initial_position;
 
-            #pragma omp parallel for
+            #pragma omp parallel for private(point_initial_position)
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                it->FastGetSolutionStepValue(var_component) = value;
+                noalias(point_initial_position) = it->GetInitialPosition().Coordinates();
+
+                if(mis_fixed)
+                {
+                    it->Fix(var_component);
+                }
+
+            // TODO: is this necessary?
+            // RotateNode(*(it.base()), P0, P);
+            // array_1d<double, 3>& displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
+            // noalias(displacement) = P - P0;
+
+                array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(var_component);
+                noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
             }
         }
 

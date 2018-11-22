@@ -13,25 +13,30 @@ class LagrangianRotationProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         model_part = Model[settings["model_part_name"].GetString()]
+        variable_name = settings["variable_name"].GetString()
 
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",settings["model_part_name"])
-        params.AddValue("dimension",settings["dimension"])
-        params.AddValue("stress_limit",settings["stress_limit"])
+        params.AddEmptyValue("variable_name_X").SetString(variable_name+"_X")
+        params.AddEmptyValue("variable_name_Y").SetString(variable_name+"_Y")
+        params.AddEmptyValue("variable_name_Z").SetString(variable_name+"_Z")
+        if settings.Has("is_fixed"):
+            params.AddValue("is_fixed",settings["is_fixed"][0])
 
-        self.process = KratosPoro.PeriodicInterfaceProcess(model_part, params)
+            "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+            "variable_name": "VELOCITY",
+            "is_fixed": false,
+            "angular_velocity": 0.0,
+            "rotation_axis_initial_point": [0.0,0.0,0.0],
+            "rotation_axis_final_point": [0.0,0.0,1.0],
+            "initial_time": 0.0
 
-        if(settings["dimension"].GetInt() == 2):
-            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,2,5)
-        else:
-            self.FindNodalNeigh = KratosMultiphysics.FindNodalNeighboursProcess(model_part,10,10)
+        self.process.append(KratosMultiphysics.ApplyConstantScalarValueProcess(model_part, params))
 
     def ExecuteInitialize(self):
 
-        self.FindNodalNeigh.Execute()
-
         self.process.ExecuteInitialize()
 
-    def ExecuteFinalizeSolutionStep(self):
+    def ExecuteInitializeSolutionStep(self):
 
-        self.process.ExecuteFinalizeSolutionStep()
+        self.process.ExecuteInitializeSolutionStep()
