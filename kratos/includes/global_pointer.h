@@ -16,6 +16,7 @@
 #include <iostream>
 
 #include "includes/define.h"
+#include "includes/serializer.h"
 
 namespace Kratos {
 
@@ -129,9 +130,6 @@ public:
     return mDataPointer;
   }
 
-  /** Const Arrow Operator
-   * Const Arrow Operator
-   */
   TDataType const* operator->() const {
     return mDataPointer;
   }
@@ -140,7 +138,7 @@ public:
    * Fills buffer with the GlobalPoiter data
    * @param buffer Object data buffer
    */
-  void save(char * buffer) {
+  void save(char * buffer) const {
     memcpy(buffer, this, sizeof(GlobalPointer));
   }
 
@@ -159,6 +157,26 @@ public:
   int GetRank() {
     return this->rank;
   }
+
+  private: 
+
+  friend class Serializer;
+
+  void save(Serializer& rSerializer) const
+  {
+    KRATOS_WATCH(mDataPointer)
+      rSerializer.save("D", reinterpret_cast<const std::size_t>(mDataPointer));
+      rSerializer.save("R", mRank);
+  }
+
+  void load(Serializer& rSerializer)
+  {
+      std::size_t tmp;
+      rSerializer.load("D", tmp);
+      mDataPointer = reinterpret_cast<TDataType*>(tmp);
+      rSerializer.load("R", mRank);
+  }
+
 };
 
 
