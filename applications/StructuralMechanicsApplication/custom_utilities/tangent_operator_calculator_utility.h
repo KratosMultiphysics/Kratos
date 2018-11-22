@@ -315,10 +315,16 @@ public:
         Flags& cl_options = rValues.GetOptions();
 
         // In order to avoid recursivity...
+        const bool flag_back_up_1 = cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_back_up_2 = cl_options.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         pConstitutiveLaw->CalculateMaterialResponse(rValues, rStressMeasure);
+
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_back_up_1);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_back_up_2);
     }
 
     /**
