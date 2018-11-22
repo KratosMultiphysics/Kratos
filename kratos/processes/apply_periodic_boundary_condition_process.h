@@ -42,15 +42,15 @@ class ApplyPeriodicConditionProcess : public Process
 
     typedef Dof<double>*                                    DofPointerType;
     typedef Dof<double>                                     DofType;
+    typedef Node<3>                                         NodeType;
     typedef ModelPart::VariableComponentType                VariableComponentType;
     typedef KratosComponents<Variable<array_1d<double, 3>>> VectorVariableType;
     typedef ProcessInfo                                     ProcessInfoType;
     typedef ProcessInfo::Pointer                            ProcessInfoPointerType;
-    typedef unsigned int                                    IndexType;
+    typedef NodeType::IndexType                             IndexType;
     typedef ModelPart::DoubleVariableType                   VariableType;
-    typedef ModelPart::NodeIterator                         NodeIterator;
+    typedef ModelPart::NodeIterator                         NodeIteratorType;
     typedef Element                                         ElementType;
-    typedef Node<3>                                         NodeType;
     typedef Matrix                                          MatrixType;
     typedef Vector                                          VectorType;
     typedef Geometry<NodeType>                              GeometryType;
