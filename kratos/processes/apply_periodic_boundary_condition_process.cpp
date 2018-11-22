@@ -49,21 +49,21 @@ namespace Kratos
         mDirOfTranslation = mParameters["dir_of_translation"].GetVector()
 
         mModulus = mParameters["magnitude"].GetDouble();
-        mTheta = mParameters["angle"].GetDouble() * 2 * Globals::Pi / 360.0;
+        mAngleOfRotation = mParameters["angle"].GetDouble() * 2 * Globals::Pi / 360.0;
 
         mTransformationMatrix.resize(4,4);
         mTransformationMatrixVariable.resize(4,4);
 
         RemoveCommonNodesFromSlaveModelPart();
 
-        if (mTheta == 0 && mModulus != 0)
+        if (mAngleOfRotation == 0 && mModulus != 0)
             mType = "translation";
-        else if (mTheta != 0.0 && mModulus == 0.0)
+        else if (mAngleOfRotation != 0.0 && mModulus == 0.0)
             mType = "rotation";
         else
-            KRATOS_ERROR_IF(mTheta == 0.0 && mModulus == 0.0)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
+            KRATOS_ERROR_IF(mAngleOfRotation == 0.0 && mModulus == 0.0)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
         else
-            KRATOS_ERROR_IF(mTheta != 0.0 && mModulus != 0.0)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
+            KRATOS_ERROR_IF(mAngleOfRotation != 0.0 && mModulus != 0.0)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
 
         CalculateTransformationMatrix();
         mIsInitialized = false;
@@ -249,8 +249,8 @@ namespace Kratos
             CalculateTranslationMatrix(0.0, mTransformationMatrixVariable);
         }
         else if (mType == "rotation"){
-            CalculateRotationMatrix(-1*mTheta, mTransformationMatrix);
-            CalculateRotationMatrix(mTheta, mTransformationMatrixVariable);
+            CalculateRotationMatrix(-1*mAngleOfRotation, mTransformationMatrix);
+            CalculateRotationMatrix(mAngleOfRotation, mTransformationMatrixVariable);
         }
     }
 

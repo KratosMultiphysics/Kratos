@@ -89,7 +89,7 @@ class ApplyPeriodicConditionProcess : public Process
     ModelPart &mrMasterModelPart;       // the master modelpart to which the master-slave constraints are added.
     ModelPart &mrSlaveModelPart;
     Parameters mParameters;          // parameters
-    double mTheta;
+    double mAngleOfRotation;
     bool mIsInitialized;
     DenseVector<double> mCenterOfRotation;
     DenseVector<double> mAxisOfRotationVector;
