@@ -58,6 +58,13 @@ class AssignScalarVariableToEntitiesProcess(KratosMultiphysics.Process):
 
         self.value_is_numeric = False
 
+        # Define entities
+        if (settings["entities"].size() == 0):
+           raise Exception("This process requires a list of entities. The options are: nodes, conditions, elements and model_part")
+        self.entities = []
+        for i in range(settings["entities"].size()):
+            self.entities.append(settings["entities"][i].GetString())
+
         # Set parameters of the processes
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", settings["model_part_name"])
