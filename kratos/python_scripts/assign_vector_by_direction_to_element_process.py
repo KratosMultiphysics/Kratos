@@ -5,13 +5,13 @@ import KratosMultiphysics
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorByDirectionToConditionProcess(Model, settings["Parameters"])
+    return AssignVectorByDirectionToElementProcess(Model, settings["Parameters"])
 
 import assign_vector_by_direction_to_entity_process
 
 ## All the processes python should be derived from "Process"
-class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_entity_process.AssignVectorByDirectionToEntityProcess):
-    """This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component
+class AssignVectorByDirectionToElementProcess(assign_vector_by_direction_to_entity_process.AssignVectorByDirectionToEntityProcess):
+    """This process sets a variable a certain scalar value in a given direction, for all the elements belonging to a submodelpart. Uses assign_scalar_variable_to_elements_process for each component
 
     Only the member variables listed below should be accessed directly.
 
@@ -23,7 +23,7 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
         # The value can be a double or a string (function)
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the conditions belonging to a submodelpart. Uses assign_scalar_variable_to_conditions_process for each component",
+            "help"                 : "This process sets a variable a certain scalar value in a given direction, for all the elements belonging to a submodelpart. Uses assign_scalar_variable_to_elements_process for each component",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
@@ -31,7 +31,7 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
             "modulus"              : 1.0,
             "direction"            : [1.0, 0.0, 0.0],
             "local_axes"           : {},
-            "entities"             : ["conditions"]
+            "entities"             : ["elements"]
         }
         """)
 
@@ -58,8 +58,8 @@ class AssignVectorByDirectionToConditionProcess(assign_vector_by_direction_to_en
         if (settings["entities"].size() != 1):
             settings["entities"] = default_settings["entities"]
         else:
-            if (settings["entities"][0].GetString() != "conditions"):
+            if (settings["entities"][0].GetString() != "elements"):
                 settings["entities"] = default_settings["entities"]
 
         # Construct the base process.
-        super(AssignVectorByDirectionToConditionProcess, self).__init__(Model, settings)
+        super(AssignVectorByDirectionToElementProcess, self).__init__(Model, settings)
