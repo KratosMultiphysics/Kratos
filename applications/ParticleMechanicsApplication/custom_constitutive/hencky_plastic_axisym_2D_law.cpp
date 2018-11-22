@@ -19,8 +19,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hencky_plastic_axisym_2d_law.hpp"
-#include "custom_utilities/particle_mechanics_math_utilities.hpp"
+#include "custom_constitutive/hencky_plastic_axisym_2D_law.hpp"
 #include "particle_mechanics_application.h"
 
 namespace Kratos
