@@ -328,8 +328,8 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         // Final check
         if ((std::abs(rTensileIndicatorFactor) + std::abs(rCompressionIndicatorFactor)) < tolerance) {
-            rTensileIndicatorFactor = 0.0;
-            rCompressionIndicatorFactor = 0.0;
+            rTensileIndicatorFactor = 0.5;
+            rCompressionIndicatorFactor = 0.5;
             return;
         }
     }
@@ -469,7 +469,6 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         rEquivalentStressThreshold = TensileIndicatorFactor * eq_thresholds[0] + CompressionIndicatorFactor * eq_thresholds[1];
         rSlope = rEquivalentStressThreshold * ((TensileIndicatorFactor * slopes[0] / eq_thresholds[0]) + (CompressionIndicatorFactor * slopes[1] / eq_thresholds[1]));
-        KRATOS_DEBUG_ERROR_IF(rEquivalentStressThreshold < tolerance) << "Threshold set to zero. TensileIndicatorFactor: " << TensileIndicatorFactor << " eq_thresholds[0]: " << eq_thresholds[0] << " CompressionIndicatorFactor: " << CompressionIndicatorFactor << " eq_thresholds[1]:" << eq_thresholds[1] << std::endl;
     }
 
     /**
