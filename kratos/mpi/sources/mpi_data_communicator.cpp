@@ -636,6 +636,40 @@ void MPIDataCommunicator::Gather(
     GatherDetail(rSendValues, rRecvValues, DestinationRank);
 }
 
+// Gatherv operations
+
+std::vector<std::vector<int>> MPIDataCommunicator::Gatherv(
+    const std::vector<int>& rSendValues,
+    const int DestinationRank) const
+{
+    std::vector<int> message;
+    std::vector<int> message_lengths;
+    std::vector<int> message_offsets;
+    PrepareGathervBuffers(rSendValues, message, message_lengths, message_offsets, DestinationRank);
+
+    Gatherv(rSendValues, message, message_lengths, message_offsets, DestinationRank);
+
+    std::vector<std::vector<int>> output_message;
+    PrepareGathervReturn(message, message_lengths, message_offsets, output_message, DestinationRank);
+    return output_message;
+}
+
+std::vector<std::vector<double>> MPIDataCommunicator::Gatherv(
+    const std::vector<double>& rSendValues,
+    const int DestinationRank) const
+{
+    std::vector<double> message;
+    std::vector<int> message_lengths;
+    std::vector<int> message_offsets;
+    PrepareGathervBuffers(rSendValues, message, message_lengths, message_offsets, DestinationRank);
+
+    Gatherv(rSendValues, message, message_lengths, message_offsets, DestinationRank);
+
+    std::vector<std::vector<double>> output_message;
+    PrepareGathervReturn(message, message_lengths, message_offsets, output_message, DestinationRank);
+    return output_message;
+}
+
 void MPIDataCommunicator::Gatherv(
     const std::vector<int>& rSendValues,
     std::vector<int>& rRecvValues,
@@ -872,8 +906,8 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
     CheckMPIErrorCode(ierr, "MPI_Scatterv");
 }
 
-template<class TDataType> void MPIDataCommunicator::GatherDetail(
-    const TDataType& rSendValues, TDataType& rRecvValues, const int RecvRank) const
+template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::GatherDetail(
+    const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int RecvRank) const
 {
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvRank)))
@@ -1177,6 +1211,58 @@ template <class TDataType> void MPIDataCommunicator::PrepareScattervBuffers(
             for (unsigned int j = 0; j < rInputMessage[i].size(); j++, counter++)
             {
                 rScattervMessage[counter] = rInputMessage[i][j];
+            }
+        }
+    }
+}
+
+
+template<class TDataType> void MPIDataCommunicator::PrepareGathervBuffers(
+    const std::vector<TDataType>& rGathervInput,
+    std::vector<TDataType>& rGathervMessage,
+    std::vector<int>& rMessageLengths,
+    std::vector<int>& rMessageDistances,
+    const int DestinationRank) const
+{
+    int message_size_send = rGathervInput.size();
+    const int rank = Rank();
+    const int size = Size();
+    if (rank == DestinationRank)
+    {
+        rMessageLengths.resize(size);
+    }
+    GatherDetail(message_size_send, rMessageLengths, DestinationRank);
+
+    if (rank == DestinationRank)
+    {
+        rMessageDistances.resize(size);
+        int message_size = 0;
+        for (int i = 0; i < size; i++)
+        {
+            rMessageDistances[i] = message_size;
+            message_size += rMessageLengths[i];
+        }
+        rGathervMessage.resize(message_size);
+    }
+}
+
+template<class TDataType> void MPIDataCommunicator::PrepareGathervReturn(
+    const std::vector<TDataType>& rGathervMessage,
+    const std::vector<int>& rMessageLengths,
+    const std::vector<int>& rMessageDistances,
+    std::vector<std::vector<TDataType>>& rOutputMessage,
+    const int DestinationRank) const
+{
+    const int size = Size();
+    if (Rank() == DestinationRank)
+    {
+        rOutputMessage.resize(size);
+        for (int i = 0, counter = 0; i < size; i++)
+        {
+            rOutputMessage[i].resize(rMessageLengths[i]);
+            for (int j = 0; j < rMessageLengths[i]; j++, counter++)
+            {
+                rOutputMessage[i][j] = rGathervMessage[counter];
             }
         }
     }

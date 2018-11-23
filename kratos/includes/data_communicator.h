@@ -831,7 +831,7 @@ class DataCommunicator
         const std::vector<std::vector<double>>& rSendValues,
         const int SourceRank) const
     {
-        unsigned int rank = Rank();
+        int rank = Rank();
         if (rank == SourceRank && rank < static_cast<int>(rSendValues.size()) )
         {
             return rSendValues[rank];
@@ -949,6 +949,58 @@ class DataCommunicator
         std::vector<double>& rRecvValues,
         const int DestinationRank) const
     {}
+
+    // Gatherv operations
+
+    /// Wrapper for MPI_Gatherv calls (int version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[in] DestinationRank The rank where the values will be gathered.
+     *  @return Gathered values for this rank (meaningful only on DestinationRank).
+     *  On DestinationRank, the i-th component of the return corresponds to
+     *  the vector received from rank i.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<std::vector<int>> Gatherv(
+        const std::vector<int>& rSendValues,
+        const int DestinationRank) const
+    {
+        std::vector<std::vector<int>> output(0);
+        if (Rank() == DestinationRank)
+        {
+            output.resize(1);
+            output[0] = rSendValues;
+        }
+        return output;
+    }
+
+    /// Wrapper for MPI_Gatherv calls (double version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[in] DestinationRank The rank where the values will be gathered.
+     *  @return Gathered values for this rank (meaningful only on DestinationRank).
+     *  On DestinationRank, the i-th component of the return corresponds to
+     *  the vector received from rank i.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<std::vector<double>> Gatherv(
+        const std::vector<double>& rSendValues,
+        const int DestinationRank) const
+    {
+        std::vector<std::vector<double>> output(0);
+        if (Rank() == DestinationRank)
+        {
+            output.resize(1);
+            output[0] = rSendValues;
+        }
+        return output;
+    }
 
     /// Wrapper for MPI_Gatherv calls (int version).
     /** @param[in] rSendValues Values to be gathered from this rank.

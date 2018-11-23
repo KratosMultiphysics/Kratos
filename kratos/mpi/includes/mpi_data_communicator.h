@@ -303,6 +303,16 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<double>& rRecvValues,
         const int DestinationRank) const override;
 
+    // Gatherv operations
+
+    std::vector<std::vector<int>> Gatherv(
+        const std::vector<int>& rSendValues,
+        const int DestinationRank) const override;
+
+    std::vector<std::vector<double>> Gatherv(
+        const std::vector<double>& rSendValues,
+        const int DestinationRank) const override;
+
     void Gatherv(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
@@ -415,8 +425,8 @@ class MPIDataCommunicator: public DataCommunicator
         const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
         TDataType& rRecvValues, const int SourceRank) const;
 
-    template<class TDataType> void GatherDetail(
-        const TDataType& rSendValues, TDataType& rRecvValues, const int RecvRank) const;
+    template<class TSendDataType, class TRecvDataType> void GatherDetail(
+        const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int RecvRank) const;
 
     template<class TDataType> void GathervDetail(
         const TDataType& rSendValues, TDataType& rRecvValues,
@@ -450,6 +460,20 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<int>& rMessageLengths,
         std::vector<int>& rMessageDistances,
         const int SourceRank) const;
+
+    template<class TDataType> void PrepareGathervBuffers(
+        const std::vector<TDataType>& rGathervInput,
+        std::vector<TDataType>& rGathervMessage,
+        std::vector<int>& rMessageLengths,
+        std::vector<int>& rMessageDistances,
+        const int DestinationRank) const;
+
+    template<class TDataType> void PrepareGathervReturn(
+        const std::vector<TDataType>& rGathervMessage,
+        const std::vector<int>& rMessageLengths,
+        const std::vector<int>& rMessageDistances,
+        std::vector<std::vector<TDataType>>& rOutputMessage,
+        const int DestinationRank) const;
 
     template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&) const;
 
