@@ -2,12 +2,12 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 //
 
@@ -37,6 +37,10 @@ class AdjointExtensions
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(AdjointExtensions);
+
+    virtual ~AdjointExtensions()
+    {
+    }
 
     virtual void GetFirstDerivativesVector(std::size_t NodeId,
                                            std::vector<IndirectScalar<double>>& rVector,
@@ -89,4 +93,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADJOINT_EXTENSIONS_INCLUDED  defined 
+#endif // KRATOS_ADJOINT_EXTENSIONS_INCLUDED  defined
