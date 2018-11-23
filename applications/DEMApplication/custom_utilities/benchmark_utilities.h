@@ -3,7 +3,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "../applications/DEM_application/custom_utilities/properties_proxies.h"
+#include "../applications/DEMApplication/custom_utilities/properties_proxies.h"
 
 namespace Kratos
 {
