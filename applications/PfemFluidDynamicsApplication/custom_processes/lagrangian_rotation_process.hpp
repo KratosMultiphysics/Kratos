@@ -85,7 +85,7 @@ public:
         KRATOS_TRY;
 
         // Initializing auxiliary Rodrigues matrices
-        array_1d<double,3> = rotation_axis;
+        array_1d<double,3> rotation_axis;
         noalias(rotation_axis) = maxis_final_point - maxis_initial_point;
         const double axis_norm = norm_2(rotation_axis);
         if (axis_norm > 1.0e-15){
@@ -144,11 +144,6 @@ public:
                 it->Fix(VELOCITY_Y);
                 it->Fix(VELOCITY_Z);
 
-                // TODO: is this necessary?
-                // RotateNode(*(it.base()), P0, P);
-                // array_1d<double, 3>& displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
-                // noalias(displacement) = P - P0;
-
                 array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
                 noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
             }
@@ -191,8 +186,6 @@ protected:
     BoundedMatrix<double, 3, 3> mantisym_axis_matrix;
     BoundedMatrix<double, 3, 3> mrotation_dt_matrix;
     // BoundedMatrix<double, 3, 3> mrotation_matrix;
-
-
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
