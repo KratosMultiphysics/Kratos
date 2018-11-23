@@ -189,12 +189,18 @@ void ConstitutiveLawUtilities<6>::CalculateSecondVector(
     if (rSecondVector.size() != 6)
         rSecondVector.resize(6);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-    for (IndexType i = 0; i < 6; ++i) {
-        rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
+
+    if (twosqrtJ2 > tolerance) {
+        for (IndexType i = 0; i < 6; ++i) {
+            rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
+        }
+
+        for (IndexType i = Dimension; i < 6; ++i)
+            rSecondVector[i] *= 2.0;
+    } else {
+        noalias(rSecondVector) = ZeroVector(VoigtSize);
     }
 
-    for (IndexType i = Dimension; i < 6; ++i)
-        rSecondVector[i] *= 2.0;
 }
 
 /***********************************************************************************/
@@ -270,7 +276,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     double& rLodeAngle
     )
 {
-    if (std::abs(J2) > tolerance) {
+    if (J2 > tolerance) {
         double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
         if (sint3 < -0.95)
             sint3 = -1.0;
