@@ -11,7 +11,7 @@ def Factory(settings, Model):
 
 class IGA_IO_Process(KratosMultiphysics.Process):
   
-    def __init__(self,model_part,params):
+    def __init__(self, Model, params):
 
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
@@ -20,27 +20,32 @@ class IGA_IO_Process(KratosMultiphysics.Process):
             "integration_point_results": [],
             "output_file_name"         : "",
             "model_part_name"          : "",
-            "time_frequency"           : 0.01
-            }
+            "output_control_type"      : "step",
+            "output_frequency"         : 0.01
         }
         """)
         
         ## Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
-        
+
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.output_file_name = self.params["output_file_name"].GetString()
-        self.nodal_results = self.__generate_variable_list_from_input(self.params["nodal_results"])
-        self.integration_point_results = self.__generate_variable_list_from_input(self.params["integration_point_results"])
 
-        self.frequency = self.params["time_frequency"].GetDouble()
+        self.nodal_results_scalar, self.nodal_results_vector = \
+            CreateVariablesListFromInput(self.params["nodal_results"])
+
+        self.integration_point_results_scalar, self.integration_point_results_vector = \
+            CreateVariablesListFromInput(self.params["integration_point_results"])
+
+        self.frequency = self.params["frequency"].GetDouble()
+
+        self.step_count = 0
+        self.printed_step_count = 0
+        self.next_output = 0.0
 
     def ExecuteInitialize(self):
-        self.time_counter = 0.0
-        self.step = 0
-
         with open(self.output_file_name, 'w') as file:
             file.write("Rhino Post Results File 1.0\n") 
 
@@ -51,55 +56,59 @@ class IGA_IO_Process(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        time = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
-        dt = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
-        self.step = self.step + 1
-        step = self.model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME_STEPS)
-        self.time_counter += dt
-
-        if self.time_counter + 0.00001 >= self.frequency:
-            self.time_counter = 0.0
+        if this._IsOutputStep:
+            # Print the output
+            time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
+            self.printed_step_count += 1
+            self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
+            if self.output_label_is_time:
+                label = time
+            else:
+                label = self.printed_step_count
 
             with open(self.output_file_name, 'a') as file:
-                for i in range(self.params["nodal_results"].size()):
-                    out = self.params["nodal_results"][i]
-                    variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
-
-                    if type(variable) == KratosMultiphysics.DoubleVariable:
-                        type_name = "Scalar"
-                    else:
-                        type_name = "Vector"
-
-                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " " + type_name + " OnNodes\n")
-
+                for variable in range(self.nodal_results_scalar.size()):
+                    file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnNodes\n")
                     file.write("Values\n")
                     for node in self.model_part.Nodes:
                         value = node.GetSolutionStepValue(variable, 0)
-                        if isinstance(value,float):
-                            file.write(str(node.Id) + "  " + str(value) + "\n")
-                        else: # It is a vector
-                            file.write(str(node.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
+                        file.write(str(node.Id) + "  " + str(value) + "\n")
                     file.write("End Values\n")
 
-                for i in range(self.params["integration_point_results"].size()):
-                    out = self.params["integration_point_results"][i]
-                    variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
+                for variable in range(self.nodal_results_vector.size()):
+                    file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnNodes\n")
+                    file.write("Values\n")
+                    for node in self.model_part.Nodes:
+                        value = node.GetSolutionStepValue(variable, 0)
+                        file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                    file.write("End Values\n")
 
-                    if type(variable) == KratosMultiphysics.DoubleVariable:
-                        type_name = "Scalar"
-                    else:
-                        type_name = "Vector"
 
-                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " " + type_name + " OnGaussPoints\n")
-
+                for variable in range(self.integration_point_results_scalar.size()):
+                    file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnGaussPoints\n")
                     file.write("Values\n")
                     for element in self.model_part.Elements:
                         value = element.Calculate(variable, self.model_part.ProcessInfo)
-                        if isinstance(value,float):
-                            file.write(str(element.Id) + "  " + str(value) + "\n")
-                        else: # It is a vector
-                            file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                        file.write(str(element.Id) + "  " + str(value) + "\n")
                     file.write("End Values\n")
+
+
+                for variable in range(self.integration_point_results_vector.size()):
+                    file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\n")
+                    file.write("Values\n")
+                    for element in self.model_part.Elements:
+                        value = element.Calculate(variable, self.model_part.ProcessInfo)
+                        file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                    file.write("End Values\n")
+
+        # Schedule next output
+        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+            if self.output_control_is_time:
+                while self.__get_pretty_time(self.next_output) <= time:
+                    self.next_output += self.output_frequency
+            else:
+                while self.next_output <= self.step_count:
+                    self.next_output += self.output_frequency
 
     def ExecuteBeforeOutputStep(self):
         pass
@@ -110,11 +119,31 @@ class IGA_IO_Process(KratosMultiphysics.Process):
     def ExecuteFinalize(self):
         pass
 
-    def __generate_variable_list_from_input(self,param):
-        '''Parse a list of variables from input.'''
-        # At least verify that the input is a string
-        if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+    def _IsOutputStep(self):
+        if self.output_control_is_time:
+            time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
+            return (time >= self.__get_pretty_time(self.next_output))
+        else:
+            return ( self.step_count >= self.next_output )
 
-        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
+    def __get_pretty_time(self,time):
+        pretty_time = "{0:.12g}".format(time)
+        pretty_time = float(pretty_time)
+        return pretty_time
+
+def CreateVariablesListFromInput(param):
+    scalar_variables = []
+    vector_variables = []
+    '''Parse a list of variables from input.'''
+    # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+    for i in range(param.size()):
+        variable = KratosMultiphysics.KratosGlobals.GetVariable(param[i].GetString())
+        var_tape = KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name())
+        if var_tape in ["Matrix", "Flag", "NONE"]:
+            raise Exception("unsupported variables type")
+        elif var_type in ["Array", "Vector"]:
+            vector_variables.append(variable)
+        else:
+            scalar_variables.append(variable)
+
+    return scalar_variables, vector_variables
