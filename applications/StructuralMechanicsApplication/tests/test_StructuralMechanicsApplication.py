@@ -159,6 +159,10 @@ from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityMC
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityVMTest as TSimpleSmallDeformationPlasticityVMTest
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityDPTest as TSimpleSmallDeformationPlasticityDPTest
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityTTest as TSimpleSmallDeformationPlasticityTTest
+from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityMCTest as TBigCubeSmallDeformationPlasticityMCTest
+from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityVMTest as TBigCubeSmallDeformationPlasticityVMTest
+from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityDPTest as TBigCubeSmallDeformationPlasticityDPTest
+from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityTTest as TBigCubeSmallDeformationPlasticityTTest
 from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -225,6 +229,10 @@ def AssembleTestSuites():
     smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
     smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
+    nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
+    nightSuite.addTest(TBigCubeSmallDeformationPlasticityVMTest('test_execution'))
+    nightSuite.addTest(TBigCubeSmallDeformationPlasticityDPTest('test_execution'))
+    nightSuite.addTest(TBigCubeSmallDeformationPlasticityTTest('test_execution'))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
