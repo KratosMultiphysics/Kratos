@@ -72,7 +72,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 {
     // Integrate Stress Damage
     Vector& integrated_stress_vector = rValues.GetStressVector();
-    array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = integrated_stress_vector;
     const Flags& r_constitutive_law_options = rValues.GetOptions();
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
@@ -119,11 +118,13 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         // this->SetNumberOfCycles(number_of_cycles);
         //KRATOS_WATCH(number_of_cycles)
 
-        if ((std::abs(max_stress) > 0.0 && max_stress != this->GetMaxStress()) && cycle_counted == true) {
-            this->SetMaxStress(max_stress);
-        }
-        if ((std::abs(min_stress) > 0.0 && min_stress != this->GetMinStress()) && cycle_counted == true) {
-            this->SetMinStress(min_stress);
+        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            if ((std::abs(max_stress) > 0.0 && max_stress != this->GetMaxStress()) && cycle_counted == true) {
+                this->SetMaxStress(max_stress);
+            }
+            if ((std::abs(min_stress) > 0.0 && min_stress != this->GetMinStress()) && cycle_counted == true) {
+                this->SetMinStress(min_stress);
+            }
         }
 
         double fatigue_reduction_factor = this->GetFatigueReductionFactor();
@@ -157,32 +158,36 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         const double F = uniaxial_stress - threshold;
 
         if (F <= 0.0) { // Elastic case
-            noalias(auxiliar_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
-			noalias(integrated_stress_vector) = auxiliar_integrated_stress_vector;
+            noalias(integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 			this->SetStressVector(integrated_stress_vector);
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
+				r_constitutive_matrix *= (1.0 - damage);
                 this->SetNonConvDamage(damage);
                 this->SetNonConvThreshold(threshold);
             }
         } else { // Damage case
             const double characteristic_length = rValues.GetElementGeometry().Length();
             // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
+            TConstLawIntegratorType::IntegrateStressVector(
+                predictive_stress_vector, 
+                uniaxial_stress, 
+                damage, 
+                threshold, 
+                rValues, 
+                characteristic_length);
 
             // Updated Values
-            noalias(auxiliar_integrated_stress_vector) = predictive_stress_vector;
+            noalias(integrated_stress_vector) = predictive_stress_vector;
             //TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->SetNonConvDamage(damage);
+                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
                 this->SetNonConvThreshold(uniaxial_stress);
+				this->SetStressVector(integrated_stress_vector);
                 this->CalculateTangentTensor(rValues);
-                TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(auxiliar_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-                this->SetStressVector(integrated_stress_vector);
             }
-            noalias(integrated_stress_vector) = auxiliar_integrated_stress_vector;
         }
     }
 }
