@@ -109,16 +109,24 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         uniaxial_stress *= sign_factor;
         unsigned int number_of_cycles = this->GetNumberOfCycles();
         bool cycle_counted = this->GetCycleCounter();
-        HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(uniaxial_stress, max_stress, min_stress, 
-                                                                            this->GetPreviousStresses(), number_of_cycles, cycle_counted);
-		this->SetCycleCounter(cycle_counted);
 
-        this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
-        uniaxial_stress *= sign_factor;
+		//KRATOS_WATCH(number_of_cycles)
+
         // this->SetNumberOfCycles(number_of_cycles);
         //KRATOS_WATCH(number_of_cycles)
 
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            KRATOS_WATCH(number_of_cycles)
+
+            HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(uniaxial_stress, max_stress, min_stress, 
+                                                                                this->GetPreviousStresses(), number_of_cycles, cycle_counted);
+            //this->SetCycleCounter(cycle_counted);
+            KRATOS_WATCH(number_of_cycles)
+
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+            uniaxial_stress *= sign_factor;
+            
+            this->SetCycleCounter(cycle_counted);
             if ((std::abs(max_stress) > 0.0 && max_stress != this->GetMaxStress()) && cycle_counted == true) {
                 this->SetMaxStress(max_stress);
             }
