@@ -59,8 +59,11 @@ class ShellKLDiscreteElementTests(KratosUnittest.TestCase):
                     DomainV=span_v,
                 )
 
-        shapes = SurfaceShapeEvaluator(DegreeU=surface.DegreeU,
-            DegreeV=surface.DegreeV, Order=2)
+        shapes = SurfaceShapeEvaluator(
+            DegreeU=surface.DegreeU,
+            DegreeV=surface.DegreeV,
+            Order=2,
+        )
 
         for i, (u, v, weight) in enumerate(integration_points):
             shapes.Compute(surface.KnotsU(), surface.KnotsV(), u, v)
