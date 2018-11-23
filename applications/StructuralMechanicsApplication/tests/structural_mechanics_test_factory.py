@@ -201,8 +201,17 @@ class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
 class IsotropicDamageSimoJuPSTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
 
-class SimpleSmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_test"
+class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
+
+class SimpleSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_VM_test"
+
+class SimpleSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test"
+
+class SimpleSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test"
 
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"

@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"    : "simple_small_deformation_plasticity_test",
+        "problem_name"    : "simple_small_deformation_plasticity_DP_test",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 10.0,
@@ -17,7 +17,7 @@
             "input_filename" : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_test_materials.json"
+            "materials_filename" : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.0
@@ -98,7 +98,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "gauss_points_check_variables" : ["PLASTIC_DISSIPATION"],
-                "input_file_name"              : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_test_results.json",
+                "input_file_name"              : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test_results.json",
                 "model_part_name"              : "Parts_Parts_Auto1",
                 "time_frequency"               : 1.0
             }
@@ -113,7 +113,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "gauss_points_output_variables" : ["PLASTIC_DISSIPATION"],
-            "output_file_name"              : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_test_results.json",
+            "output_file_name"              : "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test_results.json",
             "model_part_name"               : "Parts_Parts_Auto1",
             "time_frequency"                : 1.0
         }
