@@ -547,10 +547,10 @@ std::vector<int> MPIDataCommunicator::Scatterv(
     std::vector<int> message;
     std::vector<int> message_lengths;
     std::vector<int> message_offsets;
+    std::vector<int> result;
     PrepareScattervBuffers(
-        rSendValues, message, message_lengths, message_offsets, SourceRank);
+        rSendValues, message, message_lengths, message_offsets, result, SourceRank);
 
-    std::vector<int> result(message_lengths[Rank()]);
     ScattervDetail(message, message_lengths, message_offsets, result, SourceRank);
     return result;
 }
@@ -562,10 +562,10 @@ std::vector<double> MPIDataCommunicator::Scatterv(
     std::vector<double> message;
     std::vector<int> message_lengths;
     std::vector<int> message_offsets;
+    std::vector<double> result;
     PrepareScattervBuffers(
-        rSendValues, message, message_lengths, message_offsets, SourceRank);
+        rSendValues, message, message_lengths, message_offsets, result, SourceRank);
 
-    std::vector<double> result(message_lengths[Rank()]);
     ScattervDetail(message, message_lengths, message_offsets, result, SourceRank);
     return result;
 }
@@ -884,8 +884,8 @@ template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     CheckMPIErrorCode(ierr, "MPI_Bcast");
 }
 
-template<class TDataType> void MPIDataCommunicator::ScatterDetail(
-    const TDataType& rSendValues, TDataType& rRecvValues, const int SourceRank) const
+template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::ScatterDetail(
+    const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int SourceRank) const
 {
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
@@ -1204,6 +1204,7 @@ template <class TDataType> void MPIDataCommunicator::PrepareScattervBuffers(
     std::vector<TDataType>& rScattervMessage,
     std::vector<int>& rMessageLengths,
     std::vector<int>& rMessageDistances,
+    std::vector<TDataType>& rResult,
     const int SourceRank) const
 {
     if (Rank() == SourceRank)
@@ -1232,6 +1233,10 @@ template <class TDataType> void MPIDataCommunicator::PrepareScattervBuffers(
             }
         }
     }
+
+    int result_size;
+    ScatterDetail(rMessageLengths, result_size, SourceRank);
+    rResult.resize(result_size);
 }
 
 

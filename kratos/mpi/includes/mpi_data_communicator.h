@@ -425,8 +425,8 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TDataType> void BroadcastDetail(
         TDataType& rBuffer, const int SourceRank) const;
 
-    template<class TDataType> void ScatterDetail(
-        const TDataType& rSendValues, TDataType& rRecvValues, const int SourceRank) const;
+    template<class TSendDataType, class TRecvDataType> void ScatterDetail(
+        const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int SourceRank) const;
 
     template<class TDataType> void ScattervDetail(
         const TDataType& rSendValues,
@@ -467,6 +467,7 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<TDataType>& rScattervMessage,
         std::vector<int>& rMessageLengths,
         std::vector<int>& rMessageDistances,
+        std::vector<TDataType>& rResult,
         const int SourceRank) const;
 
     template<class TDataType> void PrepareGathervBuffers(
