@@ -164,8 +164,6 @@ namespace Kratos
 
     virtual void Register() override;
 
-    int a;
-
     ///@}
     ///@name Access
     ///@{
