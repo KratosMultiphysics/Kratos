@@ -54,22 +54,22 @@ node_id=0
 
 
 for node in model_part.Nodes:
-        dist=(-1.0)
-        if node.X>node.Y+0.1:
-            dist=node.X-0.2+0.0
-        else:
-            dist= node.Y-0.1+0.0
-        node.SetSolutionStepValue(DISTANCE,0,dist)
+    dist=(-1.0)
+    if node.X>node.Y+0.1:
+        dist=node.X-0.2+0.0
+    else:
+        dist= node.Y-0.1+0.0
+    node.SetSolutionStepValue(DISTANCE,0,dist)
 
-        if node.Y<0.001 or node.Y>0.14999:
-              node.Fix(VELOCITY_Y)
-              node.Fix(VELOCITY_X)
-        if node.X>0.49999 or node.X<0.0001:
-             node.Fix(VELOCITY_X)
-        if node.Y>0.1499:
-             node.Fix(PRESSURE)
+    if node.Y<0.001 or node.Y>0.14999:
+        node.Fix(VELOCITY_Y)
+        node.Fix(VELOCITY_X)
+    if node.X>0.49999 or node.X<0.0001:
+        node.Fix(VELOCITY_X)
+    if node.Y>0.1499:
+        node.Fix(PRESSURE)
 
-        node.SetSolutionStepValue(BODY_FORCE_Y,0,-9.8)
+    node.SetSolutionStepValue(BODY_FORCE_Y,0,-9.8)
 
 
 #creating a solver object
@@ -114,11 +114,11 @@ for step in range(1,nsteps):
         solver.Solve()
 
     if out==out_step:
-       out=0
-       print("printing a step")
-       gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
-       gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
-       gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
+        out=0
+        print("printing a step")
+        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
 
 
 

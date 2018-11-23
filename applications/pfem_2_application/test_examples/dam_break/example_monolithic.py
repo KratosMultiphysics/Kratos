@@ -42,37 +42,34 @@ model_part.ProcessInfo.SetValue(GRAVITY_Y, -9.8);
 pi=3.14159
 
 for node in model_part.Nodes:
-        node.Free(VELOCITY_X)
-        node.Free(VELOCITY_Y)
+    node.Free(VELOCITY_X)
+    node.Free(VELOCITY_Y)
+    node.SetSolutionStepValue(DISTANCE,0,1.0)
+    if ((node.Y)<0.292 and node.X<0.146):
+        node.SetSolutionStepValue(DISTANCE,0,-1.0) #piscina
+    if node.X>0.583999 or node.X<0.0001:
+        node.Fix(VELOCITY_X)
+        # node.Fix(DISTANCE)
+        # node.SetSolutionStepValue(DISTANCE,-0.1)
+    if node.Y<0.001 or node.Y>0.583999:
+        node.Fix(VELOCITY_Y)
+
+    if node.Y>0.499:
+        node.Fix(VELOCITY_Y)
+        node.Fix(DISTANCE)
         node.SetSolutionStepValue(DISTANCE,0,1.0)
-        if ((node.Y)<0.292 and node.X<0.146):
-        #if (node.Y>0.4):
-                node.SetSolutionStepValue(DISTANCE,0,-1.0) #piscina
-        if node.X>0.583999 or node.X<0.0001:
-                node.Fix(VELOCITY_X)
-        #        node.Fix(DISTANCE)
-        #        node.SetSolutionStepValue(DISTANCE,-0.1)
-        if node.Y<0.001 or node.Y>0.583999:
-                node.Fix(VELOCITY_Y)
 
-        if node.Y>0.499:
-                node.Fix(VELOCITY_Y)
-                #node.Fix(PRESSURE)
-                node.Fix(DISTANCE)
-                node.SetSolutionStepValue(DISTANCE,0,1.0)
+    if node.Y>0.57:
+        node.Fix(DISTANCE)
 
-        if node.Y>0.57:
-                node.Fix(DISTANCE)
-
-        if node.X>0.2919 and node.X<0.2921 and node.Y<0.0481:
-                node.Fix(VELOCITY_X)
-        if node.X>0.3159 and node.X<0.3161 and node.Y<0.0481:
-                node.Fix(VELOCITY_X)
-        if node.X>0.2919 and node.X<0.3161 and node.Y<0.0481 and node.Y>0.0479:
-                node.Fix(VELOCITY_Y)
-                #node.Fix(VELOCITY_X)
-        node.SetSolutionStepValue(BODY_FORCE_Y,0,-9.8)
-        node.SetSolutionStepValue(PRESS_PROJ_Y,0,-9.8)
+    if node.X>0.2919 and node.X<0.2921 and node.Y<0.0481:
+        node.Fix(VELOCITY_X)
+    if node.X>0.3159 and node.X<0.3161 and node.Y<0.0481:
+        node.Fix(VELOCITY_X)
+    if node.X>0.2919 and node.X<0.3161 and node.Y<0.0481 and node.Y>0.0479:
+        node.Fix(VELOCITY_Y)
+    node.SetSolutionStepValue(BODY_FORCE_Y,0,-9.8)
+    node.SetSolutionStepValue(PRESS_PROJ_Y,0,-9.8)
 
 
 
@@ -133,18 +130,18 @@ for step in range(1,nsteps):
 
     if step==0:
         for node in model_part.Nodes:
-                node.SetSolutionStepValue(VELOCITY_X,0,0.0)
-                node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
+            node.SetSolutionStepValue(VELOCITY_X,0,0.0)
+            node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
     if out==out_step:
-          out=0
-          print("printing a step")
+        out=0
+        print("printing a step")
 
-          gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
-          gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
-          gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
-          gid_io.WriteNodalResults(PRESS_PROJ,model_part.Nodes,time,0)
-          gid_io.WriteNodalResults(PROJECTED_VELOCITY,model_part.Nodes,time,0)
-          gid_io.Flush()
+        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(PRESS_PROJ,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(PROJECTED_VELOCITY,model_part.Nodes,time,0)
+        gid_io.Flush()
     print("Time in simulation: ",time," s")
 
 
