@@ -147,9 +147,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         if self.line_search_type == "manual_stepping":
             return
 
-        current_step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
-
         if self.optimization_iteration > 1:
+            current_step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+
             # Compare actual and estimated improvement using linear information
             dfd0 = 0.0
             for node in self.DesignSurface.Nodes:
