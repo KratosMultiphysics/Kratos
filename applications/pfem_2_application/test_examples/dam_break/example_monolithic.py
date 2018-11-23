@@ -1,35 +1,34 @@
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = 2  # 2D problem  
+domain_size = 2  # 2D problem
 
 #including kratos path
-from KratosMultiphysics import *    #we import the KRATOS  
-from KratosMultiphysics.PFEM2Application import *        #and now our application. note that we can import as many as we need to solve our specific problem 
-from KratosMultiphysics.ExternalSolversApplication import *        #and now our application. note that we can import as many as we need to solve our specific problem 
+from KratosMultiphysics import *    #we import the KRATOS
+from KratosMultiphysics.PFEM2Application import *        #and now our application. note that we can import as many as we need to solve our specific problem
+from KratosMultiphysics.ExternalSolversApplication import *        #and now our application. note that we can import as many as we need to solve our specific problem
 #from KratosMultiphysics.OpenCLApplication import *        #in case you want to use the gpu to solve the system
 
 #defining a model part
-model_part = ModelPart("ExampleModelPart");  #we create a model part  
+model = Model()
+model_part = model.CreateModelPart("ExampleModelPart");  #we create a model part
 
-import pfem_2_solver_monolithic_fluid as pfem_2_solver           #we import the python file that includes the commands that we need  
-
-
+import pfem_2_solver_monolithic_fluid as pfem_2_solver           #we import the python file that includes the commands that we need
 
 pfem_2_solver.AddVariables(model_part)
 
 from math import sqrt
 from math import sin
 from math import cos
- #now we proceed to use the GID interface (both to import the infomation inside the .mdpa file and later print the results in a file  
-gid_mode = GiDPostMode.GiD_PostBinary  #we import the python file that includes the commands that we need  
+ #now we proceed to use the GID interface (both to import the infomation inside the .mdpa file and later print the results in a file
+gid_mode = GiDPostMode.GiD_PostBinary  #we import the python file that includes the commands that we need
 multifile = MultiFileFlag.SingleFile #MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
 gid_io = GidIO("results_monolithic",gid_mode,multifile,deformed_mesh_flag,write_conditions)
 
-model_part_io = ModelPartIO("obstacle_monolithic")             # we set the name of the .mdpa file  
-model_part_io.ReadModelPart(model_part)         # we load the info from the .mdpa 
+model_part_io = ModelPartIO("obstacle_monolithic")             # we set the name of the .mdpa file
+model_part_io.ReadModelPart(model_part)         # we load the info from the .mdpa
 
 
 model_part.ProcessInfo.SetValue(DENSITY_WATER, 1000.0);
@@ -41,7 +40,7 @@ model_part.ProcessInfo.SetValue(GRAVITY_X, 0.0);
 model_part.ProcessInfo.SetValue(GRAVITY_Y, -9.8);
 
 pi=3.14159
-        
+
 for node in model_part.Nodes:
         node.Free(VELOCITY_X)
         node.Free(VELOCITY_Y)
@@ -61,7 +60,7 @@ for node in model_part.Nodes:
                 #node.Fix(PRESSURE)
                 node.Fix(DISTANCE)
                 node.SetSolutionStepValue(DISTANCE,0,1.0)
-        
+
         if node.Y>0.57:
                 node.Fix(DISTANCE)
 
@@ -74,26 +73,26 @@ for node in model_part.Nodes:
                 #node.Fix(VELOCITY_X)
         node.SetSolutionStepValue(BODY_FORCE_Y,0,-9.8)
         node.SetSolutionStepValue(PRESS_PROJ_Y,0,-9.8)
-        
-
-                
 
 
 
-#the buffer size should be set up here after the mesh is read for the first time  (this is important for transcient problems, in this static problem =1 is enough)  
+
+
+
+#the buffer size should be set up here after the mesh is read for the first time  (this is important for transcient problems, in this static problem =1 is enough)
 model_part.SetBufferSize(2)
 
- # we add the DoFs  
+ # we add the DoFs
 pfem_2_solver.AddDofs(model_part)
 
-   
+
 #creating a solver object
 maximum_nonlin_iterations=1 #nonlinear problem
 solver = pfem_2_solver.PFEM2Solver(model_part,domain_size,maximum_nonlin_iterations)
 solver.time_order = 1
 solver.echo_level = 3
-solver.Initialize()        
-  
+solver.Initialize()
+
 mesh_name = 0.0
 gid_io.InitializeMesh( mesh_name );
 gid_io.WriteMesh((model_part).GetMesh());
@@ -122,7 +121,7 @@ for step in range(1,nsteps):
     print("---------------")
     print("   new step")
     time = Dt*step
-    
+
     model_part.CloneTimeStep(time)
 
     if step>1:
@@ -134,12 +133,12 @@ for step in range(1,nsteps):
 
     if step==0:
         for node in model_part.Nodes:
-                node.SetSolutionStepValue(VELOCITY_X,0,0.0) 
+                node.SetSolutionStepValue(VELOCITY_X,0,0.0)
                 node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
     if out==out_step:
           out=0
           print("printing a step")
-             
+
           gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
           gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
           gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
@@ -148,7 +147,7 @@ for step in range(1,nsteps):
           gid_io.Flush()
     print("Time in simulation: ",time," s")
 
-    
+
 t2=timer.time()
 total_time=t2-t1
 

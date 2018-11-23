@@ -1,35 +1,36 @@
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = 3  # 2D problem  
+domain_size = 3  # 2D problem
 
 #including kratos path
-from KratosMultiphysics import *    #we import the KRATOS  
-from KratosMultiphysics.PFEM2Application import *        #and now our application. note that we can import as many as we need to solve our specific problem 
+from KratosMultiphysics import *    #we import the KRATOS
+from KratosMultiphysics.PFEM2Application import *        #and now our application. note that we can import as many as we need to solve our specific problem
 from KratosMultiphysics.ExternalSolversApplication import *
 #defining a model part
-model_part = ModelPart("ExampleModelPart");  #we create a model part  
+model = Model()
+model_part = model.CreateModelPart("ExampleModelPart");  #we create a model part
 
-import pfem_2_solver_monolithic_fluid as pfem2_solver           #we import the python file that includes the commands that we need  
-#static_pressure_solver.AddVariables(model_part,linea_model_part)  #from the static_poisson_solver.py we call the function Addvariables so that the model part we have just created has the needed variables 
+import pfem_2_solver_monolithic_fluid as pfem2_solver           #we import the python file that includes the commands that we need
+#static_pressure_solver.AddVariables(model_part,linea_model_part)  #from the static_poisson_solver.py we call the function Addvariables so that the model part we have just created has the needed variables
 pfem2_solver.AddVariables(model_part)
 
 from math import sqrt
 from math import sin
 from math import cos
 from math import fabs
- # (note that our model part does not have nodes or elements yet) 
+ # (note that our model part does not have nodes or elements yet)
 
- #now we proceed to use the GID interface (both to import the infomation inside the .mdpa file and later print the results in a file  
-gid_mode = GiDPostMode.GiD_PostBinary  #we import the python file that includes the commands that we need  
+ #now we proceed to use the GID interface (both to import the infomation inside the .mdpa file and later print the results in a file
+gid_mode = GiDPostMode.GiD_PostBinary  #we import the python file that includes the commands that we need
 multifile = MultiFileFlag.SingleFile #MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
 gid_io = GidIO("nonewtonian_test",gid_mode,multifile,deformed_mesh_flag,write_conditions)
 
 
-model_part_io = ModelPartIO("nonewtonian_3d")             # we set the name of the .mdpa file  
-model_part_io.ReadModelPart(model_part)         # we load the info from the .mdpa 
+model_part_io = ModelPartIO("nonewtonian_3d")             # we set the name of the .mdpa file
+model_part_io.ReadModelPart(model_part)         # we load the info from the .mdpa
 
 
 gravity = -9.8
@@ -43,7 +44,7 @@ model_part.ProcessInfo.SetValue(VISCOSITY_AIR, 0.000001 );
 model_part.ProcessInfo.SetValue(DENSITY_AIR, 1.0);
 
 
-#the buffer size should be set up here after the mesh is read for the first time  (this is important for transcient problems, in this static problem =1 is enough)  
+#the buffer size should be set up here after the mesh is read for the first time  (this is important for transcient problems, in this static problem =1 is enough)
 model_part.SetBufferSize(3)
 list_nodes = [] #here we create an empty list
 
@@ -59,15 +60,15 @@ for node in model_part.Nodes:
         else:
             dist= node.Y-0.1+0.0
         node.SetSolutionStepValue(DISTANCE,0,dist) #node.Y-0.092)
-        #node.Fix(DISTANCE)		
-        if node.Y<0.001 or node.Y>0.14999: 
+        #node.Fix(DISTANCE)
+        if node.Y<0.001 or node.Y>0.14999:
               node.Fix(VELOCITY_Y)
               node.Fix(VELOCITY_X)
-        if node.X>0.49999 or node.X<0.0001: 
+        if node.X>0.49999 or node.X<0.0001:
              node.Fix(VELOCITY_X)
         if node.Y>0.1499:
              node.Fix(PRESSURE)
-        
+
         node.SetSolutionStepValue(BODY_FORCE_Y,0,-9.8)
         if node.Z<0.0001 or node.Z>0.049999:
              node.Fix(VELOCITY_Z)
@@ -77,7 +78,7 @@ maximum_nonlin_iterations=10 #nonlinear problem
 solver = pfem2_solver.PFEM2Solver(model_part,domain_size,maximum_nonlin_iterations)
 solver.time_order = 1
 solver.echo_level = 1
-solver.Initialize()	
+solver.Initialize()
 
 mesh_name = 0.0
 gid_io.InitializeMesh( mesh_name );
@@ -114,8 +115,8 @@ for step in range(1,nsteps):
         solver.Solve()
 
     if out==out_step:
-       out=0	
-       print("printing a step")		
+       out=0
+       print("printing a step")
        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
        gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
        gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
