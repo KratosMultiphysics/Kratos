@@ -121,31 +121,51 @@ public:
     {
         KRATOS_TRY;
 
-        // Fixing DOFs and perform rotation
-
-        const double Time = mr_model_part.GetProcessInfo()[TIME];
-        this->CalculateRodriguesMatrices(Time);
-
+        // Fixing DOFs and perform rotation if necessary
         const int nnodes = static_cast<int>(mr_model_part.Nodes().size());
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
-            array_1d<double, 3> point_initial_position;
+            const double current_time = mr_model_part.GetProcessInfo()[TIME];
 
-            #pragma omp parallel for private(point_initial_position)
-            for(int i = 0; i<nnodes; i++)
+            if(current_time >= minitial_time)
             {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                this->CalculateRodriguesMatrices(current_time);
 
-                noalias(point_initial_position) = it->GetInitialPosition().Coordinates();
+                ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+                array_1d<double, 3> point_initial_position;
 
-                it->Fix(VELOCITY_X);
-                it->Fix(VELOCITY_Y);
-                it->Fix(VELOCITY_Z);
+                #pragma omp parallel for private(point_initial_position)
+                for(int i = 0; i<nnodes; i++)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
-                noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
+                    noalias(point_initial_position) = it->GetInitialPosition().Coordinates();
+
+                    it->Fix(VELOCITY_X);
+                    it->Fix(VELOCITY_Y);
+                    it->Fix(VELOCITY_Z);
+
+                    array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
+                    noalias(velocity) = prod(mrotation_dt_matrix, point_initial_position - maxis_initial_point);
+                }
+            }
+            else
+            {
+                ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+
+                #pragma omp parallel for
+                for(int i = 0; i<nnodes; i++)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                    it->Fix(VELOCITY_X);
+                    it->Fix(VELOCITY_Y);
+                    it->Fix(VELOCITY_Z);
+
+                    array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
+                    noalias(velocity) = ZeroVector(3);
+                }
             }
         }
 
