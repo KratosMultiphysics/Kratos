@@ -717,7 +717,7 @@ class DataCommunicator
     /// Wrapper for MPI_Scatter calls (int version).
     /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
      *  @param[in] SourceRank The rank containing the values to be scattered.
-     *  @return rRecvValues Container for the values to be sent.
+     *  @return Scattered values for this rank.
      *  @note This version has a performance penalty compared to the variant
      *  taking both input and output buffers, since the dimensions of the
      *  receiving buffer have to be communicated. If the dimensions of the
@@ -741,7 +741,7 @@ class DataCommunicator
     /// Wrapper for MPI_Scatter calls (double version).
     /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
      *  @param[in] SourceRank The rank containing the values to be scattered.
-     *  @return rRecvValues Container for the values to be sent.
+     *  @return Scattered values for this rank.
      *  @note This version has a performance penalty compared to the variant
      *  taking both input and output buffers, since the dimensions of the
      *  receiving buffer have to be communicated. If the dimensions of the
@@ -785,6 +785,62 @@ class DataCommunicator
         std::vector<double>& rRecvValues,
         const int SourceRank) const
     {}
+
+    // Scatterv operations
+
+    /// Wrapper for MPI_Scatterv calls (int version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @return Scattered values for this rank.
+     *  @note rSendValues should contain as many vectors as ranks in the communicator.
+     *  The i-th vector in the list will be sent to rank i.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> Scatterv(
+        const std::vector<std::vector<int>>& rSendValues,
+        const int SourceRank) const
+    {
+        unsigned int rank = Rank();
+        if (rank == SourceRank && rank < rSendValues.size() )
+        {
+            return rSendValues[rank];
+        }
+        else
+        {
+            return std::vector<int>(0);
+        }
+    }
+
+    /// Wrapper for MPI_Scatterv calls (double version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @return Scattered values for this rank.
+     *  @note rSendValues should contain as many vectors as ranks in the communicator.
+     *  The i-th vector in the list will be sent to rank i.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> Scatterv(
+        const std::vector<std::vector<double>>& rSendValues,
+        const int SourceRank) const
+    {
+        unsigned int rank = Rank();
+        if (rank == SourceRank && rank < rSendValues.size() )
+        {
+            return rSendValues[rank];
+        }
+        else
+        {
+            return std::vector<double>(0);
+        }
+    }
 
     /// Wrapper for MPI_Scatterv calls (int version).
     /** @param[in] rSendValues Values to be scattered (meaningul only on SourceRank).

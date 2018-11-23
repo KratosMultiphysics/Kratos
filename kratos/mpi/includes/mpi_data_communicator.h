@@ -259,6 +259,16 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<double>& rRecvValues,
         const int SourceRank) const override;
 
+    // Scatterv operations
+
+    std::vector<int> Scatterv(
+        const std::vector<std::vector<int>>& rSendValues,
+        const int SourceRank) const override;
+
+    std::vector<double> Scatterv(
+        const std::vector<std::vector<double>>& rSendValues,
+        const int SourceRank) const override;
+
     void Scatterv(
         const std::vector<int>& rSendValues,
         const std::vector<int>& rSendCounts,
@@ -425,6 +435,13 @@ class MPIDataCommunicator: public DataCommunicator
         const TDataType& rSendValues, TDataType& rRecvValues,
         const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
         const int RecvRank) const;
+
+    template<class TDataType> void PrepareScattervBuffers(
+        const std::vector<std::vector<TDataType>>& rInputMessage,
+        std::vector<TDataType>& rScattervMessage,
+        std::vector<int>& rMessageLengths,
+        std::vector<int>& rMessageDistances,
+        const int SourceRank) const;
 
     template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&) const;
 

@@ -537,6 +537,39 @@ void MPIDataCommunicator::Scatter(
     ScatterDetail(rSendValues,rRecvValues,SourceRank);
 }
 
+
+// Scatterv operations
+
+std::vector<int> MPIDataCommunicator::Scatterv(
+    const std::vector<std::vector<int>>& rSendValues,
+    const int SourceRank) const
+{
+    std::vector<int> message;
+    std::vector<int> message_lengths;
+    std::vector<int> message_offsets;
+    PrepareScattervBuffers(
+        rSendValues, message, message_lengths, message_offsets, SourceRank);
+
+    std::vector<int> result(message_lengths[Rank()]);
+    ScattervDetail(message, message_lengths, message_offsets, result, SourceRank);
+    return result;
+}
+
+std::vector<double> MPIDataCommunicator::Scatterv(
+    const std::vector<std::vector<double>>& rSendValues,
+    const int SourceRank) const
+{
+    std::vector<double> message;
+    std::vector<int> message_lengths;
+    std::vector<int> message_offsets;
+    PrepareScattervBuffers(
+        rSendValues, message, message_lengths, message_offsets, SourceRank);
+
+    std::vector<double> result(message_lengths[Rank()]);
+    ScattervDetail(message, message_lengths, message_offsets, result, SourceRank);
+    return result;
+}
+
 void MPIDataCommunicator::Scatterv(
     const std::vector<int>& rSendValues,
     const std::vector<int>& rSendCounts,
@@ -1084,6 +1117,41 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
         }
     }
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(failed, RecvRank)) << message.str();
+}
+
+template <class TDataType> void MPIDataCommunicator::PrepareScattervBuffers(
+    const std::vector<std::vector<TDataType>>& rInputMessage,
+    std::vector<TDataType>& rScattervMessage,
+    std::vector<int>& rMessageLengths,
+    std::vector<int>& rMessageDistances,
+    const int SourceRank) const
+{
+    if (Rank() == SourceRank)
+    {
+        unsigned int size = Size();
+        KRATOS_ERROR_IF_NOT(rInputMessage.size() == size)
+        << "Input error in call to MPI_Scatterv: Expected " << size << " vectors as input, got " << rInputMessage.size() << "." << std::endl;
+
+        rMessageLengths.resize(size);
+        rMessageDistances.resize(size);
+        unsigned int message_size = 0;
+        for (unsigned int i = 0; i < rInputMessage.size(); i++)
+        {
+            rMessageDistances[i] = message_size;
+            unsigned int rank_size = rInputMessage[i].size();
+            rMessageLengths[i] = rank_size;
+            message_size += rank_size;
+        }
+
+        rScattervMessage.resize(message_size);
+        for (unsigned int i = 0, counter = 0; i < rInputMessage.size(); i++)
+        {
+            for (unsigned int j = 0; j < rInputMessage[i].size(); j++, counter++)
+            {
+                rScattervMessage[counter] = rInputMessage[i][j];
+            }
+        }
+    }
 }
 
 // MPI_Datatype wrappers
