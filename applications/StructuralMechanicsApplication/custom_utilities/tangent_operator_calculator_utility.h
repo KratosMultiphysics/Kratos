@@ -103,11 +103,12 @@ public:
         )
     {
         // Converged values to be storaged
-        const Vector& strain_vector_gp = rValues.GetStrainVector();
-        const Vector& stress_vector_gp = rValues.GetStressVector();
+        const Vector strain_vector_gp = rValues.GetStrainVector();
+        const Vector stress_vector_gp = rValues.GetStressVector();
 
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         tangent_tensor.clear();
+        Matrix auxiliar_tensor = ZeroMatrix(6,6);
 
         const std::size_t num_components = strain_vector_gp.size();
         // Loop over components of the strain
@@ -118,7 +119,7 @@ public:
             CalculatePerturbation(perturbed_strain, i_component, pertubation);
 
             // We check that the perturbation has a threshold value of PerturbationThreshold
-            if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+            //if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
             // Apply the perturbation
             PerturbateStrainVector(perturbed_strain, strain_vector_gp, pertubation, i_component);
@@ -128,12 +129,15 @@ public:
 
             Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
             const Vector& delta_stress = perturbed_integrated_stress - stress_vector_gp;
-            AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
+            // KRATOS_WATCH(delta_stress)
+            // KRATOS_WATCH(pertubation)
+            AssignComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, i_component);
 
             // Reset the values to the initial ones
             noalias(perturbed_strain) = strain_vector_gp;
             noalias(perturbed_integrated_stress) = stress_vector_gp;
         }
+        tangent_tensor = auxiliar_tensor;
     }
 
     /**
@@ -311,10 +315,16 @@ public:
         Flags& cl_options = rValues.GetOptions();
 
         // In order to avoid recursivity...
+        const bool flag_back_up_1 = cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_back_up_2 = cl_options.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         pConstitutiveLaw->CalculateMaterialResponse(rValues, rStressMeasure);
+
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_back_up_1);
+        cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_back_up_2);
     }
 
     /**

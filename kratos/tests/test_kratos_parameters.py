@@ -2,8 +2,10 @@
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
+from KratosMultiphysics import FileSerializer, StreamSerializer, SerializerTraceType
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import sys
 
@@ -598,7 +600,6 @@ class TestParameters(KratosUnittest.TestCase):
         null_custom.ValidateAndAssignDefaults(null_default)
 
     def test_double_vs_null_validation(self):
-
         # supplied settings
         double_custom = Parameters("""{
         "parameter": 0.0
@@ -611,6 +612,53 @@ class TestParameters(KratosUnittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             double_custom.ValidateAndAssignDefaults(null_default)
+
+    def test_file_serialization(self):
+        tmp = Parameters(defaults)
+        check = tmp.WriteJsonString()
+
+        file_name = "parameter_serialization"
+
+        serializer = FileSerializer(file_name, SerializerTraceType.SERIALIZER_NO_TRACE)
+        serializer.Save("ParametersSerialization",tmp)
+        del(tmp)
+        del(serializer)
+        
+
+        #unpickle data - note that here i override "serialized_data"
+        serializer = FileSerializer(file_name,SerializerTraceType.SERIALIZER_NO_TRACE)
+
+        loaded_parameters = Parameters()
+        serializer.Load("ParametersSerialization",loaded_parameters)
+        
+        self.assertEqual(check, loaded_parameters.WriteJsonString())
+        kratos_utils.DeleteFileIfExisting(file_name + ".rest")
+
+    def test_stream_serialization(self):
+        tmp = Parameters(defaults)
+        check = tmp.WriteJsonString()
+
+        serializer = StreamSerializer(SerializerTraceType.SERIALIZER_NO_TRACE)
+        serializer.Save("ParametersSerialization",tmp)
+        del(tmp)
+        
+        # ######## here we pickle the serializer
+        try:
+            import cickle as pickle  # Use cPickle on Python 2.7
+        except ImportError:
+            import pickle
+
+        #pickle dataserialized_data
+        pickled_data = pickle.dumps(serializer, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        del(serializer)
+
+        #unpickle data - note that here i override "serialized_data"
+        serializer = pickle.loads(pickled_data)
+
+        loaded_parameters = Parameters()
+        serializer.Load("ParametersSerialization",loaded_parameters)
+        
+        self.assertEqual(check, loaded_parameters.WriteJsonString())
 
 
 

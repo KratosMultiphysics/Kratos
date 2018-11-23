@@ -236,6 +236,11 @@ set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
 
+# If CUDA
+if(${USE_CUDA} MATCHES ON)
+  find_package(CUDA QUIET REQUIRED)
+endif(${USE_CUDA} MATCHES ON)
+
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 message("Boost Include: ${Boost_INCLUDE_DIRS}")
@@ -449,17 +454,6 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	message("installed lapack = " ${LAPACK_LIBRARIES})
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
-
-# Kratos Testing. Install everything except sources
-if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
-  )
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

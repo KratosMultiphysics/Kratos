@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from postprocess_eigenvalues_process import PostProcessEigenvaluesProcess
+import postprocess_eigenvalues_process
 from compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import os
@@ -45,8 +45,8 @@ def GetEigenVectorMatrix(num_eigenvalues, node_id):
 
 class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
     def tearDown(self):
-        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.msh")
-        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.res") # usually this is deleted by the check process but not if it fails
+        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15_0.post.msh")
+        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15_0.post.res") # usually this is deleted by the check process but not if it fails
 
 
     def test_PostprocessEigenvaluesProcess(self):
@@ -58,6 +58,8 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
+
+        model_part.ProcessInfo[KratosMultiphysics.STEP] = 15
 
         CreateNodes(comp_model_part)
 
@@ -81,9 +83,13 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
 
         # Use the process
         # here the minimum settings are specified to test the default values!
-        settings_eigen_process = KratosMultiphysics.Parameters("""{"result_file_format_use_ascii" : true}""")
+        settings_eigen_process = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "result_file_format_use_ascii" : true
+            }
+        }""")
 
-        post_eigen_process = PostProcessEigenvaluesProcess(test_model, settings_eigen_process)
+        post_eigen_process = postprocess_eigenvalues_process.Factory(settings_eigen_process, test_model)
 
         post_eigen_process.ExecuteInitialize()
         post_eigen_process.ExecuteBeforeSolutionLoop()
@@ -104,7 +110,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         """)
 
         settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
-        settings_check_process["output_file_name"].SetString("Structure_EigenResults_0.post.res")
+        settings_check_process["output_file_name"].SetString("Structure_EigenResults_15_0.post.res")
 
         check_process = CompareTwoFilesCheckProcess(settings_check_process)
 

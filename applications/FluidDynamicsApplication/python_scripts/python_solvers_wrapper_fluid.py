@@ -14,11 +14,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "FractionalStep"):
             solver_module_name = "navier_stokes_solver_fractionalstep"
 
-        elif ((solver_type == "Embedded") or (solver_type == "EmbeddedDevelopment")):
+        elif (solver_type == "Embedded"):
             solver_module_name = "navier_stokes_embedded_solver"
-
-        elif (solver_type == "EmbeddedAusas"):
-            solver_module_name = "navier_stokes_embedded_ausas_solver"
 
         elif (solver_type == "Compressible"):
             solver_module_name = "navier_stokes_compressible_solver"
@@ -39,9 +36,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif (solver_type == "Embedded"):
             solver_module_name = "trilinos_navier_stokes_embedded_solver"
-
-        elif (solver_type == "EmbeddedAusas"):
-            solver_module_name = "trilinos_navier_stokes_embedded_ausas_solver"
 
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
