@@ -63,7 +63,7 @@
                 "interval"        : [0.0,"End"]
             }
         },{
-            "python_module" : "apply_periodic_boundaray_condition_process",
+            "python_module" : "apply_periodic_boundary_condition_process",
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "ApplyPeriodicBoundaryConditionProcess",
             "Parameters"    : {
@@ -73,9 +73,17 @@
                 "second_model_part_name"      : "GENERIC_vertSurface",
                 "interval"                    : [0.0, 1e30],
                 "variable_names"              : ["DISPLACEMENT"],
-                "center"                      : [0,0,0],
-                "axis_of_rotation"            : [0.0,0.0,1.0],
-                "angle_degree"                : 90.0
+                "transformation_settings"     :{
+                    "rotation_settings":{
+                        "center"                      : [0.0,0.0,0.0],
+                        "axis_of_rotation"            : [0.0,0.0,1.0],
+                        "angle_degree"                : 90.0
+                    }
+                },
+               "search_settings":{
+                        "max_results":100,
+                        "tolerance": 1E-2
+               }
             }
         }],
         "loads_process_list"       : [{
