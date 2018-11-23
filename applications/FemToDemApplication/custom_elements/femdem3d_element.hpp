@@ -214,7 +214,6 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 
 	void CalculateAverageStressOnEdge(Vector &AverageVector, const std::vector<Element *>& VectorOfElems);
 	void CalculateAverageStrainOnEdge(Vector &AverageVector, const std::vector<Element *>& VectorOfElems);
-	void AddDEMContactForces(Vector &NodalRHS);
 
 	void SetNodeIndexes(Matrix &M) // Defines the numbering of the edges with the corresponding nodes
 	{
