@@ -48,9 +48,16 @@ class ShellKLDiscreteElementTests(KratosUnittest.TestCase):
         spans_u = surface.SpansU()
         spans_v = surface.SpansV()
 
-        integration_points = [integration_point
-            for integration_point in IntegrationPoints.Points2D(
-            surface.DegreeU + 1, surface.DegreeV + 1, spans_u, spans_v)]
+        integration_points = list()
+
+        for span_u in spans_u:
+            for span_v in spans_v:
+                integration_points += IntegrationPoints.Points2D(
+                    DegreeU=surface.DegreeU + 1,
+                    DegreeV=surface.DegreeV + 1,
+                    DomainU=span_u,
+                    DomainV=span_v,
+                )
 
         shapes = SurfaceShapeEvaluator(DegreeU=surface.DegreeU,
             DegreeV=surface.DegreeV, Order=2)
