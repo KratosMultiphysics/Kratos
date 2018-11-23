@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi 
 //
 	           
-#if !defined(KRATOS_GLOBAL_POINTER_CONTAINER_H_INCLUDED )
-#define  KRATOS_GLOBAL_POINTER_CONTAINER_H_INCLUDED
+#if !defined(KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED )
+#define  KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED
 
 // System includes
 #include <vector>
@@ -54,24 +54,24 @@ namespace Kratos
   /** Detail class definition.
   */
   template< class TDataType >
-  class GlobalPointersContainer : public std::vector< GlobalPointer<TDataType> >
+  class GlobalPointersVector : public std::vector< GlobalPointer<TDataType> >
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Pointer definition of GlobalPointersContainer
-      KRATOS_CLASS_POINTER_DEFINITION(GlobalPointersContainer);
+      /// Pointer definition of GlobalPointersVector
+      KRATOS_CLASS_POINTER_DEFINITION(GlobalPointersVector);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      GlobalPointersContainer(){}
+      GlobalPointersVector(){}
 
       /// Destructor.
-      virtual ~GlobalPointersContainer(){}
+      virtual ~GlobalPointersVector(){}
 
       template < class TContainerType > 
       void FillFromContainer( TContainerType& container)
@@ -112,12 +112,12 @@ namespace Kratos
       virtual std::string Info() const
       {
 	    std::stringstream buffer;
-        buffer << "GlobalPointersContainer" ;
+        buffer << "GlobalPointersVector" ;
         return buffer.str();
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GlobalPointersContainer";}
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GlobalPointersVector";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
@@ -253,15 +253,15 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      GlobalPointersContainer& operator=(GlobalPointersContainer const& rOther){}
+      GlobalPointersVector& operator=(GlobalPointersVector const& rOther){}
 
       /// Copy constructor.
-      GlobalPointersContainer(GlobalPointersContainer const& rOther){}
+      GlobalPointersVector(GlobalPointersVector const& rOther){}
 
         
       ///@}    
         
-    }; // Class GlobalPointersContainer 
+    }; // Class GlobalPointersVector 
 
   ///@} 
   
@@ -277,12 +277,12 @@ namespace Kratos
   /// input stream function
   template< class TDataType >
   inline std::istream& operator >> (std::istream& rIStream, 
-				    GlobalPointersContainer<TDataType>& rThis){}
+				    GlobalPointersVector<TDataType>& rThis){}
 
   /// output stream function
   template< class TDataType >
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const GlobalPointersContainer<TDataType>& rThis)
+				    const GlobalPointersVector<TDataType>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -296,6 +296,6 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_GLOBAL_POINTER_CONTAINER_H_INCLUDED  defined 
+#endif // KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED  defined 
 
 
