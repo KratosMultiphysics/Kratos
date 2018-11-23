@@ -18,8 +18,6 @@ class RestartProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.model_part = Model[custom_settings["model_part_name"].GetString()]
-
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -39,7 +37,10 @@ class RestartProcess(KratosMultiphysics.Process):
 
         self.save_restart = self.settings["save_restart"].GetBool()
 
-        # Set up output frequency and format
+        # set up model
+        self.model = Model
+
+        # set up output frequency and format
         self.output_frequency  = self.settings["output_frequency"].GetDouble()
 
         self.output_label_is_time = False
@@ -70,6 +71,8 @@ class RestartProcess(KratosMultiphysics.Process):
             print(self._class_prefix()+" Ready")
     #
     def ExecuteInitialize(self):
+
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
         # Set current time parameters
         if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:

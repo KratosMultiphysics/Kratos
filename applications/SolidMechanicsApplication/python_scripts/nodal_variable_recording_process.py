@@ -6,10 +6,10 @@ KratosMultiphysics.CheckForPreviousImport()
 
 from numpy import *
 
-def Factory(settings, Model):
-    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
+def Factory(custom_settings, Model):
+    if( not isinstance(custom_settings,KratosMultiphysics.Parameters) ):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return NodalVariableRecordingProcess(Model, settings["Parameters"])
+    return NodalVariableRecordingProcess(Model, custom_settings["Parameters"])
 
 
 class NodalVariableRecordingProcess(KratosMultiphysics.Process):
@@ -22,7 +22,7 @@ class NodalVariableRecordingProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name"     : "MODEL_PART_NAME",
-            "variable"            : "VARIABLE_NAME",
+            "variable_name"       : "VARIABLE_NAME",
             "output_file_name"    : "FILE_NAME",
             "single_entities"     : true
         }
@@ -32,7 +32,7 @@ class NodalVariableRecordingProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        # model
+        # set up model
         self.model = Model
 
         # sum all entities
@@ -42,16 +42,22 @@ class NodalVariableRecordingProcess(KratosMultiphysics.Process):
         self.problem_path = os.getcwd()
 
         # variable
-        self.variable = self.settings["variable"].GetString()
-        self.kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.variable)
+        self.variable_name = self.settings["variable_name"].GetString()
+        self.kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_name)
 
         self.echo_level  = 1
         if( self.echo_level > 0 ):
             print("::[RecordVariable]:: -BUILT-")
+
+    #
+    def GetVariables(self):
+        nodal_variables = [self.settings["variable_name"].GetString()]
+        return nodal_variables
+
     #
     def ExecuteInitialize(self):
 
-        self.model_part = self.model.GetModelPart(custom_settings["model_part_name"].GetString())
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
         # Set path and headers
         if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
@@ -93,11 +99,11 @@ class NodalVariableRecordingProcess(KratosMultiphysics.Process):
 
             if( hasattr(variable_value, "__len__") ):
                 if( len(variable_value) == 3 ):
-                    line_header = line_header + "," + str(self.variable) + "," + str(self.variable) + "_X," + str(self.variable) + "_Y," + str(self.variable) + "_Z"
+                    line_header = line_header + "," + str(self.variable_name) + "," + str(self.variable_name) + "_X," + str(self.variable_name) + "_Y," + str(self.variable_name) + "_Z"
                 else:
-                    line_header = line_header + "," + str(self.variable)
+                    line_header = line_header + "," + str(self.variable_name)
             else:
-                line_header = line_header + "," + str(self.variable)
+                line_header = line_header + "," + str(self.variable_name)
 
 
             line_header  = line_header + "\n"
@@ -125,11 +131,11 @@ class NodalVariableRecordingProcess(KratosMultiphysics.Process):
 
                 if( hasattr(variable_value, "__len__") ):
                     if( len(variable_value) == 3 ):
-                        line_header = line_header + "," + str(self.variable) + "," + str(self.variable) + "_X," + str(self.variable) + "_Y," + str(self.variable) + "_Z"
+                        line_header = line_header + "," + str(self.variable_name) + "," + str(self.variable_name) + "_X," + str(self.variable_name) + "_Y," + str(self.variable_name) + "_Z"
                     else:
-                        line_header = line_header + "," + str(self.variable)
+                        line_header = line_header + "," + str(self.variable_name)
                 else:
-                    line_header = line_header + "," + str(self.variable)
+                    line_header = line_header + "," + str(self.variable_name)
 
 
                 line_header  = line_header + "\n"
@@ -200,23 +206,20 @@ class NodalVariableRecordingProcess(KratosMultiphysics.Process):
 
     #
     def GetCurrentTime(self):
-
         return self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
     #
     def GetCurrentStep(self):
-
         return self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
     #
     def GetVectorVariableValueSum(self, nodal_variable):
 
-        variable_value = []
-        counter = 0
+        variable_value = [0.0,0.0,0.0]
         for node in self.model_part.GetNodes():
             nodal_value = node.GetSolutionStepValue(nodal_variable);
-            variable_value = variable_value + nodal_value
-            counter+=1
+            for i in range(len(nodal_value)):
+                variable_value[i] += nodal_value[i]
 
         return variable_value
 
