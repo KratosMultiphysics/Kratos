@@ -98,11 +98,11 @@ protected:
 
 
     virtual void AddViscousTerm(MatrixType& rDampMatrix,
-        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+        const BoundedMatrix<double, 3, 2>& rShapeDeriv,
         double Viscosity,const double Area);
 
-    void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 17, 17 > & output,
-        boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
+    void AddViscousTerm(BoundedMatrix<double, 17, 17 > & output,
+        BoundedMatrix<double, (2+1), 2 >& rShapeDeriv,
         array_1d<double,3>&  distances,
         std::vector< Matrix >& gauss_gradients,
         array_1d<double,3>&  viscosities,
@@ -110,8 +110,8 @@ protected:
         array_1d<double,3>&  volumes ,
         const unsigned int ndivisions);
 
-    void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 > & output,
-        boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
+    void AddViscousTerm(BoundedMatrix<double, 12, 12 > & output,
+        BoundedMatrix<double, (2+1), 2 >& rShapeDeriv,
         array_1d<double,3>&  distances,
         std::vector< Matrix >& gauss_gradients,
         array_1d<double,3>&  viscosities,
@@ -148,12 +148,12 @@ private:
     VelocityEnrichedPFEM22D(VelocityEnrichedPFEM22D const& rOther);
 
     void CalculateInterfaceNormal(
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints,
+        BoundedMatrix<double, 3, 2 >& rPoints,
         array_1d<double,3>&  rDistances,
         array_1d<double,2>&  normal,
         double & interface_area,
         array_1d<double,3>&  Ninterface,
-        boost::numeric::ublas::bounded_matrix<double, 2, 2 >& rInterfacePoints);
+        BoundedMatrix<double, 2, 2 >& rInterfacePoints);
 
     inline void CalculatePosition(
         const bounded_matrix<double, 3, 3 > & coordinates,

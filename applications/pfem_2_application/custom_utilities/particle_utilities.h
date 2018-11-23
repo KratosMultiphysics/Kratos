@@ -84,7 +84,7 @@ namespace Kratos
         array_1d<double,3> N = ZeroVector(3);
         array_1d<double,3> aux = ZeroVector(3); //dimension = number of nodes
         array_1d<double,3> vel = ZeroVector(3); //dimension = number of nodes
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
+        BoundedMatrix<double,3,2> DN_DX = ZeroMatrix(3,2);
         array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
 
         //initialize it with given value
@@ -397,7 +397,7 @@ namespace Kratos
             if (is_found == true)
 	      {
                 Geometry<Node<3> >& geom = pelement->GetGeometry();
-		boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
+		BoundedMatrix<double, 3, 2 > msDN_DX;
 		array_1d<double, 3 > N;
 	    	//array_1d<double, 3 > N;
 		double Area=0.0;
@@ -671,7 +671,7 @@ namespace Kratos
 	    if (is_found == true)
 	      {
 		Geometry<Node<3> >& geom = pelement->GetGeometry();
-		boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
+		BoundedMatrix<double, 4, 3 > msDN_DX;
 		array_1d<double, 4 > N;
 		double Area=0.0;
 		GeometryUtils::CalculateGeometryData(geom, msDN_DX, N, Area);
@@ -941,7 +941,7 @@ namespace Kratos
 	      {
                 Geometry<Node<3> >& geom = pelement->GetGeometry();
 
-                boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
+                BoundedMatrix<double, 4, 3 > msDN_DX;
 
 	    	array_1d<double, 4 > N;
 
@@ -1675,7 +1675,7 @@ namespace Kratos
 	return detJ * 0.1666666666666666666667;
       }
 
-      void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & N)
+      void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 4, 3 > & pos, BoundedMatrix<double, 4, 3 > & N)
       {
 	double one_third = 1.0 / 3.0;
 	double one_sixt = 1.0 / 6.0;
@@ -1717,7 +1717,7 @@ namespace Kratos
 
       }
 
-      void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 16, 3 > & N)
+      void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 16, 3 > & pos, BoundedMatrix<double, 16, 3 > & N)
       {
 	//lower diagonal terms
 	double ypos = 1.0 / 12.0;
@@ -1774,7 +1774,7 @@ namespace Kratos
 	  }
       }
 
-      void ConsistentMassMatrix(const double A, boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M)
+      void ConsistentMassMatrix(const double A, BoundedMatrix<double, 3, 3 > & M)
       {
 	double c1 = A / 12.0;
 	double c2 = 2.0 * c1;
@@ -1789,13 +1789,13 @@ namespace Kratos
 	M(2, 2) = c2;
       }
 
-      void CalculateInterfaceNormal(boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface, boost::numeric::ublas::bounded_matrix<double, 2, 2 >& rInterfacePoints)
+      void CalculateInterfaceNormal(BoundedMatrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface, BoundedMatrix<double, 2, 2 >& rInterfacePoints)
       {
 	double sign_correction=1.0;
 
 
 
-	boost::numeric::ublas::bounded_matrix<double, 2, 2 > InterfacePoints;
+	BoundedMatrix<double, 2, 2 > InterfacePoints;
 
 	array_1d<bool,3>  cut_edges;
 

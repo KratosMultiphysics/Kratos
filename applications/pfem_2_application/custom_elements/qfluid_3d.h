@@ -177,9 +177,9 @@ namespace Kratos
   private:
     ///@name Static Member Variables
     ///@{
-    static boost::numeric::ublas::bounded_matrix<double,4,4> msaux_matrix;
-    static boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors;
-    static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; //cartesian coords
+    static BoundedMatrix<double,4,4> msaux_matrix;
+    static BoundedMatrix<double,4,4> msMassFactors;
+    static BoundedMatrix<double,4,3> msDN_DX; //cartesian coords
     static array_1d<double,4> msN; //dimension = number of nodes
     static array_1d<double,3> ms_aux; //dimesion coincides with space dimension
     static array_1d<double,3> ms_vel_gauss; //dimesion coincides with space dimension
@@ -217,9 +217,9 @@ namespace Kratos
 
     inline double CalculateH(double Volume);
 
-    void CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double& nu,const double& dt );
+    void CalculateViscousMatrix(MatrixType& K, const BoundedMatrix<double,4,3>& DN_DX, const double& nu,const double& dt );
 
-    inline void  ExpandAndAddReducedMatrix(MatrixType& Destination,	boost::numeric::ublas::bounded_matrix<double,4,4>& ReducedMatrix, const unsigned int dimension);
+    inline void  ExpandAndAddReducedMatrix(MatrixType& Destination,	BoundedMatrix<double,4,4>& ReducedMatrix, const unsigned int dimension);
     ///@}
     ///@name Private Operations
     ///@{

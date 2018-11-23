@@ -533,7 +533,7 @@ public:
                 //if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
                 if (n_str==2.0)
                 {
-                    boost::numeric::ublas::bounded_matrix<double,3,2> sort_coord = ZeroMatrix(3,2);
+                    BoundedMatrix<double,3,2> sort_coord = ZeroMatrix(3,2);
                     int cnt=1;
                     for (int i=0; i<3; ++i)
                         if(geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
@@ -605,7 +605,7 @@ public:
                     //if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
                     if (n_str==3.0 && n_int==3.0)
                     {
-                        boost::numeric::ublas::bounded_matrix<double,4,3> sort_coord = ZeroMatrix(4,3);
+                        BoundedMatrix<double,4,3> sort_coord = ZeroMatrix(4,3);
                         int cnt=1;
                         for (int i=0; i<4; ++i)
                         {
@@ -822,8 +822,8 @@ public:
     //bool AlphaShape(double alpha_param, Triangle2D<Node<3> >& pgeom)
     {
         KRATOS_TRY
-        boost::numeric::ublas::bounded_matrix<double,2,2> J; //local jacobian
-        boost::numeric::ublas::bounded_matrix<double,2,2> Jinv; //local jacobian
+        BoundedMatrix<double,2,2> J; //local jacobian
+        BoundedMatrix<double,2,2> Jinv; //local jacobian
         static array_1d<double,2> c; //center pos
         static array_1d<double,2> rhs; //center pos
 
@@ -903,8 +903,8 @@ public:
     {
         KRATOS_TRY
 
-        boost::numeric::ublas::bounded_matrix<double,3,3> J; //local jacobian
-        boost::numeric::ublas::bounded_matrix<double,3,3> Jinv; //local jacobian
+        BoundedMatrix<double,3,3> J; //local jacobian
+        BoundedMatrix<double,3,3> Jinv; //local jacobian
         array_1d<double,3> Rhs; //rhs
         array_1d<double,3> xc;
         double radius=0.0;
@@ -1327,8 +1327,8 @@ public:
 private:
 
     //aux vars
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msJ; //local jacobian
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msJinv; //inverse jacobian
+    static BoundedMatrix<double,3,3> msJ; //local jacobian
+    static BoundedMatrix<double,3,3> msJinv; //inverse jacobian
     static array_1d<double,3> msc; //center pos
     static array_1d<double,3> ms_rhs; //center pos
 

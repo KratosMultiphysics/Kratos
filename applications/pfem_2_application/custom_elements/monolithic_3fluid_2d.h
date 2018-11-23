@@ -89,12 +89,12 @@ protected:
    	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
 
     void AddViscousTerm(MatrixType& rDampMatrix,
-        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+        const BoundedMatrix<double, 3, 2>& rShapeDeriv,
         const double Weight
     );
 
-    void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 13, 13 > & output,
-        boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
+    void AddViscousTerm(BoundedMatrix<double, 13, 13 > & output,
+        BoundedMatrix<double, (2+1), 2 >& rShapeDeriv,
         array_1d<double,3>&  distances,
         std::vector< Matrix >& gauss_gradients,
         array_1d<double,3>&  viscosities,
@@ -103,7 +103,7 @@ protected:
         const unsigned int ndivisions
     );
 
-    void CalculateInterfaceNormal(boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface);
+    void CalculateInterfaceNormal(BoundedMatrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface);
 
     void CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
         const double xc, const double yc, const double zc,

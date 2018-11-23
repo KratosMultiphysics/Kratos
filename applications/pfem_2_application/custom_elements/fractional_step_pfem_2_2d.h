@@ -99,8 +99,8 @@ namespace Kratos
 
        	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
 
-        void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampMatrix,
-                         boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
+        void AddViscousTerm(BoundedMatrix<double, (2-1)*6, (2-1)*6 >& rDampMatrix,
+                         BoundedMatrix<double, (2+1), 2 >& rShapeDeriv,
                          const double Weight);
 
 

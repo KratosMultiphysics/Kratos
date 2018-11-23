@@ -129,7 +129,7 @@ protected:
     ///@name Protected Operators
     ///@{
     virtual void AddViscousTerm(MatrixType& rDampMatrix,
-        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+        const BoundedMatrix<double, 3, 2>& rShapeDeriv,
         double& Viscosity,const double Area) override;
     ///@}
     ///@name Protected  Access
@@ -146,9 +146,9 @@ private:
     ///@{
     double EffectiveViscosity(double DynamicViscosity,
         double YieldStress,
-        const boost::numeric::ublas::bounded_matrix<double, 2+1, 2> &rDN_DX);
+        const BoundedMatrix<double, 2+1, 2> &rDN_DX);
 
-    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, 2+1, 2> &rDN_DX); // TDim+1,TDim
+    double EquivalentStrainRate(const BoundedMatrix<double, 2+1, 2> &rDN_DX); // TDim+1,TDim
 
     ///@}
     ///@name Member Variables

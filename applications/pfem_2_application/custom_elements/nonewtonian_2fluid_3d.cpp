@@ -28,7 +28,7 @@ namespace Kratos
 
 	//with matrixtype, constant coefficient
 	void NoNewtonianMonolithicPFEM23D::AddViscousTerm(MatrixType& rDampMatrix,
-                         const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv,
+                         const BoundedMatrix<double, 4, 3 >& rShapeDeriv,
                          double& Viscosity, const double Area)
 	{
 		double theta = 0.0;
@@ -36,7 +36,7 @@ namespace Kratos
 
         double base_viscosity = Viscosity;
 
-		boost::numeric::ublas::bounded_matrix<double, 12,6 > B_matrix = ZeroMatrix(12,6);
+		BoundedMatrix<double, 12,6 > B_matrix = ZeroMatrix(12,6);
 		for (unsigned int i=0; i!=(4); i++) //i node
 		{
 			for (unsigned int j=0; j!=(3); j++) //x,y,z
@@ -56,7 +56,7 @@ namespace Kratos
 		}
 
 		int counter=0;
-		boost::numeric::ublas::bounded_matrix<double, 6, 6 > C_matrix = ZeroMatrix(6,6);
+		BoundedMatrix<double, 6, 6 > C_matrix = ZeroMatrix(6,6);
 
 		for (unsigned int i=0; i!=(3); i++)
 		{
@@ -105,8 +105,8 @@ namespace Kratos
 
 		C_matrix *= Viscosity*Area;
 
-		boost::numeric::ublas::bounded_matrix<double, 6 , 12  > temp_matrix = prod(C_matrix,trans(B_matrix));
-		boost::numeric::ublas::bounded_matrix<double, 12 , 12  > viscosity_matrix = prod(B_matrix, temp_matrix );
+		BoundedMatrix<double, 6 , 12  > temp_matrix = prod(C_matrix,trans(B_matrix));
+		BoundedMatrix<double, 12 , 12  > viscosity_matrix = prod(B_matrix, temp_matrix );
 		for (unsigned int i=0; i!=4; i++) //i node
 		{
 			for (unsigned int j=0; j!=4; j++) //j neighbour
@@ -123,7 +123,7 @@ namespace Kratos
 
 	double NoNewtonianMonolithicPFEM23D::EffectiveViscosity(double DynamicViscosity,
 									  double YieldStress,
-                                      const boost::numeric::ublas::bounded_matrix<double, 3+1, 3> &rDN_DX)
+                                      const BoundedMatrix<double, 3+1, 3> &rDN_DX)
     {
 
         // Read the viscosity for the fluidified phase from the nodes
@@ -149,13 +149,13 @@ namespace Kratos
         return OutputDynamicViscosity;
     }
 
-	double NoNewtonianMonolithicPFEM23D::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, 3+1, 3> &rDN_DX) // TDim+1,TDim
+	double NoNewtonianMonolithicPFEM23D::EquivalentStrainRate(const BoundedMatrix<double, 3+1, 3> &rDN_DX) // TDim+1,TDim
 	{
 		const int TDim=3;
 		const GeometryType& rGeom = this->GetGeometry();
 		const unsigned int NumNodes = rGeom.PointsNumber();
 		// Calculate Symetric gradient
-		boost::numeric::ublas::bounded_matrix<double,TDim,TDim> S = ZeroMatrix(TDim,TDim);
+		BoundedMatrix<double,TDim,TDim> S = ZeroMatrix(TDim,TDim);
 		for (unsigned int n = 0; n < NumNodes; ++n)
 		{
 			const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);
