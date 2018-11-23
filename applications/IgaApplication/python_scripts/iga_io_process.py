@@ -13,15 +13,18 @@ class IGA_IO_Process(KratosMultiphysics.Process):
   
     def __init__(self, Model, params):
 
+        KratosMultiphysics.Process.__init__(self)
+
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "nodal_results"            : [],
-            "integration_point_results": [],
+            "gauss_point_results": [],
             "output_file_name"         : "",
             "model_part_name"          : "",
+            "file_label"               : "step",
             "output_control_type"      : "step",
-            "output_frequency"         : 0.01
+            "output_frequency"         : 1.0
         }
         """)
         
@@ -39,6 +42,25 @@ class IGA_IO_Process(KratosMultiphysics.Process):
         self.integration_point_results_scalar, self.integration_point_results_vector = \
             CreateVariablesListFromInput(self.params["integration_point_results"])
 
+        # Set up output frequency and format
+        output_file_label = result_file_configuration["file_label"].GetString()
+        if output_file_label == "time":
+            self.output_label_is_time = True
+        elif output_file_label == "step":
+            self.output_label_is_time = False
+        else:
+            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
+            raise Exception(msg)
+
+        output_control_type = result_file_configuration["output_control_type"].GetString()
+        if output_control_type == "time":
+            self.output_control_is_time = True
+        elif output_control_type == "step":
+            self.output_control_is_time = False
+        else:
+            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
+            raise Exception(msg)
+
         self.frequency = self.params["frequency"].GetDouble()
 
         self.step_count = 0
@@ -46,14 +68,8 @@ class IGA_IO_Process(KratosMultiphysics.Process):
         self.next_output = 0.0
 
     def ExecuteInitialize(self):
-        with open(self.output_file_name, 'w') as file:
-            file.write("Rhino Post Results File 1.0\n") 
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
+        with open(self.output_file_name, 'w') as output_file:
+            output_file.write("Rhino Post Results File 1.0\n") 
 
     def ExecuteFinalizeSolutionStep(self):
         if this._IsOutputStep:
@@ -66,40 +82,34 @@ class IGA_IO_Process(KratosMultiphysics.Process):
             else:
                 label = self.printed_step_count
 
-            with open(self.output_file_name, 'a') as file:
+            with open(self.output_file_name, 'a') as output_file:
                 for variable in range(self.nodal_results_scalar.size()):
-                    file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnNodes\n")
-                    file.write("Values\n")
+                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnNodes\n" + "Values\n")
                     for node in self.model_part.Nodes:
                         value = node.GetSolutionStepValue(variable, 0)
-                        file.write(str(node.Id) + "  " + str(value) + "\n")
-                    file.write("End Values\n")
+                        output_file.write(str(node.Id) + "  " + str(value) + "\n")
+                    output_file.write("End Values\n")
 
                 for variable in range(self.nodal_results_vector.size()):
-                    file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnNodes\n")
-                    file.write("Values\n")
+                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnNodes\n" + "Values\n")
                     for node in self.model_part.Nodes:
                         value = node.GetSolutionStepValue(variable, 0)
-                        file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
-                    file.write("End Values\n")
-
+                        output_file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                    output_file.write("End Values\n")
 
                 for variable in range(self.integration_point_results_scalar.size()):
-                    file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnGaussPoints\n")
-                    file.write("Values\n")
+                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnGaussPoints\n" + "Values\n")
                     for element in self.model_part.Elements:
                         value = element.Calculate(variable, self.model_part.ProcessInfo)
-                        file.write(str(element.Id) + "  " + str(value) + "\n")
-                    file.write("End Values\n")
-
+                        output_file.write(str(element.Id) + "  " + str(value) + "\n")
+                    output_file.write("End Values\n")
 
                 for variable in range(self.integration_point_results_vector.size()):
-                    file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\n")
-                    file.write("Values\n")
+                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\n" + "Values\n")
                     for element in self.model_part.Elements:
                         value = element.Calculate(variable, self.model_part.ProcessInfo)
-                        file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
-                    file.write("End Values\n")
+                        output_file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                    output_file.write("End Values\n")
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -110,14 +120,6 @@ class IGA_IO_Process(KratosMultiphysics.Process):
                 while self.next_output <= self.step_count:
                     self.next_output += self.output_frequency
 
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
-    def ExecuteFinalize(self):
-        pass
 
     def _IsOutputStep(self):
         if self.output_control_is_time:
