@@ -136,8 +136,7 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    MonolithicAutoSlipInlet3D(IndexType NewId,
-                            const NodesArrayType& ThisNodes):
+    MonolithicAutoSlipInlet3D(IndexType NewId, const NodesArrayType& ThisNodes):
         Condition(NewId,ThisNodes)
     {
     }
@@ -147,8 +146,7 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    MonolithicAutoSlipInlet3D(IndexType NewId,
-                            GeometryType::Pointer pGeometry):
+    MonolithicAutoSlipInlet3D(IndexType NewId, GeometryType::Pointer pGeometry):
         Condition(NewId,pGeometry)
     {
     }
@@ -159,9 +157,7 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    MonolithicAutoSlipInlet3D(IndexType NewId,
-                            GeometryType::Pointer pGeometry,
-                            PropertiesType::Pointer pProperties):
+    MonolithicAutoSlipInlet3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
         Condition(NewId,pGeometry,pProperties)
     {
     }
@@ -173,7 +169,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~MonolithicAutoSlipInlet3D() {}
+    virtual ~MonolithicAutoSlipInlet3D() override {}
 
 
     ///@}
@@ -198,7 +194,7 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Condition::Pointer(new MonolithicAutoSlipInlet3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
@@ -210,7 +206,7 @@ public:
       */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Return local right hand side of the correct size, filled with zeros (for compatibility with time schemes).
@@ -218,7 +214,7 @@ public:
       @see CalculateLocalVelocityContribution
       */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo);
+                                        ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -228,7 +224,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Returns a list of the element's Dofs
@@ -237,7 +233,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo);
+                            ProcessInfo& CurrentProcessInfo) override;
 
 
     ///@}
@@ -255,7 +251,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MonolithicAutoSlipInlet3D";
@@ -263,13 +259,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MonolithicAutoSlipInlet3D";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -303,7 +299,7 @@ protected:
       @param rLocalMatrix Local system matrix
       @param rLocalVector Local right hand side
       */
-  
+
 
     void CalculateNormal(array_1d<double,3>& An );
 
@@ -341,12 +337,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }

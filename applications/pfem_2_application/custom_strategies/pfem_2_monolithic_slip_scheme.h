@@ -7,8 +7,8 @@ A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -156,7 +156,7 @@ namespace Kratos {
                             DofsArrayType& rDofSet,
                             TSystemMatrixType& A,
                             TSystemVectorType& Dv,
-                            TSystemVectorType& b)
+                            TSystemVectorType& b) override
         {
             KRATOS_TRY;
 
@@ -212,7 +212,7 @@ namespace Kratos {
         the element and
         performs the operations needed to introduce the seected time
         integration scheme.
-		
+
           this function calculates at the same time the contribution to the
         LHS and to the RHS
           of the system
@@ -221,7 +221,7 @@ namespace Kratos {
                                           LocalSystemMatrixType& LHS_Contribution,
                                           LocalSystemVectorType& RHS_Contribution,
                                           Element::EquationIdVectorType& EquationId,
-                                          ProcessInfo& CurrentProcessInfo)
+                                          ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
 
@@ -243,7 +243,7 @@ namespace Kratos {
         void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                         LocalSystemVectorType& RHS_Contribution,
                                         Element::EquationIdVectorType& EquationId,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        ProcessInfo& CurrentProcessInfo) override
         {
 
             //Initializing the non linear iteration for the current element
@@ -267,7 +267,7 @@ namespace Kratos {
                                                             LocalSystemMatrixType& LHS_Contribution,
                                                             LocalSystemVectorType& RHS_Contribution,
                                                             Element::EquationIdVectorType& EquationId,
-                                                            ProcessInfo& CurrentProcessInfo)
+                                                            ProcessInfo& CurrentProcessInfo) override
         {
             KRATOS_TRY
 
@@ -286,7 +286,7 @@ namespace Kratos {
         virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                           LocalSystemVectorType& RHS_Contribution,
                                                           Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& rCurrentProcessInfo)
+                                                          ProcessInfo& rCurrentProcessInfo) override
         {
             KRATOS_TRY;
 
@@ -313,7 +313,7 @@ namespace Kratos {
         virtual void InitializeSolutionStep(ModelPart& r_model_part,
                                             TSystemMatrixType& A,
                                             TSystemVectorType& Dx,
-                                            TSystemVectorType& b)
+                                            TSystemVectorType& b) override
         {
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -331,20 +331,20 @@ namespace Kratos {
         virtual void InitializeNonLinIteration(ModelPart& r_model_part,
                                                TSystemMatrixType& A,
                                                TSystemVectorType& Dx,
-                                               TSystemVectorType& b)
+                                               TSystemVectorType& b) override
         {
             KRATOS_TRY
 
             KRATOS_CATCH("")
         }
 
-        virtual void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+        virtual void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
             /*
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
             //if orthogonal subscales are computed
-            
+
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
                 if (rModelPart.GetCommunicator().MyPID() == 0)
                     std::cout << "Computing OSS projections" << std::endl;
@@ -390,7 +390,7 @@ namespace Kratos {
 	    */
         }
 
-        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b) override
         {
 	    /*
             Element::EquationIdVectorType EquationId;
@@ -544,4 +544,3 @@ namespace Kratos {
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_BOSSAK_SCHEME  defined */
-

@@ -91,7 +91,7 @@ namespace Kratos
 
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 			typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+			// typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 			//********************************************************************
 			//********************************************************************
@@ -136,5 +136,3 @@ namespace Kratos
 	}  // namespace Python.
 
 } // Namespace Kratos
-
-

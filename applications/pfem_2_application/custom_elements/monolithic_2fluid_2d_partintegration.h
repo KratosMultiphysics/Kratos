@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: it's me! $
 //   Date:                $Date: 2008-08-08 23:58:38 $
 //   Revision:            $Revision: 1.0 $
@@ -7,12 +7,12 @@
 //
 
 #if !defined(KRATOS_MONOLITHIC_PARTINEGRATION_PFEM2_2D_ELEM_H_INCLUDED)
-#define  KRATOS_MONOLITHIC_PARTINEGRATION_PFEM2_2D_ELEM_H_INCLUDED 
+#define  KRATOS_MONOLITHIC_PARTINEGRATION_PFEM2_2D_ELEM_H_INCLUDED
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -20,7 +20,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h" 
+#include "includes/variables.h"
 
 
 namespace Kratos
@@ -30,7 +30,7 @@ namespace Kratos
 	  : public Element
    {
    public:
-     
+
      /// Counted pointer of MonolithicAutoSlipPFEM22D
     KRATOS_CLASS_POINTER_DEFINITION(MonolithicAutoSlipPFEM22D);
     ///base type: an IndexedObject that automatically has a unique number
@@ -38,13 +38,13 @@ namespace Kratos
     ///Element from which it is derived
     ///typedef VMS<TDim, TNumNodes> ElementBaseType;
     ///definition of node type (default is: Node<3>)
-    
+
     //typedef Node < 3 > NodeType;
     /**
      * Properties are used to store any parameters
      * related to the constitutive law
      */
-     
+
     typedef Properties PropertiesType;
     ///definition of the geometry type with given NodeType
     typedef Geometry<NodeType> GeometryType;
@@ -58,33 +58,33 @@ namespace Kratos
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-	
+
     /// Default constructor.
      MonolithicAutoSlipPFEM22D(IndexType NewId, GeometryType::Pointer pGeometry);
      MonolithicAutoSlipPFEM22D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
      /// Destructor.
-     virtual ~ MonolithicAutoSlipPFEM22D();
+     virtual ~ MonolithicAutoSlipPFEM22D() override;
 
 
-     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-     
+     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+
      //void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-     
-     void AddExplicitContribution(ProcessInfo& CurrentProcessInfo);
-     
-     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+     void AddExplicitContribution(ProcessInfo& CurrentProcessInfo) override;
 
-     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+
+     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+
+     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
 
-      
+
    protected:
-   
+
         void CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
                                                     VectorType& rRightHandSideVector,
                                                     ProcessInfo& rCurrentProcessInfo);
@@ -92,71 +92,71 @@ namespace Kratos
         void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
                                           ProcessInfo& rCurrentProcessInfo);
-        
+
         void CalculateLocalFinalVelocitySystem(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo);    
-                                                
+                                                ProcessInfo& rCurrentProcessInfo);
+
         void CalculateLocalThermalSystem(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo); 
-                                                
+                                                ProcessInfo& rCurrentProcessInfo);
+
         void CalculateViscousRHS(ProcessInfo& CurrentProcessInfo);
-       
-       	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);               
-       	
-       	void CalculateMassMatrix(ProcessInfo& CurrentProcessInfo);                                                                                          
+
+       	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
+
+       	void CalculateMassMatrix(ProcessInfo& CurrentProcessInfo);
 
         void VelocityEquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo);
-                                      
+
         void FractionalVelocityEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);                                      
+                                      ProcessInfo& rCurrentProcessInfo);
 
         void PressureEquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo);
-                                      
+
         void ThermalEquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo);
 
         void GetVelocityDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo);
-                                
+
         void GetFractionalVelocityDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);                        
+                                ProcessInfo& rCurrentProcessInfo);
 
         void GetPressureDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo);
-                                
+
         void GetThermalDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);  
-                                
+                                ProcessInfo& rCurrentProcessInfo);
+
         void AddViscousTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
-                                       double Viscosity,const double Area);                        
-                                       
-                         
-                         
+                                       double Viscosity,const double Area);
+
+
+
        void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 13, 13 > & output,
 						  boost::numeric::ublas::bounded_matrix<double, (3), 2 >& rShapeDeriv,
 						  array_1d<double,3>&  distances,
-                          std::vector< Matrix >& gauss_gradients, 
+                          std::vector< Matrix >& gauss_gradients,
 						  array_1d<double,3>&  viscosities,
 						  array_1d<double,3>&  signs,
 						  array_1d<double,3>&  volumes ,
-						  const unsigned int ndivisions);		                 
-                         
+						  const unsigned int ndivisions);
+
         double CalculateAirDensity(double & temperature_in_celsius);
 
 	    double CalculateAirConductivity(double & temperature_in_celsius);
 
-		
-	    double CalculateAirViscosity(double & temperature_in_celsius);      
 
-   
-	   template<class T>                                     
-	   bool InvertMatrix(const T& input, T& inverse)  ;     
-   
+	    double CalculateAirViscosity(double & temperature_in_celsius);
+
+
+	   template<class T>
+	   bool InvertMatrix(const T& input, T& inverse)  ;
+
    private:
 	friend class Serializer;
 
@@ -165,7 +165,7 @@ namespace Kratos
        }
 
 
-       
+
    }; // Class MonolithicAutoSlipPFEM22D
 }  // namespace Kratos.
 

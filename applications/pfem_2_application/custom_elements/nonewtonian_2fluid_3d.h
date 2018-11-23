@@ -40,7 +40,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_MONOLITHIC_NONEWTONIAN_PFEM2_3D_ELEM_H_INCLUDED )
 #define  KRATOS_MONOLITHIC_NONEWTONIAN_PFEM2_3D_ELEM_H_INCLUDED
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -48,7 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h" 
+#include "includes/variables.h"
 #include "custom_elements/monolithic_2fluid_3d.h"
 
 
@@ -60,7 +60,7 @@ class NoNewtonianMonolithicPFEM23D : public MonolithicPFEM23D
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(NoNewtonianMonolithicPFEM23D);
-    
+
     typedef Properties PropertiesType;
     ///definition of the geometry type with given NodeType
     typedef Geometry<NodeType> GeometryType;
@@ -76,19 +76,19 @@ public:
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     /// Default constructor.
-    
+
      NoNewtonianMonolithicPFEM23D(IndexType NewId = 0) : MonolithicPFEM23D(NewId)
      {
 	 }
-	 
+
      NoNewtonianMonolithicPFEM23D(IndexType NewId, const NodesArrayType& ThisNodes) : MonolithicPFEM23D(NewId, ThisNodes)
      {
      }
-    
+
      NoNewtonianMonolithicPFEM23D(IndexType NewId, GeometryType::Pointer pGeometry) : MonolithicPFEM23D(NewId, pGeometry)
      {
      }
-     
+
      NoNewtonianMonolithicPFEM23D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties) : MonolithicPFEM23D(NewId, pGeometry, pProperties)
      {
      }
@@ -112,44 +112,50 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
-	{
-		return Element::Pointer(new NoNewtonianMonolithicPFEM23D(NewId, GetGeometry().Create(ThisNodes), pProperties));
-	}
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override
+    {
+        return Element::Pointer(new NoNewtonianMonolithicPFEM23D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    }
 
 
 
 protected:
     ///@name Protected static Member Variables
     ///@{
+
     ///@}
     ///@name Protected member Variables
     ///@{
+
     ///@}
     ///@name Protected Operators
     ///@{
-	       virtual void AddViscousTerm(MatrixType& rDampMatrix,
-                                       const boost::numeric::ublas::bounded_matrix<double, 4, 3>& rShapeDeriv,
-                                       double& Viscosity,const double Area);             
+    virtual void AddViscousTerm(MatrixType& rDampMatrix,
+        const boost::numeric::ublas::bounded_matrix<double, 4, 3>& rShapeDeriv,
+        double& Viscosity,const double Area) override;
     ///@}
     ///@name Protected  Access
     ///@{
+
     ///@}
     ///@name Protected Inquiry
     ///@{
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
     ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
-	double EffectiveViscosity(double DynamicViscosity,
-							   double YieldStress,
-                               const boost::numeric::ublas::bounded_matrix<double, 3+1, 3> &rDN_DX);
-                               
-    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, 3+1, 3> &rDN_DX); // TDim+1,TDim 
-                           
+    double EffectiveViscosity(double DynamicViscosity,
+        double YieldStress,
+        const boost::numeric::ublas::bounded_matrix<double, 3+1, 3> &rDN_DX);
+
+    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, 3+1, 3> &rDN_DX); // TDim+1,TDim
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -158,12 +164,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
@@ -175,15 +181,19 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
     ///@}
     ///@name Private Operations
     ///@{
+
     ///@}
     ///@name Private  Access
     ///@{
+
     ///@}
     ///@name Private Inquiry
     ///@{
+
     ///@}
 
 }; // Class NoNewtonianMonolithicPFEM23D
