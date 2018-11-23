@@ -13,7 +13,8 @@ def GetFilePath(fileName):
 class IgaTrussElementTests(KratosUnittest.TestCase):
 
     def solve(create_geometry):
-        model_part = ModelPart('Model')
+        model = Model() 
+        model_part = model.CreateModelPart('Model')
 
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(REACTION)
