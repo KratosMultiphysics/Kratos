@@ -16,12 +16,12 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
     model_part.AddNodalSolutionStepVariable(RHS);
     model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY);
-    model_part.AddNodalSolutionStepVariable(NORMAL);        
+    model_part.AddNodalSolutionStepVariable(NORMAL);
     model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY) 
-    model_part.AddNodalSolutionStepVariable(PRESS_PROJ_NO_RO) 
-    model_part.AddNodalSolutionStepVariable(MEAN_SIZE) 
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA) 
+    model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(PRESS_PROJ_NO_RO)
+    model_part.AddNodalSolutionStepVariable(MEAN_SIZE)
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
@@ -43,7 +43,7 @@ class PFEM2Solver:
     #def __init__(self,model_part,linea_model_part,domain_size):
     def __init__(self,model_part,domain_size,maximum_nonlin_iterations):
         self.model_part = model_part
-        
+
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         self.maximum_nonlin_iterations = maximum_nonlin_iterations
@@ -54,41 +54,39 @@ class PFEM2Solver:
         if (maximum_nonlin_iterations==1):
               verbosity = 1 #if it is a linear problem, we can print more information of the single iteration without filling the screen with too much info.
         pDiagPrecond = DiagonalPreconditioner()
-        #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver() 
+        #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver()
         #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.AMG_DAMPED_JACOBI) #
-        #self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(	
+        #self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(
         '''
         settings = Parameters("""{
-                                       "solver_type" : "AMGCL_NS_Solver",
-                                       "velocity_block_preconditioner" :
-                                            {
-                                            "tolerance" : 1e-3,
-                                            "preconditioner_type" : "ilu0"
-                                        },
-                                        "pressure_block_preconditioner" :
-                                            {
-                                            "tolerance" : 1e-2,
-                                            "preconditioner_type" : "ilu0"
-                                        },
-                                       "tolerance" : 1e-5,
-                                       "krylov_type": "bicgstab",
-                                       "gmres_krylov_space_dimension": 50,
-                                       "coarsening_type": "aggregation",
-                                       "max_iteration": 50,
-                                       "verbosity" : 2,
-                                       "scaling": false,
-                                       "coarse_enough" : 5000
-                                   } """)
+            "solver_type" : "AMGCL_NS_Solver",
+            "velocity_block_preconditioner" : {
+                "tolerance" : 1e-3,
+                "preconditioner_type" : "ilu0"
+            },
+            "pressure_block_preconditioner" : {
+                "tolerance" : 1e-2,
+                "preconditioner_type" : "ilu0"
+            },
+            "tolerance" : 1e-5,
+            "krylov_type": "bicgstab",
+            "gmres_krylov_space_dimension": 50,
+            "coarsening_type": "aggregation",
+            "max_iteration": 50,
+            "verbosity" : 2,
+            "scaling": false,
+            "coarse_enough" : 5000
+        } """)
         linear_solver = AMGCL_NS_Solver(settings)
         '''
-        
+
         #construct the linear solvers
         import linear_solver_factory
         #self.monolithic_linear_solver =  linear_solver
         self.monolithic_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)
-        self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver 
+        self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver
         self.conv_criteria.SetEchoLevel(0)
-        
+
         self.domain_size = domain_size
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
@@ -98,20 +96,20 @@ class PFEM2Solver:
         (self.neighbour_elements_search).Execute()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
-        
-        
+
+
     #######################################################################
     #######################################################################
     def Initialize(self):
         #creating the solution strategy
         CalculateReactionFlag = False
-        ReformDofSetAtEachStep = False        
+        ReformDofSetAtEachStep = False
         MoveMeshFlag = False
-        
+
         #build the edge data structure
         #if self.domain_size==2:
         #        self.matrix_container = MatrixContainer2D()
-        #else: 
+        #else:
         #        self.matrix_container = MatrixContainer3D()
         #maximum_number_of_particles= 10*self.domain_size
         maximum_number_of_particles= 8*self.domain_size
@@ -119,7 +117,7 @@ class PFEM2Solver:
         self.ExplicitStrategy=PFEM2_Explicit_Strategy(self.model_part,self.domain_size, MoveMeshFlag)
 
         self.VariableUtils = VariableUtils()
-        
+
         if self.domain_size==2:
              self.moveparticles = MoveParticleUtilityPFEM22D(self.model_part,maximum_number_of_particles)
         else:
@@ -128,7 +126,7 @@ class PFEM2Solver:
         print("self.domain_size = ", self.domain_size)
         if self.domain_size==2:
              self.calculatewatervolume = CalculateWaterFraction2D(self.model_part)
-        else:        
+        else:
              self.calculatewatervolume = CalculateWaterFraction3D(self.model_part)
 
         self.moveparticles.MountBin()
@@ -136,16 +134,16 @@ class PFEM2Solver:
         self.water_initial_volume=0.0 #we initialize it at zero
         self.mass_correction_factor=0.0
 
-        self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);  
+        self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);
         condition_number=1
-        
+
         if self.domain_size==2:
               self.addBC = AddFixedPressureCondition2D(self.model_part)
         else:
               self.addBC = AddFixedPressureCondition3D(self.model_part)
 
         (self.addBC).AddThem()
-        
+
         if self.domain_size==2:
              self.distance_utils = SignedDistanceCalculationUtils2D()
         else:
@@ -179,8 +177,8 @@ class PFEM2Solver:
               node.SetSolutionStepValue(VISCOSITY_AIR,visc_air)
               node.SetSolutionStepValue(DENSITY_WATER,dens_water)
               node.SetSolutionStepValue(DENSITY_AIR,dens_air)
-                 
-    #######################################################################   
+
+    #######################################################################
     def Solve(self):
         t1 = timer.time()
         #in order to define a reasonable number of substeps we calculate a mean courant in each element
@@ -189,7 +187,7 @@ class PFEM2Solver:
 
         #streamline integration:
         discriminate_streamlines=True
-        (self.moveparticles).MoveParticles(discriminate_streamlines);        
+        (self.moveparticles).MoveParticles(discriminate_streamlines);
         t3 = timer.time()
         self.streamlineintegration = self.streamlineintegration + t3-t2
 
@@ -208,7 +206,7 @@ class PFEM2Solver:
 
         (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
         full_reset=True;
-        (self.moveparticles).ResetBoundaryConditions(full_reset) 
+        (self.moveparticles).ResetBoundaryConditions(full_reset)
         (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
 
         t6 = timer.time()
@@ -218,9 +216,9 @@ class PFEM2Solver:
         t7 = timer.time()
         self.implicitsystem = self.implicitsystem + t7-t6
         self.CalculatePressureProjection()
-        
+
         #delta_velocity= Velocity(final) - ProjectedVelocity(from the particles), so we add to the particles the correction done in the mesh.
-        (self.moveparticles).CalculateDeltaVelocity();        
+        (self.moveparticles).CalculateDeltaVelocity();
         t11 = timer.time()
         (self.moveparticles).AccelerateParticlesWithoutMovingUsingDeltaVelocity();
         t12 = timer.time()
@@ -228,13 +226,13 @@ class PFEM2Solver:
 
         #reseeding in elements that have few particles to avoid having problems in next iterations:
         post_minimum_number_of_particles=self.domain_size*2;
-        (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);        
+        (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);
         t13 = timer.time()
         self.reseed=self.reseed+ t13-t12
 
         #calculating water volume to correct mass
         self.water_volume = (self.calculatewatervolume).Calculate()
-        if (self.water_initial_volume==0.0): 
+        if (self.water_initial_volume==0.0):
                 self.water_initial_volume=self.water_volume
         water_fraction= self.water_volume/(self.water_initial_volume)
         self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.1
@@ -249,24 +247,24 @@ class PFEM2Solver:
         #self.nodaltasks = self.nodaltasks + t11-t9
 
         #print ". erasing  = ", t14-t13
-        self.total = self.total + t13-t1 
-        
+        self.total = self.total + t13-t1
+
         if self.print_times==True:
-                print( "----------TIMES----------" )
-                print( "self.streamlineintegration " ,  self.streamlineintegration , "in % = ", 100.0*(self.streamlineintegration)/(self.total) )
-                print( "self.accelerateparticles " ,  self.accelerateparticles , "in % = ", 100.0*(self.accelerateparticles)/(self.total) )
-                print( "self.implicitsystem " ,  self.implicitsystem , "in % = ", 100.0*(self.implicitsystem)/(self.total) )
-                print( "self.lagrangiantoeulerian " ,  self.lagrangiantoeulerian , "in % = ", 100.0*(self.lagrangiantoeulerian)/(self.total) )
-                print( "self.reseed " ,  self.reseed , "in % = ", 100.0*(self.reseed)/(self.total) )
-                print( "self.prereseed " ,  self.prereseed , "in % = ", 100.0*(self.prereseed)/(self.total) )
-                print( "TOTAL ----- " ,  self.total )
-                print( "this time step" ,  t13-t1  )
-                print( "current time in simulation: ", self.model_part.ProcessInfo.GetValue(TIME) , "s" )
-        
-    
+            print( "----------TIMES----------" )
+            print( "self.streamlineintegration " ,  self.streamlineintegration , "in % = ", 100.0*(self.streamlineintegration)/(self.total) )
+            print( "self.accelerateparticles " ,  self.accelerateparticles , "in % = ", 100.0*(self.accelerateparticles)/(self.total) )
+            print( "self.implicitsystem " ,  self.implicitsystem , "in % = ", 100.0*(self.implicitsystem)/(self.total) )
+            print( "self.lagrangiantoeulerian " ,  self.lagrangiantoeulerian , "in % = ", 100.0*(self.lagrangiantoeulerian)/(self.total) )
+            print( "self.reseed " ,  self.reseed , "in % = ", 100.0*(self.reseed)/(self.total) )
+            print( "self.prereseed " ,  self.prereseed , "in % = ", 100.0*(self.prereseed)/(self.total) )
+            print( "TOTAL ----- " ,  self.total )
+            print( "this time step" ,  t13-t1  )
+            print( "current time in simulation: ", self.model_part.ProcessInfo.GetValue(TIME) , "s" )
+
+
     def RotateParticlesAndDomainVelocities(self,angles):
         (self.moveparticles).RotateParticlesAndDomainVelocities(angles)
-    #######################################################################   
+    #######################################################################
     def CalculatePressureProjection(self):
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
         (self.ExplicitStrategy).InitializeSolutionStep();
@@ -280,5 +278,3 @@ class PFEM2Solver:
 
     def PrintInfo(self,print_times):
         self.print_times=print_times
-
-    

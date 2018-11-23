@@ -152,7 +152,6 @@ namespace Kratos
 
 			//mmaximum_number_of_particles = maximum_number_of_particles;
 
-
 			//loop in elements to change their ID to their position in the array. Easier to get information later.
 			//DO NOT PARALELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
@@ -215,12 +214,12 @@ namespace Kratos
 				{
 					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 
-					double mElemSize;
+					double elem_size;
 					array_1d<double,3> Edge(3,0.0);
 					Edge = ielem->GetGeometry()[1].Coordinates() - ielem->GetGeometry()[0].Coordinates();
-					mElemSize = Edge[0]*Edge[0];
+					elem_size = Edge[0]*Edge[0];
 					for (unsigned int d = 1; d < TDim; d++)
-						mElemSize += Edge[d]*Edge[d];
+						elem_size += Edge[d]*Edge[d];
 
 					for (unsigned int i = 2; i < (TDim+1); i++)
 						for(unsigned int j = 0; j < i; j++)
@@ -229,20 +228,21 @@ namespace Kratos
 							double Length = Edge[0]*Edge[0];
 							for (unsigned int d = 1; d < TDim; d++)
 								Length += Edge[d]*Edge[d];
-							if (Length < mElemSize) mElemSize = Length;
+							if (Length < elem_size) elem_size = Length;
 						}
-					mElemSize = sqrt(mElemSize);
-					ielem->GetValue(MEAN_SIZE) = mElemSize;
+					elem_size = sqrt(elem_size);
+					ielem->SetValue(MEAN_SIZE, elem_size);
 
 					//and the matrix column for the enrichments in the pressure.
 					if (TDim==3)
-					{
-						Vector & lhs_enrich = ielem->GetValue(ENRICH_LHS_ROW_3D);
-						lhs_enrich.resize(4);
-						lhs_enrich=ZeroVector(4);
-					}
+                        ielem->SetValue(ENRICH_LHS_ROW_3D, ZeroVector(4));
+					// {
+					// 	Vector & lhs_enrich = ielem->GetValue(ENRICH_LHS_ROW_3D);
+					// 	lhs_enrich.resize(4);
+					// 	lhs_enrich=ZeroVector(4);
+					// }
 					else
-					ielem->GetValue(ENRICH_LHS_ROW)=ZeroVector(3);
+                        ielem->SetValue(ENRICH_LHS_ROW, ZeroVector(3));
 					//KRATOS_WATCH(mElemSize)
 				}
 			}
@@ -649,7 +649,7 @@ namespace Kratos
 						vector_mean_velocity *= nodal_weight;
 
 						const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
-						ielem->GetValue(VELOCITY_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) );
+						ielem->SetValue(VELOCITY_OVER_ELEM_SIZE, mean_velocity / ( ielem->GetValue(MEAN_SIZE) ) );
 					}
 				}
 			}
@@ -670,7 +670,7 @@ namespace Kratos
 						vector_mean_velocity *= nodal_weight;
 
 						const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
-						ielem->GetValue(VELOCITY_OVER_ELEM_SIZE) = mean_velocity / ( ielem->GetValue(MEAN_SIZE) );
+						ielem->SetValue(VELOCITY_OVER_ELEM_SIZE, mean_velocity / ( ielem->GetValue(MEAN_SIZE) ) );
 					}
 				}
 			}
