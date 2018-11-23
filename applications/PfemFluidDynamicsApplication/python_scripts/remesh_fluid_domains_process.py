@@ -224,12 +224,15 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                     #fileTotalVolume.close
 
         volume_acceleration=self.main_model_part.ProcessInfo[KratosMultiphysics.GRAVITY]
+        variable_utils = KratosMultiphysics.VariableUtils()
         if(currentStep == 1):
-            for node in self.main_model_part.Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION,volume_acceleration)
-                node.SetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION,1.0)
-                node.SetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION_OLD,1.0)
-                node.SetSolutionStepValue(KratosMultiphysics.FLUID_FRACTION_RATE,0.0)
+            variable_utils.SetScalarVar(VOLUME_ACCELERATION, volume_acceleration, self.main_model_part.Nodes)
+            variable_utils.SetScalarVar(FLUID_FRACTION, 1.0, self.main_model_part.Nodes)
+            variable_utils.SetScalarVar(FLUID_FRACTION_OLD, 1.0, self.main_model_part.Nodes)
+            variable_utils.SetScalarVar(FLUID_FRACTION_RATE, 0.0, self.main_model_part.Nodes)
+
+        if(currentStep == 2):
+            variable_utils.SetScalarVar(FLUID_FRACTION_RATE, 0.0, self.main_model_part.Nodes)
 
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
