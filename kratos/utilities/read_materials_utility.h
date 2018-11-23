@@ -101,6 +101,9 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
 
+    /** @brief Destructor */
+    virtual ~ReadMaterialsUtility();
+
     ///@}
     ///@name Operators
     ///@{
