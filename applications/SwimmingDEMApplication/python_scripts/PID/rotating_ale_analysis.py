@@ -1,8 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-from DEM_procedures import KratosPrint as Say
-import numpy as np
 import math
 import pre_calculated_fluid_analysis
 BaseAnalysis = pre_calculated_fluid_analysis.PreCalculatedFluidAnalysis

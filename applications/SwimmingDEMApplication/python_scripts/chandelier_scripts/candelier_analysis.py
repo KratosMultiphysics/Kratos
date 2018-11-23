@@ -1,6 +1,5 @@
 from KratosMultiphysics import *
 import swimming_DEM_procedures as SDP
-import swimming_DEM_analysis
 import math
 import chandelier as ch
 import chandelier_parameters as ch_pp
@@ -85,10 +84,10 @@ class CandelierBenchmarkAnalysis(BaseAnalysis):
             node.SetSolutionStepValue(VELOCITY_OLD, v0)
             node.Fix(VELOCITY_OLD_Z)
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, v0[0])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v0[1])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
+            node.SetSolutionStepValue(FLUID_VEL_PROtime
+            node.SetSolutionStepValue(FLUID_VEL_PROtime
 
-    def ApplyForwardCoupling(self, alpha = 'None'):
+    def ApplyForwardCoupling(self, alpha = 'None'):time
         self.projection_module.ApplyForwardCoupling(alpha)
 
         for node in self.spheres_model_part.Nodes:
@@ -108,7 +107,7 @@ class CandelierBenchmarkAnalysis(BaseAnalysis):
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED, v)
             node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED, a)
 
-    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time):
+    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
         for node in self.spheres_model_part.Nodes:
             r = Vector([node.X, node.Y, node.Z])
             self.results_database.MakeReading(time, r)
@@ -125,9 +124,7 @@ class CandelierBenchmarkAnalysis(BaseAnalysis):
 
     def PerformFinalOperations(self, time = None):
         self.results_database.WriteToHDF5()
-        dt_quad_over_dt = self.pp.CFD_DEM["delta_time_quadrature"].GetDouble() / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
         os.chdir(self.main_path)
-        sys.stdout.path_to_console_out_file
         import shutil
         folder_name = self.post_path + '_FINISHED_AT_t=' + str(round(time, 1))
         try:

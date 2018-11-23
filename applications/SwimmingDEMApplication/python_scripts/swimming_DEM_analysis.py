@@ -1058,7 +1058,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
             gravity_parameters = self.fluid_solution.parameters['processes']['gravity'][0]['Parameters']
             gravity_parameters['modulus'].SetDouble(modulus_of_body_force)
-            [gravity_parameters['direction'][i].SetDouble(b) for i, b in enumerate(body_force)]
+            for i, b in enumerate(body_force):
+                gravity_parameters['direction'][i].SetDouble(b)
 
     def AssignKinematicViscosityFromDynamicViscosity(self):
         # Eulerian fluid already works with kinematic viscosity

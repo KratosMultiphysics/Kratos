@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import os
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -18,7 +17,7 @@ class DEMPFEMAnalysis(BaseAnalysis):
         self.fluid_solution = fluid_solution.Solution(self.model)
         self.fluid_solution.main_path = self.main_path
 
-    def SetCouplingParameters(self, varying_parameters):
+    def SetCouplingParameters(self, parameters):
 
         super(Algorithm,self).SetCouplingParameters(varying_parameters)
         self.pp.domain_size = self.fluid_solution.ProjectParameters["problem_data"]["dimension"].GetInt()
@@ -128,17 +127,14 @@ class DEMPFEMAnalysis(BaseAnalysis):
 
     def SetFluidSolverParameters(self):
 
-        self.pp.domain_size
         self.time           = self.pp.Start_time
         self.Dt             = self.pp.Dt
         self.out            = self.Dt
-        Nsteps         = self.pp.nsteps
         if "REACTION" in self.pp.nodal_results:
             self.fluid_model_part.AddNodalSolutionStepVariable(REACTION)
         if "DISTANCE" in self.pp.nodal_results:
             self.fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
         self.vars_man.AddNodalVariables(self.fluid_model_part, self.pp.fluid_vars)
-        self.pp.variables_to_print_in_file
         if self.pp.type_of_inlet == 'ForceImposed':
             self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
 

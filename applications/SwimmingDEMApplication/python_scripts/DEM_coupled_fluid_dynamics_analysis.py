@@ -20,7 +20,6 @@ class DEMCoupledFluidDynamicsAnalysis(FluidDynamicsAnalysis):
             self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
             gid_output_options = self.parameters["output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
-            nodal_results = result_file_configuration["nodal_results"]
             gauss_point_results = result_file_configuration["gauss_point_results"]
             nodal_variables = self.parameters["output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
             self.pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]

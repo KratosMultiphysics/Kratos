@@ -1,16 +1,12 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.DEMApplication import *
-import swimming_DEM_procedures as SDP
 import math
-import numpy as np
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
-from matplotlib import pyplot as plt
-import pylab
 
 class MarineRainAnalysis(BaseAnalysis):
-    def __init__(self, varying_parameters = dict()):
+    def __init__(self, varying_parameters = Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
         self.pp.CFD_DEM.do_search_neighbours = False
         self.pp.CFD_DEM.vorticity_calculation_type = 0
@@ -30,11 +26,11 @@ class MarineRainAnalysis(BaseAnalysis):
 
     def PerformZeroStepInitializations(self):
         import random
-        from random import randint
+        #from random import randint
         L = self.pp.CFD_DEM.L
-        U = self.pp.CFD_DEM.U
-        k = self.pp.CFD_DEM.k
-        omega = self.pp.CFD_DEM.omega
+        #U = self.pp.CFD_DEM.U
+        #k = self.pp.CFD_DEM.k
+        #omega = self.pp.CFD_DEM.omega
         N_positions = 100
         L *= math.pi
         possible_xs = [2 * L * (i + 1) / N_positions for i in range(N_positions)]
@@ -53,8 +49,6 @@ class MarineRainAnalysis(BaseAnalysis):
             rand_y = possible_xs[i_position % N_positions]
             node.X = rand_x
             node.Y = rand_y
-            displx = node.GetSolutionStepValue(DISPLACEMENT_X)
-            disply = node.GetSolutionStepValue(DISPLACEMENT_Y)
             node.SetSolutionStepValue(DISPLACEMENT_X, rand_x - init_x)
             node.SetSolutionStepValue(DISPLACEMENT_Y, rand_y - init_y)
             i_position += 1
@@ -76,5 +70,5 @@ class MarineRainAnalysis(BaseAnalysis):
             node.SetSolutionStepValue(SLIP_VELOCITY_Y, vel[1])
             node.SetSolutionStepValue(SLIP_VELOCITY_Z, vel[2])
 
-    def FluidSolve(self, time = 'None'):
+    def FluidSolve(self, time = 'None', solve_system=True):
         pass

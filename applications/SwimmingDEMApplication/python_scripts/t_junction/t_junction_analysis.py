@@ -1,7 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import h5py
 import pre_calculated_fluid_analysis
 BaseAnalysis = pre_calculated_fluid_analysis.PreCalculatedFluidAnalysis
 

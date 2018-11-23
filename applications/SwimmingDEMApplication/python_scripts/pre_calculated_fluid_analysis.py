@@ -1,10 +1,8 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 import swimming_DEM_procedures as SDP
-import math
 import swimming_DEM_analysis
 BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
-import h5py
 
 class PreCalculatedFluidAnalysis(BaseAnalysis):
     def __init__(self, varying_parameters = Parameters("{}")):

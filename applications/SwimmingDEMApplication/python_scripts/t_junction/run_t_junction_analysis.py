@@ -3,11 +3,9 @@ import sys
 sys.path.append(os.getcwd())
 import json
 import fileinput
-import gc
 import tracemalloc
 import objgraph
 objgraph.show_growth(limit=10)
-import inspect, random
 tracemalloc.start(10)
 from KratosMultiphysics import *
 import KratosSwimmingDEM as script

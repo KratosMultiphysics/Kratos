@@ -2,13 +2,11 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.DEMApplication import *
 import swimming_DEM_procedures as SDP
-import math
-import numpy as np
 import ethier_benchmark_analysis
 BaseAnalysis = ethier_benchmark_analysis.EthierBenchmarkAnalysis
 
 class PouliotBenchmark2DAnalysis(BaseAnalysis):
-    def __init__(self, varying_parameters = dict()):
+    def __init__(self, varying_parameters = Parameters("{}")):
         BaseAnalysis.__init__(self, varying_parameters)
         self.pp.CFD_DEM.coupling_level_type = 0 #TODO: check if this should be here in this format or writing to Json!
         self.pp.CFD_DEM.laplacian_calculation_type = 0

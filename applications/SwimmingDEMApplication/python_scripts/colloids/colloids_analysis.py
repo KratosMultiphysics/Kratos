@@ -13,7 +13,7 @@ class ColloidsAnalysis(BaseAnalysis):
     def SetBetaParameters(self):
         BaseAnalysis.SetBetaParameters(self)
         self.pp.CFD_DEM.alpha = 0.01
-        self.pp["TranslationalIntegrationScheme"].GetString() = 'TerminalVelocityScheme'
+        self.pp["TranslationalIntegrationScheme"].SetString('TerminalVelocityScheme')
         self.pp.CFD_DEM.AddEmptyValue("basset_force_type").SetInt(0)
         self.pp.CFD_DEM.PostCationConcentration = True
         self.pp.initial_concentration = 10

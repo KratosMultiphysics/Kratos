@@ -218,7 +218,6 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
             dset_laplacian[:] = self.current_laplacian_errors[:]
 
         sys.stdout.flush()
-        sys.stdout.path_to_console_out_file
         os.rename(sys.stdout.path_to_console_out_file,
                   self.post_path +
                   '/' + sys.stdout.console_output_file_name)
