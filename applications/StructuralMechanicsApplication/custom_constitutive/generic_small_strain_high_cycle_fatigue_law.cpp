@@ -116,12 +116,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         //KRATOS_WATCH(number_of_cycles)
 
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            KRATOS_WATCH(number_of_cycles)
 
             HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(uniaxial_stress, max_stress, min_stress, 
                                                                                 this->GetPreviousStresses(), number_of_cycles, cycle_counted);
             //this->SetCycleCounter(cycle_counted);
-            KRATOS_WATCH(number_of_cycles)
 
             this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             uniaxial_stress *= sign_factor;

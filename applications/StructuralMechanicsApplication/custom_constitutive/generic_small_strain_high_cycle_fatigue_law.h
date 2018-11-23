@@ -229,6 +229,9 @@ protected:
     void SetCycleCounter(const bool tocycle){mHasCountedCycle = tocycle;}
     bool GetCycleCounter() {return mHasCountedCycle;}
 
+    unsigned int GetNewCycleIdentificator() {return mNewCycleIdentificator;}
+    void SetNewCycleIdentificator(const unsigned int toNewCycleIdentificator) {mNewCycleIdentificator = toNewCycleIdentificator;}
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -259,6 +262,7 @@ private:
     double mFatigueReductionParameter = 0.0; // B0
     Vector mStressVector = ZeroVector(VoigtSize);
     bool mHasCountedCycle = false;
+    unsigned int mNewCycleIdentificator=0;
 
     ///@}
     ///@name Private Operators

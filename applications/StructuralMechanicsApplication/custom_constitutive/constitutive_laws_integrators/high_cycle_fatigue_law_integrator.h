@@ -112,18 +112,12 @@ public:
 		
         const double StressIncrement1 = Stress1 - Stress2;
         const double StressIncrement2 = CurrentStress - Stress1;
-
-        KRATOS_WATCH(StressIncrement1)
-        KRATOS_WATCH(StressIncrement2)
-        KRATOS_WATCH(rCycleCounter) 
         
         if (StressIncrement1 >= 0.001 && StressIncrement2 <= 0.0 && rCycleCounter == false) {
             MaximumStress = Stress1;
             rNumberOfCycles++;
-            std::cout<<"Pasa \n";
             rCycleCounter = true;
-        }
-        if (StressIncrement1 <= 0.0 && StressIncrement2 >= 0.001 && rCycleCounter == false) {
+        } else if (StressIncrement1 <= 0.0 && StressIncrement2 >= 0.001 && rCycleCounter == false) {
             MinimumStress = Stress1;
             rCycleCounter = true;
         }
