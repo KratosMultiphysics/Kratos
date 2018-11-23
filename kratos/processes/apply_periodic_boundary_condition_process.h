@@ -15,10 +15,6 @@
 #define APPLY_PERIODIC_CONDITION_PROCESS_H
 
 // System includes
-#include <string>
-#include <iostream>
-#include <chrono>
-
 // External includes
 
 // Project includes
@@ -92,7 +88,6 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     ModelPart &mrSlaveModelPart;
     Parameters mParameters;          // parameters
     double mAngleOfRotation;
-    bool mIsInitialized;
     DenseVector<double> mCenterOfRotation;
     DenseVector<double> mAxisOfRotationVector;
     std::string mType;

@@ -12,10 +12,6 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
-#include <chrono>
-
 // External includes
 
 // Project includes
@@ -78,7 +74,6 @@ namespace Kratos
             KRATOS_ERROR_IF(mAngleOfRotation != 0.0 && mMagnitude != 0.0)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
 
         CalculateTransformationMatrix();
-        mIsInitialized = false;
     }
 
     ApplyPeriodicConditionProcess::~ApplyPeriodicConditionProcess()
@@ -110,20 +105,17 @@ namespace Kratos
     void ApplyPeriodicConditionProcess::ExecuteInitialize()
     {
         KRATOS_TRY;
-        if (!mIsInitialized)
-        {
-            const ProcessInfoPointerType info = mrMasterModelPart.pGetProcessInfo();
-            const int prob_dim = info->GetValue(DOMAIN_SIZE);
-            // Rotate the master so it goes to the slave
-            if (prob_dim == 2){
-                ApplyConstraintsForPeriodicConditions<2>();
-            }
-            else if (prob_dim == 3){
-                ApplyConstraintsForPeriodicConditions<3>();
-            }
-            mIsInitialized = true;
+        const ProcessInfoPointerType info = mrMasterModelPart.pGetProcessInfo();
+        const int prob_dim = info->GetValue(DOMAIN_SIZE);
+        // Rotate the master so it goes to the slave
+        if (prob_dim == 2){
+            ApplyConstraintsForPeriodicConditions<2>();
         }
-        std::cout<<"Initialization of Periodic conditions finished .. !"<<std::endl;
+        else if (prob_dim == 3){
+            ApplyConstraintsForPeriodicConditions<3>();
+        } else {
+            KRATOS_ERROR <<"Periodic conditions are designed onyl for 2 and 3 Dimensional cases ! "<<std::endl;
+        }
 
         KRATOS_CATCH("");
     }
@@ -154,7 +146,7 @@ namespace Kratos
         const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
         const NodeIteratorType it_slave_node_begin = mrSlaveModelPart.NodesBegin();
 
-        unsigned int num_slaves_found = 0;
+        IndexType num_slaves_found = 0;
 
         #pragma omp parallel for schedule(guided, 512) reduction( + : num_slaves_found )
         for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
@@ -187,7 +179,7 @@ namespace Kratos
         }
         KRATOS_WARNING_IF("",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
         const double end_apply = OpenMPUtils::GetCurrentTime();
-        std::cout<<"Applying periodic boundary conditions took : "<<end_apply - start_apply<<" seconds." <<std::endl;
+        KRATOS_INFO("ApplyPeriodicConditionProcess")<<"Applying periodic boundary conditions took : "<<end_apply - start_apply<<" seconds." <<std::endl;
     }
 
     template <int TDim>
@@ -305,10 +297,10 @@ namespace Kratos
         std::vector<double> U(3); // normalized axis of rotation
         // normalizing the axis of rotation
         double norm = 0.0;
-        for (unsigned int d = 0; d < 3; ++d)
+        for (IndexType d = 0; d < 3; ++d)
             norm += mAxisOfRotationVector[d] * mAxisOfRotationVector[d];
         norm = sqrt(norm);
-        for (unsigned int d = 0; d < 3; ++d)
+        for (IndexType d = 0; d < 3; ++d)
             U[d] = mAxisOfRotationVector[d] / norm;
 
         // Constructing the transformation matrix
