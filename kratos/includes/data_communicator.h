@@ -1034,6 +1034,36 @@ class DataCommunicator
         const int DestinationRank) const
     {}
 
+    // Allgather operations
+
+    /// Wrapper for MPI_Allgather calls (int version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @return Gathered values.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> AllGather(
+        const std::vector<int>& rSendValues) const
+    {
+        return rSendValues;
+    }
+
+    /// Wrapper for MPI_Allgather calls (double version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @return Gathered values.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> AllGather(
+        const std::vector<double>& rSendValues) const
+    {
+        return rSendValues;
+    }
+
     /// Wrapper for MPI_Allgather calls (int version).
     /** @param rSendValues[in] Values to be gathered from this rank.
      *  @param rRecvValues[out] Container for the result of the MPI_Allgather call.

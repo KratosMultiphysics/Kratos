@@ -690,6 +690,24 @@ void MPIDataCommunicator::Gatherv(
     GathervDetail(rSendValues,rRecvValues,rRecvCounts,rRecvOffsets,DestinationRank);
 }
 
+// Allgather operations
+
+std::vector<int> MPIDataCommunicator::AllGather(
+    const std::vector<int>& rSendValues) const
+{
+    std::vector<int> output(rSendValues.size()*Size());
+    AllGatherDetail(rSendValues, output);
+    return output;
+}
+
+std::vector<double> MPIDataCommunicator::AllGather(
+    const std::vector<double>& rSendValues) const
+{
+    std::vector<double> output(rSendValues.size()*Size());
+    AllGatherDetail(rSendValues, output);
+    return output;
+}
+
 void MPIDataCommunicator::AllGather(
     const std::vector<int>& rSendValues,
     std::vector<int>& rRecvValues) const
