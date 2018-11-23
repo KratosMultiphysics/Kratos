@@ -277,7 +277,7 @@ private:
         )
     {
         auto& r_entities_array = GetEntitiesContainer();
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
+        const SizeType number_of_entities = r_entities_array.size();
 
         Vector Value;
 
@@ -324,7 +324,7 @@ private:
         )
     {
         auto& r_entities_array = GetEntitiesContainer();
-        const int number_of_entities = static_cast<int>(r_entities_array.size());
+        const SizeType number_of_entities = r_entities_array.size();
 
         if(number_of_entities != 0) {
             auto it_begin = r_entities_array.begin();
