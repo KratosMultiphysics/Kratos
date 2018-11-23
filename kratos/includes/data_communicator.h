@@ -716,6 +716,54 @@ class DataCommunicator
 
     /// Wrapper for MPI_Scatter calls (int version).
     /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @return rRecvValues Container for the values to be sent.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> Scatter(
+        const std::vector<int>& rSendValues,
+        const int SourceRank) const
+    {
+        if (Rank() == SourceRank)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<int>(0);
+        }
+    }
+
+    /// Wrapper for MPI_Scatter calls (double version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @return rRecvValues Container for the values to be sent.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> Scatter(
+        const std::vector<double>& rSendValues,
+        const int SourceRank) const
+    {
+        if (Rank() == SourceRank)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<double>(0);
+        }
+    }
+
+    /// Wrapper for MPI_Scatter calls (int version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
      *  @param[out] rRecvValues Container for the values to be sent.
      *  @param[in] SourceRank The rank containing the values to be scattered.
      *  @note The expected size of rSendValues is the size of rRecvValues times DataCommunicator::Size().

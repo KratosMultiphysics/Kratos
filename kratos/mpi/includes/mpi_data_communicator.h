@@ -241,6 +241,14 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Scatter operations
 
+    std::vector<int> Scatter(
+        const std::vector<int>& rSendValues,
+        const int SourceRank) const override;
+
+    std::vector<double> Scatter(
+        const std::vector<double>& rSendValues,
+        const int SourceRank) const override;
+
     void Scatter(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,

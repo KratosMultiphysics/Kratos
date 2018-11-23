@@ -484,6 +484,43 @@ void MPIDataCommunicator::Broadcast(
 
 // Scatter operations
 
+std::vector<int> MPIDataCommunicator::Scatter(
+    const std::vector<int>& rSendValues,
+    const int SourceRank) const
+{
+    const int send_size = rSendValues.size();
+    const int world_size = Size();
+    KRATOS_ERROR_IF_NOT( send_size % world_size == 0 )
+    << "In call to MPI_Scatter: A message of size " << send_size
+    << " cannot be evenly distributed amongst " << world_size << " ranks." << std::endl;
+    int message_size = send_size / world_size;
+
+    Broadcast(message_size, SourceRank);
+
+    std::vector<int> message(message_size);
+    ScatterDetail(rSendValues, message, SourceRank);
+    return message;
+
+}
+
+std::vector<double> MPIDataCommunicator::Scatter(
+    const std::vector<double>& rSendValues,
+    const int SourceRank) const
+{
+    const int send_size = rSendValues.size();
+    const int world_size = Size();
+    KRATOS_ERROR_IF_NOT( send_size % world_size == 0 )
+    << "In call to MPI_Scatter: A message of size " << send_size
+    << " cannot be evenly distributed amongst " << world_size << " ranks." << std::endl;
+    int message_size = send_size / world_size;
+
+    Broadcast(message_size, SourceRank);
+
+    std::vector<double> message(message_size);
+    ScatterDetail(rSendValues, message, SourceRank);
+    return message;
+}
+
 void MPIDataCommunicator::Scatter(
     const std::vector<int>& rSendValues,
     std::vector<int>& rRecvValues,
