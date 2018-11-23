@@ -32,8 +32,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            std::cout << "check here" << std::endl;
-
         //Constitutive Law initialisation
         BaseDiscreteElement::Initialize();
 

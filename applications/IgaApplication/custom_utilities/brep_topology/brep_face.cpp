@@ -90,7 +90,7 @@ namespace Kratos
 
                         element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                         element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                        element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_2);
+                        element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
                         element->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
                     }
 
@@ -106,7 +106,7 @@ namespace Kratos
 
                         condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                         condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                        condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_2);
+                        condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
                         condition->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
                     }
                 }
