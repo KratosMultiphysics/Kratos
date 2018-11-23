@@ -134,11 +134,14 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 template <class TVariableType>
 TVariableType CreateVariable(const std::string& name)
 {
+    static std::vector<Kratos::unique_ptr<TVariableType>> vector_unique_pointers_for_variables;
     KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
-    TVariableType var(name);
-    AddKratosComponent(var.Name(), name);
-    KratosComponents<VariableData>::Add(var.Name(), var);
-    return var;
+    auto var_unq_pointer = Kratos::make_unique<TVariableType>(name);
+    AddKratosComponent((*var_unq_pointer).Name(), name);
+    KratosComponents<VariableData>::Add((*var_unq_pointer).Name(), (*var_unq_pointer));
+    vector_unique_pointers_for_variables.push_back(std::move(var_unq_pointer));
+
+    return *vector_unique_pointers_for_variables.back();
 }
 
 
@@ -146,11 +149,17 @@ template <class TVariableComponentType, class TVariableComponentAdapterType>
 TVariableComponentType CreateVariableComponent(const std::string& name, const std::string& source_name, const int component_index)
 {
     KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable component : "<<name<<" already exists."<<std::endl;
-    TVariableComponentType  var(name, source_name, component_index,
-                                    TVariableComponentAdapterType(source_name, component_index));
-    AddKratosComponent(var.Name(), name);
-    KratosComponents<VariableData>::Add(var.Name(), var);
-    return var;
+
+    static std::vector<Kratos::unique_ptr<TVariableComponentType>> vector_unique_pointers_for_variable_components;
+    auto var_unq_pointer = Kratos::make_unique<TVariableComponentType>(name, source_name, component_index,
+                                                                        TVariableComponentAdapterType(source_name, component_index);
+    AddKratosComponent((*var_unq_pointer).Name(), name);
+    KratosComponents<VariableData>::Add((*var_unq_pointer).Name(), (*var_unq_pointer));
+    vector_unique_pointers_for_variables.push_back(std::move(var_unq_pointer));
+
+
+    return *vector_unique_pointers_for_variables.back();
+
 }
 
 void  AddContainersToPython(pybind11::module& m)
