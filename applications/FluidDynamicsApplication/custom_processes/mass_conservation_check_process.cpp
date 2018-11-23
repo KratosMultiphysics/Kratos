@@ -29,9 +29,9 @@ namespace Kratos
 /* Public functions *******************************************************/
 
 MassConservationCheckProcess::MassConservationCheckProcess(
-        ModelPart& rModelPart, 
+        ModelPart& rModelPart,
         const int MassComputationFreq,
-        const bool CompareToInitial, 
+        const bool CompareToInitial,
         const bool WriteToLogFile)
     : Process(), mrModelPart(rModelPart) {
 
@@ -72,7 +72,7 @@ bool MassConservationCheckProcess::GetUpdateStatus(){
     }
 
     if ( time_step % this->mMassComputationFreq == 0){
-        
+
         // writing an output at a given frequncy
         this->ComputeVolumesOfFluids( mCurrentPositiveVolume, mCurrentNegativeVolume );
         mIsUpdated = true;
@@ -89,8 +89,8 @@ bool MassConservationCheckProcess::GetUpdateStatus(){
 
 /* Private functions ****************************************************/
 
-void MassConservationCheckProcess::ComputeVolumesOfFluids( double positiveVolume, double negativeVolume ){
-    
+void MassConservationCheckProcess::ComputeVolumesOfFluids( double& positiveVolume, double& negativeVolume ){
+
     // useless containers
     Matrix rShapeFunctionsPos, rShapeFunctionsNeg;
     GeometryType::ShapeFunctionsGradientsType rShapeDerivativesPos, rShapeDerivativesNeg;
@@ -106,7 +106,7 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double positiveVolume
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
         // iteration over all elements
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
-        
+
         auto p_geom = it_elem->pGetGeometry();
         unsigned int ptCountPos = 0;
         unsigned int ptCountNeg = 0;
@@ -123,7 +123,7 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double positiveVolume
         if ( ptCountPos == p_geom->PointsNumber() ){
             // all nodes are positive
             posVol += p_geom->DomainSize();;
-        } 
+        }
         else if ( ptCountNeg == p_geom->PointsNumber() ){
             // all nodes are negative
             negVol += p_geom->DomainSize();
@@ -154,7 +154,7 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double positiveVolume
             for ( unsigned int i = 0; i < w_gauss_pos_side.size(); i++){
                 posVol += w_gauss_pos_side[i];
             }
-            
+
             // Call the negative side modified shape functions calculator
             // Object p_modified_sh_func has full knowledge of slit geometry
             p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
@@ -166,7 +166,7 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double positiveVolume
             for ( unsigned int i = 0; i < w_gauss_neg_side.size(); i++){
                 negVol += w_gauss_neg_side[i];
             }
-            
+
         }
     }
 }
