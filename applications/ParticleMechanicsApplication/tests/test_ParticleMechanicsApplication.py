@@ -15,15 +15,23 @@ from particle_mechanics_test_factory import CooksMembraneCompressibleTest as TCo
 from particle_mechanics_test_factory import CooksMembraneUPCompressibleTest as TCooksMembraneUPCompressibleTest
 from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as TCooksMembraneUPIncompressibleTest
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
+from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
+from particle_mechanics_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 
-# Import from Test Factories (with differet analysis flows)
+# Import from Test Factories (with different analysis flows)
+from test_generate_mpm_particle             import TestGenerateMPMParticle            as TTestGenerateMPMParticle
+from test_particle_erase_process            import TestParticleEraseProcess           as TTestParticleEraseProcess
+from test_search_mpm_particle               import TestSearchMPMParticle              as TTestSearchMPMParticle
+from test_static_loading_conditions_point   import TestStaticLoadingConditionsPoint   as TTestStaticLoadingConditionsPoint
+from test_static_loading_conditions_line    import TestStaticLoadingConditionsLine    as TTestStaticLoadingConditionsLine
+from test_static_loading_conditions_surface import TestStaticLoadingConditionsSurface as TTestStaticLoadingConditionsSurface
 
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
-    "small", "nighlty" and "all"
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -41,6 +49,17 @@ def AssembleTestSuites():
     ## These tests are executed by the continuous integration tool
     smallSuite = suites['small']
 
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestGenerateMPMParticle]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestParticleEraseProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSearchMPMParticle]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsPoint]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsLine]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStaticLoadingConditionsSurface]))
+
+    smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
+    smallSuite.addTest(TGravityApplicationTest('test_execution'))
+    smallSuite.addTest(TSlipBoundaryTest('test_execution'))
+
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
@@ -53,7 +72,6 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPCompressibleTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleTest('test_execution'))
-    nightSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
 
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate

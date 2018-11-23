@@ -41,25 +41,43 @@ class TrilinosImportModelPartUtility():
 
             perform_partitioning = self.settings["model_import_settings"]["perform_partitioning"].GetBool()
 
+            # Select the partitioning method (File by default)
+            partition_in_memory = False
+            if self.settings["model_import_settings"].Has("partition_in_memory"):
+                partition_in_memory = self.settings["model_import_settings"]["partition_in_memory"].GetBool()
+
             if perform_partitioning == True:
                 KratosMultiphysics.CheckRegisteredApplications("MetisApplication")
                 import KratosMultiphysics.MetisApplication as KratosMetis
+                
+                # Partition of the original .mdpa file
+                number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
+                domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+                verbosity = self.settings["echo_level"].GetInt()
 
-                ## Serial partition of the original .mdpa file
-                if KratosMPI.mpi.rank == 0:
+                # Make sure that the condition goes to the same partition as the element is a face of
+                sync_conditions = True
 
-                    # Original .mdpa file reading
-                    model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
+                # Original .mdpa file reading
+                model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
 
-                    # Partition of the original .mdpa file
-                    number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
-                    domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-                    verbosity = self.settings["echo_level"].GetInt()
-                    sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of
-                    partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
+                if not partition_in_memory:
+                    ## Serial partition of the original .mdpa file
+                    if KratosMPI.mpi.rank == 0:
+                        partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
+                        partitioner.Execute()
+
+                        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
+                else:
+                    # Create a second io that does not reorder the parts while reading from memory
+                    serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename)
+
+                    partitioner = KratosMetis.MetisDivideHeterogeneousInputInMemoryProcess(model_part_io, serial_model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                     partitioner.Execute()
+                    serial_model_part_io.ReadModelPart(self.main_model_part)
 
-                    KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
+                    if KratosMPI.mpi.rank == 0:
+                        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
 
             else:
                 if (KratosMPI.mpi.rank == 0):
@@ -72,7 +90,8 @@ class TrilinosImportModelPartUtility():
             self.settings["model_import_settings"]["input_filename"].SetString(mpi_input_filename)
 
             ## Read the new generated *.mdpa files
-            KratosMultiphysics.ModelPartIO(mpi_input_filename).ReadModelPart(self.main_model_part)
+            if not partition_in_memory:
+                KratosMultiphysics.ModelPartIO(mpi_input_filename).ReadModelPart(self.main_model_part)
 
         elif input_type == "rest":
             from trilinos_restart_utility import TrilinosRestartUtility as RestartUtility

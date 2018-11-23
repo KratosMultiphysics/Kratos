@@ -59,34 +59,64 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@name Type Definitions
     ///@{
 
+    /// Definition of the index type
     typedef std::size_t IndexType;
 
-    //typedef std::size_t SizeType;
+    /// Definition of the size type
+    typedef std::size_t SizeType;
 
-    //typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
+    /// Definition of the mesh id (always zero)
+    static constexpr IndexType mesh_id = 0;
 
     ///@}
     ///@name Pointer Definitions
 
     /// Pointer definition of ReadMaterialProcess
     KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    ReadMaterialsUtility(Parameters Params, Model& rModel);
+    /**
+     * @brief Default constructor
+     * @param rModel The model containing the problem to solve
+     */
+    ReadMaterialsUtility(Model& rModel);
 
+    /**
+     * @brief Constructor reading directly from file, via parameters
+     * @param Params The configuration parameters telling where the configuration file can be found
+     * @param rModel The model containing the problem to solve
+     */
+    ReadMaterialsUtility(
+        Parameters Params,
+        Model& rModel
+        );
+
+    /**
+     * @brief Constructor reading directly from file, via text
+     * @param Params The string telling where the configuration file can be found
+     * @param rModel The model containing the problem to solve
+     */
     ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
+
+    /** @brief Destructor */
+    virtual ~ReadMaterialsUtility();
 
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This reads the properties from parameters
+     * @param MaterialData The configuration parameters defining the properties
+     */
+    void ReadMaterials(Parameters MaterialData);
 
     ///@}
     ///@name Access
@@ -169,7 +199,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief This method assigns the properties to the model parts
      * @param Data The parameters containing all the configurations of the materials
@@ -191,6 +221,13 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param rLine Component name in materials json file
      */
     void TrimComponentName(std::string& rLine);
+
+
+    /**
+     * @brief Checks if the materials are assigned uniquely to the modelparts
+     * @param Materials The parameters containing the properties of the materials
+     */
+    void CheckUniqueMaterialAssignment(Parameters Materials);
 
 
     ///@}
