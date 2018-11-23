@@ -410,6 +410,34 @@ void MPIDataCommunicator::ScanSum(
 
 // Sendrecv operations
 
+std::vector<int> MPIDataCommunicator::SendRecv(
+    const std::vector<int>& rSendValues,
+    const int SendDestination,
+    const int RecvSource) const
+{
+    int send_size = rSendValues.size();
+    int recv_size;
+    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+
+    std::vector<int> recv_values(recv_size);
+    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    return recv_values;
+}
+
+std::vector<double> MPIDataCommunicator::SendRecv(
+    const std::vector<double>& rSendValues,
+    const int SendDestination,
+    const int RecvSource) const
+{
+    int send_size = rSendValues.size();
+    int recv_size;
+    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+
+    std::vector<double> recv_values(recv_size);
+    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    return recv_values;
+}
+
 void MPIDataCommunicator::SendRecv(
     const std::vector<int>& rSendValues, const int SendDestination,
     std::vector<int>& rRecvValues, const int RecvSource) const

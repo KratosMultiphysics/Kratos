@@ -596,6 +596,60 @@ class DataCommunicator
     /** This is a wrapper for MPI_Sendrecv.
      *  @param[in] rSendValues Values to send to rank SendDestination.
      *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[in] RecvSource Rank values are expected from.
+     *  @return Received values from rank RecvSource.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> SendRecv(
+        const std::vector<int>& rSendValues,
+        const int SendDestination,
+        const int RecvSource) const
+    {
+        if (SendDestination == RecvSource)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<int>(0);
+        }
+    }
+
+    /// Exchange data with other ranks (double version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[in] RecvSource Rank values are expected from.
+     *  @return Received values from rank RecvSource.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> SendRecv(
+        const std::vector<double>& rSendValues,
+        const int SendDestination,
+        const int RecvSource) const
+    {
+        if (SendDestination == RecvSource)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<double>(0);
+        }
+    }
+
+    /// Exchange data with other ranks (int version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
      *  @param[out] rRecvValues Received values from rank RecvSource.
      *  @param[in] RecvSource Rank values are expected from.
      */
