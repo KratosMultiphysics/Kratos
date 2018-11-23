@@ -105,7 +105,8 @@ public:
     static void CalculateTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveLaw *pConstitutiveLaw,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
+        const bool ConsiderPertubationThreshold = true
         )
     {
         // Converged values to be storaged
@@ -113,14 +114,10 @@ public:
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
         // Converged values to be storaged (only used in case of elements that not provide the strain)
-        const Matrix& unperturbed_deformation_gradient_gp = rValues.GetDeformationGradientF();
-        const double& det_unperturbed_deformation_gradient_gp = rValues.GetDeterminantF();
-        Matrix equivalent_F;
-        double det_equivalent_F;
+        const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
+        const double det_unperturbed_deformation_gradient_gp = double(rValues.GetDeterminantF());
 
-        const Vector strain_vector_gp = rValues.GetStrainVector();
-        const Vector stress_vector_gp = rValues.GetStressVector();
-
+        // The constitutive tensor
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
         Matrix auxiliar_tensor = ZeroMatrix(6,6);
@@ -139,22 +136,22 @@ public:
             pertubation = std::max(component_perturbation, pertubation);
         }
         // We check that the perturbation has a threshold value of PerturbationThreshold
-        if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+        if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
         // Loop over components of the strain
         Vector& r_perturbed_strain = rValues.GetStrainVector();
         Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
+        Matrix& r_perturbed_deformation_gradient = const_cast<Matrix&>(rValues.GetDeformationGradientF());
+        double& r_perturbed_det_deformation_gradient = const_cast<double&>(rValues.GetDeterminantF());
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
             // Apply the perturbation
             PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
 
             // In case the element uses F as input instead of the strain vector
             if (!use_element_provided_strain) {
-                noalias(equivalent_F) = ComputeEquivalentDeformationGradient(rValues);
+                noalias(r_perturbed_deformation_gradient) = ComputeEquivalentDeformationGradient(rValues);
                 // Reset the values to the initial ones
-                rValues.SetDeformationGradientF(equivalent_F);
-                det_equivalent_F = MathUtils<double>::DetMat(equivalent_F);
-                rValues.SetDeterminantF(det_equivalent_F);
+                r_perturbed_det_deformation_gradient = MathUtils<double>::DetMat(r_perturbed_deformation_gradient);
             }
 
             // We continue with the calculations
@@ -171,11 +168,11 @@ public:
             // In case the element uses F as input instead of the strain vector
             if (!use_element_provided_strain){
                 // Reset the values to the initial ones
-                rValues.SetDeformationGradientF(unperturbed_deformation_gradient_gp);
-                rValues.SetDeterminantF(det_unperturbed_deformation_gradient_gp);
+                noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
+                r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
             }
         }
-        r_tangent_tensor = auxiliar_tensor;
+        noalias(r_tangent_tensor) = auxiliar_tensor;
     }
 
     /**
@@ -187,26 +184,25 @@ public:
     static void CalculateTangentTensorFiniteDeformation(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveLaw *pConstitutiveLaw,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_PK2,
+        const bool ConsiderPertubationThreshold = true
         )
     {
         // Converged values to be storaged
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
         // Converged values to be storaged
-        const Matrix& unperturbed_deformation_gradient_gp = rValues.GetDeformationGradientF();
-        const double& det_unperturbed_deformation_gradient_gp = rValues.GetDeterminantF();
+        const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
+        const double det_unperturbed_deformation_gradient_gp = double(rValues.GetDeterminantF());
 
         // The size of the deformation gradient
         const SizeType size1 = unperturbed_deformation_gradient_gp.size1();
         const SizeType size2 = unperturbed_deformation_gradient_gp.size2();
 
-        Matrix inverse_perturbed_deformation_gradient(size1, size2);
-        Matrix perturbed_deformation_gradient(unperturbed_deformation_gradient_gp);
-        Matrix deformation_gradient_increment(size1, size2);
-
-        Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
-        tangent_tensor.clear();
+        // The constitutive tensor
+        Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+        r_tangent_tensor.clear();
+        Matrix auxiliar_tensor = ZeroMatrix(6,6);
 
         // Calculate the perturbation
         double pertubation;
@@ -218,27 +214,31 @@ public:
             }
         }
         // We check that the perturbation has a threshold value of PerturbationThreshold
-        if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+        if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
         // Loop over components of the strain
-        Vector& perturbed_integrated_stress = rValues.GetStressVector();
+        Matrix& r_perturbed_deformation_gradient = const_cast<Matrix&>(rValues.GetDeformationGradientF());
+        double& r_perturbed_det_deformation_gradient = const_cast<double&>(rValues.GetDeterminantF());
+        Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
         for (IndexType i_component = 0; i_component < size1; ++i_component) {
             for (IndexType j_component = i_component; j_component < size2; ++j_component) { // Doing a symmetric perturbation
                 // Apply the perturbation
-                PerturbateDeformationGradient(perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
+                PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
+                r_perturbed_det_deformation_gradient = MathUtils<double>::DetMat(r_perturbed_deformation_gradient);
 
                 // We continue with the calculations
                 IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
                 // Compute tangent moduli
-                const Vector delta_stress = perturbed_integrated_stress - unperturbed_stress_vector_gp;
-                ComputeComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
+                const Vector delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
+                ComputeComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, i_component);
 
                 // Reset the values to the initial ones
-                rValues.SetDeformationGradientF(unperturbed_deformation_gradient_gp);
-                rValues.SetDeterminantF(det_unperturbed_deformation_gradient_gp);
+                noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
+                r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
             }
         }
+        noalias(r_tangent_tensor) = auxiliar_tensor;
     }
 
 protected:
