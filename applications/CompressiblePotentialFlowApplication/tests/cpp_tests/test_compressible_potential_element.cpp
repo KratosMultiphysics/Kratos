@@ -2,7 +2,7 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-POSITIVE_POTENTIALhysics
 //
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
@@ -82,6 +82,7 @@ namespace Kratos {
      */
     KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_CalculateLocalSystemStresses, CompressiblePotentialApplicationFastSuite)
     {
+      std::cout<<std::endl;
 		Model this_model;
 		ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 		ModelPart& model_part_ref = this_model.CreateModelPart("Main_ref", 3);
@@ -99,8 +100,8 @@ namespace Kratos {
       potential(i) = pElement -> GetGeometry()[i].X()+pElement->GetGeometry()[i].Y();
     }
 
-		distances(0) = 1.0;
-		distances(1) = -1.0;
+		distances(0) = 4.0;
+		distances(1) = -4.0;
 		distances(2) = -1.0;
 
 		for (unsigned int i = 0; i < 3; i++){
@@ -145,7 +146,7 @@ namespace Kratos {
 		Vector RHS_ref = ZeroVector(6);
 		Vector vinf = ZeroVector(3);
 		vinf(0)=1.0;
-    vinf(1)=1.0;
+    vinf(1)=+1.0;
 		Matrix LHS_ref = ZeroMatrix(6, 6);
 		pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
 		pElement_ref->CalculateLocalSystem(LHS_ref, RHS_ref, model_part_ref.GetProcessInfo());
@@ -161,13 +162,18 @@ namespace Kratos {
       if (pCondition->Is(STRUCTURE)){
         for (unsigned int i_node=0; i_node<2;i_node++){
           int I = (pCondition -> GetGeometry()[i_node].Id())-1;
-          RHS_cond(I) += rhs(i_node);
-          RHS_cond(I+NumNodes) += rhs(i_node+2);
+          if(distances[I] > 0){
+            RHS_cond(I) += rhs(0);
+            RHS_cond(I+NumNodes) += rhs(2);
+          }else{
+            RHS_cond(I) += rhs(1);
+            RHS_cond(I+NumNodes) += rhs(3);
+          }
         }
       }else{
         for (unsigned int i_node=0;i_node<2;i_node++){
           int I = (pCondition -> GetGeometry()[i_node].Id())-1;
-          if(distances[i_node] > 0)
+          if(distances[I] > 0)
             RHS_cond(I) += rhs(i_node);          
           else            
             RHS_cond(I+NumNodes) += rhs(i_node);    
@@ -176,11 +182,11 @@ namespace Kratos {
       std::cout<<"rhs"<<rhs<<std::endl;
 		}
 		std::cout<< "Incompressible_stresses" << std::endl;
-		std::cout<<"LHS"<< LHS << std::endl;
-		std::cout<<"LHS_ref"<<LHS_ref << std::endl;
-		std::cout<<"RHS"<< RHS << std::endl;
-		std::cout<<"RHS_ref"<< RHS_ref << std::endl;
-    std::cout<<"RHS_cond"<< RHS_cond << std::endl;
+		KRATOS_WATCH(LHS);
+		KRATOS_WATCH(LHS_ref);
+		KRATOS_WATCH(RHS);
+		KRATOS_WATCH(RHS_ref);
+    KRATOS_WATCH(RHS_cond);
 		// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
 		// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 		KRATOS_CHECK_NEAR(RHS(0), RHS_ref(0), 1e-7);
@@ -204,7 +210,7 @@ namespace Kratos {
       }
       Vector vinf = ZeroVector(3);
 		  vinf(0)=1.0;
-      vinf(1)=1.0;
+      vinf(1)=+1.0;
       for (unsigned int i = 0; i < 3; i++)
         pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) = potential(i);
 

@@ -341,7 +341,11 @@ public:
             else {
                 if (this->Is(FLUID) || this->IsNotDefined(FLUID))
                 ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data); 
-            }        
+            } 
+            std::cout << "rleftHandSide"<< std::endl;
+            std::cout << rLeftHandSideMatrix<< std::endl;
+            std::cout << data.vol<< std::endl;      
+            std::cout << data.DN_DX<< std::endl; 
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
         }
         else //it is a wake element
@@ -409,7 +413,7 @@ public:
                 }
             }
             
-            double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
+            double penalty = 0.0;//rCurrentProcessInfo[INITIAL_PENALTY];
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
 //                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
@@ -422,7 +426,7 @@ public:
 //                 noalias(tmp) = prod(data.DN_DX,P);
 //                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
                 if(kutta_element)
-                {
+                { std::cout<<"SOLVING KUTTA ELEMENT"<<std::endl;
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)

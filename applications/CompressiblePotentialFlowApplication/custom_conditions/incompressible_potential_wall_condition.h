@@ -251,7 +251,7 @@ public:
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                               VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override
-    {        
+    {               
         if (this->IsNot(STRUCTURE)){
             if (rLeftHandSideMatrix.size1() != TNumNodes)
                 rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
@@ -268,7 +268,6 @@ public:
             const IncompressiblePotentialWallCondition &r_this = *this;
             const array_1d<double, 3> &v = r_this.GetValue(VELOCITY_INFINITY);
             const double value = -inner_prod(v, An) / static_cast<double>(TNumNodes);
-            std::cout<<"value "<<this-> Id()<<" :"<<value<<std::endl;
 
             for (unsigned int i = 0; i < TNumNodes; ++i)
                 rRightHandSideVector[i] = value;
@@ -280,43 +279,85 @@ public:
                 rRightHandSideVector.resize(2*TNumNodes,false);
             rLeftHandSideMatrix.clear(); 
 
-            array_1d<double, 3> An_pos,An_neg;
-            array_1d<double, 2 > N;
-
+            array_1d<double, 3> An_0,An_1;
+            array_1d<double, 2 > N_0,N_1;
             array_1d<double,TNumNodes> distances;
-            GetWakeDistances(distances);
+            double length_0,length_1;
+            bool is_not_cut;
+            GetWakeDistances(distances,is_not_cut);
+
+            
             if (TDim == 2){
-                CalculateNormal2DCut(An_pos,An_neg,distances);
-                ComputeShapeFunction2DCut(N,distances);
+                CalculateNormal2DCut(An_0,An_1,distances);
+                ComputeShapeFunction2DCut(N_0,N_1,distances);
             }
             else
                 KRATOS_ERROR << "3D cut condition not implemented";
-
+            length_0=sqrt(std::abs(inner_prod(An_0,An_0)));
+            length_1=sqrt(std::abs(inner_prod(An_1,An_1)));
+            KRATOS_WATCH(length_0);
+            KRATOS_WATCH(length_1);
             const array_1d<double, 3> &v = this-> GetValue(VELOCITY_INFINITY);
-            double value_neg,value_pos;
-            std::cout<<"N:" << N<<std::endl;
+            double value_1,value_0;
             
-            value_pos = -inner_prod(v, An_pos);
-            value_neg = -inner_prod(v, An_neg);
+            value_0 = -inner_prod(v, An_0);
+            value_1 = -inner_prod(v, An_1);
+            // Vector v_0(TNumNodes);
+            // Vector v_1(TNumNodes);
+            // v_0 = -length_0*v;
+            // v_1 = -length_1*v;
+            // double norm_0=sqrt(std::abs(inner_prod(v_0,v_0)));
+            // double norm_1=sqrt(std::abs(inner_prod(v_1,v_1)));
+            // KRATOS_WATCH(v_0);
+            // KRATOS_WATCH(v_1);
+            // KRATOS_WATCH(norm_0);
+            // KRATOS_WATCH(norm_1);
             //positive part
-            for (unsigned int i = 0; i < TNumNodes; i++)
-            {
-                
-                if(distances[i] > 0)
-                    rRightHandSideVector[i] = value_pos*N[0];
-                else
-                    rRightHandSideVector[i] = value_pos*N[1];
-            }
+            // if (distances[0]>0){
+            //     for (unsigned int i = 0; i < TNumNodes; i++)
+            //     {                
+            //         if(distances[i] > 0){
+            //             rRightHandSideVector[i] = value_0*N_0[0];
+            //             rRightHandSideVector[TNumNodes+i] = 0;//value_1*N_1[0];
+            //         }
+            //         else{
+            //             rRightHandSideVector[i] = 0;// value_0*N_0[1];
+            //             rRightHandSideVector[TNumNodes+i] = value_1*N_0[1];
+            //         }
+            //     }
+            // }else{
+            //     for (unsigned int i = 0; i < TNumNodes; i++)
+            //     {                
+            //         if(distances[i] > 0){
+            //             rRightHandSideVector[i] = 0;
+            //             rRightHandSideVector[TNumNodes+i] = value_0*N_0[1];;//value_1*N_1[0];
+            //         }
+            //         else{
+            //             rRightHandSideVector[i] = value_1*N_1[1];// value_0*N_0[1];
+            //             rRightHandSideVector[TNumNodes+i] = 0;
+            //         }
+            //     }
+            // }
 
+              for (unsigned int i = 0; i < TNumNodes; i++)
+                {                
+                    if(distances[i] > 0){
+                        rRightHandSideVector[i] = value_0*N_0[0];
+                        rRightHandSideVector[TNumNodes+i] = value_0*N_0[1];
+                    }
+                    else{
+                        rRightHandSideVector[i] =  value_1*N_1[0];
+                        rRightHandSideVector[TNumNodes+i] = value_1*N_1[1];
+                    }
+                }
             //negative part - sign is opposite to the previous case
-            for (unsigned int i = 0; i < TNumNodes; i++)
-            {   
-                
-                if(distances[i] < 0)
-                    rRightHandSideVector[TNumNodes+i] = value_neg*N[1];
-                else
-                    rRightHandSideVector[TNumNodes+i] = value_neg*N[0];
-            }           
+            // for (unsigned int i = 0; i < TNumNodes; i++)
+            // {                   
+            //     if(distances[i] < 0)
+                    
+            //     else
+            //         rRightHandSideVector[TNumNodes+i] = value_1*N_1[1];
+            // }           
         }
         
 
@@ -368,7 +409,8 @@ public:
          */
         void EquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo) override
-        {
+        {   
+        
             if (this->IsNot(STRUCTURE)){
                 if (rResult.size() != TNumNodes)
                     rResult.resize(TNumNodes, false);
@@ -381,8 +423,8 @@ public:
                     rResult.resize(2*TNumNodes, false);
 
                 array_1d<double,TNumNodes> distances;
-                GetWakeDistances(distances);
-
+                bool is_not_cut;
+                GetWakeDistances(distances,is_not_cut);
                 //positive part
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
@@ -424,8 +466,8 @@ public:
                 ConditionDofList.resize(2*TNumNodes);
 
                 array_1d<double,TNumNodes> distances;
-                GetWakeDistances(distances);
-
+                bool is_not_cut;
+                GetWakeDistances(distances,is_not_cut);
                 //positive part
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
@@ -455,10 +497,20 @@ public:
         }
 
 
-        void GetWakeDistances(array_1d<double,TNumNodes>& distances)
-        {
-            for(unsigned int i = 0; i<TNumNodes; i++)
+        void GetWakeDistances(array_1d<double,TNumNodes>& distances, bool& is_not_cut)
+        {   
+            int npos=0,nneg=0;
+            for(unsigned int i = 0; i<TNumNodes; i++){
                 distances[i] = GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE);
+                if (distances[i] > 0)
+                    npos+=1;
+                else
+                    nneg+=1;
+            }
+            if ((npos>0) && (nneg>0))
+                is_not_cut=false;
+            else	
+                is_not_cut=true;
         }
 
 
@@ -602,16 +654,20 @@ private:
         double mMinEdgeLength;
         ElementWeakPointerType mpElement;
 
-        void ComputeShapeFunction2DCut(array_1d<double, 2> &N, array_1d<double,TNumNodes>& distances)
+        void ComputeShapeFunction2DCut(array_1d<double, 2> &N_0, array_1d<double, 2> &N_1, array_1d<double,TNumNodes>& distances)
         {
             Geometry<Node<3>> &pGeometry = this->GetGeometry();
             double length = sqrt(pow(pGeometry[1].X() - pGeometry[0].X(),2)+pow(pGeometry[1].Y() - pGeometry[0].Y(),2));
             double x_p,y_p;
             x_p = pGeometry[0].X() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].X()-pGeometry[0].X());
             y_p = pGeometry[0].Y() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].Y()-pGeometry[0].Y());
-            double length_p = 0.5*sqrt(pow(x_p - pGeometry[0].X(),2)+pow(y_p - pGeometry[0].Y(),2));
-            N[0] = 1-length_p/length;
-            N[1] = length_p/length;
+            double length_0 = sqrt(pow(x_p - pGeometry[0].X(),2)+pow(y_p - pGeometry[0].Y(),2));
+            double length_1 = sqrt(pow(x_p - pGeometry[1].X(),2)+pow(y_p - pGeometry[1].Y(),2));
+            N_0[0] = 1-(0.5*length_0)/length;
+            N_0[1] = (0.5*length_0)/length;
+            N_1[0] = 1-(length_0+0.5*length_1)/length;
+            N_1[1] = (length_0+0.5*length_1)/length;
+
         }
 
         void CalculateNormal2D(array_1d<double, 3> &An)
@@ -622,30 +678,23 @@ private:
             An[1] = -(pGeometry[1].X() - pGeometry[0].X());
             An[2] = 0.00;
         }
-        void CalculateNormal2DCut(array_1d<double, 3> &An_pos,array_1d<double, 3> &An_neg,array_1d<double,TNumNodes>& distances)
+        void CalculateNormal2DCut(array_1d<double, 3> &An_0,array_1d<double, 3> &An_1,array_1d<double,TNumNodes>& distances)
         {
              
             Geometry<Node<3>> &pGeometry = this->GetGeometry();
             double x_p,y_p;
+
             x_p = pGeometry[0].X() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].X()-pGeometry[0].X());
             y_p = pGeometry[0].Y() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].Y()-pGeometry[0].Y());
-            if (distances[0]>0){
-                An_pos[0] = y_p - pGeometry[0].Y();
-                An_pos[1] = -(x_p - pGeometry[0].X());
-                An_pos[2] = 0.00;
+            
+            An_0[0] = y_p - pGeometry[0].Y();
+            An_0[1] = -(x_p - pGeometry[0].X());
+            An_0[2] = 0.00;
 
-                An_neg[0] = pGeometry[1].Y()-y_p;
-                An_neg[1] = -(pGeometry[1].X()-x_p);
-                An_neg[2] = 0.00;
-            }else{
-                An_neg[0] = y_p - pGeometry[0].Y();
-                An_neg[1] = -(x_p - pGeometry[0].X());
-                An_neg[2] = 0.00;
-
-                An_pos[0] = pGeometry[1].Y()-y_p;
-                An_pos[1] = -(pGeometry[1].X()-x_p);
-                An_pos[2] = 0.00;
-            }
+            An_1[0] = pGeometry[1].Y()-y_p;
+            An_1[1] = -(pGeometry[1].X()-x_p);
+            An_1[2] = 0.00;
+       
         }
 
         void CalculateNormal3D(array_1d<double, 3> &An)
