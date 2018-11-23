@@ -24,20 +24,20 @@ namespace Kratos
 namespace Python
 {
 
-template <class TContainerType, class TVariableType>
-bool HasHelperFunction(TContainerType &el, const TVariableType &rVar)
+template <class TVariableType>
+bool HasHelperFunctionMasterSlaveConstraint(MasterSlaveConstraint &el, const TVariableType &rVar)
 {
     return el.Has(rVar);
 }
 
-template <class TContainerType, class TVariableType>
-void SetValueHelperFunction(TContainerType &el, const TVariableType &rVar, const typename TVariableType::Type &Data)
+template <class TVariableType>
+void SetValueHelperFunctionMasterSlaveConstraint(MasterSlaveConstraint &el, const TVariableType &rVar, const typename TVariableType::Type &Data)
 {
     el.SetValue(rVar, Data);
 }
 
-template <class TContainerType, class TVariableType>
-typename TVariableType::Type GetValueHelperFunction(TContainerType &el, const TVariableType &rVar)
+template <class TVariableType>
+typename TVariableType::Type GetValueHelperFunctionMasterSlaveConstraint(MasterSlaveConstraint &el, const TVariableType &rVar)
 {
     return el.GetValue(rVar);
 }
@@ -48,71 +48,71 @@ void AddConstraintToPython(pybind11::module &m)
     .def(pybind11::init<>())
     .def(pybind11::init<int>())
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 3>  > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 3>  > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 3>  > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 3>  > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 3>  > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 3>  > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 3>  > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 3>  > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 3>  > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 3>  > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 4>  > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 4>  > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 4>  > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 4>  > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 4>  > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 4>  > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 4>  > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 4>  > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 4>  > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 4>  > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 6>  > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 6>  > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 6>  > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 6>  > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 6>  > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 6>  > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 6>  > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 6>  > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 6>  > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 6>  > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 9>  > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 9>  > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 9>  > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 9>  > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< array_1d<double, 9>  > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 9>  > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 9>  > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 9>  > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 9>  > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< array_1d<double, 9>  > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< Vector > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< Vector > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< Vector > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< Vector > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< Vector > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< Vector > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< Vector > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< Vector > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< Vector > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< Vector > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< DenseVector<int> > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< DenseVector<int> > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< DenseVector<int> > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< DenseVector<int> > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< DenseVector<int> > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< DenseVector<int> > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< DenseVector<int> > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< DenseVector<int> > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< DenseVector<int> > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< DenseVector<int> > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< Matrix > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< Matrix > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< Matrix > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< Matrix > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< Matrix > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< Matrix > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< Matrix > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< Matrix > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< Matrix > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< Matrix > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< int > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< int > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< int > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< int > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< int > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< int > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< int > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< int > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< int > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< int > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< double > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< double > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< double > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< double > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< double > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< double > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< double > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< double > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< double > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< double > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< bool > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< bool > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< bool > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< bool > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< bool > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< bool > >)
 
-    .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< std::string > >)
-    .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< std::string > >)
-    .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< std::string > >)
-    .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< std::string > >)
-    .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< std::string > >)
+    .def("__setitem__", SetValueHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
+    .def("Has", HasHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunctionMasterSlaveConstraint< Variable< std::string > >)
 
     .def("__str__", PrintObject<MasterSlaveConstraint>)
     ;
