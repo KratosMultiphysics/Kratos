@@ -285,6 +285,14 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Gather operations
 
+    std::vector<int> Gather(
+        const std::vector<int>& rSendValues,
+        const int DestinationRank) const override;
+
+    std::vector<double> Gather(
+        const std::vector<double>& rSendValues,
+        const int DestinationRank) const override;
+
     void Gather(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,

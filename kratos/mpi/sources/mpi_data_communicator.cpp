@@ -592,6 +592,34 @@ void MPIDataCommunicator::Scatterv(
 
 // Gather operations
 
+std::vector<int> MPIDataCommunicator::Gather(
+    const std::vector<int>& rSendValues,
+    const int DestinationRank) const
+{
+    int message_size = rSendValues.size();
+    std::vector<int> gathered_values;
+    if (Rank() == DestinationRank)
+    {
+        gathered_values.resize(message_size*Size());
+    }
+    GatherDetail(rSendValues, gathered_values, DestinationRank);
+    return gathered_values;
+}
+
+std::vector<double> MPIDataCommunicator::Gather(
+    const std::vector<double>& rSendValues,
+    const int DestinationRank) const
+{
+    int message_size = rSendValues.size();
+    std::vector<double> gathered_values;
+    if (Rank() == DestinationRank)
+    {
+        gathered_values.resize(message_size*Size());
+    }
+    GatherDetail(rSendValues, gathered_values, DestinationRank);
+    return gathered_values;
+}
+
 void MPIDataCommunicator::Gather(
     const std::vector<int>& rSendValues,
     std::vector<int>& rRecvValues,
