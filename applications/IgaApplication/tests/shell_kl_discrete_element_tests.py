@@ -68,8 +68,11 @@ class ShellKLDiscreteElementTests(KratosUnittest.TestCase):
         for i, (u, v, weight) in enumerate(integration_points):
             shapes.Compute(surface.KnotsU(), surface.KnotsV(), u, v)
 
-            node_indices = [surface.Node(u, v).Id
-                for u, v in shapes.NonzeroPoleIndices]
+            node_indices = list()
+
+            for index_u, index_v in shapes.NonzeroPoleIndices:
+                node_id = surface.Node(index_u, index_v).Id
+                node_indices.append(node_id)
 
             element = model_part.CreateNewElement('ShellKLDiscreteElement',
                 i + 1, node_indices, shell_properties)
