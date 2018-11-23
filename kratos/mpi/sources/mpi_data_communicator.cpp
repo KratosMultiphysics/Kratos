@@ -1277,9 +1277,9 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervReturn(
     const int DestinationRank) const
 {
     const int size = Size();
+    rOutputMessage.resize(size);
     if (Rank() == DestinationRank)
     {
-        rOutputMessage.resize(size);
         for (int i = 0, counter = 0; i < size; i++)
         {
             rOutputMessage[i].resize(rMessageLengths[i]);
