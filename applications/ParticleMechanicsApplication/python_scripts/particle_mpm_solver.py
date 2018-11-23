@@ -68,6 +68,7 @@ class ParticleMPMSolver(PythonSolver):
             "geometry_element"                   : "Triangle",
             "number_of_material"                 : 1,
             "particle_per_element"               : 3,
+            "axis_symmetric_flag"                : false,
             "impenetrability_condition"          : true,
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
@@ -167,6 +168,7 @@ class ParticleMPMSolver(PythonSolver):
         self.pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         self.line_search            = self.settings["line_search"].GetBool()
         self.implex                 = self.settings["implex"].GetBool()
+        self.axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         self.move_mesh_flag         = self.settings["move_mesh_flag"].GetBool()
 
         # Set definition of search element
@@ -181,7 +183,10 @@ class ParticleMPMSolver(PythonSolver):
                 if (self.pressure_dofs):
                     self.new_element = KratosParticle.CreateUpdatedLagragianUP2D3N()
                 else:
-                    self.new_element = KratosParticle.CreateUpdatedLagragian2D3N()
+                    if (self.axis_symmetric_flag):
+                        self.new_element = KratosParticle.CreateUpdatedLagragianAxis2D3N()
+                    else:
+                        self.new_element = KratosParticle.CreateUpdatedLagragian2D3N()
             else:
                 if (self.pressure_dofs):
                     raise Exception("Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented.")
@@ -192,7 +197,10 @@ class ParticleMPMSolver(PythonSolver):
                 if (self.pressure_dofs):
                     raise Exception("Element for mixed U-P formulation in 2D for Quadrilateral Element is not yet implemented.")
                 else:
-                    self.new_element = KratosParticle.CreateUpdatedLagragian2D4N()
+                    if (self.axis_symmetric_flag):
+                        self.new_element = KratosParticle.CreateUpdatedLagragianAxis2D4N()
+                    else:
+                        self.new_element = KratosParticle.CreateUpdatedLagragian2D4N()
             else:
                 if (self.pressure_dofs):
                     raise Exception("Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented.")
