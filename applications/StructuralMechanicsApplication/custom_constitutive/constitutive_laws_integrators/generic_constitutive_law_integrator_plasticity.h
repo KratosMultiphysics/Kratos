@@ -328,8 +328,8 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         // Final check
         if ((std::abs(rTensileIndicatorFactor) + std::abs(rCompressionIndicatorFactor)) < tolerance) {
-            rTensileIndicatorFactor = 0.5;
-            rCompressionIndicatorFactor = 0.5;
+            rTensileIndicatorFactor = 0.0;
+            rCompressionIndicatorFactor = 0.0;
             return;
         }
     }
