@@ -109,7 +109,7 @@ class AleFluidSolver(PythonSolver):
 
     def Initialize(self):
         # Saving the ALE-interface-parts for later
-        # this has to be done AFTER reading the ModelPart
+        # this can only be done AFTER reading the ModelPart
         self.ale_boundary_parts = []
         main_model_part_name = self.settings["fluid_solver_settings"]["model_part_name"].GetString()
 
