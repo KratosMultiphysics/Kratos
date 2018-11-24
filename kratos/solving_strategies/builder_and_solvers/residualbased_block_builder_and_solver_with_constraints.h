@@ -1016,11 +1016,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             double slave_value_calc = 0.0;
             for (IndexType master_index = 0; master_index < master_dofs_vector.size(); master_index++)
             {
-                slave_value_calc += master_dofs_vector[master_index]->GetSolutionStepValue() * relation_matrix(slave_index, master_index);
+                slave_value_calc += master_dofs_vector[master_index]->FastGetSolutionStepValue() * relation_matrix(slave_index, master_index);
             }
             slave_value_calc += constant_vector[slave_index];
             auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_dof->EquationId());
-            global_constraint->second->SetLeftHandSide( slave_dof->GetSolutionStepValue() );
+            global_constraint->second->SetLeftHandSide( slave_dof->FastGetSolutionStepValue() );
             global_constraint->second->UpdateRightHandSide(slave_value_calc);
             slave_index++;
         }
