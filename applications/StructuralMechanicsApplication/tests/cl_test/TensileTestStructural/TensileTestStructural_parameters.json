@@ -3,7 +3,7 @@
         "problem_name"    : "TensileTestStructural",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.847,
-        "end_time"        : 20.0,
+        "end_time"        : 4.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -31,7 +31,10 @@
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Central","Parts_exterior"],
         "processes_sub_model_part_list"      : ["Parts_Central","Parts_exterior","DISPLACEMENT_fijado","DISPLACEMENT_displ"],
-        "rotation_dofs"                      : false
+        "rotation_dofs"                      : false,
+        "linear_solver_settings":{
+            "solver_type": "AMGCL"
+        }
     },
     "processes" : {
         "constraints_process_list" : [{
