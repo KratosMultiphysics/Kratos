@@ -366,12 +366,6 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
     mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-    if(rCurrentProcessInfo[NL_ITERATION_NUMBER] == 1)
-    {
-        this->SetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
-        this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
-    }
-
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
     However, the density and volume (integration weight) are changing every time step.*/

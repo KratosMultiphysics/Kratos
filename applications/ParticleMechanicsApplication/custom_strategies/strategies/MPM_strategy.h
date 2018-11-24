@@ -315,7 +315,6 @@ public:
                         }
 
                         // Setting particle element's initial condition
-                        p_element->SetValue(MP_NUMBER, integration_point_per_elements);
                         p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
                         p_element->SetValue(MP_DENSITY, MP_Density);
                         p_element->SetValue(MP_MASS, MP_Mass);
