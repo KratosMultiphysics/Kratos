@@ -29,7 +29,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         # writing first line in file
         if ( self.write_to_log ):
             with open("ApplyMassConservationCheckProcess.log", "w") as logFile:
-                logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\n" )
+                logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\t" + "interfaceArea" + "\n" )
                 logFile.close()
 
 
@@ -53,18 +53,17 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         if ( updated ):
             posVol = self.MassConservationCheckProcess.GetPositiveVolume()
             negVol = self.MassConservationCheckProcess.GetNegativeVolume()
+            interfaceArea = self.MassConservationCheckProcess.GetInterfaceArea()
             initPosVol = self.MassConservationCheckProcess.GetInitialPositiveVolume()
             initNegVol = self.MassConservationCheckProcess.GetInitialNegativeVolume()
 
             # managing the output to the console
             KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
             KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Interface Area = " + str(interfaceArea) )
             KratosMultiphysics.Logger.Flush()
 
             # adds additional lines to the log file
             if ( self.write_to_log ):
                 with open("ApplyMassConservationCheckProcess.log", "a+") as logFile:
-                    logFile.write( str(posVol) + "\t" + str(negVol) + "\n" )
-
-
-
+                    logFile.write( str(posVol) + "\t" + str(negVol) + "\t" + str(interfaceArea) + "\n" )

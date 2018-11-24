@@ -123,6 +123,16 @@ public:
     double GetNegativeVolume(){
         return mCurrentNegativeVolume;
     };
+
+    /**
+     * @brief Get the Interface Area object to obtain the area of the interface between positve and negative fluid sub domain
+     *
+     * @return double volume
+     */
+    double GetInterfaceArea(){
+        return mCurrentInterfaceArea;
+    };
+
     /**
      * @brief Get the Initial Positive Volume object to obtain the positive volume fraction at the beginning
      *
@@ -140,6 +150,12 @@ public:
     double GetInitialNegativeVolume(){
         return mInitialNegativeVolume;
     };
+
+
+
+    double ComputeInletVolumeFlow();
+
+
 
     // ///@}
     // ///@name Inquiry
@@ -194,6 +210,8 @@ private:
 
     double mCurrentPositiveVolume = -1.0;
 
+    double mCurrentInterfaceArea = -1.0;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -208,7 +226,7 @@ private:
      * @param positiveVolume volume ("Air") with positive distance function (output)
      * @param negativeVolume volume ("Water") with negative distance function (output)
      */
-    void ComputeVolumesOfFluids( double& positiveVolume, double& negativeVolume );
+    void ComputeVolumesOfFluids( double& positiveVolume, double& negativeVolume, double& interfaceArea );
 
     ///@}
     ///@name Private  Access
