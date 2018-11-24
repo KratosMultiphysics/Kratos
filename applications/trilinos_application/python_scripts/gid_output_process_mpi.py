@@ -18,6 +18,7 @@ def Factory(settings, Model):
 class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
 
     def __init__(self,model_part,file_name,param = None):
+        super(GiDOutputProcessMPI, self).__init__(model_part, file_name, param = None)
 
         if param is None:
             param = self.defaults
