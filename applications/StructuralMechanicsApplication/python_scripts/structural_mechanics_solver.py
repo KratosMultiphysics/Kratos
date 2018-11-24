@@ -55,7 +55,8 @@ class MechanicalSolver(PythonSolver):
             "analysis_type": "non_linear",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "skip_timer": true
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
