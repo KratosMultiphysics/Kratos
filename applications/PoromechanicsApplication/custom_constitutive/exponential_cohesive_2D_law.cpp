@@ -26,14 +26,48 @@ void ExponentialCohesive2DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     rVariables.YieldStress = MaterialProperties[YIELD_STRESS];
     this->ComputeCriticalDisplacement(rVariables,rValues);
     rVariables.PenaltyStiffness = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement;
+    // if( rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
+    // {
+    //     rVariables.PenaltyStiffness = 0.0;
+    // }
+    // else // Contact between interfaces
+    // {
+    //     rVariables.PenaltyStiffness = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement;
+    // }
 
     const double MinusNormalStrain = -1.0*StrainVector[1];
     rVariables.CompressionMatrix.resize(2,2);
     noalias(rVariables.CompressionMatrix) = ZeroMatrix(2,2);
     if(std::abs(MinusNormalStrain) > 1.0e-15)
         rVariables.CompressionMatrix(1,1) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
-    else
-        rVariables.CompressionMatrix(1,1) = 0.0;
+    // double Stress0 = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement*StrainVector[0];
+    // double Stress1 = std::exp(1.0)*rVariables.YieldStress/rVariables.CriticalDisplacement*StrainVector[1];
+    // double Tauc = std::abs(Stress1)*MaterialProperties[FRICTION_COEFFICIENT];
+    // this->ComputeDamageVariable(rVariables,rValues);
+    // double Taum = (1.0-mDamageVariable)*rVariables.YieldStress/std::sqrt(3.0);
+    // // ShearStrength = min(Tauc,Taum)
+    // double ShearStrength = Tauc;
+    // if (Taum < ShearStrength)
+    // {
+    //     ShearStrength = Taum;
+    // }
+    // double TangentialStress = std::abs(Stress0);
+    // if(TangentialStress >= ShearStrength)
+    // {
+    //     if(std::abs(MinusNormalStrain) > 1.0e-15)
+    //     {
+    //         rVariables.CompressionMatrix(0,1) = ShearStrength/MinusNormalStrain*this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
+    //         rVariables.CompressionMatrix(1,1) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
+    //     }
+    // }
+    // else
+    // {
+    //     if(std::abs(MinusNormalStrain) > 1.0e-15)
+    //     {
+    //         rVariables.CompressionMatrix(0,0) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
+    //         rVariables.CompressionMatrix(1,1) = rVariables.CompressionMatrix(0,0);
+    //     }
+    // }
 
     const double WeightingParameter = 1.0; // TODO ?
     rVariables.WeightMatrix.resize(2,2);
@@ -41,8 +75,11 @@ void ExponentialCohesive2DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter;
     if(std::abs(StrainVector[1]) > 1.0e-15)
         rVariables.WeightMatrix(1,1) = this->MacaulayBrackets(StrainVector[1])/StrainVector[1];
-    else
-        rVariables.WeightMatrix(1,1) = 0.0;
+    // if(std::abs(StrainVector[1]) > 1.0e-15)
+    // {
+    //     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter*this->MacaulayBrackets(StrainVector[1])/StrainVector[1];
+    //     rVariables.WeightMatrix(1,1) = this->MacaulayBrackets(StrainVector[1])/StrainVector[1];
+    // }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

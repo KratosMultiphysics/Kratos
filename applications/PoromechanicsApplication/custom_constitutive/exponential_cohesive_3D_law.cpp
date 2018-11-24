@@ -21,17 +21,9 @@ int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const 
     // Verify ProcessInfo variables
     KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
 
-    // Verify Properties variables
-    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-    if(rMaterialProperties.Has(YOUNG_MODULUS)) {
-        KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS has an invalid value " << std::endl;
-    } else {
-        KRATOS_ERROR << "YOUNG_MODULUS not defined" << std::endl;
-    }
-
     KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
     if(rMaterialProperties.Has(YIELD_STRESS)) {
-        KRATOS_ERROR_IF(rMaterialProperties[YIELD_STRESS] < 0.0) << "YIELD_STRESS has an invalid value " << std::endl;
+        KRATOS_ERROR_IF(rMaterialProperties[YIELD_STRESS] <= 0.0) << "YIELD_STRESS has an invalid value " << std::endl;
     } else {
         KRATOS_ERROR << "YIELD_STRESS not defined" << std::endl;
     }
@@ -117,8 +109,6 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     noalias(rVariables.CompressionMatrix) = ZeroMatrix(3,3);
     if(std::abs(MinusNormalStrain) > 1.0e-15)
         rVariables.CompressionMatrix(2,2) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
-    else
-        rVariables.CompressionMatrix(2,2) = 0.0;
 
     const double WeightingParameter = 1.0; // TODO ?
     rVariables.WeightMatrix.resize(3,3);
@@ -127,8 +117,6 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     rVariables.WeightMatrix(1,1) = WeightingParameter*WeightingParameter;
     if(std::abs(StrainVector[2]) > 1.0e-15)
         rVariables.WeightMatrix(2,2) = this->MacaulayBrackets(StrainVector[2])/StrainVector[2];
-    else
-        rVariables.WeightMatrix(2,2) = 0.0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -148,7 +136,6 @@ void ExponentialCohesive3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables&
 {
     const Vector& StrainVector = rValues.GetStrainVector();
     const array_1d<double,3> Aux = prod(rVariables.WeightMatrix,StrainVector);
-    rVariables.EquivalentStrain = std::sqrt(inner_prod(StrainVector,Aux));
     const double EquivalentStrain2 = inner_prod(StrainVector,Aux);
     if(EquivalentStrain2 > 0.0)
         rVariables.EquivalentStrain = std::sqrt(EquivalentStrain2);
@@ -163,7 +150,7 @@ void ExponentialCohesive3DLaw::ComputeDamageVariable(ConstitutiveLawVariables& r
 {
     mDamageVariable = 1.0 - std::exp(-mStateVariable/rVariables.CriticalDisplacement)*(1.0+mStateVariable/rVariables.CriticalDisplacement);
 
-    if(mDamageVariable <= 1.0e-11)
+    if(mDamageVariable <= 1.0e-15)
         mDamageVariable = 0.0;
     else if(mDamageVariable > 1.0)
         mDamageVariable = 1.0;

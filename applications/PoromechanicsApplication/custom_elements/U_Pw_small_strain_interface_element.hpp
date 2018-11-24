@@ -192,11 +192,7 @@ protected:
     void CalculateShapeFunctionsGradients(TMatrixType& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
                                             const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                             const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint);
-    //TODO
-    // void ApplyContactDirichletConditions(ConstitutiveLaw::Parameters& rConstitutiveParameters,
-    //                                         const double& NormalRelDisp,
-    //                                         const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
-    //                                         const unsigned int& GPoint);
+
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, InterfaceElementVariables& rVariables);
 
