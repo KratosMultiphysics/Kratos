@@ -57,6 +57,29 @@ namespace Kratos
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
  * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * The system is build in the following manner. A T matrix is assembled and constant vector g is assembled too. The T matrix contains the relations of all the dofs of the system, even the nodes with no master/slave relation. Then the size is n_total x n_red
+ *      The relation u = T u_red
+ * Then:
+ *      A_red = T^t A T
+ *      b_red = T^t (b - A g)
+ * @todo There is a more efficient way to asemble the system, but more costly, which is the following. In this case T will be only a relation matrix between master and slave dofs. Then n_slave x n_master: us = T um + g
+ * Separating into independent dofs, master ans slave dofs:
+ *      u = uu
+ *          um
+ *          us
+ *      A = Auu Aum Aus
+ *          Amu Amm Ams
+ *          Asu Asm Ass
+ *      b = bu
+ *          bm
+ *          bs
+ * Finally:
+ *  A_red = Auu              Aum + Aus T
+ *          Amu + T^t Asu    Amm + T^t Ams^t + Ams T + T^t Ass T
+ *  b_red = bu - Aus g
+ *          bm - Ams g
+ *
+ * This system requires extra care and is more complicated and requires to compute the blocks properly
  * @author Vicente Mataix Ferrandiz
  */
 template <class TSparseSpace,
