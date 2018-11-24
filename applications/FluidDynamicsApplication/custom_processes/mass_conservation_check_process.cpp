@@ -89,15 +89,11 @@ bool MassConservationCheckProcess::GetUpdateStatus(){
 
 /* Private functions ****************************************************/
 
-void MassConservationCheckProcess::ComputeVolumesOfFluids( double& positiveVolume, double& negativeVolume ){
+void MassConservationCheckProcess::ComputeVolumesOfFluids( double& posVol, double& negVol ){
 
     // useless containers
     Matrix rShapeFunctionsPos, rShapeFunctionsNeg;
     GeometryType::ShapeFunctionsGradientsType rShapeDerivativesPos, rShapeDerivativesNeg;
-
-    // abbreviation of variable names
-    double& posVol = positiveVolume;
-    double& negVol = negativeVolume;
 
     // initalisation
     posVol = 0.0;
