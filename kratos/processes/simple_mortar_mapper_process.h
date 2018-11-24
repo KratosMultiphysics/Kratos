@@ -671,7 +671,9 @@ private:
                 Matrix residual_matrix(TNumNodes, size_to_compute);
                 ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, rThisMortarOperators);
 
-                MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                if (!TImplicit) {
+                    MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                }
 
                 // We check if DOperator is diagonal
                 if (mEchoLevel > 1) {

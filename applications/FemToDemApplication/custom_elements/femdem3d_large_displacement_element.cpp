@@ -227,12 +227,6 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
         this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth);
         this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, integrated_stress_vector, integration_weigth);
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
-
-        // Add nodal DEM forces
-		Vector NodalRHS = ZeroVector(mat_size);
-		this->AddDEMContactForces(NodalRHS);
-		// Add nodal contact forces from the DEM
-		noalias(rRightHandSideVector) += NodalRHS;
     }
 } // CalculateLocalSystem
 
