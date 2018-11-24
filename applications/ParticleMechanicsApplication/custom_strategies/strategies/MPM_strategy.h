@@ -284,8 +284,13 @@ public:
 
                     // Evaluation of element area/volume
                     const double area = rGeom.Area();
-
-                    MP_Mass   = area * density / integration_point_per_elements;
+                    if(TDim == 2 && i->GetProperties().Has( THICKNESS )){
+						const double thickness = i->GetProperties()[THICKNESS];
+						MP_Mass = area * thickness * density / integration_point_per_elements;
+					}
+					else {
+                        MP_Mass = area * density / integration_point_per_elements;
+                    }
                     MP_Volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
