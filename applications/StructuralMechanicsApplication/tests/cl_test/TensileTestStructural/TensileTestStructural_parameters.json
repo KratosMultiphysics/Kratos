@@ -3,7 +3,7 @@
         "problem_name"    : "TensileTestStructural",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.847,
-        "end_time"        : 4.0,
+        "end_time"        : 3.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
