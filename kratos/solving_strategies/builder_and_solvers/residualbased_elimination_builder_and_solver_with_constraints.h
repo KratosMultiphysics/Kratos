@@ -942,9 +942,7 @@ protected:
 
         // Count the row sizes
         SizeType nnz = 0;
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-            #pragma omp atomic
+        for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i) {
             nnz += master_indices[i].size();
         }
 
