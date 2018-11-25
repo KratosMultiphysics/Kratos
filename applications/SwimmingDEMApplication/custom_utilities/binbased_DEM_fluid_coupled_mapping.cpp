@@ -453,8 +453,15 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeH
     for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
         NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
         const double area = i_node->GetSolutionStepValue(NODAL_AREA);
-        double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
-        fluid_fraction = 1.0 - fluid_fraction / area;
+		double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
+
+		if (area < 1.0e-15){
+		   fluid_fraction = 1.0;
+		}
+
+        else {
+		  fluid_fraction = 1.0 - fluid_fraction / area;
+		}
     }
 
     if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){ // average current avalue and previous (averaged) value
@@ -1225,14 +1232,15 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
             double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
 
             if (mCouplingType != 4){
-		double nodalFluidVolume=i_node->FastGetSolutionStepValue(NODAL_AREA);
-		if(std::abs(nodalFluidVolume) < 1.0e-12){
-		   fluid_fraction = 1.0;
-		}else{
-		  fluid_fraction = 1.0 - fluid_fraction / nodalFluidVolume;
-		}
-            }
+                double nodalFluidVolume = i_node->FastGetSolutionStepValue(NODAL_AREA);
+                if (nodalFluidVolume < 1.0e-15){
+                    fluid_fraction = 1.0;
+                }
 
+                else {
+                    fluid_fraction = 1.0 - fluid_fraction / nodalFluidVolume;
+                }
+            }
             else {
                 fluid_fraction = 1.0 - fluid_fraction;
             }
@@ -1280,7 +1288,12 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
             const double fluid_density = i_node->FastGetSolutionStepValue(DENSITY);
             double& fluid_mass_fraction = i_node->FastGetSolutionStepValue(PHASE_FRACTION);
             const double total_nodal_mass = nodal_area * fluid_density * fluid_fraction + fluid_mass_fraction;
-            fluid_mass_fraction = 1.0 - fluid_mass_fraction / total_nodal_mass;
+            if (total_nodal_mass < 1.0e-15){
+                fluid_mass_fraction = 1.0;
+            }
+            else {
+                fluid_mass_fraction = 1.0 - fluid_mass_fraction / total_nodal_mass;
+            }
         }
     }
 }
@@ -1517,8 +1530,12 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
         const double fluid_fraction = geom[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION);
         const double nodal_volume   = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA);
         const double density        = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY);
-        const double nodal_mass_inv = mParticlesPerDepthDistance / (fluid_fraction * density * nodal_volume);
-        destination_data            = - nodal_mass_inv * origin_data;
+        double nodal_mass_inv = mParticlesPerDepthDistance;
+        const double denominator = fluid_fraction * density * nodal_volume;
+        if (denominator > 1.0e-15){
+            nodal_mass_inv /= denominator;
+        }
+        destination_data = - nodal_mass_inv * origin_data;
     }
 
     else if (r_origin_variable == VELOCITY){
@@ -1528,7 +1545,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
         const double particles_mass_fraction = 1.0 - geom[i_nearest_node].FastGetSolutionStepValue(PHASE_FRACTION);
         const double total_particles_mass    = particles_mass_fraction / (1.0 - particles_mass_fraction) * fluid_fraction * fluid_density * nodal_fluid_volume;
         const double particle_mass           = p_node->FastGetSolutionStepValue(NODAL_MASS);
-        const double weight = particle_mass / total_particles_mass;
+        double weight = particle_mass;
+        if (total_particles_mass > 1.0e-15){
+            weight /= total_particles_mass;
+        }
         destination_data += weight * origin_data;
     }
 
@@ -1558,14 +1578,19 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             const double& fluid_fraction                    = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
             const double& nodal_volume                      = geom[i].FastGetSolutionStepValue(NODAL_AREA);
             const double& density                           = geom[i].FastGetSolutionStepValue(DENSITY);
-
-            noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / (fluid_fraction * density * nodal_volume) * origin_data;
+            const double denominator = fluid_fraction * density * nodal_volume;
+            if (denominator < 1.0e-15){
+                noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / 1.0 * origin_data;
+            }
+            else {
+                noalias(hydrodynamic_reaction)                 -= mParticlesPerDepthDistance * N[i] / denominator * origin_data;
+            }
 
             if (mTimeAveragingType == 0){
                 noalias(body_force)                         = hydrodynamic_reaction + mGravity;
             }
 
-            else{
+            else {
                 array_1d<double, 3>& mean_hydrodynamic_reaction = geom[i].FastGetSolutionStepValue(MEAN_HYDRODYNAMIC_REACTION);
                 mean_hydrodynamic_reaction                      = std::max(1, mNumberOfDEMSamplesSoFarInTheCurrentFluidStep) * mean_hydrodynamic_reaction;
                 noalias(mean_hydrodynamic_reaction)            += hydrodynamic_reaction;
@@ -1755,7 +1780,13 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             const double fluid_density = neighbours[i]->FastGetSolutionStepValue(DENSITY);
             const double fluid_fraction =  neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
             array_1d<double, 3> contribution;
-            noalias(contribution) = - weights[i] * origin_data / (area * fluid_density * fluid_fraction);
+            const double denominator = area * fluid_density * fluid_fraction;
+            if (denominator < 1.0e-15){
+                noalias(contribution) = - weights[i] * origin_data;
+            }
+            else {
+                noalias(contribution) = - weights[i] * origin_data / denominator;
+            }
             //neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
             array_1d<double, 3>& hydrodynamic_reaction      = neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
             array_1d<double, 3>& body_force                 = neighbours[i]->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
