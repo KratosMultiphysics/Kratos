@@ -90,16 +90,16 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				self.FEM_Solution.model_processes.ExecuteBeforeSolutionLoop()
 				self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
 
-		# Search the skin nodes for the remeshing
-		skin_detection_process_param = KratosMultiphysics.Parameters("""
-        {
-			"name_auxiliar_model_part" : "SkinDEMModelPart",
-			"name_auxiliar_condition"  : "Condition",
-			"echo_level"               : 0
-        }""")
-		skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
-		                                                                   skin_detection_process_param)
-		skin_detection_process.Execute()
+			# Search the skin nodes for the remeshing
+			skin_detection_process_param = KratosMultiphysics.Parameters("""
+			{
+				"name_auxiliar_model_part" : "SkinDEMModelPart",
+				"name_auxiliar_condition"  : "Condition",
+				"echo_level"               : 0
+			}""")
+			skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
+																			skin_detection_process_param)
+			skin_detection_process.Execute()
 
 		self.FEM_Solution.InitializeSolutionStep()
 
