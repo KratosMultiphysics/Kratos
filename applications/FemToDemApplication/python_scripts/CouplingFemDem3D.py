@@ -84,6 +84,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				self.SpheresModelPart.Elements.clear()
 				self.SpheresModelPart.Nodes.clear()
 
+				self.InitializeDummyNodalForces()
+
 				self.InitializeMMGvariables()
 				self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()
 				self.FEM_Solution.model_processes.ExecuteInitialize()
