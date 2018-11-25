@@ -1010,7 +1010,8 @@ protected:
         // Initialize the constant vector
         double aux_constant_value = 0.0;
         const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
-        const bool add_constant_vector = (nl_iteration_number == 1) ? true : false;
+        const IndexType step = r_current_process_info[STEP];
+        const bool add_constant_vector = (nl_iteration_number == 1 && step == 1) ? true : false;
 
         if (add_constant_vector) {
             if (mpConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
@@ -1117,8 +1118,8 @@ protected:
 
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         VectorType rb_copy(rb);
-        VectorType aux_constant_vector(rConstantVector);
         if (add_constant_vector && aux_constant_value > std::numeric_limits<double>::epsilon()) {
+            VectorType aux_constant_vector(rConstantVector);
             TSparseSpace::Mult(rA, rConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
@@ -1515,7 +1516,9 @@ private:
         TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
         // Add the constant vector
         const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
-        const bool add_constant_vector = (nl_iteration_number == 1) ? true : false;
+        const IndexType step = r_current_process_info[STEP];
+        const bool add_constant_vector = (nl_iteration_number == 1 && step == 1) ? true : false;
+
         if (add_constant_vector) {
             TSparseSpace::UnaliasedAdd(rDx, 1.0, rConstantVector);
         }
