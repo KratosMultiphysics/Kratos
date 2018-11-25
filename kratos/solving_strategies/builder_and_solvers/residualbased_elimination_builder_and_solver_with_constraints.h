@@ -375,6 +375,7 @@ protected:
     ///@{
 
     TSystemMatrixPointerType mpTMatrix = NULL;        /// This is matrix containing the global relation for the constraints
+    TSystemMatrixPointerType mpOldAMatrix = NULL;     /// This is matrix containing the old LHS structure
     TSystemVectorPointerType mpConstantVector = NULL; /// This is matrix containing the global relation for the constraints
     DofsArrayType mDoFSlaveSet;                       /// The set containing the slave DoF of the system
     SizeType mDoFToSolveSystemSize = 0;               /// Number of degrees of freedom of the problem to actually be solved
@@ -469,11 +470,11 @@ protected:
 
         // We do the build (after that we resize the solution vector to avoid problems)
         Build(pScheme, rModelPart, rA, rb);
-        rDx.resize(mDoFToSolveSystemSize, false);
 
         Timer::Stop("Build");
 
         // Now we apply the BC (in the elmination B&S does nothing)
+        rDx.resize(mDoFToSolveSystemSize, false);
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) <<
@@ -1128,6 +1129,12 @@ protected:
         TSystemMatrixType auxiliar_A_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
         SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix);
 
+        // We do a backup of the matrix before apply the constraints
+        if (mpOldAMatrix == NULL) { // If the pointer is not initialized initialize it to an empty matrix
+            TSystemMatrixPointerType pNewOldAMatrix = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
+            mpOldAMatrix.swap(pNewOldAMatrix);
+        }
+        (*mpOldAMatrix).swap(rA);
         // We resize of system of equations
         rA.resize(mDoFToSolveSystemSize, mDoFToSolveSystemSize, false);
         rb.resize(mDoFToSolveSystemSize, false);
@@ -1539,9 +1546,9 @@ private:
             // Final multiplication
             SparseMatrixMultiplicationUtility::MatrixMultiplication(rTMatrix, auxiliar_A_matrix, rA);
         } else {
-            // Simply resize and reconstruct matrix structure
-            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(pScheme, rA, rModelPart);
+            // Simply restore old LHS
+            (rA).swap(*mpOldAMatrix);
+            mpOldAMatrix = NULL;
         }
 
         // Reconstruct the RHS
