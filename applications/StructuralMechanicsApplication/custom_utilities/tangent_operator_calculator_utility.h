@@ -424,7 +424,7 @@ private:
         const IndexType Component
         )
     {
-        rPerturbedStrainVector = rStrainVectorGP;
+        noalias(rPerturbedStrainVector) = rStrainVectorGP;
         rPerturbedStrainVector[Component] += Perturbation;
     }
 
@@ -444,7 +444,7 @@ private:
         const IndexType ComponentJ
         )
     {
-        rPerturbedDeformationGradient = rDeformationGradientGP;
+        noalias(rPerturbedDeformationGradient) = rDeformationGradientGP;
         rPerturbedDeformationGradient(ComponentI, ComponentJ) += Perturbation;
     }
 
