@@ -74,7 +74,7 @@ public:
     static constexpr double PerturbationCoefficient2 = 1.0e-10;
 
     // Definition of the perturbation threshold
-    static constexpr double PerturbationThreshold = 1.0e-6;
+    static constexpr double PerturbationThreshold = 1.0e-8;
 
     ///@}
     ///@name Life Cycle
