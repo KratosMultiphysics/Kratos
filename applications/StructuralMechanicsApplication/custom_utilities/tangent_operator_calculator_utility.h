@@ -104,7 +104,86 @@ public:
      */
     static void CalculateTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw *pConstitutiveLaw,
+        ConstitutiveLaw* pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
+        const bool ConsiderPertubationThreshold = true
+        )
+    {
+        // Ensure the proper flag
+        Flags& cl_options = rValues.GetOptions();
+        const bool use_element_provided_strain = cl_options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        if (use_element_provided_strain) {
+            CalculateTangentTensorProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold);
+        } else {
+            CalculateTangentTensorNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold);
+        }
+    }
+
+    /**
+     * @brief Main method that computes the tangent tensor (provided strain)
+     * @param rValues The properties of the CL
+     * @param pConstitutiveLaw Pointer to the CL
+     * @param rStressMeasure The stress measure of the law
+     */
+    static void CalculateTangentTensorProvidedStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw* pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
+        const bool ConsiderPertubationThreshold = true
+        )
+    {
+        // Converged values to be storaged
+        const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
+        const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
+
+        // The constitutive tensor
+        Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+        r_tangent_tensor.clear();
+        Matrix auxiliar_tensor = ZeroMatrix(6,6);
+
+        const SizeType num_components = unperturbed_strain_vector_gp.size();
+
+        // Calculate the perturbation
+        double pertubation;
+        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+            double component_perturbation;
+            CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
+            pertubation = std::max(component_perturbation, pertubation);
+        }
+        // We check that the perturbation has a threshold value of PerturbationThreshold
+        if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+
+        // Loop over components of the strain
+        Vector& r_perturbed_strain = rValues.GetStrainVector();
+        Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
+        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+            // Apply the perturbation
+            PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
+
+            // We continue with the calculations
+            IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+            // Compute tangent moduli
+            const Vector& delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
+            ComputeComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, i_component);
+
+            // Reset the values to the initial ones
+            noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+            noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+        }
+        noalias(r_tangent_tensor) = auxiliar_tensor;
+    }
+
+    /**
+     * @brief Main method that computes the tangent tensor (not provided strain)
+     * @param rValues The properties of the CL
+     * @param pConstitutiveLaw Pointer to the CL
+     * @param rStressMeasure The stress measure of the law
+     */
+    static void CalculateTangentTensorNotProvidedStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw* pConstitutiveLaw,
         const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
         const bool ConsiderPertubationThreshold = true
         )
@@ -121,10 +200,6 @@ public:
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
         Matrix auxiliar_tensor = ZeroMatrix(6,6);
-
-        // Ensure the proper flag
-        Flags& cl_options = rValues.GetOptions();
-        const bool use_element_provided_strain = cl_options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         const SizeType num_components = unperturbed_strain_vector_gp.size();
 
@@ -148,11 +223,9 @@ public:
             PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
 
             // In case the element uses F as input instead of the strain vector
-            if (!use_element_provided_strain) {
-                noalias(r_perturbed_deformation_gradient) = ComputeEquivalentDeformationGradient(rValues);
-                // Reset the values to the initial ones
-                r_perturbed_det_deformation_gradient = MathUtils<double>::DetMat(r_perturbed_deformation_gradient);
-            }
+            noalias(r_perturbed_deformation_gradient) = ComputeEquivalentDeformationGradient(rValues);
+            // Reset the values to the initial ones
+            r_perturbed_det_deformation_gradient = MathUtils<double>::DetMat(r_perturbed_deformation_gradient);
 
             // We continue with the calculations
             IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
@@ -165,12 +238,9 @@ public:
             noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
             noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
 
-            // In case the element uses F as input instead of the strain vector
-            if (!use_element_provided_strain){
-                // Reset the values to the initial ones
-                noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
-                r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
-            }
+            // In case the element uses F as input instead of the strain vector. Reset the values to the initial ones
+            noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
+            r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
         }
         noalias(r_tangent_tensor) = auxiliar_tensor;
     }
@@ -183,7 +253,7 @@ public:
      */
     static void CalculateTangentTensorFiniteDeformation(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw *pConstitutiveLaw,
+        ConstitutiveLaw* pConstitutiveLaw,
         const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_PK2,
         const bool ConsiderPertubationThreshold = true
         )
@@ -413,7 +483,7 @@ private:
      */
     static void IntegratePerturbedStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw *pConstitutiveLaw,
+        ConstitutiveLaw* pConstitutiveLaw,
         const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
         )
     {
