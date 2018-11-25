@@ -138,7 +138,6 @@ void UpdatedLagrangianUP::Initialize()
 
     // Initialize constitutive law and materials
     InitializeMaterial();
-    this->GetValue(MP_DENSITY) = GetProperties()[DENSITY];
 
     KRATOS_CATCH( "" )
 }

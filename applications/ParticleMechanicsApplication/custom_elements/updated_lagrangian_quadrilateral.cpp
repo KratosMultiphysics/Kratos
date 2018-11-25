@@ -177,7 +177,6 @@ void UpdatedLagrangianQuadrilateral::Initialize()
 
     this->SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
     this->SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
-    this->SetValue(MP_DENSITY, GetProperties()[DENSITY]);
 
     KRATOS_CATCH( "" )
 }
