@@ -163,20 +163,26 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     // Initialize constitutive law and materials
     InitializeMaterial();
 
+    double MP_PotentialEnergy = 0.0;
     double MP_KineticEnergy = 0.0;
     double MP_StrainEnergy = 0.0;
 
     for(unsigned int k = 0; k<3; k++)
     {
-        MP_KineticEnergy += 0.5 * this->GetValue(MP_MASS) * this->GetValue(MP_VELOCITY)[k] * this->GetValue(MP_VELOCITY)[k] ;
+        MP_PotentialEnergy += this->GetValue(MP_MASS) * this->GetValue(MP_VOLUME_ACCELERATION)[k] * this->GetValue(GAUSS_COORD)[k];
+        MP_KineticEnergy   += 0.5 * this->GetValue(MP_MASS) * this->GetValue(MP_VELOCITY)[k] * this->GetValue(MP_VELOCITY)[k] ;
     }
     for(unsigned int j = 0; j < this->GetValue(MP_CAUCHY_STRESS_VECTOR).size(); j++)
     {
         MP_StrainEnergy +=  0.5 * this->GetValue(MP_VOLUME) * this->GetValue(MP_CAUCHY_STRESS_VECTOR)[j] * this->GetValue(MP_ALMANSI_STRAIN_VECTOR)[j];
     }
 
+    double MP_TotalEnergy = MP_PotentialEnergy + MP_KineticEnergy + MP_StrainEnergy;
+
+    this->SetValue(MP_POTENTIAL_ENERGY, MP_PotentialEnergy);
     this->SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
     this->SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
+    this->SetValue(MP_TOTAL_ENERGY, MP_StrainEnergy);
 
     KRATOS_CATCH( "" )
 }
