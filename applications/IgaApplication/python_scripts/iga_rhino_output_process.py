@@ -7,9 +7,9 @@ import KratosMultiphysics.IgaApplication as IgaApplication
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return IGA_IO_Process(Model, settings)
+    return IgaRhinoOutputProcess(Model, settings)
 
-class IGA_IO_Process(KratosMultiphysics.Process):
+class IgaRhinoOutputProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, params):
 
@@ -18,13 +18,13 @@ class IGA_IO_Process(KratosMultiphysics.Process):
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "nodal_results"            : [],
-            "gauss_point_results": [],
-            "output_file_name"         : "",
-            "model_part_name"          : "",
-            "file_label"               : "step",
-            "output_control_type"      : "step",
-            "output_frequency"         : 1.0
+            "nodal_results"             : [],
+            "integration_point_results" : [],
+            "output_file_name"          : "",
+            "model_part_name"           : "",
+            "file_label"                : "step",
+            "output_control_type"       : "step",
+            "output_frequency"          : 1.0
         }
         """)
 
