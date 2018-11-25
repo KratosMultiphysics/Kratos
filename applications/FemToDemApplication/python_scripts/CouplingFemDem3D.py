@@ -782,6 +782,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		erased_nodes_id = []
 		conditions_to_erase_id = []
 
+		for node in FEM_Nodes:
+			node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
+
 		for Element in FEM_Elements:
 			for i in range(0, 4): # Loop over nodes of the element
 				node = Element.GetNodes()[i]
@@ -794,6 +797,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
 			if NumberOfActiveElements == 0 and node.GetValue(KratosFemDem.INACTIVE_NODE) == False:
 				Id = node.Id
+				print("nodo eliminado: ", Id)
 				DEMnode = self.SpheresModelPart.GetNode(Id)
 				node.SetValue(KratosFemDem.INACTIVE_NODE, True)
 				node.Set(KratosMultiphysics.TO_ERASE, True) # added
