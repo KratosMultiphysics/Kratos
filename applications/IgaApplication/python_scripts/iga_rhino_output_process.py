@@ -1,18 +1,15 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.IgaApplication as IgaApplication
 
-
-def Factory(settings, Model):
+def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return IgaRhinoOutputProcess(Model, settings)
+    return IgaRhinoOutputProcess(model, settings)
 
 class IgaRhinoOutputProcess(KratosMultiphysics.Process):
 
-    def __init__(self, Model, params):
-
+    def __init__(self, model, params):
         KratosMultiphysics.Process.__init__(self)
 
         ## Settings string in json format
@@ -32,7 +29,7 @@ class IgaRhinoOutputProcess(KratosMultiphysics.Process):
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = model[settings["model_part_name"].GetString()]
 
         self.output_file_name = self.params["output_file_name"].GetString()
 
@@ -58,8 +55,9 @@ class IgaRhinoOutputProcess(KratosMultiphysics.Process):
         elif output_control_type == "step":
             self.output_control_is_time = False
         else:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
-            raise Exception(msg)
+            err_msg  = 'The requested "output_control_type" "' + output_control_type
+            err_msg += '" is not available!\nAvailable options are: "time", "step"'
+            raise Exception(err_msg)
 
         self.frequency = self.params["frequency"].GetDouble()
 
@@ -67,71 +65,69 @@ class IgaRhinoOutputProcess(KratosMultiphysics.Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
         with open(self.output_file_name, 'w') as output_file:
             output_file.write("Rhino Post Results File 1.0\n")
 
-    def ExecuteFinalizeSolutionStep(self):
-        if this._IsOutputStep:
-            # Print the output
-            time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
-            self.printed_step_count += 1
-            self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
-            if self.output_label_is_time:
-                label = time
-            else:
-                label = self.printed_step_count
+    def PrintOutput(self):
+        time = GetPrettyTime(self.model_part.ProcessInfo[TIME])
+        self.printed_step_count += 1
+        self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
+        if self.output_label_is_time:
+            label = time
+        else:
+            label = self.printed_step_count
 
-            with open(self.output_file_name, 'a') as output_file:
-                for variable in range(self.nodal_results_scalar.size()):
-                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnNodes\n" + "Values\n")
-                    for node in self.model_part.Nodes:
-                        value = node.GetSolutionStepValue(variable, 0)
-                        output_file.write(str(node.Id) + "  " + str(value) + "\n")
-                    output_file.write("End Values\n")
+        with open(self.output_file_name, 'a') as output_file:
+            for variable in range(self.nodal_results_scalar.size()):
+                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnNodes\nValues\n")
+                for node in self.model_part.Nodes:
+                    value = node.GetSolutionStepValue(variable, 0)
+                    output_file.write(str(node.Id) + "  " + str(value) + "\n")
+                output_file.write("End Values\n")
 
-                for variable in range(self.nodal_results_vector.size()):
-                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnNodes\n" + "Values\n")
-                    for node in self.model_part.Nodes:
-                        value = node.GetSolutionStepValue(variable, 0)
-                        output_file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
-                    output_file.write("End Values\n")
+            for variable in range(self.nodal_results_vector.size()):
+                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnNodes\nValues\n")
+                for node in self.model_part.Nodes:
+                    value = node.GetSolutionStepValue(variable, 0)
+                    output_file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                output_file.write("End Values\n")
 
-                for variable in range(self.integration_point_results_scalar.size()):
-                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnGaussPoints\n" + "Values\n")
-                    for element in self.model_part.Elements:
-                        value = element.Calculate(variable, self.model_part.ProcessInfo)
-                        output_file.write(str(element.Id) + "  " + str(value) + "\n")
-                    output_file.write("End Values\n")
+            for variable in range(self.integration_point_results_scalar.size()):
+                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnGaussPoints\nValues\n")
+                for element in self.model_part.Elements:
+                    value = element.Calculate(variable, self.model_part.ProcessInfo)
+                    output_file.write(str(element.Id) + "  " + str(value) + "\n")
+                output_file.write("End Values\n")
 
-                for variable in range(self.integration_point_results_vector.size()):
-                    output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\n" + "Values\n")
-                    for element in self.model_part.Elements:
-                        value = element.Calculate(variable, self.model_part.ProcessInfo)
-                        output_file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
-                    output_file.write("End Values\n")
+            for variable in range(self.integration_point_results_vector.size()):
+                output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\nValues\n")
+                for element in self.model_part.Elements:
+                    value = element.Calculate(variable, self.model_part.ProcessInfo)
+                    output_file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
+                output_file.write("End Values\n")
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
-                while self.__get_pretty_time(self.next_output) <= time:
+                while GetPrettyTime(self.next_output) <= time:
                     self.next_output += self.output_frequency
             else:
                 while self.next_output <= self.step_count:
                     self.next_output += self.output_frequency
 
+    def IsOutputStep(self):
 
-    def _IsOutputStep(self):
         if self.output_control_is_time:
-            time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
-            return (time >= self.__get_pretty_time(self.next_output))
+            time = GetPrettyTime(self.model_part.ProcessInfo[TIME])
+            return (time >= GetPrettyTime(self.next_output))
         else:
             return ( self.step_count >= self.next_output )
 
-    def __get_pretty_time(self,time):
-        pretty_time = "{0:.12g}".format(time)
-        pretty_time = float(pretty_time)
-        return pretty_time
+def GetPrettyTime(self,time):
+    pretty_time = "{0:.12g}".format(time)
+    pretty_time = float(pretty_time)
+    return pretty_time
 
 def CreateVariablesListFromInput(param):
     '''Parse a list of variables from input.'''
