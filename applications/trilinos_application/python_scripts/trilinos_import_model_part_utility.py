@@ -46,9 +46,11 @@ class TrilinosImportModelPartUtility():
             if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
                 if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
                     import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
+            skip_timer = True
             if model_part_import_settings.Has("skip_timer"):
-                if model_part_import_settings["skip_timer"].GetBool():
-                    import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
+                skip_timer = model_part_import_settings["skip_timer"].GetBool()
+            if skip_timer:
+                import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
 
             # Select the partitioning method (File by default)
             partition_in_memory = False
