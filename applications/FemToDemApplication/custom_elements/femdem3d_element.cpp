@@ -240,9 +240,6 @@ void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	this->ResetNonConvergedVars();
 	this->SetValue(DAMAGE_ELEMENT, damage_element);
 	this->SetValue(STRESS_THRESHOLD, this->GetMaxValue(this->GetThresholds()));
-
-	// Reset the nodal force flag for the next time step
-	Geometry<Node<3>> &NodesElement = this->GetGeometry();
 }
 
 void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
