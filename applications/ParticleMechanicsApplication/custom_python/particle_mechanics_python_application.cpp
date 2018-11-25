@@ -87,7 +87,7 @@ namespace Python{
         m.def("CreateUpdatedLagragian3D8N", &CreateUpdatedLagragian3D8N);
 
         // Registering variables in python
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  GAUSS_COORD );
+        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  MP_COORD );
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_MASS);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_DENSITY);
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_VOLUME);
