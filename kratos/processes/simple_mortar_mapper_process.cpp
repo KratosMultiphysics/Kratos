@@ -172,33 +172,27 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Chec
 
         // A list that contents the all the points (from nodes) from the modelpart
         PointVector point_list_destination;
-
         point_list_destination.clear();
 
         // Iterate in the conditions
         ConditionsArrayType& origin_conditions_array = mOriginModelPart.Conditions();
 
-        // Creating a buffer for parallel vector fill
-        const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<PointVector> points_buffer(num_threads);
-
         #pragma omp parallel
         {
-            const int thread_id = OpenMPUtils::ThisThread();
+            PointVector points_buffer;
 
             #pragma omp for
             for(int i = 0; i < static_cast<int>(origin_conditions_array.size()); ++i) {
                 auto it_cond = origin_conditions_array.begin() + i;
 
                 const PointTypePointer& p_point = PointTypePointer(new PointMapperType((*it_cond.base())));
-                (points_buffer[thread_id]).push_back(p_point);
+                (points_buffer).push_back(p_point);
             }
 
             // Combine buffers together
-            #pragma omp single
+            #pragma omp critical
             {
-                for( auto& point_buffer : points_buffer)
-                    std::move(point_buffer.begin(),point_buffer.end(),back_inserter(point_list_destination));
+                std::move(points_buffer.begin(),points_buffer.end(),back_inserter(point_list_destination));
             }
         }
 
