@@ -17,41 +17,10 @@ def Factory(settings, Model):
 
 class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
 
-    def __init__(self,model_part,file_name,param = None):
-        super(GiDOutputProcessMPI, self).__init__(model_part, file_name, param = None)
-
-        if param is None:
-            param = self.defaults
-        else:
-            # Note: this only validadtes the first level of the JSON tree.
-            # I'm not going for recursive validation because some branches may
-            # not exist and I don't want the validator assinging defaults there.
-            param.ValidateAndAssignDefaults(self.defaults)
-
-        self.param = param
+    def __init__(self, model_part, file_name, param=None):
+        super(GiDOutputProcessMPI, self).__init__(model_part, file_name, param)
         self.serial_file_name = file_name
-        self.base_file_name = file_name + "_" + str(mpi.rank)
-
-        self.model_part = model_part
-        self.body_io = None
-        self.volume_list_files = []
-
-        # The following are only used if we asked to print results on surfaces
-        self.cut_model_part = None
-        self.cut_io = None
-        self.output_surface_index = 0
-        self.cut_list_files = []
-
-        point_data_configuration = self.param["point_data_configuration"]
-        if point_data_configuration.size() > 0:
-            import point_output_process
-            self.point_output_process = point_output_process.PointOutputProcess(self.model_part,point_data_configuration)
-        else:
-            self.point_output_process = None
-
-        self.step_count = 0
-        self.printed_step_count = 0
-        self.next_output = 0.0
+        self.base_file_name += "_" + str(mpi.rank) # overwriting the one from the baseclass
 
     # Note: I need to reimplement this just to be able to call the correct function to write the listfile
     def ExecuteInitialize(self):
