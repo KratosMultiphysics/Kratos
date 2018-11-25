@@ -10,7 +10,7 @@ def Factory(settings, Model):
     return IGA_IO_Process(Model, settings)
 
 class IGA_IO_Process(KratosMultiphysics.Process):
-  
+
     def __init__(self, Model, params):
 
         KratosMultiphysics.Process.__init__(self)
@@ -27,7 +27,7 @@ class IGA_IO_Process(KratosMultiphysics.Process):
             "output_frequency"         : 1.0
         }
         """)
-        
+
         ## Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
@@ -69,7 +69,7 @@ class IGA_IO_Process(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         with open(self.output_file_name, 'w') as output_file:
-            output_file.write("Rhino Post Results File 1.0\n") 
+            output_file.write("Rhino Post Results File 1.0\n")
 
     def ExecuteFinalizeSolutionStep(self):
         if this._IsOutputStep:
@@ -134,18 +134,22 @@ class IGA_IO_Process(KratosMultiphysics.Process):
         return pretty_time
 
 def CreateVariablesListFromInput(param):
+    '''Parse a list of variables from input.'''
     scalar_variables = []
     vector_variables = []
-    '''Parse a list of variables from input.'''
+    addmissible_scalar_types = ["Bool", "Integer", "Unsigned Integer", "Double", "Component"]
+    addmissible_vector_types = ["Array", "Vector"]
+
     # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
     for i in range(param.size()):
-        variable = KratosMultiphysics.KratosGlobals.GetVariable(param[i].GetString())
-        var_tape = KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name())
-        if var_tape in ["Matrix", "Flag", "NONE"]:
-            raise Exception("unsupported variables type")
-        elif var_type in ["Array", "Vector"]:
+        var_name = param[i].GetString()
+        variable = KratosMultiphysics.KratosGlobals.GetVariable(var_name)
+        var_type = KratosMultiphysics.KratosGlobals.GetVariableType(var_name)
+        if var_type in addmissible_scalar_types:
+            scalar_variables.append(variable)
+        elif var_type in addmissible_vector_types:
             vector_variables.append(variable)
         else:
-            scalar_variables.append(variable)
+            raise Exception("unsupported variables type: " + var_type)
 
     return scalar_variables, vector_variables
