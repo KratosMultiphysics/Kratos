@@ -374,9 +374,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TSystemMatrixPointerType mpTMatrix = NULL; /// This is matrix containing the global relation for the constraints
-    DofsArrayType mDoFSlaveSet;                /// The set containing the slave DoF of the system
-    SizeType mDoFToSolveSystemSize = 0;        /// Number of degrees of freedom of the problem to actually be solved
+    TSystemMatrixPointerType mpTMatrix = NULL;        /// This is matrix containing the global relation for the constraints
+    TSystemVectorPointerType mpConstantVector = NULL; /// This is matrix containing the global relation for the constraints
+    DofsArrayType mDoFSlaveSet;                       /// The set containing the slave DoF of the system
+    SizeType mDoFToSolveSystemSize = 0;               /// Number of degrees of freedom of the problem to actually be solved
 
     bool mCleared = true;           /// If the system has been reseted
     bool mReassembleLHS = false;    /// If the LHS must be reconstructed after computing
@@ -997,8 +998,35 @@ protected:
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
 
-        // We build the global T matrix
+        // The current process info
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Initialize the constant vector
+        double aux_constant_value = 0.0;
+        const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
+        const bool add_constant_vector = (nl_iteration_number == 1) ? true : false;
+
+        if (add_constant_vector) {
+            if (mpConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
+                TSystemVectorPointerType pNewConstantVector = TSystemVectorPointerType(new TSystemVectorType(0));
+                mpConstantVector.swap(pNewConstantVector);
+            }
+            if (mpConstantVector->size() != BaseType::mEquationSystemSize) {
+                mpConstantVector->resize(BaseType::mEquationSystemSize, false);
+            }
+        }
+
+        // We build the global T matrix and the g constant vector
         TSystemMatrixType& rTMatrix = *mpTMatrix;
+        TSystemVectorType& rConstantVector = *mpConstantVector;
+
+        // Filling constant vector
+        if (add_constant_vector) {
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                rConstantVector[i] = 0.0;
+            }
+        }
 
         // We compute only once (or if cleared)
         if (mCleared) {
@@ -1032,9 +1060,6 @@ protected:
 
             #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
             {
-                // The current process info
-                ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
                 #pragma omp for schedule(guided, 512)
                 for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                     auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
@@ -1055,6 +1080,20 @@ protected:
                             id = solvable_dof_reorder[id];
                         }
 
+                        if (add_constant_vector) {
+                            for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
+                                const IndexType i_global = slave_equation_id[i];
+                                if (i_global < BaseType::mEquationSystemSize) {
+                                    double& value = rConstantVector[i_global];
+                                    const double constant_value = constant_vector[i];
+                                    #pragma omp atomic
+                                    value += constant_value;
+                                    #pragma omp atomic
+                                    aux_constant_value += std::abs(constant_value);
+                                }
+                            }
+                        }
+
                         // Assemble the constraint contribution
                     #ifdef USE_LOCKS_IN_ASSEMBLY
                         AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, BaseType::mLockArray);
@@ -1070,20 +1109,25 @@ protected:
         TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
         SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
 
+        // The proper way to include the constants is in the RHS as T^t(f - A * g)
+        VectorType rb_copy(rb);
+        VectorType aux_constant_vector(rConstantVector);
+        if (add_constant_vector && aux_constant_value > std::numeric_limits<double>::epsilon()) {
+            TSparseSpace::Mult(rA, rConstantVector, aux_constant_vector);
+            TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
+        }
+
         // The auxiliar matrix to store the intermediate matrix multiplication
         TSystemMatrixType auxiliar_A_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
         SparseMatrixMultiplicationUtility::MatrixMultiplication(T_transpose_matrix, rA, auxiliar_A_matrix);
 
         // We resize of system of equations
         rA.resize(mDoFToSolveSystemSize, mDoFToSolveSystemSize, false);
-        VectorType rb_copy(rb);
         rb.resize(mDoFToSolveSystemSize, false);
 
         // Final multiplication
         SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, rTMatrix, rA);
         TSparseSpace::Mult(T_transpose_matrix, rb_copy, rb);
-
-        // TODO: The proper way to include the constants os in the RHS as T^t(f - A * c) -> Include the constants once the problem of the delta is solved
 
         const double stop_build = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Constraint relation build time and multiplication: " << stop_build - start_build << std::endl;
@@ -1364,6 +1408,12 @@ protected:
 
         mDoFSlaveSet = DofsArrayType();
 
+        // Clear constraint system
+        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        rTMatrix.resize(0, 0, false);
+        TSystemVectorType& rConstantVector = *mpConstantVector;
+        rConstantVector.resize(0, false);
+
         // Set the flag
         mCleared = true;
 
@@ -1446,13 +1496,23 @@ private:
     {
         KRATOS_TRY
 
-        // We get the global T matrix
+        // We get the global T matrix and the constant vector
         TSystemMatrixType& rTMatrix = *mpTMatrix;
+        TSystemVectorType& rConstantVector = *mpConstantVector;
+
+        // The current process info
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // We reconstruct the complete vector of Unknowns
         VectorType Dx_copy(rDx);
         rDx.resize(BaseType::mEquationSystemSize);
         TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
+        // Add the constant vector
+        const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
+        const bool add_constant_vector = (nl_iteration_number == 1) ? true : false;
+        if (add_constant_vector) {
+            TSparseSpace::UnaliasedAdd(rDx, 1.0, rConstantVector);
+        }
 
         // We reconstruct the LHS
         if (mReassembleLHS) {
@@ -1479,41 +1539,6 @@ private:
         VectorType rb_copy(rb);
         rb.resize(BaseType::mEquationSystemSize, false);
         TSparseSpace::Mult(rTMatrix, rb_copy, rb);
-
-        // TODO: Remember that the constants are compued in the building side too
-        // TODO: Should be applied only once, because it is increment of the Unknowns (to solve later)
-//         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-//
-//         // Getting the beginning iterator
-//         const auto it_constraints_begin = rModelPart.MasterSlaveConstraints().begin();
-//
-//         // Contributions to the system
-//         LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
-//         LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-//
-//         // Vector containing the localization in the system of the different terms
-//         EquationIdVectorType slave_equation_id, master_equation_id;
-//
-//         // The current process info
-//         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-//
-//         #pragma omp parallel for schedule(guided, 512) firstprivate(slave_equation_id, master_equation_id, transformation_matrix, constant_vector)
-//         for (int i_constraints = 0; i_constraints < number_of_constraints; ++i_constraints) {
-//             auto it_const = it_constraints_begin;
-//             std::advance(it_const, i_constraints);
-//
-//             // Get the equation Ids of the constraint
-//             it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
-//
-//             // Get constraint's T and b matrices
-//             it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-//
-//             IndexType counter = 0;
-//             for (auto id : slave_equation_id) {
-//                 rDx[id] += constant_vector[counter];
-//                 ++counter;
-//             }
-//         }
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
     }
