@@ -1423,10 +1423,10 @@ protected:
         mDoFSlaveSet = DofsArrayType();
 
         // Clear constraint system
-        TSystemMatrixType& rTMatrix = *mpTMatrix;
-        rTMatrix.resize(0, 0, false);
-        TSystemVectorType& rConstantVector = *mpConstantVector;
-        rConstantVector.resize(0, false);
+        if (mpTMatrix != nullptr)
+            TSparseSpace::Clear(mpTMatrix);
+        if (mpConstantVector != nullptr)
+            TSparseSpace::Clear(mpConstantVector);
 
         // Set the flag
         mCleared = true;
