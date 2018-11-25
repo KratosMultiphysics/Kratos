@@ -1,35 +1,29 @@
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication as IgaApplication
-from math import *
+import math needed?
 
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
 import random
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ShowIntegrationDomain(Model, settings["Parameters"])
+    return PlotIntegrationDomain(model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class ShowIntegrationDomain(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+class PlotIntegrationDomain(KratosMultiphysics.Process):
+    def __init__(self, model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "mesh_id"         : 0,
-                "model_part_name" : "please_specify_model_part_name",
-                "store_plots"     : true
-            }
-            """
-            )
+        default_settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "please_specify_model_part_name",
+            "store_plots"     : true
+        }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
-
-        self.aux_processes = []
+        self.model_part = model[settings["model_part_name"].GetString()]
 
     def ExecuteInitialize(self):
         fig = pyplot.figure()

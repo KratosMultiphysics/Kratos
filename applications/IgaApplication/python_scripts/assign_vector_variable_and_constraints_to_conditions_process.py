@@ -1,15 +1,16 @@
 import KratosMultiphysics
-from KratosMultiphysics.IgaApplication import *
-from math import *
+import KratosMultiphysics.IgaApplication as KratosIga
+import math
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorVariableAndConstraintsToConditionProcess(Model, settings["Parameters"])
+    return AssignVectorVariableAndConstraintsToConditionProcess(model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    The name should not contain "Constraint"
+    def __init__(self, model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
@@ -39,7 +40,7 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
             msg = "Error in AssignVectorToConditionProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = model[settings["model_part_name"].GetString()]
 
         self.aux_processes = []
 
@@ -96,9 +97,10 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
             KratosMultiphysics.VariableUtils().SetFlag(the_flag, True, self.model_part.Conditions)
         else:
             flag_name = "KratosMultiphysics.IgaApplication.IGAFlags.FIX_" + settings["variable_name"].GetString() + "_Z"
-            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
+            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name) I think this does not work, I think only the name should be passed
             KratosMultiphysics.VariableUtils().SetFlag(the_flag, False, self.model_part.Conditions)
 
+TODO missing the calls in the other processes-functions
 
     def ExecuteInitializeSolutionStep(self):
         for process in self.aux_processes:
