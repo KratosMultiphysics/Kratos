@@ -36,7 +36,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			self.RemeshingProcessMMG.ExecuteInitialize()
 
         # for the dem contact forces coupling
-        self.InitializeDummyNodalForces()
+		self.InitializeDummyNodalForces()
 
 		print(" /$$$$$$$$ /$$$$$$$$ /$$      /$$  /$$$$$$  /$$$$$$$  /$$$$$$$$ /$$      /$$")
 		print("| $$_____/| $$_____/| $$$    /$$$ /$$__  $$| $$__  $$| $$_____/| $$$    /$$$")
@@ -779,8 +779,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		FEM_Elements = self.FEM_Solution.main_model_part.Elements
 		FEM_Nodes    = self.FEM_Solution.main_model_part.Nodes
-        erased_nodes_id = []
-        conditions_to_erase_id = []
+		erased_nodes_id = []
+		conditions_to_erase_id = []
 
 		for Element in FEM_Elements:
 			for i in range(0, 4): # Loop over nodes of the element
@@ -801,16 +801,16 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				DEMnode.Set(KratosMultiphysics.TO_ERASE, True)
 				erased_nodes_id.append(Id)
 
-                for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
-                    if condition.GetNodes()[0].Id == Id:
-                        conditions_to_erase_id.append(condition.Id)
+				for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
+					if condition.GetNodes()[0].Id == Id:
+						conditions_to_erase_id.append(condition.Id)
 
 			# Reset the value to the next step
 			node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
 
         # let's remove the nodal dem conditions according to inactive nodes
-        for Id in conditions_to_erase_id:
-            self.FEM_Solution.main_model_part.RemoveCondition(Id)
+		for Id in conditions_to_erase_id:
+			self.FEM_Solution.main_model_part.RemoveCondition(Id)
 
 		# Remove inactive nodes
 		self.SpheresModelPart.RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
