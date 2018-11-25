@@ -47,7 +47,7 @@ class Solution(object):
 
     @classmethod
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
-        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
+        return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid, IO.SKIP_TIMER)
 
     @classmethod
     def GetMainPath(self):
