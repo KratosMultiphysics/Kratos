@@ -90,6 +90,7 @@ class TestIgaRhinoOutputProcess(KratosUnittest.TestCase):
         post_eigen_process.ExecuteInitializeSolutionStep()
         post_eigen_process.ExecuteFinalizeSolutionStep()
         post_eigen_process.ExecuteBeforeOutputStep()
+        post_eigen_process.PrintOutput()
         post_eigen_process.ExecuteAfterOutputStep()
         post_eigen_process.ExecuteFinalize()
 
