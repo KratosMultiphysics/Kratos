@@ -762,9 +762,11 @@ protected:
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
-                        for (auto& id_j : ids)
-                            if (id_j < BaseType::mEquationSystemSize)
+                        for (auto& id_j : ids) {
+                            if (id_j < BaseType::mEquationSystemSize) {
                                 row_indices.insert(id_j);
+                            }
+                        }
                     }
                 }
             }
@@ -783,9 +785,11 @@ protected:
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
-                        for (auto& id_j : ids)
-                            if (id_j < BaseType::mEquationSystemSize)
+                        for (auto& id_j : ids) {
+                            if (id_j < BaseType::mEquationSystemSize) {
                                 row_indices.insert(id_j);
+                            }
+                        }
                     }
                 }
             }
@@ -805,18 +809,22 @@ protected:
                 for (auto& id_i : ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
-                        for (auto& id_j : ids)
-                        if (id_j < BaseType::mEquationSystemSize)
-                            row_indices.insert(id_j);
+                        for (auto& id_j : ids) {
+                            if (id_j < BaseType::mEquationSystemSize) {
+                                row_indices.insert(id_j);
+                            }
+                        }
                     }
                 }
                 // Master DoFs
                 for (auto& id_i : second_ids) {
                     if (id_i < BaseType::mEquationSystemSize) {
                         auto& row_indices = temp_indexes[id_i];
-                        for (auto& id_j : second_ids)
-                        if (id_j < BaseType::mEquationSystemSize)
-                            row_indices.insert(id_j);
+                        for (auto& id_j : second_ids) {
+                            if (id_j < BaseType::mEquationSystemSize) {
+                                row_indices.insert(id_j);
+                            }
+                        }
                     }
                 }
             }
