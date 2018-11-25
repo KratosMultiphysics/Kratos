@@ -54,6 +54,8 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
             posVol = self.MassConservationCheckProcess.GetPositiveVolume()
             negVol = self.MassConservationCheckProcess.GetNegativeVolume()
             interfaceArea = self.MassConservationCheckProcess.GetInterfaceArea()
+            inflow = self.MassConservationCheckProcess.GetInletVolumeFlow()
+
             initPosVol = self.MassConservationCheckProcess.GetInitialPositiveVolume()
             initNegVol = self.MassConservationCheckProcess.GetInitialNegativeVolume()
 
@@ -61,6 +63,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
             KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
             KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
             KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Interface Area = " + str(interfaceArea) )
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Inflow = " + str(inflow) )
             KratosMultiphysics.Logger.Flush()
 
             # adds additional lines to the log file

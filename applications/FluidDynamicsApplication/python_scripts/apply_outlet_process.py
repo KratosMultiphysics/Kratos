@@ -62,8 +62,9 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         self.hydrostatic_outlet = settings["hydrostatic_outlet"].GetBool()
         self.h_top = settings["h_top"].GetDouble()
 
-        # Set the OUTLET flag in the outlet model part nodes and conditions
+                # Set the OUTLET flag in the outlet model part nodes and conditions
         self.outlet_model_part = Model[pres_settings["model_part_name"].GetString()]
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.outlet_model_part, self.outlet_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
         for node in self.outlet_model_part.Nodes:
             node.Set(KratosMultiphysics.OUTLET, True)
         for condition in self.outlet_model_part.Conditions:

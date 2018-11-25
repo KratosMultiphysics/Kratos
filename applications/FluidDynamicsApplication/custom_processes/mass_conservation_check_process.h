@@ -25,6 +25,9 @@
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
+// not sure if still needed ........
+#include "custom_utilities/fluid_element_utilities.h"
+
 // Application includes
 
 
@@ -153,6 +156,7 @@ public:
 
 
 
+
     double ComputeInletVolumeFlow();
 
 
@@ -228,6 +232,10 @@ private:
      */
     void ComputeVolumesOfFluids( double& positiveVolume, double& negativeVolume, double& interfaceArea );
 
+    void CalculateNormal2D(array_1d<double,3>& An);
+
+    void CalculateNormal3D(array_1d<double,3>& An);
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -237,6 +245,10 @@ private:
     ///@name Private Inquiry
     ///@{
 
+    void CalculateUnitNormal2D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry);
+
+
+    void CalculateUnitNormal3D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry);
 
     ///@}
     ///@name Un accessible methods

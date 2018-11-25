@@ -86,7 +86,7 @@ bool MassConservationCheckProcess::GetUpdateStatus(){
         mCurrentInterfaceArea = -1.0;
         return false;
     }
-};
+}
 
 
 /* Private functions ****************************************************/
@@ -189,66 +189,210 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double& positiveVolum
 double MassConservationCheckProcess::ComputeInletVolumeFlow(){
 
     // Convention: "mass" is considered as "water", meaning the volumes with a negative distance is considered
+    double normalInflow = 0.0;
 
     for (int i_cond = 0; i_cond < static_cast<int>(mrModelPart.NumberOfConditions()); ++i_cond){
         // iteration over all elements
         auto condition = mrModelPart.ConditionsBegin() + i_cond;
 
+        if ( condition->Is(OUTLET) || condition->Is(INLET) ){
 
+            int dim = condition->GetGeometry().Dimension();
+            Geometry<Node<3> >& p_geom = condition->GetGeometry();
+            Vector Distance( p_geom.PointsNumber(), 0.0 );
 
-        int dim = condition->GetGeometry().Dimension();
-
-        if (dim == 1){
-            // 2D case: condition is a line
-
-        }
-        else if (dim == 2){
-            // 3D case: condition is a triangle (implemented routines can be used)
-            auto p_geom = condition->pGetGeometry();
-
-            // the position does not matter in a linear element - center is a random choice
-            Kratos::Point::BaseType positionCenter = Vector( 3, 1.0/3.0 );
-            const array_1d<double, 3> normal = condition->GetGeometry().AreaNormal(positionCenter);
-
-            Vector Distance( p_geom->size(), 0.0 );
-            for (unsigned int i = 0; i < p_geom->size(); i++){
+            unsigned int negCount = 0;
+            unsigned int posCount = 0;
+            for (unsigned int i = 0; i < p_geom.PointsNumber(); i++){
                 Distance[i] = condition->GetGeometry()[i].GetSolutionStepValue( DISTANCE );
+                if ( condition->GetGeometry()[i].GetSolutionStepValue( DISTANCE ) > 0.0 ){
+                    posCount++;
+                } else {
+                    negCount++;
+                }
             }
 
-            // useless containers (needed as dummy arguments)
-            Matrix rShapeFunctions;
-            GeometryType::ShapeFunctionsGradientsType rShapeDerivatives;
-            Vector w_gauss_neg_side;
+            // leave the current iteration of the condition is completely on positive side
+            if ( posCount == p_geom.PointsNumber() ){ continue; }
 
-            ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-            p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, Distance);
+            if (dim == 2){      // 2D case: condition is a line
 
-            p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
-                    rShapeFunctions,                    // N
-                    rShapeDerivatives,                  // DN
-                    w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
-                    GeometryData::GI_GAUSS_2);          // first order Gauss integration
+                array_1d<double, 3> normal;
+                this->CalculateUnitNormal2D( normal, p_geom);
+                KRATOS_WATCH( normal )
+                if( norm_2( normal ) < 0.0001 ){
+                    continue;
+                } else {
+                    normal /= norm_2( normal );
+                }
 
-            double inVolFlow = 0.0;
+                if ( negCount == p_geom.PointsNumber() ){       // the condition is completely on the negative side
 
-            // interating velocity over area of the condition
-            for ( unsigned int g_point = 0; g_point < w_gauss_neg_side.size(); g_point++){
+                    // Gauss point information
+                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                    const unsigned int NumGauss = IntegrationPoints.size();
+                    Vector GaussPtsJDet = ZeroVector(NumGauss);
+                    p_geom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
+                    const Matrix Ncontainer = p_geom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 
-                double gauss_point_contribution = 0.0;
-                for (unsigned int node = 0; node < 3; )
+                    for (unsigned int i_gauss = 0; i_gauss < NumGauss; i_gauss++){
+                        const Vector N = row(Ncontainer, i_gauss);
+                        double const wGauss = GaussPtsJDet[i_gauss] * IntegrationPoints[i_gauss].Weight();
+
+                        array_1d<double,3> interpolatedVelocity = ZeroVector(3);
+                        for (unsigned int n_node = 0; n_node < p_geom.PointsNumber(); n_node++){
+                            interpolatedVelocity += N[n_node] * condition->GetGeometry()[n_node].GetSolutionStepValue(VELOCITY);
+                        }
+                        normalInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
+                    }
+
+
+                } else if ( negCount < p_geom.PointsNumber() && negCount < p_geom.PointsNumber() ){      // the condition is cut
+
+                    // Compute the relative coordinate of the intersection point over the edge
+                    const double aux_node_rel_location = std::abs ( Distance[0] /( Distance[1]-Distance[0] ));
+
+                    // Shape function values at the position where the surface cuts the element
+                    Vector Ncut = ZeroVector(2);
+                    Ncut[0] = 1.0 - aux_node_rel_location;
+                    Ncut[1] = aux_node_rel_location;
+
+                    // Creation of an auxiliary condition which covers the negative volume domain only
+                    // (imitation of the already implemented splitting mechanism)
+                    Geometry< Node<3> > aux_geometry = condition->GetGeometry();
+
+                    // Modify the node with the positive distance
+                    for (unsigned int i_aux_node = 0; i_aux_node < aux_geometry.PointsNumber(); i_aux_node++){
+                        if ( aux_geometry[i_aux_node].GetSolutionStepValue( DISTANCE ) > 0.0 ){
+                            // interpolating position for the new node
+                            aux_geometry[i_aux_node].X() = Ncut[0] * p_geom[0].X() + Ncut[1] * p_geom[1].X();
+                            aux_geometry[i_aux_node].Y() = Ncut[0] * p_geom[0].Y() + Ncut[1] * p_geom[1].Y();
+                            aux_geometry[i_aux_node].Z() = Ncut[0] * p_geom[0].Z() + Ncut[1] * p_geom[1].Z();
+                            // interpolating the velocity at the new node
+                            aux_geometry[i_aux_node].GetSolutionStepValue( VELOCITY ) = Ncut[0] * aux_geometry[0].GetSolutionStepValue( VELOCITY )
+                                                                                        + Ncut[1] * aux_geometry[1].GetSolutionStepValue( VELOCITY );
+                        }
+                    }
+
+                    // Gauss point information for auxiliary geometry
+                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = aux_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                    const unsigned int NumGauss = IntegrationPoints.size();
+                    Vector GaussPtsJDet = ZeroVector(NumGauss);
+                    aux_geometry.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
+                    const Matrix Ncontainer = aux_geometry.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+
+                    for (unsigned int i_gauss = 0; i_gauss < NumGauss; i_gauss++){
+                        const Vector N = row(Ncontainer, i_gauss);
+                        double const wGauss = GaussPtsJDet[i_gauss] * IntegrationPoints[i_gauss].Weight();
+
+                        array_1d<double,3> interpolatedVelocity = ZeroVector(3);
+                        for (unsigned int n_node = 0; n_node < p_geom.PointsNumber(); n_node++){
+                            interpolatedVelocity += N[n_node] * aux_geometry[n_node].GetSolutionStepValue(VELOCITY);
+                        }
+                        normalInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
+                    }
+                }
             }
 
+            else if (dim == 3){
+                // 3D case: condition is a triangle (implemented routines can be used)
+
+                Kratos::Point::BaseType positionCenter = Vector( 3, 1.0/3.0 );
+                array_1d<double, 3> normal = condition->GetGeometry().AreaNormal( positionCenter );
+                if( norm_2( normal ) < 0.0001 ){
+                    continue;
+                } else {
+                    normal /= norm_2( normal );
+                }
+
+                if ( negCount == p_geom.PointsNumber() ){       // the condition is completely on the negative side
+
+                    // Gauss point information
+                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                    const unsigned int NumGauss = IntegrationPoints.size();
+                    Vector GaussPtsJDet = ZeroVector(NumGauss);
+                    p_geom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
+                    const Matrix Ncontainer = p_geom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+
+                    for (unsigned int i_gauss = 0; i_gauss < NumGauss; i_gauss++){
+                        const Vector N = row(Ncontainer, i_gauss);
+                        double const wGauss = GaussPtsJDet[i_gauss] * IntegrationPoints[i_gauss].Weight();
+
+                        array_1d<double,3> interpolatedVelocity = ZeroVector(3);
+                        for (unsigned int n_node = 0; n_node < p_geom.PointsNumber(); n_node++){
+                            interpolatedVelocity += N[n_node] * condition->GetGeometry()[n_node].GetSolutionStepValue(VELOCITY);
+                        }
+                        normalInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
+                    }
+
+                } else if ( negCount < p_geom.PointsNumber() && negCount < p_geom.PointsNumber() ){      // the condition is cut
+
+                    Matrix rShapeFunctions;
+                    GeometryType::ShapeFunctionsGradientsType rShapeDerivatives;
+                    Vector w_gauss_neg_side;
+
+                    ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+                    auto geomPointer = condition->pGetGeometry();
+                    p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(geomPointer, Distance);
+
+                    p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+                        rShapeFunctions,                    // N
+                        rShapeDerivatives,                  // DN
+                        w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
+                        GeometryData::GI_GAUSS_2);          // first order Gauss integration
+
+                    // interating velocity over the negative area of the condition
+                    for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
+                        const array_1d<double,3>& N = row(rShapeFunctions, i_gauss);
+
+                        array_1d<double,3> interpolatedVelocity = ZeroVector(3);
+                        for (unsigned int n_node = 0; n_node < p_geom.PointsNumber(); n_node++){
+                            interpolatedVelocity += N[n_node] * condition->GetGeometry()[n_node].GetSolutionStepValue(VELOCITY);
+                        }
+                        normalInflow += - w_gauss_neg_side[i_gauss] * inner_prod( normal, interpolatedVelocity );
+                    }
+                }
+            }
         }
-        else{
+    }
 
-        }
+    return normalInflow;
+}
 
 
-
-
-    return inVolFlow;
+/// Computes the 2D condition normal
+/**
+* @param An reference to condition normal vector
+*/
+void MassConservationCheckProcess::CalculateUnitNormal2D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry)
+{
+    An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
+    An[1] = - (pGeometry[1].X() - pGeometry[0].X());
+    An[2] =    0.0;
 
 }
 
 
-};  // namespace Kratos.
+/// Computes the 3D condition normal
+/**
+* @param An reference to condition normal vector
+*/
+void MassConservationCheckProcess::CalculateUnitNormal3D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry)
+{
+    array_1d<double,3> v1,v2;
+    v1[0] = pGeometry[1].X() - pGeometry[0].X();
+    v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+    v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+    v2[0] = pGeometry[2].X() - pGeometry[0].X();
+    v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+    v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+    MathUtils<double>::CrossProduct(An,v1,v2);
+    An *= 0.5;
+}
+
+
+
+
+}  // namespace Kratos.
