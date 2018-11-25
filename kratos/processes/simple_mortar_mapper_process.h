@@ -357,6 +357,26 @@ public:
 
     void Execute() override;
 
+    /**
+     * @brief This method is a direct map between the origin and destination modelpart with custom variables
+     * @param rOriginVariable The origin model part
+     * @param rDestinationVariable The destination model part
+     * @param Flag The flags to special settings. Right now does nothing
+     */
+    void Map(
+        TVarType& rOriginVariable,
+        TVarType& rDestinationVariable,
+        const Flags Flag = Flags()
+        )
+    {
+        // Reassign the variables
+        mOriginVariable = rOriginVariable;
+        mDestinationVariable = rDestinationVariable;
+
+        // Execute the process
+        Execute();
+    }
+
     ///@}
     ///@name Access
     ///@{

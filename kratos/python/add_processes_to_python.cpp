@@ -369,6 +369,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<2, 2, Variable<double>>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVector")
@@ -379,6 +380,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>::Map)
     ;
 
     // 3D - Triangle
@@ -390,6 +392,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<double>>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVector")
@@ -400,6 +403,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>::Map)
     ;
 
     // 3D - Quadrilateral
@@ -411,6 +415,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<double>>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVector")
@@ -421,6 +426,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>::Map)
     ;
 
     // 3D - Triangle - Quadrilateral
@@ -432,6 +438,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<double>, 4>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3N4NVector")
@@ -442,6 +449,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>::Map)
     ;
 
     // 3D - Quadrilateral - Triangle
@@ -453,6 +461,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<double>, 3>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4N3NVector")
@@ -463,6 +472,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>::Map)
     ;
 
     // Transfer between model parts
