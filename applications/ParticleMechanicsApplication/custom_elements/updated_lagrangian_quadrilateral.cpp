@@ -163,6 +163,7 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     // Initialize constitutive law and materials
     InitializeMaterial();
 
+    // TODO: This needs to be moved to a utility to compute and check energy
     double MP_PotentialEnergy = 0.0;
     double MP_KineticEnergy = 0.0;
     double MP_StrainEnergy = 0.0;
@@ -182,7 +183,7 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     this->SetValue(MP_POTENTIAL_ENERGY, MP_PotentialEnergy);
     this->SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
     this->SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
-    this->SetValue(MP_TOTAL_ENERGY, MP_StrainEnergy);
+    this->SetValue(MP_TOTAL_ENERGY, MP_TotalEnergy);
 
     KRATOS_CATCH( "" )
 }
