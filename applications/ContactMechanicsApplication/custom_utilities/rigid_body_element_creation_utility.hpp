@@ -110,7 +110,7 @@ public:
 
       ModelPart& rMainModelPart = *(rModelPart.GetParentModelPart());
 
-      std::cout<<rMainModelPart<<std::endl;
+      //std::cout<<rMainModelPart<<std::endl;
 
       //create properties for the rigid body
       unsigned int NumberOfProperties = rMainModelPart.NumberOfProperties();
@@ -330,6 +330,8 @@ public:
 
       // add links to rigid body model part:
       rModelPart.AddConditions(LinkConditions.begin(),LinkConditions.end());
+
+      std::cout<<" Created Link Conditions "<<LinkConditions.size()<<std::endl;
 
       // add links to solving model part:
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)

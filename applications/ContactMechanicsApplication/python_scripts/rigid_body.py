@@ -61,7 +61,6 @@ class RigidBody(object):
         self.model_part.Set(KratosMultiphysics.RIGID)
 
         for node in self.model_part.Nodes:
-            print(" node ",node.Id)
             node.Set(KratosMultiphysics.RIGID,True)
 
         #for node in self.model_part.Elements:

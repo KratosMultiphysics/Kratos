@@ -393,6 +393,21 @@ class RigidBodyPointLinkCondition
   virtual void CalculateAndAddForces(VectorType& rRightHandSideVector,
                                      VectorType& rLinkedRightHandSideVector,
                                      GeneralVariables& rVariables);
+
+  /**
+   * Calculation of the Link Stiffness Matrix
+   */
+  virtual void CalculateAndAddTangentBeam(MatrixType& rLeftHandSideMatrix,
+                                          MatrixType& rLinkedLeftHandSideMatrix,
+                                          GeneralVariables& rVariables);
+  /**
+   * Calculation of the Link Force Vector
+   */
+  virtual void CalculateAndAddForcesBeam(VectorType& rRightHandSideVector,
+                                         VectorType& rLinkedRightHandSideVector,
+                                         GeneralVariables& rVariables);
+
+
   /**
    * Assemble Local LHS
    */
