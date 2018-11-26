@@ -590,6 +590,8 @@ public:
                             return 3;
                         case 2:
                             return 5;
+                        default:
+                            return 0;
                     }
                 case 1:
                     switch(ComponentJ) {
@@ -599,6 +601,8 @@ public:
                             return 1;
                         case 2:
                             return 4;
+                        default:
+                            return 0;
                     }
                 case 2:
                     switch(ComponentJ) {
@@ -608,7 +612,11 @@ public:
                             return 4;
                         case 2:
                             return 2;
+                        default:
+                            return 0;
                     }
+                default:
+                    return 0;
             }
         } else {
             switch(ComponentI) {
@@ -618,6 +626,8 @@ public:
                             return 0;
                         case 1:
                             return 2;
+                        default:
+                            return 0;
                     }
                 case 1:
                     switch(ComponentJ) {
@@ -625,7 +635,11 @@ public:
                             return 2;
                         case 1:
                             return 1;
+                        default:
+                            return 0;
                     }
+                default:
+                    return 0;
             }
         }
     }
