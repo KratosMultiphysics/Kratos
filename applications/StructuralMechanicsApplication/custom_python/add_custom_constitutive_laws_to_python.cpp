@@ -49,6 +49,7 @@
 #include "custom_constitutive/generic_small_strain_isotropic_damage.h"
 #include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
 #include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
+#include "custom_constitutive/plasticity_isotropic_kinematic_j2.h"
 
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -153,6 +154,9 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"LinearIsotropicDamage3DLaw").def(py::init<>())
     ;
 
+    py::class_< PlasticityIsotropicKinematicJ2, typename PlasticityIsotropicKinematicJ2::Pointer,  ConstitutiveLaw >
+    (m,"PlasticityIsotropicKinematicJ2Law").def(py::init<>())
+    ;
 
     py::class_< SmallStrainIsotropicDamageFactory, typename SmallStrainIsotropicDamageFactory::Pointer,  ConstitutiveLaw  >
     (m,"SmallStrainIsotropicDamageFactory").def(py::init<>())
@@ -173,6 +177,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< ViscousGeneralizedMaxwell<ElasticIsotropic3D>, typename ViscousGeneralizedMaxwell<ElasticIsotropic3D>::Pointer,  ConstitutiveLaw  >
     (m,"ViscousGeneralizedMaxwell3D").def(py::init<>())
     ;
+
 
     // Custom Constitutive Laws Registration
     // Isotropic Plasticity

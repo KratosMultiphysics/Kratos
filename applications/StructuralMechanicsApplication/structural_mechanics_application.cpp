@@ -335,6 +335,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURES_VECTOR)
 
     // Constitutive laws variables
+    KRATOS_REGISTER_VARIABLE(PLASTIC_EVOLUTION)
     KRATOS_REGISTER_VARIABLE(YIELD_STRESS_TENSION)
     KRATOS_REGISTER_VARIABLE(PLASTIC_STRAIN_VECTOR)
     KRATOS_REGISTER_VARIABLE(YIELD_STRESS_COMPRESSION)
@@ -563,7 +564,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedKelvin3D", mViscousGeneralizedKelvin3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedMaxwell3D", mViscousGeneralizedMaxwell3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainViscoplasticity3D", mGenericSmallStrainViscoplasticity3D);
-
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("PlasticityIsotropicKinematicJ2Law", mPlasticityIsotropicKinematicJ2);
+    
     // Custom Constitutive laws
     /// Plasticity
 

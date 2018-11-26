@@ -112,6 +112,7 @@
 #include "custom_constitutive/viscous_generalized_maxwell.h"
 #include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
+#include "custom_constitutive/plasticity_isotropic_kinematic_j2.h"
 
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -462,7 +463,8 @@ private:
     const ViscousGeneralizedKelvin<ElasticIsotropic3D> mViscousGeneralizedKelvin3D;
     const ViscousGeneralizedMaxwell<ElasticIsotropic3D> mViscousGeneralizedMaxwell3D;
     const GenericSmallStrainViscoplasticity3D mGenericSmallStrainViscoplasticity3D;
-
+    const PlasticityIsotropicKinematicJ2 mPlasticityIsotropicKinematicJ2;
+    
     /// Plasticity
     /* Small strain */
     const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DVonMisesVonMises;

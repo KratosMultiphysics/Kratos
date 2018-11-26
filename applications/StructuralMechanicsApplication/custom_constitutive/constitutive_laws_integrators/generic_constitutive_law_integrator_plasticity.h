@@ -590,7 +590,7 @@ class GenericConstitutiveLawIntegratorPlasticity
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param TensileIndicatorFactor The tensile indicator
      * @param CompressionIndicatorFactor The compressive indicator
-     * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
      * @param rPlasticStrain The Plastic Strain internal variable

@@ -883,5 +883,14 @@ class LinearIsotropicDamagePlaneStrain2D(LinearIsotropicDamage):
     def create_constitutive_Law():
         return StructuralMechanicsApplication.LinearIsotropicDamagePlaneStrain2DLaw()
 
+class PlasticityIsotropicKinematicJ2(J2Plasticity):
+    def __init__(self):
+        J2Plasticity.__init__(self)
+        self.dim = 3
+
+    @staticmethod
+    def create_constitutive_Law():
+        return StructuralMechanicsApplication.PlasticityIsotropicKinematicJ2Law()
+
 if __name__ == '__main__':
     KratosUnittest.main()
