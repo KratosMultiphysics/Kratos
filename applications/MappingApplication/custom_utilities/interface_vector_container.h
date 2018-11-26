@@ -7,8 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
 //
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_INTERFACE_VECTOR_CONTAINER_H_INCLUDED )
 #define  KRATOS_INTERFACE_VECTOR_CONTAINER_H_INCLUDED
@@ -30,22 +33,6 @@ namespace Kratos
 ///@addtogroup ApplicationNameApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -68,7 +55,6 @@ public:
 
     typedef Variable<double> DoubleVariableType;
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVariableType;
-    typedef Variable<array_1d<double, 3>> Array3VariableType;
 
     ///@}
     ///@name Life Cycle
@@ -96,58 +82,14 @@ public:
     void UpdateSystemVectorFromModelPart(const ComponentVariableType& rVariable,
                                          const Kratos::Flags& rMappingOptions);
 
-    void UpdateSystemVectorFromModelPart(const Array3VariableType& rVariable,
-                                         const Kratos::Flags& rMappingOptions);
-
     void UpdateModelPartFromSystemVector(const DoubleVariableType& rVariable,
                                          const Kratos::Flags& rMappingOptions);
 
     void UpdateModelPartFromSystemVector(const ComponentVariableType& rVariable,
                                          const Kratos::Flags& rMappingOptions);
 
-    void UpdateModelPartFromSystemVector(const Array3VariableType& rVariable,
-                                         const Kratos::Flags& rMappingOptions);
-
-
-    // {
-    //     // Here we construct a function pointer to not have the if all the time inside the loop
-    //     const auto fill_fct = MapperUtilities::GetFillFunction<TVarType>(rMappingOptions);
-
-    //     const int num_local_nodes = mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    //     const auto nodes_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
-
-    //     #pragma omp parallel for
-    //     for (int i=0; i<num_local_nodes; i++) {
-    //         fill_fct(*(nodes_begin + i), rVariable, *mpInterfaceVector[i]);
-    //     }
-    // }
-
-    // {
-    //     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
-
-    //     // Here we construct a function pointer to not have the if all the time inside the loop
-    //     const auto update_fct = std::bind(MapperUtilities::GetUpdateFunction<TVarType>(rMappingOptions),
-    //                                         std::placeholders::_1,
-    //                                         std::placeholders::_2,
-    //                                         std::placeholders::_3,
-    //                                         factor);
-    //     const int num_local_nodes = mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    //     const auto nodes_begin = mrModelPart.GetCommunicator().LocalMesh().NodesBegin();
-
-    //     #pragma omp parallel for
-    //     for (int i=0; i<num_local_nodes; i++) {
-    //         update_fct(*(nodes_begin + i), rVariable, *mpInterfaceVector[i]);
-    //     }
-    // }
-
-
     ///@}
     ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
     ///@{
 
 
@@ -172,17 +114,7 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
     ///@{
 
 
@@ -197,33 +129,13 @@ protected:
 
 
     ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPart
     TSystemVectorUniquePointerType mpInterfaceVector = nullptr;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -232,11 +144,6 @@ private:
 
     ///@}
     ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
     ///@{
 
 
@@ -250,36 +157,12 @@ private:
     /// Copy constructor.
     InterfaceVectorContainer(InterfaceVectorContainer const& rOther);
 
-
     ///@}
 
     }; // Class InterfaceVectorContainer
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                InterfaceVectorContainer& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const InterfaceVectorContainer& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 ///@} addtogroup block
