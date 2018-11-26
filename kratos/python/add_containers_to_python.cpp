@@ -138,7 +138,8 @@ TVariableType CreateVariable(const std::string& name)
     for (auto& existing_var_pair : varables_map){
         auto& existing_var = existing_var_pair.second;
         if (new_var_unq_ptr->Key() == existing_var->Key())
-            KRATOS_ERROR_IF(name == existing_var->Name())<<"The variable : "<<name<<" already exists."<<std::endl;
+            KRATOS_ERROR_IF(name != existing_var->Name())<<"The variable : "<<name<<" has same key as "<<existing_var->Name()<<std::endl
+                                                         <<"Please change the name of the variable. "<<std::endl;
     }
 
     AddKratosComponent((*new_var_unq_ptr).Name(), name);
@@ -159,7 +160,8 @@ TVariableComponentType CreateVariableComponent(const std::string& name, const st
     for (auto& existing_var_pair : varables_map){
         auto& existing_var = existing_var_pair.second;
         if (new_var_unq_ptr->Key() == existing_var->Key())
-            KRATOS_ERROR_IF(name == existing_var->Name())<<"The variable components : "<<name<<" already exists."<<std::endl;
+            KRATOS_ERROR_IF(name != existing_var->Name())<<"The variable component : "<<name<<" has same key as "<<existing_var->Name()<<std::endl
+                                                         <<"Please change the name of the variable component. "<<std::endl;
     }
 
     AddKratosComponent((*new_var_unq_ptr).Name(), name);
