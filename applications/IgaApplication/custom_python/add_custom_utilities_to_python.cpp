@@ -268,7 +268,7 @@ void RegisterSurfaceGeometryBase(
     pybind11::module& m,
     const std::string& name)
 {
-    namespace py = pybind11;
+    //namespace py = pybind11;
     using namespace pybind11::literals;
 
     using VectorType = Kratos::array_1d<double, TDimension>;

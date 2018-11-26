@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.IgaApplication as KratosIga
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from iga_rhino_output_process import IgaRhinoOutputProcess
+from iga_output_process import IgaOutputProcess
 from compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 import os
@@ -43,13 +43,13 @@ def GetEigenVectorMatrix(num_eigenvalues, node_id):
     return eigenvec_matrix
 
 
-class TestIgaRhinoOutputProcess(KratosUnittest.TestCase):
+class TestIgaOutputProcess(KratosUnittest.TestCase):
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.msh")
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.res") # usually this is deleted by the check process but not if it fails
 
 
-    def test_IgaRhinoOutputProcess(self):
+    def test_IgaOutputProcess(self):
         test_model = KratosMultiphysics.Model()
         model_part = test_model.CreateModelPart("Structure")
         comp_model_part = model_part.CreateSubModelPart("computing_domain")

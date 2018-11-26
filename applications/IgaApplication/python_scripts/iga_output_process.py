@@ -5,9 +5,9 @@ import KratosMultiphysics
 def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return IgaRhinoOutputProcess(model, settings)
+    return IgaOutputProcess(model, settings)
 
-class IgaRhinoOutputProcess(KratosMultiphysics.Process):
+class IgaOutputProcess(KratosMultiphysics.Process):
 
     def __init__(self, model, params):
         KratosMultiphysics.Process.__init__(self)
@@ -67,7 +67,7 @@ class IgaRhinoOutputProcess(KratosMultiphysics.Process):
 
     def ExecuteBeforeSolutionLoop(self):
         with open(self.output_file_name, 'w') as output_file:
-            output_file.write("Rhino Post Results File 1.0\n")
+            output_file.write("Post Results File 1.0\n")
 
     def PrintOutput(self):
         time = GetPrettyTime(self.model_part.ProcessInfo[TIME])
