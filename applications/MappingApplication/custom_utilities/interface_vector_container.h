@@ -101,8 +101,6 @@ public:
 
     TSystemVectorUniquePointerType& pGetVector()
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(mpInterfaceVector)
-            << "The Interface-Vector was not initialized" << std::endl;
         return mpInterfaceVector;
     }
 
