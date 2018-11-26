@@ -356,7 +356,7 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
             } else if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
                 num_quad += 1;
             } else
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS CERTAIN TYPE THAT CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
         }
 
         num_array_conditions[0] = num_tri;  // Triangles
