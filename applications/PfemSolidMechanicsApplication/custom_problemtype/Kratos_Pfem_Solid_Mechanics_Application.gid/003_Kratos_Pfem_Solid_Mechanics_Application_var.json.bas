@@ -149,6 +149,7 @@
               "convergence_criterion_settings":{
                    "convergence_criterion"       : "*GenData(Convergence_Criteria)",
                    "reform_dofs_at_each_step"    : true,
+                   "separate_dofs"    : false,
                    "variable_relative_tolerance" : *GenData(Convergence_Tolerance),
                    "variable_absolute_tolerance" : *GenData(Absolute_Tolerance),
                    "residual_relative_tolerance" : *GenData(Convergence_Tolerance),
@@ -267,21 +268,21 @@
 			"on_error": true
 		},
 		"remove_boundary": {
-			"apply_removal": false,
+			"apply_removal": true,
 			"on_distance": true,
-			"on_threshold": false,
+			"on_threshold": true,
 			"on_error": false
 		},
 		"refine_elements": {
-			"apply_refinement": false,
+			"apply_refinement": true,
 			"on_distance": true,
 			"on_threshold": true,
 			"on_error": false
 		},
 		"refine_boundary": {
-			"apply_refinement": false,
-			"on_distance": false,
-			"on_threshold": false,
+			"apply_refinement": true,
+			"on_distance": true,
+			"on_threshold": true,
 			"on_error": false
 		},              
 		"refining_box":{
@@ -555,6 +556,18 @@
 *endif
     }],
     "constraints_process_list" : [
+        {
+	"kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
+        "python_module"   : "cavity_process",
+        "process_name"    : "CavityProcess",
+        "Parameters"      : {}
+	},
+        {
+	"kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
+        "python_module"   : "footing_problem_process",
+        "process_name"    : "FootingProblemProcess",
+        "Parameters"      : {}
+	},
 *set var numberconstraints= 0
 *set cond group_WATER_MOVEMENT *groups 
 *add cond group_LINEAR_MOVEMENT *groups
@@ -789,7 +802,7 @@
 *add cond group_SURFACE_PRESSURE *groups
 *loop groups *OnlyInCond    
 *set var Counter=operation(Counter+1)
-        }
+        {
         "help"            : "This process applies a pressure load",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
         "python_module"   : "assign_scalar_to_conditions_process",
@@ -835,6 +848,39 @@
             "output_frequency"    : *GenData(Restart_Frequency),
             "json_output"         : false
         }
+*if(strcmp(GenData(CPT_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes cptu files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "cone_penetration_utility",
+        "process_name"    : "ConePenetrationUtility",
+        "Parameters": {
+             "cone_radius":      *GenData(CPT_Radius),
+             "u2_initial_depth": *GenData(Initial_u2_position),
+             "velocity":         *GenData(CPT_Velocity)
+         }
+*endif
+*if(strcmp(GenData(Ploughing_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes information_related_to_ploughing files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "ploughing_utility",
+        "process_name"    : "PloughingUtility",
+        "Parameters": {
+         }
+*endif
+*if(strcmp(GenData(GaussPoint_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes information of the first Gauss point files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "gauss_point_utility",
+        "process_name"    : "GaussPointUtility",
+        "Parameters": {
+         }
+*endif
     }],
     "output_configuration"     : {
         "result_file_configuration" : {

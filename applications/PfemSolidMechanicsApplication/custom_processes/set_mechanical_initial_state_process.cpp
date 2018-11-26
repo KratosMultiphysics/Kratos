@@ -134,6 +134,7 @@ namespace Kratos
       if( EchoLevel > 0 )
          std::cout << "    number of meshes: " << NumberOfMeshes << " meshes" << std::endl;
 
+      std::cout << " nEl " << rModelPart.NumberOfElements() << std::endl;
 
       if ( rModelPart.NumberOfElements() ) {
 	ModelPart::ElementsContainerType::const_iterator FirstElement = rModelPart.ElementsBegin();
@@ -245,7 +246,8 @@ namespace Kratos
       VerticalStress = rS1 - Pressure;
       HorizontalStress = rS2 - Pressure;
 
-      unsigned int Properties = 1;
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties -= 1;
       const double Young = rModelPart.GetProperties(Properties)[ YOUNG_MODULUS ];
       const double Poisson = rModelPart.GetProperties(Properties)[ POISSON_RATIO ];
 
@@ -285,7 +287,8 @@ namespace Kratos
    void SetMechanicalInitialStateProcess::SetMechanicalStateUP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
 
-      unsigned int Properties = 1;
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties -= 1;
       double Density = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
       const double Young = rModelPart.GetProperties(Properties)[ YOUNG_MODULUS ];
@@ -368,7 +371,8 @@ namespace Kratos
 
    void SetMechanicalInitialStateProcess::SetMechanicalStateU( ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
-      unsigned int Properties = 1;
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties -= 1;
       double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];
 
@@ -433,7 +437,8 @@ namespace Kratos
    void SetMechanicalInitialStateProcess::SetMechanicalStateUwP(ModelPart& rModelPart, int& EchoLevel, const double& rYmax)
    {
 
-      unsigned int Properties = 1;
+      unsigned int Properties = rModelPart.NumberOfProperties();
+      Properties -= 1;
       const double WaterDensity = rModelPart.GetProperties(Properties)[ DENSITY_WATER ];
       double MixtureDensity = rModelPart.GetProperties(Properties)[ DENSITY ];
       const double Knot = rModelPart.GetProperties(Properties)[ K0 ];

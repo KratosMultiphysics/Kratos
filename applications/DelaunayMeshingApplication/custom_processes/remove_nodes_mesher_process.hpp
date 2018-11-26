@@ -174,11 +174,12 @@ class RemoveNodesMesherProcess
       if(any_node_removed_on_error || any_node_removed_on_distance)
         any_node_removed = true;
 
+               std::cout << " any_node_removed " << any_node_removed << std::endl;
       if(any_convex_condition_removed || any_condition_removed)
         any_condition_removed = true;
 
 
-      if(any_node_removed)
+      if(any_node_removed || any_condition_removed)
         this->CleanRemovedNodes(mrModelPart);
 
       if(any_condition_removed){
@@ -308,9 +309,13 @@ class RemoveNodesMesherProcess
         (rModelPart.Nodes()).push_back(*(i_node.base()));
       }
       else{
-        if( i_node->Is(BOUNDARY) )
+        if( i_node->Is(BOUNDARY) ) {
           if( mEchoLevel > 0 )
             std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
+		std::cout << " Removing Boundary " << i_node->Id() << " :: " << i_node->X() << " , " << i_node->Y() << std::endl; 
+  	} else {
+		std::cout << " Removing NONboundary " << i_node->Id() << " :: " << i_node->X() << " , " << i_node->Y() << std::endl; 
+	}
       }
     }
 
@@ -608,6 +613,12 @@ class RemoveNodesMesherProcess
   {
     KRATOS_TRY
 
+
+      if( mEchoLevel > 0 ){
+         std::cout<<"   [ REMOVE NODES ON CONTACT AND BEYOND : "<<std::endl;
+         std::cout<<"     Starting Conditions : "<<rModelPart.Conditions().size()<<std::endl;
+      }
+
     // sizes
     double size_for_distance_inside       = 1.0  * mrRemesh.Refine->CriticalRadius;
     double size_for_distance_boundary     = 1.5  * size_for_distance_inside;
@@ -845,6 +856,11 @@ class RemoveNodesMesherProcess
       }
     }
 
+            if ( mEchoLevel > 0) {
+               std::cout << " inside nodes removed " << inside_nodes_removed << std::endl;
+               std::cout << " boundary_nodes_removed " << boundary_nodes_removed << std::endl;
+               std::cout<<"     REMOVE NODES ON CONTACT AND BEYOND ]; "<<std::endl;
+            }
 
     //Build boundary after removing boundary nodes due distance criterion
     if(boundary_nodes_removed){
@@ -867,10 +883,10 @@ class RemoveNodesMesherProcess
         bool any_condition_removed = false;
 
     unsigned int number_of_nodes = 0;
-    if( !rModelPart.IsSubModelPart() )
-      number_of_nodes = rModelPart.NumberOfNodes()+1;
+    if(mrRemesh.InputInitializedFlag)
+      number_of_nodes = mrRemesh.NodeMaxId+1;
     else
-      number_of_nodes = rModelPart.GetParentModelPart()->NumberOfNodes()+1;
+      number_of_nodes = MesherUtilities::GetMaxNodeId(rModelPart)+1;
 
     std::vector<std::vector<Condition::Pointer> > node_shared_conditions(number_of_nodes); //all domain nodes
 
@@ -979,6 +995,10 @@ class RemoveNodesMesherProcess
         } else {
           in->Set(TO_ERASE, false);
           std::cout << "FINALLY NOT Removing " << in->Id() << std::endl;
+                     std::cout << " is boundary?? " << in->Is(BOUNDARY) << std::endl;
+                     std::cout << " is blocked??  " << in->IsNot(BLOCKED) << std::endl;
+                     std::cout << " is NEW_ENDITY " << in->IsNot(NEW_ENTITY) << std::endl;
+                     std::cout << " to erase      " << in->Is(TO_ERASE) << std::endl;
         }
       }
 
@@ -1063,6 +1083,10 @@ class RemoveNodesMesherProcess
           node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));
         }
       }
+               else if ( ic->Is(TO_ERASE))
+               {
+                  std::cout << " we are here with a condition to erase " << ic->Id() << std::endl;
+               }
     }
 
     //std::cout<<"     Node Shared Conditions (Pair of Condition Nodes) is now set "<<std::endl;
@@ -1148,15 +1172,11 @@ class RemoveNodesMesherProcess
             S1[0] = rConditionGeom1[1].X() - rConditionGeom1[0].X();
             S1[1] = rConditionGeom1[1].Y() - rConditionGeom1[0].Y();
 
-            if(norm_2(S1)!=0)
-              S1/=norm_2(S1);
 
             //segment condition [2]
             S2[0] = rConditionGeom2[1].X() - rConditionGeom2[0].X();
             S2[1] = rConditionGeom2[1].Y() - rConditionGeom2[0].Y();
 
-            if(norm_2(S2)!=0)
-              S2/=norm_2(S2);
 
             // std::cout<<"     S1 "<<S1<<std::endl;
             // std::cout<<"     S2 "<<S2<<std::endl;
@@ -1169,6 +1189,13 @@ class RemoveNodesMesherProcess
             bool remove_S2 = false;
             if(norm_2(S2)<size_for_side_normal)
               remove_S2 = true;
+
+            if(norm_2(S1)!=0)
+              S1/=norm_2(S1);
+
+
+            if(norm_2(S2)!=0)
+              S2/=norm_2(S2);
 
             if(remove_S1 || remove_S2){
 
@@ -1194,6 +1221,11 @@ class RemoveNodesMesherProcess
               // std::cout<<"     ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 
               pcond->Set(NEW_ENTITY);
+              if ( pcond->Is(TO_ERASE) ) {
+                 std::cout << "  was to erase?   " << pcond->Is(TO_ERASE) << std::endl;
+                 pcond->Reset(TO_ERASE); // due to the new cloning
+                 std::cout << "  but now is like " << pcond->Is(TO_ERASE) << std::endl;
+              }
 
               //std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom2[1].Id()<<"] "<<std::endl;
 

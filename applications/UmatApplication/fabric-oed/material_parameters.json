@@ -1,0 +1,54 @@
+{
+    "material_model":{
+        "python_module"   : "test_constitutive_model_process",
+        "kratos_module"   : "KratosMultiphysics.ConstitutiveModelsApplication",
+        "help"            : "This process tests a constitutive model",
+	"parameters"      : {
+	    "model_part_name" : "MaterialDomain",
+	    "properties_id"   : 1,
+            "material_name"   : "steel",
+	    "constitutive_law": {
+                "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.SmallStrain3DLaw",
+		"model_name" : "KratosMultiphysics.UmatApplication.FabricSmallStrainUmatModel"
+            },
+	    "variables": {
+		"KratosMultiphysics.C10": 3.84615384615384615385e10,
+	        "KratosMultiphysics.YOUNG_MODULUS": 42.0E3,
+		"KratosMultiphysics.POISSON_RATIO": 0.17,
+		"KratosMultiphysics.ConstitutiveModelsApplication.ALPHA": 1.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.BETA": 1.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.MF": 2.2,
+		"KratosMultiphysics.ConstitutiveModelsApplication.CC": 0.8,
+		"KratosMultiphysics.ConstitutiveModelsApplication.MM": -0.5,
+		"KratosMultiphysics.ConstitutiveModelsApplication.RHOS": 5.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.KSIS": -1.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.RHOM": 10.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.KSIM": -2.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.PC0": 500.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.VOID_RATIO": 6.92,
+		"KratosMultiphysics.ConstitutiveModelsApplication.PS": -1000.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.PM": -1000.0,
+		"KratosMultiphysics.ConstitutiveModelsApplication.PLASTIC_MULTIPLIER": -2000.0
+            },
+	    "tables": {
+		"table1": {
+	            "input_variable"  : "KratosMultiphysics.TEMPERATURE",
+	            "output_variable" : "KratosMultiphysics.YOUNG_MODULUS",
+	            "data": [
+			[0.0, 200e9],
+			[200.0, 200e9]
+		    ]
+		}
+	    },
+	    "element_type": "Tetrahedra3D4",
+            "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+            "strain": {
+		"deformation_gradient" : [ [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
+		"jacobian": 1.0
+	    },
+	    "echo_level" : 0
+
+        }
+    }
+
+}

@@ -331,6 +331,7 @@ namespace Kratos
          if ( fabs(Values[0]) > 1e-6)
             mElementStabilizationNumber *= Values[0];
       }
+      mElementStabilizationNumber = 1.0;
 
       this->Set(SolidElement::FINALIZED_STEP, false);
 

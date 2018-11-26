@@ -1,0 +1,264 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "tri0",
+        "threads"         : 1,
+        "echo_level"      : 1
+    },
+    "model_settings"           : {
+        "model_name": "Main_Domain",
+        "dimension"       : 2,
+        "bodies_list":[
+              {
+              "body_type": "Solid",
+              "body_name": "Solid_group_DeformableBodies-auto-1",
+              "parts_list": ["group_DeformableBodies-auto-1"]
+              }
+        ],
+        "domain_parts_list" : [
+              "group_DeformableBodies-auto-1"
+        ],
+        "processes_parts_list" : [
+              "group_LINEAR_MOVEMENT-auto-1",
+              "group_LINEAR_MOVEMENT-auto-2",
+              "group_LINEAR_MOVEMENT-auto-3",
+              "group_LINE_LOAD-auto-1"
+        ],
+        "input_file_settings"     : {
+            "type"       : "mdpa",
+            "name"   : "tri0",
+            "label" : 0
+        },
+        "dofs"                               : [
+                                               ]
+    },
+    "solver_settings"          : {
+        "solver_type" : "solid_mechanics_static_solver",
+        "Parameters"  : {       
+              "time_settings"             : {
+                   "time_step"  : 0.01,
+                   "start_time" : 0.0,
+                   "end_time"   : 0.1
+              },
+              "time_integration_settings" : {
+                   "solution_type"         : "Static",
+                   "integration_method"    : "Non-Linear"
+              },
+              "solving_strategy_settings" : {
+                   "line_search"                 : true,
+                   "implex"                      : false,
+                   "compute_reactions"           : false,
+                   "compute_contact_forces"      : false,
+                   "convergence_criterion"       : "Residual_criterion",
+                   "reform_dofs_at_each_step"    : true,
+                   "variable_relative_tolerance" : 1E-6,
+                   "variable_absolute_tolerance" : 1E-9,
+                   "residual_relative_tolerance" : 1E-6,
+                   "residual_absolute_tolerance" : 1E-9,
+                   "max_iteration"               : 30
+              },
+              "linear_solver_settings"   : {
+                   "solver_type"    : "SuperLUSolver",
+                   "tolerance"      : 1e-7,
+                   "max_iteration"  : 5000,
+                   "scaling"        : false
+              }
+        }
+    },
+    "problem_process_list" : [{
+        "help"            : "This process applies meshing to the problem domains",
+        "kratos_module"   : "KratosMultiphysics.PfemApplication",
+        "python_module"   : "remesh_domains_process",
+        "process_name"    : "RemeshDomainsProcess",
+        "Parameters"      : {
+            "model_part_name"       : "Main_Domain",
+            "meshing_control_type"  : "step",
+            "meshing_frequency"     : 0.0,
+            "meshing_before_output" : true,
+            "meshing_domains" : [
+            {
+                "python_module": "meshing_domain",
+                "model_part_name": "Solid_group_DeformableBodies-auto-1",
+                "alpha_shape": 2.4,
+                "offset_factor": 0.0001,
+                "meshing_strategy":{
+                    "python_module": "meshing_strategy",
+                    "meshing_frequency": 0.01,
+                    "remesh": false,
+                    "refine": false,
+                    "reconnect": false,
+                    "transfer": false,
+                    "constrained": true,
+                    "mesh_smoothing": true,
+                    "variables_smoothing": true,
+                    "elemental_variables_to_smooth":[ "DETERMINANT_F" ],
+                    "reference_element_type": "Element2D3N",
+                    "reference_condition_type": "CompositeCondition2D2N"
+            },
+            "spatial_bounding_box":{
+                "upper_point": [0.0, 0.0, 0.0],
+                "lower_point": [0.0, 0.0, 0.0],
+                "velocity": [0.0, 0.0, 0.0]
+            },
+            "refining_parameters":{
+                "critical_size": 0.025,
+                "threshold_variable": "PLASTIC_DISSIPATION",
+                "reference_threshold" : 100,
+                "error_variable": "PLASTIC_STRAIN",
+                "reference_error" : 2,
+                "add_nodes": true,
+                "insert_nodes": false,
+                "remove_nodes": {
+                        "apply_removal": true,
+                        "on_distance": true,
+                        "on_threshold": false,
+                        "on_error": true
+                },
+                "remove_boundary": {
+                        "apply_removal": true,
+                        "on_distance": true,
+                        "on_threshold": false,
+                        "on_error": false
+                },
+                "refine_elements": {
+                        "apply_refinement": true,
+                        "on_distance": true,
+                        "on_threshold": true,
+                        "on_error": false
+                },
+                "refine_boundary": {
+                        "apply_refinement": true,
+                        "on_distance": true,
+                        "on_threshold": true,
+                        "on_error": false
+                },              
+                "refining_box":{
+                        "refine_in_box_only": false,
+                        "upper_point": [0,0,0],
+                        "lower_point": [0,0,0],
+                        "velocity": [0,0,0]
+                }
+            },            
+            "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
+        }
+            ]
+        }
+    }],
+    "constraints_process_list" : [
+             {
+        "help"            : "This process imposes a vector constraint",        
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_vector_components_to_nodes_process",
+        "process_name"    : "AssignVectorComponentsToNodesProcess",
+        "Parameters"      : {
+            "model_part_name" : "group_LINEAR_MOVEMENT-auto-1",
+            "variable_name"   : "DISPLACEMENT",
+            "interval"        : [0.0, "End"],
+            "value"           : [
+                                    0.0,
+                                null,
+                                    0.0
+                                ]
+            }
+        },
+             {
+        "help"            : "This process imposes a vector constraint",        
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_vector_components_to_nodes_process",
+        "process_name"    : "AssignVectorComponentsToNodesProcess",
+        "Parameters"      : {
+            "model_part_name" : "group_LINEAR_MOVEMENT-auto-2",
+            "variable_name"   : "DISPLACEMENT",
+            "interval"        : [0.0, "End"],
+            "value"           : [
+                                null,
+                                    0.0,
+                                    0.0
+                                ]
+            }
+        },
+             {
+        "help"            : "This process imposes a vector constraint",        
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_vector_components_to_nodes_process",
+        "process_name"    : "AssignVectorComponentsToNodesProcess",
+        "Parameters"      : {
+            "model_part_name" : "group_LINEAR_MOVEMENT-auto-3",
+            "variable_name"   : "DISPLACEMENT",
+            "interval"        : [0.0, "End"],
+            "value"           : [
+                                null,
+                                    "-t",
+                                    0.0
+                                ]
+            }
+        }
+    ],
+    "loads_process_list"       : [
+        {
+        "help"            : "This process assigns a load value on conditions",        
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",        
+        "python_module"   : "assign_modulus_and_direction_to_conditions_process",
+        "process_name"    : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"      : {
+            "model_part_name" : "group_LINE_LOAD-auto-1",
+            "variable_name"   : "LINE_LOAD",
+            "interval"        : [0.0, "End"],
+            "modulus"         : 0,
+            "direction"       : [-1,0,0]
+            }
+        }
+    ],
+    "output_process_list" : [{
+        "help"            : "This process writes restart files",    
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",    
+        "python_module"   : "restart_process",
+        "process_name"    : "RestartProcess",
+        "Parameters"      : {
+            "model_part_name"     : "Main_Domain",
+            "save_restart"        : false,
+            "restart_file_name"   : "tri0",
+            "restart_file_label"  : "step",
+            "output_control_type" : "time",
+            "output_frequency"    : 0,
+            "json_output"         : false
+        }
+    }],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "MultipleFiles"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "time",
+            "output_frequency"    : 0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : [
+                                      "DISPLACEMENT"
+                                    ],
+            "gauss_point_results" : [
+                                      "CAUCHY_STRESS_TENSOR",
+                                      "GREEN_LAGRANGE_STRAIN_TENSOR",
+                                      "STRESS_INV_P",
+                                      "STRESS_INV_J2",
+                                      "STRESS_INV_THETA",
+                                      "PLASTIC_STRAIN",
+				      "PS",
+				      "PM",
+				      "PLASTIC_MULTIPLIER",
+				      "VOID_RATIO",
+                                      "INCR_SHEAR_PLASTIC"        
+                                    ],
+            "additional_list_files": [
+                                       2
+                                     ]
+        },
+        "point_data_configuration"  : []
+    }
+
+}

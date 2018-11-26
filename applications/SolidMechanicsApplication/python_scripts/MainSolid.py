@@ -10,7 +10,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-
+import KratosMultiphysics.ConstitutiveModelsApplication
 
 sys.stdout.flush()
 
@@ -161,6 +161,8 @@ class Solution(object):
     def InitializeSolutionStep(self):
 
         clock_time = self._start_time_measuring()
+
+        self.solver.InitializeSolutionStep()
 
         # Predict time step
         self.PredictTimeStep()

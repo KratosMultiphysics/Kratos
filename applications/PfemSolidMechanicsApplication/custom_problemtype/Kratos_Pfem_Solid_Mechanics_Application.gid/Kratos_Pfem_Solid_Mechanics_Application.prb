@@ -161,5 +161,17 @@ QUESTION: Load_Step:
 VALUE: 0
 QUESTION: CPT_PostProcess#CB#(False,True)
 VALUE: False
+DEPENDENCIES:(False,HIDE,Initial_u2_position,#CURRENT#,HIDE,CPT_Velocity,#CURRENT#,HIDE,CPT_radius,#CURRENT#)
+DEPENDENCIES:(True,RESTORE,Initial_u2_position,#CURRENT#,RESTORE,CPT_Velocity,#CURRENT#,RESTORE,CPT_radius,#CURRENT#)
+QUESTION: Initial_u2_position
+VALUE: 0.0332
+QUESTION: CPT_Velocity
+VALUE: 0.02
+QUESTION: CPT_radius
+VALUE: 0.01784
+QUESTION: Ploughing_PostProcess#CB#(False,True)
+VALUE: False
+QUESTION: GaussPoint_PostProcess#CB#(False,True)
+VALUE: False
 # Properties
 END GENERAL DATA

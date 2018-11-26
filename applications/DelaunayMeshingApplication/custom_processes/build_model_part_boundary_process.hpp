@@ -222,7 +222,7 @@ namespace Kratos
         if(i_cond->Is(BOUNDARY)) //composite condition
           ++composite_conditions;
 
-        if(mEchoLevel >= 1){
+        if(mEchoLevel >= 2){
           std::cout<<" BeforeSearch::Condition ("<<i_cond->Id()<<")";
           if(i_cond->GetValue(MASTER_NODES).size()!=0)
             std::cout<<" ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id();
@@ -271,7 +271,7 @@ namespace Kratos
                 if(ne->Id() == ie->Id() && !found){
                   WeakPointerVector< Element > MasterElements;
                   MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
-                  if( mEchoLevel >= 1 ){
+                  if( mEchoLevel >= 8 ){
                     if(i_cond->GetValue(MASTER_ELEMENTS).size()){
                       if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
                         std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
@@ -404,7 +404,7 @@ namespace Kratos
 
         //********************************************************************
 
-        if(mEchoLevel >= 1){
+        if(mEchoLevel >= 2){
           std::cout<<" AfterSearch::Condition ("<<i_cond->Id()<<")";
           if(i_cond->GetValue(MASTER_NODES).size()!=0)
             std::cout<<" ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id();
