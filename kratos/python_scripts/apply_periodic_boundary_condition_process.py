@@ -64,9 +64,8 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        if(settings.Has("variable_names")):
-            if(settings["variable_names"].size() == 0):
-                raise Exception("No variables specified to apply periodic boundary conditions.")
+        if(settings["variable_names"].size() == 0):
+            raise Exception("No variables specified to apply periodic boundary conditions.")
 
         # The computing model part
         main_model_part_name = settings["model_part_name"].GetString()
