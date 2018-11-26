@@ -243,6 +243,8 @@ if __name__ == '__main__':
         err_msg += '    "python3 montecarlo_analysis.py <my-parameter-file>.json"\n'
         raise Exception(err_msg)
 
+    start_time = time.time()
+
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
@@ -281,6 +283,8 @@ if __name__ == '__main__':
     print("\nMC mean = ",MC_mean,"exact mean = ",ExactExpectedValueQoI)
     print("relative error: ",relative_error)
 
+    end_time = time.time()
+    print("total time Monte Carlo simulation = ", end_time - start_time)
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
