@@ -24,6 +24,9 @@
 #include "custom_elements/iga_truss_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
 
+#include "custom_conditions/support_penalty_point_discrete_condition.h"
+#include "custom_conditions/load_point_discrete_condition.h"
+
 namespace Kratos {
 
 ///@name Kratos Globals
