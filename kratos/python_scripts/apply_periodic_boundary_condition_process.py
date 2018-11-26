@@ -97,7 +97,6 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
                                                                                                , periodic_parameters)
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
 
         """
         self.periodic_bc_process.ExecuteInitialize()
