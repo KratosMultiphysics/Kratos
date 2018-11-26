@@ -1,0 +1,311 @@
+BOOK: Parts
+
+CONDITION: Body_Part
+CONDTYPE: over groups
+CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces 
+QUESTION: Yield_Surface#CB#(ModifiedMohrCoulomb,SimoJu,Rankine,DruckerPrager)
+VALUE: ModifiedMohrCoulomb
+QUESTION: Young_Modulus
+VALUE: 35.00e9
+HELP: Units in IS: N/m2
+QUESTION: Density
+VALUE: 2400
+HELP: Units in IS: kg/m3
+QUESTION: Poisson_Ratio
+VALUE: 0.2
+QUESTION: Plane_state#CB#(Plane_Stress,Plane_Strain)
+VALUE: Plane_Stress
+QUESTION: Thickness
+VALUE: 1.0
+HELP: If t = 1.0 implies plane strain, otherwise plane stress
+QUESTION: Compressive_Yield_Strength
+VALUE: 30e6
+HELP: Units in IS: Pa
+QUESTION: Tensile_Yield_Strength
+VALUE: 1.5e6
+HELP: Units in IS: Pa
+QUESTION: Tensile_Fracture_Energy
+VALUE: 1.5e5
+QUESTION: Internal_Friction_Angle
+VALUE: 32
+HELP: Units Degrees
+QUESTION: Rayleigh_Beta
+VALUE: 0.005
+HELP: D = R_alpha*M + r_beta*K
+QUESTION: Rayleigh_Alpha
+VALUE: 0.00
+HELP: D = R_alpha*M + r_beta*K
+QUESTION: Characteristic_length
+VALUE: 0.02
+HELP: Units in IS: m // Radius of the averaged mapping circle
+END CONDITION
+
+CONDITION: Initial_DEM_Part
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines 
+HELP: Select the nodes to create initial DEM elements (skin elements)
+QUESTION: Apply_initial_DEM#CB#(true,false)
+VALUE: false
+
+END CONDITION
+
+
+BOOK: Dirichlet_Constraints
+
+CONDITION: Solid_Displacement
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines 
+QUESTION: SOLID_DISPLACEMENT_X#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Fix_X,false)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Fix_X,#CURRENT#)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m // If it is a function put expression between "" // If it is free put null
+QUESTION: Fix_X#CB#(true,false)
+VALUE: true
+HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
+DEPENDENCIES: (false,HIDE,Imposed_Displacement_X,Constant)(true,RESTORE,Imposed_Displacement_X,#CURRENT#)
+QUESTION: Imposed_Displacement_X#CB#(Constant,Table_Interpolation,Function)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Displacement_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Displacement_X_Table,#CURRENT#)
+QUESTION: Displacement_X_Table(Time,Displacement_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: SOLID_DISPLACEMENT_Y#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Fix_Y,false)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Fix_Y,#CURRENT#)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS: m // If it is a function put expression between "" // If it is free put null
+QUESTION: Fix_Y#CB#(true,false)
+VALUE: true
+HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
+DEPENDENCIES: (false,HIDE,Imposed_Displacement_Y,Constant)(true,RESTORE,Imposed_Displacement_Y,#CURRENT#)
+QUESTION: Imposed_Displacement_Y#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Displacement_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Displacement_Y_Table,#CURRENT#)
+QUESTION: Displacement_Y_Table(Time,Displacement_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: SOLID_DISPLACEMENT_Z#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Fix_Z,false)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Fix_Z,#CURRENT#)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS: m // If it is a function put expression between "" // If it is free put null
+QUESTION: Fix_Z#CB#(true,false)
+VALUE: true
+HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
+DEPENDENCIES: (false,HIDE,Imposed_Displacement_Z,Constant)(true,RESTORE,Imposed_Displacement_Z,#CURRENT#)
+QUESTION: Imposed_Displacement_Z#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Displacement_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Displacement_Z_Table,#CURRENT#)
+QUESTION: Displacement_Z_Table(Time,Displacement_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Initial_Time
+VALUE: 0.0
+QUESTION: End_Time
+VALUE: "End"
+END CONDITION
+
+BOOK: Loads
+
+CONDITION: Force
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points
+QUESTION: Modulus
+VALUE: 0.0
+HELP: If it is a function write the expression between ""
+QUESTION: FORCE_X#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,X_Direction,0.0,HIDE,Imposed_Force_X,Constant)(true,RESTORE,X_Direction,#CURRENT#,RESTORE,Imposed_Force_X,#CURRENT#)
+QUESTION: X_Direction
+VALUE: 0.0
+HELP: Units in IS for both 2D and 3D cases: N.
+QUESTION: Imposed_Force_X#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Force_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_X_Table,#CURRENT#)
+QUESTION: Force_X_Table(Time,Force_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: FORCE_Y#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Y_Direction,0.0,HIDE,Imposed_Force_Y,Constant)(true,RESTORE,Y_Direction,#CURRENT#,RESTORE,Imposed_Force_Y,#CURRENT#)
+QUESTION: Y_Direction
+VALUE: 0.0
+HELP: Units in IS for both 2D and 3D cases: N.
+QUESTION: Imposed_Force_Y#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Force_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_Y_Table,#CURRENT#)
+QUESTION: Force_Y_Table(Time,Force_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: FORCE_Z#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Z_Direction,0.0,HIDE,Imposed_Force_Z,Constant)(true,RESTORE,Z_Direction,#CURRENT#,RESTORE,Imposed_Force_Z,#CURRENT#)
+QUESTION: Z_Direction
+VALUE: 0.0
+HELP: Units in IS for both 2D and 3D cases: N.
+QUESTION: Imposed_Force_Z#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Force_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Force_Z_Table,#CURRENT#)
+QUESTION: Force_Z_Table(Time,Force_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Initial_Time
+VALUE: 0.0
+QUESTION: End_Time
+VALUE: "End"
+END CONDITION
+
+CONDITION: Face_Load
+CONDTYPE: over groups
+CONDMESHTYPE: over face elements
+GROUPALLOW: lines
+QUESTION: Modulus
+VALUE: 0.0 
+HELP: If it is a function write the expression between ""
+QUESTION: FACE_LOAD_X#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Face_Load_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Face_Load_X,#CURRENT#)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+QUESTION: Imposed_Face_Load_X#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Face_Load_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_X_Table,#CURRENT#)
+QUESTION: Face_Load_X_Table(Time,Face_Load_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: FACE_LOAD_Y#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Face_Load_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Face_Load_Y,#CURRENT#)
+QUESTION: Y_Value
+VALUE: 0.0
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+QUESTION: Imposed_Face_Load_Y#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Face_Load_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_Y_Table,#CURRENT#)
+QUESTION: Face_Load_Y_Table(Time,Face_Load_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: FACE_LOAD_Z#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Face_Load_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Face_Load_Z,#CURRENT#)
+QUESTION: Z_Value
+VALUE: 0.0
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2.
+QUESTION: Imposed_Face_Load_Z#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Face_Load_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Face_Load_Z_Table,#CURRENT#)
+QUESTION: Face_Load_Z_Table(Time,Face_Load_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Initial_Time
+VALUE: 0.0
+QUESTION: End_Time
+VALUE: "End"
+END CONDITION
+
+CONDITION: Normal_Load
+CONDTYPE: over groups
+CONDMESHTYPE: over face elements
+GROUPALLOW: lines 
+QUESTION: NORMAL_LOAD#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Normal_Load_Distribution,Uniform,HIDE,Normal_Pressure_Value,0.0,HIDE,Imposed_Normal_Load,Constant)(true,RESTORE,Normal_Load_Distribution,#CURRENT#,RESTORE,Normal_Pressure_Value,#CURRENT#,RESTORE,Imposed_Normal_Load,#CURRENT#)
+QUESTION: Normal_Load_Distribution#CB#(Uniform,Hydrostatic)
+VALUE: Uniform
+DEPENDENCIES: (Uniform,RESTORE,Normal_Pressure_Value,#CURRENT#,HIDE,Gravity_Direction,#CURRENT#,HIDE,Reference_Coordinate,#CURRENT#,HIDE,Specific_Weight,#CURRENT#)(Hydrostatic,HIDE,Normal_Pressure_Value,#CURRENT#,RESTORE,Gravity_Direction,#CURRENT#,RESTORE,Reference_Coordinate,#CURRENT#,RESTORE,Specific_Weight,#CURRENT#)
+QUESTION: Normal_Pressure_Value
+VALUE: 0.0
+HELP: If it is a function write the expression between ""
+HELP: Units in IS for 2D cases: N/m. Units in IS for 3D cases: N/m2. A positive value corresponds to a compressive load.
+QUESTION: Gravity_Direction#CB#(X,Y,Z)
+VALUE: Z
+QUESTION: Reference_Coordinate
+VALUE: 0.0
+HELP: Coordinate of the chosen direction at which the load is 0.0
+QUESTION: Specific_Weight
+VALUE: 10000.0
+HELP: Units in IS: N/m3. A positive value leads to a compressive load.
+QUESTION: Imposed_Normal_Load#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Normal_Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Normal_Load_Table,#CURRENT#)
+QUESTION: Normal_Load_Table(Time,Value)
+VALUE: #N# 2 0.0 0.0
+HELP: If Normal_Load_Distribution is set to Uniform, Value means Normal_Pressure_Value. If Normal_Load_Distribution is Hydrostatic, Value means Reference_Coordinate.
+QUESTION: TANGENTIAL_LOAD#CB#(true,false)
+VALUE: false
+DEPENDENCIES: (false,HIDE,Tangential_Pressure_Value,0.0,HIDE,Imposed_Tangential_Load,Constant)(true,RESTORE,Tangential_Pressure_Value,#CURRENT#,RESTORE,Imposed_Tangential_Load,#CURRENT#)
+QUESTION: Tangential_Pressure_Value
+VALUE: 0.0
+HELP: Only for 2D cases. Units in IS: N/m.
+QUESTION: Imposed_Tangential_Load#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Tangential_Load_Table,#CURRENT#)(Table_Interpolation,RESTORE,Tangential_Load_Table,#CURRENT#)
+QUESTION: Tangential_Load_Table(Time,Tangential_Load)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Initial_Time
+VALUE: 0.0
+QUESTION: End_Time
+VALUE: "End"
+END CONDITION
+
+CONDITION: Body_Acceleration
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: surfaces 
+QUESTION: Modulus
+VALUE: 9.81
+HELP: If it is a function write the expression between ""
+QUESTION: BODY_ACCELERATION_X#CB#(true,false)
+VALUE: false
+DEPENDENCIES: (false,HIDE,X_Value,0.0,HIDE,Imposed_Body_Acceleration_X,Constant)(true,RESTORE,X_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_X,#CURRENT#)
+QUESTION: X_Value
+VALUE: 0.0
+HELP: Units in IS: m/s2
+QUESTION: Imposed_Body_Acceleration_X#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Body_Acceleration_X_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_X_Table,#CURRENT#)
+QUESTION: Body_Acceleration_X_Table(Time,Body_Acceleration_X)
+VALUE: #N# 2 0.0 0.0
+QUESTION: BODY_ACCELERATION_Y#CB#(true,false)
+VALUE: true
+DEPENDENCIES: (false,HIDE,Y_Value,0.0,HIDE,Imposed_Body_Acceleration_Y,Constant)(true,RESTORE,Y_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_Y,#CURRENT#)
+QUESTION: Y_Value
+VALUE: -1.0
+HELP: Units in IS: m/s2
+QUESTION: Imposed_Body_Acceleration_Y#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Body_Acceleration_Y_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_Y_Table,#CURRENT#)
+QUESTION: Body_Acceleration_Y_Table(Time,Body_Acceleration_Y)
+VALUE: #N# 2 0.0 0.0
+QUESTION: BODY_ACCELERATION_Z#CB#(true,false)
+VALUE: false
+DEPENDENCIES: (false,HIDE,Z_Value,0.0,HIDE,Imposed_Body_Acceleration_Z,Constant)(true,RESTORE,Z_Value,#CURRENT#,RESTORE,Imposed_Body_Acceleration_Z,#CURRENT#)
+QUESTION: Z_Value
+VALUE: -9.81
+HELP: Units in IS: m/s2
+QUESTION: Imposed_Body_Acceleration_Z#CB#(Constant,Table_Interpolation)
+VALUE: Constant
+DEPENDENCIES: (Constant,HIDE,Body_Acceleration_Z_Table,#CURRENT#)(Table_Interpolation,RESTORE,Body_Acceleration_Z_Table,#CURRENT#)
+QUESTION: Body_Acceleration_Z_Table(Time,Body_Acceleration_Z)
+VALUE: #N# 2 0.0 0.0
+QUESTION: Initial_Time
+VALUE: 0.0
+QUESTION: End_Time
+VALUE: "End"
+END CONDITION
+
+BOOK: Plots
+
+CONDITION: list_of_nodes_reaction
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines 
+HELP: Select the nodes/lines to plot the sum of the reaction
+END CONDITION
+
+CONDITION: list_of_nodes_displacement
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points lines 
+HELP: Select the nodes/lines to plot the sum of the displacement
+END CONDITION
