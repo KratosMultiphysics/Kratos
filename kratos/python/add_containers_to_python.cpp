@@ -132,34 +132,41 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 template <class TVariableType>
 TVariableType CreateVariable(const std::string& name)
 {
-    TVariableType new_var(name);
-    // Getting the variable if it exists already
-    if(KratosComponents<VariableData>::Has(name)){
-        auto& existing_var = KratosComponents<VariableData>::Get(name);
-        KRATOS_ERROR_IF(new_var.Key() == existing_var.Key())<<"The variable : "<<name<<" already exists."<<std::endl;
+    auto new_var_unq_ptr = Kratos::make_unique<TVariableType>(name);
+    static std::vector<Kratos::unique_ptr<TVariableType>> vector_unique_pointers_for_variables; // TODO: To be moved to Registry class
+    auto& varables_map = KratosComponents<VariableData>::GetComponents();
+    for (auto& existing_var_pair : varables_map){
+        auto& existing_var = existing_var_pair.second;
+        if (new_var_unq_ptr->Key() == existing_var->Key())
+            KRATOS_ERROR_IF(name == existing_var->Name())<<"The variable : "<<name<<" already exists."<<std::endl;
     }
 
-    AddKratosComponent(new_var.Name(), name);
-    KratosComponents<VariableData>::Add(new_var.Name(), new_var);
-    return new_var;
+    AddKratosComponent((*new_var_unq_ptr).Name(), name);
+    KratosComponents<VariableData>::Add((*new_var_unq_ptr).Name(), (*new_var_unq_ptr));
+
+    vector_unique_pointers_for_variables.push_back(std::move(new_var_unq_ptr));
+    return *vector_unique_pointers_for_variables.back();
 }
 
 
 template <class TVariableComponentType, class TVariableComponentAdapterType>
 TVariableComponentType CreateVariableComponent(const std::string& name, const std::string& source_name, const int component_index)
 {
-    TVariableComponentType  new_var(name, source_name, component_index,
-                                    TVariableComponentAdapterType(source_name, component_index));
-
-    // Getting the variable if it exists already
-    if(KratosComponents<VariableData>::Has(name)){
-        auto& existing_var = KratosComponents<TVariableComponentType>::Get(name);
-        KRATOS_ERROR_IF(new_var.Key() == existing_var.Key())<<"The variable component : "<<name<<" already exists."<<std::endl;
+    auto new_var_unq_ptr = Kratos::make_unique<TVariableComponentType>(name, source_name, component_index,
+                                                                    TVariableComponentAdapterType(source_name, component_index));
+    static std::vector<Kratos::unique_ptr<TVariableComponentType>> vector_unique_pointers_for_variable_components; // TODO: To be moved to Registry class
+    auto& varables_map = KratosComponents<VariableData>::GetComponents();
+    for (auto& existing_var_pair : varables_map){
+        auto& existing_var = existing_var_pair.second;
+        if (new_var_unq_ptr->Key() == existing_var->Key())
+            KRATOS_ERROR_IF(name == existing_var->Name())<<"The variable components : "<<name<<" already exists."<<std::endl;
     }
 
-    AddKratosComponent(new_var.Name(), name);
-    KratosComponents<VariableData>::Add(new_var.Name(), new_var);
-    return new_var;
+    AddKratosComponent((*new_var_unq_ptr).Name(), name);
+    KratosComponents<VariableData>::Add((*new_var_unq_ptr).Name(), (*new_var_unq_ptr));
+
+    vector_unique_pointers_for_variable_components.push_back(std::move(new_var_unq_ptr));
+    return *vector_unique_pointers_for_variable_components.back();
 }
 
 void  AddContainersToPython(pybind11::module& m)
