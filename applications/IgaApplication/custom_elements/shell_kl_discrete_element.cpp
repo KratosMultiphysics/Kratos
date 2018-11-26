@@ -497,7 +497,7 @@ namespace Kratos
             KRATOS_ERROR << "SHAPE_FUNCTION_VALUES has Key zero! check if the application is correctly registered" << std::endl;
         if (SHAPE_FUNCTION_LOCAL_DERIVATIVES.Key() == 0)
             KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
-        if (DISPLACEMENT.Key() == 0)
+        if (SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES.Key() == 0)
             KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
         return 0;
         KRATOS_CATCH("");
