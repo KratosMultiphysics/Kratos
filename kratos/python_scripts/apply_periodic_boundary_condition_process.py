@@ -81,7 +81,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
         # Create the process
-        periodic_parameters = KratosMultiphysics.Parameters("""{}""")
+        periodic_parameters = KratosMultiphysics.Parameters()
         periodic_parameters.AddValue("variable_names", settings["variable_names"])
         periodic_parameters.AddValue("transformation_settings", settings["transformation_settings"])
         periodic_parameters.AddValue("search_settings", settings["search_settings"])
