@@ -236,7 +236,7 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "../tests/Level0/ProjectParameters.json"
+        parameter_file_name = "../tests/MeshCoarse8Nodes/ProjectParameters.json"
 
     '''create a serialization of the model and of the project parameters'''
     serialized_model_0,serialized_parameters_0 = serialize_model_projectparameters(parameter_file_name)
@@ -246,7 +246,11 @@ if __name__ == '__main__':
     simulation_0,ExactExpectedValueQoI = exact_execution_task(serialized_model_0,serialized_parameters_0)
 
     '''compute the refinement of the mesh and build the correspondent serialized parameters and model'''
-    serialized_model_1,serialized_parameters_1 = refinement.compute_refinement(simulation_0,0.005,0.01,serialized_parameters_0)
+    serialized_model_1,serialized_parameters_1 = refinement.compute_refinement(simulation_0,0.1,0.2,serialized_parameters_0)
+
+    '''evaluate the exact expected value of Q (sample = 1.0)'''
+    simulation_1,ExactExpectedValueQoI = exact_execution_task(serialized_model_1,serialized_parameters_1)
+
 
     number_samples = 10
     Qlist = []
@@ -273,9 +277,8 @@ if __name__ == '__main__':
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
-    # model = KratosMultiphysics.Model()
     # sample = 1.0
-    # simulation = MonteCarloAnalysis(model,local_parameters,sample)
+    # simulation = MonteCarloAnalysis(serialized_model_1,serialized_parameters_1,sample)
     # simulation.Run()
     # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     # error = 0.0
