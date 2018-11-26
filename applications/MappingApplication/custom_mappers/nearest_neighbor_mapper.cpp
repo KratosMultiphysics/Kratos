@@ -21,6 +21,9 @@
 #include "nearest_neighbor_mapper.h"
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_typedefs.h"
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+#include "custom_searching/interface_communicator_mpi.h"
+#endif
 
 namespace Kratos
 {
