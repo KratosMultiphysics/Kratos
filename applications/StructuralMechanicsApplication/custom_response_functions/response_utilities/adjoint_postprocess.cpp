@@ -187,6 +187,20 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        this->BuildNodalSolutionStepElementContributions(rSensitivityVariable, rOutputVariable);
+
+        this->BuildNodalSolutionStepConditionContributions(rSensitivityVariable, rOutputVariable);
+
+        mrModelPart.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
+
+        KRATOS_CATCH("");
+    }
+
+    template <typename TDataType>
+    void AdjointPostprocess::BuildNodalSolutionStepElementContributions(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
+    {
+        KRATOS_TRY;
+
         ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         const int num_threads = 1;
         std::vector<Vector> sensitivity_vector(num_threads);
@@ -255,6 +269,22 @@ namespace Kratos
             }
         }
 
+        KRATOS_CATCH("");
+    }
+    template <typename TDataType>
+    void AdjointPostprocess::BuildNodalSolutionStepConditionContributions(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
+    {
+        KRATOS_TRY;
+
+        ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
+        const int num_threads = 1;
+        std::vector<Vector> sensitivity_vector(num_threads);
+        std::vector<Vector> response_gradient(num_threads);
+        std::vector<Vector> adjoint_vector(num_threads);
+        std::vector<Matrix> sensitivity_matrix(num_threads);
+
+        int k = 0;
+
         // Assemble condition contributions.
         for (auto& cond_i : mrModelPart.Conditions())
         {
@@ -312,8 +342,6 @@ namespace Kratos
             if( (response_gradient[k].size() > 0) || (sensitivity_matrix[k].size1() > 0) )
                 this->AssembleNodalSensitivityContribution(rOutputVariable, sensitivity_vector[k], r_geom);
         }
-
-        mrModelPart.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
         KRATOS_CATCH("");
     }

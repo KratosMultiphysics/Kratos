@@ -108,10 +108,13 @@ protected:
     template <typename TDataType>
     void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
     template <typename TDataType>
+    void BuildNodalSolutionStepElementContributions(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
+    template <typename TDataType>
+    void BuildNodalSolutionStepConditionContributions(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
+    template <typename TDataType>
     void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
     template <typename TDataType>
     void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
-
 
     void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
