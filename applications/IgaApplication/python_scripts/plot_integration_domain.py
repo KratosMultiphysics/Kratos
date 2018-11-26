@@ -3,7 +3,6 @@ import KratosMultiphysics.IgaApplication as IgaApplication
 
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
-import random
 
 def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -23,6 +22,7 @@ class PlotIntegrationDomain(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model[settings["model_part_name"].GetString()]
+        self.store_plots = settings["store_plots"].GetBool()
 
     def ExecuteInitialize(self):
         fig = pyplot.figure()
@@ -49,4 +49,8 @@ class PlotIntegrationDomain(KratosMultiphysics.Process):
 
         ax.scatter(x_coords, y_coords, z_coords)
         ax.scatter(x_coords_nodes, y_coords_nodes, z_coords_nodes)
-        pyplot.show()
+        if (self.store_plots):
+            pyplot.savefig("PlotIntegrationDomain_0.svg")
+        pyplot.pause(1e-17)
+    #def ExecuteFinalize(self):
+    #    pyplot.show()
