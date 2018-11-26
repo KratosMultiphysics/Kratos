@@ -128,10 +128,6 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
         return *this;
     }
 
-    MatrixUnaryMinusExpression<Matrix> operator-() const {
-        return MatrixUnaryMinusExpression<Matrix>(*this);
-    }
-
     void resize(std::size_t NewSize1, std::size_t NewSize2) {
         base_type::resize(NewSize1, NewSize2);
     }
@@ -195,6 +191,20 @@ class Matrix : public MatrixExpression<Matrix<TDataType, TSize1, TSize2>,
     MatrixColumn<Matrix<TDataType, TSize1, TSize2>> column(std::size_t i) {
         return MatrixColumn<Matrix<TDataType, TSize1, TSize2>>(*this, i);
     }
+
+	void fill(data_type const& value) {
+        for (std::size_t i = 0; i < size(); i++)
+            at(i) = value;
+
+	}
+
+	void fill_identity() {
+		fill(0.00);
+		const std::size_t next_diagonal = size1() + 1;
+        for (std::size_t i = 0; i < size(); i+= next_diagonal)
+            at(i) = 1.00;
+
+	}
 };
 
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
@@ -259,6 +269,22 @@ inline std::ostream& operator<<(std::ostream& rOStream,
     }
 
     rOStream << matrix_suffix;
+
+    return rOStream;
+}
+
+template <typename TExpressionType, std::size_t TCategory>
+inline std::ostream& operator<<(std::ostream& rOStream,
+    MatrixExpression<TExpressionType, TCategory> const& TheMatrixExpression) {
+    auto& expression = TheMatrixExpression.expression();
+
+    rOStream << '{';
+    for (std::size_t i = 0; i < expression.size1(); i++) {
+        for (std::size_t j = 0; j < expression.size2(); j++)
+            rOStream << expression(i, j) << ',';
+        rOStream << '\n';
+    }
+    rOStream << '}';
 
     return rOStream;
 }
