@@ -125,7 +125,7 @@ class IgaSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
-        return 2
+        return max(2, self.settings["buffer_size"].GetDouble())
 
     def AddDofs(self):
         # this can safely be called also for restarts, it is internally checked if the dofs exist already

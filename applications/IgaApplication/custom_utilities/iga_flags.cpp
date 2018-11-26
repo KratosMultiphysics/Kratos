@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "iga_flags.h"
 
 
