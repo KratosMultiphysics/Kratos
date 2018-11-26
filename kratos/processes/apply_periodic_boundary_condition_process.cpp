@@ -23,8 +23,8 @@ namespace Kratos
 {
 
     ApplyPeriodicConditionProcess::ApplyPeriodicConditionProcess(ModelPart &rMasterModelPart, ModelPart &rSlaveModelPart,
-                                  Parameters rParameters) : Process(Flags()), mrMasterModelPart(rMasterModelPart),
-                                   mrSlaveModelPart(rSlaveModelPart), mParameters(rParameters)
+                                  Parameters Settings) : Process(Flags()), mrMasterModelPart(rMasterModelPart),
+                                   mrSlaveModelPart(rSlaveModelPart), mParameters(Settings)
     {
         Parameters default_parameters(R"(
                                             {
@@ -177,7 +177,7 @@ namespace Kratos
                 }
             }
         }
-        KRATOS_WARNING_IF("",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
+        KRATOS_WARNING_IF("ApplyPeriodicConditionProcess",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
         const double end_apply = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO("ApplyPeriodicConditionProcess")<<"Applying periodic boundary conditions took : "<<end_apply - start_apply<<" seconds." <<std::endl;
     }
@@ -294,7 +294,7 @@ namespace Kratos
 
     void ApplyPeriodicConditionProcess::CalculateRotationMatrix(const double Theta, MatrixType& rMatrix )
     {
-        std::vector<double> U(3); // normalized axis of rotation
+        DenseVector<double> U(3); // normalized axis of rotation
         // normalizing the axis of rotation
         double norm = 0.0;
         for (IndexType d = 0; d < 3; ++d)
@@ -345,8 +345,8 @@ namespace Kratos
 
     void ApplyPeriodicConditionProcess::TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates)
     {
-        std::vector<double> original_node(4, 0.0f);
-        std::vector<double> transformed_node(4, 0.0f);
+        DenseVector<double> original_node(4, 0.0f);
+        DenseVector<double> transformed_node(4, 0.0f);
 
         original_node[0] = rCoordinates(0); original_node[1] = rCoordinates(1); original_node[2] = rCoordinates(2); original_node[3] = 1.0;
         // Multiplying the point to get the rotated point
