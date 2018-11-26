@@ -12,6 +12,7 @@
 // System includes
 
 // External includes
+#include "boost/numeric/ublas/vector.hpp"
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -49,7 +50,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
