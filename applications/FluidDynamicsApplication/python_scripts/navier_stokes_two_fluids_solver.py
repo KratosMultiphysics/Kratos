@@ -105,9 +105,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
 
-    def ImportModelPart(self):
-        super(NavierStokesTwoFluidsSolver, self).ImportModelPart()
-
     def PrepareModelPart(self):
         super(NavierStokesTwoFluidsSolver, self).PrepareModelPart()
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
