@@ -274,7 +274,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         (self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
-        (self.solver).Check()
 
         # For the primitive Ausas formulation, set the find nodal neighbours process
         # Recall that the Ausas condition requires the nodal neighbours.

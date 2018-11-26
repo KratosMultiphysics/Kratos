@@ -142,7 +142,7 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     KRATOS_TRY
 
     // Initial position of the particle
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -163,21 +163,27 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     // Initialize constitutive law and materials
     InitializeMaterial();
 
+    // TODO: This needs to be moved to a utility to compute and check energy
+    double MP_PotentialEnergy = 0.0;
     double MP_KineticEnergy = 0.0;
     double MP_StrainEnergy = 0.0;
 
     for(unsigned int k = 0; k<3; k++)
     {
-        MP_KineticEnergy += 0.5 * this->GetValue(MP_MASS) * this->GetValue(MP_VELOCITY)[k] * this->GetValue(MP_VELOCITY)[k] ;
+        MP_PotentialEnergy += this->GetValue(MP_MASS) * this->GetValue(MP_VOLUME_ACCELERATION)[k] * this->GetValue(MP_COORD)[k];
+        MP_KineticEnergy   += 0.5 * this->GetValue(MP_MASS) * this->GetValue(MP_VELOCITY)[k] * this->GetValue(MP_VELOCITY)[k] ;
     }
     for(unsigned int j = 0; j < this->GetValue(MP_CAUCHY_STRESS_VECTOR).size(); j++)
     {
         MP_StrainEnergy +=  0.5 * this->GetValue(MP_VOLUME) * this->GetValue(MP_CAUCHY_STRESS_VECTOR)[j] * this->GetValue(MP_ALMANSI_STRAIN_VECTOR)[j];
     }
 
+    double MP_TotalEnergy = MP_PotentialEnergy + MP_KineticEnergy + MP_StrainEnergy;
+
+    this->SetValue(MP_POTENTIAL_ENERGY, MP_PotentialEnergy);
     this->SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
     this->SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
-    this->SetValue(MP_DENSITY, GetProperties()[DENSITY]);
+    this->SetValue(MP_TOTAL_ENERGY, MP_TotalEnergy);
 
     KRATOS_CATCH( "" )
 }
@@ -225,7 +231,7 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
@@ -254,7 +260,7 @@ void UpdatedLagrangianQuadrilateral::SetGeneralVariables(GeneralVariables& rVari
     if(rVariables.detF<0)
     {
         KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" Element: "<<this->Id()<<std::endl;
-        KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" Element position "<<this->GetValue(GAUSS_COORD)<<std::endl;
+        KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" Element position "<<this->GetValue(MP_COORD)<<std::endl;
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -365,12 +371,6 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     The function below will call CalculateMaterialResponseCauchy() by default and then (may)
     call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
     mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-    if(rCurrentProcessInfo[NL_ITERATION_NUMBER] == 1)
-    {
-        this->SetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
-        this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
-    }
 
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
@@ -861,7 +861,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
@@ -1035,7 +1035,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3> xg = this->GetValue(MP_COORD);
     const array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
     const array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
@@ -1082,7 +1082,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
 
     // Update the MP Position
     const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(GAUSS_COORD,new_xg);
+    this -> SetValue(MP_COORD,new_xg);
 
     // Update the MP Acceleration
     this -> SetValue(MP_ACCELERATION,MP_Acceleration);
@@ -1098,7 +1098,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
 void UpdatedLagrangianQuadrilateral::InitializeMaterial()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
@@ -1123,7 +1123,7 @@ void UpdatedLagrangianQuadrilateral::InitializeMaterial()
 void UpdatedLagrangianQuadrilateral::ResetConstitutiveLaw()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
