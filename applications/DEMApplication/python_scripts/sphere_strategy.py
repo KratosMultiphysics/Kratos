@@ -287,6 +287,9 @@ class ExplicitStrategy(object):
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                              self.search_strategy, strategy_parameters, self.do_search_neighbours)
 
+    def AddVariables(self):
+        pass
+
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
         self.RebuildListOfDiscontinuumSphericParticles()
@@ -297,12 +300,30 @@ class ExplicitStrategy(object):
         self.CheckMomentumConservation()
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
 
-    def Solve(self):
+    def Setdt(self, dt):
+        self.dt = dt
+
+    def Predict(self):
+        pass
+
+    def Solve(self): # deprecated
+        self.SolveSolutionStep()
+
+    def SolveSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
         (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
+
+    def AdvanceInTime(self, step, time):
+        step += 1
+        time = time + self.dt
+
+        return step, time
+
+    def FinalizeSolutionStep(self):
+        pass
 
     def SetNormalRadiiOnAllParticles(self):
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)

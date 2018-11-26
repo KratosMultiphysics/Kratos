@@ -94,7 +94,7 @@ class Solution(object):
         self.p_count = self.p_frequency
 
         self.solver = self.SetSolver()
-        self.Setdt()
+        self.SetDt()
         self.SetFinalTime()
 
     def CreateModelParts(self):
@@ -149,8 +149,8 @@ class Solution(object):
     def SetFinalTime(self):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
 
-    def Setdt(self):
-        self.dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
+    def SetDt(self):
+        self.solver.dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
 
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
@@ -331,7 +331,7 @@ class Solution(object):
         self.materialTest.PrepareDataForGraph()
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
-        self.report.total_steps_expected = int(self.end_time / self.dt)
+        self.report.total_steps_expected = int(self.end_time / self.solver.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
         #-----os.chdir(self.main_path)
 
@@ -420,7 +420,7 @@ class Solution(object):
         while self.time < self.end_time:
 
             self.InitializeTimeStep()
-            self.time = self.time + self.dt
+            self.time = self.time + self.solver.dt
             self.step += 1
 
             self.UpdateTimeInModelParts()
@@ -431,7 +431,7 @@ class Solution(object):
 
             self.AfterSolveOperations()
 
-            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
+            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
 
             ##### adding DEM elements by the inlet ######
             if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -465,7 +465,7 @@ class Solution(object):
                 self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self, time):
-        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.dt
+        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.solver.dt
 
     def PrintResults(self):
         #### GiD IO ##########################################
@@ -475,13 +475,13 @@ class Solution(object):
 
 
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
 
     def UpdateTimeInOneModelPart(self):
         pass
 
     def SolverSolve(self):
-        self.solver.Solve()
+        self.solver.SolveSolutionStep()
 
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -606,12 +606,12 @@ class Solution(object):
 
     def UpdateTimeParameters(self):
         self.InitializeTimeStep()
-        self.time = self.time + self.dt
+        self.time = self.time + self.solver.dt
         self.step += 1
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
-        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
+        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
         #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -633,7 +633,7 @@ class Solution(object):
         self.BeforePrintingOperations(self.time)
         #### GiD IO ##########################################
         time_to_print = self.time - self.time_old_print
-        if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt:
+        if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.solver.dt:
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
         self.FinalizeTimeStep(self.time)

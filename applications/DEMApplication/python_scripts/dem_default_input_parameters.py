@@ -19,7 +19,6 @@ def GetDefaultInputParameters():
             "BoundingBoxMinX"                  : -10.0,
             "BoundingBoxMinY"                  : -10.0,
             "BoundingBoxMinZ"                  : -10.0,
-
             "dem_inlet_option"                 : true,
             "GravityX"                         : 0.0,
             "GravityY"                         : 0.0,
@@ -42,6 +41,13 @@ def GetDefaultInputParameters():
             "RemoveBallsInEmbeddedOption"      : false,
             "strategy_parameters" :{
                 "RemoveBallsInitiallyTouchingWalls": false
+            },
+            "problem_data"     : {
+                "problem_name"  : "dummy_name.Provide_a_real_one",
+                "parallel_type" : "OpenMP",
+                "echo_level"    : 1,
+                "start_time"    : 0.0,
+                "end_time"      : 1
             },
             "DeltaOption"                      : "Absolute",
             "SearchTolerance"                  : 0.0,
