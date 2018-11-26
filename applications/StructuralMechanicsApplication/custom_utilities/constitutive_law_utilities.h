@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -53,7 +54,7 @@ namespace Kratos
  * @todo Finish adapt for 2D dimension
  */
 template <SizeType TVoigtSize = 6>
-class ConstitutiveLawUtilities
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 {
   public:
     ///@name Type definitions
@@ -64,9 +65,21 @@ class ConstitutiveLawUtilities
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
-    
+
     /// We define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
+
+    /// The matrix type definition
+    typedef Matrix MatrixType;
+
+    /// the vector type definition
+    typedef Vector VectorType;
+
+    /// The definition of the bounded matrix type
+    typedef array_1d<double, VoigtSize> BoundedVectorType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -89,7 +102,7 @@ class ConstitutiveLawUtilities
      * @param rI1 The first invariant
      */
     static void CalculateI1Invariant(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const BoundedVectorType& rStressVector,
         double& rI1
         );
 
@@ -100,7 +113,7 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateI2Invariant(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const BoundedVectorType& rStressVector,
         double& rI2
         );
 
@@ -111,7 +124,7 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateI3Invariant(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const BoundedVectorType& rStressVector,
         double& rI3
         );
 
@@ -123,9 +136,9 @@ class ConstitutiveLawUtilities
      * @param rJ2 The second invariant of J
      */
     static void CalculateJ2Invariant(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const BoundedVectorType& rStressVector,
         const double I1,
-        array_1d<double, VoigtSize>& rDeviator,
+        BoundedVectorType& rDeviator,
         double& rJ2
         );
 
@@ -135,7 +148,7 @@ class ConstitutiveLawUtilities
      * @param rJ3 The third invariant of J
      */
     static void CalculateJ3Invariant(
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedVectorType& rDeviator,
         double& rJ3
         );
 
@@ -143,7 +156,7 @@ class ConstitutiveLawUtilities
      * @brief This method computes the first vector
      * @param rFirstVector The first vector
      */
-    static void CalculateFirstVector(array_1d<double, VoigtSize>& rFirstVector);
+    static void CalculateFirstVector(BoundedVectorType& rFirstVector);
 
     /**
      * @brief This method computes the second vector
@@ -152,9 +165,9 @@ class ConstitutiveLawUtilities
      * @param rSecondVector The second vector
      */
     static void CalculateSecondVector(
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedVectorType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rSecondVector
+        BoundedVectorType& rSecondVector
         );
 
     /**
@@ -165,9 +178,9 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateThirdVector(
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedVectorType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rThirdVector
+        BoundedVectorType& rThirdVector
         );
 
     /**
@@ -183,17 +196,141 @@ class ConstitutiveLawUtilities
         );
 
     /**
+     * @brief Calculation of the Green-Lagrange strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
+     * @param rCauchyTensor The right Cauchy tensor
+     * @param rStrainVector The Green-Lagrange strain vector
+     */
+    static void CalculateGreenLagrangianStrain(
+        const MatrixType& rCauchyTensor,
+        VectorType& rStrainVector
+        );
+
+    /**
+     * @brief Calculation of the Almansi strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
+     * @param rLeftCauchyTensor The left Cauchy tensor
+     * @param rStrainVector The Almansi strain vector
+     */
+    static void CalculateAlmansiStrain(
+        const MatrixType& rLeftCauchyTensor,
+        VectorType& rStrainVector
+        );
+
+    /**
+     * @brief Calculation of the Hencky strain vector (true strain, natural strain, logarithmic strain)
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
+     * @param rCauchyTensor The right Cauchy tensor
+     * @param rStrainVector The Hencky strain vector
+     */
+    static void CalculateHenckyStrain(
+        const MatrixType& rCauchyTensor,
+        VectorType& rStrainVector
+        );
+
+    /**
+     * @brief Calculation of the Biot strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
+     * @param rCauchyTensor The right Cauchy tensor
+     * @param rStrainVector The Biot strain vector
+     */
+    static void CalculateBiotStrain(
+        const MatrixType& rCauchyTensor,
+        VectorType& rStrainVector
+        );
+    
+    /**
+     * @brief The deformation gradient F, like any invertible second-order tensor, can be decomposed, using the polar decomposition theorem, into a product of two second-order tensors (Truesdell and Noll, 1965): an orthogonal tensor and a positive definite symmetric tensor, i.e F = R U
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Polar_decomposition_of_the_deformation_gradient_tensor
+     * @param rFDeformationGradient The deformation gradient
+     * @param rRMatrix The rotation component
+     * @param rUMatrix The pure displacement component
+     */
+    static void PolarDecomposition(
+        const MatrixType& rFDeformationGradient,
+        MatrixType& rRMatrix,
+        MatrixType& rUMatrix
+        );
+
+    /**
      * @brief This method computes the principal stresses vector
+     * @details http://www.continuummechanics.org/principalstress.html
      * @param rPrincipalStressVector The vector of principal stresses
      * @param rStressVector The vector of stresses
      * @todo Adapt for 2D dimension
      */
     static void CalculatePrincipalStresses(
         array_1d<double, Dimension>& rPrincipalStressVector,
-        const array_1d<double, VoigtSize>& rStressVector
+        const BoundedVectorType& rStressVector
+        );
+
+    /**
+     * @brief This method computes the principal stresses vector
+     * @details Using Cardano formula and renormalizing (TODO)
+     * @param rPrincipalStressVector The vector of principal stresses
+     * @param rStressVector The vector of stresses
+     * @todo Adapt for 2D dimension
+     */
+    static void CalculatePrincipalStressesWithCardano(
+        array_1d<double, Dimension>& rPrincipalStressVector,
+        const BoundedVectorType& rStressVector
+        );
+
+    /**
+     * @brief This method calculates the projection operator
+     * and calculates the Projection Operator
+     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
+     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
+     * Materials" - M. Cervera and C. Tesei.
+     * @param rStrainVector The Strain Vector
+     * @param rProjectionOperator The projection operator
+     */
+    static void CalculateProjectionOperator(
+        const Vector& rStrainVector,
+        MatrixType& rProjectionOperator
+        );
+
+    /**
+     * @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
+     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
+     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
+     * Materials" - M. Cervera and C. Tesei.
+     * @param rStressVector The Stress Vector
+     * @param rStressVectorTension The Stress Vector
+     * @param rStressVectorCompression The Stress Vector
+     * @param rMatrixTension The Stress Vector
+     * @param rMatrixCompression The Stress Vector
+     */
+    static void SpectralDecomposition(
+        const BoundedVectorType& rStressVector,
+        BoundedVectorType& rStressVectorTension,
+        BoundedVectorType& rStressVectorCompression
+        );
+
+    /**
+     * @brief This computes the linear plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     */
+    static MatrixType CalculateLinearPlasticDeformationGradientIncrement(
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement
+        );
+
+    /**
+     * @brief This computes the exponential plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     */
+    static MatrixType CalculateExponentialPlasticDeformationGradientIncrement(
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const MatrixType& rRe
         );
 
   private:
+
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
 #endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */

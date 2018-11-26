@@ -11,19 +11,19 @@ import filecmp
 import os
 import math
 
-def Factory(settings, Model):
+def Factory(settings, current_model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return CompareTwoFilesCheckProcess(Model, settings["Parameters"])
+    return CompareTwoFilesCheckProcess(settings["Parameters"])
 
 class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
-
-    def __init__(self, model, params):
-        """This process compares files that are written during a simulation
-        against reference files.
-        Please see the "ExecuteFinalize" functions for details about the
-        available file-formats
-        """
+    """This process compares files that are written during a simulation
+    against reference files.
+    Please see the "ExecuteFinalize" functions for details about the
+    available file-formats
+    """
+    def __init__(self, params):
+        KratosMultiphysics.Process.__init__(self)
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
@@ -112,10 +112,16 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             err_msg += '" is not valid!'
             raise Exception(err_msg)
 
+        # "readlines" adds a newline at the end of the line,
+        # which will be removed with rstrip afterwards
         with open(self.reference_file_name,'r') as ref_file:
             lines_ref = ref_file.readlines()
         with open(self.output_file_name,'r') as out_file:
             lines_out = out_file.readlines()
+
+        # removing trailing newline AND whitespaces than can mess with the comparison
+        lines_ref = [line.rstrip() for line in lines_ref]
+        lines_out = [line.rstrip() for line in lines_out]
 
         num_lines_ref = len(lines_ref)
         num_lines_out = len(lines_out)
@@ -185,7 +191,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         current_index += 1 # skipping "Values"-line
 
         # comparing results
-        while lines1[current_index+1] != "End Values\n":
+        while lines1[current_index+1] != "End Values":
             current_index += 1
             lines_1_splitted = lines1[current_index].split()
             lines_2_splitted = lines2[current_index].split()

@@ -344,11 +344,9 @@ public:
             ModelPart::NodeIterator NodesEnd;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
 
-            const array_1d<double,3> Zero(3,0.0);
-
             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
             {
-                itNode->FastGetSolutionStepValue(REACTION) = Zero;
+                itNode->FastGetSolutionStepValue(REACTION) = ZeroVector(3);
             }
         }
 
@@ -430,7 +428,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "FSStrategy" ;
@@ -438,10 +436,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "FSStrategy";}
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
     ///@}
@@ -694,9 +695,7 @@ protected:
 
     void ComputeSplitOssProjections(ModelPart& rModelPart)
     {
-        const array_1d<double,3> Zero(3,0.0);
-
-        array_1d<double,3> Out(3,0.0);
+        array_1d<double,3> Out = ZeroVector(3);
 
 #pragma omp parallel
         {
@@ -706,8 +705,8 @@ protected:
 
             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
             {
-                itNode->FastGetSolutionStepValue(CONV_PROJ) = Zero;
-                itNode->FastGetSolutionStepValue(PRESS_PROJ) = Zero;
+                itNode->FastGetSolutionStepValue(CONV_PROJ) = ZeroVector(3);
+                itNode->FastGetSolutionStepValue(PRESS_PROJ) = ZeroVector(3);
                 itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0;
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
             }
@@ -753,8 +752,7 @@ protected:
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
 
-        const array_1d<double,3> Zero(3,0.0);
-        array_1d<double,3> Out(3,0.0);
+        array_1d<double,3> Out = ZeroVector(3);
 
 #pragma omp parallel
         {
@@ -764,7 +762,7 @@ protected:
 
             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
             {
-                itNode->FastGetSolutionStepValue(FRACT_VEL) = Zero;
+                itNode->FastGetSolutionStepValue(FRACT_VEL) = ZeroVector(3);
             }
         }
 
@@ -946,8 +944,8 @@ protected:
 
                      // reset for next iteration
                      itNode->GetValue(NODAL_AREA) = 0.0;
-                     itNode->GetValue(CONV_PROJ) = array_1d<double,3>(3,0.0);
-                     itNode->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
+                     itNode->GetValue(CONV_PROJ) = ZeroVector(3);
+                     itNode->GetValue(PRESS_PROJ) = ZeroVector(3);
                      itNode->GetValue(DIVPROJ) = 0.0;
                  }
              }
@@ -1004,7 +1002,7 @@ protected:
                  if ( rDeltaVel[0]*rDeltaVel[0] + rDeltaVel[1]*rDeltaVel[1] + rDeltaVel[2]*rDeltaVel[2] != 0.0)
                  {
                      itNode->FastGetSolutionStepValue(FRACT_VEL) = itNode->GetValue(FRACT_VEL);
-                     rDeltaVel = array_1d<double,3>(3,0.0);
+                     rDeltaVel = ZeroVector(3);
                  }
              }
          }

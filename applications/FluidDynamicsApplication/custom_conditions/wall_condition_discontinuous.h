@@ -216,7 +216,7 @@ public:
     Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_shared<WallConditionDiscontinuous>(NewId, pGeom, pProperties);
-	}
+    }
 
 
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
@@ -229,7 +229,8 @@ public:
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
-        unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+        const ProcessInfo& r_process_info = rCurrentProcessInfo;
+        unsigned int step = r_process_info[FRACTIONAL_STEP];
         if ( step == 1)
         {
             // Initialize local contributions
@@ -262,7 +263,6 @@ public:
 
             if(this->GetValue(IS_STRUCTURE) == 0.0 )
             {
-	      //const unsigned int LocalSize = TNumNodes;
                 const GeometryType& rGeom = this->GetGeometry();
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                 const unsigned int NumGauss = IntegrationPoints.size();
@@ -434,7 +434,7 @@ public:
                 //             }
 
                 // Velocity inflow correction
-                array_1d<double,3> Vel(3,0.0);
+                array_1d<double,3> Vel = ZeroVector(3);
                 double Density = 0.0;
 
                 for (unsigned int i = 0; i < TNumNodes; i++)
@@ -502,25 +502,25 @@ public:
     ///@name Input and output
     ///@{
 
-	/// Turn back information as a string.
-	std::string Info() const override
-	{
-		std::stringstream buffer;
-		this->PrintInfo(buffer);
-		return buffer.str();
-	}
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        this->PrintInfo(buffer);
+        return buffer.str();
+    }
 
-	/// Print information about this object.
-	void PrintInfo(std::ostream& rOStream) const override
-	{
-		rOStream << "WallConditionDiscontinuous" << TDim << "D #" << this->Id();
-	}
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "WallConditionDiscontinuous" << TDim << "D #" << this->Id();
+    }
 
-	/// Print object's data.
-	void PrintData(std::ostream& rOStream) const override
-	{
-		this->pGetGeometry()->PrintData(rOStream);
-	}
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        this->pGetGeometry()->PrintData(rOStream);
+    }
 
 
     ///@}

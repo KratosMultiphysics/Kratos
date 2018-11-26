@@ -30,7 +30,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 MCYieldCriterion::MCYieldCriterion()
-    :YieldCriterion()
+    :MPMYieldCriterion()
 {
 
 }
@@ -39,7 +39,7 @@ MCYieldCriterion::MCYieldCriterion()
 //************************************************************************************
 
 MCYieldCriterion::MCYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :YieldCriterion(pHardeningLaw)
+    :MPMYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -49,7 +49,7 @@ MCYieldCriterion::MCYieldCriterion(HardeningLawPointer pHardeningLaw)
 
 MCYieldCriterion& MCYieldCriterion::operator=(MCYieldCriterion const& rOther)
 {
-    YieldCriterion::operator=(rOther);
+    MPMYieldCriterion::operator=(rOther);
     return *this;
 }
 
@@ -57,7 +57,7 @@ MCYieldCriterion& MCYieldCriterion::operator=(MCYieldCriterion const& rOther)
 //************************************************************************************
 
 MCYieldCriterion::MCYieldCriterion(MCYieldCriterion const& rOther)
-    :YieldCriterion(rOther)
+    :MPMYieldCriterion(rOther)
 {
 
 }
@@ -81,7 +81,7 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
     const double cohesion_coefficient = 2 * rCohesion * std::sqrt(friction_coefficient);
 
     // f = k*s1 -s3 - comp
-    rStateFunction = friction_coefficient * rStressVector(0) - rStressVector(2) - cohesion_coefficient;
+    rStateFunction = friction_coefficient * rStressVector[0] - rStressVector[2] - cohesion_coefficient;
 
     return rStateFunction;
 }
@@ -94,12 +94,12 @@ double MCYieldCriterion::GetPI()
 
 void MCYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 void MCYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, YieldCriterion )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 

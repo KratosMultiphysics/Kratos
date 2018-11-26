@@ -1,8 +1,8 @@
-//    |  /           |             
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                     Kratos default license: kratos/license.txt
@@ -30,7 +30,7 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 template< class TContainerType, class TVariableType >
 bool HasHelperFunction(TContainerType& el, const TVariableType& rVar)
@@ -58,7 +58,7 @@ typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayTyp
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
 array_1d<double,3> GetNormalFromCondition(
-    Condition& dummy, 
+    Condition& dummy,
     CoordinatesArrayType& LocalCoords
     )
 {
@@ -105,7 +105,7 @@ NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-list GetNodesFromElement( Element& dummy )
+py::list GetNodesFromElement( Element& dummy )
 {
     pybind11::list nodes_list;
     for( unsigned int i=0; i<dummy.GetGeometry().size(); i++ )
@@ -120,7 +120,7 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-void ConditionCalculateLocalSystemStandard( Condition& dummy, 
+void ConditionCalculateLocalSystemStandard( Condition& dummy,
                                                 Matrix& rLeftHandSideMatrix,
                                                 Vector& rRightHandSideVector,
                                                 ProcessInfo& rCurrentProcessInfo)
@@ -129,7 +129,7 @@ void ConditionCalculateLocalSystemStandard( Condition& dummy,
 }
 
 
-list GetNodesFromCondition( Condition& dummy )
+py::list GetNodesFromCondition( Condition& dummy )
 {
     pybind11::list nodes_list;
     for( unsigned int i=0; i<dummy.GetGeometry().size(); i++ )
@@ -139,7 +139,7 @@ list GetNodesFromCondition( Condition& dummy )
     return( nodes_list );
 }
 
-list GetIntegrationPointsFromElement( Element& dummy )
+py::list GetIntegrationPointsFromElement( Element& dummy )
 {
     pybind11::list integration_points_list;
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
@@ -250,7 +250,7 @@ void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>&
 
     if(values.size() != integration_points.size())
         KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
-    
+
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
@@ -282,7 +282,7 @@ void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_
     std::vector< array_1d<double,3> > values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        if(isinstance<array_1d<double,3> >(values_list[i]))
+        if(py::isinstance<array_1d<double,3> >(values_list[i]))
             values[i] = (values_list[i]).cast<array_1d<double,3> >();
         else
             KRATOS_ERROR << "expecting a list of array_1d<double,3> ";
@@ -318,7 +318,7 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
     std::vector<Vector> values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        if(isinstance<Vector>(values_list[i]))
+        if(py::isinstance<Vector>(values_list[i]))
             values[i] = (values_list[i]).cast<Vector>();
         else
             KRATOS_ERROR << "expecting a list of vectors";
@@ -362,7 +362,7 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        if(isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
+        if(py::isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
             values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
         else
             KRATOS_ERROR << "expecting a list of ConstitutiveLaw::Pointer";
@@ -419,11 +419,11 @@ void  AddMeshToPython(pybind11::module& m)
 //             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 //             typedef MeshType::NodeType NodeType;
 
-    //     class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
-    //.def("GetVariable", &Dof::GetVariable, return_value_policy::reference_internal)
-    //.def("GetReaction", &Dof::GetReaction, return_value_policy::reference_internal)
-    //.def("GetTimeDerivative", &Dof::GetTimeDerivative, return_value_policy::reference_internal)
-    //.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, return_value_policy::reference_internal)
+    //     py::class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
+    //.def("GetVariable", &Dof::GetVariable, py::return_value_policy::reference_internal)
+    //.def("GetReaction", &Dof::GetReaction, py::return_value_policy::reference_internal)
+    //.def("GetTimeDerivative", &Dof::GetTimeDerivative, py::return_value_policy::reference_internal)
+    //.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, py::return_value_policy::reference_internal)
     //.def("NodeIndex", &Dof::NodeIndex)
     //.def_property("EquationId", &Dof::EquationId, &Dof::SetEquationId)
     //.def("Fix", &Dof::FixDof)
@@ -434,39 +434,35 @@ void  AddMeshToPython(pybind11::module& m)
     //.def(self_ns::str(self))
     //      ;
 
-    class_<GeometricalObject, GeometricalObject::Pointer, GeometricalObject::BaseType/*, Flags*/  >(m,"GeometricalObject")
-    .def(init<Kratos::GeometricalObject::IndexType>())
+    py::class_<GeometricalObject, GeometricalObject::Pointer, GeometricalObject::BaseType/*, Flags*/  >(m,"GeometricalObject")
+    .def(py::init<Kratos::GeometricalObject::IndexType>())
     ;
 
-    class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
-    .def(init<Kratos::Element::IndexType>())
+    py::class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
+    .def(py::init<Kratos::Element::IndexType>())
     .def_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 4>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,4>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,4>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 6>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,6>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,6>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 9>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,9>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,9>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< Vector > >)
@@ -504,6 +500,12 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Has", HasHelperFunction< Element, Variable< bool > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< bool > >)
+
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< std::string > >)
+    .def("Has", HasHelperFunction< Element, Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
     .def("GetArea", GetAreaFromElement )
     .def("GetNode", GetNodeFromElement )
@@ -558,41 +560,37 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     .def("Initialize", &Element::Initialize)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
-    .def("__repr__", &Element::Info) //self_ns::str(self))
+    .def("__str__", PrintObject<Element>)
     ;
 
     PointerVectorSetPythonInterface<MeshType::ElementsContainerType>().CreateInterface(m,"ElementsArray")
     ;
 
-    class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
-    .def(init<Kratos::Condition::IndexType>())
+    py::class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
+    .def(py::init<Kratos::Condition::IndexType>())
     .def_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,4>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,4>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,6>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,6>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,9>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,9>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Vector > >)
@@ -631,6 +629,12 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< bool > >)
 
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("Has", HasHelperFunction< Condition, Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< std::string > >)
+
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
 
@@ -663,26 +667,26 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Initialize", &Condition::Initialize)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
-    .def("__repr__", &Condition::Info ) // self_ns::str(self))
+    .def("__str__", PrintObject<Condition>)
     ;
 
     PointerVectorSetPythonInterface<MeshType::ConditionsContainerType>().CreateInterface(m,"ConditionsArray")
     ;
 
-    class_<MeshType, MeshType::Pointer, DataValueContainer, Flags >(m,"Mesh")
+    py::class_<MeshType, MeshType::Pointer, DataValueContainer, Flags >(m,"Mesh")
     .def_property("Nodes", &MeshType::pNodes,&MeshType::SetNodes)
-    .def("NodesArray", &MeshType::NodesArray, return_value_policy::reference_internal)
+    .def("NodesArray", &MeshType::NodesArray, py::return_value_policy::reference_internal)
     .def_property("Elements", &MeshType::pElements,&MeshType::SetElements)
-    .def("ElementsArray", &MeshType::ElementsArray, return_value_policy::reference_internal)
+    .def("ElementsArray", &MeshType::ElementsArray, py::return_value_policy::reference_internal)
     .def_property("Conditions", &MeshType::pConditions,&MeshType::SetConditions)
-    .def("ConditionsArray", &MeshType::ConditionsArray, return_value_policy::reference_internal)
+    .def("ConditionsArray", &MeshType::ConditionsArray, py::return_value_policy::reference_internal)
     .def_property("Properties", &MeshType::pProperties,&MeshType::SetProperties)
-    .def("PropertiesArray", &MeshType::PropertiesArray, return_value_policy::reference_internal)
+    .def("PropertiesArray", &MeshType::PropertiesArray, py::return_value_policy::reference_internal)
     .def("HasNode", &MeshType::HasNode)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)
     .def("HasCondition", &MeshType::HasCondition)
-    .def("__repr__", &MeshType::Info)
+    .def("__str__", PrintObject<MeshType>)
     ;
 }
 }  // namespace Python.

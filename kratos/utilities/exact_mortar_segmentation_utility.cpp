@@ -18,6 +18,7 @@
 // Project includes
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
+#include "containers/model.h"
 // DEBUG
 #include "includes/gid_io.h"
 
@@ -1112,7 +1113,8 @@ template<SizeType TDim, SizeType TNumNodes, bool TBelong, SizeType TNumNodesMast
 void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::TestGiDDebug(ModelPart& rMainModelPart)
 {
     if (TDim == 3) {
-        ModelPart aux_model_part;
+        Model& current_model = rMainModelPart.GetModel();
+        ModelPart& aux_model_part = current_model.CreateModelPart("exact_mortar_aux_model_part");
 
         IndexType node_counter = 1;
         IndexType cond_counter = 1;
@@ -1165,6 +1167,8 @@ void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>::T
                     }
                 }
             }
+
+            current_model.DeleteModelPart("exact_mortar_aux_model_part");
         }
 
         auto pgidio = Kratos::make_shared<GidIO<>>("ExactMortarIntegrationUtilityDEBUG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);

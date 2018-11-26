@@ -19,7 +19,6 @@
 
 // Project includes
 #include "adjoint_finite_difference_base_element.h"
-#include "custom_elements/shell_thin_element_3D3N.hpp"
 
 namespace Kratos
 {
@@ -78,9 +77,6 @@ public:
     ///@{
 
     // Basic
-
-    void Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 

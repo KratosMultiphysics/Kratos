@@ -241,14 +241,14 @@ void FIC<TElementData>::AddVelocitySystem(
     double TauMomentum;
     array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
 
-    array_1d<double,3> TauGrad(3,0.0);
+    array_1d<double,3> TauGrad = ZeroVector(3);
     this->CalculateTau(rData,convective_velocity,TauIncompr,TauMomentum,TauGrad);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
     // Residual (used by FIC shock-capturing term)
-    array_1d<double,3> MomRes(3,0.0);
+    array_1d<double,3> MomRes = ZeroVector(3);
     this->AlgebraicMomentumResidual(rData,AGradN,MomRes);
 
     // Multiplying some quantities by density to have correct units
@@ -373,7 +373,7 @@ void FIC<TElementData>::AddMassStabilization(
     double TauMomentum;
     array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
 
-    array_1d<double,3> TauGrad(3,0.0);
+    array_1d<double,3> TauGrad = ZeroVector(3);
     this->CalculateTau(rData,convective_velocity,TauIncompr,TauMomentum,TauGrad);
 
     Vector AGradN;
@@ -407,7 +407,7 @@ void FIC<TElementData>::AddMassStabilization(
 }
 
 template <class TElementData>
-void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
+void FIC<TElementData>::AddBoundaryTraction(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
     BoundedMatrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
@@ -442,9 +442,9 @@ void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
         for (unsigned int d = 0; d < Dim; d++) {
             const unsigned int row = i*BlockSize + d;
             for (unsigned int col = 0; col < LocalSize; col++) {
-                rLHS(row,col) -= wni*normal_stress_operator(d,col);
+                rLHS(row,col) += wni*normal_stress_operator(d,col);
             }
-            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
+            rRHS[row] -= wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
         }
     }
 }
@@ -549,11 +549,11 @@ void FIC<TElementData>::CalculateTauGrad(
 
     // Calculate characteristic lenghts on the gradient directions and gradient norms
     const Geometry< Node<3> >& r_geometry = this->GetGeometry();
-    array_1d<double,3> Hg(3,0.0);
-    array_1d<double,3> GradNorm(3,0.0);
+    array_1d<double,3> Hg = ZeroVector(3);
+    array_1d<double,3> GradNorm;
     for (unsigned int d = 0; d < Dim; d++)
     {
-        array_1d<double,3> Gi(3,0.0);
+        array_1d<double,3> Gi;
         Gi[0] = Gradient(d,0);
         Gi[1] = Gradient(d,1);
         Gi[2] = Gradient(d,2);

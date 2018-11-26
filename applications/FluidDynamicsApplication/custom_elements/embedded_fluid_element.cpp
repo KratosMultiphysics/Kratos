@@ -101,10 +101,12 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 
             this->CalculateMaterialResponse(data);
 
-            this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g],
+            this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g],
                 rLeftHandSideMatrix, rRightHandSideVector);
         }
 
+        // Add the boundary condition imposition terms
+        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
         if (this->Is(SLIP)){
             // Nitsche Navier-Slip boundary condition implementation (Winter, 2018)
             AddSlipNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
@@ -330,8 +332,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
@@ -339,7 +341,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     // If there is embedded velocity, substract it to the previous iteration solution
     if (this->Has(EMBEDDED_VELOCITY)) {
         const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp(LocalSize, 0.0);
+        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
 
         for (unsigned int i = 0; i < NumNodes; ++i) {
             for (unsigned int comp = 0; comp < Dim; ++comp) {
@@ -370,8 +372,13 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
                     const unsigned int row = i * BlockSize + m;
                     for (unsigned int n = 0; n < Dim; ++n){
                         const unsigned int col = j * BlockSize + n;
-                        rLHS(row, col) += pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
-                        rRHS(row) -= pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j)*values(col);
+                        #ifdef KRATOS_USE_AMATRIX
+                        double lhs_ij = pen_coef*weight*aux_N[i]*aux_unit_normal(m)*aux_unit_normal(n)*aux_N[j];
+                        #else
+                        double lhs_ij = pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
+                        #endif
+                        rLHS(row, col) += lhs_ij;
+                        rRHS(row) -= lhs_ij*values(col);
                     }
                 }
             }
@@ -421,7 +428,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         BoundedMatrix<double, LocalSize, Dim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(LocalSize, Dim);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
+                #ifdef KRATOS_USE_AMATRIX
+                trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N[i]*aux_unit_normal(comp);
+                #else
                 trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N(i)*aux_unit_normal(comp);
+                #endif
             }
         }
 
@@ -429,7 +440,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
+                #ifdef KRATOS_USE_AMATRIX
+                N_mat(comp, i*BlockSize + comp) = aux_N[i];
+                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
+                #endif
             }
         }
 
@@ -470,8 +485,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
@@ -495,7 +510,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
+                #ifdef KRATOS_USE_AMATRIX
+                N_mat(comp, i*BlockSize + comp) = aux_N[i];
+                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
+                #endif
             }
         }
         BoundedMatrix<double, LocalSize, Dim> N_mat_trans = trans(N_mat);
@@ -552,8 +571,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
@@ -581,7 +600,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
+                #ifdef KRATOS_USE_AMATRIX
+                N_mat(comp, i*BlockSize + comp) = aux_N[i];
+                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
+                #endif
             }
         }
 
@@ -639,8 +662,8 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Compute the element average velocity norm
     double v_norm = 0.0;
     for (unsigned int comp = 0; comp < Dim; ++comp){
@@ -657,7 +680,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     const double avg_rho = rData.Density;
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
-    const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE
+    const double penalty = 1.0/rData.PenaltyCoefficient;
     const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
 
     return cons_coef;
@@ -665,10 +688,10 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
 
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialPenaltyCoefficients(
-    const EmbeddedElementData& rData) const {
-
-    const double penalty = 1.0/10.0;
-    const double slip_length = 1.0e+08;
+    const EmbeddedElementData& rData) const
+{
+    const double slip_length = rData.SlipLength;
+    const double penalty = 1.0/rData.PenaltyCoefficient;
 
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
@@ -682,10 +705,10 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
 
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialNitscheCoefficients(
-    const EmbeddedElementData& rData) const {
-
-    const double penalty = 1.0/10.0;
-    const double slip_length = 1.0e+08;
+    const EmbeddedElementData& rData) const 
+{
+    const double slip_length = rData.SlipLength;
+    const double penalty = 1.0/rData.PenaltyCoefficient;
 
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
@@ -701,8 +724,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
@@ -719,7 +742,7 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
     }
 
     // Multiply the penalty matrix by the penalty coefficient
-    double penalty_coefficient = this->ComputePenaltyCoefficient(rData);
+    const double penalty_coefficient = this->ComputePenaltyCoefficient(rData);
     p_gamma *= penalty_coefficient;
 
     MatrixType penalty_lhs = ZeroMatrix(LocalSize, LocalSize);
@@ -761,8 +784,8 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Compute the intersection area using the Gauss pts. weights
     double intersection_area = 0.0;
     for (unsigned int g = 0; g < rData.PositiveInterfaceWeights.size(); ++g) {
@@ -770,7 +793,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
     }
 
     // Compute the element average velocity value
-    array_1d<double, Dim> avg_vel(Dim,0.0);
+    array_1d<double, Dim> avg_vel = ZeroVector(Dim);
 
     for (unsigned int i = 0; i < NumNodes; ++i) {
         avg_vel += row(rData.Velocity, i);
@@ -790,7 +813,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
                                 rho*v_norm*std::pow(h, Dim-1);
 
     // Return the penalty coefficient
-    constexpr double K = 10.0;
+    const double K = rData.PenaltyCoefficient;
     const double pen_coef = K * pen_cons / intersection_area;
 
     return pen_coef;
@@ -844,12 +867,20 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
 
         for (unsigned int i_out = 0; i_out < rData.NumNegativeNodes; i_out++) {
             const unsigned int i_out_nodeid = rData.NegativeIndices[i_out];
+            #ifdef KRATOS_USE_AMATRIX
+            aux_out(i_out) = aux_cut[i_out_nodeid];
+            #else
             aux_out(i_out) = aux_cut(i_out_nodeid);
+            #endif
         }
 
         for (unsigned int i_int = 0; i_int < rData.NumPositiveNodes; ++i_int) {
             const unsigned int i_int_nodeid = rData.PositiveIndices[i_int];
+            #ifdef KRATOS_USE_AMATRIX
+            aux_int(i_int) = aux_cut[i_int_nodeid];
+            #else
             aux_int(i_int) = aux_cut(i_int_nodeid);
+            #endif
         }
 
         M_gamma += weight*outer_prod(aux_out,aux_out);
@@ -898,7 +929,7 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
         nitsche_lhs.clear();
 
         const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> aux_embedded_vel(LocalSize,0.0);
+        array_1d<double, LocalSize> aux_embedded_vel = ZeroVector(LocalSize);
 
         for (unsigned int i=0; i<NumNodes; i++) {
             aux_embedded_vel(i*BlockSize) = embedded_vel(0);
