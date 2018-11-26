@@ -189,12 +189,13 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double& positiveVolum
 double MassConservationCheckProcess::ComputeInletVolumeFlow(){
 
     // Convention: "mass" is considered as "water", meaning the volumes with a negative distance is considered
-    double normalInflow = 0.0;
+    double NetInflow = 0.0;
 
     for (int i_cond = 0; i_cond < static_cast<int>(mrModelPart.NumberOfConditions()); ++i_cond){
         // iteration over all elements
         auto condition = mrModelPart.ConditionsBegin() + i_cond;
 
+        // both inlet and outlet are considered which gives the NET inflow
         if ( condition->Is(OUTLET) || condition->Is(INLET) ){
 
             int dim = condition->GetGeometry().Dimension();
@@ -219,16 +220,10 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
 
                 array_1d<double, 3> normal;
                 this->CalculateUnitNormal2D( normal, p_geom);
-                KRATOS_WATCH( normal )
-                if( norm_2( normal ) < 0.0001 ){
-                    continue;
-                } else {
-                    normal /= norm_2( normal );
-                }
+                if( norm_2( normal ) < 100.0 * DP_EPSILON ){ continue; }
+                else { normal /= norm_2( normal ); }
 
                 if ( negCount == p_geom.PointsNumber() ){       // the condition is completely on the negative side
-
-                    // Gauss point information
                     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                     const unsigned int NumGauss = IntegrationPoints.size();
                     Vector GaussPtsJDet = ZeroVector(NumGauss);
@@ -243,20 +238,17 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
                         for (unsigned int n_node = 0; n_node < p_geom.PointsNumber(); n_node++){
                             interpolatedVelocity += N[n_node] * condition->GetGeometry()[n_node].GetSolutionStepValue(VELOCITY);
                         }
-                        normalInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
+                        NetInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
                     }
 
 
                 } else if ( negCount < p_geom.PointsNumber() && negCount < p_geom.PointsNumber() ){      // the condition is cut
-
                     // Compute the relative coordinate of the intersection point over the edge
                     const double aux_node_rel_location = std::abs ( Distance[0] /( Distance[1]-Distance[0] ));
-
                     // Shape function values at the position where the surface cuts the element
                     Vector Ncut = ZeroVector(2);
                     Ncut[0] = 1.0 - aux_node_rel_location;
                     Ncut[1] = aux_node_rel_location;
-
                     // Creation of an auxiliary condition which covers the negative volume domain only
                     // (imitation of the already implemented splitting mechanism)
                     Geometry< Node<3> > aux_geometry = condition->GetGeometry();
@@ -273,7 +265,6 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
                                                                                         + Ncut[1] * aux_geometry[1].GetSolutionStepValue( VELOCITY );
                         }
                     }
-
                     // Gauss point information for auxiliary geometry
                     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = aux_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
                     const unsigned int NumGauss = IntegrationPoints.size();
@@ -289,7 +280,7 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
                         for (unsigned int n_node = 0; n_node < p_geom.PointsNumber(); n_node++){
                             interpolatedVelocity += N[n_node] * aux_geometry[n_node].GetSolutionStepValue(VELOCITY);
                         }
-                        normalInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
+                        NetInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
                     }
                 }
             }
@@ -297,17 +288,12 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
             else if (dim == 3){
                 // 3D case: condition is a triangle (implemented routines can be used)
 
-                Kratos::Point::BaseType positionCenter = Vector( 3, 1.0/3.0 );
-                array_1d<double, 3> normal = condition->GetGeometry().AreaNormal( positionCenter );
-                if( norm_2( normal ) < 0.0001 ){
-                    continue;
-                } else {
-                    normal /= norm_2( normal );
-                }
+                array_1d<double, 3> normal;
+                this->CalculateUnitNormal3D( normal, p_geom );
+                if( norm_2( normal ) < 100.0 * DP_EPSILON ){ continue; }
+                else { normal /= norm_2( normal ); }
 
                 if ( negCount == p_geom.PointsNumber() ){       // the condition is completely on the negative side
-
-                    // Gauss point information
                     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                     const unsigned int NumGauss = IntegrationPoints.size();
                     Vector GaussPtsJDet = ZeroVector(NumGauss);
@@ -322,7 +308,7 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
                         for (unsigned int n_node = 0; n_node < p_geom.PointsNumber(); n_node++){
                             interpolatedVelocity += N[n_node] * condition->GetGeometry()[n_node].GetSolutionStepValue(VELOCITY);
                         }
-                        normalInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
+                        NetInflow += - wGauss * inner_prod( normal, interpolatedVelocity );
                     }
 
                 } else if ( negCount < p_geom.PointsNumber() && negCount < p_geom.PointsNumber() ){      // the condition is cut
@@ -330,7 +316,6 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
                     Matrix rShapeFunctions;
                     GeometryType::ShapeFunctionsGradientsType rShapeDerivatives;
                     Vector w_gauss_neg_side;
-
                     ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
                     auto geomPointer = condition->pGetGeometry();
                     p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(geomPointer, Distance);
@@ -344,20 +329,37 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
                     // interating velocity over the negative area of the condition
                     for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
                         const array_1d<double,3>& N = row(rShapeFunctions, i_gauss);
-
                         array_1d<double,3> interpolatedVelocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < p_geom.PointsNumber(); n_node++){
                             interpolatedVelocity += N[n_node] * condition->GetGeometry()[n_node].GetSolutionStepValue(VELOCITY);
                         }
-                        normalInflow += - w_gauss_neg_side[i_gauss] * inner_prod( normal, interpolatedVelocity );
+                        NetInflow += - w_gauss_neg_side[i_gauss] * inner_prod( normal, interpolatedVelocity );
                     }
                 }
             }
         }
     }
-
-    return normalInflow;
+    return NetInflow;
 }
+
+
+void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
+
+    ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
+    #pragma omp parallel for
+    for(int count = 0; count < static_cast<int>(rNodes.size()); count++)
+    {
+        ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
+        i_node->FastGetSolutionStepValue( DISTANCE ) = i_node->FastGetSolutionStepValue( DISTANCE ) + deltaDist;
+    }
+}
+
+
+
+
+
+
+
 
 
 /// Computes the 2D condition normal
