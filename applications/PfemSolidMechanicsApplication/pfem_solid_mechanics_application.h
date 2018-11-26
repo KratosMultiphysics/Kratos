@@ -97,6 +97,7 @@
 
 //constitutive laws
 #include "custom_constitutive/borja_hencky_casm_axisym_2D_law.hpp"
+#include "custom_constitutive/borja_hencky_casm_cem_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_casm_cem_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
@@ -323,6 +324,7 @@ namespace Kratos
     const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
 
 
+		const BorjaHenckyCasmCemPlastic3DLaw                			mBorjaHenckyCasmCemPlastic3DLaw;
 		const BorjaHenckyCasmCemPlasticAxisym2DLaw                mBorjaHenckyCasmCemPlasticAxisym2DLaw;
 		const BorjaHenckyCasmPlasticAxisym2DLaw                   mBorjaHenckyCasmPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlastic3DLaw                      mBorjaHenckyCamClayPlastic3DLaw;

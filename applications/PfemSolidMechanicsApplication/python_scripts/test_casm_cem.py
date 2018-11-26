@@ -23,9 +23,8 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
 
         super(KratosUnittest.TestCase, self).__init__(*args, **kwargs)
 
-        
     #oedometer
-    def test_IsotropicCompression(self):
+    def _test_IsotropicCompression(self):
         import math
         import numpy as np
         import matplotlib.pyplot as plt
@@ -75,7 +74,6 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
 
         #
         #plt.show()
-
 
     #oedometer
     def _test_OedometricLoading(self):
@@ -128,7 +126,6 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         #
         plt.show()
 
-
     #simple shear
     def _test_SimpleShear(self):
         import math
@@ -169,7 +166,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         
         if(1==1):
             #variation of bounding parameters
-            for pt in np.arange(1.0,5.0,1.0):
+            for pt in np.arange(1.0,4.0,1.0):
                 #create and initialize element, gauss point & constitutive law
                 self._create_material_model_and_law()
                 self.properties.SetValue( KratosMultiphysics.INITIAL_BONDING, pt)
@@ -187,6 +184,146 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
 
         #
         plt.show()
+
+    #
+    def test_ResponseEnvelope(self):
+        import math
+        import numpy as np
+        import matplotlib.pyplot as plt
+        
+        ID = 'RE1DbMb1h12G0_'
+        NumberIncrements = 1000
+        
+        #initialize plot
+        fig = plt.figure('response envelope', figsize=(10,5))
+        xx = np.linspace(0, 200, 10)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        ax1.plot(xx, xx*0.9, color='red')
+        ax1.set_xlabel('p')
+        ax1.set_ylabel('q')
+        ax2.set_xlabel('F12')
+        ax2.set_ylabel('q')
+        
+        #read deforamtion gradients
+        a = self._ReadFileToMatrix('IncrDef1.csv')
+
+        
+        
+        if(1==1):
+            for jj in np.arange(1,len(a),1):
+                print(jj)
+                #create and initialize element, gauss point & constitutive law
+                self._create_material_model_and_law()
+                self.properties.SetValue( KratosMultiphysics.INITIAL_BONDING, 1.0)
+                #self.properties.SetValue( KratosMultiphysics.DEGRADATION_RATE_COMPRESSION, jj)
+                self.parameters.SetMaterialProperties( self.properties )
+                self.material_law.SetPlasticVariables(-80, 1.0)
+
+                #get increment
+                FF = KratosMultiphysics.Matrix(3,3);
+                FF[0,0] = float(a[jj][0]);
+                FF[0,1] = float(a[jj][3]);
+                FF[0,2] = float(a[jj][6]);
+                FF[1,0] = float(a[jj][1]);
+                FF[1,1] = float(a[jj][4]);
+                FF[1,2] = float(a[jj][7]);
+                FF[2,0] = float(a[jj][2]);
+                FF[2,1] = float(a[jj][5]);
+                FF[2,2] = float(a[jj][8]);
+                print(FF)
+
+                #stress integration
+                pp, qq, epsVol, FF01, FF11 = self._compute_strain_driven_problem_Ftot(FF, NumberIncrements, ID+str(jj-1)+'-'+str(len(a)-2)+'PI')
+                ax1.plot(pp, qq)
+                ax2.plot(FF01, qq)
+
+        #
+        plt.show()
+
+
+    #
+    def _compute_strain_driven_problem_Ftot(self, Ftot, nIncr, ID):
+    
+        import numpy as np
+        
+        print(" ")
+        print("*** COMPUTING STRAIN DRIVEN PROBLEM *** F_tot: ", Ftot)
+
+        #set initial values
+        self.parameters.SetDeformationGradientF( self.F )
+        self.parameters.SetDeterminantF( self.detF )
+        #self.material_law.SetPlasticVariables(-60, 3.0)
+                 
+        #initial step
+        self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
+        self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
+        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
+        p0 = self.material_law.GetPreconPressure()
+        bb = self.material_law.GetBonding()
+        
+        #initialize output
+        pp = 1.1*np.arange(nIncr+1)
+        qq = 1.1*np.arange(nIncr+1)
+        epsVol = 1.1*np.arange(nIncr+1)
+        #epsDev = 1.1*np.arange(nIncr+1)
+        FF01 = 1.1*np.arange(nIncr+1)
+        FF11 = 1.1*np.arange(nIncr+1)
+        
+        
+        stress = self.parameters.GetStressVector()
+        self.strain = self.parameters.GetStrainVector()
+        strain = self._ComputeHenckyStrainFromF(self.F)
+
+        
+        self.stress = self.parameters.GetStressVector()
+        pp[0], qq[0] = self._CalculateInvariants()
+        epsVol[0] = strain[0] + strain[1] + strain[2]
+        epsVol[0] /= -3.0
+        FF01[0] = self.F[0,1]
+        FF11[0] = self.F[1,1]
+        
+        #write to output file
+        self._OpenOutputFile(ID)
+        self._WriteThisToFile(0, pp[0], qq[0], p0, bb, epsVol[0], FF01[0], FF11[0], stress, strain)
+        
+        #loop over nIncr
+        for step in range(1, nIncr+1):
+        
+            #add increment
+            IncrF = self._ComputeSubGradient(Ftot, (step-1)*1/nIncr, (step)*1/nIncr)
+            self.F = IncrF * self.F
+            self.detF = self._ComputeDeterminant( self.F )
+            
+            #print(" ")
+            #print("deltaF = ", IncrF," Fn+1 = deltaF*Fn = ",self.F)
+
+            #compute increment
+            self.parameters.SetDeformationGradientF( self.F )
+            self.parameters.SetDeterminantF( self.detF )
+            self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
+            self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
+            self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
+            p0 = self.material_law.GetPreconPressure()
+            bb = self.material_law.GetBonding()
+            
+            #calculate invariants from self.stress
+            self.stress = self.parameters.GetStressVector()
+            strain = self._ComputeHenckyStrainFromF( self.F )
+            pp[step], qq[step] = self._CalculateInvariants()
+            epsVol[step] = strain[0] + strain[1] + strain[2]
+            epsVol[step] /= -3.0
+            FF01[step] = self.F[0,1]
+            FF11[step] = self.F[1,1]
+            
+            #
+            stress = self.parameters.GetStressVector()
+            
+            #write to output file
+            #self._OpenOutputFile()
+            self._WriteThisToFile(step, pp[step], qq[step], p0, bb, epsVol[step], FF01[step], FF11[step], stress, strain)
+          
+        return pp, qq, epsVol, FF01, FF11
 
 
     #
@@ -232,7 +369,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         strain = self._ComputeHenckyStrainFromF(self.F)
         
         self.stress = self.parameters.GetStressVector()
-        pp[0], qq[0] = self._calculate_invariants()
+        pp[0], qq[0] = self._CalculateInvariants()
         epsVol[0] = strain[0] + strain[1] + strain[2]
         epsVol[0] /= -3.0
         FF01[0] = self.F[0,1]
@@ -252,7 +389,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         
             #add increment
             self.F = IncrF * self.F
-            self.detF = self._compute_determinant( self.F )
+            self.detF = self._ComputeDeterminant( self.F )
             
             #compute increment
             self.parameters.SetDeformationGradientF( self.F )
@@ -266,7 +403,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
             #calculate invariants from self.stress
             self.stress = self.parameters.GetStressVector()
             strain = self._ComputeHenckyStrainFromF( self.F )
-            pp[step], qq[step] = self._calculate_invariants()
+            pp[step], qq[step] = self._CalculateInvariants()
             epsVol[step] = strain[0] + strain[1] + strain[2]
             epsVol[step] /= -3.0
             FF01[step] = self.F[0,1]
@@ -385,7 +522,7 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
                 self.F = self._set_identity_matrix()
                 for j in range(0,3):
                     self.F[j,j] = self.F[j,j] + 1.0*XX[j]
-                self.detF = self._compute_determinant(self.F)
+                self.detF = self._ComputeDeterminant(self.F)
                 
                 print('XX = ',XX)
                 print('dX = ',dx)
@@ -430,8 +567,211 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         plt.plot( DevStrain, VolStrain )
         plt.show(block=False)
         
-        
 
+    #********************************
+    #***** IN/OUT FILE HANDLING *****
+    #        
+    def _OpenOutputFile(self, ID):
+        import os.path
+
+        #return;
+        problem_path = os.getcwd()
+        self.csv_path = os.path.join(problem_path, "GaussPoint" + str(ID) + ".csv")
+
+        csv_file = open(self.csv_path, "w")
+        csv_file.close()
+        
+    #
+    def _WriteThisToFile(self, t, pp, qq, p0, bb, epsVol, FF01, FF11, stress, strain):
+
+        line = str(t) + " " + str(pp) + " " + str(qq) + " " + str(p0) + " " + str(bb) + " " + str(epsVol) + " " + str(FF01) + " " + str(FF11) + " "
+        for st in stress:
+            line = line + str(st) + " "
+
+        for st in strain:
+            line = line + str(st) + " "
+
+        line = line[:-2]
+        line = line + "\n"
+        csv_file = open(self.csv_path, "a")
+        csv_file.write(line)
+        csv_file.close()
+        
+    #
+    def _ReadFileToMatrix(self, path):
+        
+        import csv
+        import numpy
+        f = open(path, "r")
+        l = []
+        l = [ line.split() for line in f]
+
+        return l
+
+
+    #******************************
+    #***** MATRIX ALGEBRA,... *****
+    #******************************
+    #
+    def _ComputeSubGradient(self, FF, alpha, beta):
+        import numpy as np
+        #create numpy matrices
+        ffinc = KratosMultiphysics.Matrix(3,3)
+        Fmat = np.matrix(np.identity(3), copy=False)
+        Imat = np.matrix(np.identity(3), copy=False)
+        for i in range (0,3):
+            for j in range (0,3):
+                Fmat[i,j] = FF[i,j]
+        #compute acc. to Simo 1998
+        b = (beta*Fmat + (1-beta)*Imat)*np.linalg.inv(alpha*Fmat + (1-alpha)*Imat)
+        #write result into KratosMultiphysics.Matrix and return
+        for i in range (0,3):
+            for j in range (0,3):
+                ffinc[i,j] = b[i,j]
+        return ffinc
+        
+    #
+    def _ComputeHenckyStrainFromF(self, FF):
+        import numpy as np
+        #create numpy matrices
+        #Fmat = np.matrix(np.identity(3), copy=False)
+        Fmat = np.identity(3)
+        for i in range (0,3):
+            for j in range (0,3):
+                Fmat[i,j] = FF[i,j]
+        #calculate left Cauchy-Green tensor and its eigenvalues
+        bb = np.matmul(Fmat, np.transpose(Fmat))
+        ll, vv = np.linalg.eig(bb)
+        #modify eigenvalues and write into matrix LL
+        LL = np.identity(3)
+        for i in range (0,3):
+            LL[i,i] = np.log(ll[i])/2.0
+        #calculate hencky strain
+        hh = np.matmul(vv,LL)
+        hh = np.matmul(hh,np.transpose(vv))
+        #assemble Kratos matrix and output
+        hhMat = KratosMultiphysics.Matrix(3,3)
+        for i in range (0,3):
+            for j in range (0,3):
+                hhMat[i,j] = hh[i,j]
+        #assemble strain vector in Voigt notation
+        hhVec = KratosMultiphysics.Vector(self.material_law.GetStrainSize())
+        for i in range (0,3):
+            hhVec[i] = hh[i,i]
+        hhVec[3] = hh[0,1]*2.0
+        if(self.material_law.GetStrainSize() == 6):
+            hhVec[4] = hh[1,2]*2.0
+            hhVec[5] = hh[0,2]*2.0
+        return hhVec
+        
+    #
+    def _ComputeHenckyStrainFromF1(self, F):
+        #computes Hencky strain for a DIAGONAL F
+        import numpy as np
+        #print('############# F before: ', F)
+        HenckyF = F + F
+        #print('############# F after: ', F)
+        #print('############# Hencky after: ', HenckyF)
+        #print('############# self.strain before: ', self.strain)
+        strain = self.strain + self.strain * 0.0
+        #print('############# self.strain after: ', self.strain)
+        #print('############# strain: ', strain)
+
+        for i in range(0,3):
+            HenckyF[i,i] = F[i,i]*F[i,i]
+            HenckyF[i,i] = np.log(HenckyF[i,i])/2.0
+            strain[i] = HenckyF[i,i]
+
+        return strain
+        
+    #
+    def _CalculateInvariants(self):
+
+        import math
+
+        if(self.material_law.GetStrainSize() == 6):
+            #Compute invariants
+            Pressure = -(self.stress[0] + self.stress[1] + self.stress[2])/3.0 #Geotech sign convention
+            dev = self.stress + 0.0*self.stress
+            for i in range(0,3):
+                dev[i] = dev[i] + Pressure
+
+            J2 = 0
+            for i in range(0,3):
+                J2 = J2 + dev[i] *dev[i]
+            for i in range(3,6):
+                J2 = J2 + 2.0*dev[i] *dev[i]
+            J2 = math.sqrt(J2*0.5)
+            J2 = math.sqrt(3.0) * J2
+            DeviatoricQ = J2
+        else:
+            #Compute invariants
+            Pressure = -(self.stress[0] + self.stress[1] + self.stress[2])/3.0 #Geotech sign convention
+            dev = self.stress + 0.0*self.stress
+            for i in range(0,3):
+                dev[i] = dev[i] + Pressure
+
+            J2 = 0
+            for i in range(0,3):
+                J2 = J2 + dev[i] *dev[i]
+            for i in range(3,4):
+                J2 = J2 + 2.0*dev[i] *dev[i]
+            J2 = math.sqrt(J2*0.5)
+            J2 = math.sqrt(3.0) * J2
+            DeviatoricQ = J2
+        return Pressure, DeviatoricQ
+        
+    #
+    def _set_identity_matrix(self):
+        identity = KratosMultiphysics.Matrix(3,3)
+        for i in range(0,3):
+            for j in range(0,3):
+                if ( i == j ):
+                    identity[i,j] = 1.0
+                else:
+                    identity[i,j] = 0.0
+
+        return identity
+        
+    #
+    def _ComputeDeterminant(self, A):
+
+        det = 0
+
+        det = det + A[0,0]*A[1,1]*A[2,2]
+        det = det + A[1,0]*A[2,1]*A[0,2]
+        det = det + A[2,0]*A[0,1]*A[1,2]
+
+        det = det - A[0,2]*A[1,1]*A[2,0]
+        det = det - A[1,2]*A[2,1]*A[0,0]
+        det = det - A[2,2]*A[0,1]*A[1,0]
+
+        return det
+    
+    
+    #***********************
+    #***** MODEL SETUP *****
+    #***********************
+    #
+    def _GetItemFromModule(self,my_string):
+
+        import importlib 
+
+        splitted = my_string.split(".")
+        if(len(splitted) == 0):
+            raise Exception("something wrong. Trying to split the string "+my_string)
+        if(len(splitted) == 1):
+            return eval(my_string)
+        else:
+            module_name = ""
+            for i in range(len(splitted)-1):
+                module_name += splitted[i] 
+                if i != len(splitted)-2:
+                    module_name += "."
+
+            module = importlib.import_module(module_name)
+            return getattr(module,splitted[-1])    
+    
     #
     def _create_material_model_and_law(self):
 
@@ -441,9 +781,10 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
             "properties_id"   : 1,
             "material_name"   : "soil",
             "constitutive_law": {
-                "law_name"   : "KratosMultiphysics.PfemSolidMechanicsApplication.BorjaHenckyCasmCemPlasticAxisym2DLaw",
+                "law_name"   : "KratosMultiphysics.PfemSolidMechanicsApplication.BorjaHenckyCasmCemPlastic3DLaw",
                 "model_name" : "KratosMultiphysics.PfemSolidMechanicsApplication.GensNovaModel"
             },
+
             "variables": {
                 "KratosMultiphysics.DENSITY": 1.7,
                 "KratosMultiphysics.YOUNG_MODULUS": 0.0,
@@ -452,9 +793,9 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
                 "KratosMultiphysics.INITIAL_SHEAR_MODULUS": 500.0,
                 "KratosMultiphysics.ALPHA_SHEAR": 0.0,
                 "KratosMultiphysics.PRE_CONSOLIDATION_STRESS": 0.8e+02,
-                "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 4.0,
+                "KratosMultiphysics.OVER_CONSOLIDATION_RATIO": 1.0,
                 "KratosMultiphysics.CRITICAL_STATE_LINE": 0.9,
-                "KratosMultiphysics.INTERNAL_FRICTION_ANGLE": 0.0,
+                "KratosMultiphysics.INTERNAL_FRICTION_ANGLE": 23.0,
                 "KratosMultiphysics.SPACING_RATIO": 1.5,
                 "KratosMultiphysics.SHAPE_PARAMETER": 4.0,
                 "KratosMultiphysics.INITIAL_BONDING": 0.0,
@@ -467,16 +808,25 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
                 "KratosMultiphysics.K0": 0.7,
                 "KratosMultiphysics.THICKNESS": 1.0
             },
-            "element_type": "Triangle2D3",
-            "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0] ],
+            "element_type": "Tetrahedra3D4",
+            "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
             "strain": {
                 "deformation_gradient" : [ [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
                 "jacobian": 1.0
             },
+
             "echo_level" : 0
 
         }
         """)
+        
+        # "law_name"   : "KratosMultiphysics.PfemSolidMechanicsApplication.BorjaHenckyCasmCemPlasticAxisym2DLaw",
+        # "element_type": "Triangle2D3",
+        # "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0] ],
+        
+        # "law_name"   : "KratosMultiphysics.PfemSolidMechanicsApplication.BorjaHenckyCasmCemPlastic3DLaw",
+        # "element_type": "Tetrahedra3D4",
+        # "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
 
         #create model_part
         self.model_part = KratosMultiphysics.ModelPart(settings["model_part_name"].GetString())
@@ -564,139 +914,6 @@ class TestCASMCementedModel(KratosUnittest.TestCase):
         self.parameters.SetProcessInfo( self.model_part.ProcessInfo )
         self.parameters.SetMaterialProperties( self.properties )
         self.parameters.SetElementGeometry( self.geometry )
-
-
-    #
-    def _GetItemFromModule(self,my_string):
-
-        import importlib 
-
-        splitted = my_string.split(".")
-        if(len(splitted) == 0):
-            raise Exception("something wrong. Trying to split the string "+my_string)
-        if(len(splitted) == 1):
-            return eval(my_string)
-        else:
-            module_name = ""
-            for i in range(len(splitted)-1):
-                module_name += splitted[i] 
-                if i != len(splitted)-2:
-                    module_name += "."
-
-            module = importlib.import_module(module_name)
-            return getattr(module,splitted[-1])
-    
-    #        
-    def _OpenOutputFile(self, ID):
-        import os.path
-
-        #return;
-        problem_path = os.getcwd()
-        self.csv_path = os.path.join(problem_path, "GaussPoint" + str(ID) + ".csv")
-
-        csv_file = open(self.csv_path, "w")
-        csv_file.close()
-        
-    #
-    def _WriteThisToFile(self, t, pp, qq, p0, bb, epsVol, FF01, FF11, stress, strain):
-
-        line = str(t) + " " + str(pp) + " " + str(qq) + " " + str(p0) + " " + str(bb) + " " + str(epsVol) + " " + str(FF01) + " " + str(FF11) + " "
-        for st in stress:
-            line = line + str(st) + " "
-
-        for st in strain:
-            line = line + str(st) + " "
-
-        line = line[:-2]
-        line = line + "\n"
-        csv_file = open(self.csv_path, "a")
-        csv_file.write(line)
-        csv_file.close()
-
-    #
-    def _ComputeHenckyStrainFromF(self, F):
-
-        import numpy as np
-        #print('############# F before: ', F)
-        HenckyF = F + F
-        #print('############# F after: ', F)
-        #print('############# Hencky after: ', HenckyF)
-        #print('############# self.strain before: ', self.strain)
-        strain = self.strain + self.strain * 0.0
-        #print('############# self.strain after: ', self.strain)
-        #print('############# strain: ', strain)
-
-        for i in range(0,3):
-            HenckyF[i,i] = F[i,i]*F[i,i]
-            HenckyF[i,i] = np.log(HenckyF[i,i])/2.0
-            strain[i] = HenckyF[i,i]
-
-        return strain
-
-    #
-    def _calculate_invariants(self):
-
-        import math
-
-        if(self.material_law.GetStrainSize() == 6):
-            #Compute invariants
-            Pressure = -(self.stress[0] + self.stress[1] + self.stress[2])/3.0 #Geotech sign convention
-            dev = self.stress + 0.0*self.stress
-            for i in range(0,3):
-                dev[i] = dev[i] + Pressure
-
-            J2 = 0
-            for i in range(0,3):
-                J2 = J2 + dev[i] *dev[i]
-            for i in range(3,6):
-                J2 = J2 + 2.0*dev[i] *dev[i]
-            J2 = math.sqrt(J2*0.5)
-            J2 = math.sqrt(3.0) * J2
-            DeviatoricQ = J2
-        else:
-            #Compute invariants
-            Pressure = -(self.stress[0] + self.stress[1] + self.stress[2])/3.0 #Geotech sign convention
-            dev = self.stress + 0.0*self.stress
-            for i in range(0,3):
-                dev[i] = dev[i] + Pressure
-
-            J2 = 0
-            for i in range(0,3):
-                J2 = J2 + dev[i] *dev[i]
-            for i in range(3,4):
-                J2 = J2 + 2.0*dev[i] *dev[i]
-            J2 = math.sqrt(J2*0.5)
-            J2 = math.sqrt(3.0) * J2
-            DeviatoricQ = J2
-        return Pressure, DeviatoricQ
-
-
-    def _set_identity_matrix(self):
-        identity = KratosMultiphysics.Matrix(3,3)
-        for i in range(0,3):
-            for j in range(0,3):
-                if ( i == j ):
-                    identity[i,j] = 1.0
-                else:
-                    identity[i,j] = 0.0
-
-        return identity
-        
-    def _compute_determinant(self, A):
-
-        det = 0
-
-        det = det + A[0,0]*A[1,1]*A[2,2]
-        det = det + A[1,0]*A[2,1]*A[0,2]
-        det = det + A[2,0]*A[0,1]*A[1,2]
-
-        det = det - A[0,2]*A[1,1]*A[2,0]
-        det = det - A[1,2]*A[2,1]*A[0,0]
-        det = det - A[2,2]*A[0,1]*A[1,0]
-
-        return det
-
-        
 
 
 if __name__ == '__main__':

@@ -1490,7 +1490,24 @@ std::cout<<"actual time step: "<<TimeStep<<std::endl;
             std::cout << "kidding me?? already? AuxMatrix" << std::endl;
          }
       }
-      for (unsigned int i = 0; i < 3; ++i)
+      
+      /*
+      Matrix Aux0 = ZeroMatrix(3,3);
+      for (unsigned int i = 0; i < 3; ++i) 
+         Aux0(i,i) = EigenValues(i);
+      
+      std::cout << "a0: " <<rCauchyGreenMatrix<< std::endl;
+			std::cout << "Aux: " <<Aux0<< std::endl;
+			std::cout << "v: " <<EigenVectors<< std::endl;
+			Matrix Aux1 = prod(Aux0, (EigenVectors));
+      Aux1 = prod(trans(EigenVectors), Aux1);
+			std::cout << "a*: " <<Aux1<< std::endl;
+			Matrix Aux2 = prod(Aux0, trans(EigenVectors));
+      Aux2 = prod((EigenVectors), Aux2);
+			std::cout << "a': " <<Aux2<< std::endl;
+      */
+      
+      for (unsigned int i = 0; i < 3; ++i) 
          Aux(i,i) = (std::log(EigenValues(i)))/2.0;
 
       Aux = prod(Aux, (EigenVectors));

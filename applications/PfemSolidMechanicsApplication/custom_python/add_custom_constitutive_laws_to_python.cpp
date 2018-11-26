@@ -58,6 +58,7 @@
 
 //constitutive laws
 #include "custom_constitutive/borja_hencky_casm_axisym_2D_law.hpp"
+#include "custom_constitutive/borja_hencky_casm_cem_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_casm_cem_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
@@ -105,6 +106,11 @@ namespace Kratos
       // class_< MaterialsContainer >( "MaterialsContainer", init<>() )
       // 	.def( "PushBack", Push_Back_Constitutive_Laws )
 
+		class_<BorjaHenckyCasmCemPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "BorjaHenckyCasmCemPlastic3DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
 		class_<BorjaHenckyCasmCemPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "BorjaHenckyCasmCemPlasticAxisym2DLaw",
       init<>() )

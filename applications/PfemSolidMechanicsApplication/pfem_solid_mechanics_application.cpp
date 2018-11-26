@@ -261,6 +261,7 @@ namespace Kratos
 
     //Register Constitutive Laws
     Serializer::Register("BorjaHenckyCasmPlasticAxisym2DLaw", mBorjaHenckyCasmPlasticAxisym2DLaw);
+    Serializer::Register("BorjaHenckyCasmCemPlastic3DLaw", mBorjaHenckyCasmCemPlastic3DLaw);
     Serializer::Register("BorjaHenckyCasmCemPlasticAxisym2DLaw", mBorjaHenckyCasmCemPlasticAxisym2DLaw);
     Serializer::Register("BorjaHenckyCamClayPlastic3DLaw", mBorjaHenckyCamClayPlastic3DLaw);
     Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);

@@ -201,8 +201,8 @@ namespace Kratos
 		
 		//std::cout << "LODE: " << rLodeAngle << " " << rLodeAngle * 180.0 / GetPI() << "  " << "Effect" << " " << Effect << std::endl;
 		
-		//return Effect;
-		return 1;
+		return Effect;
+		//return 1;
   }
 
 
@@ -332,8 +332,8 @@ namespace Kratos
 */
 
 /*
-	//************************* CALCULATE YIELD FUNCTION  ******************
-	//**********************************************************************
+	// ************************* CALCULATE YIELD FUNCTION  ******************
+	// **********************************************************************
 	double& CasmCemYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rBeta, const double& rAlphaCum, const double& rBetaCum)
 	{
 		// calculate Kirchhoff invariants
