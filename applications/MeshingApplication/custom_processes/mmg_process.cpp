@@ -292,6 +292,18 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     // We create a list of submodelparts to later reassign flags after remesh
     CreateAuxiliarSubModelPartForFlags();
 
+    // Before computing colors we do some check and throw a warning to get the user informed
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
+
+    for (auto sub_model_part_name : sub_model_part_names) {
+        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
+
+        KRATOS_WARNING_IF("MmgProcess", (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
+        "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
+        "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
+        "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
+    }
+
     // First we compute the colors
     mColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
