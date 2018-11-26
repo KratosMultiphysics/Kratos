@@ -94,7 +94,7 @@ public:
           mpMapperLocalSystems(pMapperLocalSystems),
           mSearchSettings(SearchSettings)
     {
-        mEchoLevel = mSearchSettings["echo_level"].GetInt();
+        // mEchoLevel = mSearchSettings["echo_level"].GetInt();
         mpMapperInterfaceInfosContainer = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
         mpMapperInterfaceInfosContainer->resize(1);
     }

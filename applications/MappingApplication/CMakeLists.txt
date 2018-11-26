@@ -17,7 +17,8 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     # # Searching
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_communicator.cpp
     # # Utilities
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_builder.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocessor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_flags.cpp
@@ -36,7 +37,8 @@ if(${MPI_NEEDED} MATCHES ON )
         # Searching
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_communicator_mpi.cpp
         # Utilities
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_builder_mpi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container_mpi.cpp
     )
 
     set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} ${MPI_LIBRARIES})

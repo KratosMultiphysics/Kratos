@@ -104,7 +104,7 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags Mapping
 
     KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
 
-    mpMappingOperationUtility->BuildMappingSystem(mpMdo, mpQo, mpQd,
+    mpMappingOperationUtility->BuildMappingMatrix(mpMdo, mpQo, mpQd,
                                                   mrModelPartOrigin,
                                                   mrModelPartDestination,
                                                   *mpMapperLocalSystems);
@@ -118,7 +118,7 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
     // here we could return the MatrixFree variant in the future
     Parameters utility_settings(R"({})"); // TODO fill this
     utility_settings.ValidateAndAssignDefaults(mGeneralMapperSettings);
-    mpMappingOperationUtility = Kratos::make_unique<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(utility_settings);
+    mpMappingOperationUtility = Kratos::make_unique<MappingMatrixBuilder<TSparseSpace, TDenseSpace>>(utility_settings);
 }
 
 template<>

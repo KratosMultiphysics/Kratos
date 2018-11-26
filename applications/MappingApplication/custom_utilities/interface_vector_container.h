@@ -61,7 +61,7 @@ public:
     ///@{
 
     /// Default constructor.
-    InterfaceVectorContainer(ModelPart& rModelPart);
+    InterfaceVectorContainer(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
 
     /// Destructor.
     virtual ~InterfaceVectorContainer() = default;
@@ -92,41 +92,24 @@ public:
     ///@name Access
     ///@{
 
+    TSystemVectorType& GetVector()
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpInterfaceVector)
+            << "The Interface-Vector was not initialized" << std::endl;
+        return *mpInterfaceVector;
+    }
 
-    ///@}
-    ///@name Input and output
-    ///@{
+    TSystemVectorUniquePointerType& pGetVector()
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpInterfaceVector)
+            << "The Interface-Vector was not initialized" << std::endl;
+        return mpInterfaceVector;
+    }
 
-    /// Turn back information as a string.
-    virtual std::string Info() const;
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
+    ModelPart& GetModelPart()
+    {
+        return mrModelPart;
+    }
 
     ///@}
 
@@ -134,7 +117,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart
+    ModelPart& mrModelPart;
     TSystemVectorUniquePointerType mpInterfaceVector = nullptr;
 
     ///@}

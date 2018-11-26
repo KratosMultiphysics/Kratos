@@ -22,6 +22,11 @@
 
 // Project includes
 #include "mapper.h"
+#include "custom_utilities/mapping_matrix_builder.h"
+#include "custom_searching/interface_communicator.h"
+#include "custom_utilities/interface_vector_container.h"
+#include "custom_utilities/interface_preprocessor.h"
+#include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
 
@@ -184,9 +189,6 @@ public:
                            mrModelPartDestination(rModelPartDestination),
                            mMapperSettings(JsonParameters)
     {
-        // The Initialize function has to be called here bcs it internally calls virtual
-        // functions that would not exist yet if it was called from the BaseClass!
-        // this->Initialize();
     }
 
     /// Destructor.
@@ -225,7 +227,6 @@ public:
     {
 
     }
-
 
     void InverseMap(
         const Variable< array_1d<double, 3> >& rOriginVariable,
@@ -275,11 +276,10 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
 
-
     ///@}
 
-protected:
-    ///@name Protected member Variables
+private:
+    ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPartOrigin;
@@ -289,34 +289,12 @@ protected:
 
     MapperUniquePointerType mpInverseMapper = nullptr;
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    // MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
-    // {
-    //     return Kratos::make_unique<NearestElementInterfaceInfo>();
-    // }
-
-    // MapperLocalSystemPointer GetMapperLocalSystem() const override
-    // {
-    //     return Kratos::make_unique<NearestElementLocalSystem>();
-    // }
-
-    // InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const override
-    // {
-    //     return InterfaceObject::Geometry_Center;
-    // }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
+    // MappingMatrixBuilderPointerType mpMappingMatrixBuilder;
+    // InterfacePreprocessorPointerType mpInterfacePreprocessor;
+    // InterfaceCommunicatorPointerType mpIntefaceCommunicator;
+    // InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
+    // InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
+    // MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
     ///@}
     ///@name Private Operations
