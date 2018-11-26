@@ -30,7 +30,7 @@ def AssembleTestSuites():
         NodeSurfaceGeometry3DTests,
         IgaTrussElementTests,
         ShellKLDiscreteElementTests,
-        TestIgaRhinoOutputProcess
+        TestIgaOutputProcess
     ]))
 
     nightSuite = suites['nightly']
