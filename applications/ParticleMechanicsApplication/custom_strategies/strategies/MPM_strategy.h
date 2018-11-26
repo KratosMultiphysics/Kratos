@@ -315,12 +315,11 @@ public:
                         }
 
                         // Setting particle element's initial condition
-                        p_element->SetValue(MP_NUMBER, integration_point_per_elements);
                         p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
                         p_element->SetValue(MP_DENSITY, MP_Density);
                         p_element->SetValue(MP_MASS, MP_Mass);
                         p_element->SetValue(MP_VOLUME, MP_Volume);
-                        p_element->SetValue(GAUSS_COORD, xg);
+                        p_element->SetValue(MP_COORD, xg);
                         p_element->SetValue(MP_DISPLACEMENT, MP_Displacement);
                         p_element->SetValue(MP_VELOCITY, MP_Velocity);
                         p_element->SetValue(MP_ACCELERATION, MP_Acceleration);
@@ -592,7 +591,7 @@ public:
 
                 auto element_itr = mpm_model_part.Elements().begin() + i;
 
-                array_1d<double,3> xg = element_itr->GetValue(GAUSS_COORD);
+                array_1d<double,3> xg = element_itr->GetValue(MP_COORD);
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
