@@ -98,12 +98,16 @@ public:
             double time = mrModelPart.GetProcessInfo()[TIME];
             time = time / mTimeUnitConverter;
 
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+            if (time == mTimeGrouting)
             {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(var) = mInitialValue;
+                #pragma omp parallel for
+                for(int i = 0; i<nnodes; i++)
+                {
+                    ModelPart::NodesContainerType::iterator it = it_begin + i;
+                    const double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+                    it->FastGetSolutionStepValue(var) = current_temp;
 
+                }
             }
         }
 

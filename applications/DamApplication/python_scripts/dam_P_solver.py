@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics
-# import KratosMultiphysics.ExternalSolversApplication as KratosExternal
+import KratosMultiphysics 
+import KratosMultiphysics.ExternalSolversApplication as KratosExternal
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.DamApplication as KratosDam
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
@@ -14,8 +14,8 @@ def CreateSolver(main_model_part, custom_settings):
 class DamUPSolver:
     def __init__(self, model_part, custom_settings):
 
-        self.main_model_part = model_part
-
+        self.main_model_part = model_part    
+        
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -46,21 +46,21 @@ class DamUPSolver:
                     }
             }
          }""")
-
+        
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-
-        ## Definition of the linear solver
+        
+        ## Definition of the linear solver       
         amgcl_smoother = KratosMultiphysics.AMGCLSmoother.ILU0
         amgcl_krylov_type = KratosMultiphysics.AMGCLIterativeSolverType.BICGSTAB
         tolerance = self.settings["acoustic_solver_settings"]["linear_solver_settings"]["tolerance"].GetDouble()
         max_iterations = self.settings["acoustic_solver_settings"]["linear_solver_settings"]["max_iteration"].GetInt()
         verbosity = self.settings["acoustic_solver_settings"]["linear_solver_settings"]["verbosity"].GetInt()
         gmres_size = self.settings["acoustic_solver_settings"]["linear_solver_settings"]["GMRES_size"].GetInt()
-
+        
         self.linear_solver =  KratosMultiphysics.AMGCLSolver(amgcl_smoother,amgcl_krylov_type,tolerance,max_iterations,verbosity,gmres_size)
-
+ 
 
     def AddVariables(self):
         ## Add pressure
@@ -68,76 +68,76 @@ class DamUPSolver:
         ## Add Dynamic pressure Variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Dt_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Dt2_PRESSURE)
-
+        
         print("Variables correctly added")
-
-
+        
+        
     def AddDofs(self):
         for node in self.main_model_part.Nodes:
             # adding dofs
             node.AddDof(KratosMultiphysics.PRESSURE)
-
+            
         print("P DOFs correctly added")
-
+        
     def Initialize(self):
-
+        
         if (self.settings["acoustic_solver_settings"]["scheme_type"].GetString() == "Newmark"):
             beta=0.25
             gamma=0.5
         else:
             raise Exception("Please use the Newmark Scheme, it is the only one available")
-
+            
         move_mesh_flag = self.settings["acoustic_solver_settings"]["move_mesh_flag"].GetBool()
         max_iterations = self.settings["acoustic_solver_settings"]["max_iteration"].GetInt()
         res_rel_tol = self.settings["acoustic_solver_settings"]["residual_relative_tolerance"].GetDouble()
         res_abs_tol = self.settings["acoustic_solver_settings"]["residual_absolute_tolerance"].GetDouble()
-
+        
         time_scheme = KratosDam.DamPScheme(beta,gamma)
         conv_criteria = KratosMultiphysics.ResidualCriteria(res_rel_tol,res_abs_tol)
-
+    
         self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-            self.main_model_part,
-            time_scheme,
+            self.main_model_part, 
+            time_scheme, 
             self.linear_solver,
             conv_criteria,
             max_iterations,
-            False,
-            False,
+            False, 
+            False, 
             move_mesh_flag)
-
+                                                                                   
 
         (self.solver).SetEchoLevel(self.settings["acoustic_solver_settings"]["echo_level"].GetInt())
-
+        
         print ("Initialization Solver finished")
-
+        
     def ImportModelPart(self):
-
+        
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-
+            
             # Here it would be the place to import restart data if required
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-
+            
             # Create computing_model_part, set constitutive law and buffer size
             self._ExecuteAfterReading()
-
+            
         else:
             raise Exception("other input options are not yet implemented")
-
-        print ("model reading finished")
-
-
+                
+        print ("model reading finished")     
+   
+        
     def GetMinimumBufferSize(self):
         return 2;
-
+        
     def GetComputingModelPart(self):
         return self.main_model_part
-
+                        
     def Solve(self):
         (self.solver).Solve()
 
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
-
+        
     def Clear(self):
         (self.solver).Clear()
 
@@ -145,9 +145,9 @@ class DamUPSolver:
     #### Specific internal functions ####
 
     def _ExecuteAfterReading(self):
-
+        
         self.computing_model_part_name = "acoustic_computing_domain"
-
+        
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         aux_params = KratosMultiphysics.Parameters("{}")
         aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)

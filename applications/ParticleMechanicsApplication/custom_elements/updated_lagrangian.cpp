@@ -141,7 +141,7 @@ void UpdatedLagrangian::Initialize()
     KRATOS_TRY
 
     // Initial position of the particle
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
 
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -161,6 +161,7 @@ void UpdatedLagrangian::Initialize()
 
     // Initialize constitutive law and materials
     InitializeMaterial();
+    this->GetValue(MP_DENSITY) = GetProperties()[DENSITY];
 
     KRATOS_CATCH( "" )
 }
@@ -203,7 +204,7 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
@@ -232,7 +233,7 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     if(rVariables.detF<0)
     {
         KRATOS_INFO("UpdatedLagrangian")<<" Element: "<<this->Id()<<std::endl;
-        KRATOS_INFO("UpdatedLagrangian")<<" Element position: "<<this->GetValue(MP_COORD)<<std::endl;
+        KRATOS_INFO("UpdatedLagrangian")<<" Element position: "<<this->GetValue(GAUSS_COORD)<<std::endl;
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -827,7 +828,7 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
     {
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        array_1d<double,3>& xg = this->GetValue(MP_COORD);
+        array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
         GeneralVariables Variables;
         Matrix J0 = ZeroMatrix(dimension);
 
@@ -861,7 +862,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
     {
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        array_1d<double,3>& xg = this->GetValue(MP_COORD);
+        array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
         GeneralVariables Variables;
         Matrix J0 = ZeroMatrix(dimension);
 
@@ -892,7 +893,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
     {
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        array_1d<double,3>& xg = this->GetValue(MP_COORD);
+        array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
         GeneralVariables Variables;
         Matrix J0 = ZeroMatrix(dimension);
 
@@ -932,7 +933,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3> xg = this->GetValue(MP_COORD);
+    array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
@@ -1107,7 +1108,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    array_1d<double,3> xg = this->GetValue(MP_COORD);
+    array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
     const array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
     const array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
@@ -1153,7 +1154,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 
     // Update the MP Position
     const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(MP_COORD,new_xg);
+    this -> SetValue(GAUSS_COORD,new_xg);
 
     // Update the MP Acceleration
     this -> SetValue(MP_ACCELERATION,MP_Acceleration);
@@ -1170,7 +1171,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 void UpdatedLagrangian::InitializeMaterial()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
@@ -1195,7 +1196,7 @@ void UpdatedLagrangian::InitializeMaterial()
 void UpdatedLagrangian::ResetConstitutiveLaw()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )

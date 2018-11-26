@@ -9,7 +9,7 @@
 #include "includes/kratos_flags.h"
 #include "swimming_DEM_application.h"
 #include "spheric_swimming_particle.h"
-#include "../applications/DEMApplication/custom_utilities/GeometryFunctions.h"
+#include "../applications/DEM_application/custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
 {
@@ -1186,7 +1186,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
 	drag_coeff = 12.0 * mKinematicViscosity / mRadius * (1.0 + 0.15 * pow(reynolds, 0.687)) * (0.5 *  mFluidDensity * area);
       }
     }
-
+  
 
     else {
         const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);

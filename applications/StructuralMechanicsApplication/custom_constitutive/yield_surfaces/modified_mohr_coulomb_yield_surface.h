@@ -253,14 +253,7 @@ class ModifiedMohrCoulombYieldSurface
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         double c1, c2, c3;
-        double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
-	    
-        // Check input variables
-        if (friction_angle < tolerance) {
-            friction_angle = 32.0 * Globals::Pi / 180.0;
-            KRATOS_WARNING("ModifiedMohrCoulombYieldSurface") << "Friction Angle not defined, assumed equal to 32 deg " << std::endl;
-        }
-	    
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
         const double sin_phi = std::sin(friction_angle);
         const double cons_phi = std::cos(friction_angle);
         const double sin_theta = std::sin(lode_angle);
@@ -315,9 +308,7 @@ class ModifiedMohrCoulombYieldSurface
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
         KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-        KRATOS_CHECK_VARIABLE_KEY(FRICTION_ANGLE);
 
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRICTION_ANGLE)) << "FRICTION_ANGLE is not a defined value" << std::endl;
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;

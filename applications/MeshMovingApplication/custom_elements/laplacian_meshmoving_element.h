@@ -19,7 +19,10 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/element.h"
+#include "includes/ublas_interface.h"
+#include "includes/variables.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -45,6 +48,7 @@ namespace Kratos {
  * hexaedral elements,
  * working best for b) and c),
 */
+// template< unsigned int TDim >
 class LaplacianMeshMovingElement : public Element {
 public:
   ///@name Type Definitions
@@ -103,8 +107,6 @@ public:
 
   void CalculateRightHandSide(VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override;
-
-  int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
   ///@{
 

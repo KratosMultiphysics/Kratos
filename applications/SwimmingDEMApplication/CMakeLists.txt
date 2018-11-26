@@ -18,7 +18,7 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## Dependecies on other applications
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/SwimmingDEMApplication )
 

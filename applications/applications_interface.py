@@ -420,7 +420,7 @@ def ImportApplications(kernel, applications_path=application_directory):
 
     if(Import_KratosDEMApplication):
         print("importing KratosDEMApplication ...")
-        sys.path.append(applications_path + '/DEMApplication/python_scripts')
+        sys.path.append(applications_path + '/DEM_application/python_scripts')
         from KratosDEMApplication import *
         DEM_application = KratosDEMApplication()
         kernel.ImportApplication(DEM_application)
@@ -537,7 +537,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         fem_to_dem_application = KratosFemToDemApplication()
         kernel.AddApplication(fem_to_dem_application)
         print("KratosFemToDemApplication Succesfully imported")
-
+		
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
 

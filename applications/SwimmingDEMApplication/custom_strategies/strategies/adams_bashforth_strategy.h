@@ -32,7 +32,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "../DEMApplication/custom_strategies/strategies/explicit_solver_strategy.h"
+#include "../DEM_application/custom_strategies/strategies/explicit_solver_strategy.h"
 
 #ifdef USING_CGAL
 #include <CGAL/spatial_sort.h>

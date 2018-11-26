@@ -31,7 +31,7 @@
 
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-//#include "../../DEMApplication/DEM_application.h"
+//#include "../../DEM_application/DEM_application.h"
 
 // /* External includes */
 #ifdef _OPENMP

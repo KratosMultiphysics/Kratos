@@ -24,13 +24,12 @@
 namespace Kratos {
 namespace Python {
 
-bool HasFlag(Kernel& rKernel, const std::string& flag_name)
-{
+bool HasFlag(Kernel& rKernel, const std::string& flag_name) {
     return KratosComponents<Flags>::Has(flag_name);
 }
 
-Flags GetFlag(Kernel& rKernel, const std::string& flag_name)
-{
+Flags GetFlag(
+    Kernel& rKernel, const std::string& flag_name) {
     if (KratosComponents<Flags>::Has(flag_name)) {
         return KratosComponents<Flags>::Get(flag_name);
     } else {
@@ -40,14 +39,13 @@ Flags GetFlag(Kernel& rKernel, const std::string& flag_name)
 }
 
 template <class TVariableType>
-bool HasVariable(Kernel& rKernel, const std::string& variable_name)
-{
+bool HasVariable(Kernel& rKernel, const std::string& variable_name) {
     return KratosComponents<TVariableType>::Has(variable_name);
 }
 
 template <class TVariableType>
-const TVariableType& GetVariable(Kernel& rKernel, const std::string& variable_name)
-{
+const TVariableType& GetVariable(
+    Kernel& rKernel, const std::string& variable_name) {
     if (KratosComponents<TVariableType>::Has(variable_name)) {
         return KratosComponents<TVariableType>::Get(variable_name);
     }
@@ -55,13 +53,12 @@ const TVariableType& GetVariable(Kernel& rKernel, const std::string& variable_na
     return TVariableType::StaticObject();
 }
 
-bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
-{
+bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name) {
     return KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name);
 }
 
-const ConstitutiveLaw& GetConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
-{
+const ConstitutiveLaw& GetConstitutiveLaw(
+    Kernel& rKernel, const std::string& constitutive_law_name) {
     if (KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) {
         return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
     } else {
@@ -81,20 +78,18 @@ const ConstitutiveLaw& GetConstitutiveLaw(Kernel& rKernel, const std::string& co
 }
 
 template <class TVariableType>
-void PrintVariablesName(Kernel& rKernel)
-{
+void PrintVariablesName(Kernel& rKernel) {
     KratosComponents<TVariableType> kratos_components;
     kratos_components.PrintData(std::cout);
 }
-
 template <class TVariableType>
-std::string GetVariableNames(Kernel& rKernel)
-{
+std::string GetVariableNames(Kernel& rKernel) {
     KratosComponents<TVariableType> kratos_components;
     std::stringstream buffer;
     kratos_components.PrintData(buffer);
     return buffer.str();
 }
+
 
 void RegisterInPythonKernelVariables()
 {
@@ -130,8 +125,8 @@ void RegisterInPythonApplicationVariables(KratosApplication& Application)
     }
 }
 
-void AddKernelToPython(pybind11::module& m)
-{
+void AddKernelToPython(pybind11::module& m) {
+
     namespace py = pybind11;
 
     py::class_<Kernel, Kernel::Pointer>(m,"Kernel")
@@ -218,7 +213,9 @@ void AddKernelToPython(pybind11::module& m)
         .def_static("Version", &Kernel::Version)
         .def_static("BuildType", &Kernel::BuildType)
         ;
+
 }
 
 }  // namespace Python.
+
 }  // Namespace Kratos

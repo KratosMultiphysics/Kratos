@@ -1,7 +1,10 @@
 {
     "problem_data"             : {
         "problem_name"    : "small_deformation_plasticity_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
+        "time_step"       : 0.1,
         "start_time"      : 0.0,
         "end_time"        : 60,
         "echo_level"      : 0
@@ -9,8 +12,6 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "model_part_name"                    : "Structure",
-        "domain_size"                        : 3,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -109,8 +110,8 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["DISPLACEMENT"],
-                        "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","UNIAXIAL_STRESS","PLASTIC_DISSIPATION"]
+            "nodal_results"       : ["DISPLACEMENT"],
+            "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","UNIAXIAL_STRESS","PLASTIC_DISSIPATION"]
                     },
                     "point_data_configuration"  : []
                 }

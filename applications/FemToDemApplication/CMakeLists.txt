@@ -7,7 +7,7 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/MeshingApplication )
 
 # generate variables with the sources

@@ -113,6 +113,21 @@ class AdjointFluidSolver(PythonSolver):
     def Clear(self):
         (self.solver).Clear()
 
+    def Solve(self):
+        message = "".join([
+            "Calling AdjointFluidSolver.Solve() method, which is deprecated\n",
+            "Please call the individual methods instead:\n",
+            "solver.InitializeSolutionStep()\n",
+            "solver.Predict()\n",
+            "solver.SolveSolutionStep()\n",
+            "solver.FinalizeSolutionStep()\n"]
+        )
+        KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__,message)
+        self.InitializeSolutionStep()
+        self.Predict()
+        self.SolveSolutionStep()
+        self.FinalizeSolutionStep()
+
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 

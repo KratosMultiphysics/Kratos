@@ -311,6 +311,7 @@ class ParticleMPMSolver(PythonSolver):
             # add specific variables for the problem (pressure dofs)
             model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MPRESSURE)
+            model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_PRESSURE)
 
     def _model_part_reading(self):
         # reading the model part of the background grid

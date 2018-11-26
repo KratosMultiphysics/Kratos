@@ -80,12 +80,12 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Move particle
         for mpm in material_model_part.Elements:
-            new_coordinate = mpm.GetValue(KratosParticle.MP_COORD) + [0.3, 0.23, 0.22]
-            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
+            new_coordinate = mpm.GetValue(KratosParticle.GAUSS_COORD) + [0.3, 0.23, 0.22]
+            mpm.SetValue(KratosParticle.GAUSS_COORD, new_coordinate)
 
         # Check outside given domain
         for mpm in material_model_part.Elements:
-            new_coordinate = mpm.GetValue(KratosParticle.MP_COORD)
+            new_coordinate = mpm.GetValue(KratosParticle.GAUSS_COORD)
             if(new_coordinate[0] < -0.5 or new_coordinate[0] > 0.5 or new_coordinate[1] < -0.5 or new_coordinate[1] > 0.5 or new_coordinate[2] < -0.5 or new_coordinate[2] > 0.5 ):
                 mpm.Set(KratosMultiphysics.TO_ERASE, True)
 
@@ -111,8 +111,8 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Move particle
         for mpm in material_model_part.Elements:
-            new_coordinate = mpm.GetValue(KratosParticle.MP_COORD) + [0.3, 0.23, 0.22]
-            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
+            new_coordinate = mpm.GetValue(KratosParticle.GAUSS_COORD) + [0.3, 0.23, 0.22]
+            mpm.SetValue(KratosParticle.GAUSS_COORD, new_coordinate)
 
         # Call Search
         self._search_element(current_model)

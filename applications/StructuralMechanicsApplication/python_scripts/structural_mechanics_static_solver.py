@@ -63,12 +63,9 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         super(StaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
         self.print_on_rank_zero("::[StaticMechanicalSolver]:: ", "Finished initialization.")
 
-    def SolveSolutionStep(self):
-        super(StaticMechanicalSolver, self).SolveSolutionStep()
+    def Solve(self):
+        super(StaticMechanicalSolver, self).Solve()
         if self.settings["analysis_type"].GetString() == "arc_length":
-            raise Exception('"arc_length is not available at the moment"')
-            # it is not clear if this should be called after SolveSolutionStep or FinalizeSolutionStep
-            # this has to be updated once the ArcLength-Method is working again
             lambda_value = self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA]
             if self.settings["echo_level"].GetInt() > 0:
                 self.print_on_rank_zero("LAMBDA: ", lambda_value)

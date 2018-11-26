@@ -183,7 +183,7 @@ class TestSearchMPMParticle(KratosUnittest.TestCase):
 
         # Apply  before search
         for mpm in material_model_part.Elements:
-            mpm.SetValue(KratosParticle.MP_COORD, new_coordinate)
+            mpm.SetValue(KratosParticle.GAUSS_COORD, new_coordinate)
 
         # Search element
         self.solver.SearchElement(grid_model_part, material_model_part, max_num_results, specific_tolerance)

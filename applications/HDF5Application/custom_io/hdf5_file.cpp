@@ -199,7 +199,7 @@ std::vector<std::string> File::GetLinkNames(const std::string& rGroupPath) const
     // Get number of links.
     hid_t group_id = H5Gopen(m_file_id, rGroupPath.c_str(), H5P_DEFAULT);
     KRATOS_ERROR_IF(group_id < 0) << "H5Gopen failed." << std::endl;
-
+    
     H5G_info_t group_info;
     KRATOS_ERROR_IF(H5Gget_info(group_id, &group_info) < 0)
         << "H5Gget_info failed." << std::endl;
@@ -471,7 +471,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     attr_type_id = H5Aget_type(attr_id);
     KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
-    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
     KRATOS_ERROR_IF(is_valid_type == 0) << "Attribute \"" << rName << "\" is not a string." << std::endl;
 
@@ -486,7 +486,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(max_ssize < dims[0]) << "String size is greater than " << max_ssize << '.' << std::endl;
     // Read attribute.
-    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, buffer) < 0) << "H5Aread failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, buffer) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     rValue = std::string(buffer, dims[0]);
     if (GetEchoLevel() == 2 && GetPID() == 0)
@@ -585,7 +585,7 @@ unsigned File::GetOpenObjectsCount() const
 }
 
 hid_t File::GetFileId() const
-{
+{ 
     return m_file_id;
 }
 
@@ -634,11 +634,7 @@ namespace Internals
 {
 bool IsPath(const std::string& rPath)
 {
-#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9)))
-    KRATOS_ERROR << "This method is not compiled well. You should use a GCC 4.9 or higher" << std::endl;
-#else
     return regex_match(rPath, std::regex("(/[\\w\\(\\)]+)+"));
-#endif
 }
 
 std::vector<std::string> Split(const std::string& rPath, char Delimiter)

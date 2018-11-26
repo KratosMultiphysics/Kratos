@@ -121,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     T TrescaCL = T();
 
     std::vector<double> MCres, VMres, DPres, Tres;
-    MCres = {-9.07262e+06,-9.07262e+06,-1.18548e+07,0,0,-2.94576e-11};
+    MCres = {-9.07094e+06, -9.07094e+06, -1.18581e+07, 0, 0, -2.95111e-11};
     VMres = {-9.09506e+06, -9.09506e+06, -1.18099e+07, 0, 0, -2.87449e-11};
     DPres = {-5.40984e+06, -5.40984e+06, -1.91803e+07, 0, 0, -1.45804e-10};
     Tres = {-9.09506e+06, -9.09506e+06, -1.18099e+07, 0, 0, -2.87449e-11};
@@ -226,32 +226,29 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStr
     T TrescaCL = T();
 
     Matrix MCres = ZeroMatrix(6, 6);
-    MCres(0, 0) = 1.4126e+11;
-    MCres(0, 1) = 1.06484e+11;
-    MCres(0, 2) = 1.26468e+11;
-    MCres(1, 0) = 1.06484e+11;
-    MCres(1, 1) = 1.4126e+11;
-    MCres(1, 2) = 1.26468e+11;
-    MCres(2, 0) = 1.27256e+11;
-    MCres(2, 1) = 1.27256e+11;
-    MCres(2, 2) = 1.22066e+11;
-    MCres(3, 3) = 1.73884e+10;
-    MCres(4, 4) = 1.73884e+10;
-    MCres(5, 5) = 1.73884e+10;
+    MCres(0, 1) = 6.7623e+10;
+    MCres(0, 2) = 6.7623e+10;
+    MCres(1, 0) = 6.7623e+10;
+    MCres(1, 1) = 2.39754e+11;
+    MCres(1, 2) = 6.7623e+10;
+    MCres(2, 0) = 6.7623e+10;
+    MCres(2, 1) = 6.7623e+10;
+    MCres(2, 2) = 2.39754e+11;
+    MCres(3, 3) = 8.60656e+10;
+    MCres(4, 4) = 8.60656e+10;
 
     Matrix VMres = ZeroMatrix(6, 6);
-    VMres(0, 0) = 1.40893e+11;
-    VMres(0, 1) = 1.06958e+11;
-    VMres(0, 2) = 1.27149e+11;
-    VMres(1, 0) = 1.06958e+11;
-    VMres(1, 1) = 1.40893e+11;
-    VMres(1, 2) = 1.27149e+11;
-    VMres(2, 0) = 1.27149e+11;
-    VMres(2, 1) = 1.27149e+11;
-    VMres(2, 2) = 1.20703e+11;
-    VMres(3, 3) = 1.69677e+10;
-    VMres(4, 4) = 1.69677e+10;
-    VMres(5, 5) = 1.69677e+10;
+    VMres(0, 0) = 2.39754e+11;
+    VMres(0, 1) = 6.7623e+10;
+    VMres(0, 2) = 6.7623e+10;
+    VMres(1, 0) = 6.7623e+10;
+    VMres(1, 1) = 2.39754e+11;
+    VMres(1, 2) = 6.7623e+10;
+    VMres(2, 0) = 6.7623e+10;
+    VMres(2, 1) = 6.7623e+10;
+    VMres(2, 2) = 2.39754e+11;
+    VMres(3, 3) = 8.60656e+10;
+    VMres(4, 4) = 8.60656e+10;
 
     Matrix DPres = ZeroMatrix(6, 6);
     DPres(0, 0) = 2.39754e+11;
@@ -268,18 +265,17 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStr
     DPres(5, 5) = 8.60656e+10;
 
     Matrix Tres = ZeroMatrix(6, 6);
-    Tres(0, 0) = 1.40893e+11;
-    Tres(0, 1) = 1.06958e+11;
-    Tres(0, 2) = 1.27149e+11;
-    Tres(1, 0) = 1.06958e+11;
-    Tres(1, 1) = 1.40893e+11;
-    Tres(1, 2) = 1.27149e+11;
-    Tres(2, 0) = 1.27149e+11;
-    Tres(2, 1) = 1.27149e+11;
-    Tres(2, 2) = 1.20703e+11;
-    Tres(3, 3) = 1.69677e+10;
-    Tres(4, 4) = 1.69677e+10;
-    Tres(5, 5) = 1.69677e+10;
+    Tres(0, 0) = 2.39754e+11;
+    Tres(0, 1) = 6.7623e+10;
+    Tres(0, 2) = 6.7623e+10;
+    Tres(1, 0) = 6.7623e+10;
+    Tres(1, 1) = 2.39754e+11;
+    Tres(1, 2) = 6.7623e+10;
+    Tres(2, 0) = 6.7623e+10;
+    Tres(2, 1) = 6.7623e+10;
+    Tres(2, 2) = 2.39754e+11;
+    Tres(3, 3) = 8.60656e+10;
+    Tres(4, 4) = 8.60656e+10;
 
     double plastic_dissipation;
     Matrix TestMC, TestVM, TestDP, TestT;

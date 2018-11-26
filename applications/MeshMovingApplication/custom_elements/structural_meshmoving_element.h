@@ -19,7 +19,10 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/element.h"
+#include "includes/ublas_interface.h"
+#include "includes/variables.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -45,6 +48,7 @@ namespace Kratos {
  * with large displacements, ASME J. Appl. Mech. 70 (2003) 58-63.
  */
 
+// template<unsigned int TDim>
 class StructuralMeshMovingElement : public Element {
 public:
   ///@name Type Definitions
@@ -122,8 +126,6 @@ public:
                               ProcessInfo &rCurrentProcessInfo) override;
 
   void GetValuesVector(VectorType &rValues, int Step = 0) override;
-
-  int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
   ///@}
   ///@name Access

@@ -118,7 +118,7 @@ void UpdatedLagrangianUP::Initialize()
     KRATOS_TRY
 
     // Initial position of the particle
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
 
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -138,6 +138,7 @@ void UpdatedLagrangianUP::Initialize()
 
     // Initialize constitutive law and materials
     InitializeMaterial();
+    this->GetValue(MP_DENSITY) = GetProperties()[DENSITY];
 
     KRATOS_CATCH( "" )
 }
@@ -169,7 +170,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    array_1d<double,3> xg = this->GetValue(MP_COORD);
+    array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
     const array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
     const array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
@@ -222,7 +223,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
 
     // Update the MP Position
     const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(MP_COORD,new_xg);
+    this -> SetValue(GAUSS_COORD,new_xg);
 
     //Update the MP Acceleration
     this -> SetValue(MP_ACCELERATION,MP_Acceleration);
@@ -371,7 +372,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
