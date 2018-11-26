@@ -77,10 +77,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
 
-        ## Construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
@@ -124,6 +120,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
+
+        ## Construct the linear solver
+        import linear_solver_factory
+        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
