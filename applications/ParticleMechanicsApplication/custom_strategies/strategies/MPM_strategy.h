@@ -591,7 +591,7 @@ public:
 
                 auto element_itr = mpm_model_part.Elements().begin() + i;
 
-                array_1d<double,3> xg = element_itr->GetValue(MP_COORD);
+                const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
