@@ -60,6 +60,12 @@ public:
     /// Pointer definition of TangentOperatorCalculatorUtility
     KRATOS_CLASS_POINTER_DEFINITION(TangentOperatorCalculatorUtility);
 
+    /// Definition of size type
+    typedef std::size_t SizeType;
+
+    /// Definition of index type
+    typedef std::size_t IndexType;
+
     /// Definition of the zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -98,6 +104,29 @@ public:
      */
     static void CalculateTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw* pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        )
+    {
+        // Ensure the proper flag
+        Flags& cl_options = rValues.GetOptions();
+        const bool use_element_provided_strain = cl_options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+        if (use_element_provided_strain) {
+            CalculateTangentTensorProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+        } else {
+            CalculateTangentTensorNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+        }
+    }
+
+    /**
+     * @brief Main method that computes the tangent tensor (provided strain)
+     * @param rValues The properties of the CL
+     * @param pConstitutiveLaw Pointer to the CL
+     * @param rStressMeasure The stress measure of the law
+     */
+    static void CalculateTangentTensorProvidedStrain(
+        ConstitutiveLaw::Parameters& rValues,
         ConstitutiveLaw *pConstitutiveLaw,
         const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
         )
@@ -106,38 +135,101 @@ public:
         const Vector strain_vector_gp = rValues.GetStrainVector();
         const Vector stress_vector_gp = rValues.GetStressVector();
 
-        Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
-        tangent_tensor.clear();
+        Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+        r_tangent_tensor.clear();
         Matrix auxiliar_tensor = ZeroMatrix(6,6);
 
-        const std::size_t num_components = strain_vector_gp.size();
+        const SizeType num_components = strain_vector_gp.size();
+
         // Loop over components of the strain
-        Vector& perturbed_strain = rValues.GetStrainVector();
-        for (std::size_t i_component = 0; i_component < num_components; ++i_component) {
+        Vector& r_perturbed_strain = rValues.GetStrainVector();
+        Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
+        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
             // Calculate the perturbation
             double pertubation;
-            CalculatePerturbation(perturbed_strain, i_component, pertubation);
+            CalculatePerturbation(r_perturbed_strain, i_component, pertubation);
 
             // We check that the perturbation has a threshold value of PerturbationThreshold
             //if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
             // Apply the perturbation
-            PerturbateStrainVector(perturbed_strain, strain_vector_gp, pertubation, i_component);
+            PerturbateStrainVector(r_perturbed_strain, strain_vector_gp, pertubation, i_component);
 
             // We continue with the calculations
             IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-            Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
-            const Vector& delta_stress = perturbed_integrated_stress - stress_vector_gp;
-            // KRATOS_WATCH(delta_stress)
-            // KRATOS_WATCH(pertubation)
+            const Vector& delta_stress = r_perturbed_integrated_stress - stress_vector_gp;
             AssignComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, i_component);
 
             // Reset the values to the initial ones
-            noalias(perturbed_strain) = strain_vector_gp;
-            noalias(perturbed_integrated_stress) = stress_vector_gp;
+            noalias(r_perturbed_strain) = strain_vector_gp;
+            noalias(r_perturbed_integrated_stress) = stress_vector_gp;
         }
-        tangent_tensor = auxiliar_tensor;
+        noalias(r_tangent_tensor) = auxiliar_tensor;
+    }
+
+    /**
+     * @brief Main method that computes the tangent tensor (not provided strain)
+     * @param rValues The properties of the CL
+     * @param pConstitutiveLaw Pointer to the CL
+     * @param rStressMeasure The stress measure of the law
+     */
+    static void CalculateTangentTensorNotProvidedStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw *pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        )
+    {
+        // Converged values to be storaged
+        const Vector strain_vector_gp = rValues.GetStrainVector();
+        const Vector stress_vector_gp = rValues.GetStressVector();
+
+        // Converged values to be storaged (only used in case of elements that not provide the strain)
+        const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
+        const double det_unperturbed_deformation_gradient_gp = double(rValues.GetDeterminantF());
+
+        Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+        r_tangent_tensor.clear();
+        Matrix auxiliar_tensor = ZeroMatrix(6,6);
+
+        const SizeType num_components = strain_vector_gp.size();
+
+        // Loop over components of the strain
+        Vector& r_perturbed_strain = rValues.GetStrainVector();
+        Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
+        Matrix& r_perturbed_deformation_gradient = const_cast<Matrix&>(rValues.GetDeformationGradientF());
+        double& r_perturbed_det_deformation_gradient = const_cast<double&>(rValues.GetDeterminantF());
+        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+            // Calculate the perturbation
+            double pertubation;
+            CalculatePerturbation(r_perturbed_strain, i_component, pertubation);
+
+            // In case the element uses F as input instead of the strain vector
+            noalias(r_perturbed_deformation_gradient) = ComputeEquivalentSmallDeformationDeformationGradient(rValues);
+            // Reset the values to the initial ones
+            r_perturbed_det_deformation_gradient = MathUtils<double>::DetMat(r_perturbed_deformation_gradient);
+
+            // We check that the perturbation has a threshold value of PerturbationThreshold
+            //if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+
+            // Apply the perturbation
+            PerturbateStrainVector(r_perturbed_strain, strain_vector_gp, pertubation, i_component);
+
+            // We continue with the calculations
+            IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+            const Vector& delta_stress = r_perturbed_integrated_stress - stress_vector_gp;
+            AssignComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, i_component);
+
+            // Reset the values to the initial ones
+            noalias(r_perturbed_strain) = strain_vector_gp;
+            noalias(r_perturbed_integrated_stress) = stress_vector_gp;
+
+            // In case the element uses F as input instead of the strain vector. Reset the values to the initial ones
+            noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
+            r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
+        }
+        noalias(r_tangent_tensor) = auxiliar_tensor;
     }
 
     /**
@@ -172,7 +264,7 @@ public:
         const std::size_t size2 = deformation_gradient_gp.size2();
 
         // Loop over components of the strain
-        Vector& perturbed_strain = rValues.GetStrainVector();
+        Vector& r_perturbed_strain = rValues.GetStrainVector();
         Vector& perturbed_stress = rValues.GetStressVector();
         for (std::size_t i_component = 0; i_component < size1; ++i_component) {
             for (std::size_t j_component = 0; j_component < size2; ++j_component) {
@@ -200,7 +292,7 @@ public:
                 AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
 
                 // Reset the values to the initial ones
-                perturbed_strain = strain_vector_gp;
+                r_perturbed_strain = strain_vector_gp;
                 perturbed_stress = stress_vector_gp;
                 rValues.SetDeformationGradientF(deformation_gradient_gp);
                 rValues.SetDeterminantF(det_deformation_gradient_gp);
@@ -276,7 +368,7 @@ public:
         const int Component
         )
     {
-        rPerturbedStrainVector = rStrainVectorGP;
+        noalias(rPerturbedStrainVector) = rStrainVectorGP;
         rPerturbedStrainVector[Component] += Perturbation;
     }
 
@@ -296,8 +388,35 @@ public:
         const std::size_t ComponentJ
         )
     {
-        rPerturbedDeformationGradient = rDeformationGradientGP;
+        noalias(rPerturbedDeformationGradient) = rDeformationGradientGP;
         rPerturbedDeformationGradient(ComponentI, ComponentJ) += Perturbation;
+    }
+
+    /**
+     * @brief This method computes the equivalent deformation gradient for the elements which provide the deformation gradient as input
+     * @param rValues The properties of the CL
+     */
+    static Matrix ComputeEquivalentSmallDeformationDeformationGradient(ConstitutiveLaw::Parameters& rValues)
+    {
+        // We update the deformation gradient
+        const Vector& r_strain_vector = rValues.GetStrainVector();
+        const SizeType size = r_strain_vector.size();
+        const SizeType F_size = (size == 6) ?  3 : 2;
+
+        Matrix equivalent_F(F_size, F_size);
+
+        for (IndexType i = 0; i < F_size; ++i) {
+            equivalent_F(i, i) = 1.0 + r_strain_vector[i];
+        }
+
+        for (IndexType i = F_size; i < size; ++i) {
+            const IndexType equivalent_i = (i == F_size) ? 0 : (i == 4) ? 1 : 0;
+            const IndexType equivalent_j = (i == F_size) ? 1 : 2;
+            equivalent_F(equivalent_i, equivalent_j) = 0.5 * r_strain_vector[i];
+            equivalent_F(equivalent_j, equivalent_i) = 0.5 * r_strain_vector[i];
+        }
+
+        return equivalent_F;
     }
 
     /**
