@@ -160,6 +160,9 @@ public:
     double ComputeInletVolumeFlow();
 
 
+    void ShiftDistanceField( double deltaDist );
+
+
 
     // ///@}
     // ///@name Inquiry
