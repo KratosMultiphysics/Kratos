@@ -14,14 +14,14 @@ import matplotlib.pyplot as plt
 import numpy.fft as fft
 
 class Gauge:
-    def __init__(self, model_part, Dt, final_time, variables_to_measure, steps_between_measurements, activity = True):
+    def __init__(self, model_part, Dt, end_time, variables_to_measure, steps_between_measurements, activity = True):
         self.model_part = model_part
         self.steps_between_measurements = steps_between_measurements
         self.Dt = Dt * steps_between_measurements
-        self.final_time = final_time
+        self.end_time = end_time
         self.variables = variables_to_measure
         self.n_vars = len(variables_to_measure)
-        self.n_instants = int(math.ceil(self.final_time / self.Dt + 1))
+        self.n_instants = int(math.ceil(self.end_time / self.Dt + 1))
         self.current_instant = 0
         self.counter = swimming_DEM_procedures.Counter(steps_between_measurements, 1, activity)
 
@@ -36,7 +36,7 @@ class Gauge:
     def MakeNodalMeasurement(self):
         if self.counter.Tick():
             self.times[self.current_instant] = self.model_part.ProcessInfo[TIME]
-            print(self.model_part.ProcessInfo[TIME] / self.final_time)
+            print(self.model_part.ProcessInfo[TIME] / self.end_time)
             print(self.current_instant / self.n_instants)
             i_node = 0
             for node in self.nodes:

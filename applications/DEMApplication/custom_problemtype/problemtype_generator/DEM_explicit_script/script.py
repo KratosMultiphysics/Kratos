@@ -74,7 +74,7 @@ gravity = Vector(3)
 gravity[0] = DEM_explicit_solver_var.gravity_x
 gravity[1] = DEM_explicit_solver_var.gravity_y
 gravity[2] = DEM_explicit_solver_var.gravity_z
-final_time = DEM_explicit_solver_var.max_time
+end_time = DEM_explicit_solver_var.max_time
 output_dt = DEM_explicit_solver_var.output_dt
 safety_factor = DEM_explicit_solver_var.dt_safety_factor
 number_of_inital_steps = DEM_explicit_solver_var.number_of_inital_steps
@@ -139,7 +139,7 @@ solver.EvolveSystem(dt, gravity)  # also creates particles
 current_pr_time = timer.clock()
 current_real_time = timer.time()
 print(('Calculation starts at instant: ') + str(current_pr_time))
-while(time < final_time):
+while(time < end_time):
 
     if(step < number_of_inital_steps):
         max_dt = initial_time_step

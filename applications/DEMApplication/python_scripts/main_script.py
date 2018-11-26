@@ -147,7 +147,7 @@ class Solution(object):
             face_watcher.MakeMeasurements()
 
     def SetFinalTime(self):
-        self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
+        self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
 
     def Setdt(self):
         self.dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
@@ -331,7 +331,7 @@ class Solution(object):
         self.materialTest.PrepareDataForGraph()
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
-        self.report.total_steps_expected = int(self.final_time / self.dt)
+        self.report.total_steps_expected = int(self.end_time / self.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
         #-----os.chdir(self.main_path)
 
@@ -417,7 +417,7 @@ class Solution(object):
         self.step = 0
         self.time = 0.0
         self.time_old_print = 0.0
-        while self.time < self.final_time:
+        while self.time < self.end_time:
 
             self.InitializeTimeStep()
             self.time = self.time + self.dt

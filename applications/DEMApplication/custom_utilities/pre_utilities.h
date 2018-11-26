@@ -213,7 +213,7 @@ class PreUtilities
 
         KRATOS_INFO("DEM") << "\nGenerating mesh...\n\n";
 
-        clock_t initial_time, final_time;
+        clock_t initial_time, end_time;
         initial_time = clock();
         std::ofstream outputfile(filename, std::ios_base::out);
         outputfile << "Begin ModelPartData\nEnd ModelPartData\n\n";
@@ -292,8 +292,8 @@ class PreUtilities
         for (std::vector<int>::iterator it_top = top_nodes.begin(); it_top != top_nodes.end(); it_top++) outputfile << "  " << *it_top << '\n';
         outputfile << "  End MeshNodes\nEnd Mesh\n";*/
         outputfile.close();
-        final_time = clock();
-        double elapsed_time = (double(final_time) - double(initial_time)) / CLOCKS_PER_SEC;
+        end_time = clock();
+        double elapsed_time = (double(end_time) - double(initial_time)) / CLOCKS_PER_SEC;
         KRATOS_INFO("DEM") << "\nfinished!\n\n";
         KRATOS_INFO("DEM") << "\nTotal number of elements: " << node_counter << '\n';
         KRATOS_INFO("DEM") << "\nTime required to create the mdpa file: " << elapsed_time << " seconds\n\n";

@@ -97,14 +97,14 @@ class Solution(main_script.Solution):
                                                      self.procedures)
 
     def SetFinalTime(self):
-        self.final_time = final_time
+        self.end_time = end_time
 
     def Setdt(self):
         self.dt = dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
-        #self.final_time = slt.final_time
+        #self.end_time = slt.end_time
         #self.dt = slt.dt
         #self.graph_print_interval = slt.graph_print_interval
         super(Solution, self).Initialize()
@@ -168,14 +168,14 @@ class Solution(main_script.Solution):
         super(Solution, self).CleanUpOperations()
 
 
-final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
+end_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):
     for iteration in range(1, number_of_points_in_the_graphic + 1):
         model = Model()
         slt = Solution(model)
         slt.iteration = iteration
         slt.dt = dt
-        slt.final_time = final_time
+        slt.end_time = end_time
         slt.graph_print_interval = graph_print_interval
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution

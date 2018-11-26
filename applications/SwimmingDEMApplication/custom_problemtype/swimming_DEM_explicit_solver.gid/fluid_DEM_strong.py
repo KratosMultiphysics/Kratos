@@ -400,7 +400,7 @@ if (ProjectParameters.projection_module_option):
     if (ProjectParameters.meso_scale_length <= 0.0  and balls_model_part.NumberOfElements(0) > 0):
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(balls_model_part, RADIUS)
         ProjectParameters.meso_scale_length = 20 * biggest_size
-        
+
     elif (balls_model_part.NumberOfElements(0) == 0):
         ProjectParameters.meso_scale_length = 1.0
 
@@ -476,7 +476,7 @@ if (ProjectParameters.make_results_directories_option):
 
 Dt = ProjectParameters.Dt
 Nsteps = ProjectParameters.nsteps
-final_time = ProjectParameters.max_time
+end_time = ProjectParameters.max_time
 output_time = ProjectParameters.output_time
 
 time = ProjectParameters.Start_time
@@ -531,7 +531,7 @@ stationarity_counter = swim_proc.Counter(ProjectParameters.time_steps_per_statio
 mesh_motion = DEMFEMUtilities()
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
 
-while (time <= final_time):
+while (time <= end_time):
 
     time = time + Dt
     step += 1

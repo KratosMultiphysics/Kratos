@@ -42,11 +42,11 @@ def ExactIntegrationOfSinusWithExponentialKernel(t, ti, alpha = None, beta = Non
     else:
         return a / (b ** 2 + 1) * (exp(b * (t - alpha)) * (b * sin(alpha) + cos(alpha)) - exp(b * (t - beta)) * (b * sin(beta) + cos(beta)))
 
-def ExactIntegrationOfTail(final_time, final_time_minus_tw, initial_time, ais, tis):
+def ExactIntegrationOfTail(end_time, end_time_minus_tw, initial_time, ais, tis):
         F_tail = 0.0
         for i in range(len(ais)):
             ti = tis[i]
-            F_tail += ais[i] * ExactIntegrationOfSinusWithExponentialKernel(final_time, ti, initial_time, final_time_minus_tw)
+            F_tail += ais[i] * ExactIntegrationOfSinusWithExponentialKernel(end_time, ti, initial_time, end_time_minus_tw)
         return F_tail
 
 # *****************************************************************************************************************************************************************************************
@@ -288,14 +288,14 @@ def Hinsberg(m, t_win, times, f, which_set_of_points='hinsberg'):
     else:
         #import hinsberg_optimization as op
         initial_time = times[0]
-        final_time = times[- 1]
-        interval = final_time - initial_time
+        end_time = times[- 1]
+        interval = end_time - initial_time
 
         # Partitioning time vector in two  ------------------------------
         i_time = 0
         for i in range(len(times)):
             i_time  = i
-            if times[i] >= final_time - t_win:
+            if times[i] >= end_time - t_win:
                 break
 
         t_middle = times[i_time]
@@ -339,7 +339,7 @@ def Hinsberg(m, t_win, times, f, which_set_of_points='hinsberg'):
         tis = [t * t_win for t in tis_tilde]
 
 
-        F_tail = float(ExactIntegrationOfSinus(final_time, 0.0, old_times[1]))
+        F_tail = float(ExactIntegrationOfSinus(end_time, 0.0, old_times[1]))
         Fis = [0.0 for coefficient in a0]
 
         # Verifying interpolation by exponentials
@@ -369,7 +369,7 @@ def Hinsberg(m, t_win, times, f, which_set_of_points='hinsberg'):
             F_tail = 0.0
             for i in range(len(a0)):
                 ti = tis[i]
-                F_tail += a0[i] * ExactIntegrationOfSinusWithExponentialKernel(final_time, ti, 0., old_times[-1])
+                F_tail += a0[i] * ExactIntegrationOfSinusWithExponentialKernel(end_time, ti, 0., old_times[-1])
 
         # For each interpoland, calculate its integral contribution step by step
 
@@ -385,7 +385,7 @@ def Hinsberg(m, t_win, times, f, which_set_of_points='hinsberg'):
                     exp_dt = exp(- normalized_dt)
                     Fdi = 2 * sqrt(exp(1.) * ti) * exp(- normalized_t) * (fn * (1 - Phi(- normalized_dt)) + fn_plus_1 * exp_dt * (Phi(normalized_dt) - 1.)) #
                     if cheat_a_little: # calculate exact contribution and not approximation given by Hinsberg
-                        Fdi = ExactIntegrationOfSinusWithExponentialKernel(final_time - old_times[- 1] + k * delta_t, ti, old_times[k - 1], old_times[k])
+                        Fdi = ExactIntegrationOfSinusWithExponentialKernel(end_time - old_times[- 1] + k * delta_t, ti, old_times[k - 1], old_times[k])
                     Fre = exp_dt * Fis[i]
                     Fis[i] = float(Fdi) + Fre
 
@@ -399,9 +399,9 @@ def Hinsberg(m, t_win, times, f, which_set_of_points='hinsberg'):
             print("times", times)
             print("old_times", old_times)
             print("recent_times", recent_times)
-            print("EXACT tail", ExactIntegrationOfSinus(final_time, 0., t_win))
-            print("EXACT recent", ExactIntegrationOfSinus(final_time, t_win, final_time))
-            print("EXACT whole", ExactIntegrationOfSinus(final_time))
+            print("EXACT tail", ExactIntegrationOfSinus(end_time, 0., t_win))
+            print("EXACT recent", ExactIntegrationOfSinus(end_time, t_win, end_time))
+            print("EXACT whole", ExactIntegrationOfSinus(end_time))
             print("WHOLE", Daitche(times, f, 3))
             print("RECENT", F_win)
             print("TAIL", F_tail)
@@ -593,7 +593,7 @@ def SubstituteShanks(approx_sequence):
 if __name__ == "__main__":
     # Parameters ----------------------------
 
-    final_time = 10
+    end_time = 10
     t_win = 1.0
     n_discretizations = 7
     min_exp = 3
@@ -602,7 +602,7 @@ if __name__ == "__main__":
     order_bomb = 1
     f = math.sin
     n_div = [k ** (min_exp + i) for i in range(n_discretizations)]
-    n_sizes = [final_time / number for number in n_div]
+    n_sizes = [end_time / number for number in n_div]
     n_theor_slopes = 2
     n_samples = int(min(8, n_div[0]))
 
@@ -652,10 +652,10 @@ if __name__ == "__main__":
         i += 1
         j = 0
         for n_divisions in n_div:
-            h = final_time / n_divisions
+            h = end_time / n_divisions
             times = [h * delta for delta in range(n_divisions * i // n_samples)]
             if i == n_samples:
-                times.append(final_time)
+                times.append(end_time)
             else:
                 times.append(times[- 1] + h)
 
@@ -847,9 +847,9 @@ if __name__ == "__main__":
     plt.ylabel(r'$E(10)$', fontsize=16)
     plt.legend(loc='lower right',prop={'size':11},frameon=False)
     plt.loglog()
-    plt.savefig('Duration_' + str(final_time).replace(".", "_")+ '_bomb_' + str(order_bomb) + '_Richard' + '.eps', format='eps', dpi=1200)
-    # plt.savefig('Duration_' + str(final_time).replace(".", "_")+ '_bomb_' + str(order_bomb) + '_Richard' + '.pdf', format='pdf', dpi=1200)
-    #plt.savefig('Duration_' + str(final_time).replace(".", "_")+ '_Daitche_' + str(order_bomb) + '_Richard' + '.eps', format='eps', dpi=1200)
-    #plt.savefig('Duration_' + str(final_time).replace(".", "_")+ '_Daitche_' + str(order_bomb) + '_Richard' + '.pdf', format='pdf', dpi=1200)
+    plt.savefig('Duration_' + str(end_time).replace(".", "_")+ '_bomb_' + str(order_bomb) + '_Richard' + '.eps', format='eps', dpi=1200)
+    # plt.savefig('Duration_' + str(end_time).replace(".", "_")+ '_bomb_' + str(order_bomb) + '_Richard' + '.pdf', format='pdf', dpi=1200)
+    #plt.savefig('Duration_' + str(end_time).replace(".", "_")+ '_Daitche_' + str(order_bomb) + '_Richard' + '.eps', format='eps', dpi=1200)
+    #plt.savefig('Duration_' + str(end_time).replace(".", "_")+ '_Daitche_' + str(order_bomb) + '_Richard' + '.pdf', format='pdf', dpi=1200)
     plt.savefig('comparing_norms_with_sinus.pdf', format='pdf', dpi=1000)
     plt.show()

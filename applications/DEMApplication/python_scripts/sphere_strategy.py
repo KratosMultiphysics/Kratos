@@ -83,7 +83,7 @@ class ExplicitStrategy(object):
         # TIME RELATED PARAMETERS
         self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
         self.max_delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
-        self.final_time = DEM_parameters["FinalTime"].GetDouble()
+        self.end_time = DEM_parameters["FinalTime"].GetDouble()
 
         # BOUNDING_BOX
         self.enlargement_factor = DEM_parameters["BoundingBoxEnlargementFactor"].GetDouble()
@@ -102,7 +102,7 @@ class ExplicitStrategy(object):
             self.bounding_box_start_time  = DEM_parameters["BoundingBoxStartTime"].GetDouble()
 
         if not "BoundingBoxStopTime" in DEM_parameters.keys():
-            self.bounding_box_stop_time  = self.final_time
+            self.bounding_box_stop_time  = self.end_time
         else:
             self.bounding_box_stop_time  = DEM_parameters["BoundingBoxStopTime"].GetDouble()
 

@@ -143,9 +143,9 @@ class AnalyticSimulator:
 
     def CalculateTrajectory(self):
         pp = self.pp
-        n = pp.n_t_steps + 1 # number of time instants (including t = final_time)
+        n = pp.n_t_steps + 1 # number of time instants (including t = end_time)
 
-        self.times = [pp.final_time * i / pp.n_t_steps for i in range(n)]
+        self.times = [pp.end_time * i / pp.n_t_steps for i in range(n)]
         self.NDtimes = [t * pp.omega for t in self.times]
         self.NDx = [None] * n
         self.NDy = [None] * n
