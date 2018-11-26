@@ -347,8 +347,8 @@ namespace Kratos
 
     void ApplyPeriodicConditionProcess::TransformNode(const array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates) const
     {
-        DenseVector<double> original_node(4, 0.0f);
-        DenseVector<double> transformed_node(4, 0.0f);
+        DenseVector<double> original_node(4, 0.0);
+        DenseVector<double> transformed_node(4, 0.0);
 
         original_node[0] = rCoordinates(0); original_node[1] = rCoordinates(1); original_node[2] = rCoordinates(2); original_node[3] = 1.0;
         // Multiplying the point to get the rotated point
