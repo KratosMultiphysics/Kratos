@@ -105,7 +105,6 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         self.computing_model_part.AddMasterSlaveConstraints(list_constraints)
 
     def ExecuteInitializeSolutionStep(self):
-        """ This method is executed in order to initialize the current step
 
 
         """
