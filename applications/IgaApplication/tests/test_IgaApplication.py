@@ -10,6 +10,7 @@ from node_curve_geometry_3d_tests import NodeCurveGeometry3DTests
 from node_surface_geometry_3d_tests import NodeSurfaceGeometry3DTests
 from iga_truss_element_tests import IgaTrussElementTests
 from shell_kl_discrete_element_tests import ShellKLDiscreteElementTests
+from test_iga_output_process import TestIgaOutputProcess
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -29,6 +30,7 @@ def AssembleTestSuites():
         NodeSurfaceGeometry3DTests,
         IgaTrussElementTests,
         ShellKLDiscreteElementTests,
+        TestIgaOutputProcess
     ]))
 
     nightSuite = suites['nightly']
