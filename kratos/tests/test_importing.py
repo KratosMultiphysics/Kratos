@@ -28,19 +28,18 @@ class TestImporting(KratosUnittest.TestCase):
 
         #self.assertTrue(model_part.Nodes[1].GetSolutionStepValue(VELOCITY_X) == 1.0)
         self.assertTrue(model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y) == 2.0)
-        #print(model_part.Nodes[1].GetSolutionStepValue(VELOCITY))
 
     def _aux_func(self,model_part):
         try:
-            import KratosMultiphysics.ConvectionDiffusionApplication #upon importing the key of velocity is changed, so that the database does not work any longer
+            import KratosMultiphysics.FluidDynamicsApplication #upon importing the key of velocity is changed, so that the database does not work any longer
         except:
-            self.skipTest("KratosMultiphysics.ConvectionDiffusionApplication is not available")
-        #model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY) #the problem is that here the key of VELOCITY is changed...
+            self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY) #the problem is that here the key of VELOCITY is changed...
         model_part.Nodes[1].SetSolutionStepValue(VELOCITY_Y,0,2.0)
 
     def test_has_application(self):
         current_model = Model()
-        
+
         self.assertTrue(Kernel().IsImported("KratosMultiphysics"))
 
         try:
@@ -49,6 +48,27 @@ class TestImporting(KratosUnittest.TestCase):
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
 
         self.assertTrue(Kernel().IsImported("ExternalSolversApplication"))
+
+    def test_variable_keys_reordering(self):
+        key_vel_before_import = VELOCITY.Key()
+
+        try:
+            import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+        except:
+            self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
+
+        self.assertEqual(key_vel_before_import, VELOCITY.Key())
+
+        key_ssp_before_import = KratosCFD.SUBSCALE_PRESSURE.Key()
+
+        try:
+            import KratosMultiphysics.StructuralMechanicsApplication
+        except:
+            self.skipTest("KratosMultiphysics.StructuralMechanicsApplication is not available")
+
+        self.assertEqual(key_vel_before_import, VELOCITY.Key())
+        self.assertEqual(key_ssp_before_import, KratosCFD.SUBSCALE_PRESSURE.Key())
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
