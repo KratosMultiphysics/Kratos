@@ -185,9 +185,9 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     {
         if (rVariables.N[i] > 1e-16)
         {
-            array_1d<double, 3 > & nodal_acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3 > & nodal_acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
 
-            double nodal_pressure = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 0);
+            const double& nodal_pressure = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 0);
             MP_Pressure += rVariables.N[i] * nodal_pressure;
 
             for ( unsigned int j = 0; j < dimension; j++ )
@@ -403,11 +403,11 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        array_1d<double, 3 > & nodal_acceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
-        array_1d<double, 3 > & nodal_velocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
+        const array_1d<double, 3 > & nodal_acceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
+        const array_1d<double, 3 > & nodal_velocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
 
         // These are the values of nodal pressure evaluated in the initialize solution step
-        double & nodal_pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,1);
+        const double& nodal_pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,1);
 
         AUX_MP_Pressure += Variables.N[j] * nodal_pressure;
 
@@ -589,7 +589,7 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
     {
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            double& pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
             // TODO: Check what is the meaning of this equation
             rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
@@ -643,7 +643,7 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
     {
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            double& pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
             if( dimension == 2 )
             {
