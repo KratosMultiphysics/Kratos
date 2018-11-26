@@ -422,7 +422,6 @@ def AssembleTestSuites():
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite) # already contains the smallSuite
-    allSuite.addTests(validationSuite)
 
     return suites
 
