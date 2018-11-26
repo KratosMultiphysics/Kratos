@@ -32,20 +32,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                 logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\n" )
                 logFile.close()
 
-
-    def ExecuteInitialize(self):
-        self.MassConservationCheckProcess.ExecuteInitialize()
-
-
-    def ExecuteBeforeSolutionLoop(self):
-        self.MassConservationCheckProcess.ExecuteBeforeSolutionLoop()
-
-
-    def ExecuteInitializeSolutionStep(self):
-        self.MassConservationCheckProcess.ExecuteInitializeSolutionStep()
-
-
-    def ExecuteFinalizeSolutionStep(self):
+    def Execute(self):
 
         # retrieve information if the values were updated
         updated = self.MassConservationCheckProcess.GetUpdateStatus()
@@ -67,4 +54,18 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                     logFile.write( str(posVol) + "\t" + str(negVol) + "\n" )
 
 
+    def ExecuteInitialize(self):
+        self.MassConservationCheckProcess.ExecuteInitialize()
 
+
+    def ExecuteBeforeSolutionLoop(self):
+        self.MassConservationCheckProcess.ExecuteBeforeSolutionLoop()
+
+
+    def ExecuteInitializeSolutionStep(self):
+        self.MassConservationCheckProcess.ExecuteInitializeSolutionStep()
+
+
+    def ExecuteFinalizeSolutionStep(self):
+
+        self.Execute()
