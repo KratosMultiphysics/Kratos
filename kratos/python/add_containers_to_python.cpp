@@ -134,8 +134,8 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 template <class TVariableType>
 TVariableType CreateVariable(const std::string& name)
 {
-    static std::vector<Kratos::unique_ptr<TVariableType>> vector_unique_pointers_for_variables;
     KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
+    static std::vector<Kratos::unique_ptr<TVariableType>> vector_unique_pointers_for_variables; // TODO: To be moved to Registry class
     auto var_unq_pointer = Kratos::make_unique<TVariableType>(name);
     AddKratosComponent((*var_unq_pointer).Name(), name);
     KratosComponents<VariableData>::Add((*var_unq_pointer).Name(), (*var_unq_pointer));
@@ -150,16 +150,14 @@ TVariableComponentType CreateVariableComponent(const std::string& name, const st
 {
     KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable component : "<<name<<" already exists."<<std::endl;
 
-    static std::vector<Kratos::unique_ptr<TVariableComponentType>> vector_unique_pointers_for_variable_components;
+    static std::vector<Kratos::unique_ptr<TVariableComponentType>> vector_unique_pointers_for_variable_components; // TODO: To be moved to Registry class
     auto var_unq_pointer = Kratos::make_unique<TVariableComponentType>(name, source_name, component_index,
                                                                         TVariableComponentAdapterType(source_name, component_index);
     AddKratosComponent((*var_unq_pointer).Name(), name);
     KratosComponents<VariableData>::Add((*var_unq_pointer).Name(), (*var_unq_pointer));
-    vector_unique_pointers_for_variables.push_back(std::move(var_unq_pointer));
+    vector_unique_pointers_for_variable_components.push_back(std::move(var_unq_pointer));
 
-
-    return *vector_unique_pointers_for_variables.back();
-
+    return *vector_unique_pointers_for_variable_components.back();
 }
 
 void  AddContainersToPython(pybind11::module& m)
