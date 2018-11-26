@@ -656,7 +656,7 @@ protected:
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    const double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
@@ -665,7 +665,7 @@ protected:
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
                                     Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+                                    const double& rIntegrationWeight);
 
 
     /**
@@ -674,14 +674,14 @@ protected:
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
-                                     double& rIntegrationWeight);
+                                     const double& rIntegrationWeight);
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
-                                     double& rIntegrationWeight);
+                                     const double& rIntegrationWeight);
 
 
     /**
@@ -690,7 +690,7 @@ protected:
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
             GeneralVariables& rVariables,
             Vector& rVolumeForce,
-            double& rIntegrationWeight);
+            const double& rIntegrationWeight);
 
 
     /**
@@ -698,7 +698,7 @@ protected:
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            double& rIntegrationWeight);
+            const double& rIntegrationWeight);
 
 
     /**
@@ -911,4 +911,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined
