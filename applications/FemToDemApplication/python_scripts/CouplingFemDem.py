@@ -29,7 +29,7 @@ class FEMDEM_Solution:
         if self.DoRemeshing:
             self.mmg_parameter_file = open("MMGParameters.json",'r')
             self.mmg_parameters = KratosMultiphysics.Parameters(self.mmg_parameter_file.read())
-            Model = {self.mmg_parameters["model_part_name"].GetString(): self.FEM_Solution.main_model_part}
+            # Model = {self.mmg_parameters["model_part_name"].GetString(): self.FEM_Solution.main_model_part}
             self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
 
         self.InitializePlotsFiles()
@@ -107,8 +107,8 @@ class FEMDEM_Solution:
                 # Extrapolate the VonMises normalized stress to nodes (remeshing)
                 KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
-				# we eliminate the nodal DEM forces
-				self.RemoveDummyNodalForces()
+                # we eliminate the nodal DEM forces
+                self.RemoveDummyNodalForces()
                 
             # Perform remeshing
             self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
@@ -137,7 +137,7 @@ class FEMDEM_Solution:
                 self.FEM_Solution.model_processes.ExecuteBeforeSolutionLoop()
                 self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
 
-		# Search the skin nodes for the remeshing
+        # Search the skin nodes for the remeshing
         if self.DoRemeshing:
             skin_detection_process_param = KratosMultiphysics.Parameters("""
             {
@@ -505,8 +505,8 @@ class FEMDEM_Solution:
                 elif is_active == False and DEM_Generated == True:
                     Element.Set(KratosMultiphysics.TO_ERASE, True)
 
-		element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
-		element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
+        element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
+        element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
         # self.FEM_Solution.main_model_part.GetRootModelPart().RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
 #============================================================================================================================
@@ -606,30 +606,30 @@ class FEMDEM_Solution:
 #============================================================================================================================
     def UpdateDEMVariables(self):
 
-		FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
-		for fem_node in FEM_Nodes:
-			if fem_node.GetValue(KratosFemDem.IS_DEM):
-				id_node = fem_node.Id
-				associated_dem = self.SpheresModelPart.GetNode(id_node)
+        FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
+        for fem_node in FEM_Nodes:
+            if fem_node.GetValue(KratosFemDem.IS_DEM):
+                id_node = fem_node.Id
+                associated_dem = self.SpheresModelPart.GetNode(id_node)
 
-				Coordinates    = self.GetNodeCoordinates(fem_node)
-				Velocity_x     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-				Velocity_y     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-				Displacement_x = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-				Displacement_y = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
-				
+                Coordinates    = self.GetNodeCoordinates(fem_node)
+                Velocity_x     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+                Velocity_y     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+                Displacement_x = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                Displacement_y = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+                
 
-				# Update Coordinates
-				associated_dem.X = Coordinates[0]
-				associated_dem.Y = Coordinates[1]
+                # Update Coordinates
+                associated_dem.X = Coordinates[0]
+                associated_dem.Y = Coordinates[1]
 
-				# Update Displacements
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, Displacement_x)
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, Displacement_y)
+                # Update Displacements
+                associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, Displacement_x)
+                associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, Displacement_y)
 
-				# Update Velocities
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, Velocity_x)
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, Velocity_y)
+                # Update Velocities
+                associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, Velocity_x)
+                associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, Velocity_y)
 
 #============================================================================================================================
     def CheckInactiveNodes(self):
@@ -953,13 +953,13 @@ class FEMDEM_Solution:
             self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(Solid.FORCE_LOAD, [0.0,0.0,0.0])
 
 #============================================================================================================================
-	def RemoveDummyNodalForces(self):
+    def RemoveDummyNodalForces(self):
 
-		for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
-			condition.Set(KratosMultiphysics.TO_ERASE, True)
+        for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
+            condition.Set(KratosMultiphysics.TO_ERASE, True)
 
-		for node in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Nodes:
-			node.Set(KratosMultiphysics.TO_ERASE, True)
+        for node in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Nodes:
+            node.Set(KratosMultiphysics.TO_ERASE, True)
 
-		self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
-		self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+        self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+        self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
