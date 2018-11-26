@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication as IgaApplication
-import math needed?
 
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
