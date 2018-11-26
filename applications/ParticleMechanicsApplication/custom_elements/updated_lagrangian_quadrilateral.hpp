@@ -811,7 +811,7 @@ protected:
     /**
      * Calculate Jacobian in a given point
      */
-    virtual Matrix& MPMJacobian(Matrix& rResult, array_1d<double,3>& rPoint);
+    virtual Matrix& MPMJacobian(Matrix& rResult, const array_1d<double,3>& rPoint);
 
     /**
      * Calculate Jacobian in a given point and given a delta position
@@ -827,7 +827,7 @@ protected:
     /**
      * Calculate Shape Function grandient local Values in a given point in 3 dimension
      */
-    virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult, array_1d<double,3>& rPoint);
+    virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult, const array_1d<double,3>& rPoint);
     /**
      * Calculate local coordinated of a given point in 3 dimension
      */

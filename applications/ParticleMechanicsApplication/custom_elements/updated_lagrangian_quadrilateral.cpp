@@ -1407,13 +1407,13 @@ void UpdatedLagrangianQuadrilateral::CalculateMassMatrix( MatrixType& rMassMatri
 //************************************************************************************
 
 // Function that return Jacobian matrix
-Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, array_1d<double,3>& rPoint)
+Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, const array_1d<double,3>& rPoint)
 {
     KRATOS_TRY
 
     // Derivatives of shape functions
     Matrix shape_functions_gradients;
-    shape_functions_gradients =this->MPMShapeFunctionsLocalGradients(
+    shape_functions_gradients = this->MPMShapeFunctionsLocalGradients(
                                    shape_functions_gradients, rPoint);
 
     const GeometryType& rGeom = GetGeometry();
@@ -1590,7 +1590,7 @@ Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rRe
 
 
 // Function which return dN/de
-Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix& rResult, array_1d<double,3>& rPoint)
+Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix& rResult, const array_1d<double,3>& rPoint)
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     array_1d<double,3> rPointLocal = ZeroVector(3);

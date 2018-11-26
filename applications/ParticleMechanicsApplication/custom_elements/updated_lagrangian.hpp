@@ -813,7 +813,7 @@ protected:
     /**
      * Calculate Jacobian in a given point
      */
-    virtual Matrix& MPMJacobian(Matrix& rResult, array_1d<double,3>& rPoint);
+    virtual Matrix& MPMJacobian(Matrix& rResult, const array_1d<double,3>& rPoint);
 
     /**
      * Calculate Jacobian in a given point and given a delta position
