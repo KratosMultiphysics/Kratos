@@ -65,6 +65,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				# Extrapolate the VonMises normalized stress to nodes (remeshing)
 				KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
+				# we eliminate the nodal DEM forces
+				self.RemoveDummyNodalForces()
+
 			# Perform remeshing
 			self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 			if is_remeshing:
@@ -1022,3 +1025,16 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		for elem in self.FEM_Solution.main_model_part.Elements:
 			if elem.GetValue(KratosFemDem.DAMAGE_ELEMENT) < 0.0:
 				elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
+
+#============================================================================================================================
+	def RemoveDummyNodalForces(self):
+
+		for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
+			condition.Set(KratosMultiphysics.TO_ERASE, True)
+
+		for node in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Nodes:
+			node.Set(KratosMultiphysics.TO_ERASE, True)
+
+		self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+		self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+
