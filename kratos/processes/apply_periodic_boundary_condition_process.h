@@ -56,10 +56,10 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @brief Constructor of the process to apply periodic boundary condition
      * @param rMasterModelPart The master model part for the constraints. Constraints are added on here.
      * @param rSlaveModelPart The slave model part for the constraints.
-     * @param rParameters parameters for the periodic condition to be applied
+     * @param Settings parameters for the periodic condition to be applied
      */
     ApplyPeriodicConditionProcess(ModelPart &rMasterModelPart, ModelPart &rSlaveModelPart,
-                                  Parameters rParameters);
+                                  Parameters Settings);
 
     /**
      * @brief Destructor of the process class
