@@ -35,6 +35,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
         "enforce_current"                     : true,
         "hessian_strategy_parameters":
         {
+            "metric_variable"                  : ["DISTANCE"],
             "estimate_interpolation_error"         : false,
             "interpolation_error"                  : 1.0e-6,
             "mesh_dependent_constant"              : 0.28125
