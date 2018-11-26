@@ -1026,15 +1026,3 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			if elem.GetValue(KratosFemDem.DAMAGE_ELEMENT) < 0.0:
 				elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
 
-#============================================================================================================================
-	def RemoveDummyNodalForces(self):
-
-		for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
-			condition.Set(KratosMultiphysics.TO_ERASE, True)
-
-		for node in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Nodes:
-			node.Set(KratosMultiphysics.TO_ERASE, True)
-
-		self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
-		self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
-
