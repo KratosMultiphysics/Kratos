@@ -286,7 +286,9 @@ public:
 
       ModelPart& rMainModelPart = *(rModelPart.GetParentModelPart());
 
-      unsigned int LastConditionId = rMainModelPart.Conditions().back().Id() + 1;
+      unsigned int LastConditionId = 1;
+      if( rMainModelPart.Conditions().size() != 0 )
+        LastConditionId = rMainModelPart.Conditions().back().Id() + 1;
 
       std::string ConditionName = CustomParameters["condition_type"].GetString();
 
