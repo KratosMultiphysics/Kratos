@@ -314,6 +314,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<ReorderConsecutiveFromGivenIdsModelPartIO, ReorderConsecutiveFromGivenIdsModelPartIO::Pointer, ReorderConsecutiveModelPartIO>(m, "ReorderConsecutiveFromGivenIdsModelPartIO")
         .def(py::init<std::string const& >())
         .def(py::init<std::string const&, const int, const int, const int>())
+        .def(py::init<std::string const&, const int, const int, const int, const Flags>())
         ;
 
     py::class_<AuxiliaryUtilities, AuxiliaryUtilities::Pointer>(m, "AuxiliaryUtilities")
