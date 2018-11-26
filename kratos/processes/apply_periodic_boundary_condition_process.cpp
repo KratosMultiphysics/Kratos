@@ -345,7 +345,7 @@ namespace Kratos
         rMatrix(3,3) = 1.0;
     }
 
-    void ApplyPeriodicConditionProcess::TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates)
+    void ApplyPeriodicConditionProcess::TransformNode(const array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates) const
     {
         DenseVector<double> original_node(4, 0.0f);
         DenseVector<double> transformed_node(4, 0.0f);

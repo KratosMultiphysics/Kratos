@@ -158,7 +158,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      * @param rCoordinates The original coordinates which have to be transformed
      * @param rTransformedCoordinates The new coordinates which are transformed with rTransformationMatrix.
      */
-    void TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates);
+    void TransformNode(const array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates) const;
 
 
 
