@@ -1,23 +1,25 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Bodhinanda Chandra
 //
 
-#if !defined(KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED
+
+#if !defined(KRATOS_MPM_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
+#define      KRATOS_MPM_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/mpm_line_load_condition_2d.h"
 
 namespace Kratos
 {
@@ -44,26 +46,26 @@ namespace Kratos
  * Implements a line load condition for structural analysis.
  */
 
-class AxisymLineLoadCondition2D
-    : public LineLoadCondition2D
+class MPMAxisymLineLoadCondition2D
+    : public MPMLineLoadCondition2D
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of AxisymLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymLineLoadCondition2D);
+    /// Counted pointer of MPMAxisymLineLoadCondition2D
+    KRATOS_CLASS_POINTER_DEFINITION(MPMAxisymLineLoadCondition2D);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AxisymLineLoadCondition2D(IndexType NewId, GeometryType::Pointer pGeometry);
-    AxisymLineLoadCondition2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMAxisymLineLoadCondition2D(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMAxisymLineLoadCondition2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~AxisymLineLoadCondition2D() override;
+    ~MPMAxisymLineLoadCondition2D() override;
 
     ///@}
     ///@name Operators
@@ -121,7 +123,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    AxisymLineLoadCondition2D() : LineLoadCondition2D()
+    MPMAxisymLineLoadCondition2D() : MPMLineLoadCondition2D()
     {
     }
 
@@ -190,12 +192,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //AxisymLineLoadCondition2D& operator=(const AxisymLineLoadCondition2D& rOther);
+    //MPMAxisymLineLoadCondition2D& operator=(const MPMAxisymLineLoadCondition2D& rOther);
     /// Copy constructor.
-    //AxisymLineLoadCondition2D(const AxisymLineLoadCondition2D& rOther);
+    //MPMAxisymLineLoadCondition2D(const MPMAxisymLineLoadCondition2D& rOther);
     ///@}
 
-}; // Class AxisymLineLoadCondition2D
+}; // Class MPMAxisymLineLoadCondition2D
 
 ///@}
 ///@name Type Definitions

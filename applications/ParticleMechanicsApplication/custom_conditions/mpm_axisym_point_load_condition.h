@@ -1,23 +1,25 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Bodhinanda Chandra
 //
 
-#if !defined(KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED
+
+#if !defined(KRATOS_MPM_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED )
+#define      KRATOS_MPM_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/mpm_point_load_condition.h"
 
 namespace Kratos
 {
@@ -44,26 +46,26 @@ namespace Kratos
  * Implements a point load condition for structural analysis.
  */
 
-class AxisymPointLoadCondition
-    : public PointLoadCondition
+class MPMAxisymPointLoadCondition
+    : public MPMPointLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of AxisymPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymPointLoadCondition);
+    /// Counted pointer of MPMAxisymPointLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION(MPMAxisymPointLoadCondition);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AxisymPointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    AxisymPointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMAxisymPointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMAxisymPointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~AxisymPointLoadCondition() override;
+    ~MPMAxisymPointLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -121,7 +123,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    AxisymPointLoadCondition() : PointLoadCondition()
+    MPMAxisymPointLoadCondition() : MPMPointLoadCondition()
     {
     }
 
@@ -183,12 +185,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //AxisymPointLoadCondition& operator=(const AxisymPointLoadCondition& rOther);
+    //MPMAxisymPointLoadCondition& operator=(const MPMAxisymPointLoadCondition& rOther);
     /// Copy constructor.
-    //AxisymPointLoadCondition(const AxisymPointLoadCondition& rOther);
+    //MPMAxisymPointLoadCondition(const MPMAxisymPointLoadCondition& rOther);
     ///@}
 
-}; // Class AxisymPointLoadCondition
+}; // Class MPMAxisymPointLoadCondition
 
 ///@}
 ///@name Type Definitions

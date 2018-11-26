@@ -1,32 +1,34 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Bodhinanda Chandra
 //
+
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/axisym_line_load_condition_2d.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
+#include "custom_conditions/mpm_axisym_line_load_condition_2d.h"
+#include "custom_utilities/particle_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {
 /******************************* CONSTRUCTOR ***************************************/
 /***********************************************************************************/
 
-AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
+MPMAxisymLineLoadCondition2D::MPMAxisymLineLoadCondition2D(
     IndexType NewId,
     GeometryType::Pointer pGeometry
     )
-        : LineLoadCondition2D( NewId, pGeometry )
+        : MPMLineLoadCondition2D( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -34,43 +36,43 @@ AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
+MPMAxisymLineLoadCondition2D::MPMAxisymLineLoadCondition2D(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     )
-        : LineLoadCondition2D( NewId, pGeometry, pProperties )
+        : MPMLineLoadCondition2D( NewId, pGeometry, pProperties )
 {
 }
 
 /********************************* CREATE ******************************************/
 /***********************************************************************************/
 
-Condition::Pointer AxisymLineLoadCondition2D::Create(
+Condition::Pointer MPMAxisymLineLoadCondition2D::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymLineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_shared<MPMAxisymLineLoadCondition2D>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer AxisymLineLoadCondition2D::Create(
+Condition::Pointer MPMAxisymLineLoadCondition2D::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<AxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_shared<MPMAxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /******************************* DESTRUCTOR ****************************************/
 /***********************************************************************************/
 
-AxisymLineLoadCondition2D::~AxisymLineLoadCondition2D()
+MPMAxisymLineLoadCondition2D::~MPMAxisymLineLoadCondition2D()
 {
 }
 
@@ -78,7 +80,7 @@ AxisymLineLoadCondition2D::~AxisymLineLoadCondition2D()
 /********************************* PROTECTED ***************************************/
 /***********************************************************************************/
 
-double AxisymLineLoadCondition2D::GetIntegrationWeight(
+double MPMAxisymLineLoadCondition2D::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const SizeType PointNumber,
     const double detJ
@@ -98,18 +100,18 @@ double AxisymLineLoadCondition2D::GetIntegrationWeight(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
+void MPMAxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
 {
-    rSerializer.save( "Name", "AxisymLineLoadCondition2D" );
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition2D );
+    rSerializer.save( "Name", "MPMAxisymLineLoadCondition2D" );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMLineLoadCondition2D );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AxisymLineLoadCondition2D::load( Serializer& rSerializer )
+void MPMAxisymLineLoadCondition2D::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition2D );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMLineLoadCondition2D );
 }
 
 } // Namespace Kratos

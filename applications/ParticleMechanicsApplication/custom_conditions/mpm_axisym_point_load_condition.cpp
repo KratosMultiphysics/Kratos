@@ -1,32 +1,34 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Bodhinanda Chandra
 //
+
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/axisym_point_load_condition.h"
-#include "custom_utilities/structural_mechanics_math_utilities.hpp"
+#include "custom_conditions/mpm_axisym_point_load_condition.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
 
-    AxisymPointLoadCondition::AxisymPointLoadCondition(
+    MPMAxisymPointLoadCondition::MPMAxisymPointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         )
-            : PointLoadCondition( NewId, pGeometry )
+            : MPMPointLoadCondition( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
     }
@@ -34,43 +36,43 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    AxisymPointLoadCondition::AxisymPointLoadCondition(
+    MPMAxisymPointLoadCondition::MPMAxisymPointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         )
-            : PointLoadCondition( NewId, pGeometry, pProperties )
+            : MPMPointLoadCondition( NewId, pGeometry, pProperties )
     {
     }
 
     //********************************* CREATE *******************************************
     //************************************************************************************
 
-    Condition::Pointer AxisymPointLoadCondition::Create(
+    Condition::Pointer MPMAxisymPointLoadCondition::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<AxisymPointLoadCondition>( NewId, pGeom, pProperties );
+        return Kratos::make_shared<MPMAxisymPointLoadCondition>( NewId, pGeom, pProperties );
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    Condition::Pointer AxisymPointLoadCondition::Create(
+    Condition::Pointer MPMAxisymPointLoadCondition::Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Kratos::make_shared<MPMAxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
 
-    AxisymPointLoadCondition::~AxisymPointLoadCondition()
+    MPMAxisymPointLoadCondition::~MPMAxisymPointLoadCondition()
     {
     }
 
@@ -78,7 +80,7 @@ namespace Kratos
     //********************************* PROTECTED ****************************************
     //************************************************************************************
 
-    double AxisymPointLoadCondition::GetPointLoadIntegrationWeight()
+    double MPMAxisymPointLoadCondition::GetPointLoadIntegrationWeight()
     {
         // We calculate the axisymmetric coefficient
         const double Radius = StructuralMechanicsMathUtilities::CalculateRadiusPoint(GetGeometry());
@@ -92,18 +94,18 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void AxisymPointLoadCondition::save( Serializer& rSerializer ) const
+    void MPMAxisymPointLoadCondition::save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Name", "AxisymPointLoadCondition" );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointLoadCondition );
+        rSerializer.save( "Name", "MPMAxisymPointLoadCondition" );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMPointLoadCondition );
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    void AxisymPointLoadCondition::load( Serializer& rSerializer )
+    void MPMAxisymPointLoadCondition::load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMPointLoadCondition );
     }
 
 } // Namespace Kratos
