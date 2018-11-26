@@ -816,13 +816,13 @@ protected:
     /**
      * Calculate Jacobian in a given point and given a delta position
      */
-    virtual Matrix& MPMJacobianDelta(Matrix& rResult, array_1d<double,3>& rPoint, Matrix& rDeltaPosition);
+    virtual Matrix& MPMJacobianDelta(Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix& rDeltaPosition);
 
     /**
      * Calculate Shape Function Values in a given point
      */
 
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, array_1d<double,3>& rPoint);
+    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
 
     /**
      * Calculate Shape Function grandient local Values in a given point in 3 dimension

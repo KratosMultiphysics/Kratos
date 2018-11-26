@@ -142,7 +142,7 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     KRATOS_TRY
 
     // Initial position of the particle
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -231,7 +231,7 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
@@ -861,7 +861,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
@@ -1033,7 +1033,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    array_1d<double,3> xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     const array_1d<double,3>& MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
     const array_1d<double,3>& MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
@@ -1096,7 +1096,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
 void UpdatedLagrangianQuadrilateral::InitializeMaterial()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
@@ -1121,7 +1121,7 @@ void UpdatedLagrangianQuadrilateral::InitializeMaterial()
 void UpdatedLagrangianQuadrilateral::ResetConstitutiveLaw()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
@@ -1468,7 +1468,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, const arra
 * @see DeterminantOfJacobian
 * @see InverseOfJacobian
  */
-Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, array_1d<double,3>& rPoint, Matrix & rDeltaPosition )
+Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix & rDeltaPosition )
 {
     KRATOS_TRY
 
@@ -1529,7 +1529,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, array
 * @return Vector of double which is shape function vector \f$ N \f$ in given point.
 *
  */
-Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rResult, array_1d<double,3>& rPoint )
+Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
 {
     KRATOS_TRY
 

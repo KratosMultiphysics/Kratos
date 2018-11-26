@@ -141,7 +141,7 @@ void UpdatedLagrangian::Initialize()
     KRATOS_TRY
 
     // Initial position of the particle
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -203,7 +203,7 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
@@ -827,7 +827,7 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
     {
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        array_1d<double,3>& xg = this->GetValue(MP_COORD);
+        const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
         Matrix J0 = ZeroMatrix(dimension);
 
@@ -861,7 +861,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
     {
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        array_1d<double,3>& xg = this->GetValue(MP_COORD);
+        const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
         Matrix J0 = ZeroMatrix(dimension);
 
@@ -892,7 +892,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
     {
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        array_1d<double,3>& xg = this->GetValue(MP_COORD);
+        const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
         Matrix J0 = ZeroMatrix(dimension);
 
@@ -932,7 +932,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3> xg = this->GetValue(MP_COORD);
+    const array_1d<double,3> & xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
@@ -1106,7 +1106,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    array_1d<double,3> xg = this->GetValue(MP_COORD);
+    const array_1d<double,3> & xg = this->GetValue(MP_COORD);
     const array_1d<double,3> & MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
     const array_1d<double,3> & MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
@@ -1169,7 +1169,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 void UpdatedLagrangian::InitializeMaterial()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
@@ -1194,7 +1194,7 @@ void UpdatedLagrangian::InitializeMaterial()
 void UpdatedLagrangian::ResetConstitutiveLaw()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
@@ -1542,7 +1542,7 @@ Matrix& UpdatedLagrangian::MPMJacobian( Matrix& rResult, const array_1d<double,3
     * @see DeterminantOfJacobian
     * @see InverseOfJacobian
  */
-Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, array_1d<double,3>& rPoint, Matrix & rDeltaPosition )
+Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix & rDeltaPosition )
 {
     KRATOS_TRY
 
@@ -1603,7 +1603,7 @@ Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, array_1d<double,3>
    * @return Vector of double which is shape function vector \f$ N \f$ in given point.
    *
  */
-Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, array_1d<double,3>& rPoint )
+Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
 {
     KRATOS_TRY
 
