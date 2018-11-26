@@ -98,7 +98,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         double plastic_dissipation = this->GetPlasticDissipation();
         Vector plastic_strain = this->GetPlasticStrain();
 
-        array_1d<double, VoigtSize> predictive_stress_vector;
+        BoundedArrayType predictive_stress_vector;
         if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
             predictive_stress_vector = rValues.GetStressVector();
         } else {
@@ -108,18 +108,16 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        array_1d<double, VoigtSize> f_flux(VoigtSize, 0.0); // DF/DS
-        array_1d<double, VoigtSize> g_flux(VoigtSize, 0.0); // DG/DS
-        array_1d<double, VoigtSize> plastic_strain_increment(VoigtSize, 0.0);
+        BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
+        BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
 
-        TConstLawIntegratorType::CalculatePlasticParameters(
+        const double F = TConstLawIntegratorType::CalculatePlasticParameters(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
             threshold, plastic_denominator, f_flux, g_flux,
             plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, rValues, characteristic_length,
             plastic_strain);
-
-        const double F = uniaxial_stress - threshold;
 
         if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -142,10 +140,10 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             noalias(integrated_stress_vector) = predictive_stress_vector;
    
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-				this->SetNonConvPlasticDissipation(plastic_dissipation);
-				this->SetNonConvPlasticStrain(plastic_strain);
-				this->SetNonConvThreshold(threshold);
-				this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+                this->SetNonConvPlasticDissipation(plastic_dissipation);
+                this->SetNonConvPlasticStrain(plastic_strain);
+                this->SetNonConvThreshold(threshold);
+                this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
 
                 this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
             }
