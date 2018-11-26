@@ -62,6 +62,8 @@ namespace Kratos
         mSearchMaxResults = mParameters["search_settings"]["max_results"].GetInt();
         mSearchTolerance = mParameters["search_settings"]["tolerance"].GetDouble();
 
+        const double eps = std::numeric_limits<double>::epsilon();
+
         RemoveCommonNodesFromSlaveModelPart();
 
         if (mAngleOfRotation == 0 && mMagnitude != 0)
@@ -69,9 +71,9 @@ namespace Kratos
         else if (mAngleOfRotation != 0.0 && mMagnitude == 0.0)
             mType = "rotation";
         else
-            KRATOS_ERROR_IF(mAngleOfRotation == 0.0 && mMagnitude == 0.0)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
+            KRATOS_ERROR_IF(std::abs(mAngleOfRotation) < eps && std::abs(mMagnitude) < eps)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
         else
-            KRATOS_ERROR_IF(mAngleOfRotation != 0.0 && mMagnitude != 0.0)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
+            KRATOS_ERROR_IF(std::abs(mAngleOfRotation) > eps && std::abs(mMagnitude) > eps)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
 
         CalculateTransformationMatrix();
     }
