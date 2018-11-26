@@ -9,11 +9,6 @@ import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 from python_solver import PythonSolver
 import python_solvers_wrapper_mesh_motion
 
-
-def CreateSolver(model, solver_settings, parallelism):
-    return AleFluidSolver(model, solver_settings, parallelism)
-
-
 class AleFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
         default_settings = KratosMultiphysics.Parameters("""
