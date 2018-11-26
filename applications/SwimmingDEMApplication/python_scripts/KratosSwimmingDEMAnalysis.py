@@ -25,16 +25,6 @@ class SwimmingDEMAnalysisWithFlush(SwimmingDEMAnalysis):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-"""     self.model = model
-        if algorithm == None:
-            import swimming_DEM_analysis
-            self.alg = swimming_DEM_analysis.Algorithm(model, varying_parameters)
-        else:
-            self.alg = algorithm.Algorithm(model, varying_parameters)
-
-    def Run(self):
-        return self.alg.Run() """
-
 if __name__=="__main__":
     model = Model()
     simulation = SwimmingDEMAnalysisWithFlush(model=model)
