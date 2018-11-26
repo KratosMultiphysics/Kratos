@@ -232,10 +232,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             DistanceUtility.ImportDistance()
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
             KratosMultiphysics.Logger.PrintInfo("Navier Stokes Embedded Solver","Distance function taken from the .mdpa input file.")
-            # Recall to swap the distance sign (GiD considers d<0 in the fluid region)
-            for node in self.main_model_part.Nodes:
-                distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
 
     def _set_level_set_convection_process(self):
         # Construct the level set convection process
