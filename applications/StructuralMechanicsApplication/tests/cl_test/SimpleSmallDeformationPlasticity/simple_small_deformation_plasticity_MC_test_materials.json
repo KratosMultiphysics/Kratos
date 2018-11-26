@@ -1,0 +1,25 @@
+{
+    "properties" : [{
+        "model_part_name" : "Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name"              : "SmallStrainIsotropicPlasticityFactory",
+                "yield_surface"     : "ModifiedMohrCoulomb",
+                "plastic_potential" : "ModifiedMohrCoulomb"
+            },
+            "Variables"        : {
+                "DENSITY"                   :0.0,
+                "YOUNG_MODULUS"             : 4.93E10,
+                "POISSON_RATIO"             : 0.2,
+                "FRACTURE_ENERGY"           : 50000,
+                "YIELD_STRESS_COMPRESSION"  : 106E6,
+                "YIELD_STRESS_TENSION"      : 106E6,
+                "FRICTION_ANGLE"            : 32,
+                "DILATANCY_ANGLE"           : 32,
+                "HARDENING_CURVE"           : 1
+            },
+            "Tables"           : {}
+        }
+    }]
+}
