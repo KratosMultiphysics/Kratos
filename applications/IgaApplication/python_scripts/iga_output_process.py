@@ -5,7 +5,7 @@ import KratosMultiphysics
 def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return IgaOutputProcess(model, settings)
+    return IgaOutputProcess(model, settings["Parameters"])
 
 class IgaOutputProcess(KratosMultiphysics.Process):
 
@@ -29,7 +29,7 @@ class IgaOutputProcess(KratosMultiphysics.Process):
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
 
-        self.model_part = model[settings["model_part_name"].GetString()]
+        self.model_part = model[self.params["model_part_name"].GetString()]
 
         self.output_file_name = self.params["output_file_name"].GetString()
 
@@ -40,7 +40,7 @@ class IgaOutputProcess(KratosMultiphysics.Process):
             CreateVariablesListFromInput(self.params["integration_point_results"])
 
         # Set up output frequency and format
-        output_file_label = result_file_configuration["file_label"].GetString()
+        output_file_label = self.params["file_label"].GetString()
         if output_file_label == "time":
             self.output_label_is_time = True
         elif output_file_label == "step":
@@ -49,7 +49,7 @@ class IgaOutputProcess(KratosMultiphysics.Process):
             msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
             raise Exception(msg)
 
-        output_control_type = result_file_configuration["output_control_type"].GetString()
+        output_control_type = self.params["output_control_type"].GetString()
         if output_control_type == "time":
             self.output_control_is_time = True
         elif output_control_type == "step":
@@ -59,7 +59,7 @@ class IgaOutputProcess(KratosMultiphysics.Process):
             err_msg += '" is not available!\nAvailable options are: "time", "step"'
             raise Exception(err_msg)
 
-        self.frequency = self.params["frequency"].GetDouble()
+        self.output_frequency = self.params["output_frequency"].GetDouble()
 
         self.step_count = 0
         self.printed_step_count = 0
@@ -70,37 +70,37 @@ class IgaOutputProcess(KratosMultiphysics.Process):
             output_file.write("Post Results File 1.0\n")
 
     def PrintOutput(self):
-        time = GetPrettyTime(self.model_part.ProcessInfo[TIME])
+        time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
         self.printed_step_count += 1
-        self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
+        self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
             label = time
         else:
             label = self.printed_step_count
 
         with open(self.output_file_name, 'a') as output_file:
-            for variable in range(self.nodal_results_scalar.size()):
+            for variable in self.nodal_results_scalar:
                 output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnNodes\nValues\n")
                 for node in self.model_part.Nodes:
                     value = node.GetSolutionStepValue(variable, 0)
                     output_file.write(str(node.Id) + "  " + str(value) + "\n")
                 output_file.write("End Values\n")
 
-            for variable in range(self.nodal_results_vector.size()):
+            for variable in self.nodal_results_vector:
                 output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnNodes\nValues\n")
                 for node in self.model_part.Nodes:
                     value = node.GetSolutionStepValue(variable, 0)
                     output_file.write(str(node.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
                 output_file.write("End Values\n")
 
-            for variable in range(self.integration_point_results_scalar.size()):
+            for variable in self.integration_point_results_scalar:
                 output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Scalar OnGaussPoints\nValues\n")
                 for element in self.model_part.Elements:
                     value = element.Calculate(variable, self.model_part.ProcessInfo)
                     output_file.write(str(element.Id) + "  " + str(value) + "\n")
                 output_file.write("End Values\n")
 
-            for variable in range(self.integration_point_results_vector.size()):
+            for variable in self.integration_point_results_vector:
                 output_file.write("Result \"" + variable.Name() + "\" \"Load Case\" " + str(label) + " Vector OnGaussPoints\nValues\n")
                 for element in self.model_part.Elements:
                     value = element.Calculate(variable, self.model_part.ProcessInfo)
@@ -119,12 +119,12 @@ class IgaOutputProcess(KratosMultiphysics.Process):
     def IsOutputStep(self):
 
         if self.output_control_is_time:
-            time = GetPrettyTime(self.model_part.ProcessInfo[TIME])
+            time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
             return (time >= GetPrettyTime(self.next_output))
         else:
             return ( self.step_count >= self.next_output )
 
-def GetPrettyTime(self,time):
+def GetPrettyTime(time):
     pretty_time = "{0:.12g}".format(time)
     pretty_time = float(pretty_time)
     return pretty_time
