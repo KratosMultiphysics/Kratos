@@ -55,7 +55,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RankineYieldSurface
+class RankineYieldSurface
 {
 public:
     ///@name Type Definitions
@@ -236,6 +236,24 @@ public:
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
+	/**
+     * @brief This method returns true if the yield
+	 * surfacecompares with the tension tield stress
+     */
+    static bool IsWorkingWithTensionThreshold()
+    {
+        return true;
+    }
+
+	/**
+     * @brief This method returns the scaling factor of the
+     * yield surface
+	 * surfacecompares with the tension tield stress
+     */
+    static double GetScaleFactorTension(const Properties& rMaterialProperties)
+    {
+        return 1.0;
+    }		
     ///@}
     ///@name Access
     ///@{
@@ -310,18 +328,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

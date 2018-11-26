@@ -19,6 +19,7 @@ class LineOutputProcess(KratosMultiphysics.Process):
         - specifying the number of sampling points along the line (start and end points will be included)
     """
     def __init__(self, model, params):
+        KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters('''{
             "help"              : "This process writes output for several points along a line to a file. Internally it holds an object of type MultiplePointsOutputProcess",
@@ -28,6 +29,7 @@ class LineOutputProcess(KratosMultiphysics.Process):
             "end_point"         : [],
             "sampling_points"   : 3,
             "output_variables"  : [],
+            "historical_value"  : true,
             "print_format"      : "",
             "output_file_settings": {}
         }''')

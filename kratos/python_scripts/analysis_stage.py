@@ -60,7 +60,6 @@ class AnalysisStage(object):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-
     def Initialize(self):
         """This function initializes the AnalysisStage
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
@@ -79,6 +78,7 @@ class AnalysisStage(object):
             process.ExecuteInitialize()
 
         self._GetSolver().Initialize()
+        self.Check()
 
         self.ModifyAfterSolverInitialize()
 
@@ -156,11 +156,12 @@ class AnalysisStage(object):
             for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
 
-
     def Check(self):
         """This function checks the AnalysisStage
         """
-        pass
+        self._GetSolver().Check()
+        for process in self._GetListOfProcesses():
+            process.Check()
 
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """

@@ -24,12 +24,13 @@
 namespace Kratos {
 namespace Python {
 
-bool HasFlag(Kernel& rKernel, const std::string& flag_name) {
+bool HasFlag(Kernel& rKernel, const std::string& flag_name)
+{
     return KratosComponents<Flags>::Has(flag_name);
 }
 
-Flags GetFlag(
-    Kernel& rKernel, const std::string& flag_name) {
+Flags GetFlag(Kernel& rKernel, const std::string& flag_name)
+{
     if (KratosComponents<Flags>::Has(flag_name)) {
         return KratosComponents<Flags>::Get(flag_name);
     } else {
@@ -39,13 +40,14 @@ Flags GetFlag(
 }
 
 template <class TVariableType>
-bool HasVariable(Kernel& rKernel, const std::string& variable_name) {
+bool HasVariable(Kernel& rKernel, const std::string& variable_name)
+{
     return KratosComponents<TVariableType>::Has(variable_name);
 }
 
 template <class TVariableType>
-const TVariableType& GetVariable(
-    Kernel& rKernel, const std::string& variable_name) {
+const TVariableType& GetVariable(Kernel& rKernel, const std::string& variable_name)
+{
     if (KratosComponents<TVariableType>::Has(variable_name)) {
         return KratosComponents<TVariableType>::Get(variable_name);
     }
@@ -53,12 +55,13 @@ const TVariableType& GetVariable(
     return TVariableType::StaticObject();
 }
 
-bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name) {
+bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
+{
     return KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name);
 }
 
-const ConstitutiveLaw& GetConstitutiveLaw(
-    Kernel& rKernel, const std::string& constitutive_law_name) {
+const ConstitutiveLaw& GetConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
+{
     if (KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) {
         return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
     } else {
@@ -78,18 +81,20 @@ const ConstitutiveLaw& GetConstitutiveLaw(
 }
 
 template <class TVariableType>
-void PrintVariablesName(Kernel& rKernel) {
+void PrintVariablesName(Kernel& rKernel)
+{
     KratosComponents<TVariableType> kratos_components;
     kratos_components.PrintData(std::cout);
 }
+
 template <class TVariableType>
-std::string GetVariableNames(Kernel& rKernel) {
+std::string GetVariableNames(Kernel& rKernel)
+{
     KratosComponents<TVariableType> kratos_components;
     std::stringstream buffer;
     kratos_components.PrintData(buffer);
     return buffer.str();
 }
-
 
 void RegisterInPythonKernelVariables()
 {
@@ -125,12 +130,12 @@ void RegisterInPythonApplicationVariables(KratosApplication& Application)
     }
 }
 
-void AddKernelToPython(pybind11::module& m) {
+void AddKernelToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
 
-    using namespace pybind11;
-
-    class_<Kernel, Kernel::Pointer>(m,"Kernel")
-        .def(init<>())
+    py::class_<Kernel, Kernel::Pointer>(m,"Kernel")
+        .def(py::init<>())
         .def("Initialize", [](Kernel& self){ self.Initialize();
         /*RegisterInPythonKernelVariables();*/ }) //&Kernel::Initialize)
         .def("ImportApplication", &Kernel::ImportApplication)
@@ -141,37 +146,37 @@ void AddKernelToPython(pybind11::module& m) {
         .def("HasFlag", HasFlag)
         .def("GetFlag", GetFlag)
         .def("HasBoolVariable", HasVariable<Variable<bool> >)
-        .def("GetBoolVariable", GetVariable<Variable<bool> >, return_value_policy::reference_internal)
+        .def("GetBoolVariable", GetVariable<Variable<bool> >, py::return_value_policy::reference_internal)
         .def("HasIntVariable", HasVariable<Variable<int> >)
-        .def("GetIntVariable", GetVariable<Variable<int> >, return_value_policy::reference_internal)
+        .def("GetIntVariable", GetVariable<Variable<int> >, py::return_value_policy::reference_internal)
         .def("HasUnsignedIntVariable", HasVariable<Variable<unsigned int> >)
-        .def("GetUnsignedIntVariable", GetVariable<Variable<unsigned int> >, return_value_policy::reference_internal)
+        .def("GetUnsignedIntVariable", GetVariable<Variable<unsigned int> >, py::return_value_policy::reference_internal)
         .def("HasDoubleVariable", HasVariable<Variable<double> >)
-        .def("GetDoubleVariable", GetVariable<Variable<double> >, return_value_policy::reference_internal)
+        .def("GetDoubleVariable", GetVariable<Variable<double> >, py::return_value_policy::reference_internal)
         .def("HasArrayVariable", HasVariable<Variable<array_1d<double, 3> > >)
         .def("HasArray4Variable", HasVariable<Variable<array_1d<double, 4> > >)
         .def("HasArray6Variable", HasVariable<Variable<array_1d<double, 6> > >)
         .def("HasArray9Variable", HasVariable<Variable<array_1d<double, 9> > >)
-        .def("GetArrayVariable", GetVariable<Variable<array_1d<double, 3> > >, return_value_policy::reference_internal)
-        .def("GetArray4Variable", GetVariable<Variable<array_1d<double, 4> > >, return_value_policy::reference_internal)
-        .def("GetArray6Variable", GetVariable<Variable<array_1d<double, 6> > >, return_value_policy::reference_internal)
-        .def("GetArray9Variable", GetVariable<Variable<array_1d<double, 9> > >, return_value_policy::reference_internal)
+        .def("GetArrayVariable", GetVariable<Variable<array_1d<double, 3> > >, py::return_value_policy::reference_internal)
+        .def("GetArray4Variable", GetVariable<Variable<array_1d<double, 4> > >, py::return_value_policy::reference_internal)
+        .def("GetArray6Variable", GetVariable<Variable<array_1d<double, 6> > >, py::return_value_policy::reference_internal)
+        .def("GetArray9Variable", GetVariable<Variable<array_1d<double, 9> > >, py::return_value_policy::reference_internal)
         .def("HasVectorVariable", HasVariable<Variable<Vector> >)
-        .def("GetVectorVariable", GetVariable<Variable<Vector> >, return_value_policy::reference_internal)
+        .def("GetVectorVariable", GetVariable<Variable<Vector> >, py::return_value_policy::reference_internal)
         .def("HasMatrixVariable", HasVariable<Variable<Matrix> >)
-        .def("GetMatrixVariable", GetVariable<Variable<Matrix> >, return_value_policy::reference_internal)
+        .def("GetMatrixVariable", GetVariable<Variable<Matrix> >, py::return_value_policy::reference_internal)
         .def("HasStringVariable", HasVariable<Variable<std::string> >)
-        .def("GetStringVariable", GetVariable<Variable<std::string> >, return_value_policy::reference_internal)
+        .def("GetStringVariable", GetVariable<Variable<std::string> >, py::return_value_policy::reference_internal)
         .def("HasVariableComponent",HasVariable<VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >)
         .def("HasVariableComponent4",HasVariable<VariableComponent< VectorComponentAdaptor<array_1d<double, 4> > > >)
         .def("HasVariableComponent6",HasVariable<VariableComponent< VectorComponentAdaptor<array_1d<double, 6> > > >)
         .def("HasVariableComponent9",HasVariable<VariableComponent< VectorComponentAdaptor<array_1d<double, 9> > > >)
-        .def("GetVariableComponent", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >,return_value_policy::reference_internal)
-        .def("GetVariableComponent4", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >,return_value_policy::reference_internal)
-        .def("GetVariableComponent6", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >,return_value_policy::reference_internal)
-        .def("GetVariableComponent9", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >,return_value_policy::reference_internal)
+        .def("GetVariableComponent", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >,py::return_value_policy::reference_internal)
+        .def("GetVariableComponent4", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >,py::return_value_policy::reference_internal)
+        .def("GetVariableComponent6", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >,py::return_value_policy::reference_internal)
+        .def("GetVariableComponent9", GetVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >,py::return_value_policy::reference_internal)
         .def("HasFlagsVariable", HasVariable<Variable<Flags> >)
-        .def("GetFlagsVariable", GetVariable<Variable<Flags> >, return_value_policy::reference_internal)
+        .def("GetFlagsVariable", GetVariable<Variable<Flags> >, py::return_value_policy::reference_internal)
         .def("HasVariableData", HasVariable<VariableData>)
         .def("PrintAllVariables", PrintVariablesName<VariableData>)
         .def("PrintBoolVariables", PrintVariablesName<Variable<bool> >)
@@ -207,15 +212,13 @@ void AddKernelToPython(pybind11::module& m) {
         .def("GetVariableComponentVariable4Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
         .def("GetVariableComponentVariable6Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
         .def("GetVariableComponentVariable9Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
-        .def("__repr__", &Kernel::Info)
+        .def("__str__", PrintObject<Kernel>)
         .def("HasConstitutiveLaw", HasConstitutiveLaw)
-        .def("GetConstitutiveLaw", GetConstitutiveLaw, return_value_policy::reference_internal)
+        .def("GetConstitutiveLaw", GetConstitutiveLaw, py::return_value_policy::reference_internal)
         .def_static("Version", &Kernel::Version)
         .def_static("BuildType", &Kernel::BuildType)
         ;
-
 }
 
 }  // namespace Python.
-
 }  // Namespace Kratos

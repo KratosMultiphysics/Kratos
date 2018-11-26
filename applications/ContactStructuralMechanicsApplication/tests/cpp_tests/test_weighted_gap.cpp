@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/mapping_variables.h"
 #include "contact_structural_mechanics_application.h"
@@ -252,15 +253,17 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(WeightedGap1, KratosContactStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Contact");
-            this_model_part.CreateSubModelPart("ComputingContact");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
+            r_model_part.CreateSubModelPart("ComputingContact");
 
-            this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
-            this_model_part.AddNodalSolutionStepVariable(NORMAL);
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
-            auto& process_info = this_model_part.GetProcessInfo();
+            auto& process_info = r_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
             process_info[DELTA_TIME] = 1.0;
@@ -274,18 +277,18 @@ namespace Kratos
             const double slope = 0.0;
 
             // We create our problem
-            CreatePlaneCilynderProblem(this_model_part, number_of_divisions, lenght, radius, angle, slope);
+            CreatePlaneCilynderProblem(r_model_part, number_of_divisions, lenght, radius, angle, slope);
 
             // We compute the explicit contribution
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, this_model_part.Nodes());
-            for (auto& id_cond : this_model_part.GetSubModelPart("ComputingContact").Conditions())
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            for (auto& id_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions())
                 id_cond.AddExplicitContribution(process_info);
 
             // DEBUG
-//             GiDIOGapDebug(this_model_part);
+//             GiDIOGapDebug(r_model_part);
 
             const double tolerance = 1.0e-4;
-            for (auto& inode : this_model_part.Nodes()) {
+            for (auto& inode : r_model_part.Nodes()) {
                 if (inode.Is(SLAVE)) {
                     if (std::abs(inode.FastGetSolutionStepValue(WEIGHTED_GAP)) > 0.0) {
                         const double normal_gap = inode.GetValue(NORMAL_GAP);
@@ -303,16 +306,17 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(WeightedGap2, KratosContactStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Contact");
-            this_model_part.CreateSubModelPart("ComputingContact");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
+            r_model_part.CreateSubModelPart("ComputingContact");
 
-            this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
-            this_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
-            this_model_part.AddNodalSolutionStepVariable(NORMAL);
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
 
-            auto& process_info = this_model_part.GetProcessInfo();
+            auto& process_info = r_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
             process_info[DELTA_TIME] = 1.0;
@@ -326,20 +330,20 @@ namespace Kratos
             const double slope = 0.0;
 
             // We create our problem
-            CreatePlaneCilynderProblem(this_model_part, number_of_divisions, lenght, radius, angle, slope);
+            CreatePlaneCilynderProblem(r_model_part, number_of_divisions, lenght, radius, angle, slope);
 
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector(3, 0.0);
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, this_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, this_model_part.Nodes());
-            for (auto& id_cond : this_model_part.GetSubModelPart("ComputingContact").Conditions())
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            for (auto& id_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions())
                 id_cond.AddExplicitContribution(process_info);
 
             // DEBUG
-//             GiDIOGapDebug(this_model_part);
+//             GiDIOGapDebug(r_model_part);
 
             const double tolerance = 1.0e-4;
-            for (auto& inode : this_model_part.Nodes()) {
+            for (auto& inode : r_model_part.Nodes()) {
                 if (inode.Is(SLAVE)) {
                     if (std::abs(inode.FastGetSolutionStepValue(WEIGHTED_GAP)) > 0.0) {
                         const double normal_gap = inode.GetValue(NORMAL_GAP);
@@ -358,16 +362,17 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(WeightedGap3, KratosContactStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Contact");
-            this_model_part.CreateSubModelPart("ComputingContact");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Contact", 3);
+            r_model_part.CreateSubModelPart("ComputingContact");
             
-            this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            this_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
-            this_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
-            this_model_part.AddNodalSolutionStepVariable(NORMAL);
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_GAP);
+            r_model_part.AddNodalSolutionStepVariable(WEIGHTED_SLIP);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
+            r_model_part.AddNodalSolutionStepVariable(NORMAL);
             
-            auto& process_info = this_model_part.GetProcessInfo();
+            auto& process_info = r_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
             process_info[DELTA_TIME] = 1.0;
@@ -381,22 +386,22 @@ namespace Kratos
             const double slope = 0.0;
             
             // We create our problem
-            CreatePlaneCilynderProblem(this_model_part, number_of_divisions, lenght, radius, angle, slope, true);
+            CreatePlaneCilynderProblem(r_model_part, number_of_divisions, lenght, radius, angle, slope, true);
             
             // We compute the explicit contribution
             const array_1d<double, 3> zero_vector(3, 0.0);
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, this_model_part.Nodes());
-            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, this_model_part.Nodes());
-            for (auto& id_cond : this_model_part.GetSubModelPart("ComputingContact").Conditions())
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_model_part.Nodes());
+            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_vector, r_model_part.Nodes());
+            for (auto& id_cond : r_model_part.GetSubModelPart("ComputingContact").Conditions())
                 id_cond.AddExplicitContribution(process_info);
                 
 //             // DEBUG
-//             GiDIOGapDebug(this_model_part);
+//             GiDIOGapDebug(r_model_part);
             
             const double tolerance = 1.0e-4;
             array_1d<double, 3> slip(3, 0.0);
             slip[0] = 0.1;
-            for (auto& inode : this_model_part.Nodes()) {
+            for (auto& inode : r_model_part.Nodes()) {
                 if (inode.Is(SLAVE)) {
                     const double normal_gap = inode.GetValue(NORMAL_GAP);
                     const double weighted_gap_corrected = inode.FastGetSolutionStepValue(WEIGHTED_GAP)/inode.GetValue(NODAL_AREA);
