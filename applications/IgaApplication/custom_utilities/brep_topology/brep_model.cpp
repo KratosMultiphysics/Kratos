@@ -226,18 +226,14 @@ namespace Kratos
         curve_knot_intersections_vector.push_back(curve_on_surface_3d_1->Domain().T1());
         std::sort(curve_knot_intersections_vector.begin(), curve_knot_intersections_vector.end());
 
-        std::cout << "here4: " << curve_knot_intersections_vector.size() << std::endl;
         for (int i = 0; i < curve_knot_intersections_vector.size() - 1; ++i)
         {
-            std::cout << "curve_knot_intersections_vector[i]: " << curve_knot_intersections_vector[i] 
-                << ", curve_knot_intersections_vector[i + 1]: " << curve_knot_intersections_vector[i + 1] << std::endl;
             if (std::abs(curve_knot_intersections_vector[i] - curve_knot_intersections_vector[i + 1]) > 1e-6)
             {
                 ANurbs::Interval<double> interval(curve_knot_intersections_vector[i], curve_knot_intersections_vector[i + 1]);
 
                 auto integration_points = ANurbs::IntegrationPoints<double>::Points1(number_of_points_per_knot_span, interval);
 
-                std::cout << "here5" << std::endl;
                 for (int ip = 0; ip < integration_points.size(); ++ip)
                 {
                     auto point_3d = curve_on_surface_3d_2->PointAt(integration_points[ip].t);
@@ -248,9 +244,6 @@ namespace Kratos
                     Matrix shape_function_derivative;
                     Matrix shape_function_second_derivative;
 
-                    KRATOS_WATCH(point_3d2)
-                    KRATOS_WATCH(point_3d)
-                    std::cout << "here6: x:" << derivatives[0][0] << ", y:" << derivatives[0][1] << std::endl;
                     face_2.EvaluatePoint(derivatives[0][0], derivatives[0][1], control_points,
                         shape_function, shape_function_derivative, shape_function_second_derivative);
 
@@ -261,7 +254,6 @@ namespace Kratos
                     Matrix shape_function_derivative_slave;
                     Matrix shape_function_second_derivative_slave;
 
-                    std::cout << "here7" << std::endl;
                     auto point_2d_slave = curve_2d_1->DerivativesAt(projection_1.Parameter(), 1);
                     face_1.EvaluatePoint(point_2d_slave[0][0], point_2d_slave[0][1], control_points,
                         shape_function_slave, shape_function_derivative_slave, shape_function_second_derivative_slave);
@@ -272,7 +264,6 @@ namespace Kratos
 
                     auto element = rModelPart.CreateNewElement(rName, id, control_points, this_property);
 
-                    std::cout << "here8" << std::endl;
                     element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
                     element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
                     element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_second_derivative);

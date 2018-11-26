@@ -121,7 +121,7 @@ namespace Kratos
         const int& rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        auto clipper = ANurbs::TrimmedSurfaceClipping<Kratos::array_1d<double, 2>>(0.01, 0.00001);
+        auto clipper = TrimmedSurfaceClipping(0.01, 0.00001);
 
         clipper.Clear();
 
@@ -226,12 +226,6 @@ namespace Kratos
             {
                 auto derivatives = curve_2d->DerivativesAt(integration_points[ip].t, 1);
 
-                std::cout << "location: " << derivatives[0][0] << ", " << derivatives[0][1] << std::endl;
-
-                auto loc = m_node_surface_geometry_3d->DerivativesAt(derivatives[0][0], derivatives[0][1], 1);
-
-                KRATOS_WATCH(loc[0])
-
                 Element::GeometryType::PointsArrayType control_points;
                 Vector shape_function;
                 Matrix shape_function_derivative;
@@ -242,24 +236,44 @@ namespace Kratos
                     shape_function, 
                     shape_function_derivative, 
                     shape_function_second_derivative);
+                if (rType == "element")
+                {
+                    int id = 0;
+                    if (rModelPart.GetRootModelPart().Elements().size() > 0)
+                        id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
-                int id = 0;
-                if (rModelPart.GetRootModelPart().Elements().size() > 0)
-                    id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+                    auto element = rModelPart.CreateNewElement(rName, id, control_points, this_property);
 
-                auto element = rModelPart.CreateNewElement(rName, id, control_points, this_property);
+                    element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
+                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
+                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_second_derivative);
 
-                element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
-                element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
-                element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_second_derivative);
-                
-                Vector tangents(2);
-                tangents[0] = derivatives[1][0];
-                tangents[1] = derivatives[1][1];
-                element->SetValue(TANGENTS, tangents);
+                    Vector tangents(2);
+                    tangents[0] = derivatives[1][0];
+                    tangents[1] = derivatives[1][1];
+                    element->SetValue(TANGENTS, tangents);
 
-                element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
+                    element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
+                }
+                if (rType == "condition")
+                {
+                    int id = 0;
+                    if (rModelPart.GetRootModelPart().Conditions().size() > 0)
+                        id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
+                    auto condition = rModelPart.CreateNewCondition(rName, id, control_points, this_property);
+
+                    condition->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
+                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
+                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_second_derivative);
+
+                    Vector tangents(2);
+                    tangents[0] = derivatives[1][0];
+                    tangents[1] = derivatives[1][1];
+                    condition->SetValue(TANGENTS, tangents);
+
+                    condition->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
+                }
                 // for strong application of properties on control point nodes
                 if (rType == "node")
                 {
@@ -384,8 +398,6 @@ namespace Kratos
             rU,
             rV);
 
-        std::cout << "U: " << rU << ", rV: " << rV << std::endl;
-
         if (rShapeFunction.size() != shape.NbNonzeroPoles())
             rShapeFunction.resize(shape.NbNonzeroPoles());
         rShapeFunction = ZeroVector(shape.NbNonzeroPoles());
@@ -406,23 +418,13 @@ namespace Kratos
             rNonZeroControlPoints.push_back(m_node_surface_geometry_3d->Node(
                 shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
 
-            //int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
-            //int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
-
-            //rNonZeroControlPoints.push_back(m_node_surface_geometry_3d->Node(indexU, indexV));
-
             rShapeFunction[n] = shape(0, indexU, indexV);
             rShapeFunctionDerivative(n, 0) = shape(1, indexU, indexV);
             rShapeFunctionDerivative(n, 1) = shape(2, indexU, indexV);
             rShapeFunctionSecondDerivative(n, 0) = shape(3, indexU, indexV);
             rShapeFunctionSecondDerivative(n, 1) = shape(5, indexU, indexV);
             rShapeFunctionSecondDerivative(n, 2) = shape(4, indexU, indexV);
-
-            location3D[0] += rShapeFunction[n] * m_node_surface_geometry_3d->Node(indexU, indexV)->X();
-            location3D[1] += rShapeFunction[n] * m_node_surface_geometry_3d->Node(indexU, indexV)->Y();
-            location3D[2] += rShapeFunction[n] * m_node_surface_geometry_3d->Node(indexU, indexV)->Z();
         }
-        KRATOS_WATCH(location3D)
     }
 
     const Kratos::shared_ptr<Curve<2>> BrepFace::GetTrimCurve(const int& trim_index) const
