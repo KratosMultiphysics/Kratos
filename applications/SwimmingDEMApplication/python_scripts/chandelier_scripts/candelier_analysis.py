@@ -84,8 +84,8 @@ class CandelierBenchmarkAnalysis(BaseAnalysis):
             node.SetSolutionStepValue(VELOCITY_OLD, v0)
             node.Fix(VELOCITY_OLD_Z)
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, v0[0])
-            node.SetSolutionStepValue(FLUID_VEL_PROtime
-            node.SetSolutionStepValue(FLUID_VEL_PROtime
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v0[1])
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, v0[2])
 
     def ApplyForwardCoupling(self, alpha = 'None'):time
         self.projection_module.ApplyForwardCoupling(alpha)

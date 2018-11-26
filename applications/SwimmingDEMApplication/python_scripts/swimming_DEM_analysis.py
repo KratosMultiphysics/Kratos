@@ -40,12 +40,12 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ:
 
     # DEM Application MPI
     import DEM_procedures_mpi as DEM_procedures
-    import DEM_material_test_script_mpi as DEM_material_test_script
+    # import DEM_material_test_script_mpi as DEM_material_test_script
     Say('Running under MPI...........\n')
 else:
     # DEM Application
     import DEM_procedures
-    import DEM_material_test_script
+    # import DEM_material_test_script
     Say('Running under OpenMP........\n')
 
 sys.path.insert(0,'')
