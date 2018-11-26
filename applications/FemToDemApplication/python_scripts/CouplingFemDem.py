@@ -106,6 +106,10 @@ class FEMDEM_Solution:
             if is_remeshing:
                 # Extrapolate the VonMises normalized stress to nodes (remeshing)
                 KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+
+				# we eliminate the nodal DEM forces
+				self.RemoveDummyNodalForces()
+                
             # Perform remeshing
             self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 
@@ -175,7 +179,7 @@ class FEMDEM_Solution:
         self.GenerateDEM()
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
         self.CheckForPossibleIndentations()
-        self.CheckInactiveNodes()
+        # self.CheckInactiveNodes()
 
         # We update coordinates, displ and velocities of the DEM according to FEM
         self.UpdateDEMVariables()
@@ -501,7 +505,9 @@ class FEMDEM_Solution:
                 elif is_active == False and DEM_Generated == True:
                     Element.Set(KratosMultiphysics.TO_ERASE, True)
 
-        self.FEM_Solution.main_model_part.GetRootModelPart().RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
+		element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
+		element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
+        # self.FEM_Solution.main_model_part.GetRootModelPart().RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
 #============================================================================================================================
     def CheckForPossibleIndentations(self): # Verifies if an element has indentations between its DEM
@@ -600,31 +606,30 @@ class FEMDEM_Solution:
 #============================================================================================================================
     def UpdateDEMVariables(self):
 
-        DEM_Nodes = self.SpheresModelPart.Nodes
+		FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
+		for fem_node in FEM_Nodes:
+			if fem_node.GetValue(KratosFemDem.IS_DEM):
+				id_node = fem_node.Id
+				associated_dem = self.SpheresModelPart.GetNode(id_node)
 
-        for DEM_Node in DEM_Nodes:  # Loop over DEM nodes
-            if (DEM_Node.GetValue(KratosFemDem.INACTIVE_NODE) == False):
+				Coordinates    = self.GetNodeCoordinates(fem_node)
+				Velocity_x     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+				Velocity_y     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+				Displacement_x = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+				Displacement_y = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+				
 
-                Id = DEM_Node.Id
-                Corresponding_FEM_Node = self.FEM_Solution.main_model_part.GetNode(Id)
-                Coordinates    = self.GetNodeCoordinates(Corresponding_FEM_Node)
-                Velocity_x     = Corresponding_FEM_Node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                Velocity_y     = Corresponding_FEM_Node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-                Displacement_x = Corresponding_FEM_Node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                Displacement_y = Corresponding_FEM_Node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+				# Update Coordinates
+				associated_dem.X = Coordinates[0]
+				associated_dem.Y = Coordinates[1]
 
-                # Update Coordinates
-                DEM_Node.X = Coordinates[0]
-                DEM_Node.Y = Coordinates[1]
+				# Update Displacements
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, Displacement_x)
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, Displacement_y)
 
-                # Update Displacements
-                DEM_Node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, Displacement_x)
-                DEM_Node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, Displacement_y)
-
-                # Update Velocities
-                DEM_Node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, Velocity_x)
-                DEM_Node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, Velocity_y)
-
+				# Update Velocities
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, Velocity_x)
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, Velocity_y)
 
 #============================================================================================================================
     def CheckInactiveNodes(self):
@@ -947,4 +952,14 @@ class FEMDEM_Solution:
             self.FEM_Solution.main_model_part.GetSubModelPart("computing_domain").AddCondition(cond)
             self.FEM_Solution.main_model_part.GetCondition(max_id).SetValue(Solid.FORCE_LOAD, [0.0,0.0,0.0])
 
-            
+#============================================================================================================================
+	def RemoveDummyNodalForces(self):
+
+		for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
+			condition.Set(KratosMultiphysics.TO_ERASE, True)
+
+		for node in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Nodes:
+			node.Set(KratosMultiphysics.TO_ERASE, True)
+
+		self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+		self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
