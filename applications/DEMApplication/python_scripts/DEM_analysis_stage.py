@@ -414,12 +414,7 @@ class DEMAnalysisStage(AnalysisStage):
         while self.time < self.end_time:
 
             self.InitializeTimeStep()
-            self.time = self.time + self.dt
-            self.step += 1
 
-            self.UpdateTimeInModelParts()
-
-            self.BeforeSolveOperations(self.time)
 
             self.SolverSolve()
 
@@ -487,7 +482,12 @@ class DEMAnalysisStage(AnalysisStage):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeTimeStep(self):
-        pass
+        self.time = self.time + self.dt
+        self.step += 1
+
+        self.UpdateTimeInModelParts()
+
+        self.BeforeSolveOperations(self.time)
 
     def BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
