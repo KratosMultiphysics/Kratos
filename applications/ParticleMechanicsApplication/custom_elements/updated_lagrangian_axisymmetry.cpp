@@ -94,7 +94,7 @@ void UpdatedLagrangianAxisymmetry::Initialize()
     KRATOS_TRY
     UpdatedLagrangian::Initialize();
 
-    const array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     const double mp_volume = this->GetValue(MP_VOLUME);
     const double pi = std::atan(1.0)*4.0;
     const double mp_mass = mp_volume * 2* pi * xg[0] * GetProperties()[DENSITY];
@@ -143,7 +143,7 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
@@ -183,15 +183,15 @@ double UpdatedLagrangianAxisymmetry::CalculateRadius(
         // Displacement from the reference to the current configuration
         if (ThisConfiguration == "Current")
         {
-            const array_1d<double, 3 > DeltaDisplacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3 > ReferencePosition = Geom[iNode].Coordinates();
+            const array_1d<double, 3 >& DeltaDisplacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& ReferencePosition = Geom[iNode].Coordinates();
 
             const array_1d<double, 3 > CurrentPosition = ReferencePosition + DeltaDisplacement;
             radius += CurrentPosition[0] * N[iNode];
         }
         else
         {
-            const array_1d<double, 3 > ReferencePosition = Geom[iNode].Coordinates();
+            const array_1d<double, 3 >& ReferencePosition = Geom[iNode].Coordinates();
             radius += ReferencePosition[0] * N[iNode];
         }
     }
@@ -364,7 +364,7 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
@@ -386,10 +386,8 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
     array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
     array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
     const double MP_Mass = this->GetValue(MP_MASS);
-    array_1d<double,3> MP_Momentum;
-    array_1d<double,3> MP_Inertia;
-    array_1d<double,3> nodal_momentum= ZeroVector(3);
-    array_1d<double,3> nodal_inertia = ZeroVector(3);
+    array_1d<double,3> nodal_momentum = ZeroVector(3);
+    array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
     //TODO: To be confirmed: do we need the second loop of "l" to interpolate the aux_mp_velocity?
     for (unsigned int j=0;j<number_of_nodes;j++)
@@ -532,7 +530,7 @@ void UpdatedLagrangianAxisymmetry::GetDofList( DofsVectorType& rElementalDofList
 //************************************************************************************
 
 // Function that return Jacobian matrix
-Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, array_1d<double,3>& rPoint)
+Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, const array_1d<double,3>& rPoint)
 {
 
     KRATOS_TRY
@@ -582,7 +580,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, array_1d<dou
 * @see DeterminantOfJacobian
 * @see InverseOfJacobian
     */
-Matrix& UpdatedLagrangianAxisymmetry::MPMJacobianDelta( Matrix& rResult, array_1d<double,3>& rPoint, Matrix & rDeltaPosition )
+Matrix& UpdatedLagrangianAxisymmetry::MPMJacobianDelta( Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix & rDeltaPosition )
 {
     KRATOS_TRY
 
@@ -630,7 +628,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobianDelta( Matrix& rResult, array_1
 * @return Vector of double which is shape function vector \f$ N \f$ in given point.
 *
     */
-Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResult, array_1d<double,3>& rPoint )
+Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResult, const array_1d<double,3>& rPoint )
 {
     KRATOS_TRY
 
@@ -679,7 +677,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMShapeFunctionsLocalGradients( Matrix& r
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     array_1d<double,3> rPointLocal = ZeroVector(dimension);
 
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, xg);
 
     if (dimension == 2 && GetGeometry().PointsNumber() == 3)
