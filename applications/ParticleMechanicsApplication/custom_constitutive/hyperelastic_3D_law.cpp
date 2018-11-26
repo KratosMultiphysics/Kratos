@@ -154,7 +154,7 @@ void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialPropertie
         const Vector& rShapeFunctionsValues )
 {
   mDeterminantF0                = 1;
-  mInverseDeformationGradientF0 = identity_matrix<double> (3);
+  mInverseDeformationGradientF0 = IdentityMatrix(3);
   mStrainEnergy                 = 0;
 
 }
@@ -209,7 +209,7 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
-    ElasticVariables.Identity = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = IdentityMatrix(3);
 
     //1.- Lame constants
     const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
@@ -443,7 +443,7 @@ Vector&  HyperElastic3DLaw::CalculateVolumetricPressureFactors (const MaterialRe
 {
     double BulkModulus = rElasticVariables.LameLambda + (2.0/3.0) * rElasticVariables.LameMu;
 
-    if(rFactors.size()!=3) rFactors.resize(3);
+    if(rFactors.size()!=3) rFactors.resize(3,false);
 
     //(ln(J))
     rFactors[0] =  1.0;

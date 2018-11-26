@@ -34,7 +34,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                  : "EmbeddedAusas",
+        "solver_type"                  : "Embedded",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 3,
         "model_import_settings"        : {
@@ -42,7 +42,6 @@
             "input_filename" : "couette_3D"
         },
         "maximum_iterations"           : 7,
-        "dynamic_tau"                  : 1.0,
         "echo_level"                   : 0,
         "time_order"                   : 2,
         "compute_reactions"            : false,
@@ -62,7 +61,12 @@
             "automatic_time_step" : false,
             "time_step"           : 0.1
         },
-        "penalty_coefficient": 10
+        "formulation": {
+            "element_type": "embedded_ausas_navier_stokes",
+            "is_slip": true,
+            "penalty_coefficient": 10.0,
+            "dynamic_tau": 1.0
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
