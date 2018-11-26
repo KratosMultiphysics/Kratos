@@ -171,7 +171,7 @@ void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, Proce
     if (rResult.size() != number_of_nodes)
         rResult.resize(number_of_nodes, false);
 
-    @{KRATOS_ELEMENT_ECUATION_ID_DOFS}
+    @{KRATOS_ELEMENT_EQUATION_ID_DOFS}
 }
 
 /**
