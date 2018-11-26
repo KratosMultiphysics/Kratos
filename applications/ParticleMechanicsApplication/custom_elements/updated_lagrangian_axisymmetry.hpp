@@ -342,7 +342,7 @@ protected:
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
-                                     double& rIntegrationWeight) override;
+                                     const double& rIntegrationWeight) override;
 
     /**
      * Clear Nodal Forces

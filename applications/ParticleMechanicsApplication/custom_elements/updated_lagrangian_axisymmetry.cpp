@@ -183,16 +183,16 @@ double UpdatedLagrangianAxisymmetry::CalculateRadius(
         // Displacement from the reference to the current configuration
         if (ThisConfiguration == "Current")
         {
-            const array_1d<double, 3 >& DeltaDisplacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3 >& ReferencePosition = Geom[iNode].Coordinates();
+            const array_1d<double, 3 >& delta_displacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
 
-            const array_1d<double, 3 > CurrentPosition = ReferencePosition + DeltaDisplacement;
-            radius += CurrentPosition[0] * N[iNode];
+            const array_1d<double, 3 > current_position = reference_position + delta_displacement;
+            radius += current_position[0] * N[iNode];
         }
         else
         {
-            const array_1d<double, 3 >& ReferencePosition = Geom[iNode].Coordinates();
-            radius += ReferencePosition[0] * N[iNode];
+            const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
+            radius += reference_position[0] * N[iNode];
         }
     }
 
@@ -232,7 +232,7 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
 
     rVariables.CurrentRadius   =  current_radius;
-    rVariables.ReferenceRadius = initial_radius;
+    rVariables.ReferenceRadius =  initial_radius;
 
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
@@ -315,7 +315,7 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rD
 
 void UpdatedLagrangianAxisymmetry::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
