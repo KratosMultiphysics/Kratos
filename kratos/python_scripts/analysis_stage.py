@@ -199,7 +199,6 @@ class AnalysisStage(object):
 
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis
-        The list of processes is constructed in case it is not existing yet
         """
         if not hasattr(self, '_list_of_processes'):
             raise Exception("The list of processes was not yet created!")
@@ -207,7 +206,6 @@ class AnalysisStage(object):
 
     def _GetListOfOutputProcesses(self):
         """This function returns the list of output processes involved in this Analysis
-        The list of output processes is constructed in case it is not existing yet
         """
         if not hasattr(self, '_list_of_output_processes'):
             raise Exception("The list of output-processes was not yet created!")
