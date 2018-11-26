@@ -69,4 +69,4 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
             # adds additional lines to the log file
             if ( self.write_to_log ):
                 with open("ApplyMassConservationCheckProcess.log", "a+") as logFile:
-                    logFile.write( str(posVol) + "\t" + str(negVol) + "\t" + str(interfaceArea) + "\n" )
+                    logFile.write( str(posVol) + "\t" + str(negVol) + "\t" + str(interfaceArea) + "\t" + str(inflow) + "\n" )
