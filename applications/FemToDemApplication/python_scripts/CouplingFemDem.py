@@ -845,6 +845,7 @@ class FEMDEM_Solution:
 
         for node in self.FEM_Solution.main_model_part.Nodes:
             node.SetValue(MeshingApplication.AUXILIAR_GRADIENT, ZeroVector3)
+            node.SetValue(KratosMultiphysics.NODAL_H, 0.0)
 
 #============================================================================================================================
     def GenerateDemAfterRemeshing(self):
