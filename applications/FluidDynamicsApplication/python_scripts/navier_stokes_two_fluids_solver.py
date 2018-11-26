@@ -210,7 +210,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         # Transfer density and (dynamic) viscostity to the nodes
         for node in self.main_model_part.Nodes:
-            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) <= 0.0:
                 node.SetSolutionStepValue(KratosMultiphysics.DENSITY, rho_1)
                 node.SetSolutionStepValue(KratosMultiphysics.DYNAMIC_VISCOSITY, mu_1)
             else:
