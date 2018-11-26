@@ -272,7 +272,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self._execute_after_reading()
 
             throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
+            # KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
 
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
