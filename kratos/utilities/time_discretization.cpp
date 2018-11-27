@@ -20,31 +20,33 @@
 namespace Kratos {
 namespace TimeDiscretization {
 
-void BDF1::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& rCoefficients) const
+void BDF1::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 2>& rCoefficients) const
 {
-
-    if (rCoefficients.size() != 2) rCoefficients.resize(2);
-
     rCoefficients[0] =  1.0/DeltaTime;
     rCoefficients[1] = -1.0/DeltaTime;
 }
 
-void BDF2::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& rCoefficients) const
+void BDF2::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 3>& rCoefficients) const
 {
-    if (rCoefficients.size() != 3) rCoefficients.resize(3);
-
     const double denom = 1.0/(2.0*DeltaTime);
 
     rCoefficients[0] =  3.0 / denom;
     rCoefficients[1] = -4.0 / denom;
     rCoefficients[2] =  2.0 / denom;
-
 }
 
-void BDF3::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& rCoefficients) const
+void BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousDeltaTime, std::array<double, 3>& rCoefficients) const
 {
-    if (rCoefficients.size() != 4) rCoefficients.resize(4);
+    const double rho = PreviousDeltaTime / DeltaTime;
+    double time_coeff = 1.0 / (DeltaTime * rho * rho + DeltaTime * rho);
 
+    rCoefficients[0] =  time_coeff * (rho * rho + 2.0 * rho); // coefficient for step n+1 (3/2Dt if Dt is constant)
+    rCoefficients[1] = -time_coeff * (rho * rho + 2.0 * rho + 1.0); // coefficient for step n (-4/2Dt if Dt is constant)
+    rCoefficients[2] =  time_coeff; // coefficient for step n-1 (1/2Dt if Dt is constant)
+}
+
+void BDF3::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 4>& rCoefficients) const
+{
     const double denom = 1.0/(6.0*DeltaTime);
 
     rCoefficients[0] =  11.0 / denom;
@@ -53,10 +55,8 @@ void BDF3::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& r
     rCoefficients[3] =  -2.0 / denom;
 }
 
-void BDF4::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& rCoefficients) const
+void BDF4::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 5>& rCoefficients) const
 {
-    if (rCoefficients.size() != 5) rCoefficients.resize(5);
-
     const double denom = 1.0/(12.0*DeltaTime);
 
     rCoefficients[0] =  25.0 / denom;
@@ -66,10 +66,8 @@ void BDF4::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& r
     rCoefficients[4] =   3.0 / denom;
 }
 
-void BDF5::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& rCoefficients) const
+void BDF5::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 6>& rCoefficients) const
 {
-    if (rCoefficients.size() != 6) rCoefficients.resize(6);
-
     const double denom = 1.0/(60.0*DeltaTime);
 
     rCoefficients[0] =  137.0 / denom;
@@ -80,10 +78,8 @@ void BDF5::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& r
     rCoefficients[5] =  -12.0 / denom;
 }
 
-void BDF6::ComputeBDFCoefficients(const double DeltaTime, std::vector<double>& rCoefficients) const
+void BDF6::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 7>& rCoefficients) const
 {
-    if (rCoefficients.size() != 7) rCoefficients.resize(7);
-
     const double denom = 1.0/(60.0*DeltaTime);
 
     rCoefficients[0] =  147.0 / denom;

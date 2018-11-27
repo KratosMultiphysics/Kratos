@@ -14,7 +14,7 @@
 #define  KRATOS_TIME_DISCRETIZATION_H_INCLUDED
 
 // System includes
-#include <vector>
+#include <array>
 
 // External includes
 
@@ -26,43 +26,47 @@ namespace TimeDiscretization {
 class BDF1
 {
 public:
-    void ComputeBDFCoefficients(const double DeltaTime,
-                                std::vector<double>& rCoefficients) const;
+    void ComputeBDFCoefficients(double DeltaTime,
+                                std::array<double, 2>& rCoefficients) const;
 };
 
 class BDF2
 {
 public:
-    void ComputeBDFCoefficients(const double DeltaTime,
-                                std::vector<double>& rCoefficients) const;
+    void ComputeBDFCoefficients(double DeltaTime,
+                                std::array<double, 3>& rCoefficients) const;
+
+    void ComputeBDFCoefficients(double DeltaTime,
+                                double PreviousDeltaTime,
+                                std::array<double, 3>& rCoefficients) const;
 };
 
 class BDF3
 {
 public:
-    void ComputeBDFCoefficients(const double DeltaTime,
-                                std::vector<double>& rCoefficients) const;
+    void ComputeBDFCoefficients(double DeltaTime,
+                                std::array<double, 4>& rCoefficients) const;
 };
 
 class BDF4
 {
 public:
-    void ComputeBDFCoefficients(const double DeltaTime,
-                                std::vector<double>& rCoefficients) const;
+    void ComputeBDFCoefficients(double DeltaTime,
+                                std::array<double, 5>& rCoefficients) const;
 };
 
 class BDF5
 {
 public:
-    void ComputeBDFCoefficients(const double DeltaTime,
-                                std::vector<double>& rCoefficients) const;
+    void ComputeBDFCoefficients(double DeltaTime,
+                                std::array<double, 6>& rCoefficients) const;
 };
 
 class BDF6
 {
 public:
-    void ComputeBDFCoefficients(const double DeltaTime,
-                                std::vector<double>& rCoefficients) const;
+    void ComputeBDFCoefficients(double DeltaTime,
+                                std::array<double, 7>& rCoefficients) const;
 };
 
 class Newmark
@@ -95,16 +99,16 @@ private:
     double mAlphaF;
 };
 
-std::size_t GetMinimumBufferSize(const BDF1& rTimeDisc) { return 2;}
-std::size_t GetMinimumBufferSize(const BDF2& rTimeDisc) { return 3;}
-std::size_t GetMinimumBufferSize(const BDF3& rTimeDisc) { return 4;}
-std::size_t GetMinimumBufferSize(const BDF4& rTimeDisc) { return 5;}
-std::size_t GetMinimumBufferSize(const BDF5& rTimeDisc) { return 6;}
-std::size_t GetMinimumBufferSize(const BDF6& rTimeDisc) { return 7;}
+std::size_t GetMinimumBufferSize(const BDF1& rTimeDiscr) { return 2;}
+std::size_t GetMinimumBufferSize(const BDF2& rTimeDiscr) { return 3;}
+std::size_t GetMinimumBufferSize(const BDF3& rTimeDiscr) { return 4;}
+std::size_t GetMinimumBufferSize(const BDF4& rTimeDiscr) { return 5;}
+std::size_t GetMinimumBufferSize(const BDF5& rTimeDiscr) { return 6;}
+std::size_t GetMinimumBufferSize(const BDF6& rTimeDiscr) { return 7;}
 
-std::size_t GetMinimumBufferSize(const Newmark& rTimeDisc)          { return 2;}
-std::size_t GetMinimumBufferSize(const Bossak& rTimeDisc)           { return 2;}
-std::size_t GetMinimumBufferSize(const GeneralizedAlpha& rTimeDisc) { return 2;}
+std::size_t GetMinimumBufferSize(const Newmark& rTimeDiscr)          { return 2;}
+std::size_t GetMinimumBufferSize(const Bossak& rTimeDiscr)           { return 2;}
+std::size_t GetMinimumBufferSize(const GeneralizedAlpha& rTimeDiscr) { return 2;}
 
 
 } // namespace TimeDiscretization.
