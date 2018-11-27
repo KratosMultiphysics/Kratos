@@ -73,7 +73,9 @@ namespace Kratos
         mUpdatedLagrangianAxisymmetry2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mMPMPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
         mMPMPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
+        mMPMAxisymPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
         mMPMLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+        mMPMAxisymLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
         mMPMSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
         mMPMSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4))))
     {}
@@ -102,7 +104,9 @@ namespace Kratos
         // Registering conditions
         KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition2D1N", mMPMPointLoadCondition2D1N )
         KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition3D1N", mMPMPointLoadCondition3D1N )
+        KRATOS_REGISTER_CONDITION( "MPMAxisymPointLoadCondition2D1N", mMPMAxisymPointLoadCondition2D1N )
         KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition2D2N", mMPMLineLoadCondition2D2N)
+        KRATOS_REGISTER_CONDITION( "MPMAxisymLineLoadCondition2D2N", mMPMAxisymLineLoadCondition2D2N)
         KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D3N", mMPMSurfaceLoadCondition3D3N)
         KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D4N", mMPMSurfaceLoadCondition3D4N)
 

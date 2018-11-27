@@ -36,7 +36,9 @@
 /* CONDITIONS */
 #include "custom_conditions/mpm_base_load_condition.h"
 #include "custom_conditions/mpm_point_load_condition.h"
+#include "custom_conditions/mpm_axisym_point_load_condition.h"
 #include "custom_conditions/mpm_line_load_condition_2d.h"
+#include "custom_conditions/mpm_axisym_line_load_condition_2d.h"
 #include "custom_conditions/mpm_surface_load_condition_3d.h"
 
 //---element
@@ -231,7 +233,9 @@ private:
     // Conditions
     const MPMPointLoadCondition mMPMPointLoadCondition2D1N;
     const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
+    const MPMAxisymPointLoadCondition mMPMAxisymPointLoadCondition2D1N;
     const MPMLineLoadCondition2D mMPMLineLoadCondition2D2N;
+    const MPMAxisymLineLoadCondition2D mMPMAxisymLineLoadCondition2D2N;
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
 
