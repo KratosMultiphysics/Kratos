@@ -182,9 +182,15 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             num_output_data = output_data_list.size()
             for i in range(num_output_data):
                 output_data = output_data_list[i]
+                to_solver = self.participating_solvers[output_data["to_solver"].GetString()]
                 data_name = output_data["data_name"].GetString()
-                data_conf = solver.GetDataConfig(data_name)
-                solver.ExportData(data_conf)
+                to_solver_data_conf = to_solver.GetDataConfig(data_name)
+                solver_data_conf = solver.GetDataConfig(output_data["settings"]["origin_data"].GetString())
+                if(output_data["settings"].Has("mapper_settings")):
+                    solver_data_conf.AddValue("destination_data_config",to_solver_data_conf)
+                    solver_data_conf.AddValue("mapper_settings", output_data["settings"]["mapper_settings"])
+
+                solver.ExportData(solver_data_conf, to_solver)
 
     ## _GetSolvers : Private Function to make the participating solver objects
     #
