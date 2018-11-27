@@ -51,15 +51,16 @@ The following features are currently available and subject to development within
     * Updated Lagrangian elements - triangular (2D) and tetrahedral (3D), structured and unstructured
     * Updated Lagrangian UP elements - triangular (2D) and tetrahedral (3D), structured and unstructured, with Mixed Variational Methods of displacement and pressure
     * Updated Lagrangian quadrilateral elements - quadrilateral (2D) and hexahedral (3D), structured and unstructured
+    * Updated Lagrangian axis-symmetric elements - triangular and quadrilateral (2D), structured and unstructured
 
 - Constitutive laws:
-    * Linear elastic materials - plane strain, plane stress and 3D
-    * Hyperelastic Neo-Hookean laws - finite strain, plane strain and 3D
+    * Linear elastic materials - plane strain, plane stress, axis-symmetric, and 3D
+    * Hyperelastic Neo-Hookean laws - finite strain, plane strain, axis-symmetric, and 3D
     * Elasto-plastic laws:
-        * Mohr Coulomb - finite strain, associative and non-associative, plane strain and 3D
-        * Mohr Coulomb with Strain Softening - finite strain, associative and non-associative, plane strain and 3D
+        * Mohr Coulomb - finite strain, associative and non-associative, plane strain, axis-symmetric, and 3D
+        * Mohr Coulomb with Strain Softening - finite strain, associative and non-associative, plane strain, axis-symmetric, and 3D
     * Critical state laws:
-        * Modified Cam-Clay - finite strain, plane strain and 3D
+        * Modified Cam-Clay - finite strain, plane strain, axis-symmetric, and 3D
 
 - Strategies and schemes:
     * Implicit - Newmark prediction and correction scheme
