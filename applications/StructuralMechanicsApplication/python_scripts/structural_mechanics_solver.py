@@ -229,13 +229,10 @@ class MechanicalSolver(PythonSolver):
                 pass
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
-    def Solve(self):
+    def InitializeSolutionStep(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-        mechanical_solution_strategy.Solve()
-
-    def InitializeSolutionStep(self):
+            self.Initialize() #required after clearing
         self.get_mechanical_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):

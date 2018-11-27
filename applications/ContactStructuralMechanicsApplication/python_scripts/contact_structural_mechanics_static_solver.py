@@ -54,6 +54,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                 "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
                 "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
                 "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
+                "silent_strategy"                                   : true,
                 "simplified_semi_smooth_newton"                     : false,
                 "rescale_linear_solver"                             : false,
                 "use_mixed_ulm_solver"                              : true,
@@ -156,6 +157,11 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
 
     def Initialize(self):
         super(ContactStaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
+
+        # No verbosity from strategy
+        if self.contact_settings["silent_strategy"].GetBool() is True:
+            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+            mechanical_solution_strategy.SetEchoLevel(0)
 
         # We set the flag INTERACTION
         computing_model_part = self.GetComputingModelPart()
