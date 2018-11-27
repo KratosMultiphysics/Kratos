@@ -17,8 +17,10 @@
 
 #include "includes/define.h"
 #include "includes/serializer.h"
-
+#include "includes/key_hash.h"
 namespace Kratos {
+
+    
 
 template<class TDataType>
 class GlobalPointer {
@@ -42,8 +44,8 @@ public:
    */
   GlobalPointer(TDataType Data) = delete;
 
-  /** Constructor by Data Pointer
-   * Constructor by Data Pointer
+  /** Constructor by DataPointer
+   * Constructor by DataPointer
    * @param DataPointer Pointer to the data.
    */
   GlobalPointer(TDataType * DataPointer, int Rank = 0)
@@ -154,8 +156,8 @@ public:
    * Returns the rank of the global pointer data is located or 0 if no mpi
    * @return rank of the global pointer data or 0
    */
-  int GetRank() {
-    return this->rank;
+  int GetRank() const {
+    return this->mRank;
   }
 
   private: 
@@ -179,6 +181,39 @@ public:
 
 };
 
+template< class TDataType >
+struct GlobalPointerHasher
+{
+    /**
+     * @brief The () operator
+     * @param pDoF The DoF pointer
+     */
+    std::size_t operator()(const GlobalPointer<TDataType>& pGp) const
+    {
+        std::size_t seed = 0;
+        HashCombine(seed, &(*pGp) );
+        HashCombine(seed, pGp.GetRank());
+        return seed;
+    }
+};
+
+/**
+ * @brief This is a key comparer between two dof pointers
+ * @details Used for example for the B&S
+ */
+template< class TDataType >
+struct GlobalPointerComparor
+{
+    /**
+     * @brief The () operator
+     * @param pDoF1 The first DoF pointer
+     * @param pDoF2 The second DoF pointer
+     */
+    bool operator()(const GlobalPointer<TDataType>& pGp1, const GlobalPointer<TDataType>& pGp2) const
+    {
+        return ( &(*pGp1) == &(*pGp2)  &&  pGp1.GetRank() == pGp2.GetRank()  );
+    }
+};
 
 } // namespace Kratos
 
