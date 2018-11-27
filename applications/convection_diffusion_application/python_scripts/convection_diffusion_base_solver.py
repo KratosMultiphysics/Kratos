@@ -107,7 +107,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "auxiliary_variables_list" : []
+            "auxiliary_variables_list" : [],
+            "buffer_size" : -1
         }
         """)
 
@@ -409,7 +410,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             materials = KratosMultiphysics.Parameters(parameter_file.read())
 
         for i in range(materials["properties"].size()):
-            model_part = self.main_model_part.GetSubModelPart(materials["properties"][i]["model_part_name"].GetString())
+            model_part = self.model.GetModelPart(materials["properties"][i]["model_part_name"].GetString())
             mat = materials["properties"][i]["Material"]
 
             for key, value in mat["Variables"].items():

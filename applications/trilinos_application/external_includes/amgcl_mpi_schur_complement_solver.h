@@ -17,8 +17,9 @@
 
 
 #ifndef AMGCL_PARAM_UNKNOWN
+#include "input_output/logger.h"
 #  define AMGCL_PARAM_UNKNOWN(name)                                            \
-      std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
+    Kratos::Logger("AMGCL") << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING << "Unknown parameter " << name << std::endl
 #endif
 
 
