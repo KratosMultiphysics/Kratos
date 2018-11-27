@@ -69,7 +69,6 @@ public:
 
     typedef std::map<std::string, TupleType> MethodsMapType;
 
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -105,20 +104,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-
 private:
     ///@name Member Variables
     ///@{
@@ -136,11 +121,11 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateMeshVelocitiesBDF(const double DeltaTime);
+    void CalculateMeshVelocitiesBDF(double DeltaTime);
 
-    void CalculateMeshVelocitiesGeneralizedAlpha(const double DeltaTime);
+    void CalculateMeshVelocitiesGeneralizedAlpha(double DeltaTime);
 
-    static const MethodsMapType::const_iterator GetMethodIterator(const std::string& rIntegrationMethod);
+    static const TupleType& GetMethod(const std::string& rIntegrationMethod);
 
     ///@}
     ///@name Private  Access

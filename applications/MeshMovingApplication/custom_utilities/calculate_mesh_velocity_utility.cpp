@@ -40,7 +40,7 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
 
     const std::string time_scheme = Settings["time_scheme"].GetString();
 
-    mIntegrationMethod = std::get<0>(GetMethodIterator(time_scheme)->second);
+    mIntegrationMethod = std::get<0>(GetMethod(time_scheme));
 
     const SizeType min_buffer_size = GetMinimumBufferSize(time_scheme);
     const SizeType current_buffer_size = rModelPart.GetBufferSize();
@@ -79,7 +79,7 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
 CalculateMeshVelocityUtility::SizeType CalculateMeshVelocityUtility::GetMinimumBufferSize(
     const std::string& rIntegrationMethod)
 {
-    return std::get<1>(GetMethodIterator(rIntegrationMethod)->second);
+    return std::get<1>(GetMethod(rIntegrationMethod));
 }
 
 void CalculateMeshVelocityUtility::CalculateMeshVelocities()
@@ -165,13 +165,13 @@ void CalculateMeshVelocityUtility::CalculateMeshVelocitiesGeneralizedAlpha(const
     mrModelPart.GetCommunicator().SynchronizeVariable(MESH_ACCELERATION);
 }
 
-const CalculateMeshVelocityUtility::MethodsMapType::const_iterator CalculateMeshVelocityUtility::GetMethodIterator(
+const CalculateMeshVelocityUtility::TupleType& CalculateMeshVelocityUtility::GetMethod(
     const std::string& rIntegrationMethod)
 {
     const auto it_method = msAvailableMethods.find(rIntegrationMethod);
 
     if (it_method != msAvailableMethods.end()) {
-        return it_method;
+        return it_method->second;
     }
     else {
         std::stringstream err_msg;
