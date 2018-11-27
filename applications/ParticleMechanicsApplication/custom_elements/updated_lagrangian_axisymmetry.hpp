@@ -121,12 +121,6 @@ public:
     //************* GETTING METHODS
 
     /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-    //IntegrationMethod GetIntegrationMethod() const;
-
-    /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
@@ -151,100 +145,10 @@ public:
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-
-
-    //on integration points:
-    /**
-     * Access for variables on Integration points.
-     * This gives access to variables stored in the constitutive law on each integration point.
-     * Specialisations of element.h (e.g. the TotalLagrangian) must specify the actual
-     * interface to the constitutive law!
-     * Note, that these functions expect a std::vector of values for the
-     * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
-     * GetValueOnIntegrationPoints: get the values for given Variable.
-     */
-
-    //SET
-    /**
-     * Set a double  Value on the Element Constitutive Law
-     */
-    //virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable, double& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Set a Vector Value on the Element Constitutive Law
-     */
-    //void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Set a Matrix Value on the Element Constitutive Law
-     */
-    //void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, Matrix& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-    * Set a Constitutive Law Value
-    */
-    //void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      //ConstitutiveLaw::Pointer& rValues,
-                                      //ProcessInfo& rCurrentProcessInfo );
-
-
-    //GET:
-    /**
-     * Get on rVariable a double Value from the Element Constitutive Law
-     */
-    //virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable, double& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Get on rVariable a Vector Value from the Element Constitutive Law
-     */
-    //virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Get on rVariable a Matrix Value from the Element Constitutive Law
-     */
-    //virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, Matrix& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Get a Constitutive Law Value
-     */
-    //void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-                                      //ConstitutiveLaw::Pointer& rValues,
-                                      //ProcessInfo& rCurrentProcessInfo );
-
-
-
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    //virtual void Initialize();
-
     /**
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-    //************* COMPUTING  METHODS
-
-    //on integration points:
-    /**
-     * Calculate a double Variable on the Element Constitutive Law
-     */
-    //void CalculateOnIntegrationPoints(const Variable<double>& rVariable, double& rOutput, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Calculate a Vector Variable on the Element Constitutive Law
-     */
-    //void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rOutput, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Calculate a Matrix Variable on the Element Constitutive Law
-     */
-    //void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, Matrix& rOutput, ProcessInfo& rCurrentProcessInfo);
-
 
     ///@}
     ///@name Access
@@ -267,40 +171,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    /**
-     * Container for historical total elastic deformation measure F0 = dx/dX
-     */
-    //Matrix mDeformationGradientF0;
-    /**
-     * Container for the total deformation gradient determinants
-     */
-    //double mDeterminantF0;
-    /**
-     * Container for historical inverse of Jacobian at reference configuration invJ0
-     */
-    //Matrix mInverseJ0;
-    //Matrix mInverseJ;
-    /**
-     * Container for the total Jacobian determinants
-     */
-    //double mDeterminantJ0;
-
-    /**
-     * Currently selected integration methods
-     */
-    //IntegrationMethod mThisIntegrationMethod;
-
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    //ConstitutiveLaw::Pointer mConstitutiveLawVector;
-
-
-    /**
-     * Finalize and Initialize label
-     */
-    //bool mFinalizedStep;
-
 
     ///@}
     ///@name Protected Operators
@@ -309,33 +179,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-
-    /**
-     * Calculation and addition of the matrices of the LHS
-     */
-
-    //virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    //GeneralVariables& rVariables,
-                                    //double& rIntegrationWeight);
-
-    /**
-     * Calculation and addition of the vectors of the RHS
-     */
-
-    //virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    //GeneralVariables& rVariables,
-                                    //Vector& rVolumeForce,
-                                    //double& rIntegrationWeight);
-
-
-    /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
-     */
-
-    //virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     //GeneralVariables& rVariables,
-                                     //double& rIntegrationWeight);
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
@@ -378,13 +221,6 @@ protected:
      */
     void CalculateAlmansiStrain(const Matrix& rF, Vector& rStrainVector) override;
 
-
-
-    // /**
-     //* Calculation of the Velocity Gradient
-     //*/
-    //void CalculateVelocityGradient(const Matrix& rDN_DX,
-                                   //Matrix& rDF );
 
     /**
      * Calculation of the Deformation Matrix  BL

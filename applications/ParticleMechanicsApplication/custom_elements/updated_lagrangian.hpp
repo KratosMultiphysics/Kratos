@@ -89,8 +89,7 @@ protected:
     {
     private:
 
-        //variables including all integration points
-        //const GeometryType::ShapeFunctionsGradientsType* pDN_De;
+        // Variables including all integration points
         const Matrix* pDN_De;
         const Vector* pNcontainer;
 
@@ -98,11 +97,11 @@ protected:
 
         StressMeasureType StressMeasure;
 
-        //for axisymmetric use only
+        // For axisymmetric use only
         double  CurrentRadius;
         double  ReferenceRadius;
 
-        //general variables for large displacement use
+        // General variables for large displacement use
         double  detF;
         double  detF0;
         double  detFT;
@@ -118,9 +117,7 @@ protected:
         Matrix  DN_De;
         Matrix  ConstitutiveMatrix;
 
-        //variables including all integration points
-        //GeometryType::JacobiansType J;
-        //GeometryType::JacobiansType j;
+        // Variables including all integration points
         Matrix J;
         Matrix j;
         Matrix  DeltaPosition;
@@ -305,12 +302,6 @@ public:
     //************* GETTING METHODS
 
     /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-    //IntegrationMethod GetIntegrationMethod() const;
-
-    /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
@@ -334,69 +325,6 @@ public:
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-
-
-
-    //on integration points:
-    /**
-     * Access for variables on Integration points.
-     * This gives access to variables stored in the constitutive law on each integration point.
-     * Specialisations of element.h (e.g. the TotalLagrangian) must specify the actual
-     * interface to the constitutive law!
-     * Note, that these functions expect a std::vector of values for the
-     * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
-     * GetValueOnIntegrationPoints: get the values for given Variable.
-     */
-
-    //SET
-    /**
-     * Set a double  Value on the Element Constitutive Law
-     */
-    //virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable, double& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Set a Vector Value on the Element Constitutive Law
-     */
-    //void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Set a Matrix Value on the Element Constitutive Law
-     */
-    //void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, Matrix& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-    * Set a Constitutive Law Value
-    */
-    //void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    //ConstitutiveLaw::Pointer& rValues,
-    //ProcessInfo& rCurrentProcessInfo );
-
-
-    //GET:
-    /**
-     * Get on rVariable a double Value from the Element Constitutive Law
-     */
-    //virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable, double& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Get on rVariable a Vector Value from the Element Constitutive Law
-     */
-    //virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Get on rVariable a Matrix Value from the Element Constitutive Law
-     */
-    //virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, Matrix& rValues, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Get a Constitutive Law Value
-     */
-    //void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    //ConstitutiveLaw::Pointer& rValues,
-    //ProcessInfo& rCurrentProcessInfo );
-
-
 
     //************* STARTING - ENDING  METHODS
 
@@ -514,39 +442,6 @@ public:
                                 ProcessInfo& rCurrentProcessInfo) override;
 
 
-    /**
-     * this function is designed to make the element to assemble an rRHS vector
-     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-     * rDestinationVariable.
-     * @param rRHSVector: input variable containing the RHS vector to be assembled
-     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
-      * @param rCurrentProcessInfo: the current process info instance
-     */
-    //virtual void AddExplicitContribution(const VectorType& rRHSVector,
-    //const Variable<VectorType>& rRHSVariable,
-    //Variable<array_1d<double,3> >& rDestinationVariable,
-    //const ProcessInfo& rCurrentProcessInfo);
-
-    //on integration points:
-    /**
-     * Calculate a double Variable on the Element Constitutive Law
-     */
-    //void CalculateOnIntegrationPoints(const Variable<double>& rVariable, double& rOutput, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Calculate a Vector Variable on the Element Constitutive Law
-     */
-    //void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, Vector& rOutput, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Calculate a Matrix Variable on the Element Constitutive Law
-     */
-    //void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, Matrix& rOutput, ProcessInfo& rCurrentProcessInfo);
-
-
-
-
     //************************************************************************************
     //************************************************************************************
     /**
@@ -612,15 +507,11 @@ protected:
      */
     Matrix mInverseJ0;
     Matrix mInverseJ;
+
     /**
      * Container for the total Jacobian determinants
      */
     double mDeterminantJ0;
-
-    /**
-     * Currently selected integration methods
-     */
-    //IntegrationMethod mThisIntegrationMethod;
 
     /**
      * Container for constitutive law instances on each integration point
@@ -733,15 +624,11 @@ protected:
      * Clear Nodal Forces
      */
     void ClearNodalForces ();
-    /**
-     * Clear Nodal Displacement Velocity and Acceleration
-     */
 
     /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
-
 
 
     /**
@@ -790,13 +677,6 @@ protected:
     virtual void CalculateAlmansiStrain(const Matrix& rF,
                                         Vector& rStrainVector);
 
-
-
-    // /**
-    //* Calculation of the Velocity Gradient
-    //*/
-    //void CalculateVelocityGradient(const Matrix& rDN_DX,
-    //Matrix& rDF );
 
     /**
      * Calculation of the Deformation Matrix  BL
