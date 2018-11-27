@@ -3,7 +3,7 @@ import co_simulation_tools as tools
 from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 # Other imports
 import co_simulation_data_structure
-cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTURE__
+cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
 import collections
 
 ##

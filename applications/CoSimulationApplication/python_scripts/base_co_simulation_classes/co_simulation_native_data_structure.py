@@ -47,3 +47,7 @@ class Parameters(dict):
 ## To store all the meshes imported or to be exported.
 class Model(object):
     pass
+
+# ModelPart class
+class ModelPart(object):
+    pass

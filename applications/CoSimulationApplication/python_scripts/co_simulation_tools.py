@@ -1,6 +1,6 @@
 import warnings
 import co_simulation_data_structure
-cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTURE__
+cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
 import math
 ## Class contains definition of colors. This is to be used as a struct
 #
@@ -33,7 +33,7 @@ def ImportDataStructure(parameters_file_name):
             data_structure = "co_sim_app"
 
         co_simulation_data_structure.Initialize(data_structure)
-        cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTURE__
+        cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
 
     return cs_data_structure
 
