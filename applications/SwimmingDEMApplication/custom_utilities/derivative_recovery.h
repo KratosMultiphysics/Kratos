@@ -31,7 +31,7 @@
 
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-//#include "../../DEM_application/DEM_application.h"
+//#include "../../DEMApplication/DEM_application.h"
 
 // /* External includes */
 #ifdef _OPENMP
@@ -139,6 +139,8 @@ void RecoverSuperconvergentVelocityLaplacianFromGradient(ModelPart& r_model_part
 void RecoverSuperconvergentMatDerivAndLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& mat_deriv_container, Variable<array_1d<double, 3> >& laplacian_container);
 
 void CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container);
+
+void RecoverLagrangianAcceleration(ModelPart& r_model_part);
 
 void CalculateVectorMaterialDerivativeFromGradient(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_gradient_container_x, Variable<array_1d<double, 3> >& vector_gradient_container_y, Variable<array_1d<double, 3> >& vector_gradient_container_z, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3>  >& material_derivative_container);
 
