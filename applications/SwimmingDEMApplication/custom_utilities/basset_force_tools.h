@@ -28,11 +28,11 @@
 //Database includes
 #include "custom_utilities/search/discrete_particle_configure.h"
 #include "includes/define.h"
-#include "../../DEM_application/custom_elements/discrete_element.h"
+#include "../../DEMApplication/custom_elements/discrete_element.h"
 #include "custom_elements/spheric_swimming_particle.h"
 #include "includes/define.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
-#include "../../DEM_application/custom_elements/spheric_particle.h"
+#include "../../DEMApplication/custom_elements/spheric_particle.h"
 #include "../swimming_DEM_application.h"
 #include "../../../kratos/utilities/geometry_utilities.h"
 

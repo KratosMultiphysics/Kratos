@@ -6,6 +6,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
 
+    if solver_type == "ale_fluid":
+        import navier_stokes_ale_fluid_solver
+        return navier_stokes_ale_fluid_solver.CreateSolver(model, solver_settings, parallelism)
+
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "Monolithic"):
@@ -14,11 +18,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "FractionalStep"):
             solver_module_name = "navier_stokes_solver_fractionalstep"
 
-        elif ((solver_type == "Embedded") or (solver_type == "EmbeddedDevelopment") or (solver_type == "EmbeddedAusasDevelopment")):
+        elif (solver_type == "Embedded"):
             solver_module_name = "navier_stokes_embedded_solver"
-
-        elif (solver_type == "EmbeddedAusas"):
-            solver_module_name = "navier_stokes_embedded_ausas_solver"
 
         elif (solver_type == "Compressible"):
             solver_module_name = "navier_stokes_compressible_solver"
@@ -39,9 +40,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif (solver_type == "Embedded"):
             solver_module_name = "trilinos_navier_stokes_embedded_solver"
-
-        elif (solver_type == "EmbeddedAusas"):
-            solver_module_name = "trilinos_navier_stokes_embedded_ausas_solver"
 
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
@@ -64,11 +62,5 @@ def CreateSolver(model, custom_settings):
 
     solver_settings = custom_settings["solver_settings"]
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-
-    if solver_settings.Has("ale_settings"):
-        KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
-        from KratosMultiphysics import MeshMovingApplication
-        import ale_fluid_solver
-        return ale_fluid_solver.CreateSolver(model, solver_settings, parallelism)
 
     return CreateSolverByParameters(model, solver_settings, parallelism)
