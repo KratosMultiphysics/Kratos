@@ -48,8 +48,16 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.communicator = communicator
         self.model_part_controller = model_part_controller
 
+        self.design_surface = None
+        self.mapper = None
+        self.data_logger = None
+        self.optimization_utilities = None
+
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
+
+        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
+        self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
@@ -77,11 +85,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.data_logger.InitializeDataLogging()
 
         self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
-
-        self.only_obj = self.objectives[0]
-
-        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
-        self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -125,15 +128,15 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
         self.communicator.initializeCommunication()
-        self.communicator.requestValueOf(self.only_obj["identifier"].GetString())
-        self.communicator.requestGradientOf(self.only_obj["identifier"].GetString())
+        self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
+        self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
 
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, self.optimization_iteration, self.communicator)
 
-        objGradientDict = self.communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
+        objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
 
-        if self.only_obj["project_gradient_on_surface_normals"].GetBool():
+        if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ComputeUnitSurfaceNormals()
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 

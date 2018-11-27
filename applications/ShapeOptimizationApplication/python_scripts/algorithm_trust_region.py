@@ -48,12 +48,17 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.optimization_settings = optimization_settings
         self.mapper_settings = optimization_settings["design_variables"]["filter"]
 
-        self.objectives = optimization_settings["objectives"]
-        self.constraints = optimization_settings["constraints"]
-
         self.analyzer = analyzer
         self.communicator = communicator
         self.model_part_controller = model_part_controller
+
+        self.design_surface = None
+        self.mapper = None
+        self.data_logger = None
+        self.optimization_utilities = None
+
+        self.objectives = optimization_settings["objectives"]
+        self.constraints = optimization_settings["constraints"]
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
 
