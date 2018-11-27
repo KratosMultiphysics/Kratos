@@ -24,7 +24,6 @@
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "spatial_containers/spatial_containers.h"
 #include "includes/key_hash.h"
 #include "shape_optimization_application.h"
 
@@ -67,16 +66,6 @@ public:
     // For better reading
     typedef array_1d<double,3> array_3d;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-
-    // Type definitions for tree-search
-    typedef ModelPart::NodeType NodeType;
-    typedef ModelPart::NodeType::Pointer NodeTypePointer;
-    typedef std::vector<NodeTypePointer> NodeVector;
-    typedef std::vector<NodeTypePointer>::iterator NodeVectorIterator;
-    typedef std::vector<double> DoubleVector;
-    typedef std::vector<double>::iterator DoubleVectorIterator;
-    typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeVectorIterator, DoubleVectorIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
@@ -206,61 +195,6 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void FlagNodesInRadius( ModelPart::NodesContainerType& rNodeSet, const Kratos::Flags& rFlag, double filter_radius)
-    {
-        unsigned int bucket_size = 100;
-
-        // Create search tree
-        if(mIsSearchTreeConstructed==false)
-        {
-            mListOfNodesInModelPArt.resize(mrModelPart.Nodes().size());
-            int counter = 0;
-            for (ModelPart::NodesContainerType::iterator node_it = mrModelPart.NodesBegin(); node_it != mrModelPart.NodesEnd(); ++node_it)
-            {
-                NodeTypePointer pnode = *(node_it.base());
-                mListOfNodesInModelPArt[counter++] = pnode;
-            }
-
-            mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInModelPArt.begin(), mListOfNodesInModelPArt.end(), bucket_size));
-            mIsSearchTreeConstructed = true;
-        }
-
-        // Mark all nodes within one filter radius away from the fixed boundary
-        unsigned int max_neighbor_nodes=10000;
-        bool is_max_number_too_small = true;
-
-        while(is_max_number_too_small == true)
-        {
-            is_max_number_too_small = false;
-            for(auto& node_i : rNodeSet)
-            {
-                NodeVector neighbor_nodes( max_neighbor_nodes );
-                DoubleVector resulting_squared_distances( max_neighbor_nodes, 0.0 );
-                unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                                 filter_radius,
-                                                                                 neighbor_nodes.begin(),
-                                                                                 resulting_squared_distances.begin(),
-                                                                                 max_neighbor_nodes );
-
-                if(number_of_neighbors >= max_neighbor_nodes)
-                {
-                    KRATOS_WARNING("> GeometryUtilities Info: ") << "For node " << node_i.Id() << " maximum number of neighbor nodes (=" << max_neighbor_nodes << " nodes) is reached! Increasing maximum number by factor 2. " << std::endl;
-                    is_max_number_too_small = true;
-                    break;
-                }
-
-                // Loop over all nodes in radius (including node on damping region itself)
-                for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
-                {
-                    ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-                    neighbor_node.Set(rFlag,true);
-                }
-            }
-            max_neighbor_nodes *=2;
-        }
-    }
-
-    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Access
@@ -348,9 +282,6 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    bool mIsSearchTreeConstructed = false;
-    NodeVector mListOfNodesInModelPArt;
-    KDTree::Pointer mpSearchTree;
 
     ///@}
     ///@name Private Operators

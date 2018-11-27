@@ -32,6 +32,8 @@
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/input_output/vtk_file_io.h"
+#include "custom_utilities/tree_based_functions.h"
+
 // ==============================================================================
 
 namespace Kratos {
@@ -141,7 +143,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
-        .def("FlagNodesInRadius", &GeometryUtilities::FlagNodesInRadius)
         ;
 
     // ========================================================================
@@ -169,6 +170,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InitializeLogging", &VTKFileIO::InitializeLogging)
         .def("LogNodalResults", &VTKFileIO::LogNodalResults)
         ;
+
+    // ========================================================================
+    // Additional operations
+    // ========================================================================
+    py::class_<TreeBasedFunctions >(m, "TreeBasedFunctions")
+        .def(py::init<ModelPart&>())
+        .def("FlagNodesInRadius", &TreeBasedFunctions::FlagNodesInRadius)
+        ;
+
 }
 
 }  // namespace Python.
