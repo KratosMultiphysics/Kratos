@@ -78,8 +78,8 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
             self.update = [data * self.current_alpha for data in self.R[0]]
         else:
             r_diff = self._Difference(self.R[0] , self.R[1])
-            numerator = cs_tools.InnterProduct( self.residual, r_diff )
-            denominator = cs_tools.InnterProduct( r_diff, r_diff )
+            numerator = cs_tools.InnerProduct( self.residual, r_diff )
+            denominator = cs_tools.InnerProduct( r_diff, r_diff )
             print("#############################")
             print("Numerator :: ", numerator)
             print("Denominator :: ", denominator)
