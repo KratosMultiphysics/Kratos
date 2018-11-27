@@ -33,9 +33,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             "name"                          : "bead_optimization",
             "bead_height"                   : 1.0,
             "bead_direction"                : [],
-            "bead_direction_mode"           : 2,
+            "bead_side"                     : "both",
             "fix_boundaries"                : [],
-            "number_of_filter_iterations"   : 1,
             "filter_penalty_term"           : false,
             "estimated_lagrange_multiplier" : 1.0,
             "max_total_iterations"          : 10000,
@@ -100,8 +99,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.only_obj = self.objectives[0]
 
         self.bead_height = self.algorithm_settings["bead_height"].GetDouble()
-        self.direction_mode = self.algorithm_settings["bead_direction_mode"].GetInt()
-        self.number_of_filter_iterations = self.algorithm_settings["number_of_filter_iterations"].GetInt()
+        self.bead_side = self.algorithm_settings["bead_side"].GetString()
         self.filter_penalty_term = self.algorithm_settings["filter_penalty_term"].GetBool()
         self.estimated_lagrange_multiplier = self.algorithm_settings["estimated_lagrange_multiplier"].GetDouble()
         self.max_total_iterations = self.algorithm_settings["max_total_iterations"].GetInt()
@@ -114,17 +112,17 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         # Specify bounds and initial values
         self.lower_bound = None
         self.upper_bound = None
-        if self.direction_mode == 1:
+        if self.bead_side == "positive":
             VariableUtils().SetScalarVar(ALPHA, 0.5, self.design_surface.Nodes)
             VariableUtils().SetScalarVar(ALPHA_MAPPED, 0.5, self.design_surface.Nodes)
             self.lower_bound = 0.0
             self.upper_bound = 1.0
-        elif self.direction_mode == -1:
+        elif self.bead_side == "negative":
             VariableUtils().SetScalarVar(ALPHA, -0.5, self.design_surface.Nodes)
             VariableUtils().SetScalarVar(ALPHA_MAPPED, -0.5, self.design_surface.Nodes)
             self.lower_bound = -1.0
             self.upper_bound = 0.0
-        elif self.direction_mode == 2:
+        elif self.bead_side == "both":
             VariableUtils().SetScalarVar(ALPHA, 0.0, self.design_surface.Nodes)
             VariableUtils().SetScalarVar(ALPHA_MAPPED, 0.0, self.design_surface.Nodes)
             self.lower_bound = -1.0
@@ -178,7 +176,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         for outer_iteration in range(1,self.max_outer_iterations+1):
             for inner_iteration in range(1,self.max_inner_iterations+1):
 
-                total_iteration = total_iteration+1
+                total_iteration += 1
                 timer.StartNewLap()
 
                 print("\n>=======================================================================================")
@@ -186,7 +184,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 print(">=======================================================================================\n")
 
                 # Initialize new shape
-                self.model_part_controller.InitializeNewOptimizationStep(total_iteration)
+                self.model_part_controller.UpdateTimeStep(total_iteration)
 
                 for node in self.design_surface.Nodes:
                     new_shape_change = node.GetSolutionStepValue(ALPHA_MAPPED) * node.GetValue(BEAD_DIRECTION) * self.bead_height
@@ -224,16 +222,14 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Map gradient of objective
                 self.mapper.InverseMap(DF1DALPHA, DF1DALPHA_MAPPED)
-                for itr in range(self.number_of_filter_iterations-1):
-                    self.mapper.InverseMap(DF1DALPHA_MAPPED, DF1DALPHA_MAPPED)
 
                 # Compute scaling
                 if outer_iteration == 1 and inner_iteration == min(3,self.max_inner_iterations):
                     max_norm_objective_term = 0.0
 
-                    if self.direction_mode == 1 or self.direction_mode == -1:
+                    if self.bead_side == "positive" or self.bead_side == "negative":
                         max_norm_penalty_term = 1.0
-                    elif self.direction_mode == 2:
+                    elif self.bead_side == "both":
                         max_norm_penalty_term = 2.0
 
                     for node in self.design_surface.Nodes:
@@ -245,29 +241,29 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Compute penalization term
                 penalty_value = 0.0
-                if self.direction_mode == 1:
+                if self.bead_side == "positive":
                     for node in self.design_surface.Nodes:
                         if not node.GetValue(IS_ALPHA_FIXED):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
-                            penalty_value = penalty_value + penalty_scaling*(alpha_i-alpha_i**2)
+                            penalty_value += penalty_scaling*(alpha_i-alpha_i**2)
 
                             penalty_gradient_i = penalty_scaling*(1-2*alpha_i)
                             node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
-                elif self.direction_mode == -1:
+                elif self.bead_side == "negative":
                     for node in self.design_surface.Nodes:
                         if not node.GetValue(IS_ALPHA_FIXED):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
-                            penalty_value = penalty_value + penalty_scaling*(-alpha_i-alpha_i**2)
+                            penalty_value += penalty_scaling*(-alpha_i-alpha_i**2)
 
                             penalty_gradient_i = penalty_scaling*(-1-2*alpha_i)
                             node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
-                elif self.direction_mode == 2:
+                elif self.bead_side == "both":
                     for node in self.design_surface.Nodes:
                         if not node.GetValue(IS_ALPHA_FIXED):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
-                            penalty_value = penalty_value + penalty_scaling*(-alpha_i**2+1)
+                            penalty_value += penalty_scaling*(-alpha_i**2+1)
 
                             penalty_gradient_i = penalty_scaling*(-2*alpha_i)
                             node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
@@ -277,7 +273,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     self.mapper.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
 
                 # Compute value of Lagrange function
-                L = objective_value + current_lambda*penalty_value + penalty_factor*(penalty_value)**2
+                L = objective_value + current_lambda*penalty_value + 0.5*penalty_factor*penalty_value**2
                 if inner_iteration == 1:
                     dL_relative = 0.0
                 else:
@@ -285,13 +281,12 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Compute gradient of Lagrange function
                 if self.filter_penalty_term:
-                    for node in self.design_surface.Nodes:
-                        dLdalpha_i = node.GetSolutionStepValue(DF1DALPHA_MAPPED) + current_lambda*node.GetSolutionStepValue(DPDALPHA_MAPPED)
-                        node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
+                    penalty_gradient_variable = DPDALPHA_MAPPED
                 else:
-                    for node in self.design_surface.Nodes:
-                        dLdalpha_i = node.GetSolutionStepValue(DF1DALPHA_MAPPED) + current_lambda*node.GetSolutionStepValue(DPDALPHA)
-                        node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
+                    penalty_gradient_variable = DPDALPHA
+                for node in self.design_surface.Nodes:
+                    dLdalpha_i = node.GetSolutionStepValue(DF1DALPHA_MAPPED) + current_lambda*node.GetSolutionStepValue(penalty_gradient_variable)
+                    node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
 
                 # Normalization using infinity norm
                 dLdalpha_for_normalization = {}
@@ -303,8 +298,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                         dLdalpha_for_normalization[node.Id] = node.GetSolutionStepValue(DLDALPHA)**2
 
                 max_value = math.sqrt(max(dLdalpha_for_normalization.values()))
-                if max_value == 0:
-                    max_value = 1
+                if max_value == 0.0:
+                    max_value = 1.0
 
                 # Compute updated design variable
                 for node in self.design_surface.Nodes:
@@ -326,8 +321,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Map design variables
                 self.mapper.Map(ALPHA, ALPHA_MAPPED)
-                for itr in range(self.number_of_filter_iterations-1):
-                    self.mapper.Map(ALPHA_MAPPED, ALPHA_MAPPED)
 
                 # Log current optimization step and store values for next iteration
                 additional_values_to_log = {}
@@ -367,7 +360,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
                 print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
-            # Compute penalyt factor such that estimated Lagrange multiplier is obtained
+            # Compute penalty factor such that estimated Lagrange multiplier is obtained
             if outer_iteration==1:
                 penalty_factor = self.estimated_lagrange_multiplier/penalty_value
 
