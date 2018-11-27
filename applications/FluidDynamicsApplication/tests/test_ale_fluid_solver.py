@@ -1,9 +1,9 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.MeshMovingApplication
+import KratosMultiphysics.FluidDynamicsApplication
+from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 try:
-    import KratosMultiphysics.FluidDynamicsApplication
-    from fluid_dynamics_analysis import FluidDynamicsAnalysis
+    import KratosMultiphysics.MeshMovingApplication
     missing_external_dependencies = True
     missing_application = ''
 except ImportError as e:
