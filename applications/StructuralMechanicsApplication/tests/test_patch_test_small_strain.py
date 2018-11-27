@@ -38,7 +38,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
-        #mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.INTEGRATION_ORDER,2)
+        #mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.INTEGRATION_ORDER,5)
 
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
@@ -135,9 +135,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             for i in range(3):
                 if abs(u[i]) > 0.0:
-                    if (d[i] - u[i])/u[i] > 1.0e-6:
-                       print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i])
-                    self.assertLess((d[i] - u[i])/u[i], 1.0e-6)
+                    error = (d[i] - u[i])/u[i]
+                    if error > 1.0e-6:
+                       print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
+                    self.assertLess(error, 1.0e-6)
 
     def _check_outputs(self,mp,A,dim):
 
@@ -372,6 +373,11 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(8,0.9,0.8,0.1)
         mp.CreateNewNode(9,0.3,0.7,0.1)
         mp.CreateNewNode(10,0.6,0.6,0.1)
+        mp.CreateNewNode(11,0.5,0.5,0.2)
+        mp.CreateNewNode(12,0.7,0.2,0.2)
+        mp.CreateNewNode(13,0.9,0.8,0.2)
+        mp.CreateNewNode(14,0.3,0.7,0.2)
+        mp.CreateNewNode(15,0.6,0.6,0.2)
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
@@ -379,20 +385,24 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
-        bcs.AddNodes([1,2,3,4,6,7,8,9])
+        bcs.AddNodes([1,2,3,4,5,6,7,8,9,11,12,13,14,15])
 
         #create Element
         mp.CreateNewElement("SmallDisplacementElement3D6N", 1, [1,2,5,6,7,10], mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement3D6N", 2, [2,3,5,7,8,10], mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement3D6N", 3, [3,4,5,8,9,10], mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement3D6N", 4, [4,1,5,9,6,10], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 5, [6,7,10,11,12,15], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 6, [7,8,10,12,13,15], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 7, [8,9,10,13,14,15], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 8, [9,6,10,14,11,15], mp.GetProperties()[1])
 
         A,b = self._define_movement(dim)
 
         self._apply_BCs(bcs,A,b)
         self._solve(mp)
-        #self._check_results(mp,A,b)
-        #self._check_outputs(mp,A,dim)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
 
         #self.__post_process(mp)
 
