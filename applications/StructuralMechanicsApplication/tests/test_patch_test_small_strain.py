@@ -38,6 +38,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
+        #mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.INTEGRATION_ORDER,2)
 
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
@@ -139,12 +140,12 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         E = mp.GetProperties()[1].GetValue(KratosMultiphysics.YOUNG_MODULUS)
         NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
 
-        #given the matrix A, the analytic deformation graident is F+I
+        # Given the matrix A, the analytic deformation gradient is F+I
         F = A
         for i in range(3):
             F[i,i] += 1.0
 
-        #here compute the Cauchy green strain tensor
+        # Here compute the Cauchy green strain tensor
         Etensor = KratosMultiphysics.Matrix(3,3)
 
         for i in range(3):
@@ -154,7 +155,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         for i in range(3):
             for j in range(3):
                 for k in range(3):
-                    Etensor[i,j] += A[k,i]*A[k,j]
+                    Etensor[i,j] += F[k,i]*F[k,j]
 
         for i in range(3):
             Etensor[i,i] -= 1.0
@@ -163,8 +164,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for j in range(3):
                 Etensor[i,j] = 0.5*Etensor[i,j]
 
+        # Verify strain
         if(dim == 2):
-            #verify strain
             reference_strain = KratosMultiphysics.Vector(3)
             reference_strain[0] = Etensor[0,0]
             reference_strain[1] = Etensor[1,1]
@@ -182,9 +183,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
             for strain in out:
                 for i in range(len(reference_strain)):
-                    self.assertAlmostEqual(reference_strain[i], strain[i])
+                    if abs(strain[i]) > 0.0:
+                        self.assertLess((reference_strain[i] - strain[i])/strain[i], 1.0e-6)
 
-        #finally compute stress
+        # Finally compute stress
         if(dim == 2):
             #here assume plane stress
             c1 = E / (1.00 - NU*NU);
@@ -211,7 +213,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR, mp.ProcessInfo)
             for stress in out:
                 for i in range(len(reference_stress)):
-                    self.assertAlmostEqual(reference_stress[i], stress[i],2)
+                    if abs(stress[i]) > 0.0:
+                        self.assertLess((reference_stress[i] - stress[i])/stress[i], 1.0e-6)
 
     def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
@@ -251,7 +254,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         #checking consistent mass matrix
         M = KratosMultiphysics.Matrix(0,0)
         mp.Elements[1].CalculateMassMatrix(M,mp.ProcessInfo)
-        Area = mp.Elements[1].GetArea()
+        Area = mp.Elements[1].GetGeometry().Area()
         for i in range(3):
             for j in range(3):
                 for k in range(dim):
