@@ -37,8 +37,11 @@ def ImportDataStructure(parameters_file_name):
 
     return cs_data_structure
 
-
-def InnterProduct(list_one, list_two):
+## InnerProduct : Computes the inner product for two give vectors (as python lists)
+#
+#  @param list_one   First vector (as a list)
+#  @param list_two   Second vector (as a list)
+def InnerProduct(list_one, list_two):
     result = 0.0
     num_entries = len(list_one)
     if(len(list_one) == len(list_two)):
