@@ -1092,82 +1092,47 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosMPICoreFastSu
     #endif
 }
 
+// Broadcast //////////////////////////////////////////////////////////////////
 
-
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcast, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastInt, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
     const int send_rank = world_size-1;
 
-    int send_buffer_int = 0;
-    double send_buffer_double = 0.0;
+    int send = world_rank == send_rank ? 1 : 0;
 
-    if (world_rank == send_rank)
-    {
-        send_buffer_int = 1;
-        send_buffer_double = 2.0;
-    }
-    int send_buffer_int_reference = send_buffer_int;
-    double send_buffer_double_reference = send_buffer_double;
-
-    serial_communicator.Broadcast(send_buffer_int,send_rank);
-    serial_communicator.Broadcast(send_buffer_double,send_rank);
-
-    // Check that serial_communicator does nothing
-    KRATOS_CHECK_EQUAL(send_buffer_int, send_buffer_int_reference);
-    KRATOS_CHECK_EQUAL(send_buffer_double, send_buffer_double_reference);
-
-    mpi_world_communicator.Broadcast(send_buffer_int,send_rank);
-    mpi_world_communicator.Broadcast(send_buffer_double,send_rank);
-
-    KRATOS_CHECK_EQUAL(send_buffer_int, 1);
-    KRATOS_CHECK_EQUAL(send_buffer_double, 2.0);
+    mpi_world_communicator.Broadcast(send,send_rank);
+    KRATOS_CHECK_EQUAL(send, 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastVector, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastDouble, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
     const int send_rank = world_size-1;
 
-    std::vector<int> send_buffer_int{0, 0};
-    std::vector<double> send_buffer_double{0.0, 0.0};
+    double send = world_rank == send_rank ? 2.0 : 0.0;
 
-    if (world_rank == send_rank)
+    mpi_world_communicator.Broadcast(send,send_rank);
+    KRATOS_CHECK_EQUAL(send, 2.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<int> send = world_rank == send_rank ? std::vector<int>{1, 1} : std::vector<int>{0, 0};
+
+    mpi_world_communicator.Broadcast(send,send_rank);
+    for (unsigned int i = 0; i < 2; i++)
     {
-        for (int i = 0; i < 2; i++)
-        {
-            send_buffer_int[i] = 1;
-            send_buffer_double[i] = 2.0;
-        }
-    }
-    std::vector<int> send_buffer_int_reference(send_buffer_int);
-    std::vector<double> send_buffer_double_reference(send_buffer_double);
-
-    serial_communicator.Broadcast(send_buffer_int,send_rank);
-    serial_communicator.Broadcast(send_buffer_double,send_rank);
-
-    // Check that serial_communicator does nothing
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(send_buffer_int[i], send_buffer_int_reference[i]);
-        KRATOS_CHECK_EQUAL(send_buffer_double[i], send_buffer_double_reference[i]);
-    }
-
-    mpi_world_communicator.Broadcast(send_buffer_int,send_rank);
-    mpi_world_communicator.Broadcast(send_buffer_double,send_rank);
-
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(send_buffer_int[i], 1);
-        KRATOS_CHECK_EQUAL(send_buffer_double[i], 2.0);
+        KRATOS_CHECK_EQUAL(send[i], 1);
     }
 
     #ifdef KRATOS_DEBUG
@@ -1176,13 +1141,43 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastVector, KratosMPICoreFastS
         // One of the ranks has a different size
         if (world_rank == 0)
         {
-            send_buffer_int.resize(3);
-            send_buffer_int = {1,2,3};
+            send.resize(3);
+            send = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send_buffer_int, send_rank),"Input error in call to MPI_Bcast");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
     }
     #endif
 }
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastDoubleVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<double> send = world_rank == send_rank ? std::vector<double>{2.0, 2.0} : std::vector<double>{0.0, 0.0};
+
+    mpi_world_communicator.Broadcast(send,send_rank);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(send[i], 2.0);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has a different size
+        if (world_rank == 0)
+        {
+            send.resize(3);
+            send = {1.0,2.0,3.0};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
+    }
+    #endif
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatter, KratosMPICoreFastSuite)
 {
