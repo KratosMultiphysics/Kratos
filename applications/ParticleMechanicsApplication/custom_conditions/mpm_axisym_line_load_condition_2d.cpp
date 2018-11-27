@@ -17,7 +17,7 @@
 
 // Project includes
 #include "custom_conditions/mpm_axisym_line_load_condition_2d.h"
-#include "custom_utilities/particle_mechanics_math_utilities.hpp"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
 {
@@ -82,14 +82,14 @@ MPMAxisymLineLoadCondition2D::~MPMAxisymLineLoadCondition2D()
 
 double MPMAxisymLineLoadCondition2D::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const SizeType PointNumber,
+    const unsigned int PointNumber,
     const double detJ
     )
 {
     // We calculate the axisymmetric coefficient
     Vector N;
     N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
-    const double Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
+    const double Radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(N, GetGeometry());
     const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
     const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
 

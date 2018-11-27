@@ -30,7 +30,14 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
+#include "particle_mechanics_application_variables.h"
 
+#if !defined(INITIAL_CURRENT)
+#define INITIAL_CURRENT
+    enum Configuration {Initial = 0, Current = 1};
+#endif
 
 namespace Kratos
 {
@@ -52,6 +59,10 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
+	typedef Node<3> NodeType;
+
+	typedef Geometry< Node<3> > GeometryType;
+
     typedef DenseVector<Vector> Second_Order_Tensor;
 
     typedef DenseVector<Second_Order_Tensor> Third_Order_Tensor;
@@ -60,6 +71,68 @@ public:
 
     typedef DenseMatrix<Second_Order_Tensor> Matrix_Second_Tensor;
 
+    /**
+     * Calculates the radius of axisymmetry
+     * @param N: The Gauss Point shape function
+     * @param Geom: The geometry studied
+     * @return Radius: The radius of axisymmetry
+     */
+
+    static inline double CalculateRadius(
+        const Vector& N,
+        GeometryType& Geom,
+        const Configuration ThisConfiguration = Current
+        )
+    {
+        double radius = 0.0;
+
+        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
+        {
+            // Displacement from the reference to the current configuration
+            if (ThisConfiguration == Current)
+            {
+                const array_1d<double, 3 >& delta_displacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
+
+                const array_1d<double, 3 > current_position = reference_position + delta_displacement;
+                radius += current_position[0] * N[iNode];
+            }
+            else
+            {
+                const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
+                radius += reference_position[0] * N[iNode];
+            }
+        }
+
+        return radius;
+    }
+
+    /**
+     * Calculates the radius of axisymmetry for a point
+     * @param Geom: The geometry studied
+     * @return The radius of axisymmetry
+     */
+
+    static inline double CalculateRadiusPoint(
+        GeometryType& Geom,
+        const Configuration ThisConfiguration = Current
+        )
+    {
+        // Displacement from the reference to the current configuration
+        if (ThisConfiguration == Current)
+        {
+            const array_1d<double, 3 >& delta_displacement = Geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& reference_position = Geom[0].Coordinates();
+
+            const array_1d<double, 3 > current_position = reference_position + delta_displacement;
+            return current_position[0];
+        }
+        else
+        {
+            const array_1d<double, 3 >& reference_position = Geom[0].Coordinates();
+            return reference_position[0];
+        }
+    }
 
     /**
      * @brief Calculates the QR Factorization of given square matrix A=QR.

@@ -65,7 +65,9 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	###conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_base_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_axisym_point_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_condition_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_axisym_line_load_condition_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_surface_load_condition_3d.cpp
 )
 
