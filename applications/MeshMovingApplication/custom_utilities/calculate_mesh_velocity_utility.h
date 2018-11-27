@@ -110,8 +110,6 @@ private:
 
     ModelPart& mrModelPart;
 
-    static MethodsMapType msAvailableMethods;
-
     IntegrationMethod mIntegrationMethod;
 
     double mbeta;
