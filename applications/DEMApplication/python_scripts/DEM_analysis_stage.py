@@ -258,6 +258,7 @@ class DEMAnalysisStage(AnalysisStage):
     def Initialize(self):
         self.step = 0
         self.time = 0.0
+        self.time_old_print
 
         self.AddVariables()
 
@@ -408,21 +409,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.RunSolutionLoop()
 
     def RunSolutionLoop(self):
-
-        self.step = 0
-        self.time = 0.0
-        self.time_old_print = 0.0
-
-        while self.time < self.end_time:
+        while self.TheSimulationMustGoOn():
             self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-            if self.BreakSolutionStepsLoop():
-                break
 
     def RunAnalytics(self, time, is_time_to_print=True):
         for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
@@ -523,6 +516,11 @@ class DEMAnalysisStage(AnalysisStage):
 
     def BreakSolutionStepsLoop(self):
         return False
+
+    def TheSimulationMustGoOn(self):
+        it_must_or_not = self.time < self.end_time
+        it_must_or_not = it_must and self.BreakSolutionStepsLoop()
+        return it_must_or_not
 
     def Finalize(self):
 
