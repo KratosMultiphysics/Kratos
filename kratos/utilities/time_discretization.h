@@ -72,7 +72,7 @@ public:
 class Newmark
 {
 public:
-    double GetBeta() const { return 0.25; }
+    double GetBeta()  const { return 0.25; }
     double GetGamma() const { return 0.5; }
 };
 
@@ -81,8 +81,9 @@ class Bossak
 public:
     Bossak(const double AlphaM)
         : mAlphaM(AlphaM) {}
-    double GetBeta() const { return 0.5 + mAlphaM; }
-    double GetGamma() const { return 0.25 * (1+mAlphaM) * (1+mAlphaM); }
+    double GetAlphaM() const { return mAlphaM; }
+    double GetBeta()   const { return 0.5 + mAlphaM; }
+    double GetGamma()  const { return 0.25 * (1+mAlphaM) * (1+mAlphaM); }
 private:
     double mAlphaM;
 };
@@ -92,8 +93,10 @@ class GeneralizedAlpha
 public:
     GeneralizedAlpha(const double AlphaM, const double AlphaF)
         : mAlphaM(AlphaM), mAlphaF(AlphaF) {}
-    double GetBeta() const { return 0.5 + mAlphaM - mAlphaF; }
-    double GetGamma() const { return 0.25 * (1+mAlphaM-mAlphaF) * (1+mAlphaM-mAlphaF); }
+    double GetAlphaM() const { return mAlphaM; }
+    double GetAlphaF() const { return mAlphaF; }
+    double GetBeta()   const { return 0.5 + mAlphaM - mAlphaF; }
+    double GetGamma()  const { return 0.25 * (1+mAlphaM-mAlphaF) * (1+mAlphaM-mAlphaF); }
 private:
     double mAlphaM;
     double mAlphaF;

@@ -11,10 +11,12 @@
 //
 
 // System includes
+#include <limits>
 
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "time_discretization.h"
 
 namespace Kratos {
@@ -22,12 +24,18 @@ namespace TimeDiscretization {
 
 void BDF1::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 2>& rCoefficients) const
 {
+    KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
+        << "Expects DeltaTime > 0!" << std::endl;
+
     rCoefficients[0] =  1.0/DeltaTime;
     rCoefficients[1] = -1.0/DeltaTime;
 }
 
 void BDF2::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 3>& rCoefficients) const
 {
+    KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
+        << "Expects DeltaTime > 0!" << std::endl;
+
     const double denom = 1.0/(2.0*DeltaTime);
 
     rCoefficients[0] =  3.0 / denom;
@@ -37,6 +45,11 @@ void BDF2::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 3>&
 
 void BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousDeltaTime, std::array<double, 3>& rCoefficients) const
 {
+    KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
+        << "Expects DeltaTime > 0!" << std::endl;
+    KRATOS_ERROR_IF(PreviousDeltaTime < std::numeric_limits<double>::epsilon())
+        << "Expects PreviousDeltaTime > 0!" << std::endl;
+
     const double rho = PreviousDeltaTime / DeltaTime;
     double time_coeff = 1.0 / (DeltaTime * rho * rho + DeltaTime * rho);
 
@@ -47,6 +60,9 @@ void BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousD
 
 void BDF3::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 4>& rCoefficients) const
 {
+    KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
+        << "Expects DeltaTime > 0!" << std::endl;
+
     const double denom = 1.0/(6.0*DeltaTime);
 
     rCoefficients[0] =  11.0 / denom;
@@ -57,6 +73,9 @@ void BDF3::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 4>&
 
 void BDF4::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 5>& rCoefficients) const
 {
+    KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
+        << "Expects DeltaTime > 0!" << std::endl;
+
     const double denom = 1.0/(12.0*DeltaTime);
 
     rCoefficients[0] =  25.0 / denom;
@@ -68,6 +87,9 @@ void BDF4::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 5>&
 
 void BDF5::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 6>& rCoefficients) const
 {
+    KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
+        << "Expects DeltaTime > 0!" << std::endl;
+
     const double denom = 1.0/(60.0*DeltaTime);
 
     rCoefficients[0] =  137.0 / denom;
@@ -80,6 +102,9 @@ void BDF5::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 6>&
 
 void BDF6::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 7>& rCoefficients) const
 {
+    KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
+        << "Expects DeltaTime > 0!" << std::endl;
+
     const double denom = 1.0/(60.0*DeltaTime);
 
     rCoefficients[0] =  147.0 / denom;
