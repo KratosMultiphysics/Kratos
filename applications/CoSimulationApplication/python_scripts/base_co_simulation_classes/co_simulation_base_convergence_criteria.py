@@ -98,7 +98,6 @@ class CoSimulationConvergenceCriteria(object):
         if(self.iteration == 1):
             self.initial_residual_norm = abs_residual_norm
 
-        print("iteration :: ", self.iteration,  "abs_residual_norm :: ", abs_residual_norm, "  self.initil_residual_norm :: ", self.initial_residual_norm)
         rel_residual_norm = abs_residual_norm / self.initial_residual_norm
 
         is_converged = abs_residual_norm < self.abs_tolerance or rel_residual_norm < self.rel_tolerance
