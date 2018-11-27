@@ -333,7 +333,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
-        bcs.AddNodes([1,2,4,5])
+        bcs.AddNodes([1,2,4,5,6,7])
 
         #create Element
         mp.CreateNewElement("SmallDisplacementElement3D4N", 1,[5,3,1,2], mp.GetProperties()[1])
@@ -350,7 +350,49 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._apply_BCs(bcs,A,b)
         self._solve(mp)
         self._check_results(mp,A,b)
-        #self._check_outputs(mp,A,dim) # TODO: Fix this!!!
+        self._check_outputs(mp,A,dim)
+
+        #self.__post_process(mp)
+
+    def test_SmallDisplacementElement_3D_prism(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.5,0.5,0.0)
+        mp.CreateNewNode(2,0.7,0.2,0.0)
+        mp.CreateNewNode(3,0.9,0.8,0.0)
+        mp.CreateNewNode(4,0.3,0.7,0.0)
+        mp.CreateNewNode(5,0.6,0.6,0.0)
+        mp.CreateNewNode(6,0.5,0.5,0.1)
+        mp.CreateNewNode(7,0.7,0.2,0.1)
+        mp.CreateNewNode(8,0.9,0.8,0.1)
+        mp.CreateNewNode(9,0.3,0.7,0.1)
+        mp.CreateNewNode(10,0.6,0.6,0.1)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,6,7,8,9])
+
+        #create Element
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 1, [1,2,5,6,7,10], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 2, [2,3,5,7,8,10], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 3, [3,4,5,8,9,10], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 4, [4,1,5,9,6,10], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        #self._check_results(mp,A,b)
+        #self._check_outputs(mp,A,dim)
 
         #self.__post_process(mp)
 
