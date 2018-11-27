@@ -54,7 +54,7 @@ std::string NewtonianTwoFluid2DLaw::Info() const {
     return "NewtonianTwoFluid2DLaw";
 }
 
-double NewtonianTwoFluid2DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const 
+double NewtonianTwoFluid2DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
 {
     double viscosity;
     EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);
@@ -104,7 +104,7 @@ void NewtonianTwoFluid2DLaw::EvaluateInPoint(
 
 double NewtonianTwoFluid2DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters& rParameters) const{
 
-    const Vector& S = rParameters.GetStrainVector(); 
+    const Vector& S = rParameters.GetStrainVector();
 
     // Norm of symetric gradient (cross terms don't get the 2)
     return std::sqrt(2.0*S[0]*S[0] + 2.0*S[1]*S[1] + S[2]*S[2]);
@@ -115,7 +115,7 @@ void NewtonianTwoFluid2DLaw::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NewtonianTwoFluid2DLaw )
 }
 
-void NewtonianTwoFluid2DLaw::load(Serializer& rSerializer) 
+void NewtonianTwoFluid2DLaw::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NewtonianTwoFluid2DLaw )
 }

@@ -11,6 +11,7 @@
 //
 
 #include "navier_stokes_wall_condition.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -233,20 +234,13 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
     }
     else {
         // Check that all required variables have been registered
-        if(VELOCITY.Key() == 0)
-            KRATOS_ERROR << "VELOCITY Key is 0. Check if the application was correctly registered.";
-        if(MESH_VELOCITY.Key() == 0)
-            KRATOS_ERROR << "MESH_VELOCITY Key is 0. Check if the application was correctly registered.";
-        if(ACCELERATION.Key() == 0)
-            KRATOS_ERROR << "ACCELERATION Key is 0. Check if the application was correctly registered.";
-        if(PRESSURE.Key() == 0)
-            KRATOS_ERROR << "PRESSURE Key is 0. Check if the application was correctly registered.";
-        if(DENSITY.Key() == 0)
-            KRATOS_ERROR << "DENSITY Key is 0. Check if the application was correctly registered.";
-        if(DYNAMIC_VISCOSITY.Key() == 0)
-            KRATOS_ERROR << "DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.";
-        if(EXTERNAL_PRESSURE.Key() == 0)
-            KRATOS_ERROR << "EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.";
+        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
+        KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY)
+        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
+        KRATOS_CHECK_VARIABLE_KEY(PRESSURE)
+        KRATOS_CHECK_VARIABLE_KEY(DENSITY)
+        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY)
+        KRATOS_CHECK_VARIABLE_KEY(EXTERNAL_PRESSURE)
 
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom

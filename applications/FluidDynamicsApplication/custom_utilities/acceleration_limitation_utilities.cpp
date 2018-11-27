@@ -32,7 +32,7 @@ namespace Kratos
 
     void AccelerationLimitationUtilities::Execute() {
 
-        double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+        const double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
         ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
         #pragma omp parallel for
@@ -42,10 +42,10 @@ namespace Kratos
 
             // retrieving velocities of current and last time step
             array_1d<double, 3> &v  = i->FastGetSolutionStepValue( VELOCITY, 0 );
-            const array_1d<double, 3> vn = i->FastGetSolutionStepValue( VELOCITY, 1 );
+            const array_1d<double, 3> &vn = i->FastGetSolutionStepValue( VELOCITY, 1 );
 
             array_1d<double, 3> delta_v = v - vn;
-            double norm_delta_v = sqrt( delta_v[0]*delta_v[0] + delta_v[1]*delta_v[1] + delta_v[2]*delta_v[2] );
+            const double norm_delta_v = std::sqrt( delta_v[0]*delta_v[0] + delta_v[1]*delta_v[1] + delta_v[2]*delta_v[2] );
 
             const double alpha = norm_delta_v / ( dt * mMaximalAccelaration * 9.81 );
 
@@ -61,8 +61,8 @@ namespace Kratos
 
     /**
      * @brief Set a new value for the maximal acceleration
-     * The value is given as a multiple of the gravitational acceleration (1g = 9.81 m/s²) 
-     *  
+     * The value is given as a multiple of the gravitational acceleration (1g = 9.81 m/s²)
+     *
      * @param newMaxAcc new maximal acceleration
      */
 

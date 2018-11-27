@@ -91,17 +91,18 @@ bool MassConservationCheckProcess::GetUpdateStatus(){
 
 void MassConservationCheckProcess::ComputeVolumesOfFluids( double& posVol, double& negVol ){
 
-    // useless containers
-    Matrix rShapeFunctionsPos, rShapeFunctionsNeg;
-    GeometryType::ShapeFunctionsGradientsType rShapeDerivativesPos, rShapeDerivativesNeg;
-
     // initalisation
     posVol = 0.0;
     negVol = 0.0;
 
+    #pragma omp parallel for reduction(+: posVol, negVol)
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
         // iteration over all elements
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+
+        // useless containers
+        Matrix rShapeFunctionsPos, rShapeFunctionsNeg;
+        GeometryType::ShapeFunctionsGradientsType rShapeDerivativesPos, rShapeDerivativesNeg;
 
         auto p_geom = it_elem->pGetGeometry();
         unsigned int ptCountPos = 0;
@@ -109,11 +110,8 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double& posVol, doubl
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < p_geom->Points().size(); pt++){
-            if ( p_geom->GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                ptCountPos++;
-            } else {
-                ptCountNeg++;
-            }
+            if ( p_geom->GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){ ptCountPos++; }
+            else { ptCountNeg++; }
         }
 
         if ( ptCountPos == p_geom->PointsNumber() ){
@@ -162,10 +160,8 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double& posVol, doubl
             for ( unsigned int i = 0; i < w_gauss_neg_side.size(); i++){
                 negVol += w_gauss_neg_side[i];
             }
-
         }
     }
 }
-
 
 };  // namespace Kratos.

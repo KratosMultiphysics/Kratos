@@ -14,7 +14,6 @@
 #define  KRATOS_ACCELERATION_LIMITATION_UTILITIES_H_INCLUDED
 
 // System includes
-#include <string>
 #include <iostream>
 
 // External includes
@@ -53,7 +52,7 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{
-    
+
     typedef Geometry<Node<3>>                                 GeometryType;
     typedef IntegrationPoint<3>                       IntegrationPointType;
     typedef std::vector<IntegrationPointType>   IntegrationPointsArrayType;
@@ -69,12 +68,12 @@ namespace Kratos
 
     /**
      * @brief Construct a new Acceleration Limitation Utilities object
-     * 
+     *
      * @param ModelPart model part to be controlled
      * @param multipleOfG specification of maximal acceleration in multiples of the gravitational acceleration
      */
     AccelerationLimitationUtilities( ModelPart &ModelPart, double multipleOfG ) : mrModelPart(ModelPart) {
-        
+
         this->mMaximalAccelaration = multipleOfG;
     };
 
@@ -99,7 +98,7 @@ namespace Kratos
 
     /**
      * @brief Set the Limit As Multiple Of Gravitional Acceleration object
-     * 
+     *
      * @param newMaxAcc new maximal acceleration
      */
     void SetLimitAsMultipleOfGravitionalAcceleration( double& newMaxAcc );
@@ -144,9 +143,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart &mrModelPart; 
+    ModelPart &mrModelPart;
     // The utilities model part saved as a reference
-        
+
     double mMaximalAccelaration = 3.0;
     // given in multipples of gravitational acceleration
 
