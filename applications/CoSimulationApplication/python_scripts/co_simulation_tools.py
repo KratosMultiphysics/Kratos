@@ -17,6 +17,10 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
+## ImportDataStructure : Imports the data structre which is specified in the parameters file
+#
+#  @param parameters_file_name   The JSON file name which contains the settings for the co-simulation
 def ImportDataStructure(parameters_file_name):
     import json
     import sys
@@ -63,7 +67,8 @@ def CalculateNorm(residual_list): ## Can use numpy here.
 ## GetDataAsList : Converts the data as a python list.
 #                       variants of this class can use numpy array
 #
-#  @param self            The object pointer
+#  @param solver        The solver from which data is to be obtained.
+#  @param data_name     The name of the data which is to be obtained as a list
 def GetDataAsList(solver, data_name):
     data = []
     data_def = solver.data_list[data_name]
@@ -76,10 +81,11 @@ def GetDataAsList(solver, data_name):
 
     return data
 
-## ApplyUpdateToData : Converts the data as a python list.
-#                       variants of this class can use numpy array
+## ApplyUpdateToData : Apply the update provided to the data with name data_name
 #
-#  @param self            The object pointer
+#  @param solver        The solver from which data is to be obtained.
+#  @param data_name     The name of the data to which the update is to be applied
+#  @param update        The update list which is to be applied to the data with name data_name
 def ApplyUpdateToData(solver, data_name, update):
     data_def = solver.data_list[data_name]
     data_mesh = solver.model[data_def["geometry_name"].GetString()]

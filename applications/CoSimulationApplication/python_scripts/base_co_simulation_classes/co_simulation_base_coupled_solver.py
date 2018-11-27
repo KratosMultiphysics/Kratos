@@ -16,7 +16,7 @@ import collections
 class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     ## The constructor
     #
-    #  @param self            The object pointer.
+
     #  @param custom_settings     parameters for configuring the CoSimulationBaseCoupledSolver
     def __init__(self, custom_settings):
         ##settings string in json format
@@ -57,35 +57,35 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
             self.coupling_started = True
     ## Initialize : Initialize function. Called only once
     #               all member variables are initialized here.
-    #  @param self            The object pointer.
+
     def Initialize(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.Initialize()
 
     ## Finalize : Finalize function. Called only once
     #               all member variables are finalized here.
-    #  @param self            The object pointer.
+
     def Finalize(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.Finalize()
 
     ## Predict : Predict the solution of the next solution step.
     #
-    #  @param self            The object pointer.
+
     def Predict(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.Predict()
 
     ## InitializeSolutionStep : Called once in the beginning of the solution step
     #
-    #  @param self            The object pointer.
+
     def InitializeSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.InitializeSolutionStep()
 
     ## FinalizeSolutionStep : Called once at the end of the solution step
     #
-    #  @param self            The object pointer.
+
     def FinalizeSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.FinalizeSolutionStep()
@@ -94,7 +94,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #                       The output of the solvers and / or co-simulation output
     #                       can be performed in this function.
     #
-    #  @param self            The object pointer.
+
     def OutputSolutionStep(self):
         for solver_name, solver in self.participating_solvers.items():
             solver.OutputSolutionStep()
@@ -120,7 +120,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #                      functions of its participating solvers in a specific
     #                      order.
     #
-    #  @param self            The object pointer.
+
     def SolveSolutionStep(self):
         err_msg  = 'Calling "SolveSolutionStep" of the "CoSimulationBaseCouplingSolver"!\n'
         err_msg += 'This function has to be implemented in the derived class!'
@@ -131,7 +131,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #          IMPORTANT : Check the time step sizes and other setting of
     #                       participating solvers.
     #
-    #  @param self            The object pointer.
+
     def Check(self):
         for solver_name, solver in self.participating_solvers.items():
            solver.Check()
@@ -139,7 +139,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     ## PrintInfo : Function to display information about the
     #              specifics of the coupled solver.
     #
-    #  @param self            The object pointer.
+
     def PrintInfo(self):
         print("The class", self.__class__.__name__," has the following participants:")
         for solver_name, solver in self.participating_solvers.items():
@@ -155,7 +155,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  How the solvers get their data from their remote solvers is handled in ImportData and ExportData
     #  functions. Here Import and Export data functions of to_solver and from_solver are called.
     #
-    #  @param self            The object pointer.
     #  @param solver_name     string: name of the solver for which data has to be synchronized
     def _SynchronizeInputData(self, solver_name):
         if self.coupling_started:
@@ -178,7 +177,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #                           interface and the remote solver. This assumes that the remote solver
     #                           has output the data in the format specified in the settings (of the out put data def in JSON)
     #
-    #  @param self            The object pointer.
     def _SynchronizeOutputData(self, solver_name):
         if self.coupling_started:
             solver = self.participating_solvers[solver_name]
@@ -192,7 +190,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
     ## _GetSolvers : Private Function to make the participating solver objects
     #
-    #  @param self            The object pointer.
     def _GetSolvers(self, SolversDataMap):
         solvers_map = collections.OrderedDict()
         num_solvers = len(SolversDataMap.keys())
@@ -207,7 +204,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     ## _GetSolverCoSimulationDetails : Private Function to obtain a dict of setting with solver
     #                                  name as key
     #
-    #  @param self            The object pointer.
     def _GetSolverCoSimulationDetails(self,co_simulation_solver_settings):
         num_solvers = co_simulation_solver_settings.size()
         solver_cosim_details = {}
@@ -225,7 +221,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
     ## _GetConvergenceAccelerators : Private Function to make convergence accelerator objects list
     #
-    #  @param self            The object pointer.
     #  @param conv_acc_settings dict: setting of the convergence accelerator to be make
     def _GetConvergenceAccelerators(self, conv_acc_settings):
         conv_accelerators = []
@@ -242,7 +237,6 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
     ## _GetConvergenceCriteria : Private Function to make convergence criteria objects list
     #
-    #  @param self            The object pointer.
     #  @param conv_acc_settings dict: setting of the convergence criteria to be make
     def _GetConvergenceCriteria(self, conv_criteria_settings):
         conv_criteria = []
