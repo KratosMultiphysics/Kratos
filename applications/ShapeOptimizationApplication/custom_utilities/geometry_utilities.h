@@ -206,7 +206,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void FlagNodesInRadius( ModelPart::NodesContainerType& rNodeSet, const Variable<bool>& rFlagVariable, double filter_radius)
+    void FlagNodesInRadius( ModelPart::NodesContainerType& rNodeSet, const Kratos::Flags& rFlag, double filter_radius)
     {
         unsigned int bucket_size = 100;
 
@@ -253,7 +253,7 @@ public:
                 for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
                 {
                     ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-                    neighbor_node.SetValue(rFlagVariable,true);
+                    neighbor_node.Set(rFlag,true);
                 }
             }
             max_neighbor_nodes *=2;

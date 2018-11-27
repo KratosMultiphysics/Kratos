@@ -58,8 +58,31 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.communicator = communicator
         self.model_part_controller = model_part_controller
 
+        self.design_surface = None
+        self.mapper = None
+        self.data_logger = None
+        self.optimization_utilities = None
+
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
+
+        self.bead_height = self.algorithm_settings["bead_height"].GetDouble()
+        self.bead_side = self.algorithm_settings["bead_side"].GetString()
+        self.filter_penalty_term = self.algorithm_settings["filter_penalty_term"].GetBool()
+        self.estimated_lagrange_multiplier = self.algorithm_settings["estimated_lagrange_multiplier"].GetDouble()
+        self.max_total_iterations = self.algorithm_settings["max_total_iterations"].GetInt()
+        self.max_outer_iterations = self.algorithm_settings["max_outer_iterations"].GetInt()
+        self.max_inner_iterations = self.algorithm_settings["max_inner_iterations"].GetInt()
+        self.min_inner_iterations = self.algorithm_settings["min_inner_iterations"].GetInt()
+        self.inner_iteration_tolerance = self.algorithm_settings["inner_iteration_tolerance"].GetDouble()
+        self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+
+        self.lower_bound = None
+        self.upper_bound = None
+
+        self.lambda0 = 0.0
+        self.penalty_scaling_0 = 1.0
+        self.penalty_factor_0 = 1.0
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(ALPHA)
@@ -80,6 +103,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
         self.model_part_controller.ImportOptimizationModelPart()
+        self.model_part_controller.SetMinimalBufferSize(2)
         self.model_part_controller.InitializeMeshController()
         self.model_part_controller.ComputeUnitSurfaceNormals()
 
@@ -95,23 +119,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
 
-        # Extract variables
-        self.only_obj = self.objectives[0]
-
-        self.bead_height = self.algorithm_settings["bead_height"].GetDouble()
-        self.bead_side = self.algorithm_settings["bead_side"].GetString()
-        self.filter_penalty_term = self.algorithm_settings["filter_penalty_term"].GetBool()
-        self.estimated_lagrange_multiplier = self.algorithm_settings["estimated_lagrange_multiplier"].GetDouble()
-        self.max_total_iterations = self.algorithm_settings["max_total_iterations"].GetInt()
-        self.max_outer_iterations = self.algorithm_settings["max_outer_iterations"].GetInt()
-        self.max_inner_iterations = self.algorithm_settings["max_inner_iterations"].GetInt()
-        self.min_inner_iterations = self.algorithm_settings["min_inner_iterations"].GetInt()
-        self.inner_iteration_tolerance = self.algorithm_settings["inner_iteration_tolerance"].GetDouble()
-        self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
-
-        # Specify bounds and initial values
-        self.lower_bound = None
-        self.upper_bound = None
+        # Specify bounds
         if self.bead_side == "positive":
             VariableUtils().SetScalarVar(ALPHA, 0.5, self.design_surface.Nodes)
             VariableUtils().SetScalarVar(ALPHA_MAPPED, 0.5, self.design_surface.Nodes)
@@ -130,12 +138,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         else:
             raise RuntimeError("Specified bead direction mode not supported!")
 
-        self.lambda0 = 0.0
-        self.penalty_scaling_0 = 1.0
-        self.penalty_factor_0 = 1.0
-
         # Identify fixed design areas
-        VariableUtils().SetNonHistoricalVariable(IS_ALPHA_FIXED, False, self.optimization_model_part.Nodes)
+        VariableUtils().SetFlag(BOUNDARY, False, self.optimization_model_part.Nodes)
 
         radius = self.mapper_settings["filter_radius"].GetDouble()
         geometry_utilities = GeometryUtilities(self.optimization_model_part)
@@ -143,7 +147,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         for itr in range(self.algorithm_settings["fix_boundaries"].size()):
             sub_model_part_name = self.algorithm_settings["fix_boundaries"][itr].GetString()
             node_set = self.optimization_model_part.GetSubModelPart(sub_model_part_name).Nodes
-            geometry_utilities.FlagNodesInRadius(node_set, IS_ALPHA_FIXED, radius)
+            geometry_utilities.FlagNodesInRadius(node_set, BOUNDARY, radius)
 
         # Specify bead direction
         bead_direction = self.algorithm_settings["bead_direction"].GetVector()
@@ -201,13 +205,13 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 # Analyze shape
                 self.communicator.initializeCommunication()
-                self.communicator.requestValueOf(self.only_obj["identifier"].GetString())
-                self.communicator.requestGradientOf(self.only_obj["identifier"].GetString())
+                self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
+                self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
 
                 self.analyzer.AnalyzeDesignAndReportToCommunicator(self.design_surface, total_iteration, self.communicator)
 
-                objective_value = self.communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
-                objGradientDict = self.communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
+                objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+                objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
                 WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
 
                 self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
@@ -243,7 +247,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 penalty_value = 0.0
                 if self.bead_side == "positive":
                     for node in self.design_surface.Nodes:
-                        if not node.GetValue(IS_ALPHA_FIXED):
+                        if not node.Is(BOUNDARY):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
                             penalty_value += penalty_scaling*(alpha_i-alpha_i**2)
 
@@ -252,7 +256,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 elif self.bead_side == "negative":
                     for node in self.design_surface.Nodes:
-                        if not node.GetValue(IS_ALPHA_FIXED):
+                        if not node.Is(BOUNDARY):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
                             penalty_value += penalty_scaling*(-alpha_i-alpha_i**2)
 
@@ -261,7 +265,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
                 elif self.bead_side == "both":
                     for node in self.design_surface.Nodes:
-                        if not node.GetValue(IS_ALPHA_FIXED):
+                        if not node.Is(BOUNDARY):
                             alpha_i = node.GetSolutionStepValue(ALPHA)
                             penalty_value += penalty_scaling*(-alpha_i**2+1)
 
@@ -292,7 +296,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 dLdalpha_for_normalization = {}
                 for node in self.design_surface.Nodes:
                     nodal_alpha = node.GetSolutionStepValue(ALPHA)
-                    if nodal_alpha==self.lower_bound or nodal_alpha==self.upper_bound or node.GetValue(IS_ALPHA_FIXED):
+                    if nodal_alpha==self.lower_bound or nodal_alpha==self.upper_bound or node.Is(BOUNDARY):
                         dLdalpha_for_normalization[node.Id] = 0.0
                     else:
                         dLdalpha_for_normalization[node.Id] = node.GetSolutionStepValue(DLDALPHA)**2
@@ -311,7 +315,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     alpha_new = min(alpha_new, self.upper_bound)
 
                     # Enforce constraints
-                    if node.GetValue(IS_ALPHA_FIXED):
+                    if node.Is(BOUNDARY):
                         alpha_new = 0.0
 
                     node.SetSolutionStepValue(ALPHA,alpha_new)
