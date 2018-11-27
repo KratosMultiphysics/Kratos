@@ -99,8 +99,8 @@ class Solution(main_script.Solution):
     def SetFinalTime(self):
         self.end_time = end_time
 
-    def Setdt(self):
-        self.dt = dt
+    def SetDt(self):
+        self.solver.dt = dt
 
     def Initialize(self):
         self.DEM_parameters["problem_name"].SetString('benchmark' + str(benchmark_number))
@@ -142,7 +142,7 @@ class Solution(main_script.Solution):
 
     def BeforePrintingOperations(self, time):
         super(Solution, self).BeforePrintingOperations(time)
-        self.Setdt()
+        self.SetDt()
         benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)
 
     def Finalize(self):
