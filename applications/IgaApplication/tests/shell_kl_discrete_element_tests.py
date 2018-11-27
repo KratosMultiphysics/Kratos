@@ -23,7 +23,7 @@ def GetFilePath(fileName):
 class ShellKLDiscreteElementTests(KratosUnittest.TestCase):
 
     def solve_cantilever(create_geometry):
-        model = Model() 
+        model = Model()
         model_part = model.CreateModelPart('Model')
 
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
