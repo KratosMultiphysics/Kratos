@@ -45,7 +45,7 @@ with open(response_log_filename, 'r') as csvfile:
     resulting_penalty_factor = float(last_line[11].strip())
 
     # Check against specifications
-    TestCase().assertAlmostEqual(resulting_lagrange_value,  3.02720E-02,5)
+    TestCase().assertAlmostEqual(resulting_lagrange_value,  2.46402E-02,5)
     TestCase().assertAlmostEqual(resulting_objective_value, 4.32855E-04,5)
     TestCase().assertAlmostEqual(resulting_penalty_value, 1.85756E-02,5)
     TestCase().assertAlmostEqual(resulting_penalty_scaling, 3.17829E-04,5)
