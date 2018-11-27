@@ -55,18 +55,6 @@ class KratosIo(CoSimulationBaseIO):
                 origin_var_name = data_config["origin_data_config"]["name"].GetString()
                 dest_geo_name = data_config["geometry_name"].GetString()
                 dest_var_name = data_config["name"].GetString()
-                if(self.HasMapper((origin_geo_name,dest_geo_name))):
-                    mapper = self.GetMapper((origin_geo_name,dest_geo_name))
-                elif(self.HasMapper((dest_geo_name,origin_geo_name))):
-                    mapper = self.GetMapper((dest_geo_name,origin_geo_name))
-                else: # Create the mapper
-                    mapper_settings = KratosMultiphysics.Parameters("""{
-                                                                        "mapper_type" : ""
-                                                                    }""")
-                    mapper_settings["mapper_type"].SetString(data_config["mapper_settings"]["type"].GetString())
-                    origin_geo = from_solver.model[origin_geo_name]
-                    dest_geo = self.model[dest_geo_name]
-                    mapper = self.SetupMapper(origin_geo, dest_geo, mapper_settings)
 
                 flags = data_config["mapper_settings"]["flags"]
                 origin_var = KratosMultiphysics.KratosGlobals.GetVariable(origin_var_name)
@@ -79,7 +67,22 @@ class KratosIo(CoSimulationBaseIO):
                         flag_name = flags[i].GetString()
                         set_flags |= self.mapper_flags[flag_name]
 
-                mapper.Map(origin_var, dest_var, set_flags)
+                if(self.HasMapper((origin_geo_name,dest_geo_name))):
+                    mapper = self.GetMapper((origin_geo_name,dest_geo_name))
+                    mapper.Map(origin_var, dest_var, set_flags)
+                elif(self.HasMapper((dest_geo_name,origin_geo_name))):
+                    mapper = self.GetMapper((dest_geo_name,origin_geo_name))
+                    mapper.Map(dest_var, origin_var, set_flags)
+                else: # Create the mapper
+                    mapper_settings = KratosMultiphysics.Parameters("""{
+                                                                        "mapper_type" : ""
+                                                                    }""")
+                    mapper_settings["mapper_type"].SetString(data_config["mapper_settings"]["type"].GetString())
+                    origin_geo = from_solver.model[origin_geo_name]
+                    dest_geo = self.model[dest_geo_name]
+                    mapper = self.SetupMapper(origin_geo, dest_geo, mapper_settings)
+
+                    mapper.Map(origin_var, dest_var, set_flags)
             else:
                 pass ## We can copy one to one instead of mapping here.
         else:
@@ -111,13 +114,44 @@ class KratosIo(CoSimulationBaseIO):
     #                                             also contains the data to export.
     #  @param to_solver       python object : The solver to which mesh is to be exported.
     def ExportData(self, data_config, to_solver):
-        if(to_solver): # IMPORTANT : exchanging data between python cosim solvers should be avoided here.
-            # put data on to python cosim solver.
-            print('############################## print from kratos io')
-            adsfsdf
-            pass
+        if(to_solver):
+            # exchange data from python cosim solver
+            if(data_config.Has("mapper_settings")):
+                dest_geo_name = data_config["destination_data_config"]["geometry_name"].GetString()
+                dest_var_name = data_config["destination_data_config"]["name"].GetString()
+                origin_geo_name = data_config["geometry_name"].GetString()
+                origin_var_name = data_config["name"].GetString()
+
+                flags = data_config["mapper_settings"]["flags"]
+                origin_var = KratosMultiphysics.KratosGlobals.GetVariable(origin_var_name)
+                dest_var = KratosMultiphysics.KratosGlobals.GetVariable(dest_var_name)
+
+                set_flags = KratosMultiphysics.Flags()
+                if data_config["mapper_settings"].Has("flags"):
+                    num_flags = flags.size()
+                    for i in range(num_flags):
+                        flag_name = flags[i].GetString()
+                        set_flags |= self.mapper_flags[flag_name]
+
+                if(self.HasMapper((origin_geo_name,dest_geo_name))):
+                    mapper = self.GetMapper((origin_geo_name,dest_geo_name))
+                    mapper.Map(origin_var, dest_var, set_flags)
+                elif(self.HasMapper((dest_geo_name,origin_geo_name))):
+                    mapper = self.GetMapper((dest_geo_name,origin_geo_name))
+                    mapper.InverseMap(dest_var, origin_var, set_flags)
+                else: # Create the mapper
+                    mapper_settings = KratosMultiphysics.Parameters("""{
+                                                                        "mapper_type" : ""
+                                                                    }""")
+                    mapper_settings["mapper_type"].SetString(data_config["mapper_settings"]["type"].GetString())
+                    origin_geo = from_solver.model[origin_geo_name]
+                    dest_geo = self.model[dest_geo_name]
+                    mapper = self.SetupMapper(origin_geo, dest_geo, mapper_settings)
+                    mapper.Map(origin_var, dest_var, set_flags)
+            else:
+                pass ## We can copy one to one instead of mapping here.
         else:
-            # export the given data to the remote solver
+            # import data from remote solver
             pass
 
     ## ExportMesh :  used to export mesh to other solvers
