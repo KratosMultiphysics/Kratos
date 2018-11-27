@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef TREE_BASED_FUNCTIONS
-#define TREE_BASED_FUNCTIONS
+#ifndef SEARCH_BASED_FUNCTIONS
+#define SEARCH_BASED_FUNCTIONS
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -56,7 +56,7 @@ namespace Kratos
 
 */
 
-class TreeBasedFunctions
+class SearchBasedFunctions
 {
 public:
     ///@name Type Definitions
@@ -76,15 +76,15 @@ public:
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeVectorIterator, DoubleVectorIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
 
-    /// Pointer definition of TreeBasedFunctions
-    KRATOS_CLASS_POINTER_DEFINITION(TreeBasedFunctions);
+    /// Pointer definition of SearchBasedFunctions
+    KRATOS_CLASS_POINTER_DEFINITION(SearchBasedFunctions);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TreeBasedFunctions( ModelPart& modelPart )
+    SearchBasedFunctions( ModelPart& modelPart )
         : mrModelPart( modelPart ),
           mBucketSize(100),
           mMaxNeighborNodes(10000)
@@ -102,7 +102,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~TreeBasedFunctions()
+    virtual ~SearchBasedFunctions()
     {
     }
 
@@ -137,7 +137,7 @@ public:
 
                 if(number_of_neighbors >= mMaxNeighborNodes)
                 {
-                    KRATOS_WARNING("> TreeBasedFunctions Info: ") << "For node " << node_i.Id() << " maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) is reached! Increasing maximum number by factor 2. " << std::endl;
+                    KRATOS_WARNING("> SearchBasedFunctions Info: ") << "For node " << node_i.Id() << " maximum number of neighbor nodes (=" << mMaxNeighborNodes << " nodes) is reached! Increasing maximum number by factor 2. " << std::endl;
                     is_max_number_too_small = true;
                     break;
                 }
@@ -172,13 +172,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "TreeBasedFunctions";
+        return "SearchBasedFunctions";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "TreeBasedFunctions";
+        rOStream << "SearchBasedFunctions";
     }
 
     /// Print object's data.
@@ -271,15 +271,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      TreeBasedFunctions& operator=(TreeBasedFunctions const& rOther);
+//      SearchBasedFunctions& operator=(SearchBasedFunctions const& rOther);
 
     /// Copy constructor.
-//      TreeBasedFunctions(TreeBasedFunctions const& rOther);
+//      SearchBasedFunctions(SearchBasedFunctions const& rOther);
 
 
     ///@}
 
-}; // Class TreeBasedFunctions
+}; // Class SearchBasedFunctions
 
 ///@}
 
@@ -296,4 +296,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // TREE_BASED_FUNCTIONS
+#endif // SEARCH_BASED_FUNCTIONS

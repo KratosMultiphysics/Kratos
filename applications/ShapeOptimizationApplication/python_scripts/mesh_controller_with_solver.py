@@ -41,7 +41,7 @@ class MeshControllerWithSolver(MeshController) :
                 "mesh_motion_linear_solver_settings" : {
                     "solver_type" : "AMGCL",
                     "smoother_type":"ilu0",
-                    "krylov_type": "bicgstab",
+                    "krylov_type": "gmres",
                     "coarsening_type": "aggregation",
                     "max_iteration": 200,
                     "verbosity" : 0,
