@@ -567,74 +567,62 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxDoubleVector, KratosMPICoreFastS
 
 // SumAll /////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAll, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumAllInt, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
 
-    int local_int = 1;
-    double local_double = 2.0;
-    array_1d<double,3> local_array;
-    local_array[0] = -1.0;
-    local_array[1] =  0.0;
-    local_array[2] =  1.0;
-
-    // local version: do nothing
-    int int_sum = serial_communicator.SumAll(local_int);
-    KRATOS_CHECK_EQUAL(int_sum, 1);
-
-    double double_sum = serial_communicator.SumAll(local_double);
-    KRATOS_CHECK_EQUAL(double_sum, 2.0);
-
-    array_1d<double,3> array_sum = serial_communicator.SumAll(local_array);
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        KRATOS_CHECK_EQUAL(local_array[i], array_sum[i]);
-    }
-
-    // MPI version
-    int_sum = mpi_world_communicator.SumAll(local_int);
-    double_sum = mpi_world_communicator.SumAll(local_double);
-    array_sum = mpi_world_communicator.SumAll(local_array);
-
-    int world_size = mpi_world_communicator.Size();
-
-    KRATOS_CHECK_EQUAL(int_sum, world_size);
-    KRATOS_CHECK_EQUAL(double_sum, 2.*world_size);
-
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        KRATOS_CHECK_EQUAL(array_sum[i], local_array[i]*world_size);
-    }
+    int local = 1;
+    int result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(result, world_size);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllVector, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumAllDouble, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-    int world_size = mpi_world_communicator.Size();
+    const int world_size = mpi_world_communicator.Size();
 
-    std::vector<int> local_int_vector{1, 1};
-    std::vector<double> local_double_vector{2.0, 2.0};
-    std::vector<int> reduced_int_vector{-1, -1};
-    std::vector<double> reduced_double_vector{-1.0, -1.0};
+    double local = 2.0;
+    double result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(result, 2.0*world_size);
+}
 
-    // local version: do nothing
-    serial_communicator.SumAll(local_int_vector, reduced_int_vector);
-    serial_communicator.SumAll(local_double_vector, reduced_double_vector);
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorSumAllArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    array_1d<double,3> local;
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+
+    array_1d<double,3> result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(result[0], -1.0*world_size);
+    KRATOS_CHECK_EQUAL(result[1],  0.0);
+    KRATOS_CHECK_EQUAL(result[2],  1.0*world_size);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<int> local{1, 1};
+    std::vector<int> output{-1, -1};
+
+    // two-buffer version
+    mpi_world_communicator.SumAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(reduced_int_vector[i], -1);
-        KRATOS_CHECK_EQUAL(reduced_double_vector[i], -1.0);
+        KRATOS_CHECK_EQUAL(output[i], world_size);
     }
 
-    // MPI version
-    mpi_world_communicator.SumAll(local_int_vector, reduced_int_vector);
-    mpi_world_communicator.SumAll(local_double_vector, reduced_double_vector);
+    // return buffer version
+    std::vector<int> returned_result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(reduced_int_vector[i], world_size);
-        KRATOS_CHECK_EQUAL(reduced_double_vector[i], 2.0*world_size);
+        KRATOS_CHECK_EQUAL(returned_result[i], world_size);
     }
 
     #ifdef KRATOS_DEBUG
@@ -642,189 +630,278 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllVector, KratosMPICoreFastSuit
     {
         // One of the inputs has a different size
         if (mpi_world_communicator.Rank() == 0) {
-            local_int_vector.resize(3);
-            local_int_vector = {1,2,3};
+            local.resize(3);
+            local = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_int_vector, reduced_int_vector),"Input error in call to MPI_Allreduce");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
     std::vector<int> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAll, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllDoubleVector, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
 
-    int world_rank = mpi_world_communicator.Rank();
+    std::vector<double> local{2.0, 2.0};
+    std::vector<double> output{-1.0, -1.0};
 
-    int local_int = world_rank;
-    double local_double = 2.0*world_rank;
-    array_1d<double,3> local_array;
-    local_array[0] = -1.0*world_rank;
-    local_array[1] =  0.0;
-    local_array[2] =  1.0*world_rank;
-
-    // local version: do nothing
-    int int_min = serial_communicator.MinAll(local_int);
-    KRATOS_CHECK_EQUAL(int_min, local_int);
-
-    double double_min = serial_communicator.MinAll(local_double);
-    KRATOS_CHECK_EQUAL(double_min, local_double);
-
-    array_1d<double,3> array_min = serial_communicator.MinAll(local_array);
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        KRATOS_CHECK_EQUAL(array_min[i], local_array[i]);
-    }
-
-    // MPI version
-    int_min = mpi_world_communicator.MinAll(local_int);
-    double_min = mpi_world_communicator.MinAll(local_double);
-    array_min = mpi_world_communicator.MinAll(local_array);
-
-    KRATOS_CHECK_EQUAL(int_min, 0);
-    KRATOS_CHECK_EQUAL(double_min, 0.0);
-
-    int world_size = mpi_world_communicator.Size();
-    KRATOS_CHECK_EQUAL(array_min[0], -1.0*(world_size-1));
-    KRATOS_CHECK_EQUAL(array_min[1],  0.0);
-    KRATOS_CHECK_EQUAL(array_min[2],  0.0);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllVector, KratosMPICoreFastSuite)
-{
-    DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-    int world_rank = mpi_world_communicator.Rank();
-    int world_size = mpi_world_communicator.Size();
-
-    std::vector<int> local_int_vector{world_rank, -world_rank};
-    std::vector<double> local_double_vector{2.0*world_rank, -2.0*world_rank};
-    std::vector<int> reduced_int_vector{0, 0};
-    std::vector<double> reduced_double_vector{0.0, 0.0};
-
-    // local version: do nothing
-    serial_communicator.MinAll(local_int_vector, reduced_int_vector);
-    serial_communicator.MinAll(local_double_vector, reduced_double_vector);
+    // two-buffer version
+    mpi_world_communicator.SumAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(reduced_int_vector[i], 0);
-        KRATOS_CHECK_EQUAL(reduced_double_vector[i], 0.0);
+        KRATOS_CHECK_EQUAL(output[i], 2.0*world_size);
     }
 
-    // MPI version
-    mpi_world_communicator.MinAll(local_int_vector, reduced_int_vector);
-    mpi_world_communicator.MinAll(local_double_vector, reduced_double_vector);
-    KRATOS_CHECK_EQUAL(reduced_int_vector[0], 0);
-    KRATOS_CHECK_EQUAL(reduced_int_vector[1], 1-world_size);
-    KRATOS_CHECK_EQUAL(reduced_double_vector[0], 0.0);
-    KRATOS_CHECK_EQUAL(reduced_double_vector[1], 2.0*(1-world_size));
+    // return buffer version
+    std::vector<double> returned_result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(returned_result[i], 2.0*world_size);
+    }
 
     #ifdef KRATOS_DEBUG
     if (world_size > 1)
     {
         // One of the inputs has a different size
         if (mpi_world_communicator.Rank() == 0) {
-            local_int_vector.resize(3);
-            local_int_vector = {1,2,3};
+            local.resize(3);
+            local = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_int_vector, reduced_int_vector),"Input error in call to MPI_Allreduce");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
-    std::vector<int> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAll, KratosMPICoreFastSuite)
+// MinAll /////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinAllInt, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
 
-    int world_rank = mpi_world_communicator.Rank();
-
-    int local_int = world_rank;
-    double local_double = 2.0*world_rank;
-    array_1d<double,3> local_array;
-    local_array[0] = -1.0*world_rank;
-    local_array[1] =  0.0;
-    local_array[2] =  1.0*world_rank;
-
-    // local version: do nothing
-    int int_max = serial_communicator.MaxAll(local_int);
-    KRATOS_CHECK_EQUAL(int_max, local_int);
-
-    double double_max = serial_communicator.MaxAll(local_double);
-    KRATOS_CHECK_EQUAL(double_max, local_double);
-
-    array_1d<double,3> array_max = serial_communicator.MaxAll(local_array);
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        KRATOS_CHECK_EQUAL(array_max[i], local_array[i]);
-    }
-
-    // MPI version
-    int_max = mpi_world_communicator.MaxAll(local_int);
-    double_max = mpi_world_communicator.MaxAll(local_double);
-    array_max = mpi_world_communicator.MaxAll(local_array);
-
-    int world_size = mpi_world_communicator.Size();
-    KRATOS_CHECK_EQUAL(int_max, world_size-1);
-
-    KRATOS_CHECK_EQUAL(double_max, 2.0*(world_size-1));
-
-    KRATOS_CHECK_EQUAL(array_max[0], 0.0);
-    KRATOS_CHECK_EQUAL(array_max[1], 0.0);
-    KRATOS_CHECK_EQUAL(array_max[2], 1.0*(world_size-1));
+    int local = world_rank;
+    int result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(result, 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllVector, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinAllDouble, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-    int world_rank = mpi_world_communicator.Rank();
-    int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
 
-    std::vector<int> local_int_vector{world_rank, -world_rank};
-    std::vector<double> local_double_vector{2.0*world_rank, -2.0*world_rank};
-    std::vector<int> reduced_int_vector{0, 0};
-    std::vector<double> reduced_double_vector{0.0, 0.0};
+    double local = 2.0*world_rank;
+    double result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(result, 0.0);
+}
 
-    // local version: do nothing
-    serial_communicator.MaxAll(local_int_vector, reduced_int_vector);
-    serial_communicator.MaxAll(local_double_vector, reduced_double_vector);
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(reduced_int_vector[i], 0);
-        KRATOS_CHECK_EQUAL(reduced_double_vector[i], 0.0);
-    }
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinAllArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    array_1d<double,3> local;
+    local[0] = -1.0*world_rank;
+    local[1] =  0.0;
+    local[2] =  1.0*world_rank;
 
-    // MPI version
-    mpi_world_communicator.MaxAll(local_int_vector, reduced_int_vector);
-    mpi_world_communicator.MaxAll(local_double_vector, reduced_double_vector);
-    KRATOS_CHECK_EQUAL(reduced_int_vector[0], world_size-1);
-    KRATOS_CHECK_EQUAL(reduced_int_vector[1], 0);
-    KRATOS_CHECK_EQUAL(reduced_double_vector[0], 2.0*(world_size-1));
-    KRATOS_CHECK_EQUAL(reduced_double_vector[1], 0.0);
+    array_1d<double,3> result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(result[0], -1.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(result[1],  0.0);
+    KRATOS_CHECK_EQUAL(result[2],  0.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<int> local{world_rank, -world_rank};
+    std::vector<int> output{-1, -1};
+
+    // two-buffer version
+    mpi_world_communicator.MinAll(local, output);
+    KRATOS_CHECK_EQUAL(output[0], 0);
+    KRATOS_CHECK_EQUAL(output[1], -(world_size-1));
+
+    // return buffer version
+    std::vector<int> returned_result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_CHECK_EQUAL(returned_result[0], 0);
+    KRATOS_CHECK_EQUAL(returned_result[1], -(world_size-1));
 
     #ifdef KRATOS_DEBUG
     if (world_size > 1)
     {
         // One of the inputs has a different size
         if (mpi_world_communicator.Rank() == 0) {
-            local_int_vector.resize(3);
-            local_int_vector = {1,2,3};
+            local.resize(3);
+            local = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_int_vector, reduced_int_vector),"Input error in call to MPI_Allreduce");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
     std::vector<int> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, reduced_int_vector),"Input error in call to MPI_Allreduce");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllDoubleVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<double> local{2.0*world_rank, -2.0*world_rank};
+    std::vector<double> output{-1.0, -1.0};
+
+    // two-buffer version
+    mpi_world_communicator.MinAll(local, output);
+    KRATOS_CHECK_EQUAL(output[0], 0);
+    KRATOS_CHECK_EQUAL(output[1], -2.0*(world_size-1));
+
+    // return buffer version
+    std::vector<double> returned_result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_CHECK_EQUAL(returned_result[0], 0.0);
+    KRATOS_CHECK_EQUAL(returned_result[1], -2.0*(world_size-1));
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local.resize(3);
+            local = {1.0,2.0,3.0};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local, output),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    #endif
+}
+
+// MaxAll /////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMaxAllInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    int local = world_rank;
+    int result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(result, world_size-1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMaxAllDouble, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    double local = 2.0*world_rank;
+    double result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(result, 2.0*(world_size-1));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMaxAllArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    array_1d<double,3> local;
+    local[0] = -1.0*world_rank;
+    local[1] =  0.0;
+    local[2] =  1.0*world_rank;
+
+    array_1d<double,3> result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(result[0], 0.0);
+    KRATOS_CHECK_EQUAL(result[1], 0.0);
+    KRATOS_CHECK_EQUAL(result[2], 1.0*(world_size-1));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllIntVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<int> local{world_rank, -world_rank};
+    std::vector<int> output{-1, -1};
+
+    // two-buffer version
+    mpi_world_communicator.MaxAll(local, output);
+    KRATOS_CHECK_EQUAL(output[0], world_size-1);
+    KRATOS_CHECK_EQUAL(output[1], 0);
+
+    // return buffer version
+    std::vector<int> returned_result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_CHECK_EQUAL(returned_result[0], world_size-1);
+    KRATOS_CHECK_EQUAL(returned_result[1], 0);
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local.resize(3);
+            local = {1,2,3};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local, output),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<int> local_vector_wrong_size{1,2,3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    #endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllDoubleVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    std::vector<double> local{2.0*world_rank, -2.0*world_rank};
+    std::vector<double> output{-1.0, -1.0};
+
+    // two-buffer version
+    mpi_world_communicator.MaxAll(local, output);
+    KRATOS_CHECK_EQUAL(output[0], 2.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(output[1], 0.0);
+
+    // return buffer version
+    std::vector<double> returned_result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_CHECK_EQUAL(returned_result[0], 2.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(returned_result[1], 0.0);
+
+    #ifdef KRATOS_DEBUG
+    if (world_size > 1)
+    {
+        // One of the inputs has a different size
+        if (mpi_world_communicator.Rank() == 0) {
+            local.resize(3);
+            local = {1.0,2.0,3.0};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local, output),"Input error in call to MPI_Allreduce");
+    }
+    // Input size != output size
+    std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    #endif
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSum, KratosMPICoreFastSuite)
 {
