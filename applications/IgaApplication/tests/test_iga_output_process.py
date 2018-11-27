@@ -23,67 +23,55 @@ def CreateNodes(model_part):
     model_part.CreateNewNode(8, -0.01,  0.52, -0.05)
     model_part.CreateNewNode(9, -0.49, -0.0,   0.0)
 
-def GetEigenValueVector(num_eigenvalues):
-    # this function creates "random" eigenvalues
-    eigenval_vector = KratosMultiphysics.Vector(num_eigenvalues)
+def SetSolutionSteps(model_part):
+    model_part.GetNode(1).SetSolutionStepValue(DISPLACEMENT, [0,2,0.1])
+    model_part.GetNode(2).SetSolutionStepValue(DISPLACEMENT, [0,7.3,4.1])
+    model_part.GetNode(3).SetSolutionStepValue(DISPLACEMENT, [3,4,0.1])
+    model_part.GetNode(4).SetSolutionStepValue(DISPLACEMENT, [34,2,0.1])
+    model_part.GetNode(5).SetSolutionStepValue(DISPLACEMENT, [0,2,0.435])
+    model_part.GetNode(6).SetSolutionStepValue(DISPLACEMENT, [34,2,0.1])
+    model_part.GetNode(7).SetSolutionStepValue(DISPLACEMENT, [7,2,34.1])
+    model_part.GetNode(8).SetSolutionStepValue(DISPLACEMENT, [5,4,8.1])
+    model_part.GetNode(9).SetSolutionStepValue(DISPLACEMENT, [4,24,92])
 
-    for i in range(num_eigenvalues):
-        eigenval_vector[i] = (i*5+9.333)**5.234
-
-    return eigenval_vector
-
-def GetEigenVectorMatrix(num_eigenvalues, node_id):
-    # this function creates "random" eigenvectors based on the node id
-    eigenvec_matrix = KratosMultiphysics.Matrix(num_eigenvalues, 6)
-
-    for i in range(num_eigenvalues):
-        for j in range(6):
-            eigenvec_matrix[i,j] = ((node_id+1)**(i+0.258) + 5)/(j+2.2)
-
-    return eigenvec_matrix
-
+def CreateElements(model_part):
+    element1 = model_part.CreateNewElement("ShellKLDiscreteElement",1,[1,2,3,4,5,6,7,8,9])
+    element1.SetValue(SHAPE_FUNCTION_VALUES, [0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0])
 
 class TestIgaOutputProcess(KratosUnittest.TestCase):
     def tearDown(self):
-        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.msh")
-        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.res") # usually this is deleted by the check process but not if it fails
+        kratos_utils.DeleteFileIfExisting("test_nodal_results.post.res") # usually this is deleted by the check process but not if it fails
 
 
-    def test_IgaOutputProcess(self):
+    def test_nodal_results(self):
         test_model = KratosMultiphysics.Model()
         model_part = test_model.CreateModelPart("Structure")
         comp_model_part = model_part.CreateSubModelPart("computing_domain")
 
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
 
         CreateNodes(comp_model_part)
 
-        # adding dofs is needed for the process internally
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,model_part)
-
-
-        # set EigenValues and -Vectors
-        num_eigenvalues = 4
-        eigenval_vector = GetEigenValueVector(num_eigenvalues)
-        model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = eigenval_vector
-
-        for node in model_part.Nodes:
-            node.SetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX,
-                          GetEigenVectorMatrix(num_eigenvalues, node.Id))
+        SetSolutionSteps(comp_model_part)
 
         # Use the process
         # here the minimum settings are specified to test the default values!
-        settings_eigen_process = KratosMultiphysics.Parameters("""{"result_file_format_use_ascii" : true}""")
+        settings_nodal_results_process = KratosMultiphysics.Parameters("""{
+            "python_module": "iga_output_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "IgaOutputProcess",
+            "Parameters": {
+              "nodal_results": [ "DISPLACEMENT" ],
+              "integration_point_results": [ ],
+              "output_file_name": "nodal_results.post.res",
+              "model_part_name": "computing_domain",
+              "file_label": "step",
+              "output_control_type": "time",
+              "output_frequency": 0.1
+            }
+          }""")
 
-        post_eigen_process = PostProcessEigenvaluesProcess(test_model, settings_eigen_process)
+        post_eigen_process = IgaOutputProcess(test_model, settings_nodal_results_process)
 
         post_eigen_process.ExecuteInitialize()
         post_eigen_process.ExecuteBeforeSolutionLoop()
@@ -94,28 +82,88 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
         post_eigen_process.ExecuteAfterOutputStep()
         post_eigen_process.ExecuteFinalize()
 
-        # check the results
-        settings_check_process = KratosMultiphysics.Parameters("""
-        {
-            "reference_file_name"   : "",
-            "output_file_name"      : "",
-            "remove_output_file"    : true,
-            "comparison_type"       : "post_res_file"
-        }
-        """)
+        ## check the results
+        #settings_check_process = KratosMultiphysics.Parameters("""
+        #{
+        #    "reference_file_name"   : "",
+        #    "output_file_name"      : "",
+        #    "comparison_type"       : "post_res_file"
+        #}
+        #""")
 
-        settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
-        settings_check_process["output_file_name"].SetString("Structure_EigenResults_0.post.res")
+        #settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
+        #settings_check_process["output_file_name"].SetString("Structure_EigenResults_0.post.res")
 
-        check_process = CompareTwoFilesCheckProcess(settings_check_process)
+        #check_process = CompareTwoFilesCheckProcess(settings_check_process)
 
-        check_process.ExecuteInitialize()
-        check_process.ExecuteBeforeSolutionLoop()
-        check_process.ExecuteInitializeSolutionStep()
-        check_process.ExecuteFinalizeSolutionStep()
-        check_process.ExecuteBeforeOutputStep()
-        check_process.ExecuteAfterOutputStep()
-        check_process.ExecuteFinalize()
+        #check_process.ExecuteInitialize()
+        #check_process.ExecuteBeforeSolutionLoop()
+        #check_process.ExecuteInitializeSolutionStep()
+        #check_process.ExecuteFinalizeSolutionStep()
+        #check_process.ExecuteBeforeOutputStep()
+        #check_process.ExecuteAfterOutputStep()
+        #check_process.ExecuteFinalize()
+
+    def test_nodal_results(self):
+        test_model = KratosMultiphysics.Model()
+        model_part = test_model.CreateModelPart("Structure")
+        comp_model_part = model_part.CreateSubModelPart("computing_domain")
+
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+
+        CreateNodes(comp_model_part)
+
+        SetSolutionSteps(comp_model_part)
+
+        # Use the process
+        # here the minimum settings are specified to test the default values!
+        settings_nodal_results_process = KratosMultiphysics.Parameters("""{
+            "python_module": "iga_output_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "IgaOutputProcess",
+            "Parameters": {
+              "nodal_results": [ ],
+              "integration_point_results": [ "COORDINATES" ],
+              "output_file_name": "nodal_results.post.res",
+              "model_part_name": "computing_domain",
+              "file_label": "step",
+              "output_control_type": "time",
+              "output_frequency": 0.1
+            }
+          }""")
+
+        post_eigen_process = IgaOutputProcess(test_model, settings_nodal_results_process)
+
+        post_eigen_process.ExecuteInitialize()
+        post_eigen_process.ExecuteBeforeSolutionLoop()
+        post_eigen_process.ExecuteInitializeSolutionStep()
+        post_eigen_process.ExecuteFinalizeSolutionStep()
+        post_eigen_process.ExecuteBeforeOutputStep()
+        post_eigen_process.PrintOutput()
+        post_eigen_process.ExecuteAfterOutputStep()
+        post_eigen_process.ExecuteFinalize()
+
+        ## check the results
+        #settings_check_process = KratosMultiphysics.Parameters("""
+        #{
+        #    "reference_file_name"   : "",
+        #    "output_file_name"      : "",
+        #    "comparison_type"       : "post_res_file"
+        #}
+        #""")
+
+        #settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
+        #settings_check_process["output_file_name"].SetString("Structure_EigenResults_0.post.res")
+
+        #check_process = CompareTwoFilesCheckProcess(settings_check_process)
+
+        #check_process.ExecuteInitialize()
+        #check_process.ExecuteBeforeSolutionLoop()
+        #check_process.ExecuteInitializeSolutionStep()
+        #check_process.ExecuteFinalizeSolutionStep()
+        #check_process.ExecuteBeforeOutputStep()
+        #check_process.ExecuteAfterOutputStep()
+        #check_process.ExecuteFinalize()
 
 
 if __name__ == '__main__':

@@ -13,8 +13,7 @@ class IgaOutputProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         ## Settings string in json format
-        default_parameters = KratosMultiphysics.Parameters("""
-        {
+        default_parameters = KratosMultiphysics.Parameters("""{
             "nodal_results"             : [],
             "integration_point_results" : [],
             "output_file_name"          : "",
@@ -22,8 +21,7 @@ class IgaOutputProcess(KratosMultiphysics.Process):
             "file_label"                : "step",
             "output_control_type"       : "step",
             "output_frequency"          : 1.0
-        }
-        """)
+        }""")
 
         ## Overwrite the default settings with user-provided parameters
         self.params = params
@@ -32,6 +30,8 @@ class IgaOutputProcess(KratosMultiphysics.Process):
         self.model_part = model[self.params["model_part_name"].GetString()]
 
         self.output_file_name = self.params["output_file_name"].GetString()
+        if not self.output_file_name.endswith(".post.res"):
+            self.output_file_name += ".post.res"
 
         self.nodal_results_scalar, self.nodal_results_vector = \
             CreateVariablesListFromInput(self.params["nodal_results"])
