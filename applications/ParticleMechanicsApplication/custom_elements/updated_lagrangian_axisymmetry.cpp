@@ -98,7 +98,7 @@ void UpdatedLagrangianAxisymmetry::Initialize()
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     const double mp_volume = this->GetValue(MP_VOLUME);
     const double pi = std::atan(1.0)*4.0;
-    const double mp_mass = mp_volume * 2* pi * xg[0] * GetProperties()[DENSITY];
+    const double mp_mass = mp_volume * 2 * pi * xg[0] * GetProperties()[DENSITY];
     this->SetValue(MP_MASS, mp_mass);
 
     mDeterminantF0 = 1;
@@ -504,7 +504,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, const array_
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int number_nodes = rGeom.PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
 
     if (dimension ==2)
     {
@@ -513,10 +513,10 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, const array_
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
-            rResult( 0, 0 ) += ( GetGeometry().GetPoint( i ).X() *  shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( GetGeometry().GetPoint( i ).X() *  shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( GetGeometry().GetPoint( i ).Y() *  shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( GetGeometry().GetPoint( i ).Y() *  shape_functions_gradients( i, 1 ) );
+            rResult( 0, 0 ) += ( rGeom.GetPoint( i ).X() *  shape_functions_gradients( i, 0 ) );
+            rResult( 0, 1 ) += ( rGeom.GetPoint( i ).X() *  shape_functions_gradients( i, 1 ) );
+            rResult( 1, 0 ) += ( rGeom.GetPoint( i ).Y() *  shape_functions_gradients( i, 0 ) );
+            rResult( 1, 1 ) += ( rGeom.GetPoint( i ).Y() *  shape_functions_gradients( i, 1 ) );
         }
 
     }
@@ -597,7 +597,7 @@ Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResu
     const GeometryType& rGeom = GetGeometry();
     const unsigned int dimension = rGeom.WorkingSpaceDimension();
 
-    array_1d<double,3> rPointLocal = ZeroVector(dimension);
+    array_1d<double,3> rPointLocal = ZeroVector(3);
     rPointLocal = rGeom.PointLocalCoordinates(rPointLocal, rPoint);
 
     if (dimension == 2 && rGeom.PointsNumber() == 3)
@@ -637,7 +637,7 @@ Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResu
 Matrix& UpdatedLagrangianAxisymmetry::MPMShapeFunctionsLocalGradients( Matrix& rResult )
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    array_1d<double,3> rPointLocal = ZeroVector(dimension);
+    array_1d<double,3> rPointLocal = ZeroVector(3);
 
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, xg);
@@ -654,7 +654,6 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMShapeFunctionsLocalGradients( Matrix& r
     }
     else if (dimension == 2 && GetGeometry().PointsNumber() == 4)
     {
-
         rResult = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -0.25 * (1 - rPointLocal[1]);
         rResult( 0, 1 ) = -0.25 * (1 - rPointLocal[0]);
