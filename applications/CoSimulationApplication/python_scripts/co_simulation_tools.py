@@ -89,16 +89,16 @@ def GetDataAsList(solver, data_name):
 #  @param solver        The solver from which data is to be obtained.
 #  @param data_name     The name of the data to which the update is to be applied
 #  @param update        The update list which is to be applied to the data with name data_name
-def ApplyUpdateToData(solver, data_name, update):
+def ApplyUpdateToData(solver, data_name, updated_data):
     data_def = solver.data_list[data_name]
     data_mesh = solver.model[data_def["geometry_name"].GetString()]
     data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
     index = 0
-
     for node in data_mesh.Nodes:
         updated_value = []
         value = node.GetSolutionStepValue(data_variable,0)
         for i, value_i in enumerate(value):
-            updated_value.append(value_i + update[index])
+            #updated_value.append(0.0)
+            updated_value.append(updated_data[index])
+            index = index + 1
         node.SetSolutionStepValue(data_variable, updated_value)
-        index = index + 1
