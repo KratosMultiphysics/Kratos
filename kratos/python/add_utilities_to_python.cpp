@@ -802,11 +802,14 @@ void AddUtilitiesToPython(pybind11::module& m)
         ;
     py::class_<TimeDiscretization::Bossak>(m, "Bossak")
         .def(py::init<const double>())
+        .def("GetAlphaM", &TimeDiscretization::Bossak::GetAlphaM)
         .def("GetBeta", &TimeDiscretization::Bossak::GetBeta)
         .def("GetGamma", &TimeDiscretization::Bossak::GetGamma)
         ;
     py::class_<TimeDiscretization::GeneralizedAlpha>(m, "GeneralizedAlpha")
         .def(py::init<const double, const double>())
+        .def("GetAlphaM", &TimeDiscretization::GeneralizedAlpha::GetAlphaM)
+        .def("GetAlphaF", &TimeDiscretization::GeneralizedAlpha::GetAlphaF)
         .def("GetBeta", &TimeDiscretization::GeneralizedAlpha::GetBeta)
         .def("GetGamma", &TimeDiscretization::GeneralizedAlpha::GetGamma)
         ;
