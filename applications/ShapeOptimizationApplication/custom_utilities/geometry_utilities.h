@@ -244,7 +244,7 @@ public:
 
                 if(number_of_neighbors >= max_neighbor_nodes)
                 {
-                    std::cout << "\n> Info: For node " << node_i.Id() << " maximum number of neighbor nodes (=" << max_neighbor_nodes << " nodes) is reached! Increasing maximum number by factor 2. " << std::endl;
+                    KRATOS_WARNING("> GeometryUtilities Info: ") << "For node " << node_i.Id() << " maximum number of neighbor nodes (=" << max_neighbor_nodes << " nodes) is reached! Increasing maximum number by factor 2. " << std::endl;
                     is_max_number_too_small = true;
                     break;
                 }
