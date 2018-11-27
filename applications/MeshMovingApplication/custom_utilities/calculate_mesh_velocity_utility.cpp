@@ -168,9 +168,18 @@ void CalculateMeshVelocityUtility::CalculateMeshVelocitiesGeneralizedAlpha(const
 const CalculateMeshVelocityUtility::TupleType& CalculateMeshVelocityUtility::GetMethod(
     const std::string& rIntegrationMethod)
 {
-    const auto it_method = msAvailableMethods.find(rIntegrationMethod);
+    // register the available integration-methods
+    static const CalculateMeshVelocityUtility::MethodsMapType avail_methods = {
+        {"bdf1",              TupleType{bdf1,              2}},
+        {"bdf2",              TupleType{bdf2,              3}},
+        {"generalized_alpha", TupleType{generalized_alpha, 2}},
+        {"bossak",            TupleType{generalized_alpha, 2}},
+        {"newmark",           TupleType{generalized_alpha, 2}}
+    };
 
-    if (it_method != msAvailableMethods.end()) {
+    const auto it_method = avail_methods.find(rIntegrationMethod);
+
+    if (it_method != avail_methods.end()) {
         return it_method->second;
     }
     else {
@@ -180,23 +189,13 @@ const CalculateMeshVelocityUtility::TupleType& CalculateMeshVelocityUtility::Get
                 << "\" is not available!\n"
                 << "The following options are available:" << std::endl;
 
-        for (const auto& avail_method : msAvailableMethods) {
+        for (const auto& avail_method : avail_methods) {
             err_msg << "\t" << avail_method.first << "\n";
         }
 
         KRATOS_ERROR << err_msg.str() << std::endl;
     }
 }
-
-// register the available integration-methods
-CalculateMeshVelocityUtility::MethodsMapType CalculateMeshVelocityUtility::msAvailableMethods = {
-    {"bdf1",              TupleType{bdf1,              2}},
-    {"bdf2",              TupleType{bdf2,              3}},
-    {"generalized_alpha", TupleType{generalized_alpha, 2}},
-    {"bossak",            TupleType{generalized_alpha, 2}},
-    {"newmark",           TupleType{generalized_alpha, 2}}
-};
-
 
 }  // namespace Kratos.
 
