@@ -213,8 +213,8 @@ public:
                 if(i->IsDefined(ACTIVE))
                 {
                     Properties::Pointer properties = i->pGetProperties();
-                    int material_id = i->GetProperties().Id();
-                    double density  = i->GetProperties()[DENSITY];
+                    const int material_id = i->GetProperties().Id();
+                    const double density  = i->GetProperties()[DENSITY];
 
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
@@ -284,8 +284,13 @@ public:
 
                     // Evaluation of element area/volume
                     const double area = rGeom.Area();
-
-                    MP_Mass   = area * density / integration_point_per_elements;
+                    if(TDim == 2 && i->GetProperties().Has( THICKNESS )){
+						const double thickness = i->GetProperties()[THICKNESS];
+						MP_Mass = area * thickness * density / integration_point_per_elements;
+					}
+					else {
+                        MP_Mass = area * density / integration_point_per_elements;
+                    }
                     MP_Volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
@@ -300,8 +305,8 @@ public:
                             new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
                         }
                         Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
-                        double MP_Density  = density;
-                        int MP_Material_Id = material_id;
+                        const double MP_Density  = density;
+                        const int MP_Material_Id = material_id;
 
                         xg.clear();
 
