@@ -114,9 +114,9 @@ public:
         const bool use_element_provided_strain = cl_options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         if (use_element_provided_strain) {
-            CalculateTangentTensorProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold);
+            CalculateTangentTensorSmallDeformationProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure);
         } else {
-            CalculateTangentTensorNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold);
+            CalculateTangentTensorSmallDeformationNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure);
         }
     }
 
@@ -126,9 +126,9 @@ public:
      * @param pConstitutiveLaw Pointer to the CL
      * @param rStressMeasure The stress measure of the law
      */
-    static void CalculateTangentTensorProvidedStrain(
+    static void CalculateTangentTensorSmallDeformationProvidedStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw* pConstitutiveLaw,
+        ConstitutiveLaw *pConstitutiveLaw,
         const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
         const bool ConsiderPertubationThreshold = true
         )
@@ -137,13 +137,14 @@ public:
         const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
         const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
-        // The constitutive tensor
+        // The number of components
+        const SizeType num_components = stress_vector_gp.size();
+
+        // The tangent tensor
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
-        Matrix auxiliar_tensor = ZeroMatrix(6,6);
-
-        const SizeType num_components = unperturbed_strain_vector_gp.size();
-
+        Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
+      
         // Calculate the perturbation
         double pertubation;
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
@@ -151,6 +152,7 @@ public:
             CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
             pertubation = std::max(component_perturbation, pertubation);
         }
+      
         // We check that the perturbation has a threshold value of PerturbationThreshold
         if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
@@ -181,27 +183,30 @@ public:
      * @param pConstitutiveLaw Pointer to the CL
      * @param rStressMeasure The stress measure of the law
      */
-    static void CalculateTangentTensorNotProvidedStrain(
+    static void CalculateTangentTensorSmallDeformationNotProvidedStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw* pConstitutiveLaw,
+        ConstitutiveLaw *pConstitutiveLaw,
         const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
         const bool ConsiderPertubationThreshold = true
         )
     {
         // Converged values to be storaged
-        const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
-        const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
+        const Vector stress_vector_gp = rValues.GetStressVector();
+
+        // The number of components
+        const SizeType num_components = stress_vector_gp.size();
 
         // Converged values to be storaged (only used in case of elements that not provide the strain)
         const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
         const double det_unperturbed_deformation_gradient_gp = double(rValues.GetDeterminantF());
 
-        // The constitutive tensor
+        // The tangent tensor
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
-        Matrix auxiliar_tensor = ZeroMatrix(6,6);
+        Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
 
-        const SizeType num_components = unperturbed_strain_vector_gp.size();
+        const std::size_t size1 = unperturbed_deformation_gradient_gp.size1();
+        const std::size_t size2 = unperturbed_deformation_gradient_gp.size2();
 
         // Calculate the perturbation
         double pertubation;
@@ -212,35 +217,31 @@ public:
         }
         // We check that the perturbation has a threshold value of PerturbationThreshold
         if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
-
+      
         // Loop over components of the strain
-        Vector& r_perturbed_strain = rValues.GetStrainVector();
         Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
         Matrix& r_perturbed_deformation_gradient = const_cast<Matrix&>(rValues.GetDeformationGradientF());
         double& r_perturbed_det_deformation_gradient = const_cast<double&>(rValues.GetDeterminantF());
-        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
-            // Apply the perturbation
-            PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
+        for (IndexType i_component = 0; i_component < size1; ++i_component) {
+            for (IndexType j_component = i_component; j_component < size2; ++j_component) {
+                // Apply the perturbation
+                PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
 
-            // In case the element uses F as input instead of the strain vector
-            noalias(r_perturbed_deformation_gradient) = ComputeEquivalentDeformationGradient(rValues);
-            // Reset the values to the initial ones
-            r_perturbed_det_deformation_gradient = MathUtils<double>::DetMat(r_perturbed_deformation_gradient);
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-            // We continue with the calculations
-            IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+                // Compute delta stress
+                const Vector& delta_stress = r_perturbed_integrated_stress - stress_vector_gp;
 
-            // Compute tangent moduli
-            const Vector& delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
-            ComputeComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, i_component);
+                // Finally we compute the components
+                const IndexType voigt_index = CalculateVoigtIndex(delta_stress, i_component, j_component);
+                CalculateComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, voigt_index);
 
-            // Reset the values to the initial ones
-            noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
-            noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
-
-            // In case the element uses F as input instead of the strain vector. Reset the values to the initial ones
-            noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
-            r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
+                // Reset the values to the initial ones
+                noalias(r_perturbed_integrated_stress) = stress_vector_gp;
+                noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
+                r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
+            }
         }
         noalias(r_tangent_tensor) = auxiliar_tensor;
     }
@@ -269,11 +270,22 @@ public:
         const SizeType size1 = unperturbed_deformation_gradient_gp.size1();
         const SizeType size2 = unperturbed_deformation_gradient_gp.size2();
 
-        // The constitutive tensor
+        const Vector stress_vector_gp = rValues.GetStressVector();
+        const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
+        const double det_unperturbed_deformation_gradient_gp = double(rValues.GetDeterminantF());
+
+        // The number of components
+        const SizeType num_components = stress_vector_gp.size();
+
+        double aux_det;
+        Matrix inverse_perturbed_deformation_gradient(size1, size2);
+        Matrix deformation_gradient_increment(size1, size2);
+
+        // The tangent tensor
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
-        Matrix auxiliar_tensor = ZeroMatrix(6,6);
-
+        Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
+      
         // Calculate the perturbation
         double pertubation;
         for (IndexType i_component = 0; i_component < size1; ++i_component) {
@@ -283,27 +295,36 @@ public:
                 pertubation = std::max(component_perturbation, pertubation);
             }
         }
+      
         // We check that the perturbation has a threshold value of PerturbationThreshold
         if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
-
+      
         // Loop over components of the strain
+        Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
         Matrix& r_perturbed_deformation_gradient = const_cast<Matrix&>(rValues.GetDeformationGradientF());
         double& r_perturbed_det_deformation_gradient = const_cast<double&>(rValues.GetDeterminantF());
-        Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
-        for (IndexType i_component = 0; i_component < size1; ++i_component) {
-            for (IndexType j_component = i_component; j_component < size2; ++j_component) { // Doing a symmetric perturbation
+        for (std::size_t i_component = 0; i_component < size1; ++i_component) {
+            for (std::size_t j_component = i_component; j_component < size2; ++j_component) {
                 // Apply the perturbation
                 PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
-                r_perturbed_det_deformation_gradient = MathUtils<double>::DetMat(r_perturbed_deformation_gradient);
 
                 // We continue with the calculations
                 IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-                // Compute tangent moduli
-                const Vector delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
-                ComputeComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, i_component);
+                // We compute the new predictive stress vector // TODO: I need to check this, maybe I am overcomplicating everything
+                MathUtils<double>::InvertMatrix(r_perturbed_deformation_gradient,inverse_perturbed_deformation_gradient, aux_det);
+                deformation_gradient_increment = prod(inverse_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp);
+                rValues.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient_increment));
+                rValues.SetDeformationGradientF(deformation_gradient_increment);
+                Vector delta_stress;
+                pConstitutiveLaw->CalculateValue(rValues, r_stress_variable, delta_stress);
+
+                // Finally we compute the components
+                const IndexType voigt_index = CalculateVoigtIndex(delta_stress, i_component, j_component);
+                CalculateComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, voigt_index);
 
                 // Reset the values to the initial ones
+                noalias(r_perturbed_integrated_stress) = stress_vector_gp;
                 noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
                 r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
             }
@@ -613,24 +634,146 @@ private:
     }
 
     /**
-     * @brief This assigns the values to the tangent tensor
+     * @brief This calculates the values to the tangent tensor
      * @param rTangentTensor The desired tangent tensor
      * @param rDeltaStress The increment of stress
      * @param Perturbation The pertubation considered
      * @param Component Index of the component to compute
      */
-    static void ComputeComponentsToTangentTensor(
+    static void CalculateComponentsToTangentTensor(
         Matrix& rTangentTensor,
         const Vector& rDeltaStress,
         const double Perturbation,
         const IndexType Component
         )
     {
-        const SizeType dimension = rDeltaStress.size();
-        for (IndexType row = 0; row < dimension; ++row) {
+        const SizeType voigt_size = rDeltaStress.size();
+        for (IndexType row = 0; row < voigt_size; ++row) {
             rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
         }
     }
+
+    /**
+     * @brief This calculates the proper Voigt index
+     * @param rDeltaStress The increment of stress
+     * @param Perturbation The pertubation considered
+     * @param Component Index of the component to compute
+     */
+    static IndexType CalculateVoigtIndex(
+        const Vector& rDeltaStress,
+        const IndexType ComponentI,
+        const IndexType ComponentJ
+        )
+    {
+        const SizeType voigt_size = rDeltaStress.size();
+        if (voigt_size == 6) {
+            switch(ComponentI) {
+                case 0:
+                    switch(ComponentJ) {
+                        case 0:
+                            return 0;
+                        case 1:
+                            return 3;
+                        case 2:
+                            return 5;
+                        default:
+                            return 0;
+                    }
+                case 1:
+                    switch(ComponentJ) {
+                        case 0:
+                            return 3;
+                        case 1:
+                            return 1;
+                        case 2:
+                            return 4;
+                        default:
+                            return 0;
+                    }
+                case 2:
+                    switch(ComponentJ) {
+                        case 0:
+                            return 5;
+                        case 1:
+                            return 4;
+                        case 2:
+                            return 2;
+                        default:
+                            return 0;
+                    }
+                default:
+                    return 0;
+            }
+        } else {
+            switch(ComponentI) {
+                case 0:
+                    switch(ComponentJ) {
+                        case 0:
+                            return 0;
+                        case 1:
+                            return 2;
+                        default:
+                            return 0;
+                    }
+                case 1:
+                    switch(ComponentJ) {
+                        case 0:
+                            return 2;
+                        case 1:
+                            return 1;
+                        default:
+                            return 0;
+                    }
+                default:
+                    return 0;
+            }
+        }
+    }
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     ///@}
     ///@name Private  Access
