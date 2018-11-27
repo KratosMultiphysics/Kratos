@@ -29,19 +29,19 @@ class ValueLoggerSteepestDescent( ValueLogger ):
             row = []
             row.append("{:>4s}".format("itr"))
             row.append("{:>13s}".format("f"))
-            row.append("{:>12s}".format("df_abs[%]"))
-            row.append("{:>12s}".format("df_rel[%]"))
-            row.append("{:>12s}".format("step_size"))
+            row.append("{:>13s}".format("df_abs[%]"))
+            row.append("{:>13s}".format("df_rel[%]"))
+            row.append("{:>13s}".format("step_size"))
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToConsole( self ):
         objective_id = self.specified_objectives[0]["identifier"].GetString()
-        print("\n> Current value of objective = ", round(self.value_history[objective_id][self.current_iteration],12))
+        print("\n> Current value of objective = ", "{:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
 
-        print("> Absolut change of objective = ",round(self.value_history["abs_change_obj"][self.current_iteration],4)," [%]")
-        print("> Relative change of objective = ",round(self.value_history["rel_change_obj"][self.current_iteration],4)," [%]\n")
+        print("> Absolut change of objective = ","{:> .5E}".format(self.value_history["abs_change_obj"][self.current_iteration])," [%]")
+        print("> Relative change of objective = ","{:> .5E}".format(self.value_history["rel_change_obj"][self.current_iteration])," [%]\n")
 
     # --------------------------------------------------------------------------
     def _WriteCurrentValuesToFile( self ):
@@ -52,10 +52,10 @@ class ValueLoggerSteepestDescent( ValueLogger ):
 
             objective_id = self.specified_objectives[0]["identifier"].GetString()
             row.append(" {:> .5E}".format(self.value_history[objective_id][self.current_iteration]))
-            row.append("{:>12f}".format(self.value_history["abs_change_obj"][self.current_iteration]))
-            row.append("{:>12f}".format(self.value_history["rel_change_obj"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.value_history["abs_change_obj"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.value_history["rel_change_obj"][self.current_iteration]))
 
-            row.append(" {:>.5E}".format(self.value_history["step_size"][self.current_iteration]))
+            row.append(" {:> .5E}".format(self.value_history["step_size"][self.current_iteration]))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 
