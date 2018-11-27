@@ -17,10 +17,10 @@
         "scheme_type"                        : "bossak",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Mok_CSM"
+            "input_filename" : "CSD/Mok_CSM"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "CSD/StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",

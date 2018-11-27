@@ -12,12 +12,14 @@ from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBas
 
 # Other imports
 import co_simulation_tools as tools
+import os
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
     def __init__(self, solver_name, cosim_solver_settings):
         super(KratosBaseFieldSolver, self).__init__(solver_name, cosim_solver_settings)
 
-        input_file_name = self.cosim_solver_settings["settings"]["input_file"].GetString()
+        working_directory = self.cosim_solver_settings["settings"]["working_directory"].GetString()
+        input_file_name = os.path.join(working_directory, self.cosim_solver_settings["settings"]["input_file"].GetString())
         if not input_file_name.endswith(".json"):
             input_file_name += ".json"
 

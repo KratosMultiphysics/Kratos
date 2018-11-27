@@ -57,14 +57,14 @@
             ]
         }
         ]
-    },        
+    },
     "solvers" :
         {
             "fluid":
             {
                 "solver_type" : "kratos_fluid",
                 "settings":{
-                    "working_directory" : ".",
+                    "working_directory" : "CFD",
                     "input_file"  : "ProjectParametersCFD.json"
                 },
                 "io_settings" : {
@@ -87,7 +87,7 @@
             {
                 "solver_type" : "kratos_structural",
                 "settings":{
-                    "working_directory" : ".",
+                    "working_directory" : "CSD",
                     "input_file"  : "ProjectParametersCSM.json"
                 },
                 "io_settings" : {

@@ -1,8 +1,6 @@
 {
     "problem_data"                     : {
         "problem_name"    : "Mok_CFD",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 1,
         "start_time"      : 0.0,
@@ -35,39 +33,42 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                 : "Monolithic",
-            "ale_settings"               :   {
-            "solver_type" : "mesh_solver_structural_similarity",
-            "ale_boundary_parts" : ["NoSlip2D_FSI"]
+        "solver_type"                    : "ale_fluid",
+        "ale_boundary_parts" : ["NoSlip2D_FSI"],
+        "mesh_motion_solver_settings" : {
+            "solver_type"         : "mesh_solver_structural_similarity"
         },
-        "domain_size"                  : 2,
-        "model_part_name"              : "FluidModelPart",
-        "model_import_settings"       : {
-            "input_type"     : "mdpa",
-            "input_filename" : "Mok_CFD"
-        },
-        "echo_level"                  : 1,
-        "compute_reactions"           : true,
-        "dynamic_tau"                 : 1.0,
-        "oss_switch"                  : 0,
-        "maximum_iterations"          : 10,
-        "relative_velocity_tolerance" : 1e-5,
-        "absolute_velocity_tolerance" : 1e-5,
-        "relative_pressure_tolerance" : 1e-5,
-        "absolute_pressure_tolerance" : 1e-5,
-        "linear_solver_settings"      : {
-            "solver_type"         : "BICGSTABSolver",
-            "max_iteration"       : 200,
-            "tolerance"           : 1e-7,
-            "preconditioner_type" : "ILU0Preconditioner",
-            "scaling"             : false
-        },
-        "volume_model_part_name"      : "Parts_Fluid",
-        "skin_parts"                  : ["AutomaticInlet2D_Inlet","Outlet2D_Outlet","Slip2D","NoSlip2D_Bottom","NoSlip2D_FSI"],
-        "no_skin_parts"               : [],
-        "time_stepping"               : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.01
+        "fluid_solver_settings":{
+            "model_part_name"             : "FluidModelPart",
+            "domain_size"                 : 2,
+            "solver_type"                 : "Monolithic",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "CFD/Mok_CFD"
+            },
+            "echo_level"                  : 1,
+            "compute_reactions"           : true,
+            "dynamic_tau"                 : 1.0,
+            "oss_switch"                  : 0,
+            "maximum_iterations"          : 10,
+            "relative_velocity_tolerance" : 1e-5,
+            "absolute_velocity_tolerance" : 1e-5,
+            "relative_pressure_tolerance" : 1e-5,
+            "absolute_pressure_tolerance" : 1e-5,
+            "linear_solver_settings"      : {
+                "solver_type"         : "BICGSTABSolver",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "preconditioner_type" : "ILU0Preconditioner",
+                "scaling"             : false
+            },
+            "volume_model_part_name"      : "Parts_Fluid",
+            "skin_parts"                  : ["AutomaticInlet2D_Inlet","Outlet2D_Outlet","Slip2D","NoSlip2D_Bottom","NoSlip2D_FSI"],
+            "no_skin_parts"               : [],
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.01
+            }
         }
     },
  "processes" : {
