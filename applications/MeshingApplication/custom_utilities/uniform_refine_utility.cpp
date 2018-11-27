@@ -169,10 +169,10 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 
         // Loop the edges of the father element and get the nodes
         for (auto edge : geom.Edges())
-            NodeType::Pointer new_node = CreateNodeInEdge(edge, step_refine_level);
+            NodeType::Pointer new_node = CreateNodeInEdge(EdgeType{edge}, step_refine_level);
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-            NodeType::Pointer new_node = CreateNodeInFace( geom, step_refine_level );
+            NodeType::Pointer new_node = CreateNodeInFace( FaceType{geom}, step_refine_level );
     }
 
     // TODO: add OMP
@@ -194,7 +194,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
             int i_edge = 0;
             std::vector<NodeType::Pointer> middle_nodes(3);
             for (auto edge : geom.Edges())
-                middle_nodes[i_edge++] = GetNodeInEdge(edge);
+                middle_nodes[i_edge++] = GetNodeInEdge(EdgeType{edge});
             AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
 
             // Create the sub elements
@@ -211,8 +211,8 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
             int i_edge = 0;
             std::vector<NodeType::Pointer> middle_nodes(5);
             for (auto edge : geom.Edges())
-                middle_nodes[i_edge++] = GetNodeInEdge(edge);
-            middle_nodes[4] = GetNodeInFace( geom );
+                middle_nodes[i_edge++] = GetNodeInEdge(EdgeType{edge});
+            middle_nodes[4] = GetNodeInFace( FaceType{geom} );
             AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
 
             // Create the sub elements
@@ -248,7 +248,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
         {
-            NodeType::Pointer middle_node = GetNodeInEdge(geom);
+            NodeType::Pointer middle_node = GetNodeInEdge(EdgeType{geom});
             AddNodeToSubModelParts(middle_node, mCondColorMap[id]);
 
             // Create the sub conditions
