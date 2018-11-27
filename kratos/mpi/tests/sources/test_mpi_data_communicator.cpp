@@ -902,73 +902,102 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllDoubleVector, KratosMPICoreFa
     #endif
 }
 
+// ScanSum ////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSum, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumInt, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
 
-    int local_total_int = 1;
-    double local_total_double = 2.0;
-
-    // local version: do nothing
-    int partial_sum_int = serial_communicator.ScanSum(local_total_int);
-    double partial_sum_double = serial_communicator.ScanSum(local_total_double);
-    KRATOS_CHECK_EQUAL(partial_sum_int, local_total_int);
-    KRATOS_CHECK_EQUAL(partial_sum_double, local_total_double);
-
-    // MPI version
-    partial_sum_int = mpi_world_communicator.ScanSum(local_total_int);
-    partial_sum_double = mpi_world_communicator.ScanSum(local_total_double);
-    int mpi_world_rank = mpi_world_communicator.Rank();
-    KRATOS_CHECK_EQUAL(partial_sum_int, mpi_world_rank + 1);
-    KRATOS_CHECK_EQUAL(partial_sum_double, 2.0*(mpi_world_rank + 1) );
+    int local_total = 1;
+    int partial_sum = mpi_world_communicator.ScanSum(local_total);
+    KRATOS_CHECK_EQUAL(partial_sum, rank + 1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVector, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumDouble, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
 
-    std::vector<int> local_total_int{1,1};
-    std::vector<int> partial_sum_int{-1,-1};
-    std::vector<double> local_total_double{2.0, 2.0};
-    std::vector<double> partial_sum_double{-1.0,-1.0};
+    double local_total = 2.0;
+    double partial_sum = mpi_world_communicator.ScanSum(local_total);
+    KRATOS_CHECK_EQUAL(partial_sum, 2.0*(rank + 1));
+}
 
-    // local version: do nothing
-    serial_communicator.ScanSum(local_total_int, partial_sum_int);
-    serial_communicator.ScanSum(local_total_double, partial_sum_double);
-    for (int i = 0; i < 2; i++)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorInt, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    std::vector<int> local_total{1,1};
+    std::vector<int> output{-1, -1};
+
+    // two-buffer version
+    mpi_world_communicator.ScanSum(local_total, output);
+    for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(partial_sum_int[i], -1);
-        KRATOS_CHECK_EQUAL(partial_sum_double[i], -1.0);
+        KRATOS_CHECK_EQUAL(output[i], rank + 1);
     }
 
-    // MPI version
-    mpi_world_communicator.ScanSum(local_total_int, partial_sum_int);
-    mpi_world_communicator.ScanSum(local_total_double, partial_sum_double);
-    int mpi_world_rank = mpi_world_communicator.Rank();
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(partial_sum_int[i], mpi_world_rank + 1);
-        KRATOS_CHECK_EQUAL(partial_sum_double[i], 2.0*(mpi_world_rank + 1));
-    }
+    // return buffer version
+    std::vector<int> partial_sum = mpi_world_communicator.ScanSum(local_total);
+    KRATOS_CHECK_EQUAL(partial_sum.size(), 2);
+    KRATOS_CHECK_EQUAL(partial_sum[0], rank + 1);
+    KRATOS_CHECK_EQUAL(partial_sum[1], rank + 1);
 
     #ifdef KRATOS_DEBUG
     if (mpi_world_communicator.Size() > 1)
     {
         // One of the inputs has a different size
-        if (mpi_world_rank == 0) {
-            local_total_int.resize(3);
-            local_total_int = {1,2,3};
+        if (rank == 0) {
+            local_total.resize(3);
+            local_total = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total_int, partial_sum_int),"Input error in call to MPI_Scan");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total, partial_sum),"Input error in call to MPI_Scan");
     }
     // Input size != output size
     std::vector<int> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum_int),"Input error in call to MPI_Scan");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum),"Input error in call to MPI_Scan");
     #endif
 }
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorDouble, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    std::vector<double> local_total{2.0,2.0};
+    std::vector<double> output{-1.0, -1.0};
+
+    // two-buffer version
+    mpi_world_communicator.ScanSum(local_total, output);
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(output[i], 2.0*(rank + 1));
+    }
+
+    // return buffer version
+    std::vector<double> partial_sum = mpi_world_communicator.ScanSum(local_total);
+    KRATOS_CHECK_EQUAL(partial_sum.size(), 2);
+    KRATOS_CHECK_EQUAL(partial_sum[0], 2.0*(rank + 1));
+    KRATOS_CHECK_EQUAL(partial_sum[1], 2.0*(rank + 1));
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the inputs has a different size
+        if (rank == 0) {
+            local_total.resize(3);
+            local_total = {1.0,2.0,3.0};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total, partial_sum),"Input error in call to MPI_Scan");
+    }
+    // Input size != output size
+    std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum),"Input error in call to MPI_Scan");
+    #endif
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecv, KratosMPICoreFastSuite)
 {
