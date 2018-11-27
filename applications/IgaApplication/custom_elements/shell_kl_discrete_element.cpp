@@ -490,7 +490,6 @@ namespace Kratos
     //************************************************************************************
     int ShellKLDiscreteElement::Check(const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY;
         if (DISPLACEMENT.Key() == 0)
             KRATOS_ERROR << "DISPLACEMENT has Key zero! check if the application is correctly registered" << std::endl;
         if (SHAPE_FUNCTION_VALUES.Key() == 0)
@@ -500,7 +499,6 @@ namespace Kratos
         if (SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES.Key() == 0)
             KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
         return 0;
-        KRATOS_CATCH("");
     }
 
 

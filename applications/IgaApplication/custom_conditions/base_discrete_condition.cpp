@@ -202,7 +202,7 @@ namespace Kratos
                 rOutput[2] += N[i] * forces[2];
             }
         }
-        else if (rVariable == SURFACE_NORMAL) {
+        else if (rVariable == NORMAL) {
             const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
             Matrix Jacobian(3,2);
             CalculateJacobian(DN_De, Jacobian, 3, 2);
