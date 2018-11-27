@@ -185,7 +185,7 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
 
     // Compute radius
     const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
-    const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry(),Initial);
+    const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry(), Initial);
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, current_radius, initial_radius);
@@ -215,9 +215,10 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationMatrix(Matrix& rB,
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rN, GetGeometry());
+    GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
+    const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rN, rGeom);
 
     rB.clear(); // Set all components to zero
 
@@ -247,8 +248,9 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationGradient(const Matrix& rD
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const unsigned int dimension       = rGeom.WorkingSpaceDimension();
 
     rF = IdentityMatrix( 3 );
 
@@ -324,8 +326,9 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    GeometryType& rGeom = GetGeometry();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
@@ -339,7 +342,7 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
 
     // Initialize Constitutive Law
     mConstitutiveLawVector->InitializeSolutionStep( GetProperties(),
-            GetGeometry(), Variables.N, rCurrentProcessInfo );
+            rGeom, Variables.N, rCurrentProcessInfo );
 
     mFinalizedStep = false;
 
@@ -357,8 +360,8 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
         for (unsigned int l=0;l<number_of_nodes;l++)
         {
-            array_1d<double, 3 > & NodalAcceleration = GetGeometry()[l].FastGetSolutionStepValue(ACCELERATION,1);
-            array_1d<double, 3 > & NodalVelocity = GetGeometry()[l].FastGetSolutionStepValue(VELOCITY,1);
+            array_1d<double, 3 > & NodalAcceleration = rGeom[l].FastGetSolutionStepValue(ACCELERATION,1);
+            array_1d<double, 3 > & NodalVelocity = rGeom[l].FastGetSolutionStepValue(VELOCITY,1);
 
             for (unsigned int k = 0; k < dimension; k++)
             {
@@ -377,11 +380,11 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
             nodal_inertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
         }
 
-        GetGeometry()[i].SetLock();
-        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-        GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
-        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
-        GetGeometry()[i].UnSetLock();
+        rGeom[i].SetLock();
+        rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
+        rGeom[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
+        rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+        rGeom[i].UnSetLock();
     }
 
     AUX_MP_Velocity.clear();
@@ -458,8 +461,9 @@ void UpdatedLagrangianAxisymmetry::CalculateGreenLagrangeStrain(const Matrix& rF
 
 void UpdatedLagrangianAxisymmetry::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
 {
-    int number_of_nodes = GetGeometry().size();
-    int dimension = GetGeometry().WorkingSpaceDimension();
+    GeometryType& rGeom = GetGeometry();
+    const int number_of_nodes = rGeom.size();
+    const int dimension = rGeom.WorkingSpaceDimension();
     unsigned int dimension_2 = number_of_nodes * dimension;
 
     if ( rResult.size() != dimension_2 )
@@ -468,8 +472,8 @@ void UpdatedLagrangianAxisymmetry::EquationIdVector( EquationIdVectorType& rResu
     for ( int i = 0; i < number_of_nodes; i++ )
     {
         int index = i * dimension;
-        rResult[index] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
+        rResult[index] = rGeom[i].GetDof( DISPLACEMENT_X ).EquationId();
+        rResult[index + 1] = rGeom[i].GetDof( DISPLACEMENT_Y ).EquationId();
     }
 
 }
@@ -481,10 +485,11 @@ void UpdatedLagrangianAxisymmetry::GetDofList( DofsVectorType& rElementalDofList
 {
     rElementalDofList.resize( 0 );
 
-    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+    GeometryType& rGeom = GetGeometry();
+    for ( unsigned int i = 0; i < rGeom.size(); i++ )
     {
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
-        rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+        rElementalDofList.push_back( rGeom[i].pGetDof( DISPLACEMENT_X ) );
+        rElementalDofList.push_back( rGeom[i].pGetDof( DISPLACEMENT_Y ) );
     }
 }
 
@@ -600,20 +605,15 @@ Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResu
     array_1d<double,3> rPointLocal = ZeroVector(3);
     rPointLocal = rGeom.PointLocalCoordinates(rPointLocal, rPoint);
 
+    // For Triangular 2D
     if (dimension == 2 && rGeom.PointsNumber() == 3)
     {
         rResult.resize(3, false);
-
-        // Shape functions
         rResult( 0 ) = 1 - rPointLocal[0] - rPointLocal[1] ;
         rResult( 1 ) = rPointLocal[0] ;
         rResult( 2 ) = rPointLocal[1];
-
-        if(rResult(0)*rResult(1)*rResult(2) < 0.0 && rResult(0)+rResult(1)+rResult(2) > 1.0)
-        {
-            KRATOS_ERROR <<"Error in the evaluation of the shape functions: ELEMENT ID "<<this->Id()<<std::endl;
-        }
     }
+    // For Quadrilateral 2D
     else if (dimension == 2 && rGeom.PointsNumber() == 4)
     {
         rResult.resize(4, false);
@@ -621,11 +621,6 @@ Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResu
         rResult( 1 ) = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
         rResult( 2 ) = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
         rResult( 3 ) = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-
-        if(rResult(0)*rResult(1)*rResult(2)*rResult(3) < 0.0 && rResult(0)+rResult(1)+rResult(2)+rResult(3) > 1.0)
-        {
-            KRATOS_ERROR <<"Error in the evaluation of the shape functions: ELEMENT ID "<<this->Id()<<std::endl;
-        }
     }
 
     return rResult;
@@ -636,13 +631,14 @@ Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResu
 // Function which return dN/de
 Matrix& UpdatedLagrangianAxisymmetry::MPMShapeFunctionsLocalGradients( Matrix& rResult )
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     array_1d<double,3> rPointLocal = ZeroVector(3);
 
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, xg);
+    rPointLocal = rGeom.PointLocalCoordinates(rPointLocal, xg);
 
-    if (dimension == 2 && GetGeometry().PointsNumber() == 3)
+    if (dimension == 2 && rGeom.PointsNumber() == 3)
     {
         rResult = ZeroMatrix( 3, 2 );
         rResult( 0, 0 ) = -1.0;
@@ -652,7 +648,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMShapeFunctionsLocalGradients( Matrix& r
         rResult( 2, 0 ) =  0.0;
         rResult( 2, 1 ) =  1.0;
     }
-    else if (dimension == 2 && GetGeometry().PointsNumber() == 4)
+    else if (dimension == 2 && rGeom.PointsNumber() == 4)
     {
         rResult = ZeroMatrix( 4, 2 );
         rResult( 0, 0 ) = -0.25 * (1 - rPointLocal[1]);
@@ -673,8 +669,9 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMShapeFunctionsLocalGradients( Matrix& r
 
 void UpdatedLagrangianAxisymmetry::GetValuesVector( Vector& values, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -682,8 +679,8 @@ void UpdatedLagrangianAxisymmetry::GetValuesVector( Vector& values, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        values[index] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
-        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
+        values[index] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+        values[index + 1] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
     }
 }
 
@@ -692,8 +689,9 @@ void UpdatedLagrangianAxisymmetry::GetValuesVector( Vector& values, int Step )
 
 void UpdatedLagrangianAxisymmetry::GetFirstDerivativesVector( Vector& values, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -701,8 +699,8 @@ void UpdatedLagrangianAxisymmetry::GetFirstDerivativesVector( Vector& values, in
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        values[index] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_X, Step );
-        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+        values[index] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        values[index + 1] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
 
     }
 }
@@ -712,8 +710,9 @@ void UpdatedLagrangianAxisymmetry::GetFirstDerivativesVector( Vector& values, in
 
 void UpdatedLagrangianAxisymmetry::GetSecondDerivativesVector( Vector& values, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.size();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
     unsigned int matrix_size = number_of_nodes * dimension;
 
     if ( values.size() != matrix_size ) values.resize( matrix_size, false );
@@ -721,8 +720,8 @@ void UpdatedLagrangianAxisymmetry::GetSecondDerivativesVector( Vector& values, i
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        values[index] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-        values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+        values[index] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+        values[index + 1] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
 
     }
 }
