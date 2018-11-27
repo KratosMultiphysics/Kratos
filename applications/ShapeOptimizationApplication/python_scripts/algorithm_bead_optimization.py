@@ -142,12 +142,12 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         VariableUtils().SetFlag(BOUNDARY, False, self.optimization_model_part.Nodes)
 
         radius = self.mapper_settings["filter_radius"].GetDouble()
-        geometry_utilities = GeometryUtilities(self.optimization_model_part)
+        search_based_functions = SearchBasedFunctions(self.optimization_model_part)
 
         for itr in range(self.algorithm_settings["fix_boundaries"].size()):
             sub_model_part_name = self.algorithm_settings["fix_boundaries"][itr].GetString()
             node_set = self.optimization_model_part.GetSubModelPart(sub_model_part_name).Nodes
-            geometry_utilities.FlagNodesInRadius(node_set, BOUNDARY, radius)
+            search_based_functions.FlagNodesInRadius(node_set, BOUNDARY, radius)
 
         # Specify bead direction
         bead_direction = self.algorithm_settings["bead_direction"].GetVector()
