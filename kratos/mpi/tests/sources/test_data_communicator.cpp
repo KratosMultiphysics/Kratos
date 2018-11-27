@@ -30,44 +30,13 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosMPICoreFastSuite)
 
     KRATOS_CHECK_EQUAL(serial_communicator.Rank(), 0);
     KRATOS_CHECK_EQUAL(serial_communicator.Size(), 1);
-
-    MPIDataCommunicator mpi_self_communicator(MPI_COMM_SELF);
-
-    KRATOS_CHECK_EQUAL(mpi_self_communicator.Rank(), 0);
-    KRATOS_CHECK_EQUAL(mpi_self_communicator.Size(), 1);
-
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-
-    int world_rank, world_size;
-    MPI_Comm_rank(MPI_COMM_WORLD,&world_rank);
-    MPI_Comm_size(MPI_COMM_WORLD,&world_size);
-
-    KRATOS_CHECK_EQUAL(mpi_world_communicator.Rank(), world_rank);
-    KRATOS_CHECK_EQUAL(mpi_world_communicator.Size(), world_size);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(MPICommRetrieval, KratosMPICoreFastSuite)
-{
-    DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_self_communicator(MPI_COMM_SELF);
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-
-    KRATOS_CHECK_EQUAL(MPIEnvironment::GetMPICommunicator(serial_communicator), MPI_COMM_SELF);
-    KRATOS_CHECK_EQUAL(MPIEnvironment::GetMPICommunicator(mpi_self_communicator), MPI_COMM_SELF);
-    KRATOS_CHECK_EQUAL(MPIEnvironment::GetMPICommunicator(mpi_world_communicator), MPI_COMM_WORLD);
-    KRATOS_CHECK_NOT_EQUAL(MPIEnvironment::GetMPICommunicator(mpi_world_communicator), MPI_COMM_SELF);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosMPICoreFastSuite)
 {
-    // This should work always
     KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("Serial"), true);
     const DataCommunicator& r_serial = KratosComponents<DataCommunicator>::Get("Serial");
     KRATOS_CHECK_EQUAL(r_serial.IsDistributed(), false);
-    // This assumes running Kratos with mpi (this should be the case, since this test's suite is part of the MPI core)
-    KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("World"), true);
-    const DataCommunicator& r_world = KratosComponents<DataCommunicator>::Get("World");
-    KRATOS_CHECK_EQUAL(r_world.IsDistributed(), true);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSum, KratosMPICoreFastSuite)
@@ -1285,65 +1254,20 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGather, KratosMPICoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosMPICoreFastSuite)
 {
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-    const int rank = mpi_world_communicator.Rank();
-    const int size = mpi_world_communicator.Size();
+    DataCommunicator serial_communicator;
 
-    auto broadcast_if_true_test = [&mpi_world_communicator](){
-        KRATOS_ERROR_IF(mpi_world_communicator.BroadcastErrorIfTrue(true,0) )
-        << "Something went wrong in rank 0." << std::endl;
-    };
-    auto broadcast_if_false_test = [&mpi_world_communicator](){
-        KRATOS_ERROR_IF_NOT(mpi_world_communicator.BroadcastErrorIfFalse(false,0) )
-        << "Something went wrong in rank 0." << std::endl;
-    };
+    // The serial communicator does not throw,
+    // since there are no "other ranks" to broadcast the error to.
+    // All these functions need to do is to pass along the bool condition.
+    KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfTrue(true, 0), true);
+    KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfTrue(false, 0), false);
+    KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfFalse(true, 0), true);
+    KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfFalse(false, 0), false);
 
-    std::stringstream broadcast_message;
-    if (rank == 0)
-    {
-        broadcast_message << "Something went wrong in rank 0.";
-    }
-    else
-    {
-        broadcast_message << "Stopping because of error in rank 0.";
-    }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        broadcast_if_true_test(),
-        broadcast_message.str()
-    );
-
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        broadcast_if_false_test(),
-        broadcast_message.str()
-    );
-
-    auto true_on_any_rank_test = [&mpi_world_communicator, &rank](int fail_rank) {
-        KRATOS_ERROR_IF(mpi_world_communicator.ErrorIfTrueOnAnyRank(rank == fail_rank))
-        << "Something went wrong on rank " << rank << "." << std::endl;
-    };
-
-    auto false_on_any_rank_test = [&mpi_world_communicator, &rank](int fail_rank) {
-        KRATOS_ERROR_IF_NOT(mpi_world_communicator.ErrorIfFalseOnAnyRank(rank < fail_rank))
-        << "Something went wrong on rank " << rank << "." << std::endl;
-    };
-
-    std::stringstream error_on_any_rank_message;
-    if (rank == size - 1)
-    {
-        error_on_any_rank_message << "Something went wrong on rank " << rank << ".";
-    }
-    else
-    {
-        error_on_any_rank_message << "Stopping because an error was detected on a different rank.";
-    }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        true_on_any_rank_test(size-1),
-        error_on_any_rank_message.str()
-    );
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        false_on_any_rank_test(size-1),
-        error_on_any_rank_message.str()
-    );
+    KRATOS_CHECK_EQUAL(serial_communicator.ErrorIfTrueOnAnyRank(true), true);
+    KRATOS_CHECK_EQUAL(serial_communicator.ErrorIfTrueOnAnyRank(false), false);
+    KRATOS_CHECK_EQUAL(serial_communicator.ErrorIfFalseOnAnyRank(true), true);
+    KRATOS_CHECK_EQUAL(serial_communicator.ErrorIfFalseOnAnyRank(false), false);
 }
 
 }
