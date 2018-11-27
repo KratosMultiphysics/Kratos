@@ -13,6 +13,7 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
@@ -27,7 +28,8 @@ namespace Kratos {
 
     KRATOS_TEST_CASE_IN_SUITE(NodeAssignOperator, KratosCoreFastSuite)
     {
-        ModelPart model_part("test");
+        Model current_model;
+        ModelPart& model_part = current_model.CreateModelPart("test");
         model_part.AddNodalSolutionStepVariable(DISTANCE);
         model_part.AddNodalSolutionStepVariable(VELOCITY);
 
@@ -53,7 +55,8 @@ namespace Kratos {
      */
     KRATOS_TEST_CASE_IN_SUITE(NodeCloneOperator, KratosCoreFastSuite)
     {
-        ModelPart model_part("test");
+        Model current_model;
+        ModelPart& model_part = current_model.CreateModelPart("test");
         model_part.AddNodalSolutionStepVariable(DISTANCE);
         model_part.AddNodalSolutionStepVariable(VELOCITY);
 

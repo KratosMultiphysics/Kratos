@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosTestApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
@@ -51,13 +51,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 //#include <boost/python.hpp>
 //#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-//#include <boost/timer.hpp> 
+//#include <boost/timer.hpp>
 
 #include <pybind11/pybind11.h>
 // Project includes
@@ -81,8 +81,8 @@ namespace Kratos
 {
 
 	namespace Python
-	{		
-	  using namespace pybind11;
+	{
+	  namespace py = pybind11;
 
 		void  AddCustomStrategiesToPython(pybind11::module& m)
 		{
@@ -95,27 +95,27 @@ namespace Kratos
 
 			//********************************************************************
 			//********************************************************************
-			class_< PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType  >::Pointer, BaseSolvingStrategyType >(m,"PFEM2_Explicit_Strategy")
-			  .def(init<	ModelPart&, int, bool >() )
-			  
+			py::class_< PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType  >::Pointer, BaseSolvingStrategyType >(m,"PFEM2_Explicit_Strategy")
+			  .def(py::init<	ModelPart&, int, bool >() )
+
 			  //initialize and finalize. the others are standard and are in the ExplicitStrategy
 			  .def("InitializeSolutionStep",&PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
-			  .def("FinalizeSolutionStep",&PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)	
+			  .def("FinalizeSolutionStep",&PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)
 			  ;
-			class_< Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,BaseSolvingStrategyType >(m,"Fluid_Phase_PFEM2_Explicit_Strategy")
-			  .def( init<ModelPart&, int, bool >() )
-			  
+			py::class_< Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,BaseSolvingStrategyType >(m,"Fluid_Phase_PFEM2_Explicit_Strategy")
+			  .def(py::init<ModelPart&, int, bool >() )
+
 			  //initialize and finalize. the others are standard and are in the ExplicitStrategy
 			  .def("InitializeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
-			  .def("FinalizeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)	
-			  ;			 
-			
-			class_< PFEM2MonolithicSlipScheme< SparseSpaceType, LocalSpaceType >, PFEM2MonolithicSlipScheme< SparseSpaceType, LocalSpaceType>::Pointer>(m,"PFEM2MonolithicSlipScheme")
-			  .def(init<unsigned int >())// constructor without a turbulence model
+			  .def("FinalizeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)
 			  ;
-			
-			class_< FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >:: Pointer> (m,"FracStepStrategy")
-			  .def(init<	ModelPart&, LinearSolverType::Pointer,LinearSolverType::Pointer,bool, double, double,int, int, unsigned int, unsigned int,bool >() )
+
+			py::class_< PFEM2MonolithicSlipScheme< SparseSpaceType, LocalSpaceType >, PFEM2MonolithicSlipScheme< SparseSpaceType, LocalSpaceType>::Pointer>(m,"PFEM2MonolithicSlipScheme")
+			  .def(py::init<unsigned int >())// constructor without a turbulence model
+			  ;
+
+			py::class_< FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >:: Pointer> (m,"FracStepStrategy")
+			  .def(py::init<	ModelPart&, LinearSolverType::Pointer,LinearSolverType::Pointer,bool, double, double,int, int, unsigned int, unsigned int,bool >() )
 			  .def("Solve", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve)
 			  .def("SolveStep1", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
 			  .def("SolveStep2", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
@@ -130,11 +130,11 @@ namespace Kratos
 			  .def("Clear", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
 			  .def("Compute", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Compute)
 			  ;
-			
+
 		}
-	  
+
 	}  // namespace Python.
-  
+
 } // Namespace Kratos
-		  
-		  
+
+

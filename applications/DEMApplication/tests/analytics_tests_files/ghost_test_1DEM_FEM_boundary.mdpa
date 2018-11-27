@@ -1,0 +1,55 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+WALL_FRICTION 0.5773502691896257
+WALL_COHESION 0.0
+COMPUTE_WEAR 0
+SEVERITY_OF_WEAR 0.001
+IMPACT_WEAR_SEVERITY 0.001
+BRINELL_HARDNESS 200.0
+YOUNG_MODULUS 1e20
+POISSON_RATIO 0.25
+End Properties
+
+Begin Nodes // GUI DEM-FEM-Wall group identifier: DEM-FEM-Wall
+1 -0.800000 1.20000 0.500000
+6 1.20000 1.20000 0.500000
+7 1.20000 -0.800000 0.500000
+End Nodes
+
+Begin Conditions AnalyticRigidFace3D3N // GUI DEM-FEM-Wall group identifier: DEM-FEM-Wall
+1 0 7 6 1
+End Conditions
+
+Begin SubModelPart 1 // DEM-FEM-Wall. Group name: DEM-FEM-Wall
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-FEM-Wall
+  PROPERTIES_ID 0
+  FIXED_MESH_OPTION 0
+  RIGID_BODY_MOTION 0
+  FREE_BODY_MOTION 0
+  RIGID_BODY_MASS 0.0
+  RIGID_BODY_CENTER_OF_MASS [3] (0.0,0.0,0.0)
+  RIGID_BODY_INERTIAS [3] (0.0,0.0,0.0)
+  IDENTIFIER DEM-FEM-Wall
+  IS_GHOST 1
+  TOP 0
+  BOTTOM 0
+  FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  1
+  6
+  7
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+  1
+  End SubModelPartConditions
+End SubModelPart
+
+Begin Table 0 TIME VELOCITY
+0.0  0.0
+1.0  0.0
+End Table
+

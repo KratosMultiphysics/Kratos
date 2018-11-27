@@ -55,7 +55,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurface
+class ModifiedMohrCoulombYieldSurface
 {
   public:
     ///@name Type Definitions
@@ -253,7 +253,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         double c1, c2, c3;
-        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
+        double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
+	    
+        // Check input variables
+        if (friction_angle < tolerance) {
+            friction_angle = 32.0 * Globals::Pi / 180.0;
+            KRATOS_WARNING("ModifiedMohrCoulombYieldSurface") << "Friction Angle not defined, assumed equal to 32 deg " << std::endl;
+        }
+	    
         const double sin_phi = std::sin(friction_angle);
         const double cons_phi = std::cos(friction_angle);
         const double sin_theta = std::sin(lode_angle);
@@ -308,7 +315,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_COMPRESSION);
         KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+        KRATOS_CHECK_VARIABLE_KEY(FRICTION_ANGLE);
 
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRICTION_ANGLE)) << "FRICTION_ANGLE is not a defined value" << std::endl;
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
@@ -328,6 +337,28 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
 
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
+
+	/**
+     * @brief This method returns true if the yield
+	 * surfacecompares with the tension tield stress
+     */
+    static bool IsWorkingWithTensionThreshold()
+    {
+        return false;
+    }
+
+	/**
+     * @brief This method returns the scaling factor of the
+     * yield surface
+	 * surfacecompares with the tension tield stress
+     */
+    static double GetScaleFactorTension(const Properties& rMaterialProperties)
+    {
+        const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION]; 
+        return yield_compression / yield_tension;
+    }
+
 
     ///@}
     ///@name Access
@@ -403,18 +434,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

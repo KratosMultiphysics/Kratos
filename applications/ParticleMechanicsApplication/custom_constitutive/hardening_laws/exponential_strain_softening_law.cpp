@@ -10,6 +10,7 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 // System includes
 #include <string>
 #include <iostream>
@@ -30,9 +31,9 @@ namespace Kratos
 //************************************************************************************
 
 ExponentialStrainSofteningLaw::ExponentialStrainSofteningLaw()
-	:HardeningLaw()
+	:MPMHardeningLaw()
 {
-   
+
 }
 
 
@@ -41,7 +42,7 @@ ExponentialStrainSofteningLaw::ExponentialStrainSofteningLaw()
 
 ExponentialStrainSofteningLaw& ExponentialStrainSofteningLaw::operator=(ExponentialStrainSofteningLaw const& rOther)
 {
-   HardeningLaw::operator=(rOther);
+   MPMHardeningLaw::operator=(rOther);
    return *this;
 }
 
@@ -49,7 +50,7 @@ ExponentialStrainSofteningLaw& ExponentialStrainSofteningLaw::operator=(Exponent
 //************************************************************************************
 
 ExponentialStrainSofteningLaw::ExponentialStrainSofteningLaw(ExponentialStrainSofteningLaw const& rOther)
-	:HardeningLaw(rOther)
+	:MPMHardeningLaw(rOther)
 {
 
 }
@@ -71,27 +72,27 @@ double& ExponentialStrainSofteningLaw::CalculateHardening(double &rHardening, co
 {
     rHardening = 0.0;
 
-    const double Beta = GetProperties()[SHAPE_FUNCTION_BETA];
+    const double beta = GetProperties()[SHAPE_FUNCTION_BETA];
 
     if (rThisVariable == COHESION)
     {
-        const double PeakCohesion = GetProperties()[COHESION];
-        const double ResidualCohesion = GetProperties()[COHESION_RESIDUAL];
-        rHardening = -1.0 * Beta * (PeakCohesion - ResidualCohesion) * std::exp( -1.0 * Beta * rAlpha );
+        const double peak_cohesion = GetProperties()[COHESION];
+        const double residual_cohesion = GetProperties()[COHESION_RESIDUAL];
+        rHardening = -1.0 * beta * (peak_cohesion - residual_cohesion) * std::exp( -1.0 * beta * rAlpha );
     }
 
     else if (rThisVariable == INTERNAL_FRICTION_ANGLE)
     {
-        const double PeakFrictionAngle = GetProperties()[INTERNAL_FRICTION_ANGLE];
-        const double ResidualFrictionAngle = GetProperties()[INTERNAL_FRICTION_ANGLE_RESIDUAL];
-        rHardening = -1.0 * Beta * (PeakFrictionAngle - ResidualFrictionAngle) * std::exp( -1.0 * Beta * rAlpha );
+        const double peak_friction_angle = GetProperties()[INTERNAL_FRICTION_ANGLE];
+        const double residual_friction_angle = GetProperties()[INTERNAL_FRICTION_ANGLE_RESIDUAL];
+        rHardening = -1.0 * beta * (peak_friction_angle - residual_friction_angle) * std::exp( -1.0 * beta * rAlpha );
     }
 
     else if (rThisVariable == INTERNAL_DILATANCY_ANGLE)
     {
-        const double PeakDilatancyAngle = GetProperties()[INTERNAL_DILATANCY_ANGLE];
-        const double ResidualDilatancyAngle = GetProperties()[INTERNAL_DILATANCY_ANGLE_RESIDUAL];
-        rHardening = -1.0 * Beta * (PeakDilatancyAngle - ResidualDilatancyAngle) * std::exp( -1.0 * Beta * rAlpha );
+        const double peak_dilatancy_angle = GetProperties()[INTERNAL_DILATANCY_ANGLE];
+        const double residual_dilatancy_angle = GetProperties()[INTERNAL_DILATANCY_ANGLE_RESIDUAL];
+        rHardening = -1.0 * beta * (peak_dilatancy_angle - residual_dilatancy_angle) * std::exp( -1.0 * beta * rAlpha );
     }
 
     return rHardening;
@@ -100,13 +101,13 @@ double& ExponentialStrainSofteningLaw::CalculateHardening(double &rHardening, co
 
 void ExponentialStrainSofteningLaw::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMHardeningLaw )
 
 }
 
 void ExponentialStrainSofteningLaw::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMHardeningLaw )
 
 }
 

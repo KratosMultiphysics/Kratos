@@ -9,15 +9,16 @@
 //
 //  Main authors:    Bodhinanda Chandra
 //
+
+
 #if !defined(KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED )
 #define      KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED
 
-
 // System includes
+#include <cmath>
 
 // External includes
 
-#include<cmath>
 // Project includes
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 
@@ -120,7 +121,6 @@ public:
 
 protected:
 
-    //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -229,4 +229,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_MC_STRAIN_SOFTENING_PLASTIC_FLOW_RULE_H_INCLUDED  defined

@@ -299,7 +299,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void Constitutive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+  void Constitutive3DLaw::InitializeMaterial( const Properties& rProperties,
 					      const GeometryType& rElementGeometry,
 					      const Vector& rShapeFunctionsValues )
   {
@@ -312,7 +312,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void Constitutive3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
+  void Constitutive3DLaw::InitializeSolutionStep( const Properties& rProperties,
 						  const GeometryType& rElementGeometry, //this is just to give the array of nodes
 						  const Vector& rShapeFunctionsValues,
 						  const ProcessInfo& rCurrentProcessInfo)
@@ -326,7 +326,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void Constitutive3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
+  void Constitutive3DLaw::FinalizeSolutionStep( const Properties& rProperties,
 						const GeometryType& rElementGeometry, //this is just to give the array of nodes
 						const Vector& rShapeFunctionsValues,
 						const ProcessInfo& rCurrentProcessInfo)
@@ -795,7 +795,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rTemperature = this->CalculateDomainVariable(rValues,TEMPERATURE,rTemperature);
+    const Properties& rProperties = rValues.GetMaterialProperties();
+    if( rProperties.Has(TEMPERATURE_VARIABLE) )
+      rTemperature = this->CalculateDomainVariable(rValues,KratosComponents<Variable<double> >::Get(rProperties[TEMPERATURE_VARIABLE]),rTemperature);
+    else
+      rTemperature = this->CalculateDomainVariable(rValues,TEMPERATURE,rTemperature);
 
     return rTemperature;
 
@@ -810,7 +814,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rPressure = this->CalculateDomainVariable(rValues,PRESSURE,rPressure);
+    const Properties& rProperties = rValues.GetMaterialProperties();
+    if( rProperties.Has(PRESSURE_VARIABLE) )
+      rPressure = this->CalculateDomainVariable(rValues,KratosComponents<Variable<double> >::Get(rProperties[PRESSURE_VARIABLE]),rPressure);
+    else
+      rPressure = this->CalculateDomainVariable(rValues,PRESSURE,rPressure);
 
     return rPressure;
 
@@ -858,7 +866,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  int Constitutive3DLaw::Check(const Properties& rMaterialProperties,
+  int Constitutive3DLaw::Check(const Properties& rProperties,
 			       const GeometryType& rElementGeometry,
 			       const ProcessInfo& rCurrentProcessInfo)
   {

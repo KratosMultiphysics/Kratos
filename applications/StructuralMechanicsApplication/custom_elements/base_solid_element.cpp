@@ -86,7 +86,13 @@ void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 
 void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    // TODO: Add somethig if necessary
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        mConstitutiveLawVector[point_number]->InitializeNonLinearIteration( GetProperties(),
+        GetGeometry(),
+        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+        rCurrentProcessInfo
+        );
+    }
 }
 
 /***********************************************************************************/
@@ -94,7 +100,13 @@ void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 
 void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    // TODO: Add somethig if necessary
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        mConstitutiveLawVector[point_number]->FinalizeNonLinearIteration( GetProperties(),
+        GetGeometry(),
+        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+        rCurrentProcessInfo
+        );
+    }
 }
 
 /***********************************************************************************/
@@ -740,11 +752,32 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     rOutput[point_number] = std::sqrt(sigma_equivalent);
             }
         } else {
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-            for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
-                rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+            // Set constitutive law flags:
+            Flags& ConstitutiveLawOptions=Values.GetOptions();
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+            for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+                rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
             }
         }
     }
@@ -784,11 +817,32 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 rOutput[point_number] = global_point.Coordinates();
             }
         } else {
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-            for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
-                rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+            // Set constitutive law flags:
+            Flags& ConstitutiveLawOptions=Values.GetOptions();
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+            for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+                rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
             }
         }
     }
@@ -813,12 +867,33 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
             mConstitutiveLawVector[point_number]->GetValue( rVariable,rOutput[point_number]);
         }
-    } else {
+    }  else {
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
-            rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+        // Set constitutive law flags:
+        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            // Compute element kinematics B, F, DN_DX ...
+            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+            // Compute material reponse
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+            rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
         }
     }
 }
@@ -925,12 +1000,33 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 rOutput[point_number] = this_constitutive_variables.StrainVector;
             }
-        } else {
+        }  else {
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-            for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
-                rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+            // Set constitutive law flags:
+            Flags& ConstitutiveLawOptions=Values.GetOptions();
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+            for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+                rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
             }
         }
     }
@@ -1003,6 +1099,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
             ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
             Values.SetConstitutiveMatrix(this_constitutive_variables.D); //this is the output parameter
 
             // Reading integration points
@@ -1042,12 +1139,33 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 rOutput[point_number] = this_kinematic_variables.F;
             }
-        } else {
+        }  else {
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-            for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
-                rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+            // Set constitutive law flags:
+            Flags& ConstitutiveLawOptions=Values.GetOptions();
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+            for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+                rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
             }
         }
     }

@@ -741,6 +741,11 @@ protected:
 
 
     /**
+     * Check if the element is labeled as sliver
+     */
+    bool IsSliver();
+
+    /**
      * Initialize System Matrices
      */
     virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,

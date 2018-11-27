@@ -70,6 +70,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+//forward declaring Model to be avoid cross references
+class Model;
+
 /// ModelPart class.
 
 /** Detail class definition.
@@ -269,17 +272,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ModelPart();
-
-    /// Constructor with name
-    ModelPart(std::string const& NewName);
-
-    /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize);
-
-    /// Copy constructor.
-    ModelPart(ModelPart const& rOther) = delete;
+    KRATOS_DEPRECATED_MESSAGE("Old style Modelpart constructor will be removed on nov 1 2018")
+        ModelPart(std::string const& NewName, Model& rOwnerModel);
 
 
     /// Destructor.
@@ -318,6 +312,12 @@ public:
     IndexType CloneTimeStep(double NewTime);
 
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
+
+    //this function returns the "Owner" Model
+    Model& GetModel()
+    {
+        return mrModel;
+    }
 
     ///ATTENTION: this function does not touch the coordinates of the nodes.
     ///It just resets the database values to the values at the beginning of the time step
@@ -442,19 +442,19 @@ public:
     */
     void RemoveNodeFromAllLevels(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
-    /** erases all nodes identified by "identifier_flag" by removing the pointer.
+    /** erases all nodes identified by "IdentifierFlag" by removing the pointer.
      * Pointers are erased from this level downwards
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveNodes(Flags identifier_flag = TO_ERASE);
+    void RemoveNodes(Flags IdentifierFlag = TO_ERASE);
 
-    /** erases all nodes identified by "identifier_flag" by removing the pointer.
+    /** erases all nodes identified by "IdentifierFlag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveNodesFromAllLevels(Flags identifier_flag = TO_ERASE);
+    void RemoveNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
     /** this function gives back the "root" model part, that is the model_part that has no father */
     ModelPart& GetRootModelPart();
@@ -626,7 +626,7 @@ public:
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const 
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
@@ -708,19 +708,20 @@ public:
         KRATOS_CATCH("")
     }
 
-    /** Creates a new master-slave constraint in the current modelpart.
-     * //TODO: replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
+    /**
+     * @brief Creates a new master-slave constraint in the current modelpart.
+     * @todo Replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
      */
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id, 
+                                                                                    IndexType Id,
                                                                                     DofsVectorType& rMasterDofsVector,
                                                                                     DofsVectorType& rSlaveDofsVector,
                                                                                     const MatrixType& RelationMatrix,
                                                                                     const VectorType& ConstantVector,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
-                                                                                    IndexType Id, 
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id,
                                                                                     NodeType& rMasterNode,
                                                                                     const DoubleVariableType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
@@ -729,8 +730,8 @@ public:
                                                                                     const double Constant,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
-                                                                                    IndexType Id, 
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id,
                                                                                     NodeType& rMasterNode,
                                                                                     const VariableComponentType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
@@ -739,21 +740,39 @@ public:
                                                                                     double Constant,
                                                                                     IndexType ThisIndex = 0);
 
-    /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
-    */
+    /**
+     * @brief Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
+     */
     void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
 
-    /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
-    */
+    /**
+     * @brief Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
+     */
     void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
 
-    /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
-    */
+    /**
+     * @brief Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
+     */
     void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
 
-    /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
-    */
+    /**
+     * @brief Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
+     */
     void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /**
+     * @brief It erases all constraints identified by "IdentifierFlag" by removing the pointer.
+     * @details Pointers are erased from this level downwards nodes will be automatically destructured when no pointer is left to them
+     * @param IdentifierFlag The flag that identifies the constraints to remove
+     */
+    void RemoveMasterSlaveConstraints(Flags IdentifierFlag = TO_ERASE);
+
+    /**
+     * @brief It erases all constraints identified by "IdentifierFlag" by removing the pointer.
+     * @details Pointers will be erase from all levels nodes will be automatically destructured when no pointer is left to them
+     * @param IdentifierFlag The flag that identifies the constraints to remove
+     */
+    void RemoveMasterSlaveConstraintsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
     MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId, IndexType ThisIndex = 0);
@@ -776,6 +795,17 @@ public:
     /** Inserts a properties in the current mesh.
      */
     void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
+
+    /** Returns if the Properties corresponding to it's identifier exists */
+    bool HasProperties(IndexType PropertiesId, IndexType ThisIndex = 0) const
+    {
+        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { //property does exist
+            return true;
+        }
+
+        return false;
+    }
 
     /** Returns the Properties::Pointer  corresponding to it's identifier */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
@@ -1009,19 +1039,19 @@ public:
     */
     void RemoveElementFromAllLevels(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
 
-    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
          * Pointers are erased from this level downwards
          * nodes will be automatically destructured
          * when no pointer is left to them
          */
-    void RemoveElements(Flags identifier_flag = TO_ERASE);
+    void RemoveElements(Flags IdentifierFlag = TO_ERASE);
 
-    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveElementsFromAllLevels(Flags identifier_flag = TO_ERASE);
+    void RemoveElementsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
     ElementIterator ElementsBegin(IndexType ThisIndex = 0)
     {
@@ -1187,19 +1217,19 @@ public:
     */
     void RemoveConditionFromAllLevels(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
 
-    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
     * Pointers are erased from this level downwards
     * nodes will be automatically destructured
     * when no pointer is left to them
     */
-    void RemoveConditions(Flags identifier_flag = TO_ERASE);
+    void RemoveConditions(Flags IdentifierFlag = TO_ERASE);
 
-    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveConditionsFromAllLevels(Flags identifier_flag = TO_ERASE);
+    void RemoveConditionsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
     ConditionIterator ConditionsBegin(IndexType ThisIndex = 0)
     {
@@ -1268,7 +1298,7 @@ public:
     	In the case of conflict the new one would replace the old one
     	resulting inconsitency in parent.
     */
-    void AddSubModelPart(Kratos::shared_ptr<ModelPart> pThisSubModelPart);
+    void AddSubModelPart(ModelPart& rThisSubModelPart);
 
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
@@ -1293,7 +1323,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
             //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
-            return (i.base()->second).get();
+        return (i.base()->second).get();
     }
 
     /** Remove a sub modelpart with given name.
@@ -1339,7 +1369,6 @@ public:
     {
         return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
     }
-
 
     ///@}
     ///@name Access
@@ -1498,6 +1527,22 @@ public:
     ///@}
 
 private:
+
+    friend class Model;
+
+    /// Default constructor.
+    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Constructor with name
+    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Constructor with name and bufferSize
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Copy constructor.
+    ModelPart(ModelPart const& rOther) = delete;
+
+
     ///@name Static Member Variables
     ///@{
 
@@ -1525,6 +1570,8 @@ private:
     ModelPart* mpParentModelPart;
 
     SubModelPartsContainerType mSubModelParts;
+
+    Model& mrModel;
 
     ///@}
     ///@name Private Operators

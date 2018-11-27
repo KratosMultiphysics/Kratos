@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -22,97 +22,88 @@
 #include "containers/flags.h"
 #include "spaces/ublas_space.h"
 
-//strategies
+//---strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-//#include "custom_strategies/strategies/residual_based_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/MPM_strategy.h"
 
-//convergence criterias
+//---convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
-//schemes
-//#include "custom_strategies/schemes/residual_based_static_scheme.hpp"
+//---schemes
 #include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
-//builders and solvers
-//#include "custom_strategies/builders_and_solvers/residual_based_builder_and_solver.hpp"
+//---builders and solvers
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-//linear solvers
+
+//---linear solvers
 #include "linear_solvers/linear_solver.h"
-//#include "structural_application.h"
-#include "solid_mechanics_application.h"
 
+namespace Kratos{
+namespace Python{
 
-namespace Kratos
-{
+    namespace py = pybind11;
 
-namespace Python
-{
+    void AddCustomStrategiesToPython(pybind11::module& m)
+    {
+        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-using namespace pybind11;
+        //base types
+        typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+        typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+        typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+        typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+        typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
-void  AddCustomStrategiesToPython(pybind11::module& m)
-{
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        //custom strategy types
+        typedef MPMStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType,2> MPMStrategyType2D;
+        typedef MPMStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType,3> MPMStrategyType3D;
 
-    //base types
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
+        typedef MPMResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType> MPMResidualBasedNewtonRaphsonStrategyType;
 
-    //custom strategy types
-    typedef MPMStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType,2> MPMStrategyType2D;
-    typedef MPMStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType,3> MPMStrategyType3D;
+        //custom scheme types
+        typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
 
-    typedef MPMResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType> MPMResidualBasedNewtonRaphsonStrategyType;
+        // MPM Residual Based Bossak Scheme Type
+        py::class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
+            .def(py::init < ModelPart&, unsigned int, unsigned int, double, double>())
+            .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
+            ;
 
-    //custom scheme types
-    typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
+        // Strategy Type
+        py::class_< MPMStrategyType2D,typename MPMStrategyType2D::Pointer, BaseSolvingStrategyType >(m,"MPM2D")
+            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
+            .def( "SearchElement", &MPMStrategyType2D::SearchElement)
+            .def( "MP16ShapeFunctions", &MPMStrategyType2D::MP16ShapeFunctions)
+            .def( "MP33ShapeFunctions", &MPMStrategyType2D::MP33ShapeFunctions)
+            .def( "SetEchoLevel", &MPMStrategyType2D::SetEchoLevel)
+            ;
 
-    // MPM Residual Based Bossak Scheme Type
-    class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
-        .def(init < ModelPart&, unsigned int, unsigned int, double, double>())
-        .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
-        ;
+        py::class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
+            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
+            .def( "SearchElement", &MPMStrategyType3D::SearchElement)
+            .def( "MP16ShapeFunctions", &MPMStrategyType3D::MP16ShapeFunctions)
+            .def( "MP33ShapeFunctions", &MPMStrategyType3D::MP33ShapeFunctions)
+            .def( "SetEchoLevel", &MPMStrategyType3D::SetEchoLevel)
+            ;
 
-    // Strategy Type
-    class_< MPMStrategyType2D,typename MPMStrategyType2D::Pointer, BaseSolvingStrategyType >(m,"MPM2D")
-    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
-    .def( "SearchElement", &MPMStrategyType2D::SearchElement)
-    .def( "MP16ShapeFunctions", &MPMStrategyType2D::MP16ShapeFunctions)
-    .def( "MP33ShapeFunctions", &MPMStrategyType2D::MP33ShapeFunctions)
-    .def( "SetEchoLevel", &MPMStrategyType2D::SetEchoLevel)
-    ;
+        py::class_< MPMResidualBasedNewtonRaphsonStrategyType,typename MPMResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >(m,"MPMResidualBasedNewtonRaphsonStrategy")
+            .def(py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >() )
+            .def(py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >() )
+            .def("SetMaxIterationNumber", &MPMResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
+            .def("GetMaxIterationNumber", &MPMResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
+            .def("SetInitializePerformedFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
+            .def("GetInitializePerformedFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
+            .def("SetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+            .def("GetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+            .def("SetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetFinalizeSolutionStepFlag)
+            .def("GetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetFinalizeSolutionStepFlag)
+            ;
 
-    class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
-    .def(init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
-    .def( "SearchElement", &MPMStrategyType3D::SearchElement)
-    .def( "MP16ShapeFunctions", &MPMStrategyType3D::MP16ShapeFunctions)
-    .def( "MP33ShapeFunctions", &MPMStrategyType3D::MP33ShapeFunctions)
-    .def( "SetEchoLevel", &MPMStrategyType3D::SetEchoLevel)
-    ;
-
-    class_< MPMResidualBasedNewtonRaphsonStrategyType,typename MPMResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >(m,"MPMResidualBasedNewtonRaphsonStrategy")
-    .def(init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >() )
-    .def(init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >() )
-    .def("SetMaxIterationNumber", &MPMResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
-    .def("GetMaxIterationNumber", &MPMResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
-    .def("SetInitializePerformedFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
-    .def("GetInitializePerformedFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
-    .def("SetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
-    .def("GetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
-    .def("SetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetFinalizeSolutionStepFlag)
-    .def("GetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetFinalizeSolutionStepFlag)
-    ;
-
-}
+    }
 
 }  // namespace Python.
-
 } // Namespace Kratos
 

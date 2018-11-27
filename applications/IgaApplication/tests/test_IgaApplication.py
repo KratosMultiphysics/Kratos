@@ -1,6 +1,7 @@
 # import Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
+import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -8,8 +9,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests o test_classes to create the suits
 from node_curve_geometry_3d_tests import NodeCurveGeometry3DTests
 from node_surface_geometry_3d_tests import NodeSurfaceGeometry3DTests
-from truss_discrete_element_test import TrussDiscreteElementTest
-from shell_kl_discrete_element_test import ShellKLDiscreteElementTest
+from iga_truss_element_tests import IgaTrussElementTests
+from shell_kl_discrete_element_tests import ShellKLDiscreteElementTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -27,8 +28,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         NodeCurveGeometry3DTests,
         NodeSurfaceGeometry3DTests,
-        TrussDiscreteElementTest,
-        ShellKLDiscreteElementTest,
+        IgaTrussElementTests,
+        ShellKLDiscreteElementTests,
     ]))
 
     nightSuite = suites['nightly']
@@ -40,4 +41,5 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    run_cpp_unit_tests.run()
     KratosUnittest.runTests(AssembleTestSuites())

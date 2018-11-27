@@ -55,16 +55,10 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
 
-        self.mapper = mapper_factory.CreateMapper(self.design_surface, optimization_settings["design_variables"]["filter"])
+        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, optimization_settings["design_variables"]["filter"])
         self.data_logger = data_logger_factory.CreateDataLogger(model_part_controller, communicator, optimization_settings)
 
-        self.geometry_utilities = GeometryUtilities(self.design_surface)
         self.optimization_utilities = OptimizationUtilities(self.design_surface, optimization_settings)
-
-        self.is_damping_specified = optimization_settings["design_variables"]["damping"]["perform_damping"].GetBool()
-        if self.is_damping_specified:
-            damping_regions = self.model_part_controller.GetDampingRegions()
-            self.damping_utilities = DampingUtilities(self.design_surface, damping_regions, optimization_settings)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -73,9 +67,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.model_part_controller.ImportOptimizationModelPart()
         self.model_part_controller.InitializeMeshController()
-        self.mapper.InitializeMapping()
+        self.mapper.Initialize()
         self.analyzer.InitializeBeforeOptimizationLoop()
         self.data_logger.InitializeDataLogging()
 
@@ -152,11 +145,11 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     def __PostProcessGradientsObtainedFromAnalysis(self):
         # Compute surface normals if required
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
-            self.geometry_utilities.ComputeUnitSurfaceNormals()
+            self.model_part_controller.ComputeUnitSurfaceNormals()
         else:
             for itr in range(self.constraints.size()):
                 if self.constraints[itr]["project_gradient_on_surface_normals"]:
-                    self.geometry_utilities.ComputeUnitSurfaceNormals()
+                    self.model_part_controller.ComputeUnitSurfaceNormals()
 
         # Process objective gradients
         obj = self.objectives[0]
@@ -169,20 +162,19 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         # Projection on surface normals
         if obj["project_gradient_on_surface_normals"].GetBool():
-            self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
         # Damping
-        if self.is_damping_specified:
-            self.damping_utilities.DampNodalVariable(nodal_variable)
+        self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
 
         # Mapping
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
-        self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-        self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
+        self.mapper.Update()
+        self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
+        self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
         # Damping
-        if self.is_damping_specified:
-            self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
+        self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)
 
         # Process constraint gradients
         for itr in range(self.constraints.size()):
@@ -196,20 +188,18 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             # Projection on surface normals
             if con["project_gradient_on_surface_normals"].GetBool():
-                self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
+                self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
             # Damping
-            if self.is_damping_specified:
-                self.damping_utilities.DampNodalVariable(nodal_variable)
+            self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
 
             # Mapping
             nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-            self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-            self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
+            self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
+            self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
             # Damping
-            if self.is_damping_specified:
-                self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
+            self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)
 
     # --------------------------------------------------------------------------
     def __ConvertAnalysisResultsToLengthDirectionFormat(self):

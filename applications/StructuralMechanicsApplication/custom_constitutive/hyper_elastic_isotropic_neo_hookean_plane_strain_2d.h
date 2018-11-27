@@ -48,7 +48,7 @@ namespace Kratos
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicNeoHookeanPlaneStrain2D 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicNeoHookeanPlaneStrain2D
     : public HyperElasticIsotropicNeoHookean3D
 {
 public:
@@ -58,18 +58,24 @@ public:
 
     /// The definition of the process info
     typedef ProcessInfo               ProcessInfoType;
-    
+
     /// The definition of the CL base  class
     typedef ConstitutiveLaw                CLBaseType;
-    
+
     /// The definition of the base class
     typedef HyperElasticIsotropicNeoHookean3D BaseType;
-    
+
     /// The definition of the size type
     typedef std::size_t                      SizeType;
-    
+
     /// The definition of the index type
     typedef std::size_t                      IndexType;
+
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
 
     /// Pointer definition of HyperElasticIsotropicNeoHookeanPlaneStrain2D
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookeanPlaneStrain2D );
@@ -104,7 +110,7 @@ public:
      * @brief Clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-    
+
     /**
      * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures The Features of the law
@@ -116,7 +122,7 @@ public:
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 2;
+        return Dimension;
     };
 
     /**
@@ -124,7 +130,7 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 3;
+        return VoigtSize;
     };
 
 protected:
@@ -179,7 +185,7 @@ protected:
      * @param rValues The Internalvalues of the law
      * @param rStrainVector The strain vector in Voigt notation
      */
-    void CalculateCauchyGreenStrain(
+    void CalculateGreenLagrangianStrain(
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         ) override;
@@ -193,7 +199,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         ) override;
-    
+
     ///@}
 
 private:

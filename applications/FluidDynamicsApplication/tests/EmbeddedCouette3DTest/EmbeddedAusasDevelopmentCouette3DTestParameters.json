@@ -1,0 +1,141 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "couette_ausas_3D",
+        "model_part_name" : "MainModelPart",
+        "parallel_type"   : "OpenMP",
+        "domain_size"     : 3,
+        "start_step"      : 0.0,
+        "end_time"        : 0.2
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 0.1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "Embedded",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 3,
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "couette_3D"
+        },
+        "maximum_iterations"           : 7,
+        "echo_level"                   : 0,
+        "time_order"                   : 2,
+        "compute_reactions"            : false,
+        "reform_dofs_at_each_step"     : false,
+        "relative_velocity_tolerance"  : 1e-5,
+        "absolute_velocity_tolerance"  : 1e-7,
+        "relative_pressure_tolerance"  : 1e-5,
+        "absolute_pressure_tolerance"  : 1e-7,
+        "linear_solver_settings"       : {
+            "solver_type": "SuperLUSolver",
+            "verbosity": 0
+        },
+        "volume_model_part_name"       : "Parts_Fluid",
+        "skin_parts"                   : ["Inlet","Outlet","Top","Sides"],
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        },
+        "formulation": {
+            "element_type": "embedded_symbolic_navier_stokes_discontinuous",
+            "is_slip": true,
+            "slip_length": 1.0e8,
+            "penalty_coefficient": 10.0,
+            "dynamic_tau": 1.0
+        }
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Outlet",
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, 0.0],
+            "constrained"     : [false,true,true]
+        }
+    },{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Outlet",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0.0,
+            "constrained"     : true
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Sides",
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, 0.0],
+            "constrained"     : [false,true,false]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Top",
+            "variable_name"   : "VELOCITY",
+            "value"           : [null, 0.0, 0.0],
+            "constrained"     : [false,true,true]
+        }
+    },{
+        "python_module" : "apply_distance_modification_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyDistanceModificationProcess",
+        "Parameters"    : {
+            "model_part_name"                        : "Parts_Fluid",
+            "check_at_each_time_step"                : false,
+            "avoid_almost_empty_elements"            : false,
+            "deactivate_full_negative_elements"      : false,
+            "recover_original_distance_at_each_step" : false
+        }
+    }],
+    "gravity"                          : [{
+        "python_module" : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "ApplyConstantVectorValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Fluid",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"         : 0.0,
+            "direction"       : [0.0,0.0,-1.0]
+        }
+    }]
+}

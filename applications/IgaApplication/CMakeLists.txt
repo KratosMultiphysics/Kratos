@@ -2,6 +2,18 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosIgaApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
+if(NOT DEFINED ANURBS_ROOT)
+    message(FATAL_ERROR
+        "ANURBS_ROOT not defined!\n"
+        "  - Download ANurbs from https://github.com/oberbichler/ANurbs\n"
+        "  - Add '-DANURBS_ROOT=<path to ANurbs>' to your build script")
+else()
+    message(STATUS "ANURBS_ROOT = ${ANURBS_ROOT}")
+endif()
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/kratos
     ${ANURBS_ROOT}/include
@@ -13,18 +25,22 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/iga_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/iga_python_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/iga_truss_element.cpp
     # utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/iga_flags.cpp
     # elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/curve_base_discrete_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
 )
 
+## generate variables with the testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+  file(GLOB_RECURSE KRATOS_IGA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES})
+pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES} ${KRATOS_IGA_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosIgaApplication PRIVATE KratosCore)
 set_target_properties(KratosIgaApplication PROPERTIES PREFIX "")
 

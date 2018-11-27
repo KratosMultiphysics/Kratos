@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
@@ -47,10 +48,11 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test triangle
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalH1, KratosNodalHFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalH1, KratosCoreFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
@@ -100,7 +102,7 @@ namespace Kratos
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
                          
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
             
 //             // DEBUG         
@@ -117,10 +119,11 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test tetrahedra
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalH2, KratosNodalHFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalH2, KratosCoreFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
@@ -245,7 +248,7 @@ namespace Kratos
             Element::Pointer p_elem_11 = this_model_part.CreateNewElement("Element3D4N", 12, tetrahedra_11, p_elem_prop);
                       
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
             
 //             // DEBUG         

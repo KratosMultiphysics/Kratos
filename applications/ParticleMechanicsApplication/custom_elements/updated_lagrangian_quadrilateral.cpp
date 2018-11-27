@@ -10,10 +10,12 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 // System includes
+#include <omp.h>
+#include <sstream>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -21,10 +23,6 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application.h"
-
-
-#include <omp.h>
-#include <sstream>
 
 namespace Kratos
 {
@@ -70,7 +68,6 @@ UpdatedLagrangianQuadrilateral::UpdatedLagrangianQuadrilateral( UpdatedLagrangia
     :Element(rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
-    ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
     ,mInverseJ0(rOther.mInverseJ0)
     ,mInverseJ(rOther.mInverseJ)
     ,mDeterminantJ0(rOther.mDeterminantJ0)
@@ -88,8 +85,6 @@ UpdatedLagrangianQuadrilateral&  UpdatedLagrangianQuadrilateral::operator=(Updat
 
     mDeformationGradientF0.clear();
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
-    mInverseDeformationGradientF0.clear();
-    mInverseDeformationGradientF0 = rOther.mInverseDeformationGradientF0;
 
     mInverseJ0.clear();
     mInverseJ0 = rOther.mInverseJ0;
@@ -122,7 +117,6 @@ Element::Pointer UpdatedLagrangianQuadrilateral::Clone( IndexType NewId, NodesAr
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
-    NewElement.mInverseDeformationGradientF0 = mInverseDeformationGradientF0;
 
     NewElement.mInverseJ0 = mInverseJ0;
     NewElement.mInverseJ = mInverseJ;
@@ -148,21 +142,20 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     KRATOS_TRY
 
     // Initial position of the particle
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     // Initialize parameters
-    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
-    mDeformationGradientF0 = identity_matrix<double> (dim);
-    mInverseDeformationGradientF0 = identity_matrix<double> (dim);
+    mDeformationGradientF0 = IdentityMatrix(dimension);
 
     // Compute initial jacobian matrix and inverses
-    Matrix J0 = ZeroMatrix(dim, dim);
+    Matrix J0 = ZeroMatrix(dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
-    // Compute current jacobian matrix and inverses   
-    Matrix j = ZeroMatrix(dim,dim);
+    // Compute current jacobian matrix and inverses
+    Matrix j = ZeroMatrix(dimension);
     j = this->MPMJacobian(j,xg);
     double detj;
     MathUtils<double>::InvertMatrix( j, mInverseJ, detj );
@@ -170,21 +163,27 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     // Initialize constitutive law and materials
     InitializeMaterial();
 
+    // TODO: This needs to be moved to a utility to compute and check energy
+    double MP_PotentialEnergy = 0.0;
     double MP_KineticEnergy = 0.0;
     double MP_StrainEnergy = 0.0;
 
     for(unsigned int k = 0; k<3; k++)
     {
-        MP_KineticEnergy += 0.5 * this->GetValue(MP_MASS) * this->GetValue(MP_VELOCITY)[k] * this->GetValue(MP_VELOCITY)[k] ;
+        MP_PotentialEnergy += this->GetValue(MP_MASS) * this->GetValue(MP_VOLUME_ACCELERATION)[k] * this->GetValue(MP_COORD)[k];
+        MP_KineticEnergy   += 0.5 * this->GetValue(MP_MASS) * this->GetValue(MP_VELOCITY)[k] * this->GetValue(MP_VELOCITY)[k] ;
     }
     for(unsigned int j = 0; j < this->GetValue(MP_CAUCHY_STRESS_VECTOR).size(); j++)
     {
         MP_StrainEnergy +=  0.5 * this->GetValue(MP_VOLUME) * this->GetValue(MP_CAUCHY_STRESS_VECTOR)[j] * this->GetValue(MP_ALMANSI_STRAIN_VECTOR)[j];
     }
 
-    this->GetValue(MP_KINETIC_ENERGY) = MP_KineticEnergy;
-    this->GetValue(MP_STRAIN_ENERGY) = MP_StrainEnergy;
-    this->GetValue(MP_DENSITY) = GetProperties()[DENSITY];
+    double MP_TotalEnergy = MP_PotentialEnergy + MP_KineticEnergy + MP_StrainEnergy;
+
+    this->SetValue(MP_POTENTIAL_ENERGY, MP_PotentialEnergy);
+    this->SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
+    this->SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
+    this->SetValue(MP_TOTAL_ENERGY, MP_TotalEnergy);
 
     KRATOS_CATCH( "" )
 }
@@ -202,6 +201,7 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
     {
         voigtsize  = 6;
     }
+
     rVariables.detF  = 1;
 
     rVariables.detF0 = 1;
@@ -210,30 +210,28 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
 
     rVariables.detJ = 1;
 
-    rVariables.B.resize( voigtsize, number_of_nodes * dimension );
+    rVariables.B.resize( voigtsize, number_of_nodes * dimension, false );
 
-    rVariables.F.resize( dimension, dimension );
+    rVariables.F.resize( dimension, dimension, false );
 
-    rVariables.F0.resize( dimension, dimension );
+    rVariables.F0.resize( dimension, dimension, false );
 
-    rVariables.F0Inverse.resize( dimension, dimension );
+    rVariables.FT.resize( dimension, dimension, false );
 
-    rVariables.FT.resize( dimension, dimension );
+    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize, false );
 
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
+    rVariables.Normal.resize( voigtsize, voigtsize, false );
 
-    rVariables.Normal.resize( voigtsize, voigtsize);
+    rVariables.StrainVector.resize( voigtsize, false );
 
-    rVariables.StrainVector.resize( voigtsize );
+    rVariables.StressVector.resize( voigtsize, false );
 
-    rVariables.StressVector.resize( voigtsize );
+    rVariables.IsoStressVector.resize( voigtsize, false );
 
-    rVariables.IsoStressVector.resize( voigtsize );
+    rVariables.DN_DX.resize( number_of_nodes, dimension, false );
+    rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
-    rVariables.DN_De.resize( number_of_nodes, dimension );
-
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
@@ -261,18 +259,19 @@ void UpdatedLagrangianQuadrilateral::SetGeneralVariables(GeneralVariables& rVari
     // Check if detF is negative (element is inverted)
     if(rVariables.detF<0)
     {
-        std::cout<<" Element: "<<this->Id()<<std::endl;
-        std::cout<<" Element position "<<this->GetValue(GAUSS_COORD)<<std::endl;
+        KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" Element: "<<this->Id()<<std::endl;
+        KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" Element position "<<this->GetValue(MP_COORD)<<std::endl;
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
-            array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            //array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-            std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<CurrentPosition<<") "<<std::endl;
-            std::cout<<" ---Current Disp: "<<CurrentDisplacement<<" (Previour Disp: "<<PreviousDisplacement<<")"<<std::endl;
+            array_1d<double, 3> & current_position      = GetGeometry()[i].Coordinates();
+            array_1d<double, 3> & current_displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3> & previous_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            //array_1d<double, 3> PreviousPosition  = current_position - (current_displacement-previous_displacement);
+
+            KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<current_position<<") "<<std::endl;
+            KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" ---Current Disp: "<<current_displacement<<" (Previous Disp: "<<previous_displacement<<")"<<std::endl;
         }
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -281,11 +280,11 @@ void UpdatedLagrangianQuadrilateral::SetGeneralVariables(GeneralVariables& rVari
             {
                 array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
                 array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-                std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
+                KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Current:"<<ContactForce<<") "<<std::endl;
             }
             else
             {
-                std::cout<<" ---Contact_Force: NULL "<<std::endl;
+                KRATOS_INFO("UpdatedLagrangianQuadrilateral")<<" ---Contact_Force: NULL "<<std::endl;
             }
         }
 
@@ -305,21 +304,6 @@ void UpdatedLagrangianQuadrilateral::SetGeneralVariables(GeneralVariables& rVari
 
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianQuadrilateral::UpdateGeneralVariables(GeneralVariables& rVariables,
-        ConstitutiveLaw::Parameters& rValues)
-{
-    // The following updates are performed specifically for non-isochoric return mapping
-    // Update total deformation gradient after return mapping
-    rVariables.FT = rValues.GetDeformationGradientF();
-    rVariables.F  = prod( rVariables.FT, rVariables.F0Inverse );
-
-    // Update the total determinant of deformation gradient after return mapping
-    rVariables.detFT = rValues.GetDeterminantF();
-    rVariables.detF  = rVariables.detFT / rVariables.detF0;
-}
 
 //************************************************************************************
 //*****************check size of LHS and RHS matrices*********************************
@@ -332,23 +316,23 @@ void UpdatedLagrangianQuadrilateral::InitializeSystemMatrices(MatrixType& rLeftH
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     // Resizing the LHS matrix if needed
-    unsigned int MatSize = number_of_nodes * dimension;   //number of degrees of freedom
+    unsigned int matrix_size = number_of_nodes * dimension;   //number of degrees of freedom
 
     if ( rCalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
-        if ( rLeftHandSideMatrix.size1() != MatSize )
-            rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+        if ( rLeftHandSideMatrix.size1() != matrix_size )
+            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size); //resetting LHS
     }
 
     // Resizing the RHS vector if needed
     if ( rCalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
     {
-        if ( rRightHandSideVector.size() != MatSize )
-            rRightHandSideVector.resize( MatSize, false );
+        if ( rRightHandSideVector.size() != matrix_size )
+            rRightHandSideVector.resize( matrix_size, false );
 
-        rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+        rRightHandSideVector = ZeroVector( matrix_size ); //resetting RHS
     }
 }
 
@@ -374,7 +358,7 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     // Auxiliary terms
-    Vector VolumeForce;
+    Vector volume_force;
 
     // Compute element kinematics B, F, DN_DX ...
     this->CalculateKinematics(Variables,rCurrentProcessInfo);
@@ -388,15 +372,6 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
     mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-    if(rCurrentProcessInfo[NL_ITERATION_NUMBER] == 1)
-    {
-        this->SetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
-        this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
-    }
-
-    // Update general variables after material response is calculated - this will update necessary information
-    this->UpdateGeneralVariables(Variables,Values);
-
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
     However, the density and volume (integration weight) are changing every time step.*/
@@ -406,8 +381,8 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
 
     // The MP_Volume (integration weight) is evaluated
     double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
-    this->SetValue(MP_VOLUME, MP_Volume);   
-    
+    this->SetValue(MP_VOLUME, MP_Volume);
+
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_LHS_MATRIX) ) // if calculation of the matrix is required
     {
         // Contributions to stiffness matrix calculated on the reference configuration
@@ -417,8 +392,8 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangianQuadrilateral::COMPUTE_RHS_VECTOR) ) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
-        this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, MP_Volume );
+        volume_force  = this->CalculateVolumeForce( volume_force, Variables );
+        this->CalculateAndAddRHS ( rLocalSystem, Variables, volume_force, MP_Volume );
     }
 
     KRATOS_CATCH( "" )
@@ -446,30 +421,29 @@ void UpdatedLagrangianQuadrilateral::CalculateKinematics(GeneralVariables& rVari
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
 
-    /* NOTE:: 
+    /* NOTE::
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
     1. By: noalias( rVariables.F ) = prod( rVariables.j, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee  
-    
+    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+
     (NOTICE: Here, we are using method no. 2)*/
 
     // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
     // noalias( rVariables.F ) = prod( rVariables.j, InvJ);
-    
+
     // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix I = identity_matrix<double>(dimension);
-    Matrix GradientDisp = ZeroMatrix(dimension, dimension);
+    Matrix I = IdentityMatrix(dimension);
+    Matrix gradient_displacement = ZeroMatrix(dimension);
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    GradientDisp = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
-    
-    noalias( rVariables.F ) = (I + GradientDisp);
+    gradient_displacement = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
+
+    noalias( rVariables.F ) = (I + gradient_displacement);
 
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
-    rVariables.F0Inverse = mInverseDeformationGradientF0;
 
     // Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
@@ -606,8 +580,8 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddInternalForces(VectorType& r
 {
     KRATOS_TRY
 
-    VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
-    noalias( rRightHandSideVector ) -= InternalForces;
+    VectorType internal_forces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
+    noalias( rRightHandSideVector ) -= internal_forces;
 
     KRATOS_CATCH( "" )
 }
@@ -680,9 +654,9 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddKuug(MatrixType& rLeftHandSi
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
-    Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
-    MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
+    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    Matrix reduced_Kg    = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( stress_tensor, trans( rVariables.DN_DX ) ) ) );
+    MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
 
     KRATOS_CATCH( "" )
 }
@@ -881,17 +855,17 @@ void UpdatedLagrangianQuadrilateral::CalculateLocalSystem( std::vector< MatrixTy
 
 void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    /* NOTE: 
+    /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension, dimension);
+    Matrix J0 = ZeroMatrix(dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
@@ -911,19 +885,19 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     double MP_Mass = this->GetValue(MP_MASS);
     array_1d<double,3> MP_Momentum;
     array_1d<double,3> MP_Inertia;
-    array_1d<double,3> NodalMomentum = ZeroVector(3);
-    array_1d<double,3> NodalInertia  = ZeroVector(3);
+    array_1d<double,3> nodal_momentum = ZeroVector(3);
+    array_1d<double,3> nodal_inertia  = ZeroVector(3);
 
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        array_1d<double, 3 > & NodalAcceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
-        array_1d<double, 3 > & NodalVelocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
+        array_1d<double, 3 > & nodal_acceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
+        array_1d<double, 3 > & nodal_velocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
 
         for (unsigned int k = 0; k < dimension; k++)
         {
-            AUX_MP_Velocity[k] += Variables.N[j] * NodalVelocity[k];
-            AUX_MP_Acceleration[k] += Variables.N[j] * NodalAcceleration[k];
+            AUX_MP_Velocity[k]     += Variables.N[j] * nodal_velocity[k];
+            AUX_MP_Acceleration[k] += Variables.N[j] * nodal_acceleration[k];
         }
     }
 
@@ -932,13 +906,13 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     {
         for (unsigned int j = 0; j < dimension; j++)
         {
-            NodalMomentum[j] = Variables.N[i] * (MP_Velocity[j] - AUX_MP_Velocity[j]) * MP_Mass;
-            NodalInertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
+            nodal_momentum[j] = Variables.N[i] * (MP_Velocity[j] - AUX_MP_Velocity[j]) * MP_Mass;
+            nodal_inertia[j]  = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
         }
 
         GetGeometry()[i].SetLock();
-        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += NodalMomentum;
-        GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += NodalInertia;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
+        GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
 
         GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
         GetGeometry()[i].UnSetLock();
@@ -985,7 +959,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep( ProcessInfo& rCurrent
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    
+
     // Compute element kinematics B, F, DN_DX ...
     this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
@@ -1001,7 +975,7 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep( ProcessInfo& rCurrent
             Variables.N,
             rCurrentProcessInfo );
 
-    // Call the element internal variables update  
+    // Call the element internal variables update
     this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
 
     mFinalizedStep = true;
@@ -1017,13 +991,12 @@ void UpdatedLagrangianQuadrilateral::FinalizeStepVariables( GeneralVariables & r
     // Update internal (historical) variables
     mDeterminantF0         = rVariables.detF* rVariables.detF0;
     mDeformationGradientF0 = prod(rVariables.F, rVariables.F0);
-    MathUtils<double>::InvertMatrix( mDeformationGradientF0, mInverseDeformationGradientF0, mDeterminantF0 );
 
     this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
 
     // Delta Plastic Strains
-    double DeltaPlasticStrain = mConstitutiveLawVector->GetValue(DELTA_PLASTIC_STRAIN, DeltaPlasticStrain );
+    double DeltaPlasticStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_STRAIN, DeltaPlasticStrain );
     this->SetValue(MP_DELTA_PLASTIC_STRAIN, DeltaPlasticStrain);
 
     double DeltaPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, DeltaPlasticVolumetricStrain);
@@ -1031,9 +1004,9 @@ void UpdatedLagrangianQuadrilateral::FinalizeStepVariables( GeneralVariables & r
 
     double DeltaPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
     this->SetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
-    
+
     // Total Plastic Strain
-    double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
+    double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain );
     this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
 
     double AccumulatedPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, AccumulatedPlasticVolumetricStrain);
@@ -1062,14 +1035,14 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3> xg = this->GetValue(MP_COORD);
     const array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
     const array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_Acceleration = ZeroVector(3);
     array_1d<double,3> MP_Velocity = ZeroVector(3);
-    const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+    const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
@@ -1077,39 +1050,39 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
     {
         if (rVariables.N[i] > 1e-16)
         {
-            array_1d<double, 3 > & NodalAcceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3 > & nodal_acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
 
             for ( unsigned int j = 0; j < dimension; j++ )
             {
 
                 delta_xg[j] += rVariables.N[i] * rVariables.CurrentDisp(i,j);
-                MP_Acceleration[j] += rVariables.N[i] * NodalAcceleration[j];
+                MP_Acceleration[j] += rVariables.N[i] * nodal_acceleration[j];
 
                 /* NOTE: The following interpolation techniques have been tried:
-                    MP_Velocity[j]      += rVariables.N[i] * NodalVelocity[j];
-                    MP_Acceleration[j]  += NodalInertia[j]/(rVariables.N[i] * MP_Mass * MP_number);
-                    MP_Velocity[j]      += NodalMomentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
-                    MP_Velocity[j]      += DeltaTime * rVariables.N[i] * NodalAcceleration[j];
+                    MP_Velocity[j]      += rVariables.N[i] * nodal_velocity[j];
+                    MP_Acceleration[j]  += nodal_inertia[j]/(rVariables.N[i] * MP_Mass * MP_number);
+                    MP_Velocity[j]      += nodal_momentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
+                    MP_Velocity[j]      += delta_time * rVariables.N[i] * nodal_acceleration[j];
                 */
             }
         }
 
     }
-    
+
     /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003). 
+    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
     This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    MP_Velocity = MP_PreviousVelocity + 0.5 * DeltaTime * (MP_Acceleration + MP_PreviousAcceleration);
+    MP_Velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_Acceleration + MP_PreviousAcceleration);
     this -> SetValue(MP_VELOCITY,MP_Velocity );
 
     /* NOTE: The following interpolation techniques have been tried:
-        MP_Acceleration = 4/(DeltaTime * DeltaTime) * delta_xg - 4/DeltaTime * MP_PreviousVelocity;
-        MP_Velocity = 2.0/DeltaTime * delta_xg - MP_PreviousVelocity;
+        MP_Acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
+        MP_Velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
     */
 
     // Update the MP Position
     const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(GAUSS_COORD,new_xg);
+    this -> SetValue(MP_COORD,new_xg);
 
     // Update the MP Acceleration
     this -> SetValue(MP_ACCELERATION,MP_Acceleration);
@@ -1125,7 +1098,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
 void UpdatedLagrangianQuadrilateral::InitializeMaterial()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
@@ -1150,7 +1123,7 @@ void UpdatedLagrangianQuadrilateral::InitializeMaterial()
 void UpdatedLagrangianQuadrilateral::ResetConstitutiveLaw()
 {
     KRATOS_TRY
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
@@ -1166,7 +1139,7 @@ void UpdatedLagrangianQuadrilateral::ResetConstitutiveLaw()
 
 //*************************COMPUTE CURRENT DISPLACEMENT*******************************
 //************************************************************************************
-/* 
+/*
 This function convert the computed nodal displacement into matrix of (number_of_nodes, dimension)
 */
 Matrix& UpdatedLagrangianQuadrilateral::CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo)
@@ -1176,15 +1149,15 @@ Matrix& UpdatedLagrangianQuadrilateral::CalculateCurrentDisp(Matrix & rCurrentDi
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    rCurrentDisp = zero_matrix<double>( number_of_nodes, dimension);
+    rCurrentDisp = ZeroMatrix( number_of_nodes, dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & current_displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rCurrentDisp(i,j) = CurrentDisplacement[j];
+            rCurrentDisp(i,j) = current_displacement[j];
         }
     }
 
@@ -1205,30 +1178,30 @@ void UpdatedLagrangianQuadrilateral::CalculateAlmansiStrain(const Matrix& rF,
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     // Left Cauchy-Green Calculation
-    Matrix LeftCauchyGreen = prod( rF, trans( rF ) );
+    Matrix left_cauchy_green = prod( rF, trans( rF ) );
 
     // Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( dimension, dimension );
+    Matrix inv_left_cauchy_green ( dimension, dimension );
     double det_b=0;
-    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( left_cauchy_green, inv_left_cauchy_green, det_b);
 
     if( dimension == 2 )
     {
         // Almansi Strain Calculation
-        rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
-        rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
-        rStrainVector[2] = - InverseLeftCauchyGreen( 0, 1 ); // xy
+        rStrainVector[0] = 0.5 * (  1.00 - inv_left_cauchy_green( 0, 0 ) );
+        rStrainVector[1] = 0.5 * (  1.00 - inv_left_cauchy_green( 1, 1 ) );
+        rStrainVector[2] = - inv_left_cauchy_green( 0, 1 ); // xy
     }
     else if( dimension == 3 )
     {
         // Almansi Strain Calculation
         if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-        rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
-        rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
-        rStrainVector[2] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 2, 2 ) );
-        rStrainVector[3] = - InverseLeftCauchyGreen( 0, 1 ); // xy
-        rStrainVector[4] = - InverseLeftCauchyGreen( 1, 2 ); // yz
-        rStrainVector[5] = - InverseLeftCauchyGreen( 0, 2 ); // xz
+        rStrainVector[0] = 0.5 * (  1.00 - inv_left_cauchy_green( 0, 0 ) );
+        rStrainVector[1] = 0.5 * (  1.00 - inv_left_cauchy_green( 1, 1 ) );
+        rStrainVector[2] = 0.5 * (  1.00 - inv_left_cauchy_green( 2, 2 ) );
+        rStrainVector[3] = - inv_left_cauchy_green( 0, 1 ); // xy
+        rStrainVector[4] = - inv_left_cauchy_green( 1, 2 ); // yz
+        rStrainVector[5] = - inv_left_cauchy_green( 0, 2 ); // xz
     }
     else
     {
@@ -1239,7 +1212,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAlmansiStrain(const Matrix& rF,
 }
 //*************************COMPUTE GREEN-LAGRANGE STRAIN*************************************
 //************************************************************************************
-// Green-Lagrange Strain: E = 0.5 * (U^2 - I) = 0.5 * (C - I) 
+// Green-Lagrange Strain: E = 0.5 * (U^2 - I) = 0.5 * (C - I)
 void UpdatedLagrangianQuadrilateral::CalculateGreenLagrangeStrain(const Matrix& rF,
         Vector& rStrainVector )
 {
@@ -1300,19 +1273,19 @@ double& UpdatedLagrangianQuadrilateral::CalculateIntegrationWeight(double& rInte
 void UpdatedLagrangianQuadrilateral::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
 {
     int number_of_nodes = GetGeometry().size();
-    int dim = GetGeometry().WorkingSpaceDimension();
-    unsigned int dim2 = number_of_nodes * dim;
+    int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int dimension_2 = number_of_nodes * dimension;
 
-    if ( rResult.size() != dim2 )
-        rResult.resize( dim2, false );
+    if ( rResult.size() != dimension_2 )
+        rResult.resize( dimension_2, false );
 
     for ( int i = 0; i < number_of_nodes; i++ )
     {
-        int index = i * dim;
+        int index = i * dimension;
         rResult[index] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
 
-        if ( dim == 3 )
+        if ( dimension == 3 )
             rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
     }
 
@@ -1350,12 +1323,12 @@ void UpdatedLagrangianQuadrilateral::CalculateDampingMatrix( MatrixType& rDampin
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension;
+    unsigned int matrix_size = number_of_nodes * dimension;
 
-    if ( rDampingMatrix.size1() != MatSize )
-        rDampingMatrix.resize( MatSize, MatSize, false );
+    if ( rDampingMatrix.size1() != matrix_size )
+        rDampingMatrix.resize( matrix_size, matrix_size, false );
 
-    noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
+    noalias( rDampingMatrix ) = ZeroMatrix( matrix_size);
 
     //1.-Calculate StiffnessMatrix:
     MatrixType StiffnessMatrix  = Matrix();
@@ -1407,12 +1380,12 @@ void UpdatedLagrangianQuadrilateral::CalculateMassMatrix( MatrixType& rMassMatri
     //lumped
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int MatSize = dimension * number_of_nodes;
+    unsigned int matrix_size = dimension * number_of_nodes;
 
-    if ( rMassMatrix.size1() != MatSize )
-        rMassMatrix.resize( MatSize, MatSize, false );
+    if ( rMassMatrix.size1() != matrix_size )
+        rMassMatrix.resize( matrix_size, matrix_size, false );
 
-    rMassMatrix = ZeroMatrix( MatSize, MatSize );
+    rMassMatrix = ZeroMatrix(matrix_size);
 
     double TotalMass = 0;
 
@@ -1446,15 +1419,15 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, array_1d<d
     Matrix shape_functions_gradients;
     shape_functions_gradients =this->MPMShapeFunctionsLocalGradients(
                                    shape_functions_gradients, rPoint);
-    
+
     const GeometryType& rGeom = GetGeometry();
     const unsigned int number_nodes = rGeom.PointsNumber();
     const unsigned int dimension = rGeom.WorkingSpaceDimension();
 
     if (dimension ==2)
     {
-        rResult.resize( 2, 2);
-        rResult = ZeroMatrix(2,2);
+        rResult.resize( 2, 2, false );
+        rResult = ZeroMatrix(2);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
@@ -1466,8 +1439,8 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, array_1d<d
     }
     else if(dimension ==3)
     {
-        rResult.resize( 3,3);
-        rResult = ZeroMatrix(3,3);
+        rResult.resize( 3, 3, false );
+        rResult = ZeroMatrix(3);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
@@ -1513,8 +1486,8 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, array
 
     if (dimension ==2)
     {
-        rResult.resize( 2, 2);
-        rResult = ZeroMatrix(2,2);
+        rResult.resize( 2, 2, false );
+        rResult = ZeroMatrix(2);
 
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
@@ -1526,8 +1499,8 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, array
     }
     else if(dimension ==3)
     {
-        rResult.resize( 3,3);
-        rResult = ZeroMatrix(3,3);
+        rResult.resize( 3, 3, false );
+        rResult = ZeroMatrix(3);
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
             rResult( 0, 0 ) += ( rGeom.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 0 ) );
@@ -1570,7 +1543,7 @@ Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rRe
 
     if (dimension == 2)
     {
-        rResult.resize(4, false);
+        rResult.resize( 4, false );
 
         // Shape Functions (if the first node of the connettivity is the node at the bottom left)
         rResult( 0 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
@@ -1630,7 +1603,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix&
     rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
     if (dimension == 2)
     {
-        rResult = ZeroMatrix( 4, 2 );
+        rResult = ZeroMatrix(4,2);
 
         // Gradient Shape Function (if the first node of the connettivity is the node at the bottom left)
         rResult( 0, 0 ) = -0.25 * (1 - rPointLocal[1]);
@@ -1674,22 +1647,22 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix&
     }
     else if(dimension == 3)
     {
-        rResult = ZeroMatrix( 8, 3 );
+        rResult = ZeroMatrix(8,3);
 
         // Gradient Shape Function (if the first node of the connectivity is at (-1,-1,-1))
         // NOTE: Implemented based on Carlos Felippa's Lecture on AFEM Chapter 11
         rResult(0,0) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[2]);
         rResult(0,1) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[0]) * (1.0 + -1.0 * rPointLocal[2]);
         rResult(0,2) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);
-        
+
         rResult(1,0) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[2]);
         rResult(1,1) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[0]) * (1.0 + -1.0 * rPointLocal[2]);
         rResult(1,2) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[0]);
-        
+
         rResult(2,0) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[2]);
         rResult(2,1) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[0]) * (1.0 + -1.0 * rPointLocal[2]);
         rResult(2,2) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[0]);
-        
+
         rResult(3,0) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[2]);
         rResult(3,1) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[0]) * (1.0 + -1.0 * rPointLocal[2]);
         rResult(3,2) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);
@@ -1697,18 +1670,18 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix&
         rResult(4,0) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[2]);
         rResult(4,1) = 0.125 * -1.0 * (1.0 + -1.0 * rPointLocal[0]) * (1.0 +  1.0 * rPointLocal[2]);
         rResult(4,2) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);
-        
+
         rResult(5,0) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[2]);
         rResult(5,1) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[0]) * (1.0 +  1.0 * rPointLocal[2]);
         rResult(5,2) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[0]);
-        
+
         rResult(6,0) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[2]);
         rResult(6,1) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[0]) * (1.0 +  1.0 * rPointLocal[2]);
         rResult(6,2) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[0]);
-        
+
         rResult(7,0) = 0.125 * -1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 +  1.0 * rPointLocal[2]);
         rResult(7,1) = 0.125 *  1.0 * (1.0 + -1.0 * rPointLocal[0]) * (1.0 +  1.0 * rPointLocal[2]);
-        rResult(7,2) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);        
+        rResult(7,2) = 0.125 *  1.0 * (1.0 +  1.0 * rPointLocal[1]) * (1.0 + -1.0 * rPointLocal[0]);
     }
 
     return rResult;
@@ -1720,18 +1693,18 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix&
 void UpdatedLagrangianQuadrilateral::GetValuesVector( Vector& values, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize = number_of_nodes * dim;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
 
-    if ( values.size() != MatSize ) values.resize( MatSize, false );
+    if ( values.size() != matrix_size ) values.resize( matrix_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        unsigned int index = i * dim;
+        unsigned int index = i * dimension;
         values[index] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
         values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
 
-        if ( dim == 3 )
+        if ( dimension == 3 )
             values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
     }
 }
@@ -1743,18 +1716,18 @@ void UpdatedLagrangianQuadrilateral::GetValuesVector( Vector& values, int Step )
 void UpdatedLagrangianQuadrilateral::GetFirstDerivativesVector( Vector& values, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize = number_of_nodes * dim;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
 
-    if ( values.size() != MatSize ) values.resize( MatSize, false );
+    if ( values.size() != matrix_size ) values.resize( matrix_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        unsigned int index = i * dim;
+        unsigned int index = i * dimension;
         values[index] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_X, Step );
         values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
 
-        if ( dim == 3 )
+        if ( dimension == 3 )
             values[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
     }
 }
@@ -1765,18 +1738,18 @@ void UpdatedLagrangianQuadrilateral::GetFirstDerivativesVector( Vector& values, 
 void UpdatedLagrangianQuadrilateral::GetSecondDerivativesVector( Vector& values, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize = number_of_nodes * dim;
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int matrix_size = number_of_nodes * dimension;
 
-    if ( values.size() != MatSize ) values.resize( MatSize, false );
+    if ( values.size() != matrix_size ) values.resize( matrix_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        unsigned int index = i * dim;
+        unsigned int index = i * dimension;
         values[index] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
         values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
 
-        if ( dim == 3 )
+        if ( dimension == 3 )
             values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
     }
 }
@@ -1791,7 +1764,6 @@ void UpdatedLagrangianQuadrilateral::GetHistoricalVariables( GeneralVariables& r
 
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
-    rVariables.F0Inverse = mInverseDeformationGradientF0;
 }
 
 //*************************DECIMAL CORRECTION OF STRAINS******************************
@@ -1826,7 +1798,7 @@ int  UpdatedLagrangianQuadrilateral::Check( const ProcessInfo& rCurrentProcessIn
     KRATOS_TRY
 
     const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-    
+
     // Verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
 
@@ -1889,7 +1861,6 @@ void UpdatedLagrangianQuadrilateral::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("InverseDeformationGradientF0",mInverseDeformationGradientF0);
     rSerializer.save("InverseJ0",mInverseJ0);
     rSerializer.save("DeterminantJ0",mDeterminantJ0);
 
@@ -1901,7 +1872,6 @@ void UpdatedLagrangianQuadrilateral::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("InverseDeformationGradientF0",mInverseDeformationGradientF0);
     rSerializer.load("InverseJ0",mInverseJ0);
     rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }

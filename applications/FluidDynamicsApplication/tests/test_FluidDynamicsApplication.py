@@ -24,6 +24,9 @@ from adjoint_fluid_test import AdjointFluidTest
 from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
+from test_statistics_process import IntegrationPointStatisticsTest
+from test_ale_fluid_solver import ALEFluidSolverTest
+
 import run_cpp_unit_tests
 
 def AssembleTestSuites():
@@ -47,6 +50,7 @@ def AssembleTestSuites():
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette2D'))
+    smallSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasDevelopmentCouette2D'))
     smallSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
@@ -70,6 +74,7 @@ def AssembleTestSuites():
     nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasCouette3D'))
     nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedDevelopmentCouette3D'))
     nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedSlipDevelopmentCouette3D'))
+    nightSuite.addTest(EmbeddedCouetteTest('testEmbeddedAusasDevelopmentCouette3D'))
     nightSuite.addTest(EmbeddedCouetteImposedTest('testEmbeddedCouetteImposed3D'))
     nightSuite.addTest(FluidElementTest('testCavityQSASGS'))
     nightSuite.addTest(FluidElementTest('testCavityQSOSS'))
@@ -86,9 +91,12 @@ def AssembleTestSuites():
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([IntegrationPointStatisticsTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ALEFluidSolverTest]))
 
 
     # For very long tests that should not be in nighly and you can use to validate
@@ -104,6 +112,7 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
