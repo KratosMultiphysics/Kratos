@@ -114,7 +114,7 @@ with open(response_log_filename, 'r') as csvfile:
 
     # Check against specifications
     TestCase().assertEqual(resulting_optimization_iterations, 124)
-    TestCase().assertAlmostEqual(resulting_improvement, -90.228425, 5)
+    TestCase().assertAlmostEqual(resulting_improvement, -90.2284, 4)
 
 os.chdir(original_directory)
 
