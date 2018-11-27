@@ -131,9 +131,9 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             u += b
 
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-            self.assertAlmostEqual(d[0], u[0])
-            self.assertAlmostEqual(d[1], u[1])
-            self.assertAlmostEqual(d[2], u[2])
+            for i in range(3):
+                if abs(u[i]) > 0.0:
+                    self.assertLess((d[i] - u[i])/u[i], 1.0e-6)
 
     def _check_outputs(self,mp,A,dim):
 
