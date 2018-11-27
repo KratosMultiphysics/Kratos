@@ -1,7 +1,5 @@
 # co simulation imports
 import co_simulation_tools as tools
-# Importing the CoSimulation application
-from CoSimulationApplication import *
 from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 # Other imports
 import co_simulation_data_structure

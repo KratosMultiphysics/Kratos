@@ -1,7 +1,5 @@
 # co simulation imports
 import co_simulation_tools as tools
-# Importing the CoSimulation application
-from CoSimulationApplication import *
 # Other imports
 import co_simulation_data_structure
 cs_data_structure = co_simulation_data_structure.__KRATOS_DATA_STRUCTURE__

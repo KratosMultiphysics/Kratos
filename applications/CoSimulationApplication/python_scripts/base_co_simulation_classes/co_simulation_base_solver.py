@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
 # Other imports
-from CoSimulationApplication import *
 import custom_co_simulation_solver_interfaces.co_simulation_io_factory as io_factory
 import co_simulation_tools as tools
 cs_data_structure = tools.cs_data_structure
