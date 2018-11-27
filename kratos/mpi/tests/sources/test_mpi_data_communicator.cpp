@@ -998,42 +998,34 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorDouble, KratosMPICoreF
     #endif
 }
 
+// SendRecv ///////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecv, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
 {
-    DataCommunicator serial_communicator;
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-
     const int world_size = mpi_world_communicator.Size();
     const int world_rank = mpi_world_communicator.Rank();
     const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
     const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-    std::vector<int> send_buffer_int = {world_rank, world_rank};
-    std::vector<int> recv_buffer_int = {0, 0};
-    std::vector<double> send_buffer_double = {2.0*world_rank, 2.0*world_rank};
-    std::vector<double> recv_buffer_double = {0.0, 0.0};
-
-    serial_communicator.SendRecv(send_buffer_int, send_rank, recv_buffer_int, recv_rank);
-    serial_communicator.SendRecv(send_buffer_double, send_rank, recv_buffer_double, recv_rank);
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(recv_buffer_int[i], 0);
-        KRATOS_CHECK_EQUAL(recv_buffer_double[i], 0.0);
-    }
+    std::vector<int> send_buffer = {world_rank, world_rank};
+    std::vector<int> recv_buffer = {-1, -1};
 
     if (world_size > 1)
     {
-        mpi_world_communicator.SendRecv(send_buffer_int, send_rank, recv_buffer_int, recv_rank);
-        mpi_world_communicator.SendRecv(send_buffer_double, send_rank, recv_buffer_double, recv_rank);
+        // two-buffer version
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
 
-        const int expected_recv_int = world_rank > 0 ? world_rank - 1 : world_size - 1;
-        const double expected_recv_double = 2.0*expected_recv_int;
+        // return version
+        std::vector<int> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
 
+        const int expected_recv = world_rank > 0 ? world_rank - 1 : world_size - 1;
+
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(recv_buffer_int[i], expected_recv_int);
-            KRATOS_CHECK_EQUAL(recv_buffer_double[i], expected_recv_double);
+            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
+            KRATOS_CHECK_EQUAL(return_buffer[i], expected_recv);
         }
     }
 
@@ -1045,14 +1037,61 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecv, KratosMPICoreFastSuite)
         if (mpi_world_communicator.Rank() == 0) {
             wrong_send_rank = 2;
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer_int, wrong_send_rank, recv_buffer_int, recv_rank),"Error:");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer, wrong_send_rank, recv_buffer, recv_rank),"Error:");
 
         // Input size != output size
         std::vector<int> local_vector_wrong_size{1,2,3};
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_vector_wrong_size, send_rank, recv_buffer_int, recv_rank),"Input error in call to MPI_Sendrecv");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_vector_wrong_size, send_rank, recv_buffer, recv_rank),"Input error in call to MPI_Sendrecv");
     }
     #endif
 }
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    std::vector<double> send_buffer = {2.0*world_rank, 2.0*world_rank};
+    std::vector<double> recv_buffer = {-1.0, -1.0};
+
+    if (world_size > 1)
+    {
+        // two-buffer version
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+
+        // return version
+        std::vector<double> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+        const double expected_recv = world_rank > 0 ? 2.0*(world_rank - 1) : 2.0*(world_size - 1);
+
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+        for (int i = 0; i < 2; i++)
+        {
+            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
+            KRATOS_CHECK_EQUAL(return_buffer[i], expected_recv);
+        }
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has the wrong source/destination
+        int wrong_send_rank = send_rank;
+        if (mpi_world_communicator.Rank() == 0) {
+            wrong_send_rank = 2;
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer, wrong_send_rank, recv_buffer, recv_rank),"Error:");
+
+        // Input size != output size
+        std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_vector_wrong_size, send_rank, recv_buffer, recv_rank),"Input error in call to MPI_Sendrecv");
+    }
+    #endif
+}
+
 
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcast, KratosMPICoreFastSuite)
