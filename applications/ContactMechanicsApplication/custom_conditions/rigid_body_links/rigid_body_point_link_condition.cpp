@@ -511,8 +511,8 @@ void RigidBodyPointLinkCondition::CalculateAndAddLHS(LocalSystemComponents& rLoc
   if(rLinkedLeftHandSideMatrix.size1()!=0)
     this->CalculateAndAddTangent(rLeftHandSideMatrix, rLinkedLeftHandSideMatrix, rVariables);
 
-  if(rLinkedLeftHandSideMatrix.size1()!=0)
-    this->CalculateAndAddTangentBeam(BeamLeftHandSideMatrix, rLinkedLeftHandSideMatrix, rVariables);
+  // if(rLinkedLeftHandSideMatrix.size1()!=0)
+  //   this->CalculateAndAddTangentBeam(BeamLeftHandSideMatrix, rLinkedLeftHandSideMatrix, rVariables);
 
   // std::cout<<" Link "<<this->Id()<<std::endl;
   // WriteMatrixInRows( "rLinkHandSideMatrix", rLinkedLeftHandSideMatrix );
