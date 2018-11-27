@@ -278,7 +278,9 @@ void ExtendPressureConditionProcess<2>::Execute()
     std::vector<IndexType> ToEraseConditionsId;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
 
-    for (ModelPart::ElementsContainerType::ptr_iterator itElem = mr_model_part.Elements().ptr_begin(); itElem != mr_model_part.Elements().ptr_end(); ++itElem) {
+    for (ModelPart::ElementsContainerType::ptr_iterator itElem = mr_model_part.Elements().ptr_begin(); 
+      itElem != mr_model_part.Elements().ptr_end();
+      ++itElem) {
         bool condition_is_active = true;
         if ((*itElem)->IsDefined(ACTIVE)) {
             condition_is_active = (*itElem)->Is(ACTIVE);

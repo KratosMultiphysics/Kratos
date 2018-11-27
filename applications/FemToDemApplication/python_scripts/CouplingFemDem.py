@@ -505,6 +505,8 @@ class FEMDEM_Solution:
                 elif is_active == False and DEM_Generated == True:
                     Element.Set(KratosMultiphysics.TO_ERASE, True)
 
+        # We remove the inactive DEM associated to fem_nodes
+        self.RemoveAloneDEMElements()
         element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
         element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
         # self.FEM_Solution.main_model_part.GetRootModelPart().RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
@@ -847,9 +849,17 @@ class FEMDEM_Solution:
         ZeroVector3[0] = 0.0
         ZeroVector3[1] = 0.0
         ZeroVector3[2] = 0.0
+        ZeroVector6 = KratosMultiphysics.Vector(6)
+        ZeroVector6[0] = 0.0
+        ZeroVector6[1] = 0.0
+        ZeroVector6[2] = 0.0
+        ZeroVector6[3] = 0.0
+        ZeroVector6[4] = 0.0
+        ZeroVector6[5] = 0.0
 
         for node in self.FEM_Solution.main_model_part.Nodes:
             node.SetValue(MeshingApplication.AUXILIAR_GRADIENT, ZeroVector3)
+            node.SetValue(MeshingApplication.AUXILIAR_HESSIAN, ZeroVector6)
             node.SetValue(KratosMultiphysics.NODAL_H, 0.0)
 
 #============================================================================================================================
@@ -963,3 +973,28 @@ class FEMDEM_Solution:
 
         self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
         self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+#============================================================================================================================
+    def RemoveAloneDEMElements(self):
+        # method to remove the dem corresponding to inactive nodes
+        FEM_Nodes = self.FEM_Solution.main_model_part.Nodes
+        FEM_Elements = self.FEM_Solution.main_model_part.Elements
+
+        for node in FEM_Nodes:
+            node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
+
+        for Element in FEM_Elements:
+            for i in range(0, 3): # Loop over nodes of the element
+                if Element.IsNot(KratosMultiphysics.TO_ERASE):
+                    node = Element.GetNodes()[i]
+                    NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+                    NumberOfActiveElements += 1
+                    node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, NumberOfActiveElements)
+
+        NumberOfActiveElements = 0    
+        for node in FEM_Nodes:
+            NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+            if NumberOfActiveElements == 0:
+                self.SpheresModelPart.GetNode(node.Id).Set(KratosMultiphysics.TO_ERASE, True)
+
+        self.SpheresModelPart.RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)

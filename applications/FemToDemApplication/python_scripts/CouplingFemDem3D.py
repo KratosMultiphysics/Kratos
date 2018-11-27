@@ -648,6 +648,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			elif is_active == False and DEM_Generated == True:
 				Element.Set(KratosMultiphysics.TO_ERASE, True)
 
+		self.RemoveAloneDEMElements()
 		element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
 		element_eliminator.RemoveElementsAndBelongings(KratosMultiphysics.TO_ERASE)
 		# self.FEM_Solution.main_model_part.GetRootModelPart().RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
@@ -794,11 +795,12 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
 
 		for Element in FEM_Elements:
-			for i in range(0, 4): # Loop over nodes of the element
-				node = Element.GetNodes()[i]
-				NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
-				NumberOfActiveElements += 1
-				node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, NumberOfActiveElements)
+			if Element.IsNot(KratosMultiphysics.TO_ERASE):
+				for i in range(0, 4): # Loop over nodes of the element
+					node = Element.GetNodes()[i]
+					NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+					NumberOfActiveElements += 1
+					node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, NumberOfActiveElements)
 
 		NumberOfActiveElements = 0	
 		for node in FEM_Nodes:
