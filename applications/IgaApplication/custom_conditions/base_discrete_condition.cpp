@@ -171,7 +171,6 @@ namespace Kratos
     {
         if (rVariable == COORDINATES) 
 		{
-            const int number_of_control_points = NumberOfNodes();
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
             if (rOutput.size() != 3)
                 rOutput.resize(3);
