@@ -90,10 +90,10 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
             print( cs_tools.bcolors.BLUE + "\tAitken: Doing relaxation with factor = " + cs_tools.bcolors.ENDC, self.current_alpha )
             if self.current_alpha > self.alpha_max:
                 self.current_alpha = self.alpha_max
-                print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches upper bound: 2" + cs_tools.bcolors.ENDC)
+                print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches upper bound: "+ self.alpha_max + cs_tools.bcolors.ENDC)
             elif self.current_alpha < -self.alpha_max:
                 self.current_alpha = -self.alpha_max
-                print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches lower bound: -2" + cs_tools.bcolors.ENDC)
+                print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches lower bound: "+ self.alpha_max + cs_tools.bcolors.ENDC)
             self.update = [data * self.current_alpha for data in self.R[0]]
             self.alpha_old = self.current_alpha
 
@@ -108,7 +108,7 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     ## InitializeNonLinearIteration : Function initializes the non linear iteration (coupling iteration)
     #                               Called at the beginning of the nonlinear iteration (coupling iteration)
     #
-    #  @param self            The object pointer.
+
     def InitializeNonLinearIteration(self):
         self.data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
         self._CalculateResidual()
@@ -118,26 +118,26 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     ## FinalizeNonLinearIteration : Function finalizes the non linear iteration (coupling iteration)
     #                               Called at the end of the nonlinear iteration (coupling iteration)
     #
-    #  @param self            The object pointer.
+
     def FinalizeNonLinearIteration(self):
         self.data_prev_iter = self.data_current_iter
         self.iteration = self.iteration + 1
 
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
-    #  @param self            The object pointer.
+
     def PrintInfo(self):
         print(cs_tools.bcolors.HEADER + "This is an object of Aitken relaxation accelerator. Initial alpha is ", self.init_alpha_max, ", current alpha is : ", self.alpha_old,""+cs_tools.bcolors.ENDC )
 
     ## Check : Function to Check the setup of the convergence accelerator
     #
-    #  @param self            The object pointer.
+
     def Check(self):
         pass
 
     ## _Name : Function to get the name of the convergence accelerator
     #
-    #  @param self            The object pointer.
+
     def _Name(self):
         return "aitken"
 
