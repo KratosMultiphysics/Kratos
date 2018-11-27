@@ -13,6 +13,9 @@
         "mesh_motion_solver_settings" : {
             "solver_type"         : "mesh_solver_structural_similarity"
         },
+        "mesh_velocity_computation"   : {
+            "time_scheme" : "bdf2"
+        },
         "fluid_solver_settings" :{
             "model_part_name"             : "FluidModelPart",
             "domain_size"                 : 2,
@@ -22,8 +25,8 @@
                 "input_filename" : "ale_fluid_test"
             },
             "echo_level"                  : 0,
-            "stabilization" : {
-                "formulation": "vms"
+            "formulation" : {
+                "element_type": "vms"
             },
             "maximum_iterations"          : 10,
             "relative_velocity_tolerance" : 0.001,
