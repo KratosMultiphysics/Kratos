@@ -258,7 +258,7 @@ class DEMAnalysisStage(AnalysisStage):
     def Initialize(self):
         self.step = 0
         self.time = 0.0
-        self.time_old_print
+        self.time_old_print = 0.0
 
         self.AddVariables()
 
@@ -519,7 +519,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def TheSimulationMustGoOn(self):
         it_must_or_not = self.time < self.end_time
-        it_must_or_not = it_must and self.BreakSolutionStepsLoop()
+        it_must_or_not = it_must_or_not and not self.BreakSolutionStepsLoop()
         return it_must_or_not
 
     def Finalize(self):
