@@ -31,12 +31,7 @@ bool HasFlag(Kernel& rKernel, const std::string& flag_name)
 
 Flags GetFlag(Kernel& rKernel, const std::string& flag_name)
 {
-    if (KratosComponents<Flags>::Has(flag_name)) {
-        return KratosComponents<Flags>::Get(flag_name);
-    } else {
-        KRATOS_ERROR << "ERROR:: Flag " << flag_name << " not defined" << std::endl;
-    }
-    return KratosComponents<Flags>::Get("ACTIVE");
+    return KratosComponents<Flags>::Get(flag_name);
 }
 
 template <class TVariableType>
@@ -62,22 +57,7 @@ bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_nam
 
 const ConstitutiveLaw& GetConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name)
 {
-    if (KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) {
-        return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
-    } else {
-        const auto& available_constitutive_laws = KratosComponents<ConstitutiveLaw>::GetComponents();
-
-        std::stringstream err_msg;
-
-        err_msg << "The requested Constitutive Law \"" << constitutive_law_name
-                << "\" is unknown!\nMaybe you need to import the application where it is defined?\n"
-                << "The following Constitutive Laws are available:" << std::endl;
-
-        for (auto const& registered_constitutive_law : available_constitutive_laws)
-            err_msg << "\t" << registered_constitutive_law.first << "\n";
-
-        KRATOS_ERROR << err_msg.str() << std::endl;
-    }
+    return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
 }
 
 template <class TVariableType>
