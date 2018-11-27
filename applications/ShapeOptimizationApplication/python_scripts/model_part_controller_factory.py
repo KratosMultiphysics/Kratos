@@ -86,7 +86,7 @@ class ModelPartController:
         self.mesh_controller.Initialize()
 
     # --------------------------------------------------------------------------
-    def InitializeNewOptimizationStep(self, step):
+    def UpdateTimeStep(self, step):
         self.optimization_model_part.CloneTimeStep(step)
         self.optimization_model_part.ProcessInfo.SetValue(STEP, step)
 

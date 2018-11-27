@@ -62,10 +62,10 @@ class VertexMorphingMethod:
         self.analyzer = analyzer
         self.communicator = communicator
 
-        self.__AddGeneralVariables()
+        self.__AddVariablesToBeUsedByAllAglorithms()
 
     # --------------------------------------------------------------------------
-    def __AddGeneralVariables(self):
+    def __AddVariablesToBeUsedByAllAglorithms(self):
         model_part = self.model_part_controller.GetOptimizationModelPart()
         number_of_objectives = self.optimization_settings["objectives"].size()
         number_of_constraints = self.optimization_settings["constraints"].size()
