@@ -22,6 +22,7 @@
 #include "custom_elements/updated_lagrangian_axisymmetry.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 #include "particle_mechanics_application.h"
 
 namespace Kratos
@@ -161,45 +162,6 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
 
 }
 
-//************************************************************************************
-//************************************************************************************
-/**
- * Calculates the radius of axisymmetry
- * @param N: The Gauss Point shape function
- * @param Geom: The geometry studied
- * @return Radius: The radius of axisymmetry
- */
-
-double UpdatedLagrangianAxisymmetry::CalculateRadius(
-    Vector& N,
-    GeometryType& Geom,
-    std::string ThisConfiguration = "Current"
-    )
-{
-    double radius = 0.0;
-
-    for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
-    {
-        // Displacement from the reference to the current configuration
-        if (ThisConfiguration == "Current")
-        {
-            const array_1d<double, 3 >& delta_displacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
-
-            const array_1d<double, 3 > current_position = reference_position + delta_displacement;
-            radius += current_position[0] * N[iNode];
-        }
-        else
-        {
-            const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
-            radius += reference_position[0] * N[iNode];
-        }
-    }
-
-    return radius;
-}
-
-
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
@@ -222,8 +184,8 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
     rVariables.DN_DX = prod( rVariables.DN_De, InvJ);
 
     // Compute radius
-    const double current_radius = CalculateRadius(rVariables.N, GetGeometry(), "Current");
-    const double initial_radius = CalculateRadius(rVariables.N, GetGeometry(), "Initial");
+    const double current_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
+    const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry(),Initial);
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, current_radius, initial_radius);
@@ -255,7 +217,7 @@ void UpdatedLagrangianAxisymmetry::CalculateDeformationMatrix(Matrix& rB,
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const double radius = CalculateRadius(rN, GetGeometry(), "Current");
+    const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rN, GetGeometry());
 
     rB.clear(); // Set all components to zero
 
@@ -329,7 +291,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddKuug(MatrixType& rLeftHandSide
     unsigned int index_i = 0;
     unsigned int index_j = 0;
 
-    const double radius = CalculateRadius(rVariables.N, GetGeometry(), "Current");
+    const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {

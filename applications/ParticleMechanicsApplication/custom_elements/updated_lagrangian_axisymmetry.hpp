@@ -357,9 +357,6 @@ protected:
      */
     void CalculateKinematics(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo) override;
 
-
-    virtual double CalculateRadius(Vector& N, GeometryType& Geom, std::string ThisConfiguration);
-
      /**
      * Initialize Element General Variables
      */
