@@ -291,13 +291,12 @@ void UpdatedLagrangianAxisymmetry::CalculateAndAddKuug(MatrixType& rLeftHandSide
     double alpha_3 = 0;
 
     unsigned int index_i = 0;
-    unsigned int index_j = 0;
 
     const double radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry());
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        index_j =0;
+        unsigned int index_j =0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
             alpha_1 = rVariables.DN_DX(j,0) * ( rVariables.DN_DX(i,0) * rVariables.StressVector[0] + rVariables.DN_DX(i,1) * rVariables.StressVector[3] );
@@ -360,8 +359,8 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
         for (unsigned int l=0;l<number_of_nodes;l++)
         {
-            array_1d<double, 3 > & NodalAcceleration = rGeom[l].FastGetSolutionStepValue(ACCELERATION,1);
-            array_1d<double, 3 > & NodalVelocity = rGeom[l].FastGetSolutionStepValue(VELOCITY,1);
+            const array_1d<double, 3 > & NodalAcceleration = rGeom[l].FastGetSolutionStepValue(ACCELERATION,1);
+            const array_1d<double, 3 > & NodalVelocity = rGeom[l].FastGetSolutionStepValue(VELOCITY,1);
 
             for (unsigned int k = 0; k < dimension; k++)
             {
