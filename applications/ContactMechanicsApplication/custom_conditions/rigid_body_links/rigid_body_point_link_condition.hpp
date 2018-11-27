@@ -69,7 +69,6 @@ class RigidBodyPointLinkCondition
    */
   KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_RHS_VECTOR);
   KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_LHS_MATRIX);
-
   /**
    * Parameters to be used in the Condition as they are.
    */
@@ -81,8 +80,8 @@ class RigidBodyPointLinkCondition
     SizeType          MasterAngularBlockSize;
 
     SizeType          SlaveNode;
-    SizeType          SlaveNodeLinearBlockSize;
-    SizeType          SlaveNodeAngularBlockSize;
+    SizeType          SlaveLinearBlockSize;
+    SizeType          SlaveAngularBlockSize;
 
     std::vector<SizeType> RigidNodes;
     std::vector<SizeType> DeformableNodes;
