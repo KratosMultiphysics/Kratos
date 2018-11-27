@@ -54,7 +54,6 @@ class MeshControllerWithSolver(MeshController) :
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
-        self.MeshSolverSettings["solver_settings"].ValidateAndAssignDefaults(default_settings["solver_settings"])
 
         if not self.MeshSolverSettings["solver_settings"].Has("mesh_motion_linear_solver_settings"):
             MeshSolverSettings.AddValue("mesh_motion_linear_solver_settings", default_settings["solver_settings"]["mesh_motion_linear_solver_settings"])
