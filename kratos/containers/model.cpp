@@ -271,7 +271,7 @@ namespace Kratos
             //NOTE: CreateModelPart CANNOT be used here
             auto dummy_list = Kratos::make_unique<VariablesList>();
             ModelPart* pmodel_part = new ModelPart(aux_names[i], 1, dummy_list.get(), *this );
-            rSerializer.load("MP", pmodel_part);
+            rSerializer.load(aux_names[i], pmodel_part);
             mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(pmodel_part)));
         }
 
