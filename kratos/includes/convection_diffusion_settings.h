@@ -450,18 +450,79 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        rSerializer.save("DensityVar",mpDensityVar);
-        rSerializer.save("DiffusionVar",mpDiffusionVar);
-        rSerializer.save("UnknownVar",mpUnknownVar);
-        rSerializer.save("VolumeSourceVar",mpVolumeSourceVar);
-        rSerializer.save("SurfaceSourceVar",mpSurfaceSourceVar);
-        rSerializer.save("ProjectionVar",mpProjectionVar);
-        rSerializer.save("ConvectionVar",mpConvectionVar);
-        rSerializer.save("MeshVelocityVar",mpMeshVelocityVar);
-        rSerializer.save("TransferCoefficientVar",mpTransferCoefficientVar);
-		rSerializer.save("VelocityVar",mpVelocityVar);
- 		rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
-        rSerializer.save("ReactionVar",mpReactionVar);
+        rSerializer.save("DensityVarSaved", mpDensityVar != nullptr && mpDensityVar->Name() != "");
+        if (mpDensityVar != nullptr && mpDensityVar->Name() != "")
+        {
+            rSerializer.save("DensityVar",mpDensityVar);
+        }
+        rSerializer.save("DiffusionVarSaved", mpDiffusionVar != nullptr && mpDiffusionVar->Name() != "");
+        if (mpDiffusionVar != nullptr && mpDiffusionVar->Name() != "")
+        {
+            rSerializer.save("DiffusionVar",mpDiffusionVar);
+        }
+        rSerializer.save("UnknownVarSaved", mpUnknownVar != nullptr && mpUnknownVar->Name() != "");
+        if (mpUnknownVar != nullptr && mpUnknownVar->Name() != "")
+        {
+            rSerializer.save("UnknownVar",mpUnknownVar);
+        }
+        rSerializer.save("VolumeSourceVarSaved", mpVolumeSourceVar != nullptr && mpVolumeSourceVar->Name() != "");
+        if (mpVolumeSourceVar != nullptr && mpVolumeSourceVar->Name() != "")
+        {
+            rSerializer.save("VolumeSourceVar",mpVolumeSourceVar);
+        }
+        rSerializer.save("SurfaceSourceVarSaved", mpSurfaceSourceVar != nullptr && mpSurfaceSourceVar->Name() != "");
+        if ( mpSurfaceSourceVar != nullptr && mpSurfaceSourceVar->Name() != "")
+        {
+            rSerializer.save("SurfaceSourceVar",mpSurfaceSourceVar);
+        }
+        rSerializer.save("ProjectionVarSaved", mpProjectionVar != nullptr && mpProjectionVar->Name() != "");
+        if ( mpProjectionVar != nullptr && mpProjectionVar->Name() != "")
+        {
+            rSerializer.save("ProjectionVar",mpProjectionVar);
+        }
+        rSerializer.save("ConvectionVarSaved", mpConvectionVar != nullptr && mpConvectionVar->Name() != "");
+        if ( mpConvectionVar != nullptr && mpConvectionVar->Name() != "")
+        {
+            rSerializer.save("ConvectionVar",mpConvectionVar);
+        }
+        rSerializer.save("MeshVelocityVarSaved", mpMeshVelocityVar != nullptr && mpMeshVelocityVar->Name() != "");
+        if (mpMeshVelocityVar != nullptr && mpMeshVelocityVar->Name() != "")
+        {
+            rSerializer.save("MeshVelocityVar",mpMeshVelocityVar);
+        }
+        rSerializer.save("TransferCoefficientVarSaved", mpTransferCoefficientVar != nullptr && mpTransferCoefficientVar->Name() != "");
+        if ( mpTransferCoefficientVar != nullptr && mpTransferCoefficientVar->Name() != "")
+        {
+            rSerializer.save("TransferCoefficientVar",mpTransferCoefficientVar);
+        }
+        rSerializer.save("VelocityVarSaved", mpVelocityVar != nullptr && mpVelocityVar->Name() != "");
+        if (mpVelocityVar != nullptr && mpVelocityVar->Name() != "")
+        {
+            rSerializer.save("VelocityVar",mpVelocityVar);
+        }
+        rSerializer.save("SpecificHeatVarSaved", mpSpecificHeatVar != nullptr && mpSpecificHeatVar->Name() != "");
+        if (mpSpecificHeatVar != nullptr && mpSpecificHeatVar->Name() != "")
+        {
+            rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
+        }
+        rSerializer.save("ReactionVarSaved", mpReactionVar != nullptr && mpReactionVar->Name() != "");
+        if (mpReactionVar != nullptr && mpReactionVar->Name() != "")
+        {
+            rSerializer.save("ReactionVar",mpReactionVar);
+        }
+
+        // rSerializer.save("DensityVar",mpDensityVar);
+        // rSerializer.save("DiffusionVar",mpDiffusionVar);
+        // rSerializer.save("UnknownVar",mpUnknownVar);
+        // rSerializer.save("VolumeSourceVar",mpVolumeSourceVar);
+        // rSerializer.save("SurfaceSourceVar",mpSurfaceSourceVar);
+        // rSerializer.save("ProjectionVar",mpProjectionVar);
+        // rSerializer.save("ConvectionVar",mpConvectionVar);
+        // rSerializer.save("MeshVelocityVar",mpMeshVelocityVar);
+        // rSerializer.save("TransferCoefficientVar",mpTransferCoefficientVar);
+		// rSerializer.save("VelocityVar",mpVelocityVar);
+ 		// rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
+        // rSerializer.save("ReactionVar",mpReactionVar);
 
         rSerializer.save("mis_defined_DensityVar",mis_defined_DensityVar);
         rSerializer.save("mis_defined_DiffusionVar",mis_defined_DiffusionVar);
@@ -481,18 +542,92 @@ private:
 
     virtual void load(Serializer& rSerializer)
     {
-        rSerializer.load("DensityVar",mpDensityVar);
-        rSerializer.load("DiffusionVar",mpDiffusionVar);
-        rSerializer.load("UnknownVar",mpUnknownVar);
-        rSerializer.load("VolumeSourceVar",mpVolumeSourceVar);
-        rSerializer.load("SurfaceSourceVar",mpSurfaceSourceVar);
-        rSerializer.load("ProjectionVar",mpProjectionVar);
-        rSerializer.load("ConvectionVar",mpConvectionVar);
-        rSerializer.load("MeshVelocityVar",mpMeshVelocityVar);
-        rSerializer.load("TransferCoefficientVar",mpTransferCoefficientVar);
-        rSerializer.load("VelocityVar",mpVelocityVar);
-		rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
-        rSerializer.load("ReactionVar",mpReactionVar);
+        bool denstityvartoload;
+            rSerializer.load("DensityVarSaved", denstityvartoload);
+        if(denstityvartoload != false)
+        {
+            rSerializer.load("DensityVar",mpDensityVar);
+        }
+        bool diffusionvartoload;
+            rSerializer.load("DiffusionVarSaved", diffusionvartoload);
+        if(diffusionvartoload != false)
+        {
+            rSerializer.load("DiffusionVar",mpDiffusionVar);
+        }
+        bool unknownvartoload;
+            rSerializer.load("UnknownVarSaved", unknownvartoload);
+        if(unknownvartoload != false)
+        {
+            rSerializer.load("UnknownVar",mpUnknownVar);
+        }
+        bool volumesourcevartoload;
+            rSerializer.load("VolumeSourceVarSaved", volumesourcevartoload);
+        if(volumesourcevartoload != false)
+        {
+            rSerializer.load("VolumeSourceVar",mpVolumeSourceVar);
+        }
+        bool surfacesourcevartoload;
+            rSerializer.load("SurfaceSourceVarSaved", surfacesourcevartoload);
+        if(surfacesourcevartoload != false)
+        {
+            rSerializer.load("SurfaceSourceVar",mpSurfaceSourceVar);
+        }
+        bool projectionvartoload;
+            rSerializer.load("ProjectionVarSaved", projectionvartoload);
+        if(projectionvartoload != false)
+        {
+            rSerializer.load("ProjectionVar",mpProjectionVar);
+        }
+        bool convectionvartoload;
+            rSerializer.load("ConvectionVarSaved", convectionvartoload);
+        if(convectionvartoload != false)
+        {
+            rSerializer.load("ConvectionVar",mpConvectionVar);
+        }
+        bool meshvelocityvartoload;
+            rSerializer.load("MeshVelocityVarSaved", meshvelocityvartoload);
+        if(meshvelocityvartoload != false)
+        {
+            rSerializer.load("MeshVelocityVar",mpMeshVelocityVar);
+        }
+        bool transfercoefficientvartoload;
+            rSerializer.load("TransferCoefficientVarSaved", transfercoefficientvartoload);
+        if(transfercoefficientvartoload != false)
+        {
+            rSerializer.load("TransferCoefficientVar",mpTransferCoefficientVar);
+        }
+        bool velocityvartoload;
+            rSerializer.load("VelocityVarSaved", velocityvartoload);
+        if(velocityvartoload != false)
+        {
+            rSerializer.load("VelocityVar",mpVelocityVar);
+        }
+        bool specificheatvartoload;
+            rSerializer.load("SpecificHeatVarSaved", specificheatvartoload);
+        if(specificheatvartoload != false)
+        {
+            rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
+        }
+        bool reactionvartoload;
+            rSerializer.load("ReactionVarSaved", reactionvartoload);
+        if(reactionvartoload != false)
+        {
+            rSerializer.load("ReactionVar",mpReactionVar);
+        }
+
+
+        // rSerializer.load("DensityVar",mpDensityVar);
+        // rSerializer.load("DiffusionVar",mpDiffusionVar);
+        // rSerializer.load("UnknownVar",mpUnknownVar);
+        // rSerializer.load("VolumeSourceVar",mpVolumeSourceVar);
+        // rSerializer.load("SurfaceSourceVar",mpSurfaceSourceVar);
+        // rSerializer.load("ProjectionVar",mpProjectionVar);
+        // rSerializer.load("ConvectionVar",mpConvectionVar);
+        // rSerializer.load("MeshVelocityVar",mpMeshVelocityVar);
+        // rSerializer.load("TransferCoefficientVar",mpTransferCoefficientVar);
+        // rSerializer.load("VelocityVar",mpVelocityVar);
+		// rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
+        // rSerializer.load("ReactionVar",mpReactionVar);
 
         rSerializer.load("mis_defined_DensityVar",mis_defined_DensityVar);
         rSerializer.load("mis_defined_DiffusionVar",mis_defined_DiffusionVar);
