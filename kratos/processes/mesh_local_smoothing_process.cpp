@@ -140,7 +140,7 @@ namespace Kratos
 		NeighboursVectorType const& r_neighbours = rNode.GetValue(NEIGHBOUR_NODES);
 		// A laplacian smoothing is provided by this base class
 		const std::size_t size = r_neighbours.size();
-		rOptimumPoints.resize(size, ZeroVector(3));
+		rOptimumPoints.resize(size, Point{ZeroVector(3)});
 		rWeights.resize(size);
 		for (std::size_t i = 0; i < size; i++)
 		{
@@ -205,7 +205,7 @@ namespace Kratos
 	{
 		std::size_t size = rOptimumPoints.size();
 
-		OptimumPosition = ZeroVector(3);
+		OptimumPosition = Point{ZeroVector(3)};
 		double weight_sum = 0.00;
 
 		for (std::size_t i = 0; i < size; i++)

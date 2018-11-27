@@ -659,7 +659,7 @@ private:
         key_type mKey;
     public:
         EqualKeyTo() : mKey() {}
-        EqualKeyTo(key_type Key) : mKey(Key) {}
+        explicit EqualKeyTo(key_type Key) : mKey(Key) {}
         typename TEqualType::result_type operator()(TPointerType a) const
         {
             return TEqualType()(mKey, TGetKeyType()(*a));

@@ -535,7 +535,7 @@ private:
     {
         key_type mKey;
     public:
-        EqualKeyTo(key_type k) : mKey(k) {}
+        explicit EqualKeyTo(key_type k) : mKey(k) {}
         bool operator()(value_type a, value_type b) const
         {
             return a.first == b.first;

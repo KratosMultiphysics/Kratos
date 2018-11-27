@@ -157,13 +157,13 @@ namespace Kratos
 				ComputePlaneApproximation(rElement1, int_pts_vector, base_pt, normal);
 
 				// Compute the distance to the approximation plane
-				Plane3D approximation_plane(normal, base_pt);
+				Plane3D approximation_plane(normal, Point{base_pt});
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
 					elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 				}
 			} else {
 				// Create a plane with the 3 intersection points
-				Plane3D plane(int_pts_vector[0], int_pts_vector[1], int_pts_vector[2]);
+				Plane3D plane(Point{int_pts_vector[0]}, Point{int_pts_vector[1]}, Point{int_pts_vector[2]});
 
 				// Compute the distance to the intersection plane
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {

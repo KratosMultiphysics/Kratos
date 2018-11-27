@@ -207,7 +207,7 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    template<class TOtherPointType> Line3D2( Line3D2<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Line3D2( Line3D2<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }

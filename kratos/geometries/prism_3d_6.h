@@ -250,7 +250,7 @@ public:
      * obvious that any change to this new geometry's point affect
      * source geometry's points too.
      */
-    template<class TOtherPointType> Prism3D6( Prism3D6<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Prism3D6( Prism3D6<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }

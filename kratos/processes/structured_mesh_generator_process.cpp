@@ -116,7 +116,7 @@ namespace Kratos
 		local_element_size /= mNumberOfDivisions;
 		//const std::size_t local_space_dimension = mrGeometry.LocalSpaceDimension();
 		Point local_coordinates = rMinPoint;
-		Point global_coordinates = ZeroVector(3);
+		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t j = 0; j <= mNumberOfDivisions; j++) {
@@ -141,7 +141,7 @@ namespace Kratos
 		GeometryType::CoordinatesArrayType local_element_size = rMaxPoint - rMinPoint;
 		local_element_size /= mNumberOfDivisions;
 		Point local_coordinates = rMinPoint;
-		Point global_coordinates = ZeroVector(3);
+		auto global_coordinates = Point{ZeroVector(3)};
 		std::size_t node_id = mStartNodeId;
 
 		for (std::size_t k = 0; k <= mNumberOfDivisions; k++) {

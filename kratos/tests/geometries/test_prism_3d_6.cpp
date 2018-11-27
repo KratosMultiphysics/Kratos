@@ -137,7 +137,7 @@ namespace Testing {
 
         // Compute the global coordinates of the centre
         auto points = geom->Points();
-        Point centre = points[0] + points[1] + points[2] + points[3] + points[4] + points[5];
+        auto centre = Point{points[0] + points[1] + points[2] + points[3] + points[4] + points[5]};
         centre /= 6.0;
 
         // Compute the centre local coordinates
@@ -169,7 +169,7 @@ namespace Testing {
 
         // Compute the global coordinates of the centre
         auto points = geom->Points();
-        Point centre = points[0] + points[1] + points[2] + points[3] + points[4] + points[5];
+        Point centre = Point{points[0] + points[1] + points[2] + points[3] + points[4] + points[5]};
         centre /= 6.0;
 
         // Compute the centre local coordinates

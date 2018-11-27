@@ -186,7 +186,7 @@ public:
         )
     {
         // Ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate elements and check if the particle falls within
@@ -235,7 +235,7 @@ public:
         )
     {
         // Ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(typename BinsObjectDynamic<Configure>::PointType{rCoordinates}, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate elements and check if the particle falls within

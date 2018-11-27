@@ -115,12 +115,12 @@ public:
     /** Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
     template <class TVectorType>
-    Point(vector_expression<TVectorType> const &rOtherCoordinates)
+    explicit Point(vector_expression<TVectorType> const &rOtherCoordinates)
         : BaseType(rOtherCoordinates) {}
 
     /** Constructor using coordinates stored in given std::vector. Initialize
     this point with the coordinates in the array. */
-    Point(std::vector<double> const &rOtherCoordinates) : BaseType(mDimension)
+    explicit Point(std::vector<double> const &rOtherCoordinates) : BaseType(mDimension)
     {
         SizeType size = rOtherCoordinates.size();
         size = (mDimension < size) ? mDimension : size;

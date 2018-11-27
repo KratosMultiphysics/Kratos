@@ -118,7 +118,7 @@ public:
 
     /** Point constructor. Initialize this integration point with the coordinates
     of given point.*/
-    IntegrationPoint(PointType const& rOtherPoint)
+    explicit IntegrationPoint(PointType const& rOtherPoint)
         : BaseType(rOtherPoint), mWeight() {}
 
     /** Point constructor with weight. Initialize this integration point with the coordinates
@@ -128,7 +128,7 @@ public:
 
     /** Constructor using coordinates stored in given array. Initialize
     this integration point with the coordinates in the array. Integration wieght initializes to zero. */
-    IntegrationPoint(CoordinatesArrayType const& rOtherCoordinates)
+    explicit IntegrationPoint(CoordinatesArrayType const& rOtherCoordinates)
         : BaseType(rOtherCoordinates), mWeight() {}
 
     /** Constructor using coordinates stored in given array. Initialize
@@ -139,7 +139,7 @@ public:
     /** Constructor using coordinates stored in given array. Initialize
     this integration point with the coordinates in the array. Integration wieght initializes to zero. */
     template<class TVectorType>
-    IntegrationPoint(vector_expression<TVectorType> const&  rOtherCoordinates)
+    explicit IntegrationPoint(vector_expression<TVectorType> const&  rOtherCoordinates)
         : BaseType(rOtherCoordinates), mWeight() {}
 
     /** Constructor using coordinates stored in given array. Initialize
@@ -150,7 +150,7 @@ public:
 
     /** Constructor using coordinates stored in given std::vector. Initialize
     this integration point with the coordinates in the array. Integration wieght initializes to zero. */
-    IntegrationPoint(std::vector<TDataType> const&  rOtherCoordinates)
+    explicit IntegrationPoint(std::vector<TDataType> const&  rOtherCoordinates)
         : BaseType(rOtherCoordinates), mWeight() {}
 
     /** Constructor using coordinates stored in given std::vector. Initialize

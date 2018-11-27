@@ -276,7 +276,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType>::AssemblyMortarOperato
 
             // Integrating the mortar operators
             for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
-                const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                const PointType local_point_decomp{integration_points_slave[point_number].Coordinates()};
                 PointType local_point_parent;
                 PointType gp_global;
                 decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
@@ -346,7 +346,7 @@ inline BoundedMatrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TDi
 
             // Integrating the mortar operators
             for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
-                const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
+                const PointType local_point_decomp{integration_points_slave[point_number].Coordinates()};
                 PointType local_point_parent;
                 PointType gp_global;
                 decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
