@@ -76,8 +76,6 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                     solver.SolveSolutionStep()
                     self._SynchronizeOutputData(solver_name)
 
-                for accelerator in self.convergence_accelerators_list:
-                    accelerator.FinalizeNonLinearIteration()
                 for conv_criteria in self.convergence_criteria_list:
                     conv_criteria.FinalizeNonLinearIteration()
 
@@ -91,6 +89,9 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
                 if iteration+1 >= self.num_coupling_iterations and self.echo_level > 0:
                     print("\t"+tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + tools.bcolors.ENDC)
+
+                for accelerator in self.convergence_accelerators_list:
+                    accelerator.FinalizeNonLinearIteration()
         else:
             for solver_name, solver in self.participating_solvers.items():
                 print("\t"+tools.bcolors.GREEN + tools.bcolors.BOLD + "### SolveSolutionStep for Solver : ", solver_name + tools.bcolors.ENDC)
@@ -102,5 +103,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
     def PrintInfo(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).PrintInfo()
+        for accelerator in self.convergence_accelerators_list:
+            accelerator.PrintInfo()
         for accelerator in self.convergence_accelerators:
             accelerator.PrintInfo()
