@@ -420,6 +420,7 @@ class DEMAnalysisStage(AnalysisStage):
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
             if self.BreakSolutionStepsLoop():
                 break
 
@@ -494,6 +495,7 @@ class DEMAnalysisStage(AnalysisStage):
         if stepinfo:
             self.KRATOSprint(stepinfo)
 
+    def OutputSolutionStep(self):
         #### PRINTING GRAPHS ####
         #-------os.chdir(self.graphs_path)
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
