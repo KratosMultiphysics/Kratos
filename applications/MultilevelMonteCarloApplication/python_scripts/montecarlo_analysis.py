@@ -8,7 +8,6 @@ import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.MonteCarloApplication as KratosMC
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
@@ -22,9 +21,9 @@ from analysis_stage import AnalysisStage
 # from pycompss.api.parameter import *
 
 # Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # get_value_from_remote is the equivalent of compss_wait_on
 # in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 
