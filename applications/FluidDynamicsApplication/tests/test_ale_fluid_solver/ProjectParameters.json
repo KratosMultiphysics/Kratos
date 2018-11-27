@@ -8,32 +8,35 @@
     },
     "output_processes" : { },
     "solver_settings"  : {
-        "model_part_name"             : "FluidModelPart",
-        "domain_size"                 : 2,
-        "solver_type"                 : "Monolithic",
-        "ale_settings"                : {
-            "solver_type"         : "mesh_solver_structural_similarity",
-            "ale_boundary_parts" : ["NoSlip2D_cylinder"]
+        "solver_type" : "ale_fluid",
+        "ale_boundary_parts" : ["NoSlip2D_cylinder"],
+        "mesh_motion_solver_settings" : {
+            "solver_type"         : "mesh_solver_structural_similarity"
         },
-        "model_import_settings"       : {
-            "input_type"     : "mdpa",
-            "input_filename" : "ale_fluid_test"
-        },
-        "echo_level"                  : 0,
-        "stabilization" : {
-            "formulation": "vms"
-        },
-        "maximum_iterations"          : 10,
-        "relative_velocity_tolerance" : 0.001,
-        "absolute_velocity_tolerance" : 1e-5,
-        "relative_pressure_tolerance" : 0.001,
-        "absolute_pressure_tolerance" : 1e-5,
-        "volume_model_part_name"      : "Parts_domain",
-        "skin_parts"                  : ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_walls","NoSlip2D_cylinder"],
-        "no_skin_parts"               : [],
-        "time_stepping"               : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.1
+        "fluid_solver_settings" :{
+            "model_part_name"             : "FluidModelPart",
+            "domain_size"                 : 2,
+            "solver_type"                 : "Monolithic",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "ale_fluid_test"
+            },
+            "echo_level"                  : 0,
+            "stabilization" : {
+                "formulation": "vms"
+            },
+            "maximum_iterations"          : 10,
+            "relative_velocity_tolerance" : 0.001,
+            "absolute_velocity_tolerance" : 1e-5,
+            "relative_pressure_tolerance" : 0.001,
+            "absolute_pressure_tolerance" : 1e-5,
+            "volume_model_part_name"      : "Parts_domain",
+            "skin_parts"                  : ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_walls","NoSlip2D_cylinder"],
+            "no_skin_parts"               : [],
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.1
+            }
         }
     },
     "processes"        : {
