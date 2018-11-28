@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics
+import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 class MapperTestsBase(object):
@@ -16,23 +16,23 @@ class MapperTestsBase(object):
         cls.input_file_origin      = "MapperTests_mdpa/MappingApplication_test_geometry_tri"
         cls.input_file_destination = "MapperTests_mdpa/MappingApplication_test_geometry_quad"
 
-        cls.current_model = KratosMultiphysics.Model()
+        cls.current_model = KM.Model()
         cls.model_part_origin = cls.current_model.CreateModelPart("origin")
         cls.model_part_destination = cls.current_model.CreateModelPart("destination")
 
         # list of variables involved in the Mapper-Tests
         cls.variables_list_scalar = [
-            KratosMultiphysics.PRESSURE,
-            KratosMultiphysics.TEMPERATURE
+            KM.PRESSURE,
+            KM.TEMPERATURE
         ]
         cls.variables_list_vector = [
-            KratosMultiphysics.FORCE,
-            KratosMultiphysics.VELOCITY
+            KM.FORCE,
+            KM.VELOCITY
         ]
 
         for model_part in (cls.model_part_origin, cls.model_part_destination):
             model_part.ProcessInfo.SetValue(
-                KratosMultiphysics.DOMAIN_SIZE, 3) # needed for the partitioner!
+                KM.DOMAIN_SIZE, 3) # needed for the partitioner!
             for variable in cls.variables_list_scalar:
                 model_part.AddNodalSolutionStepVariable(variable)
             for variable in cls.variables_list_vector:
@@ -46,18 +46,21 @@ class MapperTestsBase(object):
         of the ModelParts
         In the base-class only reads the ModelParts
         '''
-        model_part_io = KratosMultiphysics.ModelPartIO(
-            cls.input_file_origin).ReadModelPart(
+        import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
+
+        model_part_io = KM.ModelPartIO(
+            cls.input_file_origin, import_flags).ReadModelPart(
             cls.model_part_origin)
-        model_part_io = KratosMultiphysics.ModelPartIO(
-            cls.input_file_destination).ReadModelPart(
+
+        model_part_io = KM.ModelPartIO(
+            cls.input_file_destination, import_flags).ReadModelPart(
             cls.model_part_destination)
 
     def setUp(self):
         '''This function resets the nodal values in the ModelParts that might exist
         from previous tests, both historical and non-historical
         '''
-        zero_vector = KratosMultiphysics.Vector([0.0, 0.0, 0.0])
+        zero_vector = KM.Vector([0.0, 0.0, 0.0])
         for model_part in (self.model_part_origin, self.model_part_destination):
             for variable in self.variables_list_scalar:
                 for node in model_part.GetCommunicator().LocalMesh().Nodes:
@@ -80,7 +83,7 @@ class BaseMapperTests(MapperTestsBase):
         pass
 
     def test_NearestNeighborMapper_line(self):
-        mapper_settings = KratosMultiphysics.Parameters("""{
+        mapper_settings = KM.Parameters("""{
             "mapper_type": "nearest_neighbor",
             "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
             "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
@@ -90,7 +93,7 @@ class BaseMapperTests(MapperTestsBase):
         self.__ExecuteMapperTests(mapper_settings, values_file_name)
 
     def test_NearestNeighborMapper_surface(self):
-        mapper_settings = KratosMultiphysics.Parameters("""{
+        mapper_settings = KM.Parameters("""{
             "mapper_type": "nearest_neighbor",
             "interface_submodel_part_origin": "SurfaceLoad3D_mapping_surface_tri",
             "interface_submodel_part_destination": "SurfaceLoad3D_mapping_surface_quad"
@@ -100,7 +103,7 @@ class BaseMapperTests(MapperTestsBase):
         self.__ExecuteMapperTests(mapper_settings, values_file_name)
 
     def test_NearestNeighborMapper_volume(self):
-        mapper_settings = KratosMultiphysics.Parameters("""{
+        mapper_settings = KM.Parameters("""{
             "mapper_type": "nearest_neighbor"
         }""")
         values_file_name = "nearest_volume_volume"
@@ -108,7 +111,7 @@ class BaseMapperTests(MapperTestsBase):
         self.__ExecuteMapperTests(mapper_settings, values_file_name)
 
     def test_NearestElementMapper_line(self):
-        mapper_settings = KratosMultiphysics.Parameters("""{
+        mapper_settings = KM.Parameters("""{
             "mapper_type": "nearest_element",
             "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
             "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
@@ -118,7 +121,7 @@ class BaseMapperTests(MapperTestsBase):
         self.__ExecuteMapperTests(mapper_settings, values_file_name)
 
     def test_NearestElementMapper_surface(self):
-        mapper_settings = KratosMultiphysics.Parameters("""{
+        mapper_settings = KM.Parameters("""{
             "mapper_type": "nearest_element",
             "interface_submodel_part_origin": "SurfaceLoad3D_mapping_surface_tri",
             "interface_submodel_part_destination": "SurfaceLoad3D_mapping_surface_quad"
@@ -130,7 +133,7 @@ class BaseMapperTests(MapperTestsBase):
     def test_NearestElementMapper_volume(self): # TODO Implement
         # NOTE: the full ModelPart can not be used bcs it contains
         # BOTH, elements and conditions, which is not allowed!
-        mapper_settings = KratosMultiphysics.Parameters("""{
+        mapper_settings = KM.Parameters("""{
             "mapper_type": "nearest_element",
             "interface_submodel_part_origin": "Parts_domain_tri",
             "interface_submodel_part_destination": "Parts_domain_quad"
@@ -181,7 +184,7 @@ class BaseMapperTests(MapperTestsBase):
             node.SetSolutionStepValue(variable, value)
 
     def __CheckUniformValues(self, model_part, variable, value):
-        if type(variable) == KratosMultiphysics.Array1DVariable3:
+        if type(variable) == KM.Array1DVariable3:
             for node in model_part.GetCommunicator().LocalMesh().Nodes:
                 value_mapped = node.GetSolutionStepValue(variable)
                 for i in range(0,3):
@@ -230,7 +233,7 @@ class BaseMapperTests(MapperTestsBase):
             map_value)
 
     def __MapConstantVectorValues(self):
-        map_value = KratosMultiphysics.Vector([1478.0445, -300250.77801, 12580.123065])
+        map_value = KM.Vector([1478.0445, -300250.77801, 12580.123065])
         variable_origin      = self.variables_list_vector[0]
         variable_destination = self.variables_list_vector[1]
 
@@ -249,7 +252,7 @@ class BaseMapperTests(MapperTestsBase):
             map_value)
 
     def __InverseMapConstantVectorValues(self):
-        map_value = KratosMultiphysics.Vector([147448.099445, -300.778801, 120.123065])
+        map_value = KM.Vector([147448.099445, -300.778801, 120.123065])
         variable_origin      = self.variables_list_vector[1]
         variable_destination = self.variables_list_vector[1]
 

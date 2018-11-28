@@ -14,6 +14,7 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
+#include "boost/numeric/ublas/vector.hpp"
 
 // External includes
 
@@ -32,7 +33,7 @@ namespace Kratos
     {
         typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
 
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
         typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> MPISparseSpaceType;

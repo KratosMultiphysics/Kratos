@@ -39,7 +39,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperFlagsTests]))
 
-
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
     nightSuite = suites['nightly']

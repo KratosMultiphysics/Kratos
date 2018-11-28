@@ -25,8 +25,7 @@
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_typedefs.h"
 
-
-// Matrix-free Mappers
+// Mappers
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
 
