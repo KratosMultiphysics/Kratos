@@ -59,7 +59,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         # Create the new subscale process if needed
-        if self.current_subscale > self.maximum_number_of_subscales:
+        if self.current_subscale > 0:
             self.subscales_utility = MeshingApplication.MultiscaleRefiningProcess(
                 self.coarse_model_part,
                 self.refined_model_part,

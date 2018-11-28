@@ -252,7 +252,8 @@ class ShallowWaterBaseSolver(PythonSolver):
             "time_stepping"            : {
                 "automatic_time_step"      : false,
                 "time_step"                : 0.01
-            }
+            },
+            "multigrid_settings"   : {}
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
