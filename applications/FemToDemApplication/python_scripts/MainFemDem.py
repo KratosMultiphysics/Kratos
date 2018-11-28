@@ -181,11 +181,6 @@ class FEM_Solution(MainSolidFEM.Solution):
 		
 		self.GraphicalOutputExecuteInitialize()
 
-		print(" ")
-		print("=================================================")
-		print(" - Kratos FemDem Application Calculation Start - ")
-		print("=================================================")
-
 		self.model_processes.ExecuteBeforeSolutionLoop()
 
 		self.GraphicalOutputExecuteBeforeSolutionLoop()		
@@ -220,9 +215,7 @@ class FEM_Solution(MainSolidFEM.Solution):
 
 		# processes to be executed at the begining of the solution step
 		self.model_processes.ExecuteInitializeSolutionStep()
-
 		self.GraphicalOutputExecuteInitializeSolutionStep()
-
 		self.solver.InitializeSolutionStep()
 
 #============================================================================================================================
@@ -296,8 +289,6 @@ class FEM_Solution(MainSolidFEM.Solution):
 	#============================================================================================================================
 	def GraphicalOutputExecuteFinalize(self):
 		self.graphical_output.ExecuteFinalize()
-				
-
 	#============================================================================================================================   
 	def SetParallelSize(self, num_threads):
 		parallel = KratosMultiphysics.OpenMPUtils()
