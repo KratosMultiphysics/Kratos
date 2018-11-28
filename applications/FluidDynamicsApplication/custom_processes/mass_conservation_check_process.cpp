@@ -89,11 +89,11 @@ bool MassConservationCheckProcess::GetUpdateStatus(){
 
 /* Private functions ****************************************************/
 
-void MassConservationCheckProcess::ComputeVolumesOfFluids( double& posVol, double& negVol ){
+void MassConservationCheckProcess::ComputeVolumesOfFluids( double& posVolume, double& negVolume ){
 
-    // initalisation
-    posVol = 0.0;
-    negVol = 0.0;
+    // initalisation (necessary because no reductio for type reference)
+    double posVol = 0.0;
+    double negVol = 0.0;
 
     #pragma omp parallel for reduction(+: posVol, negVol)
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
@@ -162,6 +162,9 @@ void MassConservationCheckProcess::ComputeVolumesOfFluids( double& posVol, doubl
             }
         }
     }
+
+    posVolume = posVol;
+    negVolume = negVol;
 }
 
 };  // namespace Kratos.

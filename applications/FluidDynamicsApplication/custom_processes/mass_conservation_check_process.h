@@ -208,7 +208,7 @@ private:
      * @param positiveVolume volume ("Air") with positive distance function (output)
      * @param negativeVolume volume ("Water") with negative distance function (output)
      */
-    void ComputeVolumesOfFluids( double& posVol, double& negVol );
+    void ComputeVolumesOfFluids( double& posVolume, double& negVolume );
 
     ///@}
     ///@name Private  Access
