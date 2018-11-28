@@ -1101,41 +1101,26 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosMPICoreFastSuite
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGather, KratosMPICoreFastSuite)
+// Gather /////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
-
-    const int world_size = mpi_world_communicator.Size();
-    const int world_rank = mpi_world_communicator.Rank();
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
     const int recv_rank = 0;
 
-    std::vector<int> send_buffer_int{world_rank, world_rank};
-    std::vector<double> send_buffer_double{2.0*world_rank, 2.0*world_rank};
-
-    std::vector<int> recv_buffer_int;
-    std::vector<double> recv_buffer_double;
+    std::vector<int> send_buffer{world_rank, world_rank};
+    std::vector<int> recv_buffer;
 
     if (world_rank == recv_rank)
     {
-        recv_buffer_int = std::vector<int>(2*world_size, -1);
-        recv_buffer_double = std::vector<double>(2*world_size, -1.0);
+        recv_buffer = std::vector<int>(2*world_size, -1);
     }
 
-    serial_communicator.Gather(send_buffer_int, recv_buffer_int, recv_rank);
-    serial_communicator.Gather(send_buffer_double, recv_buffer_double, recv_rank);
-
-    if (world_rank == recv_rank)
-    {
-        for (int i = 0; i < 2*world_size; i++)
-        {
-            KRATOS_CHECK_EQUAL(recv_buffer_int[i], -1);
-            KRATOS_CHECK_EQUAL(recv_buffer_double[i], -1.0);
-        }
-    }
-
-    mpi_world_communicator.Gather(send_buffer_int, recv_buffer_int, recv_rank);
-    mpi_world_communicator.Gather(send_buffer_double, recv_buffer_double, recv_rank);
+    // two-buffer version
+    serial_communicator.Gather(send_buffer, recv_buffer, recv_rank);
 
     if (world_rank == recv_rank)
     {
@@ -1143,37 +1128,81 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGather, KratosMPICoreFastSuite)
         {
             for (int j = 2*rank; j < 2*rank+2; j++)
             {
-                KRATOS_CHECK_EQUAL(recv_buffer_int[j], rank);
-                KRATOS_CHECK_EQUAL(recv_buffer_double[j], 2.0*rank);
+                KRATOS_CHECK_EQUAL(recv_buffer[j], -1);
             }
         }
     }
 
-    #ifdef KRATOS_DEBUG
-    if (mpi_world_communicator.Size() > 1)
+    // return buffer version
+    std::vector<int> return_buffer = serial_communicator.Gather(send_buffer, recv_rank);
+    if (serial_communicator.Rank() == recv_rank)
     {
-        // One of the ranks has a different size
-        if (world_rank == 0)
+        KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+        for (unsigned int j = 0; j < return_buffer.size(); j++)
         {
-            send_buffer_int.resize(3);
-            send_buffer_int = {1,2,3};
+            KRATOS_CHECK_EQUAL(return_buffer[j], send_buffer[j]);
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer_int, recv_buffer_int, recv_rank),"Error");
     }
-    // recv rank has wrong size
-    recv_buffer_double.push_back(0.0);
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer_double, recv_buffer_double, recv_rank),"Error");
-    #endif
+    else
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+    }
 }
 
-
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherv, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
+    const int recv_rank = 0;
 
-    const int world_size = mpi_world_communicator.Size();
-    const int world_rank = mpi_world_communicator.Rank();
+    std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
+    std::vector<double> recv_buffer;
+
+    if (world_rank == recv_rank)
+    {
+        recv_buffer = std::vector<double>(2*world_size, -1.0);
+    }
+
+    // two-buffer version
+    serial_communicator.Gather(send_buffer, recv_buffer, recv_rank);
+
+    if (world_rank == recv_rank)
+    {
+        for (int rank = 0; rank < world_size; rank++)
+        {
+            for (int j = 2*rank; j < 2*rank+2; j++)
+            {
+                KRATOS_CHECK_EQUAL(recv_buffer[j], -1.0);
+            }
+        }
+    }
+
+    // return buffer version
+    std::vector<double> return_buffer = serial_communicator.Gather(send_buffer, recv_rank);
+    if (serial_communicator.Rank() == recv_rank)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+        for (unsigned int j = 0; j < return_buffer.size(); j++)
+        {
+            KRATOS_CHECK_EQUAL(return_buffer[j], send_buffer[j]);
+        }
+    }
+    else
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+    }
+}
+
+// Gatherv ////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
     const int recv_rank = world_size-1;
 
     auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
@@ -1181,21 +1210,19 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherv, KratosMPICoreFastSuite)
         return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
     };
 
-    const int message_padding = 1;
     const int send_size = make_message_size(world_rank);
-    const int recv_size = make_message_distance(world_size, message_padding);
+    std::vector<int> send_buffer(send_size, world_rank);
 
-    std::vector<int> send_buffer_int(send_size, world_rank);
-    std::vector<double> send_buffer_double(send_size, 2.0*world_rank);
-    std::vector<int> recv_buffer_int(0);
-    std::vector<double> recv_buffer_double(0);
+    // two-buffer version
+    const int message_padding = 1;
+    const int recv_size = make_message_distance(world_size, message_padding);
+    std::vector<int> recv_buffer(0);
     std::vector<int> recv_sizes(0);
     std::vector<int> recv_offsets(0);
 
     if (world_rank == recv_rank)
     {
-        recv_buffer_int.resize(recv_size, -1);
-        recv_buffer_double.resize(recv_size, -1.0);
+        recv_buffer.resize(recv_size, -1);
         recv_sizes.resize(world_size);
         recv_offsets.resize(world_size);
         for (int rank = 0; rank < world_size; rank++)
@@ -1205,135 +1232,160 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherv, KratosMPICoreFastSuite)
         }
     }
 
-    serial_communicator.Gatherv(send_buffer_int, recv_buffer_int, recv_sizes, recv_offsets, recv_rank);
-    serial_communicator.Gatherv(send_buffer_double, recv_buffer_double, recv_sizes, recv_offsets, recv_rank);
+    serial_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, recv_offsets, recv_rank);
 
     if (world_rank == recv_rank)
     {
         for (int i = 0; i < recv_size; i++)
         {
-            KRATOS_CHECK_EQUAL(recv_buffer_int[i], -1);
-            KRATOS_CHECK_EQUAL(recv_buffer_double[i], -1.0);
+            KRATOS_CHECK_EQUAL(recv_buffer[i], -1);
         }
     }
-
-    mpi_world_communicator.Gatherv(send_buffer_int, recv_buffer_int, recv_sizes, recv_offsets, recv_rank);
-    mpi_world_communicator.Gatherv(send_buffer_double, recv_buffer_double, recv_sizes, recv_offsets, recv_rank);
-
-    /* send message is {rank,} repeated <rank> times (up to 5) for ints and {2.*rank,} for doubles.
-     * read message assumes 1 extra position per rank, so that
-     * there are some uninitialized padding values on the recv message.
-     * This is essentially the inverse of the test DataCommunicatorScatterv
-     */
-
-    if (world_rank == recv_rank)
+    else
     {
-        for (int rank = 0; rank < world_size; rank++)
+        KRATOS_CHECK_EQUAL(recv_buffer.size(), 0);
+    }
+
+    // return buffer version
+    std::vector<std::vector<int>> return_buffer = serial_communicator.Gatherv(send_buffer, recv_rank);
+
+    if (serial_communicator.Rank() == recv_rank)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
+        unsigned int expected_size = make_message_size(world_rank);
+        KRATOS_CHECK_EQUAL(return_buffer[0].size(), expected_size);
+        for (unsigned int i = 0; i < expected_size; i++)
         {
-            int recv_size = make_message_size(rank);
-            int recv_offset = make_message_distance(rank, message_padding);
-            // the message from this rank...
-            for (int i = recv_offset; i < recv_offset + recv_size; i++)
-            {
-                KRATOS_CHECK_EQUAL(recv_buffer_int[i], rank);
-                KRATOS_CHECK_EQUAL(recv_buffer_double[i], 2.0*rank);
-            }
-            // ...followed by the expected padding.
-            for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++)
-            {
-                KRATOS_CHECK_EQUAL(recv_buffer_int[i], -1);
-                KRATOS_CHECK_EQUAL(recv_buffer_double[i], -1.0);
-            }
-
+            KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
         }
+        // no padding in return version
     }
-
-    #ifdef KRATOS_DEBUG
-    // recv sizes do not match
-    std::vector<int> wrong_recv_sizes = recv_sizes;
-    if (world_rank == recv_rank) {
-        wrong_recv_sizes[0] += 1;
-    }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.Gatherv(
-            send_buffer_int, recv_buffer_int, wrong_recv_sizes, recv_offsets, recv_rank),
-            "Error");
-
-    // recv message is too small
-    std::vector<int> wrong_recv_message;
-    if (world_rank == recv_size)
-    {
-        wrong_recv_message.resize(recv_buffer_int.size()-1);
-    }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.Gatherv(send_buffer_int, wrong_recv_message, recv_sizes, recv_offsets, recv_rank),
-        "Error");
-
-    // sent offsets overflow
-    std::vector<int> wrong_recv_offsets = recv_offsets;
-    if (world_rank == recv_rank)
-    {
-        wrong_recv_offsets[world_rank - 1] += 5;
-    }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.Gatherv(send_buffer_int, recv_buffer_int, recv_sizes, wrong_recv_offsets, recv_rank),
-        "Error");
-
-    #endif
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGather, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
+    const int recv_rank = world_size-1;
 
-    const int world_size = mpi_world_communicator.Size();
-    const int world_rank = mpi_world_communicator.Rank();
+    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
+    auto make_message_distance = [](int rank, int padding) {
+        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
+    };
 
-    std::vector<int> send_buffer_int{world_rank, world_rank};
-    std::vector<double> send_buffer_double{2.0*world_rank, 2.0*world_rank};
+    const int send_size = make_message_size(world_rank);
+    std::vector<double> send_buffer(send_size, 2.0*world_rank);
 
-    std::vector<int> recv_buffer_int(2*world_size, -1);
-    std::vector<double> recv_buffer_double(2*world_size, -1.0);
+    // two-buffer version
+    const int message_padding = 1;
+    const int recv_size = make_message_distance(world_size, message_padding);
+    std::vector<double> recv_buffer(0);
+    std::vector<int> recv_sizes(0);
+    std::vector<int> recv_offsets(0);
 
-    serial_communicator.AllGather(send_buffer_int, recv_buffer_int);
-    serial_communicator.AllGather(send_buffer_double, recv_buffer_double);
+    if (world_rank == recv_rank)
+    {
+        recv_buffer.resize(recv_size, -1.0);
+        recv_sizes.resize(world_size);
+        recv_offsets.resize(world_size);
+        for (int rank = 0; rank < world_size; rank++)
+        {
+            recv_sizes[rank] = make_message_size(rank);
+            recv_offsets[rank] = make_message_distance(rank, message_padding);
+        }
+    }
+
+    serial_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, recv_offsets, recv_rank);
+
+    if (world_rank == recv_rank)
+    {
+        for (int i = 0; i < recv_size; i++)
+        {
+            KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
+        }
+    }
+    else
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer.size(), 0);
+    }
+
+    // return buffer version
+    std::vector<std::vector<double>> return_buffer = serial_communicator.Gatherv(send_buffer, recv_rank);
+
+    if (serial_communicator.Rank() == recv_rank)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
+        unsigned int expected_size = make_message_size(world_rank);
+        KRATOS_CHECK_EQUAL(return_buffer[0].size(), expected_size);
+        for (unsigned int i = 0; i < expected_size; i++)
+        {
+            KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
+        }
+        // no padding in return version
+    }
+}
+
+// AllGather //////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
+
+    std::vector<int> send_buffer{world_rank, world_rank};
+
+    // two-buffer version
+    std::vector<int> recv_buffer(2*world_size, -1);
+    serial_communicator.AllGather(send_buffer, recv_buffer);
 
     for (int i = 0; i < 2*world_size; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer_int[i], -1);
-        KRATOS_CHECK_EQUAL(recv_buffer_double[i], -1.0);
+        KRATOS_CHECK_EQUAL(recv_buffer[i], -1);
     }
 
-    mpi_world_communicator.AllGather(send_buffer_int, recv_buffer_int);
-    mpi_world_communicator.AllGather(send_buffer_double, recv_buffer_double);
+    // return buffer version
+    std::vector<int> return_buffer = serial_communicator.AllGather(send_buffer);
 
-    for (int rank = 0; rank < world_size; rank++)
+    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    for (unsigned int i = 0; i < return_buffer.size(); i++)
     {
-        for (int j = 2*rank; j < 2*rank+2; j++)
-        {
-            KRATOS_CHECK_EQUAL(recv_buffer_int[j], rank);
-            KRATOS_CHECK_EQUAL(recv_buffer_double[j], 2.0*rank);
-        }
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
     }
-
-    #ifdef KRATOS_DEBUG
-    if (mpi_world_communicator.Size() > 1)
-    {
-        // One of the ranks has a different size
-        send_buffer_int.resize(3);
-        send_buffer_int = {1,2,3};
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            mpi_world_communicator.AllGather(send_buffer_int, recv_buffer_int),
-            "Input error in call to MPI_Allgather");
-    }
-    // recv rank has wrong size
-    recv_buffer_double.push_back(0.0);
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.AllGather(send_buffer_double, recv_buffer_double),
-        "Input error in call to MPI_Allgather");
-    #endif
 }
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
+
+    std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
+
+    // two-buffer version
+    std::vector<double> recv_buffer(2*world_size, -1.0);
+    serial_communicator.AllGather(send_buffer, recv_buffer);
+
+    for (int i = 0; i < 2*world_size; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
+    }
+
+    // return buffer version
+    std::vector<double> return_buffer = serial_communicator.AllGather(send_buffer);
+
+    KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
+    for (unsigned int i = 0; i < return_buffer.size(); i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+    }
+}
+
+// Error broadcasting methods /////////////////////////////////////////////////
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosMPICoreFastSuite)
 {
