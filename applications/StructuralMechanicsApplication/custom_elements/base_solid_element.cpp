@@ -73,9 +73,10 @@ void BaseSolidElement::Initialize()
 void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
         mConstitutiveLawVector[point_number]->InitializeSolutionStep( GetProperties(),
         GetGeometry(),
-        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+        row( N_values, point_number ),
         rCurrentProcessInfo
         );
     }
@@ -86,10 +87,11 @@ void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 
 void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
+    const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         mConstitutiveLawVector[point_number]->InitializeNonLinearIteration( GetProperties(),
         GetGeometry(),
-        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+        row( N_values, point_number ),
         rCurrentProcessInfo
         );
     }
@@ -100,10 +102,11 @@ void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 
 void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
+    const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         mConstitutiveLawVector[point_number]->FinalizeNonLinearIteration( GetProperties(),
         GetGeometry(),
-        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+        row( N_values, point_number ),
         rCurrentProcessInfo
         );
     }
@@ -131,13 +134,14 @@ void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
     // Reading integration points
+    const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
 
         mConstitutiveLawVector[point_number]->FinalizeSolutionStep( GetProperties(),
         GetGeometry(),
-        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+        row( N_values, point_number ),
         rCurrentProcessInfo
         );
     }
@@ -151,11 +155,12 @@ void BaseSolidElement::InitializeMaterial()
     KRATOS_TRY
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[point_number]->InitializeMaterial( GetProperties(),
             GetGeometry(),
-            row( GetGeometry().ShapeFunctionsValues(  ), point_number )
+            row(N_values , point_number )
             );
         }
     } else
@@ -188,10 +193,11 @@ void BaseSolidElement::ResetConstitutiveLaw()
     KRATOS_TRY
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number )
             mConstitutiveLawVector[point_number]->ResetMaterial( GetProperties(),
             GetGeometry(),
-            row( GetGeometry().ShapeFunctionsValues(  ),                                                                                                                             point_number )
+            row( N_values, point_number )
             );
     }
 
