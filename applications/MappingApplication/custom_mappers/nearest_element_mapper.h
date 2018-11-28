@@ -201,6 +201,19 @@ public:
                            mrModelPartDestination(rModelPartDestination),
                            mMapperSettings(JsonParameters)
     {
+        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin);
+        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination);
+
+        mpMapperLocalSystems = Kratos::make_shared<MapperLocalSystemPointerVector>();
+
+        mpInterfacePreprocessor = Kratos::make_unique<InterfacePreprocessor>(mrModelPartDestination,
+                                                                             mpMapperLocalSystems);
+        InitializeMappingMatrixBuilder();
+
+        ValidateInput(mMapperSettings);
+        InitializeInterfaceCommunicator();
+
+        InitializeInterface();
     }
 
     /// Destructor.
