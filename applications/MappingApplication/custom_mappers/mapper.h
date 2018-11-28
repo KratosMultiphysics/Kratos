@@ -64,21 +64,9 @@ public:
     /// Destructor.
     virtual ~Mapper() = default;
 
-    /// Copy Constructor
-    Mapper(const Mapper&) = delete;
-
-    /// Move Constructor
-    Mapper(Mapper&&) = delete;
-
     ///@}
     ///@name Operators
     ///@{
-
-    /// Copy Assignment Operator
-    Mapper& operator=(const Mapper&) = delete;
-
-    /// Move Assignment Operator
-    Mapper& operator=(Mapper&&) = delete;
 
     ///@}
     ///@name Operations
@@ -190,34 +178,6 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
-
-protected:
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
 
 }; // Class Mapper
 
