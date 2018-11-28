@@ -233,10 +233,10 @@ void CalculateAirMaterialResponse() {
 	if (TDim == 2)
 	{
         const double trace = strain[0] + strain[1];
-        const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+        const double volumetric_part = trace/2.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
 
-		stress[0] = c1 * strain[0] - volumetric_part;
-		stress[1] = c1 * strain[1] - volumetric_part;
+		stress[0] = c1 * (strain[0] - volumetric_part);
+		stress[1] = c1 * (strain[1] - volumetric_part);
 		stress[2] = c2 * strain[2];
 	}
 
