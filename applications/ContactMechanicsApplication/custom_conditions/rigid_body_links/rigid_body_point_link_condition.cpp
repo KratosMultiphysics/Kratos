@@ -1131,13 +1131,16 @@ void RigidBodyPointLinkCondition::CalculateAndAddTangent(MatrixType& rLeftHandSi
   {
     for(SizeType j=0; j<rVariables.MasterAngularBlockSize; j++)
     {
-      rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) += rLinkedLeftHandSideMatrix(start_slave+rVariables.SlaveLinearBlockSize+i,start_slave+rVariables.SlaveLinearBlockSize+j);
-      if(add_row_moments)
+      if(add_row_moments){
         rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) += MomentMatrix(start_rotation+i,start_rotation+j);
-      else
+      }
+      else{
+        rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) += rLinkedLeftHandSideMatrix(start_slave+rVariables.SlaveLinearBlockSize+i,start_slave+rVariables.SlaveLinearBlockSize+j);
         rLeftHandSideMatrix(start_master+rVariables.MasterLinearBlockSize+i,start_master+rVariables.MasterLinearBlockSize+j) -= MomentRowMatrix(start_rotation+i,start_rotation+j);
+      }
     }
   }
+
 
   // Non rigid nodes of the linked element:
   for(SizeType d=0; d<rVariables.DeformableNodes.size(); ++d)
@@ -1208,6 +1211,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddTangent(MatrixType& rLeftHandSi
     }
 
   }
+
 
   // Other rigid nodes of the linked element:
   for(SizeType n=0; n<rVariables.RigidNodes.size(); ++n)
