@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "matrix_based_mapping_operation_utility.h"
+#include "mapping_matrix_builder.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapper_utilities.h"
 
@@ -28,7 +28,7 @@ namespace Kratos
 typedef typename MapperDefinitions::SparseSpaceType SparseSpaceType;
 typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
 
-typedef MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType> UtilityType;
+typedef MappingMatrixBuilder<SparseSpaceType, DenseSpaceType> BuilderType;
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
@@ -39,12 +39,12 @@ typedef std::size_t SizeType;
 /***********************************************************************************/
 /* Functions for internal use in this file */
 /***********************************************************************************/
-void InitializeSystemVector(UtilityType::TSystemVectorUniquePointerType& rpVector,
+void InitializeSystemVector(BuilderType::TSystemVectorUniquePointerType& rpVector,
                             const SizeType VectorSize)
 {
     // The vectors dont have graphs, that why we don't always have to reinitialize them
     if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
-        UtilityType::TSystemVectorUniquePointerType p_new_vector = Kratos::make_unique<UtilityType::TSystemVectorType>(VectorSize);
+        BuilderType::TSystemVectorUniquePointerType p_new_vector = Kratos::make_unique<BuilderType::TSystemVectorType>(VectorSize);
         rpVector.swap(p_new_vector);
 
         // TODO do I also have to set to zero the contents?
@@ -54,8 +54,8 @@ void InitializeSystemVector(UtilityType::TSystemVectorUniquePointerType& rpVecto
     }
 }
 
-void ConstructMatrixStructure(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
-                              UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
+void ConstructMatrixStructure(BuilderType::TMappingMatrixUniquePointerType& rpMdo,
+                              BuilderType::MapperLocalSystemPointerVector& rMapperLocalSystems,
                               const SizeType NumNodesOrigin,
                               const SizeType NumNodesDestination)
 {
@@ -87,7 +87,7 @@ void ConstructMatrixStructure(UtilityType::TSystemMatrixUniquePointerType& rpMdo
         num_non_zero_entries += r_row_indices.size(); // adding the number of col-indices
     }
 
-    auto p_Mdo = Kratos::make_unique<UtilityType::TSystemMatrixType>(
+    auto p_Mdo = Kratos::make_unique<BuilderType::TMappingMatrixType>(
         NumNodesDestination,
         NumNodesOrigin,
         num_non_zero_entries);
@@ -122,8 +122,8 @@ void ConstructMatrixStructure(UtilityType::TSystemMatrixUniquePointerType& rpMdo
     rpMdo.swap(p_Mdo);
 }
 
-void BuildMappingMatrix(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
-                       UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems)
+void BuildMatrix(BuilderType::TMappingMatrixUniquePointerType& rpMdo,
+                       BuilderType::MapperLocalSystemPointerVector& rMapperLocalSystems)
 {
     MatrixType local_mapping_matrix;
     EquationIdVectorType origin_ids;
@@ -153,135 +153,43 @@ void BuildMappingMatrix(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
 /* PUBLIC Methods */
 /***********************************************************************************/
 template<>
-UtilityType::MatrixBasedMappingOperationUtility(Parameters Settings)
-    : MappingOperationUtility<SparseSpaceType, DenseSpaceType>(Settings)
+BuilderType::MappingMatrixBuilder()
 {
     KRATOS_ERROR_IF(SparseSpaceType::IsDistributed())
         << "Using a distributed Space!" << std::endl;
 }
 
 template<>
-void UtilityType::BuildMappingSystem(
-    TSystemMatrixUniquePointerType& rpMdo,
-    TSystemVectorUniquePointerType& rpQo,
-    TSystemVectorUniquePointerType& rpQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    MapperLocalSystemPointerVector& rMapperLocalSystems) const
+void BuilderType::BuildMappingMatrix(
+    const InterfaceVectorContainerPointerType& rpVectorContainerOrigin,
+    const InterfaceVectorContainerPointerType& rpVectorContainerDestination,
+    MapperLocalSystemPointerVector& rMapperLocalSystems)
 {
     KRATOS_TRY
 
-    const SizeType num_nodes_origin = rModelPartOrigin.NumberOfNodes();
-    const SizeType num_nodes_destination = rModelPartDestination.NumberOfNodes();
+    const SizeType num_nodes_origin = rpVectorContainerOrigin->GetModelPart().NumberOfNodes();
+    const SizeType num_nodes_destination = rpVectorContainerDestination->GetModelPart().NumberOfNodes();
 
     // Initialize the Matrix
     // This has to be done always since the Graph has changed if the Interface is updated!
-    ConstructMatrixStructure(rpMdo, rMapperLocalSystems,
+    ConstructMatrixStructure(mpMappingMatrix, rMapperLocalSystems,
                              num_nodes_origin, num_nodes_destination);
 
-    BuildMappingMatrix(rpMdo, rMapperLocalSystems);
+    BuildMatrix(mpMappingMatrix, rMapperLocalSystems);
 
-    if (GetEchoLevel() > 2) {
-        SparseSpaceType::WriteMatrixMarketMatrix("MappingMatrix.mm", *rpMdo, false);
+    if (mEchoLevel > 2) {
+        SparseSpaceType::WriteMatrixMarketMatrix("MappingMatrix.mm", *mpMappingMatrix, false);
     }
 
-    InitializeSystemVector(rpQo, num_nodes_origin);
-    InitializeSystemVector(rpQd, num_nodes_destination);
+    InitializeSystemVector(rpVectorContainerOrigin->pGetVector(), num_nodes_origin);
+    InitializeSystemVector(rpVectorContainerDestination->pGetVector(), num_nodes_destination);
 
     KRATOS_CATCH("")
 }
 
-// template<>
-// void UtilityType::InitializeMappingStep(
-//     TSystemMatrixType& rMdo,
-//     TSystemVectorType& rQo,
-//     TSystemVectorType& rQd,
-//     ModelPart& rModelPartOrigin,
-//     ModelPart& rModelPartDestination,
-//     const DoubleVariableType& rOriginVariable,
-//     const DoubleVariableType& rDestinationVariable,
-//     const Kratos::Flags MappingOptions,
-//     const bool UseTranspose) const
-// {
-//     TInitializeMappingStep(rQo, rQd,
-//                            rModelPartOrigin, rModelPartDestination,
-//                            rOriginVariable, rDestinationVariable,
-//                            MappingOptions, UseTranspose);
-//     if (GetEchoLevel() > 2) {
-//         SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qo.mm", rQo);
-//         SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qd.mm", rQd);
-//     }
-// }
-
-// template<>
-// void UtilityType::InitializeMappingStep(
-//     TSystemMatrixType& rMdo,
-//     TSystemVectorType& rQo,
-//     TSystemVectorType& rQd,
-//     ModelPart& rModelPartOrigin,
-//     ModelPart& rModelPartDestination,
-//     const ComponentVariableType& rOriginVariable,
-//     const ComponentVariableType& rDestinationVariable,
-//     const Kratos::Flags MappingOptions,
-//     const bool UseTranspose) const
-// {
-//     TInitializeMappingStep(rQo, rQd,
-//                            rModelPartOrigin, rModelPartDestination,
-//                            rOriginVariable, rDestinationVariable,
-//                            MappingOptions, UseTranspose);
-//     if (GetEchoLevel() > 2) {
-//         SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qo.mm", rQo);
-//         SparseSpaceType::WriteMatrixMarketVector("InitializeMappingStep_Qd.mm", rQd);
-//     }
-// }
-
-// template<>
-// void UtilityType::FinalizeMappingStep(
-//     TSystemMatrixType& rMdo,
-//     TSystemVectorType& rQo,
-//     TSystemVectorType& rQd,
-//     ModelPart& rModelPartOrigin,
-//     ModelPart& rModelPartDestination,
-//     const DoubleVariableType& rOriginVariable,
-//     const DoubleVariableType& rDestinationVariable,
-//     const Kratos::Flags MappingOptions,
-//     const bool UseTranspose) const
-// {
-//     TFinalizeMappingStep(rQo, rQd,
-//                          rModelPartOrigin, rModelPartDestination,
-//                          rOriginVariable, rDestinationVariable,
-//                          MappingOptions, UseTranspose);
-//     if (GetEchoLevel() > 2) {
-//         SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qo.mm", rQo);
-//         SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qd.mm", rQd);
-//     }
-// }
-
-// template<>
-// void UtilityType::FinalizeMappingStep(
-//     TSystemMatrixType& rMdo,
-//     TSystemVectorType& rQo,
-//     TSystemVectorType& rQd,
-//     ModelPart& rModelPartOrigin,
-//     ModelPart& rModelPartDestination,
-//     const ComponentVariableType& rOriginVariable,
-//     const ComponentVariableType& rDestinationVariable,
-//     const Kratos::Flags MappingOptions,
-//     const bool UseTranspose) const
-// {
-//     TFinalizeMappingStep(rQo, rQd,
-//                          rModelPartOrigin, rModelPartDestination,
-//                          rOriginVariable, rDestinationVariable,
-//                          MappingOptions, UseTranspose);
-//     if (GetEchoLevel() > 2) {
-//         SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qo.mm", rQo);
-//         SparseSpaceType::WriteMatrixMarketVector("FinalizeMappingStep_Qd.mm", rQd);
-//     }
-// }
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class MatrixBasedMappingOperationUtility< SparseSpaceType, DenseSpaceType >;
+template class MappingMatrixBuilder< SparseSpaceType, DenseSpaceType >;
 
 
 }  // namespace Kratos.

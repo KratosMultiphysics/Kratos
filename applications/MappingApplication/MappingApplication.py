@@ -30,6 +30,6 @@ TODO:
     - Delete copy and assignment-constructors?
     - use explicit?
     - Make mapper-constructors protected => should only be used through the MapperFactory!
-    - testing => do some logical tests with CONSERVATIVE
-    - MapperFlags: Check that they are used correctly and all of them are used in tests (CONSERVATIVE & USE_TRANSPOSE)
+    - testing => do some logical tests with USE_TRANSPOSE
+    - MapperFlags: Check that they are used correctly and all of them are used in tests (USE_TRANSPOSE & USE_TRANSPOSE)
 '''

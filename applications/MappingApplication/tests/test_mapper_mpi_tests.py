@@ -7,7 +7,6 @@ import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from base_mapper_tests import BaseMapperTests
 from trilinos_import_model_part_utility import TrilinosImportModelPartUtility
@@ -23,7 +22,8 @@ class MapperMPITests(BaseMapperTests, KratosUnittest.TestCase):
         origin_settings = KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + cls.input_file_origin + """\"
+                "input_filename": \"""" + cls.input_file_origin + """\",
+                "partition_in_memory" : true
             },
             "echo_level" : 0
         }""")
@@ -40,12 +40,6 @@ class MapperMPITests(BaseMapperTests, KratosUnittest.TestCase):
         model_part_import_util_destination.ImportModelPart()
         model_part_import_util_origin.CreateCommunicators()
         model_part_import_util_destination.CreateCommunicators()
-
-        # deleting the partitioned files right after reading, not needed any more
-        # this way they will also be deleted in case the test fails
-        mdpa_extension = "_%s.mdpa" % mpi.rank
-        kratos_utils.DeleteFileIfExisting(cls.input_file_origin  + mdpa_extension)
-        kratos_utils.DeleteFileIfExisting(cls.input_file_destination + mdpa_extension)
 
     def _CreateMapper(self, mapper_settings):
         return KratosMapping.MapperFactory.CreateMPIMapper(

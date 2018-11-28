@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "matrix_based_mapping_operation_utility.h"
+#include "mapping_matrix_builder.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
@@ -29,12 +29,12 @@ namespace Kratos
 typedef typename MapperDefinitions::MPISparseSpaceType SparseSpaceType;
 typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
 
-typedef MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType> UtilityType;
+typedef MappingMatrixBuilder<SparseSpaceType, DenseSpaceType> BuilderType;
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-void ConstructRowColIdSets(UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
+void ConstructRowColIdSets(BuilderType::MapperLocalSystemPointerVector& rMapperLocalSystems,
                            std::set<int>& rRowEquationIds,
                            std::set<int>& rColEquationIds)
 {
@@ -50,7 +50,7 @@ void ConstructRowColIdSets(UtilityType::MapperLocalSystemPointerVector& rMapperL
 }
 
 void ConstructMatrixStructure(Epetra_FECrsGraph& rGraph,
-                              UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems)
+                              BuilderType::MapperLocalSystemPointerVector& rMapperLocalSystems)
 {
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
@@ -71,8 +71,8 @@ void ConstructMatrixStructure(Epetra_FECrsGraph& rGraph,
     }
 }
 
-void BuildMappingMatrix(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
-                       UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems)
+void BuildMatrix(BuilderType::TMappingMatrixUniquePointerType& rpMdo,
+                       BuilderType::MapperLocalSystemPointerVector& rMapperLocalSystems)
 {
     MatrixType local_mapping_matrix;
     EquationIdVectorType origin_ids;
@@ -110,25 +110,21 @@ void BuildMappingMatrix(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
 /* PUBLIC Methods */
 /***********************************************************************************/
 template<>
-UtilityType::MatrixBasedMappingOperationUtility(Parameters Settings)
-    : MappingOperationUtility<SparseSpaceType, DenseSpaceType>(Settings)
+BuilderType::MappingMatrixBuilder()
 {
     KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
         << "Using a non-distributed Space!" << std::endl;
 }
 
 template<>
-void UtilityType::BuildMappingSystem(
-    TSystemMatrixUniquePointerType& rpMdo,
-    TSystemVectorUniquePointerType& rpQo,
-    TSystemVectorUniquePointerType& rpQd,
-    ModelPart& rModelPartOrigin,
-    ModelPart& rModelPartDestination,
-    MapperLocalSystemPointerVector& rMapperLocalSystems) const
+void BuilderType::BuildMappingMatrix(
+        const InterfaceVectorContainerPointerType& rpVectorContainerOrigin,
+        const InterfaceVectorContainerPointerType& rpVectorContainerDestination,
+        MapperLocalSystemPointerVector& rMapperLocalSystems)
 {
     // ***** Creating vectors with information abt which IDs are local *****
-    const auto& r_local_mesh_origin = rModelPartOrigin.GetCommunicator().LocalMesh();
-    const auto& r_local_mesh_destination = rModelPartDestination.GetCommunicator().LocalMesh();
+    const auto& r_local_mesh_origin = rpVectorContainerOrigin->GetModelPart().GetCommunicator().LocalMesh();
+    const auto& r_local_mesh_destination = rpVectorContainerDestination->GetModelPart().GetCommunicator().LocalMesh();
 
     const int num_local_nodes_orig = r_local_mesh_origin.NumberOfNodes();
     const int num_local_nodes_dest = r_local_mesh_destination.NumberOfNodes();
@@ -208,10 +204,10 @@ void UtilityType::BuildMappingSystem(
     epetra_graph.OptimizeStorage(); // TODO is an extra-call needed?
 
     // ***** Creating the MappingMatrix *****
-    TSystemMatrixUniquePointerType p_Mdo =
-        Kratos::make_unique<TSystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
+    TMappingMatrixUniquePointerType p_Mdo =
+        Kratos::make_unique<TMappingMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
 
-    BuildMappingMatrix(p_Mdo, rMapperLocalSystems);
+    BuildMatrix(p_Mdo, rMapperLocalSystems);
 
     // range- and domain-map have to be passed since the matrix is rectangular
     ierr = p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
@@ -219,155 +215,23 @@ void UtilityType::BuildMappingSystem(
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.GlobalAssemble. "
         << "Error code: " << ierr << std::endl;
 
-    if (GetEchoLevel() > 2) {
+    if (mEchoLevel > 2) {
         SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix.mm", *p_Mdo, false);
     }
 
-    rpMdo.swap(p_Mdo);
+    mpMappingMatrix.swap(p_Mdo);
 
     // ***** Creating the SystemVectors *****
     TSystemVectorUniquePointerType p_new_vector_destination =
         Kratos::make_unique<TSystemVectorType>(epetra_range_map);
     TSystemVectorUniquePointerType p_new_vector_origin =
         Kratos::make_unique<TSystemVectorType>(epetra_domain_map);
-    rpQd.swap(p_new_vector_destination);
-    rpQo.swap(p_new_vector_origin);
+    rpVectorContainerDestination->pGetVector().swap(p_new_vector_destination);
+    rpVectorContainerOrigin->pGetVector().swap(p_new_vector_origin);
 }
-
-// template<>
-// void UtilityType::InitializeMappingStep(
-//     TSystemMatrixType& rMdo,
-//     TSystemVectorType& rQo,
-//     TSystemVectorType& rQd,
-//     ModelPart& rModelPartOrigin,
-//     ModelPart& rModelPartDestination,
-//     const DoubleVariableType& rOriginVariable,
-//     const DoubleVariableType& rDestinationVariable,
-//     const Kratos::Flags MappingOptions,
-//     const bool UseTranspose) const
-// {
-//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
-//                           != rQo.MyLength())
-//         << "The local number of nodes in origin is different from the number "
-//         << "of local entries in the Vector!" << std::endl;
-
-//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
-//                           != rQd.MyLength())
-//         << "The local number of nodes in destination is different from the number "
-//         << "of local entries in the Vector!" << std::endl;
-
-//     // rQo and rQd are Multivectors, only using the first one
-//     TInitializeMappingStep(rQo[0], rQd[0],
-//                            rModelPartOrigin, rModelPartDestination,
-//                            rOriginVariable, rDestinationVariable,
-//                            MappingOptions, UseTranspose);
-//     if (GetEchoLevel() > 2) {
-//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qo.mm", rQo);
-//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qd.mm", rQd);
-//     }
-// }
-
-// template<>
-// void UtilityType::InitializeMappingStep(
-//     TSystemMatrixType& rMdo,
-//     TSystemVectorType& rQo,
-//     TSystemVectorType& rQd,
-//     ModelPart& rModelPartOrigin,
-//     ModelPart& rModelPartDestination,
-//     const ComponentVariableType& rOriginVariable,
-//     const ComponentVariableType& rDestinationVariable,
-//     const Kratos::Flags MappingOptions,
-//     const bool UseTranspose) const
-// {
-//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
-//                           != rQo.MyLength())
-//         << "The local number of nodes in origin is different from the number "
-//         << "of local entries in the Vector!" << std::endl;
-
-//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
-//                           != rQd.MyLength())
-//         << "The local number of nodes in destination is different from the number "
-//         << "of local entries in the Vector!" << std::endl;
-
-//     // rQo and rQd are Multivectors, only using the first one
-//     TInitializeMappingStep(rQo[0], rQd[0],
-//                            rModelPartOrigin, rModelPartDestination,
-//                            rOriginVariable, rDestinationVariable,
-//                            MappingOptions, UseTranspose);
-//     if (GetEchoLevel() > 2) {
-//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qo.mm", rQo);
-//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_InitializeMappingStep_Qd.mm", rQd);
-//     }
-// }
-
-// template<>
-// void UtilityType::FinalizeMappingStep(
-//     TSystemMatrixType& rMdo,
-//     TSystemVectorType& rQo,
-//     TSystemVectorType& rQd,
-//     ModelPart& rModelPartOrigin,
-//     ModelPart& rModelPartDestination,
-//     const DoubleVariableType& rOriginVariable,
-//     const DoubleVariableType& rDestinationVariable,
-//     const Kratos::Flags MappingOptions,
-//     const bool UseTranspose) const
-// {
-//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
-//                           != rQo.MyLength())
-//         << "The local number of nodes in origin is different from the number "
-//         << "of local entries in the Vector!" << std::endl;
-
-//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
-//                           != rQd.MyLength())
-//         << "The local number of nodes in destination is different from the number "
-//         << "of local entries in the Vector!" << std::endl;
-
-//     // rQo and rQd are Multivectors, only using the first one
-//     TFinalizeMappingStep(rQo[0], rQd[0],
-//                          rModelPartOrigin, rModelPartDestination,
-//                          rOriginVariable, rDestinationVariable,
-//                          MappingOptions, UseTranspose);
-//     if (GetEchoLevel() > 2) {
-//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qo.mm", rQo);
-//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qd.mm", rQd);
-//     }
-// }
-
-// template<>
-// void UtilityType::FinalizeMappingStep(
-//     TSystemMatrixType& rMdo,
-//     TSystemVectorType& rQo,
-//     TSystemVectorType& rQd,
-//     ModelPart& rModelPartOrigin,
-//     ModelPart& rModelPartDestination,
-//     const ComponentVariableType& rOriginVariable,
-//     const ComponentVariableType& rDestinationVariable,
-//     const Kratos::Flags MappingOptions,
-//     const bool UseTranspose) const
-// {
-//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes())
-//                           != rQo.MyLength())
-//         << "The local number of nodes in origin is different from the number "
-//         << "of local entries in the Vector!" << std::endl;
-
-//     KRATOS_DEBUG_ERROR_IF(static_cast<int>(rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes())
-//                           != rQd.MyLength())
-//         << "The local number of nodes in destination is different from the number "
-//         << "of local entries in the Vector!" << std::endl;
-
-//     // rQo and rQd are Multivectors, only using the first one
-//     TFinalizeMappingStep(rQo[0], rQd[0],
-//                          rModelPartOrigin, rModelPartDestination,
-//                          rOriginVariable, rDestinationVariable,
-//                          MappingOptions, UseTranspose);
-//     if (GetEchoLevel() > 2) {
-//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qo.mm", rQo);
-//         SparseSpaceType::WriteMatrixMarketVector("Trilinos_FinalizeMappingStep_Qd.mm", rQd);
-//     }
-// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
-template class MatrixBasedMappingOperationUtility< SparseSpaceType, DenseSpaceType >;
+template class MappingMatrixBuilder< SparseSpaceType, DenseSpaceType >;
 
 }  // namespace Kratos.

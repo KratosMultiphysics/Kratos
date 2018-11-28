@@ -25,97 +25,39 @@
 namespace Kratos
 {
 typedef typename MapperDefinitions::SparseSpaceType SparseSpaceType;
-typedef typename MapperDefinitSettingsions::DenseSpaceType DenseSpaceType;
+typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
 
-typedef InterfaceVectorContainer<SparseSpaceType, DenseSpaceType> UtilityType;
-
-typedef std::size_t IndexType;
-typedef std::size_t SizeType;
-
-/***********************************************************************************/
-/* Functions for internal use in this file */
-/***********************************************************************************/
-{
-
-template< class TVectorType, class TVarType >
-void TUpdateSystemVectorFromModelPart(TVectorType& rVector,
-                        ModelPart& rModelPart,
-                        const TVarType& rVariable,
-                        const Kratos::Flags& rMappingOptions)
-{
-    // Here we construct a function pointer to not have the if all the time inside the loop
-    const auto fill_fct = MapperUtilities::GetFillFunction<TVarType>(rMappingOptions);
-
-    const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes; i++) {
-        fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    }
-}
-
-template< class TVectorType, class TVarType >
-void TUpdateModelPartFromSystemVector(TVectorType& rVector,
-            ModelPart& rModelPart,
-            const TVarType& rVariable,
-            const Kratos::Flags& rMappingOptions)
-{
-    const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
-
-    // Here we construct a function pointer to not have the if all the time inside the loop
-    const auto update_fct = std::bind(MapperUtilities::GetUpdateFunction<TVarType>(rMappingOptions),
-                                        std::placeholders::_1,
-                                        std::placeholders::_2,
-                                        std::placeholders::_3,
-                                        factor);
-    const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes; i++) {
-        update_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    }
-}
-
-}
+typedef InterfaceVectorContainer<SparseSpaceType, DenseSpaceType> VectorContainerType;
 
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
 template<>
-UtilityType::InterfaceVectorContainer(ModelPart& rModelPart)
-        : mrModelPart(rModelPart)
+void VectorContainerType::UpdateSystemVectorFromModelPart(const DoubleVariableType& rVariable,
+                                                          const Kratos::Flags& rMappingOptions)
 {
-
+    MapperUtilities::UpdateSystemVectorFromModelPart(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
 }
 
 template<>
-void UtilityType::UpdateSystemVectorFromModelPart(const DoubleVariableType& rVariable,
-                                                  const Kratos::Flags& rMappingOptions)
+void VectorContainerType::UpdateSystemVectorFromModelPart(const ComponentVariableType& rVariable,
+                                                          const Kratos::Flags& rMappingOptions)
 {
-    TUpdateSystemVectorFromModelPart(mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+    MapperUtilities::UpdateSystemVectorFromModelPart(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
 }
 
 template<>
-void UtilityType::UpdateSystemVectorFromModelPart(const ComponentVariableType& rVariable,
-                                                  const Kratos::Flags& rMappingOptions)
+void VectorContainerType::UpdateModelPartFromSystemVector(const DoubleVariableType& rVariable,
+                                                          const Kratos::Flags& rMappingOptions)
 {
-    TUpdateSystemVectorFromModelPart(mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+    MapperUtilities::UpdateModelPartFromSystemVector(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
 }
 
 template<>
-void UtilityType::UpdateModelPartFromSystemVector(const DoubleVariableType& rVariable,
-                                                  const Kratos::Flags& rMappingOptions)
+void VectorContainerType::UpdateModelPartFromSystemVector(const ComponentVariableType& rVariable,
+                                                          const Kratos::Flags& rMappingOptions)
 {
-    TUpdateModelPartFromSystemVector(mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
-}
-
-template<>
-void UtilityType::UpdateModelPartFromSystemVector(const ComponentVariableType& rVariable,
-                                                  const Kratos::Flags& rMappingOptions)
-{
-    TUpdateModelPartFromSystemVector(mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
+    MapperUtilities::UpdateModelPartFromSystemVector(*mpInterfaceVector, mrModelPart, rVariable, rMappingOptions);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

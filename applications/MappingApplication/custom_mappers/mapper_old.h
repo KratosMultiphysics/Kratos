@@ -23,7 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "custom_utilities/matrix_based_mapping_operation_utility.h"
+#include "custom_utilities/mapping_matrix_builder.h"
 #include "custom_utilities/interface_preprocessor.h"
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapper_flags.h"
@@ -74,7 +74,7 @@ public:
     /// Pointer definition of Mapper
     KRATOS_CLASS_POINTER_DEFINITION(Mapper);
 
-    typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
+    typedef MappingMatrixBuilder<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
     typedef typename Kratos::unique_ptr<MappingOperationUtilityType> MappingOperationUtilityPointerType;
     typedef Kratos::unique_ptr<InterfacePreprocessor> InterfacePreprocessorPointerType;
     typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
@@ -521,14 +521,14 @@ private:
             GetInverseMapper()->TMap(rDestinationVariable, rOriginVariable, MappingOptions, UseTranspose);
     }
 
-    // From outside the user might specify CONSERVATIVE
+    // From outside the user might specify USE_TRANSPOSE
     // This is translated to USE_TRANSPOSE for internal use
     // Note that if the user would specify USE_TRANSPOSE it would have the same effect
     void CheckForConservative(Kratos::Flags& rMappingOptions)
     {
-        if (rMappingOptions.Is(MapperFlags::CONSERVATIVE))
+        if (rMappingOptions.Is(MapperFlags::USE_TRANSPOSE))
         {
-            rMappingOptions.Reset(MapperFlags::CONSERVATIVE);
+            rMappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
             rMappingOptions.Set(MapperFlags::USE_TRANSPOSE);
         }
     }

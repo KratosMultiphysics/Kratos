@@ -133,14 +133,14 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
                          -map_value)
 
 
-        # Conservative Mapping
+        # USE_TRANSPOSE Mapping
         # Number of Nodes on Origin: 37
         # Number of Nodes in Destination: 25
         # => Values in Destination are multiplied with a factor of 1.48 (37/25)
-        # to conserve the sum of quantities aka conservative mapping
+        # to conserve the sum of quantities aka USE_TRANSPOSE mapping
         # self.nearest_neighbor_mapper.Map(variable_origin,
         #                                  variable_destination,
-        #                                  Mapper.CONSERVATIVE)
+        #                                  Mapper.USE_TRANSPOSE)
 
         # if (self.GiD_output):
         #     self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -326,14 +326,14 @@ class NearestNeighborMapperTest(KratosUnittest.TestCase):
                          variable_origin,
                          [2*x for x in map_value])
 
-        # Conservative Mapping
+        # USE_TRANSPOSE Mapping
         # Number of Nodes on Origin: 37
         # Number of Nodes in Destination: 25
         # => Values in Origin are multiplied with a factor of 0.675675676 (25/37)
-        # to conserve the sum of quantities aka conservative mapping
+        # to conserve the sum of quantities aka USE_TRANSPOSE mapping
         # self.nearest_neighbor_mapper.InverseMap(variable_origin,
         #                                         variable_destination,
-        #                                         Mapper.CONSERVATIVE)
+        #                                         Mapper.USE_TRANSPOSE)
 
         # if (self.GiD_output):
         #     self.WriteNodalResultsCustom(self.gid_io_origin,
