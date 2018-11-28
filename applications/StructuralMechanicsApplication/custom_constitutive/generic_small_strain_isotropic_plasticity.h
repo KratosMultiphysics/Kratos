@@ -70,6 +70,12 @@ public:
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
+    /// The definition of the Voigt array type
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
     /// Counted pointer of GenericSmallStrainIsotropicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity);
     
