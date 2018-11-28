@@ -75,10 +75,16 @@ void ExponentialCohesive2DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter;
     if(std::abs(StrainVector[1]) > 1.0e-15)
         rVariables.WeightMatrix(1,1) = this->MacaulayBrackets(StrainVector[1])/StrainVector[1];
+    else if(std::abs(rVariables.CompressionMatrix(1,1)) < 1.0e-15)
+        rVariables.WeightMatrix(1,1) = 1.0;
     // if(std::abs(StrainVector[1]) > 1.0e-15)
     // {
     //     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter*this->MacaulayBrackets(StrainVector[1])/StrainVector[1];
     //     rVariables.WeightMatrix(1,1) = this->MacaulayBrackets(StrainVector[1])/StrainVector[1];
+    // }
+    // else if(std::abs(rVariables.CompressionMatrix(1,1)) < 1.0e-15)
+    // {
+    //     rVariables.WeightMatrix(1,1) = 1.0;
     // }
 }
 

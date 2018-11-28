@@ -117,6 +117,8 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     rVariables.WeightMatrix(1,1) = WeightingParameter*WeightingParameter;
     if(std::abs(StrainVector[2]) > 1.0e-15)
         rVariables.WeightMatrix(2,2) = this->MacaulayBrackets(StrainVector[2])/StrainVector[2];
+    else if(std::abs(rVariables.CompressionMatrix(2,2)) < 1.0e-15)
+        rVariables.WeightMatrix(2,2) = 1.0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
