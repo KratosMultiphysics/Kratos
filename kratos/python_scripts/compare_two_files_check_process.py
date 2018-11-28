@@ -105,6 +105,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             self.__ComparePostResFile()
         elif (self.comparison_type == "dat_file"):
             self.__CompareDatFile()
+        elif (self.comparison_type == "variables_time_history_file"):
+            self.__CompareVariablesTimeHistoryFile()
         else:
             raise NameError('Requested comparision type "' + self.comparison_type + '" not implemented yet')
 
