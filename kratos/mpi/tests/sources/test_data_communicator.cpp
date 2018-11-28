@@ -1351,7 +1351,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherInt, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
     for (unsigned int i = 0; i < return_buffer.size(); i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
     }
 }
 
@@ -1379,7 +1379,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosMPICoreFastSuit
     KRATOS_CHECK_EQUAL(return_buffer.size(), send_buffer.size());
     for (unsigned int i = 0; i < return_buffer.size(); i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+        KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
     }
 }
 
