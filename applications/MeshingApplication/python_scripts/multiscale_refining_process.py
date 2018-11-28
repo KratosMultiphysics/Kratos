@@ -40,22 +40,33 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         self.current_subscale = self.settings['current_subscale'].GetInt()
         self.maximum_number_of_subscales = self.settings['maximum_number_of_subscales'].GetInt()
 
-        # Get the coarse model part name
+        # Get the coarse and refined model part names
         self.coarse_model_part_name = self.settings['main_model_part_name'].GetString()
-        if (self.current_subscale > 0):
-            self.coarse_model_part_name += '_' + str(self.current_subscale)
-
-        # Get the coarse model part
-        self.coarse_model_part = self.model[self.coarse_model_part_name]
-
-        # Get the visualization model part
+        self.refined_model_part_name = self.coarse_model_part_name
         if (self.current_subscale == 0):
-            self.visualization_model_part = self._InitializeVisualizationModelPart()
+            self.coarse_model_part_name += '_0'
+            self.refined_model_part_name += '_0'
+        else:
+            self.coarse_model_part_name += '_' + str(self.current_subscale - 1)
+            self.refined_model_part_name += '_' + str(self.current_subscale)
+
+        # Get the model parts
+        if (self.current_subscale == 0):
+            self.coarse_model_part = self.model.CreateModelPart(self.coarse_model_part_name)
+            self.visualization_model_part = self.model.CreateModelPart(self.settings['visualization_model_part_name'].GetString())
             self.refined_model_part = self.coarse_model_part
         else:
+            self.coarse_model_part = self.model[self.coarse_model_part_name]
             self.visualization_model_part = self.model[self.settings['visualization_model_part_name'].GetString()]
-            # if not self.current_subscale > self.maximum_number_of_subscales:
-            self.refined_model_part = self._InitializeRefinedModelPart()
+            self.refined_model_part = self.model.CreateModelPart(self.refined_model_part_name)
+            self.refined_model_part.ProcessInfo[MeshingApplication.SUBSCALE_INDEX] = self.current_subscale
+
+    def PrepareModelPart(self):
+        # Get the visualization model part
+        if (self.current_subscale == 0):
+            self._InitializeVisualizationModelPart()
+        else:
+            self._InitializeRefinedModelPart()
 
     def ExecuteInitialize(self):
         # Create the new subscale process if needed
@@ -110,20 +121,14 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         return self.visualization_model_part
 
     def _InitializeVisualizationModelPart(self):
-        visualization_model_part_name = self.settings['visualization_model_part_name'].GetString()
-        visualization_model_part = self.model.CreateModelPart(visualization_model_part_name)
         buffer_size = self.coarse_model_part.GetBufferSize()
-        visualization_model_part.SetBufferSize(buffer_size)
-        MeshingApplication.MultiscaleRefiningProcess.InitializeVisualizationModelPart(self.coarse_model_part, visualization_model_part)
-        return visualization_model_part
+        self.visualization_model_part.SetBufferSize(buffer_size)
+        MeshingApplication.MultiscaleRefiningProcess.InitializeVisualizationModelPart(self.coarse_model_part, self.visualization_model_part)
 
     def _InitializeRefinedModelPart(self):
-        self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
-        refined_model_part = self.model.CreateModelPart(refined_model_part_name)
         buffer_size = self.coarse_model_part.GetBufferSize()
-        refined_model_part.SetBufferSize(buffer_size)
-        MeshingApplication.MultiscaleRefiningProcess.InitializeRefinedModelPart(self.coarse_model_part, refined_model_part)
-        return refined_model_part
+        self.refined_model_part.SetBufferSize(buffer_size)
+        MeshingApplication.MultiscaleRefiningProcess.InitializeRefinedModelPart(self.coarse_model_part, self.refined_model_part)
 
     def _ExecuteRefinement(self):
         self.subscales_utility.ExecuteRefinement()
