@@ -1,6 +1,4 @@
 import KratosMultiphysics
-from KratosMultiphysics import Logger
-Logger.GetDefaultOutput().SetSeverity(Logger.Severity.INFO)
 import KratosMultiphysics.DEMApplication
 from DEM_analysis_stage import DEMAnalysisStage
 
