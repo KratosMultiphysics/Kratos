@@ -189,12 +189,18 @@ void ConstitutiveLawUtilities<6>::CalculateSecondVector(
     if (rSecondVector.size() != 6)
         rSecondVector.resize(6);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-    for (IndexType i = 0; i < 6; ++i) {
-        rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
+
+    if (twosqrtJ2 > tolerance) {
+        for (IndexType i = 0; i < 6; ++i) {
+            rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
+        }
+
+        for (IndexType i = Dimension; i < 6; ++i)
+            rSecondVector[i] *= 2.0;
+    } else {
+        noalias(rSecondVector) = ZeroVector(VoigtSize);
     }
 
-    for (IndexType i = Dimension; i < 6; ++i)
-        rSecondVector[i] *= 2.0;
 }
 
 /***********************************************************************************/
@@ -270,7 +276,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     double& rLodeAngle
     )
 {
-    if (std::abs(J2) > tolerance) {
+    if (J2 > tolerance) {
         double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
         if (sint3 < -0.95)
             sint3 = -1.0;
@@ -280,6 +286,35 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     } else {
         rLodeAngle = 0.0;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector)
+{
+    // We update the deformation gradient
+    Matrix equivalent_F(Dimension, Dimension);
+
+    if(Dimension == 2) {
+        equivalent_F(0,0) = 1.0 + rStrainVector[0];
+        equivalent_F(0,1) = 0.5 * rStrainVector[2];
+        equivalent_F(1,0) = 0.5 * rStrainVector[2];
+        equivalent_F(1,1) = 1.0 + rStrainVector[1];
+    } else {
+        equivalent_F(0,0) = 1.0 + rStrainVector[0];
+        equivalent_F(0,1) = 0.5 * rStrainVector[3];
+        equivalent_F(0,2) = 0.5 * rStrainVector[5];
+        equivalent_F(1,0) = 0.5 * rStrainVector[3];
+        equivalent_F(1,1) = 1.0 + rStrainVector[1];
+        equivalent_F(1,2) = 0.5 * rStrainVector[4];
+        equivalent_F(2,0) = 0.5 * rStrainVector[5];
+        equivalent_F(2,1) = 0.5 * rStrainVector[4];
+        equivalent_F(2,2) = 1.0 + rStrainVector[2];
+    }
+
+    return equivalent_F;
 }
 
 /***********************************************************************************/

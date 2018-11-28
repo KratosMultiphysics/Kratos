@@ -16,10 +16,11 @@
 // External includes
 
 // Project includes
-#include "custom_elements/laplacian_meshmoving_element.h"
-#include "mesh_moving_application.h"
-#include "custom_utilities/move_mesh_utilities.h"
+#include "includes/checks.h"
+#include "includes/mesh_moving_variables.h"
 #include "utilities/math_utils.h"
+#include "custom_elements/laplacian_meshmoving_element.h"
+#include "custom_utilities/move_mesh_utilities.h"
 
 namespace Kratos {
 
@@ -223,6 +224,30 @@ void LaplacianMeshMovingElement::CalculateRightHandSide(
   CalculateLocalSystem(LHS, rRightHandSideVector, rCurrentProcessInfo);
 
   KRATOS_CATCH("");
+}
+
+int LaplacianMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    Element::Check(rCurrentProcessInfo);
+
+    // Verify that the variables are correctly initialized
+    KRATOS_CHECK_VARIABLE_KEY(MESH_DISPLACEMENT)
+    KRATOS_CHECK_VARIABLE_KEY(LAPLACIAN_DIRECTION)
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( auto& r_node : GetGeometry() ) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_DISPLACEMENT,r_node)
+
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_X, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_Y, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(MESH_DISPLACEMENT_Z, r_node)
+    }
+
+    return 0;
+
+    KRATOS_CATCH( "" );
 }
 
 } // Namespace Kratos

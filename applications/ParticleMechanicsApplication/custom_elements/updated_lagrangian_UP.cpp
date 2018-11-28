@@ -118,27 +118,26 @@ void UpdatedLagrangianUP::Initialize()
     KRATOS_TRY
 
     // Initial position of the particle
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
 
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
-    mDeformationGradientF0 = identity_matrix<double> (dimension);
-    
+    mDeformationGradientF0 = IdentityMatrix(dimension);
+
     // Compute initial jacobian matrix and inverses
-    Matrix J0 = ZeroMatrix(dimension, dimension);
+    Matrix J0 = ZeroMatrix(dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
-    // Compute current jacobian matrix and inverses  
-    Matrix j = ZeroMatrix(dimension,dimension);
+    // Compute current jacobian matrix and inverses
+    Matrix j = ZeroMatrix(dimension);
     j = this->MPMJacobian(j,xg);
     double detj;
     MathUtils<double>::InvertMatrix( j, mInverseJ, detj );
 
     // Initialize constitutive law and materials
     InitializeMaterial();
-    this->GetValue(MP_DENSITY) = GetProperties()[DENSITY];
 
     KRATOS_CATCH( "" )
 }
@@ -170,9 +169,9 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
-    const array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
-    const array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
+    const array_1d<double,3> & xg = this->GetValue(MP_COORD);
+    const array_1d<double,3> & MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
+    const array_1d<double,3> & MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_Acceleration = ZeroVector(3);
@@ -186,9 +185,9 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     {
         if (rVariables.N[i] > 1e-16)
         {
-            array_1d<double, 3 > & nodal_acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3 > & nodal_acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
 
-            double nodal_pressure = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 0);
+            const double& nodal_pressure = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 0);
             MP_Pressure += rVariables.N[i] * nodal_pressure;
 
             for ( unsigned int j = 0; j < dimension; j++ )
@@ -208,7 +207,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
     }
 
     /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003). 
+    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
     This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
     MP_Velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_Acceleration + MP_PreviousAcceleration);
     this -> SetValue(MP_VELOCITY,MP_Velocity );
@@ -223,7 +222,7 @@ void UpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const
 
     // Update the MP Position
     const array_1d<double,3>& new_xg = xg + delta_xg ;
-    this -> SetValue(GAUSS_COORD,new_xg);
+    this -> SetValue(MP_COORD,new_xg);
 
     //Update the MP Acceleration
     this -> SetValue(MP_ACCELERATION,MP_Acceleration);
@@ -253,7 +252,7 @@ void UpdatedLagrangianUP::InitializeSystemMatrices(MatrixType& rLeftHandSideMatr
         if ( rLeftHandSideMatrix.size1() != matrix_size )
             rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( matrix_size, matrix_size ); //resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size); //resetting LHS
     }
 
     // Resizing the RHS vector if needed
@@ -288,12 +287,12 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
 
-    /* NOTE:: 
+    /* NOTE::
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
     1. By: noalias( rVariables.F ) = prod( rVariables.j, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee  
-    
+    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
+
     (NOTICE: Here, we are using method no. 1)
     */
 
@@ -366,17 +365,17 @@ void UpdatedLagrangianUP::CalculateDeformationMatrix(Matrix& rB,
 
 void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    /* NOTE: 
+    /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension, dimension);
+    Matrix J0 = ZeroMatrix(dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
@@ -389,26 +388,26 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 
     mFinalizedStep = false;
 
-    array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
-    array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-    double MP_Pressure = this->GetValue(MP_PRESSURE);
+    const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
+    const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
+    const double & MP_Pressure = this->GetValue(MP_PRESSURE);
+
     array_1d<double,3>& AUX_MP_Velocity = this->GetValue(AUX_MP_VELOCITY);
     array_1d<double,3>& AUX_MP_Acceleration = this->GetValue(AUX_MP_ACCELERATION);
     double AUX_MP_Pressure = this->GetValue(AUX_MP_PRESSURE);
-    double MP_Mass = this->GetValue(MP_MASS);
-    array_1d<double,3> MP_Momentum;
-    array_1d<double,3> MP_Inertia;
+
+    const double& MP_Mass = this->GetValue(MP_MASS);
     array_1d<double,3> nodal_momentum;
     array_1d<double,3> nodal_inertia;
 
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        array_1d<double, 3 > & nodal_acceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
-        array_1d<double, 3 > & nodal_velocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
-        
+        const array_1d<double, 3 > & nodal_acceleration = GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION,1);
+        const array_1d<double, 3 > & nodal_velocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
+
         // These are the values of nodal pressure evaluated in the initialize solution step
-        double & nodal_pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,1);
+        const double& nodal_pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE,1);
 
         AUX_MP_Pressure += Variables.N[j] * nodal_pressure;
 
@@ -447,7 +446,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, const double& rIntegrationWeight)
 {
     // Contribution of the internal and external forces
     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
@@ -478,7 +477,7 @@ void UpdatedLagrangianUP::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem
 void UpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -494,7 +493,7 @@ void UpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHandSi
             rRightHandSideVector[index_up + j] += rVariables.N[i] * rVolumeForce[j];
         }
     }
-  
+
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
@@ -502,7 +501,7 @@ void UpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHandSi
 
 void UpdatedLagrangianUP::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -562,7 +561,7 @@ double& UpdatedLagrangianUP::CalculatePUDeltaCoefficient(double &rDeltaCoefficie
 
 void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -590,7 +589,7 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
     {
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            double& pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
             // TODO: Check what is the meaning of this equation
             rRightHandSideVector[index_p] += (1.0/(delta_coefficient * bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF) ; //2D-3D
@@ -608,7 +607,7 @@ void UpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSi
 
 void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -644,14 +643,14 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
     {
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            double& pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 
             if( dimension == 2 )
             {
                 consistent=(-1)*alpha_stabilization*factor_value/(36.0*lame_mu);
                 if(i==j)
                     consistent=2*alpha_stabilization*factor_value/(36.0*lame_mu);
-                    
+
 
                 rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / (delta_coefficient * (rVariables.detF0/rVariables.detF)); //2D
             }
@@ -672,33 +671,33 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, const double& rIntegrationWeight)
 {
     // Contributions of the stiffness matrix calculated on the reference configuration
     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-    
+
     rVariables.detF0   *= rVariables.detF;
     double determinant_F = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
-    
+
     // Operation performed: add Km to the rLefsHandSideMatrix
     CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kg to the rLefsHandSideMatrix
     CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kup to the rLefsHandSideMatrix
     CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kpu to the rLefsHandSideMatrix
     CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kpp to the rLefsHandSideMatrix
     CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     rVariables.detF     = determinant_F;
     rVariables.detF0   /= rVariables.detF;
 
@@ -708,7 +707,7 @@ void UpdatedLagrangianUP::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem
 
 void UpdatedLagrangianUP::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight
+        const double& rIntegrationWeight
                                              )
 {
     KRATOS_TRY
@@ -747,7 +746,7 @@ void UpdatedLagrangianUP::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
 
 void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 
 {
     KRATOS_TRY
@@ -758,7 +757,7 @@ void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 
     Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix reduced_Kg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( stress_tensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
-    Matrix Kuug = zero_matrix<double> (size);
+    Matrix Kuug = ZeroMatrix(size);
     MathUtils<double>::ExpandAndAddReducedMatrix( Kuug, reduced_Kg, dimension );
 
     // Assemble components considering added DOF matrix system
@@ -780,7 +779,7 @@ void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
             indexi++;
         }
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -789,7 +788,7 @@ void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 
 void UpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -819,7 +818,7 @@ void UpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
 
 void UpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 
 {
     KRATOS_TRY
@@ -849,7 +848,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
 
 void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -871,13 +870,13 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
     delta_coefficient = this->CalculatePUDeltaCoefficient( delta_coefficient, rVariables );
 
     unsigned int indexpi = dimension;
-    
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int indexpj = dimension;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
-            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight /(delta_coefficient * (rVariables.detF0/rVariables.detF)); 
+            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight /(delta_coefficient * (rVariables.detF0/rVariables.detF));
 
             indexpj += (dimension + 1);
         }
@@ -898,7 +897,7 @@ void UpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
 
 void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
         GeneralVariables & rVariables,
-        double& rIntegrationWeight)
+        const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
@@ -1043,12 +1042,10 @@ void UpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessI
     if ( rMassMatrix.size1() != matrix_size )
         rMassMatrix.resize( matrix_size, matrix_size, false );
 
-    rMassMatrix = ZeroMatrix( matrix_size, matrix_size );
-
-    double TotalMass = 0;
+    rMassMatrix = ZeroMatrix(matrix_size);
 
     // TOTAL MASS OF ONE MP ELEMENT
-    TotalMass = this->GetValue(MP_MASS);
+    const double & TotalMass = this->GetValue(MP_MASS);
 
     // LUMPED MATRIX
     for ( unsigned int i = 0; i < number_of_nodes; i++ )

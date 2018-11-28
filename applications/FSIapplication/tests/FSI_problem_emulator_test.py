@@ -59,13 +59,13 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQN(self):
-        abs_cut_off = 1.0e-3
+        abs_cut_off = 1.0e-2
         self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation, abs_cut_off)
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQNRecursive(self):
         buffer_size = 7
-        abs_cut_off = 1.0e-3
+        abs_cut_off = 1.0e-2
         self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size, abs_cut_off)
         self.RunTestCase()
 
@@ -161,7 +161,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 self.structure_solver.Predict()
 
                 self.coupling_utility.InitializeSolutionStep()
-                print("")
+                
                 for nl_it in range(1,self.max_nl_it+1):
 
                     self.coupling_utility.InitializeNonLinearIteration()
@@ -178,9 +178,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
 
                     else:
                         # If convergence is not achieved, perform the correction of the prediction
-                        print("Before UpdateSolution")
                         self.coupling_utility.UpdateSolution(disp_residual, self.iteration_value)
-                        print("After UpdateSolution")
                         self.coupling_utility.FinalizeNonLinearIteration()
 
                 self.structure_solver.FinalizeSolutionStep()

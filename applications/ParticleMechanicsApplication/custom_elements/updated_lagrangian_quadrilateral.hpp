@@ -654,7 +654,7 @@ protected:
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    const double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
@@ -663,7 +663,7 @@ protected:
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     GeneralVariables& rVariables,
                                     Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+                                    const double& rIntegrationWeight);
 
 
     /**
@@ -672,14 +672,14 @@ protected:
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
-                                     double& rIntegrationWeight);
+                                     const double& rIntegrationWeight);
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
-                                     double& rIntegrationWeight);
+                                     const double& rIntegrationWeight);
 
 
     /**
@@ -688,7 +688,7 @@ protected:
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
             GeneralVariables& rVariables,
             Vector& rVolumeForce,
-            double& rIntegrationWeight);
+            const double& rIntegrationWeight);
 
 
     /**
@@ -696,7 +696,7 @@ protected:
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            double& rIntegrationWeight);
+            const double& rIntegrationWeight);
 
 
     /**
@@ -811,23 +811,23 @@ protected:
     /**
      * Calculate Jacobian in a given point
      */
-    virtual Matrix& MPMJacobian(Matrix& rResult, array_1d<double,3>& rPoint);
+    virtual Matrix& MPMJacobian(Matrix& rResult, const array_1d<double,3>& rPoint);
 
     /**
      * Calculate Jacobian in a given point and given a delta position
      */
-    virtual Matrix& MPMJacobianDelta(Matrix& rResult, array_1d<double,3>& rPoint, Matrix& rDeltaPosition);
+    virtual Matrix& MPMJacobianDelta(Matrix& rResult, const array_1d<double,3>& rPoint, const Matrix& rDeltaPosition);
 
     /**
      * Calculate Shape Function Values in a given point
      */
 
-    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, array_1d<double,3>& rPoint);
+    virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
 
     /**
      * Calculate Shape Function grandient local Values in a given point in 3 dimension
      */
-    virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult, array_1d<double,3>& rPoint);
+    virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult, const array_1d<double,3>& rPoint);
     /**
      * Calculate local coordinated of a given point in 3 dimension
      */
@@ -909,4 +909,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_QUADRILATERAL_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_QUADRILATERAL_H_INCLUDED  defined

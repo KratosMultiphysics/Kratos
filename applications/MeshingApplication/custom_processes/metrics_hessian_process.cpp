@@ -49,7 +49,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
         }
     })" );
 
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mMaxSize = ThisParameters["maximal_size"].GetDouble();
@@ -97,6 +97,17 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
 
     // Tensor variable definition
     const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+
+    // Setting metric in case not defined
+    if (!nodes_array.begin()->Has(tensor_variable)) {
+        // Declaring auxiliar vector
+        const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i) {
+            auto it_node = nodes_array.begin() + i;
+            it_node->SetValue(tensor_variable, aux_zero_vector);
+        }
+    }
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
@@ -215,7 +226,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
     const int num_nodes = nodes_array.end() - nodes_array.begin();
 
     // Declaring auxiliar vector
-    const TensorArrayType aux_zero_vector(3 * (TDim - 1), 0.0);
+    const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i)
@@ -252,8 +263,9 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
             const array_1d<double, 3>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
 
             for(IndexType i_node = 0; i_node < geom.size(); ++i_node) {
+                auto& aux_hessian = geom[i_node].GetValue(AUXILIAR_HESSIAN);
                 for(IndexType k = 0; k < 3; ++k) {
-                    double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
+                    double& val = aux_hessian[k];
 
                     #pragma omp atomic
                     val += N[i_node] * volume * hessian_cond[k];
@@ -278,8 +290,9 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
             const array_1d<double, 6>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 3, 3>, array_1d<double, 6>>(hessian);
 
             for(IndexType i_node = 0; i_node < geom.size(); ++i_node) {
+                auto& aux_hessian = geom[i_node].GetValue(AUXILIAR_HESSIAN);
                 for(IndexType k = 0; k < 6; ++k) {
-                    double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
+                    double& val = aux_hessian[k];
 
                     #pragma omp atomic
                     val += N[i_node] * volume * hessian_cond[k];
