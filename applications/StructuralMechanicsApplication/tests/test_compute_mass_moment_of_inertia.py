@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt, sin, cos, pi, exp, atan
 
-class TestComputeMomentOfInertia(KratosUnittest.TestCase):
+class TestComputeMassMomentOfInertia(KratosUnittest.TestCase):
     # muting the output
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
@@ -123,9 +123,9 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         p1 = KratosMultiphysics.Point(1.8, 0.0, 0.0)
         p2 = KratosMultiphysics.Point(1.8, 2.0, 0.0)
 
-        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp, p1, p2)
+        moi_process = StructuralMechanicsApplication.ComputeMassMomentOfInertiaProcess(mp, p1, p2)
         moi_process.Execute()
-        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MASS_MOMENT_OF_INERTIA]
         self.assertAlmostEqual(364.5648, moment_of_inertia)
 
     def test_beam_moi(self):
@@ -147,9 +147,9 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
             elem = mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2], mp.GetProperties()[0])
         p1 = KratosMultiphysics.Point(0.6, 0.0, 0.0)
         p2 = KratosMultiphysics.Point(0.6, 2.0, 0.0)
-        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp, p1, p2)
+        moi_process = StructuralMechanicsApplication.ComputeMassMomentOfInertiaProcess(mp, p1, p2)
         moi_process.Execute()
-        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MASS_MOMENT_OF_INERTIA]
         self.assertAlmostEqual(11.3028466, moment_of_inertia)
 
     def test_shell_moi(self):
@@ -166,9 +166,9 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         p1 = KratosMultiphysics.Point(0.5, 0.25, 0.0)
         p2 = KratosMultiphysics.Point(0.5, 0.25, 1.0)
 
-        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp, p1, p2)
+        moi_process = StructuralMechanicsApplication.ComputeMassMomentOfInertiaProcess(mp, p1, p2)
         moi_process.Execute()
-        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MASS_MOMENT_OF_INERTIA]
 
         self.assertAlmostEqual(0.044, moment_of_inertia)
 
@@ -185,9 +185,9 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
 
         p1 = KratosMultiphysics.Point(0.5, 0.25, 0.0)
         p2 = KratosMultiphysics.Point(0.5, 0.25, 1.0)
-        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp, p1, p2)
+        moi_process = StructuralMechanicsApplication.ComputeMassMomentOfInertiaProcess(mp, p1, p2)
         moi_process.Execute()
-        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MASS_MOMENT_OF_INERTIA]
 
         self.assertAlmostEqual(1.4762, moment_of_inertia)
 
@@ -217,9 +217,9 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         mp.CreateNewElement("TotalLagrangianElement2D4N", 4, [4,3,8,9], mp.GetProperties()[1])
         p1 = KratosMultiphysics.Point(0.4, 0.25, 0.0)
         p2 = KratosMultiphysics.Point(0.4, 0.25, 1.0)
-        moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp,p1,p2)
+        moi_process = StructuralMechanicsApplication.ComputeMassMomentOfInertiaProcess(mp,p1,p2)
         moi_process.Execute()
-        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
+        moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MASS_MOMENT_OF_INERTIA]
 
         self.assertAlmostEqual(0.021, moment_of_inertia)
 

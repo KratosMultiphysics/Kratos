@@ -39,7 +39,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ComputeMomentOfInertiaProcess
+ * @class ComputeMassMomentOfInertiaProcess
  *
  * @ingroup StructuralMechanicsApplication
  *
@@ -48,22 +48,22 @@ namespace Kratos
  *
  * @author Philipp Bucher, Salman Yousaf
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeMomentOfInertiaProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeMassMomentOfInertiaProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ComputeMomentOfInertiaProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeMomentOfInertiaProcess);
+    /// Pointer definition of ComputeMassMomentOfInertiaProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ComputeMassMomentOfInertiaProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ComputeMomentOfInertiaProcess(
+    ComputeMassMomentOfInertiaProcess(
         ModelPart& rThisModelPart,
         const Point& rPoint1,
         const Point& rPoint2
@@ -71,7 +71,7 @@ public:
     { }
 
     /// Destructor.
-    ~ComputeMomentOfInertiaProcess() override = default;
+    ~ComputeMassMomentOfInertiaProcess() override = default;
 
     ///@}
     ///@name Access
@@ -116,13 +116,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ComputeMomentOfInertiaProcess";
+        return "ComputeMassMomentOfInertiaProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ComputeMomentOfInertiaProcess";
+        rOStream << "ComputeMassMomentOfInertiaProcess";
     }
 
     /// Print object's data.
@@ -210,15 +210,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ComputeMomentOfInertiaProcess& operator=(ComputeMomentOfInertiaProcess const& rOther) = delete;
+    ComputeMassMomentOfInertiaProcess& operator=(ComputeMassMomentOfInertiaProcess const& rOther) = delete;
 
     /// Copy constructor.
-    ComputeMomentOfInertiaProcess(ComputeMomentOfInertiaProcess const& rOther) = delete;
+    ComputeMassMomentOfInertiaProcess(ComputeMassMomentOfInertiaProcess const& rOther) = delete;
 
 
     ///@}
 
-}; // Class ComputeMomentOfInertiaProcess
+}; // Class ComputeMassMomentOfInertiaProcess
 
 ///@}
 
@@ -232,11 +232,11 @@ private:
 
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   ComputeMomentOfInertiaProcess& rThis);
+//                                   ComputeMassMomentOfInertiaProcess& rThis);
 //
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ComputeMomentOfInertiaProcess& rThis)
+//                                   const ComputeMassMomentOfInertiaProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;

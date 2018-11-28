@@ -15,13 +15,13 @@
 // External includes
 
 // Project includes
-#include "custom_processes/compute_moment_of_inertia_process.h"
+#include "custom_processes/compute_mass_moment_of_inertia_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "structural_mechanics_application_variables.h"
 namespace Kratos
 {
 
-void ComputeMomentOfInertiaProcess::Execute()
+void ComputeMassMomentOfInertiaProcess::Execute()
 {
     KRATOS_TRY
 
@@ -53,13 +53,13 @@ void ComputeMomentOfInertiaProcess::Execute()
     info_stream << "Moment of Inertia of ModelPart \"" << mrThisModelPart.Name() << "\"";
 
     KRATOS_INFO(info_stream.str()) << moment_of_inertia << std::endl;
-    KRATOS_INFO("Hint")  << "Check variable MOMENT_OF_INERTIA in the process info in "
+    KRATOS_INFO("Hint")  << "Check variable MASS_MOMENT_OF_INERTIA in the process info in "
                          << "order to access to it at any moment" << std::endl;
 
-    mrThisModelPart.GetProcessInfo()[MOMENT_OF_INERTIA] = moment_of_inertia;
+    mrThisModelPart.GetProcessInfo()[MASS_MOMENT_OF_INERTIA] = moment_of_inertia;
 
     KRATOS_CATCH("")
-} // class ComputeMomentOfInertiaProcess
+} // class ComputeMassMomentOfInertiaProcess
 
 
 } // namespace Kratos
