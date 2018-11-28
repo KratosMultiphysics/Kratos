@@ -154,12 +154,13 @@ public:
                 }         
             }
         }
+        double number_of_nodes=mrModelPart.NumberOfNodes();
         // Vector lambda_0=ZeroVector(number_of_nodes);
         // Vector lambda=ZeroVector(number_of_nodes);
         // Vector r_0=ZeroVector(number_of_nodes);
         // Vector r=ZeroVector(number_of_nodes);
         // Vector p=ZeroVector(number_of_nodes);
-        // r_0=dFdu-prod(dRdu,lambda_0) ;
+        // r_0=mrdFdu-prod(mrdRdu,lambda_0) ;
         // p=r_0;
 
         // double norm_diff = 1;
@@ -170,24 +171,33 @@ public:
         // while (norm_diff > 1e-9){
         //     iteration += 1;
         //     std::cout<<"Iteration: "<<iteration <<std::endl;
-        //     alpha=inner_prod(r_0,r_0)/inner_prod(Vector(prod(dRdu,p)),p);
+        //     alpha=inner_prod(r_0,r_0)/inner_prod(Vector(prod(mrdRdu,p)),p);
         //     lambda=lambda_0+alpha*p;
         //     norm_diff=std::abs(inner_prod(lambda,lambda)-inner_prod(lambda_0,lambda_0));
         //     std::cout<<"norm_diff:" << norm_diff<< std::endl;
-        //     r=r_0-alpha*prod(dRdu,p);
+        //     r=r_0-alpha*prod(mrdRdu,p);
         //     beta=inner_prod(r,r)/inner_prod(r_0,r_0);
         //     p=r+beta*p;
 
         //     r_0=r; 
         //     lambda_0=lambda;
         // }
-        // std::cout << number_of_nodes << std::endl;
-        // for (unsigned int i = 0; i < number_of_nodes;++i){
-        //     for (unsigned int j = 0; j < number_of_nodes;++j){
-        //         if (!(dRdx(i,j)==0.0))
-        //             std::cout<<dRdx(i,j)<<std::endl;
-        //     }
-        // }
+        for (unsigned int i = 0; i < number_of_nodes;++i){
+            for (unsigned int j = 0; j < number_of_nodes;++j){
+                if (!(mrdRdx(i,j)==0.0))
+                    KRATOS_WATCH(mrdRdx(i,j));
+            }
+        }
+        for (unsigned int i = 0; i < number_of_nodes;++i){
+            for (unsigned int j = 0; j < number_of_nodes;++j){
+                if (!(mrdRdu(i,j)==0.0))
+                    KRATOS_WATCH(mrdRdu(i,j));
+            }
+        }
+        for (unsigned int i = 0; i < number_of_nodes;++i){
+                if (!(mrdFdu(i)==0.0))
+                    KRATOS_WATCH(mrdFdu(i));
+        }
        
         KRATOS_CATCH("");
     }
