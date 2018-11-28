@@ -194,13 +194,10 @@ namespace Kratos
 	template<std::size_t TDim>
 	double CalculateDistanceToSkinProcess<TDim>::DistancePositionInSpace(const Node<3> &rNode)
 	{
-		typedef Element::GeometryType intersection_geometry_type;
-        typedef std::vector<std::pair<double, intersection_geometry_type*> > intersections_container_type;
-
         const double epsilon = 1e-12;
 		array_1d<double,TDim> distances;
 		unsigned int n_ray_pos(0), n_ray_neg(0);
-        intersections_container_type intersections;
+        IntersectionsContainerType intersections;
 		const array_1d<double,3> coords = rNode.Coordinates();
 
 		// Loop the x,y and z (3D) ray directions
