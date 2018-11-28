@@ -68,15 +68,10 @@ public:
         const Point& rPoint1,
         const Point& rPoint2
         ):mrThisModelPart(rThisModelPart) , mrPoint1(rPoint1), mrPoint2(rPoint2)
-    {
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
-    }
+    { }
 
     /// Destructor.
-    ~ComputeMomentOfInertiaProcess() override
-    = default;
+    ~ComputeMomentOfInertiaProcess() override = default;
 
     ///@}
     ///@name Access
@@ -97,11 +92,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
-    void operator()()
-    {
-        Execute();
-    }
 
     ///@}
     ///@name Operations

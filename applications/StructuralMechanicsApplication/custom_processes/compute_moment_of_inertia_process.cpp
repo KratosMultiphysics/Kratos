@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include <math.h>
 #include "custom_processes/compute_moment_of_inertia_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "structural_mechanics_application_variables.h"
@@ -26,13 +25,14 @@ void ComputeMomentOfInertiaProcess::Execute()
 {
     KRATOS_TRY
 
-     const std::size_t domain_size = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
-     double moment_of_inertia = 0.0;
-     
+    const std::size_t domain_size = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    double moment_of_inertia = 0.0;
+
     // computing axis of rotation
-     Vector3 axis_of_rotation = mrPoint2 - mrPoint1;
-     const double axis_length =  std::sqrt(inner_prod(axis_of_rotation, axis_of_rotation));
-     
+    Vector3 axis_of_rotation = mrPoint2 - mrPoint1;
+    const double axis_length =  std::sqrt(inner_prod(axis_of_rotation, axis_of_rotation));
+    KRATOS_ERROR_IF(axis_length < 1e-12) << "Please specify two different points" << std::endl;
+
     // Now we iterate over the elements
     auto& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
     // Making this loop omp-parallel requires locking all the geometries & nodes, which

@@ -8,7 +8,7 @@ from math import sqrt, sin, cos, pi, exp, atan
 
 class TestComputeMomentOfInertia(KratosUnittest.TestCase):
     # muting the output
-   # KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) TODO reenable this
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
     def _apply_beam_material_properties(self,mp,dim):
         #define properties
@@ -104,13 +104,12 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         mp = current_model.CreateModelPart("structural_part_nodal_masses")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
 
-        #create nodes
+        # create nodes
         dx = 1.2
         for i in range(nr_nodes):
             mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-        #add dofs
 
-        #create Element
+        # create elements
         elem1 = mp.CreateNewElement("NodalConcentratedElement2D1N", 1, [1], mp.GetProperties()[0])
         elem2 = mp.CreateNewElement("NodalConcentratedElement2D1N", 2, [2], mp.GetProperties()[0])
         elem3 = mp.CreateNewElement("NodalConcentratedElement3D1N", 3, [3], mp.GetProperties()[0])
@@ -142,9 +141,8 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         dx = 1.20 / nr_elements
         for i in range(nr_nodes):
             mp.CreateNewNode(i+1,i*dx,0.00,0.00)
-        #add dofs
 
-        #create Element
+        # create elements
         for i in range(nr_elements):
             elem = mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2], mp.GetProperties()[0])
         p1 = KratosMultiphysics.Point(0.6, 0.0, 0.0)
@@ -152,7 +150,7 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         moi_process = StructuralMechanicsApplication.ComputeMomentOfInertiaProcess(mp, p1, p2)
         moi_process.Execute()
         moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
-        self.assertAlmostEqual(11.304, moment_of_inertia, 5)
+        self.assertAlmostEqual(11.3028466, moment_of_inertia)
 
     def test_shell_moi(self):
         dim = 3
@@ -172,7 +170,8 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         moi_process.Execute()
         moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
 
-        self.assertAlmostEqual(0.0520833333, moment_of_inertia)
+        self.assertAlmostEqual(0.044, moment_of_inertia)
+
     def test_orthotropic_shell_moi(self):
         dim = 3
         current_model = KratosMultiphysics.Model()
@@ -190,7 +189,8 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         moi_process.Execute()
         moment_of_inertia = mp.ProcessInfo[StructuralMechanicsApplication.MOMENT_OF_INERTIA]
 
-        # self.assertAlmostEqual(0.0723057, moment_of_inertia)
+        self.assertAlmostEqual(1.4762, moment_of_inertia)
+
     def test_solid_moi(self):
         dim = 2
         current_model = KratosMultiphysics.Model()
@@ -199,7 +199,7 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         mp.SetBufferSize(2)
         self._apply_solid_material_properties(mp)
 
-        #create nodes
+        # create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
         mp.CreateNewNode(2,0.3,0.0,0.0)
         mp.CreateNewNode(3,0.3,0.2,0.0)
@@ -209,7 +209,8 @@ class TestComputeMomentOfInertia(KratosUnittest.TestCase):
         mp.CreateNewNode(7,0.8,0.5,0.0)
         mp.CreateNewNode(8,0.3,0.5,0.0)
         mp.CreateNewNode(9,0.0,0.5,0.0)
-        #create Element
+
+        # create elements
         mp.CreateNewElement("TotalLagrangianElement2D4N", 1, [1,2,3,4], mp.GetProperties()[1])
         mp.CreateNewElement("TotalLagrangianElement2D4N", 2, [2,5,6,3], mp.GetProperties()[1])
         mp.CreateNewElement("TotalLagrangianElement2D4N", 3, [3,6,7,8], mp.GetProperties()[1])
