@@ -22,28 +22,36 @@
 namespace Kratos {
 namespace TimeDiscretization {
 
-void BDF1::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 2>& rCoefficients) const
+std::array<double, 2> BDF1::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
-    rCoefficients[0] =  1.0/DeltaTime;
-    rCoefficients[1] = -1.0/DeltaTime;
+    std::array<double, 2> coefficients;
+
+    coefficients[0] =  1.0/DeltaTime;
+    coefficients[1] = -1.0/DeltaTime;
+
+    return coefficients;
 }
 
-void BDF2::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 3>& rCoefficients) const
+std::array<double, 3> BDF2::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 2.0*DeltaTime;
 
-    rCoefficients[0] =  3.0 / denom;
-    rCoefficients[1] = -4.0 / denom;
-    rCoefficients[2] =  2.0 / denom;
+    std::array<double, 3> coefficients;
+
+    coefficients[0] =  3.0 / denom;
+    coefficients[1] = -4.0 / denom;
+    coefficients[2] =  2.0 / denom;
+
+    return coefficients;
 }
 
-void BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousDeltaTime, std::array<double, 3>& rCoefficients) const
+std::array<double, 3> BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousDeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
@@ -53,67 +61,87 @@ void BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousD
     const double rho = PreviousDeltaTime / DeltaTime;
     double time_coeff = 1.0 / (DeltaTime * rho * rho + DeltaTime * rho);
 
-    rCoefficients[0] =  time_coeff * (rho * rho + 2.0 * rho); // coefficient for step n+1 (3/2Dt if Dt is constant)
-    rCoefficients[1] = -time_coeff * (rho * rho + 2.0 * rho + 1.0); // coefficient for step n (-4/2Dt if Dt is constant)
-    rCoefficients[2] =  time_coeff; // coefficient for step n-1 (1/2Dt if Dt is constant)
+    std::array<double, 3> coefficients;
+
+    coefficients[0] =  time_coeff * (rho * rho + 2.0 * rho); // coefficient for step n+1 (3/2Dt if Dt is constant)
+    coefficients[1] = -time_coeff * (rho * rho + 2.0 * rho + 1.0); // coefficient for step n (-4/2Dt if Dt is constant)
+    coefficients[2] =  time_coeff; // coefficient for step n-1 (1/2Dt if Dt is constant)
+
+    return coefficients;
 }
 
-void BDF3::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 4>& rCoefficients) const
+std::array<double, 4> BDF3::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 6.0*DeltaTime;
 
-    rCoefficients[0] =  11.0 / denom;
-    rCoefficients[1] = -18.0 / denom;
-    rCoefficients[2] =   9.0 / denom;
-    rCoefficients[3] =  -2.0 / denom;
+    std::array<double, 4> coefficients;
+
+    coefficients[0] =  11.0 / denom;
+    coefficients[1] = -18.0 / denom;
+    coefficients[2] =   9.0 / denom;
+    coefficients[3] =  -2.0 / denom;
+
+    return coefficients;
 }
 
-void BDF4::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 5>& rCoefficients) const
+std::array<double, 5> BDF4::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 12.0*DeltaTime;
 
-    rCoefficients[0] =  25.0 / denom;
-    rCoefficients[1] = -48.0 / denom;
-    rCoefficients[2] =  36.0 / denom;
-    rCoefficients[3] = -16.0 / denom;
-    rCoefficients[4] =   3.0 / denom;
+    std::array<double, 5> coefficients;
+
+    coefficients[0] =  25.0 / denom;
+    coefficients[1] = -48.0 / denom;
+    coefficients[2] =  36.0 / denom;
+    coefficients[3] = -16.0 / denom;
+    coefficients[4] =   3.0 / denom;
+
+    return coefficients;
 }
 
-void BDF5::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 6>& rCoefficients) const
+std::array<double, 6> BDF5::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 60.0*DeltaTime;
 
-    rCoefficients[0] =  137.0 / denom;
-    rCoefficients[1] = -300.0 / denom;
-    rCoefficients[2] =  300.0 / denom;
-    rCoefficients[3] = -200.0 / denom;
-    rCoefficients[4] =   75.0 / denom;
-    rCoefficients[5] =  -12.0 / denom;
+    std::array<double, 6> coefficients;
+
+    coefficients[0] =  137.0 / denom;
+    coefficients[1] = -300.0 / denom;
+    coefficients[2] =  300.0 / denom;
+    coefficients[3] = -200.0 / denom;
+    coefficients[4] =   75.0 / denom;
+    coefficients[5] =  -12.0 / denom;
+
+    return coefficients;
 }
 
-void BDF6::ComputeBDFCoefficients(const double DeltaTime, std::array<double, 7>& rCoefficients) const
+std::array<double, 7> BDF6::ComputeBDFCoefficients(const double DeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
 
     const double denom = 60.0*DeltaTime;
 
-    rCoefficients[0] =  147.0 / denom;
-    rCoefficients[1] = -360.0 / denom;
-    rCoefficients[2] =  450.0 / denom;
-    rCoefficients[3] = -400.0 / denom;
-    rCoefficients[4] =  225.0 / denom;
-    rCoefficients[5] =  -72.0 / denom;
-    rCoefficients[6] =   10.0 / denom;
+    std::array<double, 7> coefficients;
+
+    coefficients[0] =  147.0 / denom;
+    coefficients[1] = -360.0 / denom;
+    coefficients[2] =  450.0 / denom;
+    coefficients[3] = -400.0 / denom;
+    coefficients[4] =  225.0 / denom;
+    coefficients[5] =  -72.0 / denom;
+    coefficients[6] =   10.0 / denom;
+
+    return coefficients;
 }
 
 } // namespace TimeDiscretization.

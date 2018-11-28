@@ -768,9 +768,9 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("ComputeBDFCoefficients", &TimeDiscretization::BDF1::ComputeBDFCoefficients)
         ;
 
-    void (TimeDiscretization::BDF2::*ComputeBDF2Coefficients)(double, std::array<double, 3>&) const
+    std::array<double, 3> (TimeDiscretization::BDF2::*ComputeBDF2Coefficients)(double) const
         = &TimeDiscretization::BDF2::ComputeBDFCoefficients;
-    void (TimeDiscretization::BDF2::*ComputeBDF2CoefficientsVariable)(double, double, std::array<double, 3>&) const
+    std::array<double, 3> (TimeDiscretization::BDF2::*ComputeBDF2CoefficientsVariable)(double, double) const
         = &TimeDiscretization::BDF2::ComputeBDFCoefficients;
 
     py::class_<TimeDiscretization::BDF2>(m, "BDF2")

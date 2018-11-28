@@ -26,47 +26,40 @@ namespace TimeDiscretization {
 class BDF1
 {
 public:
-    void ComputeBDFCoefficients(double DeltaTime,
-                                std::array<double, 2>& rCoefficients) const;
+    std::array<double, 2> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
 class BDF2
 {
 public:
-    void ComputeBDFCoefficients(double DeltaTime,
-                                std::array<double, 3>& rCoefficients) const;
+    std::array<double, 3> ComputeBDFCoefficients(double DeltaTime) const;
 
-    void ComputeBDFCoefficients(double DeltaTime,
-                                double PreviousDeltaTime,
-                                std::array<double, 3>& rCoefficients) const;
+    std::array<double, 3> ComputeBDFCoefficients(double DeltaTime,
+                                                 double PreviousDeltaTime) const;
 };
 
 class BDF3
 {
 public:
-    void ComputeBDFCoefficients(double DeltaTime,
-                                std::array<double, 4>& rCoefficients) const;
+    std::array<double, 4> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
 class BDF4
 {
 public:
-    void ComputeBDFCoefficients(double DeltaTime,
-                                std::array<double, 5>& rCoefficients) const;
+    std::array<double, 5> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
 class BDF5
 {
 public:
-    void ComputeBDFCoefficients(double DeltaTime,
-                                std::array<double, 6>& rCoefficients) const;
+    std::array<double, 6> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
 class BDF6
 {
 public:
-    void ComputeBDFCoefficients(double DeltaTime,
-                                std::array<double, 7>& rCoefficients) const;
+    std::array<double, 7> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
 class Newmark
