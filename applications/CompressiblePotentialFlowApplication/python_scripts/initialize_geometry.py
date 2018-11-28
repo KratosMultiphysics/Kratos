@@ -49,7 +49,8 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.initial_point[0] = settings["initial_point"][0].GetDouble()
         self.initial_point[1] = settings["initial_point"][1].GetDouble()
         self.skin_model_part=self.model.CreateModelPart("skin")
-        KratosMultiphysics.ModelPartIO(settings["skin_model_part_name"].GetString()).ReadModelPart(self.skin_model_part)
+        self.skin_model_part_name=settings["skin_model_part_name"].GetString()
+        KratosMultiphysics.ModelPartIO(self.skin_model_part_name).ReadModelPart(self.skin_model_part)
         
         self.MetricParameters = settings["metric_parameters"]
         # We set to zero the metric
@@ -93,12 +94,18 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         self.Execute()
 
     def InitializeSkinModelPart(self):
-        angle=math.radians(-self.geometry_parameter)
-        origin=[0.25+self.initial_point[0],0+self.initial_point[1]] #to be defined from skin model part
-        RotateModelPart(origin,angle,self.skin_model_part)
-        for node in self.skin_model_part.Nodes:
-            node.X=node.X+1e-5
-            node.Y=node.Y+1e-5
+        if self.skin_model_part_name=='naca0012':
+            angle=math.radians(-self.geometry_parameter)
+            origin=[0.25+self.initial_point[0],0+self.initial_point[1]] #to be defined from skin model part
+            RotateModelPart(origin,angle,self.skin_model_part)
+            for node in self.skin_model_part.Nodes:
+                node.X=node.X+1e-5
+                node.Y=node.Y+1e-5
+        elif self.skin_model_part_name=='circle':
+            for node in self.skin_model_part.Nodes:
+                node.X=self.geometry_parameter*node.X+1e-5
+                node.Y=self.geometry_parameter*node.Y+1e-5
+
 
     def CalculateDistance(self):
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
