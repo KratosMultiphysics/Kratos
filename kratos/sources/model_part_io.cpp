@@ -652,7 +652,7 @@ namespace Kratos
             std::stringstream buffer;
             buffer << mBaseFilename << "_" << i << ".mdpa";
             std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());
-            KRATOS_ERROR_IF_NOT(!(*p_ofstream)) << "Error opening mdpa file : " << buffer.str() << std::endl;
+            KRATOS_ERROR_IF_NOT(*p_ofstream) << "Error opening mdpa file : " << buffer.str() << std::endl;
 
             output_files.push_back(p_ofstream);
         }
