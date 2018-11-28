@@ -791,96 +791,58 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite
     }
 }
 
+// Broadcast //////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcast, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_rank = r_world.Rank();
+    const int send_rank = 0;
 
-    const int world_size = mpi_world_communicator.Size();
-    const int world_rank = mpi_world_communicator.Rank();
-    const int send_rank = world_size-1;
-
-    int send_buffer_int = 0;
-    double send_buffer_double = 0.0;
-
-    if (world_rank == send_rank)
-    {
-        send_buffer_int = 1;
-        send_buffer_double = 2.0;
-    }
-    int send_buffer_int_reference = send_buffer_int;
-    double send_buffer_double_reference = send_buffer_double;
-
-    serial_communicator.Broadcast(send_buffer_int,send_rank);
-    serial_communicator.Broadcast(send_buffer_double,send_rank);
-
-    // Check that serial_communicator does nothing
-    KRATOS_CHECK_EQUAL(send_buffer_int, send_buffer_int_reference);
-    KRATOS_CHECK_EQUAL(send_buffer_double, send_buffer_double_reference);
-
-    mpi_world_communicator.Broadcast(send_buffer_int,send_rank);
-    mpi_world_communicator.Broadcast(send_buffer_double,send_rank);
-
-    KRATOS_CHECK_EQUAL(send_buffer_int, 1);
-    KRATOS_CHECK_EQUAL(send_buffer_double, 2.0);
+    int send = 1 + world_rank;
+    serial_communicator.Broadcast(send,send_rank);
+    KRATOS_CHECK_EQUAL(send, 1 + world_rank);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastVector, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_rank = r_world.Rank();
+    const int send_rank = 0;
 
-    const int world_size = mpi_world_communicator.Size();
-    const int world_rank = mpi_world_communicator.Rank();
-    const int send_rank = world_size-1;
-
-    std::vector<int> send_buffer_int{0, 0};
-    std::vector<double> send_buffer_double{0.0, 0.0};
-
-    if (world_rank == send_rank)
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            send_buffer_int[i] = 1;
-            send_buffer_double[i] = 2.0;
-        }
-    }
-    std::vector<int> send_buffer_int_reference(send_buffer_int);
-    std::vector<double> send_buffer_double_reference(send_buffer_double);
-
-    serial_communicator.Broadcast(send_buffer_int,send_rank);
-    serial_communicator.Broadcast(send_buffer_double,send_rank);
-
-    // Check that serial_communicator does nothing
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(send_buffer_int[i], send_buffer_int_reference[i]);
-        KRATOS_CHECK_EQUAL(send_buffer_double[i], send_buffer_double_reference[i]);
-    }
-
-    mpi_world_communicator.Broadcast(send_buffer_int,send_rank);
-    mpi_world_communicator.Broadcast(send_buffer_double,send_rank);
-
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(send_buffer_int[i], 1);
-        KRATOS_CHECK_EQUAL(send_buffer_double[i], 2.0);
-    }
-
-    #ifdef KRATOS_DEBUG
-    if (mpi_world_communicator.Size() > 1)
-    {
-        // One of the ranks has a different size
-        if (world_rank == 0)
-        {
-            send_buffer_int.resize(3);
-            send_buffer_int = {1,2,3};
-        }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send_buffer_int, send_rank),"Input error in call to MPI_Bcast");
-    }
-    #endif
+    double send = 1.0 + world_rank;
+    serial_communicator.Broadcast(send,send_rank);
+    KRATOS_CHECK_EQUAL(send, 1.0 + world_rank);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_rank = r_world.Rank();
+    const int send_rank = 0;
+
+    std::vector<int> send = {world_rank, 1 + world_rank};
+    serial_communicator.Broadcast(send,send_rank);
+    KRATOS_CHECK_EQUAL(send[0], world_rank);
+    KRATOS_CHECK_EQUAL(send[1], 1 + world_rank);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDoubleVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+    const int world_rank = r_world.Rank();
+    const int send_rank = 0;
+
+    std::vector<double> send = {1.0*world_rank, 1.0 + world_rank};
+    serial_communicator.Broadcast(send,send_rank);
+    KRATOS_CHECK_EQUAL(send[0], world_rank);
+    KRATOS_CHECK_EQUAL(send[1], 1 + world_rank);
+}
+
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatter, KratosMPICoreFastSuite)
 {
@@ -1281,7 +1243,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosMPICoreFastSu
     DataCommunicator serial_communicator;
 
     // The serial communicator does not throw,
-    // since there are no "other ranks" to broadcast the error to.
+    // since it does not know about "other ranks" to broadcast the error to.
     // All these functions need to do is to pass along the bool condition.
     KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfTrue(true, 0), true);
     KRATOS_CHECK_EQUAL(serial_communicator.BroadcastErrorIfTrue(false, 0), false);
