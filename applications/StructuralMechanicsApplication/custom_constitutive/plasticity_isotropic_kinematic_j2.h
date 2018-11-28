@@ -146,6 +146,29 @@ public:
         ) override;
 
     /**
+     * @brief This is to be called at the very beginning of the calculation
+     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
+    void InitializeMaterial(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues) override;
+
+    /**
+     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @param rCurrentProcessInfo the current ProcessInfo instance
+     */
+    void FinalizeSolutionStep(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues,
+                            const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Initializes the material response in terms of 1st Piola-Kirchhoff stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
