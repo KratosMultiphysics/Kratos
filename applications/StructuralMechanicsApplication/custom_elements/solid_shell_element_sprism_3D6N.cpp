@@ -1616,9 +1616,12 @@ int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     // Check strain measure
     bool correct_strain_measure = false;
-    for(IndexType i = 0; i < law_features.mStrainMeasures.size(); ++i)
-        if (law_features.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
+    for(IndexType i = 0; i < law_features.mStrainMeasures.size(); ++i) {
+        const auto& law_measure = law_features.mStrainMeasures[i];
+        if (law_measure == ConstitutiveLaw::StrainMeasure_Deformation_Gradient ||
+            law_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal)
             correct_strain_measure = true;
+    }
 
     KRATOS_ERROR_IF_NOT(correct_strain_measure) << "Constitutive law is not compatible with the element type SolidShellElementSprism3D6N" << std::endl;
 
