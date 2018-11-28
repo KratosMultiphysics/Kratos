@@ -93,7 +93,7 @@ void FemDem2DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	thresholds.resize(3);
 	thresholds = this->GetThresholds();
 	const double element_threshold = this->GetValue(STRESS_THRESHOLD);
-	if (thresholds[0] == 0.0 && thresholds[1] == 0.0 && thresholds[2] == 0.0) {
+	if (thresholds[0] + thresholds[1] + thresholds[2] == 0.0) {
 		this->SetThreshold(element_threshold, 0);
 		this->SetThreshold(element_threshold, 1);
 		this->SetThreshold(element_threshold, 2);
@@ -104,7 +104,7 @@ void FemDem2DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	damage_edges.resize(3);
 	damage_edges = this->GetDamages();
 	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
-	if (damage_edges[0] == 0.0 && damage_edges[1] == 0.0 && damage_edges[2] == 0.0) {
+	if (damage_edges[0] + damage_edges[1] + damage_edges[2] == 0.0) {
 		this->SetConvergedDamages(damage_element, 0);
 		this->SetConvergedDamages(damage_element, 1);
 		this->SetConvergedDamages(damage_element, 2);
