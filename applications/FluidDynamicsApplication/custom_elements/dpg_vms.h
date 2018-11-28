@@ -76,7 +76,6 @@ public:
     typedef std::vector<std::size_t> EquationIdVectorType;
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
     ///@}
     ///@name Life Cycle
     ///@{

@@ -141,8 +141,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
     typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
 

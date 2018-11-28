@@ -57,8 +57,7 @@ namespace Kratos
     typedef std::vector<std::size_t> EquationIdVectorType;
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-	
+
     /// Default constructor.
      FractionalStepPFEM23D(IndexType NewId, GeometryType::Pointer pGeometry);
      FractionalStepPFEM23D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);

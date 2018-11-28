@@ -108,8 +108,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
