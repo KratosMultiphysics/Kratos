@@ -81,7 +81,6 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
 
         self._is_printing_rank = (KratosMPI.mpi.rank == 0)
 
-        # TODO: Remove this once we finish the new implementations
         if (self.settings["solver_type"].GetString() == "TwoFluids"):
             self.element_name = "TwoFluidNavierStokes"
 
@@ -135,7 +134,6 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
         ## Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
-        #### adding new preparation processes
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.computing_model_part, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
         self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part, 10, 10)
