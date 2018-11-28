@@ -74,11 +74,10 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
             alpha = self.initial_alpha
             print( cs_tools.bcolors.BLUE + "\tAitken: Doing relaxation in the first iteration with initial factor = " , alpha, cs_tools.bcolors.ENDC)
             self.current_alpha = alpha
-            self.update = [data * self.current_alpha for data in self.ResidualStorage[0]]
         else:
-            r_diff = self._Difference(self.ResidualStorage[1] , self.ResidualStorage[0])
+            r_diff = self._Difference(self.ResidualStorage[0] , self.ResidualStorage[1])
             numerator = cs_tools.InnerProduct( self.ResidualStorage[1], r_diff )
-            denominator = math.sqrt( cs_tools.InnerProduct( r_diff, r_diff ) )
+            denominator = cs_tools.InnerProduct( r_diff, r_diff )
             print("#############################")
             print("Numerator :: ", numerator)
             print("Denominator :: ", denominator)
@@ -152,7 +151,7 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
             self.ResidualStorage.appendleft( self.output_data_current_iter )
             return
 
-        self.ResidualStorage.appendleft( self._Difference(self.output_data_current_iter , self.input_data_current_iter) )
+        self.ResidualStorage.appendleft( deepcopy(self._Difference(self.output_data_current_iter, self.input_data_current_iter ) ))
 
     ## _ApplyRelaxationToData : updates the data with the update calculated
     #
