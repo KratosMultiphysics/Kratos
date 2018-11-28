@@ -53,7 +53,7 @@ PlasticityIsotropicKinematicJ2::~PlasticityIsotropicKinematicJ2()
 
 bool PlasticityIsotropicKinematicJ2::Has(const Variable<bool>& rThisVariable)
 {
-    if(rThisVariable == PLASTIC_EVOLUTION){
+    if(rThisVariable == INELASTIC_FLAG){
         return true;
     }
     return false;
@@ -67,7 +67,7 @@ bool& PlasticityIsotropicKinematicJ2::GetValue(
     bool& rValue
     )
 {
-    if(rThisVariable == PLASTIC_EVOLUTION){
+    if(rThisVariable == INELASTIC_FLAG){
         rValue = mPlasticEvolution;
     }
 
