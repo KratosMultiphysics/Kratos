@@ -91,8 +91,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    ;
-
     typedef Element::WeakPointer ElementWeakPointerType;
     
     typedef Element::Pointer ElementPointerType;

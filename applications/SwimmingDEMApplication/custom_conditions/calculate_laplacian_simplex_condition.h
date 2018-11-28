@@ -91,8 +91,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    ;
-
     /// Pointer definition of ComputeLaplacianSimplexCondition
 
     ///@}

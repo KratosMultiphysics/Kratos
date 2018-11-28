@@ -175,7 +175,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    ;
 //G
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;

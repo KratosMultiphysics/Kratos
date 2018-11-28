@@ -135,9 +135,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    ;
-
-
     ///@}
     ///@name Life Cycle
     ///@{

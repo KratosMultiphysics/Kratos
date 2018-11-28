@@ -59,7 +59,6 @@ namespace Kratos
     typedef std::vector<std::size_t> EquationIdVectorType;
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-    ;
 	typedef PointerVector< PFEM_Particle_Fluid, PFEM_Particle_Fluid*, std::vector<PFEM_Particle_Fluid*> > ParticlePointerVector;
 
     /// Default constructor.
