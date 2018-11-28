@@ -102,7 +102,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
         // Integrate Stress plasticity
         Vector& integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = rValues.GetElementGeometry().Length();
+        const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
         if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
