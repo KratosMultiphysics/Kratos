@@ -51,6 +51,9 @@ public:
     using OctreeType = OctreeBinary<CellType>;
     using CellNodeDataType = ConfigurationType::cell_node_data_type;
 
+    typedef Element::GeometryType IntersectionGeometryType;
+    typedef std::vector<std::pair<double, IntersectionGeometryType*> > IntersectionsContainerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -253,6 +256,20 @@ private:
         const double* pRayPoint1,
         const double* pRayPoint2,
         double* pIntersectionPoint);
+
+    void GetExtraRayOrigins(
+        const double RayEpsilon,
+        const array_1d<double,3> &rCoords,
+        std::vector<array_1d<double,3>> &rExtraRayOrigs);
+
+
+    void CorrectExtraRayOrigin(double* ExtraRayCoords);
+
+    void ComputeExtraRayColors(
+        const double Epsilon,
+        const double RayPerturbation,
+        const array_1d<double,3> &rCoords,
+        array_1d<double,TDim> &rDistances);
 
     ///@}
     ///@name Private  Access
