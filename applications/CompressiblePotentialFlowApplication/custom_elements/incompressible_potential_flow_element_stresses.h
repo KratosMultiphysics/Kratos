@@ -289,7 +289,7 @@ public:
         array_1d<double,NumNodes> elemental_distance;
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
+        ////KRATOS_WATCH(prod(data.DN_DX, trans(data.DN_DX)));
         //gather nodal data
         for(unsigned int i=0; i<NumNodes; i++)
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
@@ -389,7 +389,9 @@ public:
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
-            Matrix lhs_uncondensed=ZeroMatrix(2*NumNodes+2,2*NumNodes+2);
+            Matrix lhs_uncondensed=ZeroMatrix(2*NumNodes,2*NumNodes+2);
+            Matrix lhs_penalty_positive = ZeroMatrix(NumNodes,NumNodes);
+            Matrix lhs_penalty_negative = ZeroMatrix(NumNodes,NumNodes);
 
             Matrix lhs_plus_sigma = ZeroMatrix(NumNodes,Dim);
             Matrix lhs_sigma_plus = ZeroMatrix(Dim,NumNodes);
@@ -416,80 +418,85 @@ public:
                 
             const Vector& r_elemental_distances=elemental_distance;
                 
-            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(this->pGetGeometry(), r_elemental_distances);
-            // Matrix positive_side_interface_sh_func;
-            // ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_interface_gradients;
-            // Vector positive_side_interface_weights;
-            // triangle_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
-            //     positive_side_interface_sh_func,
-            //     positive_side_sh_func_interface_gradients,
-            //     positive_side_interface_weights,
-            //     GeometryData::GI_GAUSS_1);
+            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
+            Matrix positive_side_interface_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_interface_gradients;
+            Vector positive_side_interface_weights;
+            triangle_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+                positive_side_interface_sh_func,
+                positive_side_sh_func_interface_gradients,
+                positive_side_interface_weights,
+                GeometryData::GI_GAUSS_1);
+                  
+            Matrix negative_side_interface_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType negative_side_sh_func_interface_gradients;
+            Vector negative_side_interface_weights;
+            triangle_shape_functions.ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+                negative_side_interface_sh_func,
+                negative_side_sh_func_interface_gradients,
+                negative_side_interface_weights,
+                GeometryData::GI_GAUSS_1);
+            ////KRATOS_WATCH(positive_side_interface_sh_func);
+            ////KRATOS_WATCH(positive_side_sh_func_interface_gradients);
+            ////KRATOS_WATCH(positive_side_interface_weights);
+            ////KRATOS_WATCH(negative_side_interface_sh_func);
+            ////KRATOS_WATCH(negative_side_sh_func_interface_gradients);
+            ////KRATOS_WATCH(negative_side_interface_weights);
 
-            std::vector<Vector> cut_unit_normal;
-            triangle_shape_functions.ComputePositiveSideInterfaceAreaNormals(cut_unit_normal,GeometryData::GI_GAUSS_1);
+            std::vector<Vector> cut_normal;
+            triangle_shape_functions.ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
 
             Vector sigma(Dim);
             Vector n(Dim);
-            Vector shape_func(NumNodes);
-            for (unsigned int i = 0; i<NumNodes; i++)
-                shape_func(i) = data.N(i);
-            n(0)=cut_unit_normal[0][0];
-            n(1)=cut_unit_normal[0][1];
+  
+            n(0)=cut_normal[0][0];
+            n(1)=cut_normal[0][1];
             sigma_shape_func(0,0)=1.0;
             sigma_shape_func(1,1)=1.0;
-            double norm_n=sqrt(std::abs(inner_prod(n,n)));
-            n(0)=n(0)/norm_n;
-            n(1)=n(1)/norm_n;
-            // std::cout<<"Cut length: "<< sqrt(std::abs(inner_prod(n,n))); 
+
             Vector normal_gradient=prod(n,sigma_shape_func);
-            
+
             for (unsigned int i = 0; i<NumNodes; ++i){
                 for (unsigned int j= 0; j<Dim; ++j){
-                    forcing_sigma(i,j)=0;//-data.N(i)*normal_gradient(j);
+                    forcing_sigma(i,j)=-positive_side_interface_sh_func(0,i)*normal_gradient(j);
                 }
             }
-            
+            forcing_sigma_plus=forcing_sigma;
+            forcing_sigma_minus=-forcing_sigma;
             double n_parameter=rCurrentProcessInfo[INITIAL_PENALTY];
+            bounded_matrix<double, 2, 1 > n_kutta;
+            n_kutta(0,0)=0;
+            n_kutta(1,0)=1;
+
+            Matrix test=prod(data.DN_DX,n_kutta);
 
             lhs_sigma_sigma=n_parameter*sigma_shape_func/data.vol;
             lhs_sigma_sigma_no_inv=-1/n_parameter*sigma_shape_func*data.vol;
-            noalias(lhs_sigma_plus) = 1.0/n_parameter*data.vol*prod(sigma_shape_func,trans(data.DN_DX));
-            noalias(lhs_sigma_minus) = -1.0/n_parameter*data.vol*prod(sigma_shape_func,trans(data.DN_DX));
-
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0){
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data); //K++                    
                     
                     noalias(lhs_plus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
-                    // noalias(lhs_sigma_plus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
-                    
-                    noalias(forcing_sigma_plus) += -Volumes[i]*forcing_sigma;
+                    noalias(lhs_sigma_plus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));  
+                    noalias(lhs_penalty_positive) += Volumes[i] * prod(test,trans(test));                  
                 }
                 else{
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data); //K--
 
                     noalias(lhs_minus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
-                    // noalias(lhs_sigma_minus) += -1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));
-                    
-                    noalias(forcing_sigma_minus) += Volumes[i]*forcing_sigma;
+                    noalias(lhs_sigma_minus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));       
+                    noalias(lhs_penalty_negative) += Volumes[i] * prod(test,trans(test));          
                 }
             }
-            // KRATOS_WATCH(forcing_sigma)
-            // KRATOS_WATCH(lhs_sigma_minus)
-            // KRATOS_WATCH(lhs_sigma_plus)
-            // KRATOS_WATCH(Volumes)
-            // KRATOS_WATCH(data.DN_DX)
+            ////KRATOS_WATCH(forcing_sigma)
 
-
-
-            noalias(lhs_plus_plus) = prod(lhs_plus_sigma+forcing_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
-            noalias(lhs_plus_minus) = prod(lhs_plus_sigma+forcing_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));   
-            noalias(lhs_minus_plus) = prod(lhs_minus_sigma-forcing_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
-            noalias(lhs_minus_minus) = prod(lhs_minus_sigma-forcing_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));
-            noalias(lhs_plus_rhs) = prod(lhs_plus_sigma+forcing_sigma,lhs_sigma_sigma);
-            noalias(lhs_minus_rhs) = prod(lhs_minus_sigma-forcing_sigma,lhs_sigma_sigma);
+            noalias(lhs_plus_plus) = prod(lhs_plus_sigma+forcing_sigma_plus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
+            noalias(lhs_plus_minus) = prod(lhs_plus_sigma+forcing_sigma_plus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));   
+            noalias(lhs_minus_plus) = prod(lhs_minus_sigma+forcing_sigma_minus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
+            noalias(lhs_minus_minus) = prod(lhs_minus_sigma+forcing_sigma_minus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));
+            noalias(lhs_plus_rhs) = prod(lhs_plus_sigma+forcing_sigma_plus,lhs_sigma_sigma);
+            noalias(lhs_minus_rhs) = prod(lhs_minus_sigma+forcing_sigma_minus,lhs_sigma_sigma);
 
             if(kutta_element)
             {
@@ -497,17 +504,20 @@ public:
                 {
                     for(unsigned int j=0; j<NumNodes; ++j)
                     {
-                        rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j); 
+                        rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j)+1000000.0*lhs_penalty_positive(i,j);  
                         rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
                         K_uu(i,j)                                  =  lhs_positive(i,j);
                         K_uu(i,j+NumNodes)                         =  0.0;  
                         
-                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j);
+                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+1000000.0*lhs_penalty_negative(i,j); 
                         rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                         K_uu(i+NumNodes,j+NumNodes)                =  lhs_negative(i,j);
                         K_uu(i+NumNodes,j)                         =  0.0;
                     }
                 }
+                Vector split_element_values(NumNodes*2);
+                GetValuesOnSplitElement(split_element_values, data.distances);
+                noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
             }
             else
             {
@@ -519,109 +529,94 @@ public:
                         rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
                         K_uu(i,j)                                  =  lhs_positive(i,j);                  
                         K_uu(i,j+NumNodes)                         =  0.0;  
-                        lhs_uncondensed(i,j)                       =  lhs_positive(i,j);                  
+                        lhs_uncondensed(i,j)                       =  (1.0-1.0/n_parameter)*lhs_positive(i,j);                  
                         
-                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0-1.0/n_parameter)*lhs_negative(i,j)-lhs_minus_minus(i,j);
+                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  (1.0-1.0/n_parameter)*lhs_negative(i,j)+lhs_minus_minus(i,j);
                         rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                         K_uu(i+NumNodes,j+NumNodes)                =  lhs_negative(i,j);
                         K_uu(i+NumNodes,j)                         =  0.0;
-                        lhs_uncondensed(i+NumNodes,j+NumNodes)     =  lhs_negative(i,j);
+                        lhs_uncondensed(i+NumNodes,j+NumNodes)     =  (1.0-1.0/n_parameter)*lhs_negative(i,j);
                     }
-                    lhs_uncondensed(i,2*NumNodes)                  =  lhs_plus_sigma(i,0)+forcing_sigma(i,0);
-                    lhs_uncondensed(i,2*NumNodes+1)                =  lhs_plus_sigma(i,1)+forcing_sigma(i,1);
-                    lhs_uncondensed(2*NumNodes,i)                  =  lhs_sigma_plus(0,i);
-                    lhs_uncondensed(2*NumNodes+1,i)                =  lhs_sigma_plus(1,i);
+                    lhs_uncondensed(i,2*NumNodes)                  =  lhs_plus_sigma(i,0)+forcing_sigma_plus(i,0);
+                    lhs_uncondensed(i,2*NumNodes+1)                =  lhs_plus_sigma(i,1)+forcing_sigma_plus(i,1);
+                    // lhs_uncondensed(2*NumNodes,i)                  =  lhs_sigma_plus(0,i);
+                    // lhs_uncondensed(2*NumNodes+1,i)                =  lhs_sigma_plus(1,i);
 
-                    lhs_uncondensed(i+NumNodes,2*NumNodes)         =  lhs_minus_sigma(i,0)+forcing_sigma(i,0);
-                    lhs_uncondensed(i+NumNodes,2*NumNodes+1)       =  lhs_minus_sigma(i,1)+forcing_sigma(i,1);
-                    lhs_uncondensed(2*NumNodes,i+NumNodes)         =  lhs_sigma_minus(0,i);
-                    lhs_uncondensed(2*NumNodes+1,i+NumNodes)       =  lhs_sigma_minus(1,i);
+                    lhs_uncondensed(i+NumNodes,2*NumNodes)         =  lhs_minus_sigma(i,0)+forcing_sigma_minus(i,0);
+                    lhs_uncondensed(i+NumNodes,2*NumNodes+1)       =  lhs_minus_sigma(i,1)+forcing_sigma_minus(i,1);
+                    // lhs_uncondensed(2*NumNodes,i+NumNodes)         =  lhs_sigma_minus(0,i);
+                    // lhs_uncondensed(2*NumNodes+1,i+NumNodes)       =  lhs_sigma_minus(1,i);
 
-                    lhs_uncondensed(2*NumNodes,2*NumNodes)         =  lhs_sigma_sigma_no_inv(0,0);
-                    lhs_uncondensed(2*NumNodes,2*NumNodes+1)       =  lhs_sigma_sigma_no_inv(0,1);
-                    lhs_uncondensed(2*NumNodes+1,2*NumNodes)       =  lhs_sigma_sigma_no_inv(1,0);
-                    lhs_uncondensed(2*NumNodes+1,2*NumNodes+1)     =  lhs_sigma_sigma_no_inv(1,1);
+                    // lhs_uncondensed(2*NumNodes,2*NumNodes)         =  lhs_sigma_sigma_no_inv(0,0);
+                    // lhs_uncondensed(2*NumNodes,2*NumNodes+1)       =  lhs_sigma_sigma_no_inv(0,1);
+                    // lhs_uncondensed(2*NumNodes+1,2*NumNodes)       =  lhs_sigma_sigma_no_inv(1,0);
+                    // lhs_uncondensed(2*NumNodes+1,2*NumNodes+1)     =  lhs_sigma_sigma_no_inv(1,1);
                     
                 }
                 
-            
-                //side1  -assign constraint only on the NEGATIVE_POTENTIAL dofs
+        
                 for(unsigned int i=0; i<NumNodes; ++i)
-                {
-                    if(data.distances[i]<0)
+                {              
+                    for(unsigned int j=0; j<NumNodes; ++j)
                     {
-                        for(unsigned int j=0; j<NumNodes; ++j)
-                        {
-                            rLeftHandSideMatrix(i,j+NumNodes) = lhs_plus_minus(i,j);
-                        }
-                    }
+                        rLeftHandSideMatrix(i,j+NumNodes) = lhs_plus_minus(i,j);
+                        rLeftHandSideMatrix(i+NumNodes,j) = lhs_minus_plus(i,j); 
+                    }                   
                 }
-                
-                //side2 -assign constraint only on the NEGATIVE_POTENTIAL dofs
-                for(unsigned int i=0; i<NumNodes; ++i)
-                {                            
-                    if(data.distances[i]>0)
-                    {   
-                        for(unsigned int j=0; j<NumNodes; ++j)
-                            {
-                                rLeftHandSideMatrix(i+NumNodes,j) = lhs_minus_plus(i,j); 
-                            }
-                    }
-                }
-            }
-            Vector split_element_values(NumNodes*2);
-            Vector split_element_values_uncondensed=ZeroVector(NumNodes*2+2);
-            Vector split_plus(NumNodes);
-            Vector split_minus(NumNodes);
-            Vector split_prev_plus(NumNodes);
-            Vector split_prev_minus(NumNodes);
-            Vector residual_sigma(Dim);
-            Vector sigma_aux(Dim);
-            Vector residual_sigma_prev(Dim);
-            Vector rhs_sigma(NumNodes*2);
-            Vector rhs_sigma_plus(NumNodes);
-            Vector rhs_sigma_minus(NumNodes);
-            Vector rhs_uncondensed(2*NumNodes+2);
-
-            GetValuesOnSplitElement(split_element_values, data.distances);
             
-            for (unsigned int i = 0; i<NumNodes; ++i){
-                split_plus(i) = split_element_values(i);
-                split_minus(i)= split_element_values(i+NumNodes);
-                split_element_values_uncondensed(i) = split_element_values(i);
-                split_element_values_uncondensed(i+NumNodes)= split_element_values(i+NumNodes);
-            }   
-            split_element_values_uncondensed(2*NumNodes)=0;
-            split_element_values_uncondensed(2*NumNodes+1)=0;
-      
-            // residual_sigma_prev(0)=this->GetValue(Y1);
-            // residual_sigma_prev(1)=this->GetValue(Y2);
-            // sigma_aux = -prod(lhs_sigma_plus,split_plus) - prod(lhs_sigma_minus,split_minus) - residual_sigma_prev;
-            // sigma = prod(lhs_sigma_sigma,sigma_aux);
-            // std::cout<<sigma<< std::endl;
-            KRATOS_WATCH(split_element_values);
-            KRATOS_WATCH(lhs_negative);
-            KRATOS_WATCH(lhs_minus_minus);
-            residual_sigma = -prod(lhs_sigma_plus,split_plus) - prod(lhs_sigma_minus,split_minus);//-prod(lhs_sigma_sigma_no_inv,trans(sigma));
-            sigma = prod(lhs_sigma_sigma,-residual_sigma);
-            KRATOS_WATCH(sigma);
-            // this->GetValue(Y1) = residual_sigma(0);
-            // this->GetValue(Y2) = residual_sigma(1);
+                Vector split_element_values(NumNodes*2);
+                Vector split_element_values_uncondensed=ZeroVector(NumNodes*2+2);
+                Vector split_plus(NumNodes);
+                Vector split_minus(NumNodes);
+                Vector split_prev_plus(NumNodes);
+                Vector split_prev_minus(NumNodes);
+                Vector residual_sigma(Dim);
+                Vector sigma_aux(Dim);
+                Vector residual_sigma_prev(Dim);
+                Vector rhs_sigma(NumNodes*2);
+                Vector rhs_sigma_plus(NumNodes);
+                Vector rhs_sigma_minus(NumNodes);
+                Vector rhs_uncondensed(2*NumNodes+2);
 
-            KRATOS_WATCH(residual_sigma);
-            rhs_sigma_plus=prod(lhs_plus_rhs,residual_sigma);//+prod(forcing_sigma_plus,trans(sigma));
-            rhs_sigma_minus=prod(lhs_minus_rhs,residual_sigma);//+prod(forcing_sigma_minus,trans(sigma));
+                GetValuesOnSplitElement(split_element_values, data.distances);
+                
+                for (unsigned int i = 0; i<NumNodes; ++i){
+                    split_plus(i) = split_element_values(i);
+                    split_minus(i)= split_element_values(i+NumNodes);
+                    split_element_values_uncondensed(i) = split_element_values(i);
+                    split_element_values_uncondensed(i+NumNodes)= split_element_values(i+NumNodes);
+                }   
+                
+                // residual_sigma_prev(0)=this->GetValue(Y1);
+                // residual_sigma_prev(1)=this->GetValue(Y2);
+                // sigma_aux = prod(lhs_sigma_plus,split_plus)+prod(lhs_sigma_minus,split_minus) +residual_sigma_prev;
+                // sigma = prod(lhs_sigma_sigma,sigma_aux);
+                // sigma(0) = 1;
+                // sigma(1)=  -1;
+                // split_element_values_uncondensed(2*NumNodes)=sigma(0);
+                // split_element_values_uncondensed(2*NumNodes+1)=sigma(1);
+                //KRATOS_WATCH(sigma);
+                ////KRATOS_WATCH(split_element_values);
+                ////KRATOS_WATCH(lhs_negative);
+                ////KRATOS_WATCH(lhs_minus_minus);
+                
+                // residual_sigma = -prod(lhs_sigma_plus,split_plus) - prod(lhs_sigma_minus,split_minus)-prod(lhs_sigma_sigma_no_inv,trans(sigma));
+                residual_sigma = -prod(lhs_sigma_plus,split_plus) - prod(lhs_sigma_minus,split_minus);
 
-            for (unsigned int i = 0; i < NumNodes; ++i){
-                rhs_sigma(i) = rhs_sigma_plus(i);                
-                rhs_sigma(i+NumNodes) = rhs_sigma_minus(i);
+                rhs_sigma_plus=prod(lhs_plus_rhs,residual_sigma);
+                rhs_sigma_minus=prod(lhs_minus_rhs,residual_sigma);
+
+                for (unsigned int i = 0; i < NumNodes; ++i){
+                    rhs_sigma(i) = rhs_sigma_plus(i);                
+                    rhs_sigma(i+NumNodes) = rhs_sigma_minus(i);
+                }
+                noalias(rRightHandSideVector) = -prod(K_uu,split_element_values)+rhs_sigma;
+
+                // noalias(rRightHandSideVector) = -prod(lhs_uncondensed,split_element_values_uncondensed)+rhs_sigma;
+                // noalias(rhs_uncondensed) = -prod(lhs_uncondensed,split_element_values_uncondensed);
+                ////KRATOS_WATCH(rhs_uncondensed);
+                ////KRATOS_WATCH(lhs_uncondensed);
             }
-            KRATOS_WATCH(rLeftHandSideMatrix);
-            KRATOS_WATCH(rhs_sigma);
-            noalias(rRightHandSideVector) = -prod(K_uu,split_element_values)+rhs_sigma;
-            noalias(rhs_uncondensed) = -prod(lhs_uncondensed,split_element_values_uncondensed);
-            KRATOS_WATCH(rhs_uncondensed);
-            KRATOS_WATCH(lhs_uncondensed);
         }
         
     }

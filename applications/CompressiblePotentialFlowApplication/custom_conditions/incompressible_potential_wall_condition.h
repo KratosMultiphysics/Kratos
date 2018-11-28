@@ -282,7 +282,7 @@ public:
             array_1d<double, 3> An_0,An_1;
             array_1d<double, 2 > N_0,N_1;
             array_1d<double,TNumNodes> distances;
-            double length_0,length_1;
+            
             bool is_not_cut;
             GetWakeDistances(distances,is_not_cut);
 
@@ -292,37 +292,40 @@ public:
                 ComputeShapeFunction2DCut(N_0,N_1,distances);
             }
             else
-                KRATOS_ERROR << "3D cut condition not implemented";
-            length_0=sqrt(std::abs(inner_prod(An_0,An_0)));
-            length_1=sqrt(std::abs(inner_prod(An_1,An_1)));
-            KRATOS_WATCH(length_0);
-            KRATOS_WATCH(length_1);
+                KRATOS_ERROR << "3D cut condition not implemented";            
+         
             const array_1d<double, 3> &v = this-> GetValue(VELOCITY_INFINITY);
             double value_1,value_0;
             
             value_0 = -inner_prod(v, An_0);
             value_1 = -inner_prod(v, An_1);
-            // Vector v_0(TNumNodes);
-            // Vector v_1(TNumNodes);
-            // v_0 = -length_0*v;
-            // v_1 = -length_1*v;
-            // double norm_0=sqrt(std::abs(inner_prod(v_0,v_0)));
-            // double norm_1=sqrt(std::abs(inner_prod(v_1,v_1)));
-            // KRATOS_WATCH(v_0);
-            // KRATOS_WATCH(v_1);
-            // KRATOS_WATCH(norm_0);
-            // KRATOS_WATCH(norm_1);
+
+            if(distances[0] > 0){ 
+                rRightHandSideVector[0] = value_0*N_0[0];
+                rRightHandSideVector[TNumNodes] = value_1*N_1[0];
+                rRightHandSideVector[1] = value_0*N_0[1];
+                rRightHandSideVector[TNumNodes+1] = value_1*N_1[1];
+            }
+            else{
+                rRightHandSideVector[0] =  value_1*N_1[0];
+                rRightHandSideVector[TNumNodes] = value_0*N_0[0];
+                rRightHandSideVector[1] =  value_1*N_1[1];
+                rRightHandSideVector[TNumNodes+1] = value_0*N_0[1];
+            }
+            KRATOS_WATCH(distances[0])
+            KRATOS_WATCH(rRightHandSideVector[0])
+            KRATOS_WATCH(rRightHandSideVector[TNumNodes+0])
+            KRATOS_WATCH(rRightHandSideVector[1])
+            KRATOS_WATCH(rRightHandSideVector[TNumNodes+1])  
             //positive part
             // if (distances[0]>0){
             //     for (unsigned int i = 0; i < TNumNodes; i++)
             //     {                
             //         if(distances[i] > 0){
             //             rRightHandSideVector[i] = value_0*N_0[0];
-            //             rRightHandSideVector[TNumNodes+i] = 0;//value_1*N_1[0];
             //         }
             //         else{
-            //             rRightHandSideVector[i] = 0;// value_0*N_0[1];
-            //             rRightHandSideVector[TNumNodes+i] = value_1*N_0[1];
+            //             rRightHandSideVector[i] = value_0*N_0[i];
             //         }
             //     }
             // }else{
@@ -338,29 +341,7 @@ public:
             //         }
             //     }
             // }
-
-              for (unsigned int i = 0; i < TNumNodes; i++)
-                {                
-                    if(distances[i] > 0){
-                        rRightHandSideVector[i] = value_0*N_0[0];
-                        rRightHandSideVector[TNumNodes+i] = value_0*N_0[1];
-                    }
-                    else{
-                        rRightHandSideVector[i] =  value_1*N_1[0];
-                        rRightHandSideVector[TNumNodes+i] = value_1*N_1[1];
-                    }
-                }
-            //negative part - sign is opposite to the previous case
-            // for (unsigned int i = 0; i < TNumNodes; i++)
-            // {                   
-            //     if(distances[i] < 0)
-                    
-            //     else
-            //         rRightHandSideVector[TNumNodes+i] = value_1*N_1[1];
-            // }           
         }
-        
-
     }
 
     /// Check that all data required by this condition is available and reasonable
