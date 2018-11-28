@@ -63,25 +63,25 @@ class TrilinosApplyMassConservationCheckProcess(apply_mass_conservation_check_pr
 
         # retrieve information if the values were updated
         updated = int( self.MassConservationCheckProcess.GetUpdateStatus() )
+        # making sure that all processes have finished summing over the elements
         KratosMPI.mpi.world.barrier()
 
         allUpdated = self._fluid_model_part.GetCommunicator().SumAll( updated )
 
         if ( allUpdated == self.EpetraCommunicator.NumProc() ):
+            # retrieving values from the local process
             posVol = self.MassConservationCheckProcess.GetPositiveVolume()
             negVol = self.MassConservationCheckProcess.GetNegativeVolume()
             initPosVol = self.MassConservationCheckProcess.GetInitialPositiveVolume()
             initNegVol = self.MassConservationCheckProcess.GetInitialNegativeVolume()
 
-            # barrier to make sure that all processes have finished the computation
+            # barrier to make sure that all processes have found their local value
             KratosMPI.mpi.world.barrier()
-
+            # summing to obtain the global values
             posVol = self._fluid_model_part.GetCommunicator().SumAll( posVol )
             negVol = self._fluid_model_part.GetCommunicator().SumAll( negVol )
             initPosVol = self._fluid_model_part.GetCommunicator().SumAll( initPosVol )
             initNegVol = self._fluid_model_part.GetCommunicator().SumAll( initNegVol )
-
-            # syntax example: self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)
 
             if self._is_printing_rank:
                 # managing the output to the console
