@@ -362,6 +362,34 @@ class ConstructionUtility
                             }
                         }
                     }
+                    if ((it_thermal)->Is(ACTIVE) == true)
+                    {
+                        for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
+                        {
+                            const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
+                            bool edge_condition = true;
+
+                            for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                            {
+                                if (!(*it_thermal).GetGeometry().Edges()[i_edge][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE))
+                                {
+                                    edge_condition = false;
+                                    break;
+                                }
+                            }
+                            if (edge_condition)
+                            {
+                                for (unsigned int m = 0; m < number_of_points; ++m)
+                                {
+                                    ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
+                                }
+                                this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
+
+                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
+                                last_condition_id++;
+                            }
+                        }
+                    }
                 }
             }
             else
@@ -474,6 +502,34 @@ class ConstructionUtility
                                 }
                             }
                             if (active_edge)
+                            {
+                                for (unsigned int m = 0; m < number_of_points; ++m)
+                                {
+                                    ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
+                                }
+                                this->ActiveFaceHeatFluxStep(ConditionNodeIds);
+
+                                mrThermalModelPart.CreateNewCondition("FluxCondition2D2N", last_condition_id + 1, ConditionNodeIds, 0);
+                                last_condition_id++;
+                            }
+                        }
+                    }
+                    if ((it_thermal)->Is(ACTIVE) == true)
+                    {
+                        for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
+                        {
+                            const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
+                            bool edge_condition = true;
+
+                            for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                            {
+                                if (!(*it_thermal).GetGeometry().Edges()[i_edge][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE))
+                                {
+                                    edge_condition = false;
+                                    break;
+                                }
+                            }
+                            if (edge_condition)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
