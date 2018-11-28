@@ -339,17 +339,16 @@ class ConstructionUtility
                         for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            bool active_edge = true;
+                            unsigned int count = 0;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
                                 if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
                                 {
-                                    active_edge = false;
-                                    break;
+                                    count++;
                                 }
                             }
-                            if (active_edge)
+                            if (count == number_of_points)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -367,17 +366,16 @@ class ConstructionUtility
                         for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            bool edge_condition = true;
+                            unsigned int count = 0;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if (!(*it_thermal).GetGeometry().Edges()[i_edge][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE))
+                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE) == 1)
                                 {
-                                    edge_condition = false;
-                                    break;
+                                    count++;
                                 }
                             }
-                            if (edge_condition)
+                            if (count == number_of_points)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -403,17 +401,16 @@ class ConstructionUtility
                         for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            bool active_face = true;
+                            unsigned int count = 0;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
                                 if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == true)
                                 {
-                                    active_face = false;
-                                    break;
+                                    count++;
                                 }
                             }
-                            if (active_face)
+                            if (count == number_of_points)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -426,22 +423,21 @@ class ConstructionUtility
                             }
                         }
                     }
-                    if ((it_thermal)->Is(ACTIVE) == true)
+                    else
                     {
                         for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            bool active_face = true;
+                            unsigned int count = 0;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if (!(*it_thermal).GetGeometry().Faces()[i_face][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE))
+                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE) == 1)
                                 {
-                                    active_face = false;
-                                    break;
+                                    count++;
                                 }
                             }
-                            if (active_face)
+                            if (count == number_of_points)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -491,17 +487,16 @@ class ConstructionUtility
                         for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            bool active_edge = true;
+                            unsigned int count = 0;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == false)
+                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
                                 {
-                                    active_edge = false;
-                                    break;
+                                    count++;
                                 }
                             }
-                            if (active_edge)
+                            if (count == number_of_points)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -519,17 +514,16 @@ class ConstructionUtility
                         for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            bool edge_condition = true;
+                            unsigned int count = 0;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if (!(*it_thermal).GetGeometry().Edges()[i_edge][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE))
+                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE) == 1)
                                 {
-                                    edge_condition = false;
-                                    break;
+                                    count++;
                                 }
                             }
-                            if (edge_condition)
+                            if (count == number_of_points)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -556,17 +550,16 @@ class ConstructionUtility
                         for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            bool active_face = true;
+                            unsigned int count = 0;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == false)
+                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == true)
                                 {
-                                    active_face = false;
-                                    break;
+                                    count++;
                                 }
                             }
-                            if (active_face)
+                            if (count == number_of_points)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -587,22 +580,21 @@ class ConstructionUtility
                             }
                         }
                     }
-                    if ((it_thermal)->Is(ACTIVE) == true)
+                    else
                     {
                         for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            bool surface_condition = true;
+                            unsigned int count = 0;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if (!(*it_thermal).GetGeometry().Faces()[i_face][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE))
+                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE) == 1)
                                 {
-                                    surface_condition = false;
-                                    break;
+                                    count++;
                                 }
                             }
-                            if (surface_condition)
+                            if (count == number_of_points)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
