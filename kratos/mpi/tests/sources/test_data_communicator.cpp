@@ -649,127 +649,146 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxAllDoubleVector, KratosMPICoreFastS
     }
 }
 
+// ScanSum ////////////////////////////////////////////////////////////////////
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSum, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    int local_total_int = 1;
-    double local_total_double = 2.0;
-
-    // local version: do nothing
-    int partial_sum_int = serial_communicator.ScanSum(local_total_int);
-    double partial_sum_double = serial_communicator.ScanSum(local_total_double);
-    KRATOS_CHECK_EQUAL(partial_sum_int, local_total_int);
-    KRATOS_CHECK_EQUAL(partial_sum_double, local_total_double);
-
-    // MPI version
-    partial_sum_int = mpi_world_communicator.ScanSum(local_total_int);
-    partial_sum_double = mpi_world_communicator.ScanSum(local_total_double);
-    int mpi_world_rank = mpi_world_communicator.Rank();
-    KRATOS_CHECK_EQUAL(partial_sum_int, mpi_world_rank + 1);
-    KRATOS_CHECK_EQUAL(partial_sum_double, 2.0*(mpi_world_rank + 1) );
+    int local = 1;
+    int result = serial_communicator.ScanSum(local);
+    KRATOS_CHECK_EQUAL(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumVector, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    std::vector<int> local_total_int{1,1};
-    std::vector<int> partial_sum_int{-1,-1};
-    std::vector<double> local_total_double{2.0, 2.0};
-    std::vector<double> partial_sum_double{-1.0,-1.0};
-
-    // local version: do nothing
-    serial_communicator.ScanSum(local_total_int, partial_sum_int);
-    serial_communicator.ScanSum(local_total_double, partial_sum_double);
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(partial_sum_int[i], -1);
-        KRATOS_CHECK_EQUAL(partial_sum_double[i], -1.0);
-    }
-
-    // MPI version
-    mpi_world_communicator.ScanSum(local_total_int, partial_sum_int);
-    mpi_world_communicator.ScanSum(local_total_double, partial_sum_double);
-    int mpi_world_rank = mpi_world_communicator.Rank();
-    for (int i = 0; i < 2; i++)
-    {
-        KRATOS_CHECK_EQUAL(partial_sum_int[i], mpi_world_rank + 1);
-        KRATOS_CHECK_EQUAL(partial_sum_double[i], 2.0*(mpi_world_rank + 1));
-    }
-
-    #ifdef KRATOS_DEBUG
-    if (mpi_world_communicator.Size() > 1)
-    {
-        // One of the inputs has a different size
-        if (mpi_world_rank == 0) {
-            local_total_int.resize(3);
-            local_total_int = {1,2,3};
-        }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total_int, partial_sum_int),"Input error in call to MPI_Scan");
-    }
-    // Input size != output size
-    std::vector<int> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum_int),"Input error in call to MPI_Scan");
-    #endif
+    double local = 2.0;
+    double result = serial_communicator.ScanSum(local);
+    KRATOS_CHECK_EQUAL(result, local);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecv, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    const int world_size = mpi_world_communicator.Size();
-    const int world_rank = mpi_world_communicator.Rank();
+    std::vector<int> local{1, 1};
+    std::vector<int> output{-1, -1};
+
+    // two-buffer version
+    serial_communicator.ScanSum(local, output);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(output[i], -1);
+    }
+
+    // return buffer version
+    std::vector<int> returned_result = serial_communicator.ScanSum(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    std::vector<double> local{2.0, 2.0};
+    std::vector<double> output{-1.0, -1.0};
+
+    // two-buffer version
+    serial_communicator.ScanSum(local, output);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(output[i], -1.0);
+    }
+
+    // return buffer version
+    std::vector<double> returned_result = serial_communicator.ScanSum(local);
+    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(returned_result[i], local[i]);
+    }
+}
+
+// SendRecv ///////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
     const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
     const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-    std::vector<int> send_buffer_int = {world_rank, world_rank};
-    std::vector<int> recv_buffer_int = {0, 0};
-    std::vector<double> send_buffer_double = {2.0*world_rank, 2.0*world_rank};
-    std::vector<double> recv_buffer_double = {0.0, 0.0};
+    std::vector<int> send_buffer = {world_rank, world_rank};
+    std::vector<int> recv_buffer = {-1, -1};
 
-    serial_communicator.SendRecv(send_buffer_int, send_rank, recv_buffer_int, recv_rank);
-    serial_communicator.SendRecv(send_buffer_double, send_rank, recv_buffer_double, recv_rank);
+    // two-buffer version
+    serial_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer_int[i], 0);
-        KRATOS_CHECK_EQUAL(recv_buffer_double[i], 0.0);
+        KRATOS_CHECK_EQUAL(recv_buffer[i], -1);
     }
 
-    if (world_size > 1)
+    // return version
+    std::vector<int> return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+    if (send_rank == world_rank)
     {
-        mpi_world_communicator.SendRecv(send_buffer_int, send_rank, recv_buffer_int, recv_rank);
-        mpi_world_communicator.SendRecv(send_buffer_double, send_rank, recv_buffer_double, recv_rank);
-
-        const int expected_recv_int = world_rank > 0 ? world_rank - 1 : world_size - 1;
-        const double expected_recv_double = 2.0*expected_recv_int;
-
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(recv_buffer_int[i], expected_recv_int);
-            KRATOS_CHECK_EQUAL(recv_buffer_double[i], expected_recv_double);
+            KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
         }
     }
-
-    #ifdef KRATOS_DEBUG
-    if (mpi_world_communicator.Size() > 1)
+    else
     {
-        // One of the ranks has the wrong source/destination
-        int wrong_send_rank = send_rank;
-        if (mpi_world_communicator.Rank() == 0) {
-            wrong_send_rank = 2;
-        }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer_int, wrong_send_rank, recv_buffer_int, recv_rank),"Error:");
-
-        // Input size != output size
-        std::vector<int> local_vector_wrong_size{1,2,3};
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_vector_wrong_size, send_rank, recv_buffer_int, recv_rank),"Input error in call to MPI_Sendrecv");
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
     }
-    #endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
+    std::vector<double> recv_buffer{-1.0, -1.0};
+
+    // two-buffer version
+    serial_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
+    }
+
+    // return version
+    std::vector<double> return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+    if (send_rank == world_rank)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+        for (int i = 0; i < 2; i++)
+        {
+            KRATOS_CHECK_EQUAL(return_buffer[i], send_buffer[i]);
+        }
+    }
+    else
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+    }
 }
 
 
