@@ -264,7 +264,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
             const array_1d<double, 3>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
 
             for(IndexType i_node = 0; i_node < geom.size(); ++i_node) {
-				auto& aux_hessian = geom[i_node].GetValue(AUXILIAR_HESSIAN);
+                auto& aux_hessian = geom[i_node].GetValue(AUXILIAR_HESSIAN);
                 for(IndexType k = 0; k < 3; ++k) {
                     double& val = aux_hessian[k];
 
@@ -291,7 +291,6 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
             const array_1d<double, 6>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 3, 3>, array_1d<double, 6>>(hessian);
 
             for(IndexType i_node = 0; i_node < geom.size(); ++i_node) {
-				auto& aux_hessian = geom[i_node].GetValue(AUXILIAR_HESSIAN);
                 for(IndexType k = 0; k < 6; ++k) {
                     double& val = aux_hessian[k];
 

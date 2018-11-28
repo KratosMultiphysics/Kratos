@@ -288,6 +288,7 @@ class MmgProcess(KratosMultiphysics.Process):
             level_set_parameters.AddValue("enforce_current",self.settings["enforce_current"])
             level_set_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             level_set_parameters.AddValue("anisotropy_parameters",self.settings["anisotropy_parameters"])
+            level_set_parameters["anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
             if (self.dim == 2):
                 self.metric_processes.append(MeshingApplication.ComputeLevelSetSolMetricProcess2D(
                     self.model_part,
@@ -306,8 +307,10 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters.AddValue("maximal_size",self.settings["maximal_size"])
             hessian_parameters.AddValue("enforce_current",self.settings["enforce_current"])
             hessian_parameters.AddValue("hessian_strategy_parameters",self.settings["hessian_strategy_parameters"])
+            hessian_parameters["hessian_strategy_parameters"].RemoveValue("metric_variable")
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             hessian_parameters.AddValue("anisotropy_parameters",self.settings["anisotropy_parameters"])
+            hessian_parameters["anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
             for current_metric_variable in self.metric_variable:
                 if (type(current_metric_variable) is KratosMultiphysics.Array1DComponentVariable):
                     if (self.dim == 2):
