@@ -202,8 +202,6 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
 
-    ###### Processes are added #####################################################################################
-
     def _set_level_set_convection_process(self):
         # Construct the level set convection process
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
@@ -224,7 +222,7 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
 
     def _set_variational_distance_process(self):
         # Construct the variational distance calculation process
-        maximum_iterations = 2 #TODO: Make this user-definable
+        maximum_iterations = 2
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
                 self.EpetraCommunicator,
