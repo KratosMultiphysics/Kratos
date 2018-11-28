@@ -21,9 +21,9 @@ from analysis_stage import AnalysisStage
 # from pycompss.api.parameter import *
 
 # Import exaqute
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # get_value_from_remote is the equivalent of compss_wait_on
 # in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 
@@ -51,56 +51,10 @@ References:
 '''
 class MonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for Monte Carlo simulations'''
-
-    def __init__(self,serialized_model,serialized_parameters,sample):
- 
-        if (type(serialized_model) == KratosMultiphysics.StreamSerializer) and (type(serialized_parameters) == KratosMultiphysics.StreamSerializer):
-            print("taking serialized model and parameters")
-            #pickle dataserialized_data
-            pickled_data = pickle.dumps(serialized_model, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
-            #overwrite the old serializer with the unpickled one
-            serialized_model = pickle.loads(pickled_data)
-            current_model = KratosMultiphysics.Model()
-            serialized_model.Load("ModelSerialization",current_model)
-
-            #pickle dataserialized_data
-            pickled_data = pickle.dumps(serialized_parameters, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
-            #overwrite the old serializer with the unpickled one
-            serialized_parameters = pickle.loads(pickled_data)
-            current_parameters = KratosMultiphysics.Parameters()
-            serialized_parameters.Load("ParametersSerialization",current_parameters)
-
-            self.sample = sample
-            super(MonteCarloAnalysis,self).__init__(current_model,current_parameters)
-            self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-
-        else:
-            print("serializing model and parameters")
-            serializing_model = serialized_model
-            del(serialized_model)
-            serializing_parameters = serialized_parameters
-            del(serialized_parameters)
-
-            self.sample = sample
-            super(MonteCarloAnalysis,self).__init__(serializing_model,serializing_parameters)
-            self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-
-        # if (type(serialized_parameters) == KratosMultiphysics.StreamSerializer):
-        #     print("taking serialized parameters")
-        #     #pickle dataserialized_data
-        #     pickled_data = pickle.dumps(serialized_parameters, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
-        #     #overwrite the old serializer with the unpickled one
-        #     serialized_parameters = pickle.loads(pickled_data)
-        #     parameters = KratosMultiphysics.Parameters()
-        #     serialized_parameters.Load("ParametersSerialization",parameters)
-        # else:
-        #     print("serialiizing parameters")
-        #     parameters = serialized_parameters
-        #     del(serialized_parameters)
-
-        # self.sample = sample
-        # super(MonteCarloAnalysis,self).__init__(model,parameters)
-        # self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+    def __init__(self,input_model,input_parameters,sample):
+        self.sample = sample
+        super(MonteCarloAnalysis,self).__init__(input_model,input_parameters)
+        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _CreateSolver(self):
         import convection_diffusion_stationary_solver
@@ -162,11 +116,23 @@ output:
         QoI         : Quantity of Interest
 '''
 @ExaquteTask(returns=1)
-def execution_task(model, parameters):
+def execution_task(pickled_model, pickled_parameters):
+    '''overwrite the old model serializer with the unpickled one'''
+    model_serializer = pickle.loads(pickled_model)
+    current_model = KratosMultiphysics.Model()
+    model_serializer.Load("ModelSerialization",current_model)
+    del(model_serializer)
+
+    '''overwrite the old parameters serializer with the unpickled one'''
+    serialized_parameters = pickle.loads(pickled_parameters)
+    current_parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization",current_parameters)
+    del(serialized_parameters)
+
     sample = GenerateBetaSample()
-    simulation = MonteCarloAnalysis(model,parameters,sample)
+    simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
     simulation.Run()
-    QoI =  EvaluateQuantityOfInterest(simulation)
+    QoI = EvaluateQuantityOfInterest(simulation)
     return QoI
 
 
@@ -180,40 +146,107 @@ output:
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
 @ExaquteTask(returns=1)
-def exact_execution_task(model, parameters):
+def exact_execution_task(pickled_model, pickled_parameters):
+    '''overwrite the old model serializer with the unpickled one'''
+    model_serializer = pickle.loads(pickled_model)
+    current_model = KratosMultiphysics.Model()
+    model_serializer.Load("ModelSerialization",current_model)
+    del(model_serializer)
+
+    '''overwrite the old parameters serializer with the unpickled one'''
+    serialized_parameters = pickle.loads(pickled_parameters)
+    current_parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization",current_parameters)
+    del(serialized_parameters)
+
     sample = 1.0
-    simulation = MonteCarloAnalysis(model,parameters,sample)
+    simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
     simulation.Run()
-    QoI =  EvaluateQuantityOfInterest(simulation)
     ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
     return ExactExpectedValueQoI
 
 '''
+function executing the problem
+input:
+        model       : serialization of the model
+        parameters  : serialization of the Project Parameters
+output:
+        QoI                   : Quantity of Interest
+        serialized_model      : model serialized
+        serialized_parameters : parameters serialized
+'''
+@ExaquteTask(returns=2)
+def execution_task_refinement(pickled_model_coarse, pickled_parameters, min_size, max_size):
+    sample = GenerateBetaSample()
+
+    '''overwrite the old model serializer with the unpickled one'''
+    model_serializer_coarse = pickle.loads(pickled_model_coarse)
+    model_coarse = KratosMultiphysics.Model()
+    model_serializer_coarse.Load("ModelSerialization",model_coarse)
+    del(model_serializer_coarse)
+
+    '''overwrite the old parameters serializer with the unpickled one'''
+    serialized_parameters = pickle.loads(pickled_parameters)
+    parameters_refinement = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization",parameters_refinement)
+    del(serialized_parameters)
+
+    simulation_coarse = MonteCarloAnalysis(model_coarse,parameters_refinement,sample)
+    simulation_coarse.Run()
+    QoI =  EvaluateQuantityOfInterest(simulation_coarse)
+
+    '''refine here'''
+    model_refined = refinement.compute_refinement_from_analysisstage_object(simulation_coarse,min_size,max_size)
+    
+    '''initialize'''
+    simulation = MonteCarloAnalysis(model_refined,parameters_refinement,sample)
+    simulation.Initialize()
+
+    '''serialize model and pickle it'''
+    serialized_model = KratosMultiphysics.StreamSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    pickled_model_refined = pickle.dumps(serialized_model, 2)
+
+    return QoI,pickled_model_refined
+
+
+
+'''
 function serializing the model and the parameters of the problem
+the idea is the following:
+first from Model/Parameters Kratos object to StreamSerializer Kratos object
+second from StreamSerializer Kratos object to pickle string
+third from pickle string to StreamSerializer Kratos object
+fourth from StreamSerializer Kratos object to Model/Parameters Kratos object
 input:
         parameter_file_name   : path of the Project Parameters file
 output:
         serialized_model      : model serialized
         serialized_parameters : project parameters serialized
 '''
-# @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=2)
-# def serialize_model_projectparameters(model_part_file_name, parameter_file_name):
 @ExaquteTask(parameter_file_name=FILE_IN,returns=2)
 def serialize_model_projectparameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    model = KratosMultiphysics.Model()      
+    local_parameters = parameters
+    model = KratosMultiphysics.Model()
     # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     fake_sample = 1.0
 
-    simulation = MonteCarloAnalysis(model,parameters,fake_sample)
+    simulation = MonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
 
     serialized_model = KratosMultiphysics.StreamSerializer()
     serialized_model.Save("ModelSerialization",simulation.model)
+
     serialized_parameters = KratosMultiphysics.StreamSerializer()
     serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
-    return serialized_model, serialized_parameters
+
+    # pickle dataserialized_data
+    pickled_model = pickle.dumps(serialized_model, 2)
+    pickled_parameters = pickle.dumps(serialized_parameters, 2)
+
+    return pickled_model, pickled_parameters
 
 
 '''
@@ -249,23 +282,18 @@ if __name__ == '__main__':
     else: # using default name
         parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level0/ProjectParameters.json"
 
-    # with open(parameter_file_name,'r') as parameter_file:
-    #     parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    # local_parameters = parameters # in case there are more parameters file, we rename them
-
     '''create a serialization of the model and of the project parameters'''
-    # serialized_model,serialized_parameters = serialize_model_projectparameters(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
-    serialized_model,serialized_parameters = serialize_model_projectparameters(parameter_file_name)
+    pickled_model_0,pickled_parameters = serialize_model_projectparameters(parameter_file_name)
     print("\n############## Serialization completed ##############\n")
 
     number_samples = 10
     Qlist = []
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = exact_execution_task(serialized_model,serialized_parameters) 
+    ExactExpectedValueQoI = exact_execution_task(pickled_model_0,pickled_parameters) 
 
     for instance in range (0,number_samples):
-        Qlist.append(execution_task(serialized_model,serialized_parameters))
+        Qlist.append(execution_task(pickled_model_0,pickled_parameters))
 
     '''Compute mean, second moment and sample variance'''
     MC_mean = 0.0
@@ -287,8 +315,16 @@ if __name__ == '__main__':
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
+    # model_serializer = pickle.loads(pickled_model_0)
+    # current_model = KratosMultiphysics.Model()
+    # model_serializer.Load("ModelSerialization",current_model)
+    # del(model_serializer)
+    # serialized_parameters = pickle.loads(pickled_parameters)
+    # current_parameters = KratosMultiphysics.Parameters()
+    # serialized_parameters.Load("ParametersSerialization",current_parameters)
+    # del(serialized_parameters)
     # sample = 1.0
-    # simulation = MonteCarloAnalysis(serialized_model,serialized_parameters,sample)
+    # simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
     # simulation.Run()
     # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     # error = 0.0
