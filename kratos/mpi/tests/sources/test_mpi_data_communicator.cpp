@@ -1008,8 +1008,8 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvInt, KratosMPICoreFastSuite
     const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
     const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-    std::vector<int> send_buffer = {world_rank, world_rank};
-    std::vector<int> recv_buffer = {-1, -1};
+    std::vector<int> send_buffer{world_rank, world_rank};
+    std::vector<int> recv_buffer{-1, -1};
 
     if (world_size > 1)
     {
@@ -1054,8 +1054,8 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosMPICoreFastSu
     const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
     const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
 
-    std::vector<double> send_buffer = {2.0*world_rank, 2.0*world_rank};
-    std::vector<double> recv_buffer = {-1.0, -1.0};
+    std::vector<double> send_buffer{2.0*world_rank, 2.0*world_rank};
+    std::vector<double> recv_buffer{-1.0, -1.0};
 
     if (world_size > 1)
     {
