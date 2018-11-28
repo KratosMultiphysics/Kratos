@@ -171,11 +171,11 @@ class GenericConstitutiveLawIntegratorPlasticity
         bool is_converged = false;
         IndexType iteration = 0, max_iter = 100;
         array_1d<double, VoigtSize> delta_sigma;
-        double plastic_consistency_factor_increment, F;
+        double plastic_consistency_factor_increment;
+        double F = rUniaxialStress - rThreshold;
 
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
-            F = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = F * rPlasticDenominator;
             if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
@@ -184,11 +184,9 @@ class GenericConstitutiveLawIntegratorPlasticity
 
             noalias(rPredictiveStressVector) -= delta_sigma;
 
-            CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
+            F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
                                        rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
-
-            F = rUniaxialStress - rThreshold;
 
             if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
@@ -196,6 +194,7 @@ class GenericConstitutiveLawIntegratorPlasticity
                 iteration++;
             }
         }
+
         KRATOS_WARNING_IF("Backward Euler Plasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
@@ -213,8 +212,9 @@ class GenericConstitutiveLawIntegratorPlasticity
      * @param rConstitutiveMatrix The elastic constitutive matrix
      * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
+     * @return The threshold of plasticity
      */
-    static void CalculatePlasticParameters(
+    static double CalculatePlasticParameters(
         array_1d<double, VoigtSize>& rPredictiveStressVector,
         Vector& rStrainVector,
         double& rUniaxialStress,
@@ -245,6 +245,8 @@ class GenericConstitutiveLawIntegratorPlasticity
         CalculateEquivalentStressThreshold( rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThreshold, slope, rValues, equivalent_plastic_strain);
         CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
         CalculatePlasticDenominator(rFflux, rGflux, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator);
+
+        return rUniaxialStress - rThreshold;
     }
 
     /**

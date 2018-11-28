@@ -39,9 +39,9 @@ public:
         Geometry<Node<3> >::IntegrationMethod integration_method = geom.GetDefaultIntegrationMethod();
         if(integration_method == GeometryData::GI_GAUSS_1)
             integration_method = GeometryData::GI_GAUSS_2;
-        if(integration_method == GeometryData::GI_GAUSS_2)
+        else if(integration_method == GeometryData::GI_GAUSS_2)
             integration_method = GeometryData::GI_GAUSS_3;
-        if(integration_method == GeometryData::GI_GAUSS_3)
+        else if(integration_method == GeometryData::GI_GAUSS_3)
             integration_method = GeometryData::GI_GAUSS_4;
         return integration_method;
     }
@@ -49,6 +49,6 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTEGRATION_UTILITIES_INCLUDED  defined 
+#endif // KRATOS_INTEGRATION_UTILITIES_INCLUDED  defined
 
 

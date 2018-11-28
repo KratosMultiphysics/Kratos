@@ -3,6 +3,7 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_hdf5_model_part_io
+from test_hdf5_processes import TestHDF5Processes
 import run_cpp_unit_tests
 
 def AssembleTestSuites():
@@ -13,6 +14,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_hdf5_model_part_io.TestCase('test_HDF5NodalSolutionStepDataIO'))
     smallSuite.addTest(test_hdf5_model_part_io.TestCase('test_HDF5NodalDataValueIO'))
     smallSuite.addTest(test_hdf5_model_part_io.TestCase('test_HDF5ElementDataValueIO'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Processes]))
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)

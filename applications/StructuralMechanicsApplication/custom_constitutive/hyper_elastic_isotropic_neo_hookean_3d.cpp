@@ -144,9 +144,6 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
-    // We compute the left Cauchy-Green tensor (B):
-    const Matrix B_tensor = prod(deformation_gradient_f, trans( deformation_gradient_f));
-
     if(r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateAlmansiStrain(rValues, strain_vector);
     }
@@ -157,6 +154,8 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        // We compute the left Cauchy-Green tensor (B):
+        const Matrix B_tensor = prod(deformation_gradient_f, trans( deformation_gradient_f));
         CalculateKirchhoffStress( B_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
 }
