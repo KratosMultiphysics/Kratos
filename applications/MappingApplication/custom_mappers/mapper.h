@@ -168,7 +168,7 @@ public:
      * @brief This method returns the mapping-matrix
      * @return The mapping-matrix
      */
-    virtual const TMappingMatrixType& GetMappingMatrix() const = 0;
+    virtual TMappingMatrixType& GetMappingMatrix() = 0;
 
     ///@}
     ///@name Input and output

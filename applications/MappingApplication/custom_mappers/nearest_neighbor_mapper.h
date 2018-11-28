@@ -298,9 +298,9 @@ public:
     ///@name Access
     ///@{
 
-    const TMappingMatrixType& GetMappingMatrix() const override
+    TMappingMatrixType& GetMappingMatrix() override
     {
-        KRATOS_ERROR << "This function is not yet implemented!" << std::endl;
+        return mpMappingMatrixBuilder->GetMappingMatrix();
     }
 
     ///@}
@@ -357,8 +357,7 @@ private:
         Parameters default_settings = Parameters( R"({
             "search_radius"            : -1.0,
             "search_iterations"        : 3,
-            "echo_level"               : 0,
-            "mapper_specific_settings" : {}
+            "echo_level"               : 0
         })");
 
         AllMapperSettings.ValidateAndAssignDefaults(default_settings);
