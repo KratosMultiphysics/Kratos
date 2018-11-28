@@ -132,7 +132,7 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
     // Compute RHS
     CalculateDeltaPosition(delta_displacement, rCurrentProcessInfo);
     noalias(rRightHandSideVector) =
-        prod(-rLeftHandSideMatrix, delta_displacement);
+        -prod(rLeftHandSideMatrix, delta_displacement);
   }
 
   KRATOS_CATCH("");
