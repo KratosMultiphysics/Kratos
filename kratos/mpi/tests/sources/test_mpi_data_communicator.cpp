@@ -1189,7 +1189,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterIntVector, KratosMPICoreFast
     const int send_rank = 0;
 
     std::vector<int> send_buffer(0);
-    std::vector<int> recv_buffer = {0, 0};
+    std::vector<int> recv_buffer{0, 0};
 
     if (world_rank == send_rank)
     {
@@ -1209,6 +1209,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterIntVector, KratosMPICoreFast
 
     // return version
     std::vector<int> return_buffer = mpi_world_communicator.Scatter(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
     for (int i = 0; i < 2; i++)
     {
         KRATOS_CHECK_EQUAL(return_buffer[i], 1);
@@ -1245,7 +1246,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterDoubleVector, KratosMPICoreF
     const int send_rank = 0;
 
     std::vector<double> send_buffer(0);
-    std::vector<double> recv_buffer = {0, 0};
+    std::vector<double> recv_buffer{0.0, 0.0};
 
     if (world_rank == send_rank)
     {
@@ -1380,20 +1381,23 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervInt, KratosMPICoreFastSuite
         "Error");
 
     // sent message is too large
-    std::vector<int> wrong_recv_message;
-    if (world_rank == send_rank)
+    if (world_size > 1) // This test should be skipped when running with one rank, since recv_buffer.size() is 0 in that case
     {
-        wrong_recv_message.resize(recv_buffer.size()-1);
+        std::vector<int> wrong_recv_message;
+        if (world_rank == send_rank)
+        {
+            wrong_recv_message.resize(recv_buffer.size()-1);
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
+            "Error");
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
-        "Error");
 
     // sent offsets overflow
     std::vector<int> wrong_send_offsets = send_offsets;
     if (world_rank == send_rank)
     {
-        wrong_send_offsets[world_rank - 1] += 5;
+        wrong_send_offsets[world_size - 1] += 5;
     }
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Scatterv(send_buffer, send_sizes, wrong_send_offsets, recv_buffer, send_rank),
@@ -1487,20 +1491,23 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervDouble, KratosMPICoreFastSu
         "Error");
 
     // sent message is too large
-    std::vector<double> wrong_recv_message;
-    if (world_rank == send_rank)
+    if (world_size > 1) // This test should be skipped when running with one rank, since recv_buffer.size() is 0 in that case
     {
-        wrong_recv_message.resize(recv_buffer.size()-1);
+        std::vector<double> wrong_recv_message;
+        if (world_rank == send_rank)
+        {
+            wrong_recv_message.resize(recv_buffer.size()-1);
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
+            "Error");
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
-        "Error");
 
     // sent offsets overflow
     std::vector<int> wrong_send_offsets = send_offsets;
     if (world_rank == send_rank)
     {
-        wrong_send_offsets[world_rank - 1] += 5;
+        wrong_send_offsets[world_size - 1] += 5;
     }
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Scatterv(send_buffer, send_sizes, wrong_send_offsets, recv_buffer, send_rank),
@@ -1735,12 +1742,11 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervInt, KratosMPICoreFastSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(send_buffer, wrong_recv_message, recv_sizes, recv_offsets, recv_rank),
         "Error");
-
     // sent offsets overflow
     std::vector<int> wrong_recv_offsets = recv_offsets;
     if (world_rank == recv_rank)
     {
-        wrong_recv_offsets[world_rank - 1] += 5;
+        wrong_recv_offsets[world_size - 1] += 5;
     }
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, wrong_recv_offsets, recv_rank),
@@ -1854,7 +1860,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervDouble, KratosMPICoreFastSui
     std::vector<int> wrong_recv_offsets = recv_offsets;
     if (world_rank == recv_rank)
     {
-        wrong_recv_offsets[world_rank - 1] += 5;
+        wrong_recv_offsets[world_size - 1] += 5;
     }
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, wrong_recv_offsets, recv_rank),
