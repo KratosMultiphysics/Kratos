@@ -161,6 +161,7 @@ public:
 
     double ComputeOutletVolumeFlow();
 
+    double ComputeDivergenceWater();
 
     void ShiftDistanceField( double deltaDist );
 

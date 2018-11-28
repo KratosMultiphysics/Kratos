@@ -66,6 +66,9 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                 initPosVol = self.MassConservationCheckProcess.GetInitialPositiveVolume()
                 initNegVol = self.MassConservationCheckProcess.GetInitialNegativeVolume()
 
+                # divergenceInWater = 0.0
+                divergenceInWater = self.MassConservationCheckProcess.GetDivergenceWater()
+
                 # managing the output to the console
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
@@ -73,6 +76,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Inflow = " + str(inflow) )
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Outflow = " + str(-outflow) )
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Net = " + str( inflow + outflow ) )
+                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Divergence in Water  = " + str( divergenceInWater ) )
                 KratosMultiphysics.Logger.Flush()
 
                 # adds additional lines to the log file

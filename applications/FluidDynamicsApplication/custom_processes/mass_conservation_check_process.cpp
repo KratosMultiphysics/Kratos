@@ -199,8 +199,6 @@ double MassConservationCheckProcess::ComputeOutletVolumeFlow(){
 
         if ( condition->Is(OUTLET) ){
 
-            std::cout << "--------------------outlet found --------------------------------------------"
-
             const int dim = condition->GetGeometry().Dimension();
             const Geometry<Node<3> >& p_geom = condition->GetGeometry();
             Vector Distance( p_geom.PointsNumber(), 0.0 );
@@ -533,6 +531,112 @@ double MassConservationCheckProcess::ComputeInletVolumeFlow(){
         }
     }
     return netInflow;
+}
+
+
+double MassConservationCheckProcess::ComputeDivergenceWater(){
+
+    double divergenceSum = 0.0;
+
+    if( true ){
+        ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
+        for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
+            ModelPart::NodesContainerType::iterator i = rNodes.begin() + count;
+            i->SetValue(DIVPROJ, 5.0);
+        }
+    }
+
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+
+        // iteration over all elements
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        auto p_geom = it_elem->pGetGeometry();
+        Vector Distance( p_geom->PointsNumber(), 0.0 );
+
+        const unsigned int numberOfNodes = p_geom->PointsNumber();
+        const unsigned int dim = numberOfNodes - 1;
+
+        unsigned int ptCountPos = 0;
+        unsigned int ptCountNeg = 0;
+        for (unsigned int pt = 0; pt < p_geom->PointsNumber(); pt++){
+            Distance[pt] = (*p_geom)[pt].GetSolutionStepValue( DISTANCE );
+            if ( p_geom->GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+                ptCountPos++;
+            } else {
+                ptCountNeg++;
+            }
+        }
+
+        if ( ptCountNeg == p_geom->PointsNumber() ){
+            // element is complete filled with water
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const unsigned int NumGauss = IntegrationPoints.size();
+            Vector GaussPtsJDet = ZeroVector(NumGauss);
+            GeometryData::ShapeFunctionsGradientsType DN_DX;
+            p_geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
+
+            for (unsigned int i_gauss = 0; i_gauss < NumGauss; i_gauss++){
+
+                const Matrix gp_DN_DX = DN_DX[i_gauss];
+                double DVi_DXi = 0.0;
+                for(unsigned int nnode = 0; nnode < p_geom->PointsNumber(); nnode++){
+                    const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
+                    for(unsigned int ndim = 0; ndim < dim; ndim++){
+                        DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
+                    }
+                }
+                divergenceSum += DVi_DXi * GaussPtsJDet[i_gauss];
+
+                if( DIVPROJ.Key() != 0 ){
+                    for(unsigned int nnode = 0; nnode < p_geom->PointsNumber(); nnode++){
+                        const double newVal = (*p_geom)[nnode].GetSolutionStepValue(DIVPROJ) + DVi_DXi * IntegrationPoints[i_gauss].Weight();
+                        (*p_geom)[nnode].SetValue(DIVPROJ,newVal);
+                    }
+                }
+            }
+        }
+        else if ( ptCountNeg > 0 && ptCountPos > 0 ){
+            // element is cut by the surface
+
+            std::cout << "Cut element was found " << std::endl;
+            Matrix rShapeFunctions;
+            GeometryType::ShapeFunctionsGradientsType rShapeDerivatives;
+            Vector w_gauss_neg_side;
+            ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+            std::cout << " CP -- 1 -- " << std::endl;
+
+            p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, Distance);
+
+            p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+                    rShapeFunctions,                    // N
+                    rShapeDerivatives,                  // DN
+                    w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
+                    GeometryData::GI_GAUSS_2);          // first order Gauss integration
+
+            std::cout << " CP -- 2 -- " << std::endl;
+
+            for (unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
+
+                const Matrix gp_DN_DX = rShapeDerivatives[i_gauss];
+                double DVi_DXi = 0.0;
+                for(unsigned int nnode = 0; nnode < p_geom->PointsNumber(); nnode++){
+                    const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
+                    for(unsigned int ndim = 0; ndim < dim; ndim++){
+                        DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
+                    }
+                }
+                divergenceSum += DVi_DXi * w_gauss_neg_side[i_gauss] / IntegrationPoints[i_gauss].Weight();
+
+                if( DIVPROJ.Key() != 0 ){
+                    for(unsigned int nnode = 0; nnode < p_geom->PointsNumber(); nnode++){
+                        (*p_geom)[nnode].GetSolutionStepValue( DIVPROJ ) += IntegrationPoints[i_gauss].Weight() * DVi_DXi;
+                    }
+                }
+            }
+        }
+    }
+    return divergenceSum;
 }
 
 
