@@ -106,7 +106,6 @@ std::size_t GetMinimumBufferSize(const Newmark& rTimeDiscr)          { return 2;
 std::size_t GetMinimumBufferSize(const Bossak& rTimeDiscr)           { return 2;}
 std::size_t GetMinimumBufferSize(const GeneralizedAlpha& rTimeDiscr) { return 2;}
 
-
 } // namespace TimeDiscretization.
 }  // namespace Kratos.
 
