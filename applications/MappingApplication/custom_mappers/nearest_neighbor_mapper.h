@@ -204,7 +204,6 @@ public:
         InitializeInterfaceCommunicator();
 
         InitializeInterface();
-
     }
 
     /// Destructor.
