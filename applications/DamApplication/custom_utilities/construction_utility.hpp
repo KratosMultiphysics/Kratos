@@ -330,7 +330,7 @@ class ConstructionUtility
 
             if (Dim == 2)
             {
-#pragma omp parallel for
+// #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -355,7 +355,7 @@ class ConstructionUtility
                                     ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
                                 }
                                 this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
-#pragma omp critical
+// #pragma omp critical
                                 {
                                     mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
                                     last_condition_id++;
@@ -367,7 +367,7 @@ class ConstructionUtility
             }
             else
             {
-#pragma omp parallel for
+// #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -392,7 +392,7 @@ class ConstructionUtility
                                     ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
                                 }
                                 this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
-#pragma omp critical
+// #pragma omp critical
                                 {
                                     mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
                                     last_condition_id++;
@@ -428,7 +428,7 @@ class ConstructionUtility
             if (Dim == 2)
             {
 // Searching for thermal boundary conditions Edges
-#pragma omp parallel for
+// #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -454,7 +454,7 @@ class ConstructionUtility
                                     ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
                                 }
                                 this->ActiveFaceHeatFluxStep(ConditionNodeIds);
-#pragma omp critical
+// #pragma omp critical
                                 {
                                     mrThermalModelPart.CreateNewCondition("FluxCondition2D2N", last_condition_id + 1, ConditionNodeIds, 0);
                                     last_condition_id++;
@@ -467,7 +467,7 @@ class ConstructionUtility
             else
             {
 // Searching for thermal boundary conditions
-#pragma omp parallel for
+// #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -493,7 +493,7 @@ class ConstructionUtility
                                     ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
                                 }
                                 this->ActiveFaceHeatFluxStep(ConditionNodeIds);
-#pragma omp critical
+// #pragma omp critical
                                 {
                                     if (number_of_points == 3)
                                     {

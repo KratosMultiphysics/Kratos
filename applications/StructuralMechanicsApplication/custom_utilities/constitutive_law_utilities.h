@@ -196,6 +196,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
+     * @brief This method computes the equivalent deformation gradient for the elements which provide the deformation gradient as input
+     * @param rStrainVector The strain vector
+     */
+    static Matrix ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector);
+
+    /**
      * @brief Calculation of the Green-Lagrange strain vector
      * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
      * @param rCauchyTensor The right Cauchy tensor
