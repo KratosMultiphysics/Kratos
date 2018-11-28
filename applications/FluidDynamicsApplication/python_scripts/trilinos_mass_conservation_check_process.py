@@ -12,8 +12,7 @@ import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioni
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
 
-# Import serial monolithic embedded solver
-import navier_stokes_two_fluids_solver
+# Import serial two fluid solver
 import trilinos_import_model_part_utility
 import apply_mass_conservation_check_process
 

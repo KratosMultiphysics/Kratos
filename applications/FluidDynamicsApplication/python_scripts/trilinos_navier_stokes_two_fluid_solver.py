@@ -12,7 +12,7 @@ import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioni
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
 
-# Import serial monolithic embedded solver
+# Import serial two fluid solver
 import navier_stokes_two_fluids_solver
 import trilinos_import_model_part_utility
 
@@ -24,7 +24,7 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
     def _ValidateSettings(self, settings):
 
         default_settings = KratosMultiphysics.Parameters("""{
-            "solver_type": "Embedded",
+            "solver_type": "TwoFluids",
             "model_part_name": "",
             "domain_size": -1,
             "model_import_settings": {
@@ -160,7 +160,7 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
         self.level_set_convection_process = self._set_level_set_convection_process()
         self.variational_distance_process = self._set_variational_distance_process()
 
-        ## Creating the Trilinos incremental update time scheme (the time integration is defined within the embedded element)
+        ## Creating the Trilinos incremental update time scheme (the time integration is defined within the TwoFluidNavierStokes element)
         self.time_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                                  self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
 
