@@ -43,16 +43,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(AdjointStructuralResponseFunction);
 
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
-
-    typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
-
-    typedef ModelPart::NodesContainerType NodesContainerType;
-
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
-
-    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
-
     typedef std::size_t IndexType;
 
     typedef std::size_t SizeType;
@@ -88,9 +78,9 @@ public:
 
     virtual void FinalizeSolutionStep(){};
 
-    virtual void Check();
+    virtual void Check(){};
 
-    virtual void Clear();
+    virtual void Clear(){};
 
     virtual void CalculateGradient(const Element& rAdjointElem,
                                    const Matrix& rAdjointMatrix,
@@ -122,9 +112,31 @@ public:
                                                     Vector& rResponseGradient,
                                                     ProcessInfo& rProcessInfo);
 
-    virtual void UpdateSensitivities();
-
     virtual double CalculateValue(ModelPart& rModelPart);
+
+    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
+                                              const Variable<double>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rResponseGradient,
+                                              ProcessInfo& rProcessInfo);
+
+    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
+                                              const Variable<double>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rResponseGradient,
+                                              ProcessInfo& rProcessInfo);
+
+    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
+                                              const Variable<array_1d<double,3>>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rResponseGradient,
+                                              ProcessInfo& rProcessInfo);
+
+    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
+                                              const Variable<array_1d<double,3>>& rVariable,
+                                              const Matrix& rDerivativesMatrix,
+                                              Vector& rResponseGradient,
+                                              ProcessInfo& rProcessInfo);
 
     ///@}
 
@@ -141,79 +153,15 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    template <typename TDataType>
-    void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
-    template <typename TDataType>
-    void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
-    template <typename TDataType>
-    void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
 
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom);
-
-    void AssembleNodalSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom);
-
-    void AssembleElementSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                                Vector const& rSensitivityVector,
-                                                Element& rElem);
-
-    void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                                Vector const& rSensitivityVector,
-                                                Element& rElem);
-
-    void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom);
-
-    void AssembleConditionSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
-                                              Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom);
-
-    void ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables,
-        std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings);
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
 
-    std::string mSensitivityModelPartName;
     unsigned int mGradientMode;
     double mDelta;
-
-    std::vector<std::vector<Variable<double>>> mNodalSensitivityScalarVariables;
-    std::vector<std::vector<Variable<double>>> mElementSensitivityScalarVariables;
-    std::vector<std::vector<Variable<double>>> mConditionSensitivityScalarVariables;
-    std::vector<std::vector<Variable<array_1d<double,3>>>> mNodalSensitivityVectorVariables;
-    std::vector<std::vector<Variable<array_1d<double,3>>>> mElementSensitivityVectorVariables;
-    std::vector<std::vector<Variable<array_1d<double,3>>>> mConditionSensitivityVectorVariables;
 
     ///@}
     ///@name Private Operators
