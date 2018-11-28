@@ -15,8 +15,6 @@
 
 #include "includes/data_communicator.h"
 #include "includes/kratos_components.h"
-#include "mpi/mpi_environment.h"
-#include "mpi/includes/mpi_data_communicator.h"
 #include "includes/parallel_environment.h"
 
 #include "testing/testing.h"
