@@ -38,6 +38,7 @@
 #include "custom_processes/dam_azenha_heat_source_process.hpp"
 #include "custom_processes/dam_nodal_reference_temperature_process.hpp"
 #include "custom_processes/dam_grouting_reference_temperature_process.hpp"
+#include "custom_processes/dam_surface_node_process.hpp"
 
 
 namespace Kratos
@@ -142,7 +143,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_< DamGroutingReferenceTemperatureProcess, DamGroutingReferenceTemperatureProcess::Pointer, Process >
     (m, "DamGroutingReferenceTemperatureProcess")
     .def(py::init < ModelPart&, Parameters&>());
-    }
+
+    // Dam Surface Node Process
+    py::class_< DamSurfaceNodeProcess, DamSurfaceNodeProcess::Pointer, Process >
+    (m, "DamSurfaceNodeProcess")
+    .def(py::init < ModelPart&, Parameters&>());
+}
 
 }  // namespace Python.
 } // Namespace Kratos

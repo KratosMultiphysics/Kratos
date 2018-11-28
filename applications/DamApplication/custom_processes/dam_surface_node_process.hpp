@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_DAM_GROUTING_REFERENCE_TEMPERATURE_PROCESS )
-#define  KRATOS_DAM_GROUTING_REFERENCE_TEMPERATURE_PROCESS
+#if !defined(KRATOS_DAM_SURFACE_NODE_PROCESS)
+#define  KRATOS_DAM_SURFACE_NODE_PROCESS
 
 #include <cmath>
 
@@ -27,28 +27,26 @@
 namespace Kratos
 {
 
-class DamGroutingReferenceTemperatureProcess : public Process
+class DamSurfaceNodeProcess : public Process
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(DamGroutingReferenceTemperatureProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(DamSurfaceNodeProcess);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamGroutingReferenceTemperatureProcess(ModelPart& rModelPart, Parameters& rParameters
-                                ) : Process(Flags()) , mrModelPart(rModelPart)
+    DamSurfaceNodeProcess(ModelPart &rModelPart,
+                             Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
     {
         KRATOS_TRY
 
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "variable_name"      : "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "initial_value"      : 0.0,
-                "time_grouting"      : 0.0
+                "model_part_name"    :"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "variable_name"      :"PLEASE_PRESCRIBE_VARIABLE_NAME"
             }  )" );
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -58,11 +56,7 @@ public:
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
-
         mVariableName = rParameters["variable_name"].GetString();
-        mInitialValue = rParameters["initial_value"].GetDouble();
-        mTimeGrouting = rParameters["time_grouting"].GetDouble();
-        mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
         KRATOS_CATCH("");
     }
@@ -70,10 +64,10 @@ public:
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    virtual ~DamGroutingReferenceTemperatureProcess() {}
+    virtual ~DamSurfaceNodeProcess() {}
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void Execute() override
     {
@@ -87,57 +81,18 @@ public:
 
         KRATOS_TRY;
 
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
-
+        Variable<int> var = KratosComponents< Variable<int> >::Get(mVariableName);
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
 
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            double time = mrModelPart.GetProcessInfo()[TIME];
-            time = time / mTimeUnitConverter;
 
             #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
+            for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                it->FastGetSolutionStepValue(var) = mInitialValue;
-            }
-        }
-
-        KRATOS_CATCH("");
-    }
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void ExecuteInitializeSolutionStep() override
-    {
-
-        KRATOS_TRY;
-
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mVariableName);
-
-        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
-
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
-
-            double time = mrModelPart.GetProcessInfo()[TIME];
-            time = time / mTimeUnitConverter;
-
-            if (time == mTimeGrouting)
-            {
-                #pragma omp parallel for
-                for(int i = 0; i<nnodes; i++)
-                {
-                    ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    const double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
-                    it->FastGetSolutionStepValue(var) = current_temp;
-
-                }
+                it->FastGetSolutionStepValue(var) = 1;
             }
         }
 
@@ -149,13 +104,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "DamGroutingReferenceTemperatureProcess";
+        return "DamSurfaceNodeProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "DamGroutingReferenceTemperatureProcess";
+        rOStream << "DamSurfaceNodeProcess";
     }
 
     /// Print object's data.
@@ -171,27 +126,24 @@ protected:
 
     ModelPart& mrModelPart;
     std::string mVariableName;
-    double mInitialValue;
-    double mTimeGrouting;
-    double mTimeUnitConverter;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
 
     /// Assignment operator.
-    DamGroutingReferenceTemperatureProcess& operator=(DamGroutingReferenceTemperatureProcess const& rOther);
+    DamSurfaceNodeProcess& operator=(DamSurfaceNodeProcess const& rOther);
 
 };//Class
 
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                    DamGroutingReferenceTemperatureProcess& rThis);
+                                    DamSurfaceNodeProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const DamGroutingReferenceTemperatureProcess& rThis)
+                                  const DamSurfaceNodeProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -202,5 +154,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_DAM_GROUTING_REFERENCE_TEMPERATURE_PROCESS defined */
+#endif /* KRATOS_DAM_SURFACE_NODE_PROCESS defined */
 
