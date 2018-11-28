@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
+#include "response_functions/adjoint_response_function.h"
 
 
 namespace Kratos
@@ -35,7 +36,7 @@ namespace Kratos
 * This is the response base class for responses in structural mechanics.
 * It is designed to be used in adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStructuralResponseFunction : public AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -58,7 +59,9 @@ public:
     AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-    virtual ~AdjointStructuralResponseFunction();
+     ~AdjointStructuralResponseFunction() override
+    {
+    }
 
     ///@}
     ///@name Operators
@@ -68,75 +71,47 @@ public:
     ///@name Operations
     ///@{
 
-    ModelPart& GetModelPart();
 
-    ModelPart& GetModelPart() const;
+    void Initialize() override;
 
-    virtual void Initialize();
 
-    virtual void InitializeSolutionStep(){};
-
-    virtual void FinalizeSolutionStep(){};
-
-    virtual void Check(){};
-
-    virtual void Clear(){};
-
-    virtual void CalculateGradient(const Element& rAdjointElem,
-                                   const Matrix& rAdjointMatrix,
+    void CalculateGradient(const Element& rAdjointElement,
+                                   const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo);
+                                   const ProcessInfo& rProcessInfo) override;
 
-    virtual void CalculateGradient(const Condition& rAdjointCondition,
-                                   const Matrix& rAdjointMatrix,
+    void CalculateGradient(const Condition& rAdjointCondition,
+                                   const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo);
+                                   const ProcessInfo& rProcessInfo) override;
 
-    virtual void CalculateFirstDerivativesGradient(const Element& rAdjointElem,
-                                                   const Matrix& rAdjointMatrix,
+    void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
+                                                   const Matrix& rResidualGradient,
                                                    Vector& rResponseGradient,
-                                                   ProcessInfo& rProcessInfo);
+                                                   const ProcessInfo& rProcessInfo) override;
 
-    virtual void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
-                                                   const Matrix& rAdjointMatrix,
+    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                                   const Matrix& rResidualGradient,
                                                    Vector& rResponseGradient,
-                                                   ProcessInfo& rProcessInfo);
+                                                   const ProcessInfo& rProcessInfo) override;
 
-    virtual void CalculateSecondDerivativesGradient(const Element& rAdjointElem,
-                                                    const Matrix& rAdjointMatrix,
+    void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
+                                                    const Matrix& rResidualGradient,
                                                     Vector& rResponseGradient,
-                                                    ProcessInfo& rProcessInfo);
+                                                    const ProcessInfo& rProcessInfo) override;
 
-    virtual void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
-                                                    const Matrix& rAdjointMatrix,
-                                                    Vector& rResponseGradient,
-                                                    ProcessInfo& rProcessInfo);
+    void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
+                                                   const Matrix& rResidualGradient,
+                                                   Vector& rResponseGradient,
+                                                   const ProcessInfo& rProcessInfo) override;
 
-    virtual double CalculateValue(ModelPart& rModelPart);
 
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
+    //double CalculateValue(ModelPart& rModelPart) override;
 
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
+    double CalculateValue() override
+    {
+        return 0.0;
+    }
 
     ///@}
 

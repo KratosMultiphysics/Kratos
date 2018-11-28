@@ -42,7 +42,7 @@ namespace Kratos
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
 
 
-    double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
+    /*double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -57,15 +57,16 @@ namespace Kratos
         return stress_value;
 
         KRATOS_CATCH("");
-    }
+    }*/
 
-    void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
+    void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElement,
+                                   const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo)
+                                   const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
 
-        if(rAdjointElem.Id() == mpTracedElement->Id())
+        if(rAdjointElement.Id() == mpTracedElement->Id())
         {
             Matrix stress_displacement_derivative;
 
@@ -85,15 +86,15 @@ namespace Kratos
                 this->ExtractNodeStressDerivative(stress_displacement_derivative, rResponseGradient);
             }
 
-            KRATOS_ERROR_IF(rResponseGradient.size() != rAdjointMatrix.size1())
+            KRATOS_ERROR_IF(rResponseGradient.size() != rResidualGradient.size1())
                  << "Size of stress displacement derivative does not fit!" << std::endl;
 
             rResponseGradient *= (-1);
         }
         else
         {
-            if(rResponseGradient.size() != rAdjointMatrix.size1())
-                rResponseGradient.resize(rAdjointMatrix.size1(), false);
+            if(rResponseGradient.size() != rResidualGradient.size1())
+                rResponseGradient.resize(rResidualGradient.size1(), false);
 
             rResponseGradient.clear();
         }
@@ -101,74 +102,76 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
-                                      const Variable<double>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo)
+    void AdjointLocalStressResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
 
-        if(rAdjointElem.Id() == mpTracedElement->Id())
+        if(rAdjointElement.Id() == mpTracedElement->Id())
         {
-            this->CalculateElementContributionToSensitivityGradient(rAdjointElem, rVariable.Name(), rDerivativesMatrix,
-                                                                    rResponseGradient, rProcessInfo);
+            ProcessInfo process_info = rProcessInfo;
+            this->CalculateElementContributionToSensitivityGradient(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
+                                                                    rSensitivityGradient, process_info);
         }
         else
         {
-            if (rResponseGradient.size() != 0)
-                rResponseGradient.resize(0, false);
+            if (rSensitivityGradient.size() != 0)
+                rSensitivityGradient.resize(0, false);
         }
 
         KRATOS_CATCH("")
     }
 
-    void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                     const Variable<double>& rVariable,
-                                     const Matrix& rDerivativesMatrix,
-                                     Vector& rResponseGradient,
-                                     ProcessInfo& rProcessInfo)
+    void AdjointLocalStressResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        if (rResponseGradient.size() != 0)
-            rResponseGradient.resize(0, false);
+        if (rSensitivityGradient.size() != 0)
+            rSensitivityGradient.resize(0, false);
 
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
-                                      const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo)
+    void AdjointLocalStressResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        if(rAdjointElem.Id() == mpTracedElement->Id())
+        if(rAdjointElement.Id() == mpTracedElement->Id())
         {
-            this->CalculateElementContributionToSensitivityGradient(rAdjointElem, rVariable.Name(), rDerivativesMatrix,
-                                                                    rResponseGradient, rProcessInfo);
+            ProcessInfo process_info = rProcessInfo;
+            this->CalculateElementContributionToSensitivityGradient(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
+                                                                    rSensitivityGradient, process_info);
         }
         else
         {
-            if (rResponseGradient.size() != 0)
-                rResponseGradient.resize(0, false);
+            if (rSensitivityGradient.size() != 0)
+                rSensitivityGradient.resize(0, false);
         }
 
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                      const Variable<array_1d<double,3>>& rVariable,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo)
+    void AdjointLocalStressResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        if (rResponseGradient.size() != 0)
-            rResponseGradient.resize(0, false);
+        if (rSensitivityGradient.size() != 0)
+            rSensitivityGradient.resize(0, false);
 
         KRATOS_CATCH("");
     }

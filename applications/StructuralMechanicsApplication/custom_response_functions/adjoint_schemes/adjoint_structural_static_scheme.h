@@ -27,7 +27,8 @@
 #include "containers/variable.h"
 
 // Application includes
-#include "custom_response_functions/response_utilities/adjoint_structural_response_function.h"
+//#include "custom_response_functions/response_utilities/adjoint_structural_response_function.h"
+#include "response_functions/adjoint_response_function.h"
 
 namespace Kratos
 {
@@ -68,7 +69,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralStaticScheme(Parameters rParameters, AdjointStructuralResponseFunction::Pointer pResponseFunction)
+    AdjointStructuralStaticScheme(Parameters rParameters, AdjointResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY;
@@ -385,7 +386,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    AdjointStructuralResponseFunction::Pointer mpResponseFunction;
+    AdjointResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
     bool mHasRotationDofs;
 

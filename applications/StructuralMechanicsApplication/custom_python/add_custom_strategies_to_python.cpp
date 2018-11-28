@@ -150,7 +150,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_<AdjointStructuralStaticSchemeType, AdjointStructuralStaticSchemeType::Pointer, BaseSchemeType>(m, "AdjointStructuralStaticScheme")
-        .def(py::init<Parameters, AdjointStructuralResponseFunction::Pointer>());
+        .def(py::init<Parameters, AdjointResponseFunction::Pointer>());
 
 
     //********************************************************************

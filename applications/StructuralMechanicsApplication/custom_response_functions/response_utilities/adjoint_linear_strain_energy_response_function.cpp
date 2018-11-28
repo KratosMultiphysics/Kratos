@@ -34,25 +34,24 @@ namespace Kratos
         BaseType::Initialize();
 
         // It is necessary to initialize the elements/conditions since no adjoint problem is solved for this response type.
-        ModelPart& r_model_part = this->GetModelPart();
 
         #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); ++i)
+        for(int i=0; i< static_cast<int>(mrModelPart.Elements().size()); ++i)
         {
-            auto it = r_model_part.ElementsBegin() + i;
+            auto it = mrModelPart.ElementsBegin() + i;
             it->Initialize();
         }
         #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(r_model_part.Conditions().size()); ++i)
+        for(int i=0; i< static_cast<int>(mrModelPart.Conditions().size()); ++i)
         {
-            auto it = r_model_part.ConditionsBegin() + i;
+            auto it = mrModelPart.ConditionsBegin() + i;
             it->Initialize();
         }
 
         KRATOS_CATCH("");
     }
 
-    double AdjointLinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
+    /*double AdjointLinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -81,106 +80,106 @@ namespace Kratos
         return response_value;
 
         KRATOS_CATCH("");
-    }
+    }*/
 
-    void AdjointLinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo)
+    void AdjointLinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY
 
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
 
-        if (rResponseGradient.size() != 0)
-            rResponseGradient.resize(0, false);
+        if (rSensitivityGradient.size() != 0)
+            rSensitivityGradient.resize(0, false);
 
-        this->CheckForBodyForces(rAdjointElem);
+        this->CheckForBodyForces(rAdjointElement);
 
         KRATOS_CATCH("");
     }
 
-    void AdjointLinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo)
+    void AdjointLinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
 
-        if (rResponseGradient.size() != 0)
-            rResponseGradient.resize(0, false);
+        if (rSensitivityGradient.size() != 0)
+            rSensitivityGradient.resize(0, false);
 
-        this->CheckForBodyForces(rAdjointElem);
+        this->CheckForBodyForces(rAdjointElement);
 
         KRATOS_CATCH("");
     }
 
-    void AdjointLinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo)
+    void AdjointLinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        if (rDerivativesMatrix.size2() == 0)
+        if (rSensitivityMatrix.size2() == 0)
         {
-            if (rResponseGradient.size() != 0)
-                rResponseGradient.resize(0, false);
+            if (rSensitivityGradient.size() != 0)
+                rSensitivityGradient.resize(0, false);
             return;
         }
 
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
-        // Assuming that the conditions don't have K, the remaining content of rDerivativesMatrix \frac{\partial F}{\partial s}
+        // Assuming that the conditions don't have K, the remaining content of rSensitivityMatrix \frac{\partial F}{\partial s}
 
         Vector adjoint_variables;
         rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
-        KRATOS_ERROR_IF(adjoint_variables.size() != rDerivativesMatrix.size2())
+        KRATOS_ERROR_IF(adjoint_variables.size() != rSensitivityMatrix.size2())
             << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size2())
-            rResponseGradient.resize(adjoint_variables.size(), false);
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size2())
+            rSensitivityGradient.resize(adjoint_variables.size(), false);
 
-        noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
+        noalias(rSensitivityGradient) = prod(rSensitivityMatrix, adjoint_variables);
 
         KRATOS_CATCH("");
     }
 
-    void AdjointLinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo)
+    void AdjointLinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        if (rDerivativesMatrix.size2() == 0)
+        if (rSensitivityMatrix.size2() == 0)
         {
-            if (rResponseGradient.size() != 0)
-                rResponseGradient.resize(0, false);
+            if (rSensitivityGradient.size() != 0)
+                rSensitivityGradient.resize(0, false);
             return;
         }
 
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
-        // Assuming that the conditions don't have K, the remaining content of rDerivativesMatrix \frac{\partial F}{\partial s}
+        // Assuming that the conditions don't have K, the remaining content of rSensitivityMatrix \frac{\partial F}{\partial s}
 
         Vector adjoint_variables;
         rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
-        KRATOS_ERROR_IF(adjoint_variables.size() != rDerivativesMatrix.size2())
+        KRATOS_ERROR_IF(adjoint_variables.size() != rSensitivityMatrix.size2())
              << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
-        if (rResponseGradient.size() != rDerivativesMatrix.size2())
-            rResponseGradient.resize(adjoint_variables.size(), false);
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size2())
+            rSensitivityGradient.resize(adjoint_variables.size(), false);
 
-        noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
+        noalias(rSensitivityGradient) = prod(rSensitivityMatrix, adjoint_variables);
 
         KRATOS_CATCH("");
     }
