@@ -78,13 +78,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
 
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Finished initialization.")
 
-    def Solve(self):
-        if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
-            self._SolveSolutionStepSpecialLinearStrainEnergy()
-        else:
-            super(StructuralMechanicsAdjointStaticSolver, self).Solve()
-
-
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
         self.response_function.InitializeSolutionStep()

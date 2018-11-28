@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 #include "iga_application_variables.h"
