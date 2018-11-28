@@ -159,28 +159,6 @@ void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialPropertie
 
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void HyperElastic3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void HyperElastic3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
 
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************
