@@ -132,6 +132,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("GetInitialNegativeVolume", &MassConservationCheckProcess::GetInitialNegativeVolume)
     .def("GetInterfaceArea", &MassConservationCheckProcess::GetInterfaceArea)
     .def("GetInletVolumeFlow", &MassConservationCheckProcess::ComputeInletVolumeFlow)
+    .def("GetOutletVolumeFlow", &MassConservationCheckProcess::ComputeOutletVolumeFlow)
     ;
 }
 

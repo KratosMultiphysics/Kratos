@@ -29,8 +29,10 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         # writing first line in file
         if ( self.write_to_log ):
             with open("ApplyMassConservationCheckProcess.log", "w") as logFile:
-                logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\t" + "interfaceArea" + "\n" )
+                logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\t" + "interfaceArea" + "\t" + "inFlowWater" + "\t" + "outFlowWater" + "\t" + "netFlowWater" + "\n" )
                 logFile.close()
+
+        self.counter = 0
 
 
     def ExecuteInitialize(self):
@@ -47,26 +49,33 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
 
-        # retrieve information if the values were updated
-        updated = self.MassConservationCheckProcess.GetUpdateStatus()
+        self.counter = self.counter + 1
 
-        if ( updated ):
-            posVol = self.MassConservationCheckProcess.GetPositiveVolume()
-            negVol = self.MassConservationCheckProcess.GetNegativeVolume()
-            interfaceArea = self.MassConservationCheckProcess.GetInterfaceArea()
-            inflow = self.MassConservationCheckProcess.GetInletVolumeFlow()
+        if ( self.counter > 5 ):
 
-            initPosVol = self.MassConservationCheckProcess.GetInitialPositiveVolume()
-            initNegVol = self.MassConservationCheckProcess.GetInitialNegativeVolume()
+            # retrieve information if the values were updated
+            updated = self.MassConservationCheckProcess.GetUpdateStatus()
 
-            # managing the output to the console
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Interface Area = " + str(interfaceArea) )
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Inflow = " + str(inflow) )
-            KratosMultiphysics.Logger.Flush()
+            if ( updated ):
+                posVol = self.MassConservationCheckProcess.GetPositiveVolume()
+                negVol = self.MassConservationCheckProcess.GetNegativeVolume()
+                interfaceArea = self.MassConservationCheckProcess.GetInterfaceArea()
+                inflow = self.MassConservationCheckProcess.GetInletVolumeFlow()
+                outflow = self.MassConservationCheckProcess.GetOutletVolumeFlow()
 
-            # adds additional lines to the log file
-            if ( self.write_to_log ):
-                with open("ApplyMassConservationCheckProcess.log", "a+") as logFile:
-                    logFile.write( str(posVol) + "\t" + str(negVol) + "\t" + str(interfaceArea) + "\t" + str(inflow) + "\n" )
+                initPosVol = self.MassConservationCheckProcess.GetInitialPositiveVolume()
+                initNegVol = self.MassConservationCheckProcess.GetInitialNegativeVolume()
+
+                # managing the output to the console
+                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
+                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
+                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Interface Area = " + str(interfaceArea) )
+                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Inflow = " + str(inflow) )
+                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Outflow = " + str(-outflow) )
+                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Net = " + str( inflow + outflow ) )
+                KratosMultiphysics.Logger.Flush()
+
+                # adds additional lines to the log file
+                if ( self.write_to_log ):
+                    with open("ApplyMassConservationCheckProcess.log", "a+") as logFile:
+                        logFile.write( str(posVol) + "\t" + str(negVol) + "\t" + str(interfaceArea) + "\t" + str(inflow) + "\t" + str(-outflow) + "\t" + str(inflow+outflow) + "\n" )

@@ -159,6 +159,8 @@ public:
 
     double ComputeInletVolumeFlow();
 
+    double ComputeOutletVolumeFlow();
+
 
     void ShiftDistanceField( double deltaDist );
 
