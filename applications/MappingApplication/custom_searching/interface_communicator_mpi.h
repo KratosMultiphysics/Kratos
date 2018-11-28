@@ -29,23 +29,6 @@ namespace Kratos
 ///@addtogroup MappingApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -78,27 +61,6 @@ public:
     {
     }
 
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
@@ -120,30 +82,9 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -160,28 +101,8 @@ protected:
     void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo) override;
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -201,11 +122,6 @@ private:
     BufferTypeChar mRecvBufferChar;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
     ///@name Private Operations
     ///@{
 
@@ -222,40 +138,8 @@ private:
         std::vector<std::vector<TDataType>>& rRecvBuffer);
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    // InterfaceCommunicatorMPI& operator=(InterfaceCommunicatorMPI const& rOther) {}
-
-    //   /// Copy constructor.
-    //   InterfaceCommunicatorMPI(InterfaceCommunicatorMPI const& rOther){}
-
-
-    ///@}
 
 }; // Class InterfaceCommunicatorMPI
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
 
 ///@}
 

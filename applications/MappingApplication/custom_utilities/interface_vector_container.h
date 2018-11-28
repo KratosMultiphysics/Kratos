@@ -68,11 +68,6 @@ public:
 
 
     ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -119,16 +114,6 @@ private:
     TSystemVectorUniquePointerType mpInterfaceVector = nullptr;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
@@ -140,9 +125,7 @@ private:
 
     ///@}
 
-    }; // Class InterfaceVectorContainer
-
-///@}
+}; // Class InterfaceVectorContainer
 
 ///@}
 

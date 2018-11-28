@@ -33,22 +33,6 @@ namespace Kratos
 ///@addtogroup MappingApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -81,30 +65,13 @@ class InterfacePreprocessor
     }
 
     /// Destructor.
-    virtual ~InterfacePreprocessor() {}
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    virtual ~InterfacePreprocessor() = default;
 
     ///@}
     ///@name Operations
     ///@{
 
     void CreateMapperLocalSystems(const MapperLocalSystemPointer& rpLocalSystem);
-
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -121,49 +88,6 @@ class InterfacePreprocessor
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
 
     ///@}
 
@@ -193,39 +117,8 @@ private:
     void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystemPointer& rpLocalSystem);
 
     ///@}
-    ///@name Private  Access
-    ///@{
 
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    // InterfacePreprocessor& operator=(InterfacePreprocessor const& rOther) {}
-
-    /// Copy constructor.
-    // InterfacePreprocessor(InterfacePreprocessor const& rOther) {}
-
-    ///@}
-
-    }; // Class InterfacePreprocessor
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
+}; // Class InterfacePreprocessor
 
 ///@}
 

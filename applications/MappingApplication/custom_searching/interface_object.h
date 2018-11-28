@@ -34,22 +34,6 @@ namespace Kratos
 ///@addtogroup MappingApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -100,11 +84,6 @@ public:
 
 
     ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
     ///@name Operations
     ///@{
 
@@ -134,11 +113,6 @@ public:
 
 
     ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -158,28 +132,8 @@ public:
 
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -189,63 +143,8 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    // /// Assignment operator.
-    // InterfaceObject& operator=(InterfaceObject const& rOther){}
-
-    // /// Copy constructor.
-    // InterfaceObject(InterfaceObject const& rOther){}
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -264,31 +163,6 @@ private:
 
 }; // Class InterfaceObject
 
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-// /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                 InterfaceObject& rThis){}
-
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                 const InterfaceObject& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-
-//     return rOStream;
-// }
 ///@}
 
 ///@} addtogroup block
@@ -329,7 +203,6 @@ private:
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
     }
-
 };
 
 class InterfaceGeometryObject : public InterfaceObject
@@ -367,7 +240,6 @@ private:
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
     }
-
 };
 
 }  // namespace Kratos.

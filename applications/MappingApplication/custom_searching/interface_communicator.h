@@ -35,23 +35,6 @@ namespace Kratos
 ///@addtogroup MappingApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -99,15 +82,8 @@ public:
         mpMapperInterfaceInfosContainer->resize(1);
     }
 
-
     /// Destructor.
-    virtual ~InterfaceCommunicator() {}
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    virtual ~InterfaceCommunicator() = default;
 
     ///@}
     ///@name Operations
@@ -117,16 +93,6 @@ public:
                                const Kratos::Flags& rOptions,
                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -149,20 +115,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
@@ -178,11 +133,6 @@ protected:
     double mSearchRadius;
 
     int mEchoLevel = 0;
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -204,38 +154,8 @@ protected:
     void AssignInterfaceInfos();
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
     ///@name Private Operations
     ///@{
 
@@ -254,40 +174,10 @@ private:
     bool AllNeighborsFound(const Communicator& rComm) const;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    // InterfaceCommunicator& operator=(InterfaceCommunicator const& rOther){}
-
-    //   /// Copy constructor.
-    //   InterfaceCommunicator(InterfaceCommunicator const& rOther){}
-
-
-    ///@}
 
 }; // Class InterfaceCommunicator
 
 ///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
 
 ///@}
 

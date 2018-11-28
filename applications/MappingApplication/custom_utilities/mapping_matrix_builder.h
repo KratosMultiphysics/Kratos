@@ -25,7 +25,6 @@
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapper_flags.h"
 
-
 namespace Kratos
 {
 ///@addtogroup MappingApplication
@@ -118,26 +117,6 @@ private:
 
     int mEchoLevel = 0;
     TMappingMatrixUniquePointerType mpMappingMatrix;
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    // MappingMatrixBuilder& operator=(MappingMatrixBuilder const& rOther) {}
-
-    /// Copy constructor.
-    // MappingMatrixBuilder(MappingMatrixBuilder const& rOther) {}
 
     ///@}
 

@@ -16,39 +16,19 @@
 #if !defined(KRATOS_MAPPER_LOCAL_SYSTEM_H_INCLUDED )
 #define  KRATOS_MAPPER_LOCAL_SYSTEM_H_INCLUDED
 
-
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "mapper_interface_info.h"
-
 
 namespace Kratos
 {
 ///@addtogroup MappingApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -93,15 +73,10 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperLocalSystem() {}
+    MapperLocalSystem() = default;
 
     /// Destructor.
-    virtual ~MapperLocalSystem() {}
-
-
-    ///@}
-    ///@name Operators
-    ///@{
+    virtual ~MapperLocalSystem() = default;
 
 
     ///@}
@@ -206,16 +181,6 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -229,12 +194,6 @@ public:
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
 
     ///@}
 
@@ -258,11 +217,6 @@ protected:
     PairingStatus mPairingStatus = PairingStatus::NoInterfaceInfo;
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -274,94 +228,10 @@ protected:
                               EquationIdVectorType& rDestinationIds,
                               MapperLocalSystem::PairingStatus& rPairingStatus) const = 0;
 
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    // /// Assignment operator.
-    // MapperLocalSystem& operator=(MapperLocalSystem const& rOther);
-
-    // /// Copy constructor.
-    // MapperLocalSystem(MapperLocalSystem const& rOther);
-
-
     ///@}
 
 }; // Class MapperLocalSystem
 
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-// /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                 MapperLocalSystem& rThis);
-
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                 const MapperLocalSystem& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-
-//     return rOStream;
-// }
 ///@}
 
 ///@} addtogroup block

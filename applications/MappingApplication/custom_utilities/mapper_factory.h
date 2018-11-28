@@ -27,28 +27,11 @@
 
 #include "custom_mappers/mapper.h"
 
-
 namespace Kratos
 {
 ///@addtogroup MappingApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -72,13 +55,7 @@ public:
     ///@{
 
     /// Destructor.
-    virtual ~MapperFactory() { }
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    virtual ~MapperFactory() = default;
 
     ///@}
     ///@name Operations
@@ -141,16 +118,6 @@ public:
 
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -171,67 +138,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
     ///@name Private Operations
     ///@{
 
@@ -254,26 +163,6 @@ private:
 
         return registered_mappers;
     }
-
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{s
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    MapperFactory& operator=(MapperFactory const& rOther);
-
-    //   /// Copy constructor.
-    //   MapperFactory(MapperFactory const& rOther){}
-
 
     ///@}
 
@@ -306,14 +195,6 @@ std::unordered_map<std::string, typename Mapper<SparseSpaceType,
 
     return registered_mappers;
 } */
-
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  MapperFactory& rThis)
-{
-    return rIStream;
-}
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,

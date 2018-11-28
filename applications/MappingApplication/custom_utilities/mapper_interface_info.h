@@ -30,22 +30,6 @@ namespace Kratos
 ///@addtogroup MappingApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -86,7 +70,7 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperInterfaceInfo() {}
+    MapperInterfaceInfo() = default;
 
     MapperInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                         const IndexType SourceLocalSystemIndex,
@@ -97,13 +81,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~MapperInterfaceInfo() {}
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    virtual ~MapperInterfaceInfo() = default;
 
     ///@}
     ///@name Operations
@@ -161,7 +139,6 @@ public:
         return mCoordinates;
     }
 
-
     ///@}
     ///@name Access
     ///@{
@@ -177,12 +154,6 @@ public:
     virtual void GetValue(std::vector<double>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
     virtual void GetValue(std::vector<bool>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
     virtual void GetValue(std::vector<GeometryType>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -200,20 +171,9 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Protected member Variables
     ///@{
 
@@ -223,11 +183,6 @@ protected:
     // These variables are NOT being serialized bcs they are not needed after searching!
     CoordinatesArrayType mCoordinates;
     IndexType mSourceRank = 0;
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -246,44 +201,14 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     bool mIsApproximation = false;
 
     bool mLocalSearchWasSuccessful = false; // this is not being serialized since it is not needed after mpi-data-exchange!
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
 
     ///@}
     ///@name Private  Access
@@ -304,21 +229,6 @@ private:
     }
 
     ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    // MapperInterfaceInfo& operator=(MapperInterfaceInfo const& rOther) {}
-
-    /// Copy constructor.
-    // MapperInterfaceInfo(MapperInterfaceInfo const& rOther) {}
-
-    ///@}
 
 }; // Class MapperInterfaceInfo
 
@@ -326,30 +236,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-// inline std::istream & operator >> (std::istream& rIStream, MapperInterfaceInfo& rThis);
-
-// /// output stream function
-// inline std::ostream & operator << (std::ostream& rOStream, const MapperInterfaceInfo& rThis) {
-// //   rThis.PrintInfo(rOStream);
-//   rOStream << " : " << std::endl;
-// //   rThis.PrintData(rOStream);
-//   return rOStream;
-// }
-
-// /// output stream function
-// inline std::ostream & operator << (std::ostream& rOStream, const std::vector<MapperInterfaceInfo::Pointer>& rThis) {
-// //   rThis.PrintInfo(rOStream);
-//   rOStream << " : " << std::endl;
-// //   rThis.PrintData(rOStream);
-//   return rOStream;
-// }
-
 
 ///@}
 
