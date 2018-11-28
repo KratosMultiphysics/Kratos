@@ -283,3 +283,32 @@ class TemporalInputProcess(KratosMultiphysics.Process):
         fmt = "{:." + str(self._time_tag_precision) + "f}"
         time_tag = "-" + fmt.format(self._model_part.ProcessInfo[KratosMultiphysics.TIME])
         return self._time_step_file_name + time_tag + ".h5"
+
+class InitialInputProcess(KratosMultiphysics.Process):
+    """A process to initialize a simulation using an HDF5 output file."""
+
+    def __init__(self, model_part, hdf5_file_factory, settings):
+        KratosMultiphysics.Process.__init__(self)
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "file_name": "%s"
+            }
+            """ % model_part.Name)
+        settings.ValidateAndAssignDefaults(default_settings)
+        file_name_string = settings["file_name"].GetString()
+
+        self._model_part = model_part
+        self._hdf5_file_factory = hdf5_file_factory
+        self._file_name = self._get_total_file_name(file_name_string)
+        self._list_of_inputs = []
+
+    def AddInput(self,i):
+        self._list_of_inputs.append(i)
+
+    def ExecuteInitialize(self):
+        hdf5_file = self._hdf5_file_factory.Open(self._file_name)
+        for i in self._list_of_inputs:
+            i.Execute(self._model_part, hdf5_file)
+
+    def _get_total_file_name(self, file_name_string):
+        return file_name_string + ".h5"
