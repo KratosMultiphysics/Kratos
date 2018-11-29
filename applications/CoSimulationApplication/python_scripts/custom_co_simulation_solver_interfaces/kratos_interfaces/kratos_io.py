@@ -72,7 +72,7 @@ class KratosIo(CoSimulationBaseIO):
                     mapper.Map(origin_var, dest_var, set_flags)
                 elif(self.HasMapper((dest_geo_name,origin_geo_name))):
                     mapper = self.GetMapper((dest_geo_name,origin_geo_name))
-                    mapper.Map(dest_var, origin_var, set_flags)
+                    mapper.InverseMap(dest_var, origin_var, set_flags)
                 else: # Create the mapper
                     mapper_settings = KratosMultiphysics.Parameters("""{
                                                                         "mapper_type" : ""
