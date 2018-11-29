@@ -24,6 +24,7 @@
 #include "custom_processes/dam_fix_temperature_condition_process.hpp"
 #include "custom_processes/dam_bofang_condition_temperature_process.hpp"
 #include "custom_processes/dam_reservoir_constant_temperature_process.hpp"
+#include "custom_processes/dam_reservoir_monitoring_temperature_process.hpp"
 #include "custom_processes/dam_hydro_condition_load_process.hpp"
 #include "custom_processes/dam_uplift_condition_load_process.hpp"
 #include "custom_processes/dam_uplift_circular_condition_load_process.hpp"
@@ -70,6 +71,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     // Uniform Reservoir Temperature Process
     py::class_<DamReservoirConstantTemperatureProcess, DamReservoirConstantTemperatureProcess::Pointer, Process>
     (m, "DamReservoirConstantTemperatureProcess")
+    .def(py::init < ModelPart&, Parameters&>());
+
+    // Uniform Reservoir Temperature Process
+    py::class_<DamReservoirMonitoringTemperatureProcess, DamReservoirMonitoringTemperatureProcess::Pointer, Process>
+    (m, "DamReservoirMonitoringTemperatureProcess")
     .def(py::init < ModelPart&, Parameters&>());
 
     // Hydrostatic condition

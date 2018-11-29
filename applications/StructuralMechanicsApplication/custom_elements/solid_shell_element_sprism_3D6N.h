@@ -348,6 +348,30 @@ public:
         );
 
     /**
+     * @brief Calculate a boolean Variable on the Element Constitutive Law
+     * @param rVariable The internal variables in the element
+     * @param rOutput The solution (boolean)
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a integer Variable on the Element Constitutive Law
+     * @param rVariable The internal variables in the element
+     * @param rOutput The solution (integer)
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The internal variables in the element
      * @param rOutput The solution (double)

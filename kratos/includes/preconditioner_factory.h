@@ -78,6 +78,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    virtual ~PreconditionerFactory() {}
+
     ///@}
     ///@name Operators
     ///@{

@@ -127,7 +127,6 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())

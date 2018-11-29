@@ -259,7 +259,7 @@ public:
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * @brief calculates the value of a specified variable
+     * @brief It calculates the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -268,6 +268,17 @@ public:
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
+
+    /**
+     * @brief It calculates the value of a specified variable vector
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                           const Variable<Vector>& rThisVariable,
+                           Vector& rValue) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.

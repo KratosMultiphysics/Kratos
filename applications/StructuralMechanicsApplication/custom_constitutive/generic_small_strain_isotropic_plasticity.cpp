@@ -67,90 +67,113 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Integrate Stress plasticity
-    Vector& integrated_stress_vector = rValues.GetStressVector();
-    Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const double characteristic_length = rValues.GetElementGeometry().Length();
+    // Auxiliar values
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
+    // We get the constitutive tensor
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+
+    // We check the current step and NL iteration
+    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
+    const bool first_computation = (r_current_process_info[NL_ITERATION_NUMBER] == 1 && r_current_process_info[STEP] == 1) ? true : false;
+
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        this->CalculateValue(rValues, STRAIN, r_strain_vector);
-    }
-
-    // Elastic Matrix
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-    }
-
-    // We compute the stress
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        // Elastic Matrix
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
-
-        // We get some variables
-        double threshold = this->GetThreshold();
-        double plastic_dissipation = this->GetPlasticDissipation();
-        Vector plastic_strain = this->GetPlasticStrain();
-
-        array_1d<double, VoigtSize> predictive_stress_vector;
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
-            predictive_stress_vector = rValues.GetStressVector();
-        } else {
-            // S0 = r_constitutive_matrix:(E-Ep)
-            predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+    if (first_computation) { // First computation always pure elastic for elemements not providing the strain
+        if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
+            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
 
-        // Initialize Plastic Parameters
-        double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        array_1d<double, VoigtSize> f_flux(VoigtSize, 0.0); // DF/DS
-        array_1d<double, VoigtSize> g_flux(VoigtSize, 0.0); // DG/DS
-        array_1d<double, VoigtSize> plastic_strain_increment(VoigtSize, 0.0);
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+            BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+        }
 
-        TConstLawIntegratorType::CalculatePlasticParameters(
-            predictive_stress_vector, r_strain_vector, uniaxial_stress,
-            threshold, plastic_denominator, f_flux, g_flux,
-            plastic_dissipation, plastic_strain_increment,
-            r_constitutive_matrix, rValues, characteristic_length,
-            plastic_strain);
-
-        const double F = uniaxial_stress - threshold;
-
-        if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
-            noalias(integrated_stress_vector) = predictive_stress_vector;
-
-            this->SetNonConvPlasticDissipation(plastic_dissipation);
-            this->SetNonConvPlasticStrain(plastic_strain);
-            this->SetNonConvThreshold(threshold);
-            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
-
-            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                noalias(tangent_tensor) = r_constitutive_matrix;
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+            Vector& r_stress_vector = rValues.GetStressVector();
+            if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+                noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
+            } else {
+                BaseType::CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
             }
-        } else { // Plastic case
-            // while loop backward euler
-            /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-            TConstLawIntegratorType::IntegrateStressVector(
+        }
+    } else { // We check for plasticity
+
+        // Integrate Stress plasticity
+        Vector& integrated_stress_vector = rValues.GetStressVector();
+        const double characteristic_length = rValues.GetElementGeometry().Length();
+
+        if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
+            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
+        }
+
+        // Elastic Matrix
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+            BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+        }
+
+        // We compute the stress
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+            // Elastic Matrix
+            if( r_constitutive_law_options.IsNot( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+                this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
+            }
+
+            // We get some variables
+            double threshold = this->GetThreshold();
+            double plastic_dissipation = this->GetPlasticDissipation();
+            Vector plastic_strain = this->GetPlasticStrain();
+
+            BoundedArrayType predictive_stress_vector;
+            if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
+                predictive_stress_vector = rValues.GetStressVector();
+            } else {
+                // S0 = r_constitutive_matrix:(E-Ep)
+                predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+            }
+
+            // Initialize Plastic Parameters
+            double uniaxial_stress = 0.0, plastic_denominator = 0.0;
+            BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
+            BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
+            BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+
+            const double F = TConstLawIntegratorType::CalculatePlasticParameters(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
                 threshold, plastic_denominator, f_flux, g_flux,
                 plastic_dissipation, plastic_strain_increment,
-                r_constitutive_matrix, plastic_strain, rValues,
-                characteristic_length);
-            noalias(integrated_stress_vector) = predictive_stress_vector;
+                r_constitutive_matrix, rValues, characteristic_length,
+                plastic_strain);
 
-            this->SetNonConvPlasticDissipation(plastic_dissipation);
-            this->SetNonConvPlasticStrain(plastic_strain);
-            this->SetNonConvThreshold(threshold);
-            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
+            if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
+                noalias(integrated_stress_vector) = predictive_stress_vector;
 
-            if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-                noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
+                if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                    this->SetNonConvPlasticDissipation(plastic_dissipation);
+                    this->SetNonConvPlasticStrain(plastic_strain);
+                    this->SetNonConvThreshold(threshold);
+                    this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, r_current_process_info);
+                }
+            } else { // Plastic case
+                // While loop backward euler
+                /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
+                TConstLawIntegratorType::IntegrateStressVector(
+                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                    threshold, plastic_denominator, f_flux, g_flux,
+                    plastic_dissipation, plastic_strain_increment,
+                    r_constitutive_matrix, plastic_strain, rValues,
+                    characteristic_length);
+                noalias(integrated_stress_vector) = predictive_stress_vector;
+
+                if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                    this->SetNonConvPlasticDissipation(plastic_dissipation);
+                    this->SetNonConvPlasticStrain(plastic_strain);
+                    this->SetNonConvThreshold(threshold);
+                    this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, r_current_process_info);
+
+                    this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                }
             }
         }
     }
