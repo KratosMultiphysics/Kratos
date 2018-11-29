@@ -651,7 +651,6 @@ double MassConservationCheckProcess::ComputeDivergenceAir(){
 }
 
 
-
 double MassConservationCheckProcess::ComputeDivergenceCut(){
 
     double divergenceSum = 0.0;
@@ -705,6 +704,88 @@ double MassConservationCheckProcess::ComputeDivergenceCut(){
             }
         }
         it_elem->SetValueOnIntegrationPoints( DIVERGENCE, ValueVector, mrModelPart.GetProcessInfo() );
+    }
+    return divergenceSum;
+}
+
+
+double MassConservationCheckProcess::ComputeDivergenceCutWaterDistribution(){
+
+    double divergenceSum = 0.0;
+
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+
+        // iteration over all elements
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        auto p_geom = it_elem->pGetGeometry();
+        Vector Distance( p_geom->PointsNumber(), 0.0 );
+
+        const unsigned int numberOfNodes = p_geom->PointsNumber();
+        const unsigned int dim = numberOfNodes - 1;
+
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int NumGauss = IntegrationPoints.size();
+        std::vector<double> ValueVector(NumGauss, 0.0);
+
+        // finding the position relative to the surface
+        unsigned int ptCountPos = 0;
+        unsigned int ptCountNeg = 0;
+        for (unsigned int pt = 0; pt < p_geom->PointsNumber(); pt++){
+            Distance[pt] = (*p_geom)[pt].GetSolutionStepValue( DISTANCE );
+            if ( p_geom->GetPoint(pt).FastGetSolutionStepValue( DISTANCE ) > 0.0 ){
+                ptCountPos++;
+            } else {
+                ptCountNeg++;
+            }
+        }
+
+        if ( ptCountNeg < p_geom->PointsNumber() && ptCountNeg > 0 && ptCountPos < p_geom->PointsNumber() && ptCountPos > 0){
+            // element is cut by the surface
+
+            // finding the area occupied by water
+            ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+            if ( p_geom->PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, Distance); }
+            else if ( p_geom->PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, Distance); }
+            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+
+            Matrix rShapeFunctions;
+            GeometryType::ShapeFunctionsGradientsType rShapeDerivatives;
+            Vector w_gauss_neg_side;
+            double negVol = 0.0;
+
+            // Call the negative side modified shape functions calculator
+            // Object p_modified_sh_func has full knowledge of slit geometry
+            p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+                    rShapeFunctions,                    // N
+                    rShapeDerivatives,                  // DN
+                    w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
+                    GeometryData::GI_GAUSS_1);          // first order Gauss integration
+
+            for ( unsigned int i = 0; i < w_gauss_neg_side.size(); i++){
+                negVol += w_gauss_neg_side[i];
+            }
+
+            // finding the divergence
+            Vector GaussPtsJDet = ZeroVector(NumGauss);
+            GeometryData::ShapeFunctionsGradientsType DN_DX;
+            p_geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
+
+            for (unsigned int i_gauss = 0; i_gauss < NumGauss; i_gauss++){
+
+                const Matrix gp_DN_DX = DN_DX[i_gauss];
+                double DVi_DXi = 0.0;
+
+                for(unsigned int nnode = 0; nnode < p_geom->PointsNumber(); nnode++){
+
+                    const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
+                    for(unsigned int ndim = 0; ndim < dim; ndim++){
+                        DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
+                    }
+                }
+
+                divergenceSum += DVi_DXi * negVol;
+            }
+        }
     }
     return divergenceSum;
 }

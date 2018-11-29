@@ -136,6 +136,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("GetDivergenceWater", &MassConservationCheckProcess::ComputeDivergenceWater)
     .def("GetDivergenceAir", &MassConservationCheckProcess::ComputeDivergenceAir)
     .def("GetDivergenceCut", &MassConservationCheckProcess::ComputeDivergenceCut)
+    .def("GetDivergenceCutWaterDistribution", &MassConservationCheckProcess::ComputeDivergenceCutWaterDistribution)
     ;
 }
 
