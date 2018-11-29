@@ -278,35 +278,35 @@ void ExtendPressureConditionProcess<2>::Execute()
     std::vector<IndexType> ToEraseConditionsId;
     this->GetMaximumConditionIdOnSubmodelPart(maximum_condition_id);
 
-    for (ModelPart::ElementsContainerType::ptr_iterator itElem = mr_model_part.Elements().ptr_begin(); 
-      itElem != mr_model_part.Elements().ptr_end();
-      ++itElem) {
+    for (auto it_elem = mr_model_part.Elements().ptr_begin(); 
+      it_elem != mr_model_part.Elements().ptr_end();
+      ++it_elem) {
         bool condition_is_active = true;
-        if ((*itElem)->IsDefined(ACTIVE)) {
-            condition_is_active = (*itElem)->Is(ACTIVE);
+        if ((*it_elem)->IsDefined(ACTIVE)) {
+            condition_is_active = (*it_elem)->Is(ACTIVE);
         }
-        // itElem's going to be removed
-        if (condition_is_active == false && (*itElem)->GetValue(SMOOTHING) == false) {
+        // it_elem's going to be removed
+        if (condition_is_active == false && (*it_elem)->GetValue(SMOOTHING) == false) {
             unsigned int local_id, counter = 0, pressure_id;
             // Loop over nodes in order to check if there's pressure on nodes
-            for (IndexType i = 0; i < (*itElem)->GetGeometry().PointsNumber(); ++i) {
-                if ((*itElem)->GetGeometry().GetPoint(i).GetValue(PRESSURE_ID) != 0) {
-                    pressure_id = (*itElem)->GetGeometry().GetPoint(i).GetValue(PRESSURE_ID);
+            for (IndexType i = 0; i < (*it_elem)->GetGeometry().PointsNumber(); ++i) {
+                if ((*it_elem)->GetGeometry().GetPoint(i).GetValue(PRESSURE_ID) != 0) {
+                    pressure_id = (*it_elem)->GetGeometry().GetPoint(i).GetValue(PRESSURE_ID);
                     counter++;
                 } else {
                     local_id = i;
                 }
             }
             if (counter == 2) {
-                this->CreateAndAddPressureConditions2(itElem, local_id, pressure_id, maximum_condition_id, ToEraseConditionsId);
+                this->CreateAndAddPressureConditions2(it_elem, local_id, pressure_id, maximum_condition_id, ToEraseConditionsId);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
-                (*itElem)->SetValue(SMOOTHING, true);
+                (*it_elem)->SetValue(SMOOTHING, true);
             } else if (counter == 3) {
-                this->CreateAndAddPressureConditions3(itElem, pressure_id, maximum_condition_id, ToEraseConditionsId);
+                this->CreateAndAddPressureConditions3(it_elem, pressure_id, maximum_condition_id, ToEraseConditionsId);
                 counter_of_affected_nodes++;
                 // We use this flag to enter once on each element
-                (*itElem)->SetValue(SMOOTHING, true);
+                (*it_elem)->SetValue(SMOOTHING, true);
             }
         }
     }
