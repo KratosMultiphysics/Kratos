@@ -3,8 +3,6 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import sys
-
 class TestTimeDiscretization(KratosUnittest.TestCase):
 
     def test_BDF1(self):
