@@ -200,7 +200,7 @@ class ConstructionUtility
 
                 for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                 {
-                    if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
+                    if ((*it_cond_thermal).GetGeometry()[i_node].Is(ACTIVE) == true)
                     {
                         count++;
                     }
@@ -347,7 +347,7 @@ class ConstructionUtility
 
                 for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                 {
-                    if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
+                    if ((*it_cond_thermal).GetGeometry()[i_node].Is(ACTIVE) == true)
                     {
                         count++;
                     }
