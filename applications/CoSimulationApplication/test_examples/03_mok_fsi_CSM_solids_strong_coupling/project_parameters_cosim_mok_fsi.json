@@ -11,19 +11,20 @@
         "name" : "mok_fsi",
         "solver_type" : "gauss_seidel_strong_coupling",
         "echo_level" : 1,
-        "num_coupling_iterations" : 15,
-        "start_coupling_time" : 0.5,
+        "num_coupling_iterations" : 20,
+        "start_coupling_time" : 0.25,
         "convergence_accelerators" :
         [
             {
-                "type"          : "aitken",
+                "type"          : "mvqn",
                 "data" :
                     {
-                        "solver"   : "fluid",
+                        "solver"        : "fluid",
                         "data_name"     : "MESH_DISPLACEMENT"
                     },
                 "settings":{
-                    "initial_alpha" : 0.1
+                    "horizon" : 5,
+                    "alpha" : 0.10
                 }
             }
         ],
@@ -34,7 +35,7 @@
                 {
                     "solver"        : "fluid",
                     "data_name"     : "MESH_DISPLACEMENT",
-                    "abs_tolerance" : 1e-7,
+                    "abs_tolerance" : 1e-6,
                     "rel_tolerance" : 1e-4
                 }
             ]
@@ -44,22 +45,8 @@
         {
             "name": "fluid",
             "input_data_list": [
-                {
-                    "from_solver" : "structure",
-                    "data_name"   : "DISPLACEMENT",
-                    "settings"    : {
-                        "destination_data":"MESH_DISPLACEMENT",
-                        "mapper_settings":{
-                               "type":"nearest_neighbor",
-                               "flags":[]
-                        }
-                    }
-                }
             ],
             "output_data_list": [
-                {
-                    "data_name"   : "REACTION"
-                }
             ]
         },
         {
@@ -79,7 +66,15 @@
             ],
             "output_data_list": [
                 {
-                    "data_name"   : "DISPLACEMENT"
+                    "to_solver" : "fluid",
+                    "data_name"   : "MESH_DISPLACEMENT",
+                    "settings"    : {
+                        "origin_data":"DISPLACEMENT",
+                        "mapper_settings":{
+                               "type":"nearest_neighbor",
+                               "flags":[]
+                        }
+                    }
                 }
             ]
         }
@@ -91,7 +86,7 @@
             {
                 "solver_type" : "kratos_fluid",
                 "settings":{
-                    "working_directory" : ".",
+                    "working_directory" : "CFD",
                     "input_file"  : "ProjectParametersCFD.json"
                 },
                 "io_settings" : {
@@ -114,7 +109,7 @@
             {
                 "solver_type" : "kratos_structural",
                 "settings":{
-                    "working_directory" : ".",
+                    "working_directory" : "CSD",
                     "input_file"  : "ProjectParametersCSM.json"
                 },
                 "io_settings" : {

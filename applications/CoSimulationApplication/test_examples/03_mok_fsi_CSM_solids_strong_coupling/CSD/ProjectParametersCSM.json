@@ -17,10 +17,10 @@
         "scheme_type"                        : "bossak",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "Mok_CSM"
+            "input_filename" : "CSD/Mok_CSM"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "CSD/StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
@@ -28,7 +28,7 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 1e-7,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 50,
+        "max_iteration"                      : 15,
         "problem_domain_sub_model_part_list" : ["Parts_Structure"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet","GENERIC_FSI","PointLoad2D_FSI"],
         "rotation_dofs"                      : false
