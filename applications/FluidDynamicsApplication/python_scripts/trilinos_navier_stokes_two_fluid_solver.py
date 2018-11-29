@@ -29,16 +29,15 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
             "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "reorder": false
             },
             "distance_reading_settings"    : {
-                "import_mode"         : "from_GID_file",
-                "distance_file_name"  : "distance_file"
+                "import_mode"         : "from_mdpa",
+                "distance_file_name"  : "no_distance_file"
             },
             "maximum_iterations": 7,
-            "dynamic_tau": 1.0,
             "echo_level": 0,
-            "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
@@ -46,14 +45,14 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
-            "linear_solver_settings"       : {
-                "solver_type"                        : "MultiLevelSolver",
-                "max_iteration"                      : 200,
-                "tolerance"                          : 1e-6,
-                "max_levels"                         : 3,
-                "symmetric"                          : false,
-                "reform_preconditioner_at_each_step" : true,
-                "scaling"                            : true
+            "linear_solver_settings":   {
+                "solver_type": "AmgclMPISolver",
+                "tolerance": 1.0e-6,
+                "max_iteration": 10,
+                "scaling": false,
+                "verbosity": 0,
+                "preconditioner_type": "None",
+                "krylov_type": "cg"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -65,7 +64,10 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "formulation": {
+                "dynamic_tau": 1.0
+            }
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -197,7 +199,7 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
         (self.solver).Initialize()
         (self.solver).Check()
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
 
 
     def _set_level_set_convection_process(self):
