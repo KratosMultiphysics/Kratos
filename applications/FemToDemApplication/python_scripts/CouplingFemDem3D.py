@@ -840,12 +840,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				associated_dem = self.SpheresModelPart.GetNode(id_node)
 
 				Coordinates    = self.GetNodeCoordinates(fem_node)
-				Velocity_x     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-				Velocity_y     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-				Velocity_z     = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-				Displacement_x = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-				Displacement_y = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
-				Displacement_z = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+				velocity = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+				displacement = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
 
 				# Update Coordinates
 				associated_dem.X = Coordinates[0]
@@ -853,14 +849,14 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				associated_dem.Z = Coordinates[2]
 
 				# Update Displacements
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, Displacement_x)
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, Displacement_y)
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, Displacement_z)
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, displacement[0])
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, displacement[1])
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, displacement[2])
 
 				# Update Velocities
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, Velocity_x)
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, Velocity_y)
-				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, Velocity_z)
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, velocity[0])
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, velocity[1])
+				associated_dem.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, velocity[2])
 
 #============================================================================================================================
 	def PrintPlotsFiles(self):
