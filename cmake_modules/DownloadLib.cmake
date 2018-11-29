@@ -5,7 +5,7 @@ set(__DOWNLIB_INCLUDED TRUE)
 
 function (DownloadLib _name _src)
     message("-- ${_name} not found, trying to download from ${_src}")
-    # file(DOWNLOAD "${_src}" "${CMAKE_SOURCE_DIR}/external_libraries/${_name}.zip")
+    file(DOWNLOAD "${_src}" "${CMAKE_SOURCE_DIR}/external_libraries/${_name}.zip")
     execute_process(
         COMMAND ${CMAKE_COMMAND} 
         -E tar xzf "${CMAKE_SOURCE_DIR}/external_libraries/${_name}.zip"
