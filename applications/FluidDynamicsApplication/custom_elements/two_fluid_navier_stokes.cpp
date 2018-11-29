@@ -240,12 +240,12 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
                                                     const ProcessInfo& rCurrentProcessInfo )
 {
     noalias( rOutput ) = ZeroVector( StrainSize );
-    
+
     if (rVariable == FLUID_STRESS) {
 
         // creating a new data container that goes out of scope after the function is left
         TElementData dataLocal;
-        
+
         // transferring the velocity (among other variables)
         dataLocal.Initialize(*this, rCurrentProcessInfo);
 
@@ -253,7 +253,7 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
         Matrix shape_functions;
         ShapeFunctionDerivativesArrayType shape_derivatives;
 
-        // computing DN_DX values for the strain rate         
+        // computing DN_DX values for the strain rate
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const unsigned int number_of_gauss_points = gauss_weights.size();
 
@@ -1941,6 +1941,41 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
+
+
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
+                                                                        std::vector<double> &rValues,
+                                                                        const ProcessInfo &rCurrentProcessInfo )
+{
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const unsigned int NumGauss = IntegrationPoints.size();
+
+    if (rVariable == DIVERGENCE)
+    {
+        rValues = mDivergence;
+    }
+}
+
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
+{
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+    const unsigned int NumGauss = IntegrationPoints.size();
+
+    if (rVariable == DIVERGENCE)
+    {
+        mDivergence = rValues;
+    }
+}
+
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
