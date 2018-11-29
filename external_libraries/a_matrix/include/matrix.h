@@ -273,6 +273,7 @@ inline std::ostream& operator<<(std::ostream& rOStream,
     return rOStream;
 }
 
+#ifndef AMATRIX_NO_IO_OPERATOR
 template <typename TExpressionType, std::size_t TCategory>
 inline std::ostream& operator<<(std::ostream& rOStream,
     MatrixExpression<TExpressionType, TCategory> const& TheMatrixExpression) {
@@ -288,5 +289,6 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 
     return rOStream;
 }
+#endif
 
 }  // namespace AMatrix
