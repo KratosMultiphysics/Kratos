@@ -10,54 +10,54 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined (KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED)
-#define  KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_EXPONENTIAL_COHESIVE_3D_LAW_H_INCLUDED)
+#define  KRATOS_EXPONENTIAL_COHESIVE_3D_LAW_H_INCLUDED
 
 // System includes
-#include <cmath>
 
 // Project includes
 #include "includes/serializer.h"
-#include "includes/constitutive_law.h"
 
 // Application includes
+#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) BilinearCohesive3DLaw : public ConstitutiveLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) ExponentialCohesive3DLaw : public BilinearCohesive3DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(BilinearCohesive3DLaw);
+    /// Definition of the base class
+    typedef BilinearCohesive3DLaw BaseType;
+
+    KRATOS_CLASS_POINTER_DEFINITION(ExponentialCohesive3DLaw);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default Constructor
-    BilinearCohesive3DLaw()
+    ExponentialCohesive3DLaw()
     {
     }
 
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<BilinearCohesive3DLaw>(BilinearCohesive3DLaw(*this));
+        return Kratos::make_shared<ExponentialCohesive3DLaw>(ExponentialCohesive3DLaw(*this));
     }
 
     // Copy Constructor
-    BilinearCohesive3DLaw (const BilinearCohesive3DLaw& rOther) : ConstitutiveLaw(rOther)
+    ExponentialCohesive3DLaw (const ExponentialCohesive3DLaw& rOther) : BilinearCohesive3DLaw(rOther)
     {
     }
 
     // Destructor
-    ~BilinearCohesive3DLaw() override
+    ~ExponentialCohesive3DLaw() override
     {
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void GetLawFeatures(Features& rFeatures) override;
 
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -65,57 +65,38 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
-    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
-    struct ConstitutiveLawVariables
-    {
-        double CriticalDisplacement;
-        double DamageThreshold;
-        double YieldStress;
-        double YoungModulus;
-        double FrictionCoefficient;
-        double PenaltyStiffness;
-
-        Matrix CompressionMatrix;
-        Matrix WeightMatrix;
-
-        double EquivalentStrain;
-        bool LoadingFlag;
-        double LoadingFunction;
-    };
-
     // Member Variables
-
-    double mStateVariable;
+    double mDamageVariable;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void CheckLoadingFunction(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    void ComputeDamageVariable(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
-    virtual void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                            ConstitutiveLawVariables& rVariables,
-                                            Parameters& rValues);
+    virtual void ComputeCriticalDisplacement(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
-    virtual void ComputeStressVector(Vector& rStressVector,
-                                        ConstitutiveLawVariables& rVariables,
-                                        Parameters& rValues);
+    void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+                                    ConstitutiveLawVariables& rVariables,
+                                    Parameters& rValues) override;
 
+    void ComputeStressVector(Vector& rStressVector,
+                                ConstitutiveLawVariables& rVariables,
+                                Parameters& rValues) override;
+
+    double MacaulayBrackets(const double& Value);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -134,6 +115,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class BilinearCohesive3DLaw
+}; // Class ExponentialCohesive3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED  defined
+#endif // KRATOS_EXPONENTIAL_COHESIVE_3D_LAW_H_INCLUDED  defined
