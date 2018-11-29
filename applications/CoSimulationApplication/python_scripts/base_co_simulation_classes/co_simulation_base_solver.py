@@ -33,7 +33,7 @@ class CoSimulationBaseSolver(object):
         self.SetEchoLevel( self.cosim_solver_settings["echo_level"].IsInt() )
         self.data_list = self._GetDataList()
         self.geo_names = self._GetGeoNames()
-        self.model = cs_data_structure.Model() ## Where all the meshes are stored.
+        self.model = cs_data_structure.Model() ## Where all the co-simulation meshes are stored.
         # This is the map of all the geometries that a solver can have
         self.geometry_map = {}
         self.io_is_initialized = False
