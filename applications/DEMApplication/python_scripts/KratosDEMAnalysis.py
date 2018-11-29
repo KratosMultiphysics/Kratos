@@ -25,7 +25,8 @@ class DEMAnalysisStageWithFlush(DEMAnalysisStage):
                 self.last_flush = now
 
 if __name__ == "__main__":
-
+    from KratosMultiphysics import Logger
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.INFO)
     with open("ProjectParametersDEM.json",'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
