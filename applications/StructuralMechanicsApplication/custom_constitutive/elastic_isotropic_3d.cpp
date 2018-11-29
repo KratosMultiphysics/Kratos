@@ -182,11 +182,9 @@ Vector& ElasticIsotropic3D::CalculateValue(
         Flags& r_flags = rParameterValues.GetOptions();
 
         // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
@@ -195,7 +193,6 @@ Vector& ElasticIsotropic3D::CalculateValue(
         rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }

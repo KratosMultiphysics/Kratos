@@ -948,10 +948,6 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
 
-    // Initialize Constitutive Law
-    mConstitutiveLawVector->InitializeSolutionStep( GetProperties(),
-            rGeom, Variables.N, rCurrentProcessInfo );
-
     mFinalizedStep = false;
 
     const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
@@ -1043,12 +1039,6 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     // Call the constitutive law to update material variables
     mConstitutiveLawVector->FinalizeMaterialResponse(Values, Variables.StressMeasure);
-
-    // Call the constitutive law to finalize the solution step
-    mConstitutiveLawVector->FinalizeSolutionStep( GetProperties(),
-            GetGeometry(),
-            Variables.N,
-            rCurrentProcessInfo );
 
     // Call the element internal variables update
     this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
