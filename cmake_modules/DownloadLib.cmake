@@ -9,7 +9,6 @@ function (DownloadLib _name _src)
     execute_process(
         COMMAND ${CMAKE_COMMAND} 
         -E tar xzf "${CMAKE_SOURCE_DIR}/external_libraries/${_name}.zip"
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external_libraries)"
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/external_libraries")
     message("-- Finish unpacking: ${CMAKE_SOURCE_DIR}/external_libraries/${_name} ")
-    )
 endfunction(DownloadLib)
