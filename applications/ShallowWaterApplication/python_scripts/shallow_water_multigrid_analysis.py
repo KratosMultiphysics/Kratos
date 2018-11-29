@@ -21,10 +21,10 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
 
         self.current_subscale = self._GetSolver()._GetComputingModelPart().ProcessInfo[Meshing.SUBSCALE_INDEX]
         new_parameters = self.project_parameters.Clone() # Create a copy before modifying the parameters
-        self._UpdateModelPartNamesInProcesses()
+        self._UpdateModelPartNamesInParameters()
 
         if self.current_subscale < self.maximum_subgrids:
-            new_parameters["solver_settings"]["multigrid_settings"]["current_subscale"].SetInt(self.current_subscale + 1)
+            self._ModifySubAnalysisParameters(new_parameters)
             self.sub_analysis = ShallowWaterMultigridAnalysis(model, new_parameters)
 
     def Initialize(self):
@@ -39,9 +39,8 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             if self.current_subscale < self.maximum_subgrids:
-                self.sub_analysis.Initialize()
+                self.sub_analysis.end_time = self.time
                 self.sub_analysis.RunSolutionLoop()
-                self.sub_analysis.Finalize()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -50,7 +49,7 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
         if self.current_subscale < self.maximum_subgrids:
             self.sub_analysis.Finalize()
 
-    def _UpdateModelPartNamesInProcesses(self):
+    def _UpdateModelPartNamesInParameters(self):
         # Update the model part name in the processes parameters
         old_model_part_name = self.project_parameters["solver_settings"]["model_part_name"].GetString()
         new_model_part_name = self._GetSolver()._GetComputingModelPart().Name
@@ -62,6 +61,13 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
                         name = process["Parameters"]["model_part_name"].GetString()
                         name = name.replace(old_model_part_name, new_model_part_name)
                         process["Parameters"]["model_part_name"].SetString(name)
+
+    def _ModifySubAnalysisParameters(self, sub_parameters):
+        # Increase the current subscale index
+        sub_parameters["solver_settings"]["multigrid_settings"]["current_subscale"].SetInt(self.current_subscale + 1)
+        # Remove the output processes (there are only output processes on the first level)
+        if sub_parameters.Has("output_processes"):
+            sub_parameters.RemoveValue("output_processes")
 
     # def _GetOrderOfProcessesInitialization(self):
     #     return ["multigrid_process_list",
