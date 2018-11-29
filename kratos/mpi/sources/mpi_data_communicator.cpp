@@ -1407,6 +1407,10 @@ template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<d
 
 template<> inline void* MPIDataCommunicator::MPIBuffer(std::string& rValues) const
 {
+    // Note: this uses the fact that the C++11 standard defines std::strings to
+    // be contiguous in memory to perform MPI communication (based on char*) in place.
+    // In older C++, this cannot be expected to be always the case, so a copy of the
+    // string would be required.
     return const_cast<char *>(rValues.data());
 }
 
