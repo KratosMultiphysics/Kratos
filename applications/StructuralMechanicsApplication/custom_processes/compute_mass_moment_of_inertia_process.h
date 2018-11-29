@@ -6,11 +6,12 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Philipp Bucher
+//                   Salman Yousaf
 //
 
-#if !defined(KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS)
-#define KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS
+#if !defined(KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS)
+#define KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS
 
 // System includes
 
@@ -38,42 +39,39 @@ namespace Kratos
 ///@{
 
 /**
- * @class TotalStructuralMassProcess
+ * @class ComputeMassMomentOfInertiaProcess
  *
  * @ingroup StructuralMechanicsApplication
  *
- * @brief This method computes the total mass of a structure
- * @details It takes into account the nodal-mass, beam, shells and solid elements
+ * @brief This method computes the moment of inertia (rotational)
+ * @details It takes into account all elements in the ModelPart
  *
- * @author Vicente Mataix Ferrandiz
+ * @author Philipp Bucher, Salman Yousaf
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalStructuralMassProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeMassMomentOfInertiaProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TotalStructuralMassProcess
-    KRATOS_CLASS_POINTER_DEFINITION(TotalStructuralMassProcess);
+    /// Pointer definition of ComputeMassMomentOfInertiaProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ComputeMassMomentOfInertiaProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TotalStructuralMassProcess(
-        ModelPart& rThisModelPart
-        ):mrThisModelPart(rThisModelPart)
-    {
-        KRATOS_TRY
-
-        KRATOS_CATCH("")
-    }
+    ComputeMassMomentOfInertiaProcess(
+        ModelPart& rThisModelPart,
+        const Point& rPoint1,
+        const Point& rPoint2
+        ):mrThisModelPart(rThisModelPart) , mrPoint1(rPoint1), mrPoint2(rPoint2)
+    { }
 
     /// Destructor.
-    ~TotalStructuralMassProcess() override
-    = default;
+    ~ComputeMassMomentOfInertiaProcess() override = default;
 
     ///@}
     ///@name Access
@@ -101,8 +99,6 @@ public:
 
     void Execute() override;
 
-    static double CalculateElementMass(Element& rElement, const std::size_t DomainSize);
-
     ///@}
     ///@name Access
     ///@{
@@ -120,13 +116,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "TotalStructuralMassProcess";
+        return "ComputeMassMomentOfInertiaProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "TotalStructuralMassProcess";
+        rOStream << "ComputeMassMomentOfInertiaProcess";
     }
 
     /// Print object's data.
@@ -186,7 +182,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;              // The main model part
+    ModelPart& mrThisModelPart; // The main model part
+    const Point& mrPoint1;      // Point 1 of the axis of rotation
+    const Point& mrPoint2;      // Point 2 of the axis of rotation
 
     ///@}
     ///@name Private Operators
@@ -212,15 +210,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    TotalStructuralMassProcess& operator=(TotalStructuralMassProcess const& rOther) = delete;
+    ComputeMassMomentOfInertiaProcess& operator=(ComputeMassMomentOfInertiaProcess const& rOther) = delete;
 
     /// Copy constructor.
-    TotalStructuralMassProcess(TotalStructuralMassProcess const& rOther) = delete;
+    ComputeMassMomentOfInertiaProcess(ComputeMassMomentOfInertiaProcess const& rOther) = delete;
 
 
     ///@}
 
-}; // Class TotalStructuralMassProcess
+}; // Class ComputeMassMomentOfInertiaProcess
 
 ///@}
 
@@ -234,11 +232,11 @@ private:
 
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   TotalStructuralMassProcess& rThis);
+//                                   ComputeMassMomentOfInertiaProcess& rThis);
 //
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const TotalStructuralMassProcess& rThis)
+//                                   const ComputeMassMomentOfInertiaProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -248,4 +246,4 @@ private:
 // }
 
 }
-#endif /* KRATOS_TOTAL_STRUCTURAL_MASS_PROCESS defined */
+#endif /* KRATOS_COMPUTE_MOMENT_OF_INERTIA_PROCESS defined */
