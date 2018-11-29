@@ -6,7 +6,8 @@
 try :
     import numpy as np
 except ModuleNotFoundError:
-    print(cs_tools.bcolors.FAIL + 'Numpy is not available ! Using python default lists for computation'+ cs_tools.bcolors.ENDC)
+    print(cs_tools.bcolors.FAIL + 'Numpy is not available ! MVQN accelerator needs numpy !'+ cs_tools.bcolors.ENDC)
+    exit()
 
 from base_co_simulation_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
 import co_simulation_tools as cs_tools
@@ -52,7 +53,7 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseConvergenceAccelerator):
                 },
                 "settings":{
                     "horizon" : 15,
-                    "alpha" : 0.30
+                    "alpha" : 0.10
                 }
             }
         """)
@@ -62,20 +63,19 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseConvergenceAccelerator):
     # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
-    def _ComputeUpdate( self, r, x ):
+    def _CalculateUpdate( self, r, x ):
         self.R.appendleft( deepcopy(r) )
         self.X.appendleft( deepcopy(x) )
         col = len(self.R) - 1
         row = len(r)
         k = col
-        print( "Number of new modes: ", col )
 
         ## For the first iteration
         if k == 0:
             if self.J == []:
-            return self.alpha * r  # if no Jacobian, do relaxation
+                return self.alpha * r  # if no Jacobian, do relaxation
             else:
-            return np.linalg.solve( self.J, -r ) # use the Jacobian from previous step
+                return np.linalg.solve( self.J, -r ) # use the Jacobian from previous step
 
         ## Let the initial Jacobian correspond to a constant relaxation
         if self.J == []:
@@ -97,7 +97,7 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseConvergenceAccelerator):
         ## Solve least norm problem
         rhs = V - np.dot(self.J, W)
         b = np.identity( row )
-        W_right_inverse = np.linalg.lstsq(W, b)[0]
+        W_right_inverse = np.linalg.lstsq(W, b, rcond=None)[0]
         J_tilde = np.dot(rhs, W_right_inverse)
         self.J_hat = self.J + J_tilde
         delta_r = -self.R[0]
@@ -143,7 +143,7 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseConvergenceAccelerator):
     def FinalizeNonLinearIteration(self):
         self.output_data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
         residual = self._CalculateResidual()
-        self.update = self._CalculateUpdate(residual, self.output_data_current_iter)
+        self.update = self._CalculateUpdate(residual, np.array(self.input_data_current_iter))
         self._ApplyRelaxationToData()
         self.iteration = self.iteration + 1
 
@@ -167,13 +167,20 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseConvergenceAccelerator):
     #                       residual = output_data_current_iter - input_data_current_iter
     def _CalculateResidual(self):
         if(self.iteration == 0):
-            self.output_data_current_iter
-            return
+            return np.array( self.output_data_current_iter )
 
-        return self._Difference(self.output_data_current_iter , self.input_data_current_iter)
+        return np.array( self._Difference(self.output_data_current_iter , self.input_data_current_iter) )
 
     ## _ApplyRelaxationToData : updates the data with the update calculated
     #
     def _ApplyRelaxationToData(self):
         updated_data = [ input_data + update  for input_data, update in zip(self.input_data_current_iter, self.update)]
         cs_tools.ApplyUpdateToData(self.solver, self.data_name, updated_data)
+
+
+    ## _Difference : Calculates the difference of two vectors provided in terms of python lists
+    #
+    def _Difference(self, list_one, list_two):
+        diff = [ i-j for i,j in zip(list_one, list_two)]
+
+        return diff
