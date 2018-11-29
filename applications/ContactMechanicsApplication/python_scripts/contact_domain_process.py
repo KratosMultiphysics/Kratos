@@ -25,7 +25,12 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         self.main_model_part = self.model[self.settings["model_part_name"].GetString()]
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
-
+        # mesh mesher initial values
+        self.remesh_domains_active = False
+        for domain in self.meshing_domains:
+            if( domain.Active() ):
+                self.remesh_domains_active = True
+                
         # check restart
         self.restart = False
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
@@ -39,17 +44,19 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
 
         # execute initialize base class
-        if( self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):
+        if( self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):            
             # self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False
-            self.InitializeDomains()
-            print(" initialize domains ")
+            if( self.remesh_domains_active ):
+                self.InitializeDomains()
+                print(" initialize domains ")
 
-        # initialize contact domains
-        for domain in self.meshing_domains:
-            domain.SetEchoLevel(self.echo_level)
-            domain.Initialize()
+        if( self.remesh_domains_active ):
+            # initialize contact domains
+            for domain in self.meshing_domains:
+                domain.SetEchoLevel(self.echo_level)
+                domain.Initialize()
 
-        if self.restart:
+        if( self.remesh_domains_active ):
             self.RemeshDomains()
 
         print(self._class_prefix()+" Ready")
