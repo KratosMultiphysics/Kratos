@@ -37,8 +37,7 @@ PlasticityIsotropicKinematicJ2::PlasticityIsotropicKinematicJ2(const PlasticityI
 
 ConstitutiveLaw::Pointer PlasticityIsotropicKinematicJ2::Clone() const
 {
-    PlasticityIsotropicKinematicJ2::Pointer p_clone(new PlasticityIsotropicKinematicJ2(*this));
-    return p_clone;
+    return Kratos::make_shared<PlasticityIsotropicKinematicJ2>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
