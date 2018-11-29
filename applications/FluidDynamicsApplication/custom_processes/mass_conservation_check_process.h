@@ -165,6 +165,8 @@ public:
 
     double ComputeDivergenceAir();
 
+    double ComputeDivergenceCut();
+
     void ShiftDistanceField( double deltaDist );
 
 

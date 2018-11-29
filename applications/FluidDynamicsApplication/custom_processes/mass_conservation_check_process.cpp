@@ -548,6 +548,10 @@ double MassConservationCheckProcess::ComputeDivergenceWater(){
         const unsigned int numberOfNodes = p_geom->PointsNumber();
         const unsigned int dim = numberOfNodes - 1;
 
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int NumGauss = IntegrationPoints.size();
+        std::vector<double> ValueVector(NumGauss, 0.0);
+
         unsigned int ptCountPos = 0;
         unsigned int ptCountNeg = 0;
         for (unsigned int pt = 0; pt < p_geom->PointsNumber(); pt++){
@@ -561,8 +565,6 @@ double MassConservationCheckProcess::ComputeDivergenceWater(){
 
         if ( ptCountNeg == p_geom->PointsNumber() ){
             // element is complete filled with water
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
-            const unsigned int NumGauss = IntegrationPoints.size();
             Vector GaussPtsJDet = ZeroVector(NumGauss);
             GeometryData::ShapeFunctionsGradientsType DN_DX;
             p_geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
@@ -577,13 +579,14 @@ double MassConservationCheckProcess::ComputeDivergenceWater(){
                     const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
                     for(unsigned int ndim = 0; ndim < dim; ndim++){
                         DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
-
                     }
                 }
 
                 divergenceSum += DVi_DXi * GaussPtsJDet[i_gauss];
+                ValueVector[i_gauss] = DVi_DXi;
             }
         }
+        it_elem->SetValueOnIntegrationPoints( DIVERGENCE, ValueVector, mrModelPart.GetProcessInfo() );
     }
     return divergenceSum;
 }
@@ -603,6 +606,10 @@ double MassConservationCheckProcess::ComputeDivergenceAir(){
         const unsigned int numberOfNodes = p_geom->PointsNumber();
         const unsigned int dim = numberOfNodes - 1;
 
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int NumGauss = IntegrationPoints.size();
+        std::vector<double> ValueVector(NumGauss, 0.0);
+
         unsigned int ptCountPos = 0;
         unsigned int ptCountNeg = 0;
         for (unsigned int pt = 0; pt < p_geom->PointsNumber(); pt++){
@@ -616,8 +623,6 @@ double MassConservationCheckProcess::ComputeDivergenceAir(){
 
         if ( ptCountPos == p_geom->PointsNumber() ){
             // element is complete filled with water
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
-            const unsigned int NumGauss = IntegrationPoints.size();
             Vector GaussPtsJDet = ZeroVector(NumGauss);
             GeometryData::ShapeFunctionsGradientsType DN_DX;
             p_geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
@@ -632,17 +637,77 @@ double MassConservationCheckProcess::ComputeDivergenceAir(){
                     const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
                     for(unsigned int ndim = 0; ndim < dim; ndim++){
                         DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
-
                     }
                 }
 
                 divergenceSum += DVi_DXi * GaussPtsJDet[i_gauss];
+                ValueVector[i_gauss] = DVi_DXi;
             }
         }
+
+        it_elem->SetValueOnIntegrationPoints( DIVERGENCE, ValueVector, mrModelPart.GetProcessInfo() );
     }
     return divergenceSum;
 }
 
+
+
+double MassConservationCheckProcess::ComputeDivergenceCut(){
+
+    double divergenceSum = 0.0;
+
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+
+        // iteration over all elements
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        auto p_geom = it_elem->pGetGeometry();
+        Vector Distance( p_geom->PointsNumber(), 0.0 );
+
+        const unsigned int numberOfNodes = p_geom->PointsNumber();
+        const unsigned int dim = numberOfNodes - 1;
+
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int NumGauss = IntegrationPoints.size();
+        std::vector<double> ValueVector(NumGauss, 0.0);
+
+        unsigned int ptCountPos = 0;
+        unsigned int ptCountNeg = 0;
+        for (unsigned int pt = 0; pt < p_geom->PointsNumber(); pt++){
+            Distance[pt] = (*p_geom)[pt].GetSolutionStepValue( DISTANCE );
+            if ( p_geom->GetPoint(pt).FastGetSolutionStepValue( DISTANCE ) > 0.0 ){
+                ptCountPos++;
+            } else {
+                ptCountNeg++;
+            }
+        }
+
+        if ( ptCountNeg < p_geom->PointsNumber() && ptCountNeg > 0 && ptCountPos < p_geom->PointsNumber() && ptCountPos > 0){
+            // element is complete filled with water
+            Vector GaussPtsJDet = ZeroVector(NumGauss);
+            GeometryData::ShapeFunctionsGradientsType DN_DX;
+            p_geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
+
+            for (unsigned int i_gauss = 0; i_gauss < NumGauss; i_gauss++){
+
+                const Matrix gp_DN_DX = DN_DX[i_gauss];
+                double DVi_DXi = 0.0;
+
+                for(unsigned int nnode = 0; nnode < p_geom->PointsNumber(); nnode++){
+
+                    const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
+                    for(unsigned int ndim = 0; ndim < dim; ndim++){
+                        DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
+                    }
+                }
+
+                divergenceSum += DVi_DXi * GaussPtsJDet[i_gauss];
+                ValueVector[i_gauss] = DVi_DXi;
+            }
+        }
+        it_elem->SetValueOnIntegrationPoints( DIVERGENCE, ValueVector, mrModelPart.GetProcessInfo() );
+    }
+    return divergenceSum;
+}
 
 
 
