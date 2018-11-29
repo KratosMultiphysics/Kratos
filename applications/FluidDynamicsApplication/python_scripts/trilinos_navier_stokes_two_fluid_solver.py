@@ -8,7 +8,6 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
 
 # Import applications
-import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
 
@@ -74,8 +73,8 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
         return settings
 
     def __init__(self, model, custom_settings):
-        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        super(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
+        # (!!!) Note: deliberately calling the constructor of the base python solver (the parent of my parent)
+        super(NavierStokesMPITwoFluidSolver, self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
