@@ -79,8 +79,8 @@ namespace Kratos
 
         /// Constructor
         BrepModel(
-            int& brep_id,
-            double& model_tolerance,
+            const int brep_id,
+            const double model_tolerance,
             std::vector<BrepFace>& faces,
             std::vector<BrepEdge>& edges,
             std::vector<BrepVertex>& vertices);

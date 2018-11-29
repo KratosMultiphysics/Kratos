@@ -52,7 +52,7 @@ namespace Kratos
         for (int brep_i = 0; brep_i < rNurbsBrepGeometryJson["breps"].size(); brep_i++)
         {
             Parameters brep_json = rNurbsBrepGeometryJson["breps"][brep_i];
-            int brep_brep_id = brep_json["brep_id"].GetInt();
+            const int brep_brep_id = brep_json["brep_id"].GetInt();
 
             std::vector<BrepFace>   faces_vector;
             std::vector<BrepEdge>   edges_vector;

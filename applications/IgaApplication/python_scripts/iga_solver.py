@@ -170,7 +170,10 @@ class IgaSolver(PythonSolver):
         # Check and prepare computing model part and import constitutive laws.
         self._execute_after_reading()
 
-        self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+        physics_file = open(self.settings["model_import_settings"]["physics_filename"].GetString(),'r')
+        physics_parameters = KratosMultiphysics.Parameters( physics_file.read())
+
+        self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, physics_parameters)
 
         self._set_and_fill_buffer()
 
@@ -204,7 +207,7 @@ class IgaSolver(PythonSolver):
         self.get_iga_solution_strategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_iga_solution_strategy().SolveSolutionStep()
+        is_converged = self.get_iga_solution_strategy().Solve()
         return is_converged
 
     def FinalizeSolutionStep(self):
