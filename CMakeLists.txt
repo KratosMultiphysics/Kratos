@@ -242,7 +242,7 @@ if(Boost_FOUND)
   message("-- Boost found in ${BOOST_INCLUDE_DIRS}")
 else(Boost_FOUND)
     DownloadLib("Boost" "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.zip")
-    set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
+    set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost_1_67_0")
     find_package(Boost)
 endif(Boost_FOUND)
 
