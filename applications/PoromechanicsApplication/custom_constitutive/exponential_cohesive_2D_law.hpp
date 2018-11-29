@@ -10,51 +10,56 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined (KRATOS_BILINEAR_COHESIVE_2D_LAW_H_INCLUDED)
-#define  KRATOS_BILINEAR_COHESIVE_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_EXPONENTIAL_COHESIVE_2D_LAW_H_INCLUDED)
+#define  KRATOS_EXPONENTIAL_COHESIVE_2D_LAW_H_INCLUDED
+
+// System includes
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
+#include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) BilinearCohesive2DLaw : public BilinearCohesive3DLaw
+class KRATOS_API(POROMECHANICS_APPLICATION) ExponentialCohesive2DLaw : public ExponentialCohesive3DLaw
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(BilinearCohesive2DLaw);
+    /// Definition of the base class
+    typedef ExponentialCohesive3DLaw BaseType;
+
+    KRATOS_CLASS_POINTER_DEFINITION(ExponentialCohesive2DLaw);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default Constructor
-    BilinearCohesive2DLaw()
+    ExponentialCohesive2DLaw()
     {
     }
 
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<BilinearCohesive2DLaw>(BilinearCohesive2DLaw(*this));
+        return Kratos::make_shared<ExponentialCohesive2DLaw>(ExponentialCohesive2DLaw(*this));
     }
 
     // Copy Constructor
-    BilinearCohesive2DLaw (const BilinearCohesive2DLaw& rOther) : BilinearCohesive3DLaw(rOther)
+    ExponentialCohesive2DLaw (const ExponentialCohesive2DLaw& rOther) : ExponentialCohesive3DLaw(rOther)
     {
     }
 
     // Destructor
-    ~BilinearCohesive2DLaw() override
+    ~ExponentialCohesive2DLaw() override
     {
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void GetLawFeatures(Features& rFeatures) override;
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -64,15 +69,15 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
+
     void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
+
+    void ComputeCriticalDisplacement(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
     void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
                                     ConstitutiveLawVariables& rVariables,
                                     Parameters& rValues) override;
-
-    void ComputeStressVector(Vector& rStressVector,
-                                ConstitutiveLawVariables& rVariables,
-                                Parameters& rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -92,6 +97,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-}; // Class BilinearCohesive2DLaw
+}; // Class ExponentialCohesive2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_BILINEAR_COHESIVE_2D_LAW_H_INCLUDED  defined
+#endif // KRATOS_EXPONENTIAL_COHESIVE_2D_LAW_H_INCLUDED  defined
