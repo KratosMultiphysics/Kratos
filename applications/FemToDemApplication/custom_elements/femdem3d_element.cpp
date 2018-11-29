@@ -119,7 +119,7 @@ void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	const Vector damage_edges = this->GetDamages();
 	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
 	if (damage_edges[0] + damage_edges[1] + damage_edges[2] + 
-	 damage_edges[3] + damage_edges[4] + damage_edges[5] + < std::numeric_limits<double>::epsilon()) {
+	 damage_edges[3] + damage_edges[4] + damage_edges[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
 			this->SetConvergedDamages(damage_element, edge);
 		}
