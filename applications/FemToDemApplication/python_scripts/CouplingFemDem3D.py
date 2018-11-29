@@ -18,6 +18,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 #============================================================================================================================
 	def Initialize(self):
+		self.number_of_nodes_element = 4
 		self.FEM_Solution.Initialize()
 		self.DEM_Solution.Initialize()
 
@@ -192,7 +193,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				is_active = Element.Is(KratosMultiphysics.ACTIVE)
 
 			NumberOfDEM = 0         # Number of nodes with DEM Associated
-			for node in range(0, 4): # Loop over nodes of the FE
+			for node in range(0, self.number_of_nodes_element): # Loop over nodes of the FE
 				Node = Element.GetNodes()[node]
 				if Node.GetValue(KratosFemDem.IS_DEM) == True:
 					NumberOfDEM += 1
@@ -875,7 +876,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		if self.FEM_Solution.time - self.TimePreviousPlotting >= interval:
 
 			for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"].size()):
-
 				IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_displacement"][index].GetInt()
 				node = self.FEM_Solution.main_model_part.GetNode(IdNode)
 				TotalDisplacement_x += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
@@ -883,7 +883,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				TotalDisplacement_z += node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
 
 			for index in range(0, self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"].size()):
-
 				IdNode = self.FEM_Solution.ProjectParameters["list_of_nodes_reaction"][index].GetInt()
 				node = self.FEM_Solution.main_model_part.GetNode(IdNode)
 				TotalReaction_x += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
@@ -892,8 +891,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			self.PlotFile = open("PlotFile.txt","a")
 			self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_x).rjust(11) + 
-				"    " + "{0:.4e}".format(TotalDisplacement_y).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_z).rjust(11)+ "    " + "{0:.4e}".format(TotalReaction_x).rjust(11) +
-				"    " + "{0:.4e}".format(TotalReaction_y).rjust(11) + "    " + "{0:.4e}".format(TotalReaction_z).rjust(11) + "\n")
+				"    " + "{0:.4e}".format(TotalDisplacement_y).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_z).rjust(11) +
+				"    " + "{0:.4e}".format(TotalReaction_x).rjust(11) + "    " + "{0:.4e}".format(TotalReaction_y).rjust(11) + "    " +
+				"{0:.4e}".format(TotalReaction_z).rjust(11) + "\n")
 
 			self.PlotFile.close()
 
@@ -903,24 +903,27 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				NumNodes = self.FEM_Solution.ProjectParameters["watch_nodes_list"].size()
 
 				for inode in range(0, NumNodes):
-
 					IdNode = self.PlotFilesNodesIdList[inode]
 					node = self.FEM_Solution.main_model_part.GetNode(IdNode)
-
 					self.PlotFilesNodesList[inode] = open("PlotNode_" + str(IdNode) + ".txt", "a")
 
-					dx = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-					dy = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
-					dz = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
-					Rx = node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
-					Ry = node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
-					Rz = node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
-					vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-					vy = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-					vz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-					ax = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_X)
-					ay = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y)
-					az = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Z)
+					displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+					velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+					reaction = node.GetSolutionStepValue(KratosMultiphysics.REACTION)
+					acceleration = node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION)
+
+					dx = displacement[0]
+					dy = displacement[1]
+					dz = displacement[2]
+					Rx = reaction[0]
+					Ry = reaction[1]
+					Rz = reaction[2]
+					vx = velocity[0]
+					vy = velocity[1]
+					vz = velocity[2]
+					ax = acceleration[0]
+					ay = acceleration[1]
+					az = acceleration[2]
 
 					self.PlotFilesNodesList[inode].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
 					 "{0:.4e}".format(dx).rjust(11) + "    " + "{0:.4e}".format(dy).rjust(11) + "    " + "{0:.4e}".format(dz).rjust(11) + "    " + 
@@ -932,29 +935,28 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			# print the selected element files
 			if self.FEM_Solution.ProjectParameters["watch_elements_list"].size() != 0:
-
 				NumElem = self.FEM_Solution.ProjectParameters["watch_elements_list"].size()
-
 				for iElem in range(0, NumElem):
-
 					Idelem = self.PlotFilesElementsIdList[iElem]
 					Elem = self.FEM_Solution.main_model_part.GetElement(Idelem)
-
 					self.PlotFilesElementsList[iElem] = open("PlotElement_" + str(Idelem) + ".txt","a")
 
-					Sxx = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)[0][0]
-					Syy = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)[0][1]
-					Szz = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)[0][2]
-					Sxy = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)[0][3]
-					Syz = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)[0][4]
-					Sxz = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)[0][5]
+					stress_tensor = Elem.GetValuesOnIntegrationPoints(KratosFemDem.STRESS_VECTOR_INTEGRATED, self.FEM_Solution.main_model_part.ProcessInfo)
+					strain_tensor = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)
 
-					Exx = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)[0]
-					Eyy = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)[1]
-					Ezz = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)[2]
-					Exy = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)[3]
-					Eyz = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)[4]
-					Exz = Elem.GetValue(KratosFemDem.STRAIN_VECTOR)[5]
+					Sxx = stress_tensor[0][0]
+					Syy = stress_tensor[0][1]
+					Szz = stress_tensor[0][2]
+					Sxy = stress_tensor[0][3]
+					Syz = stress_tensor[0][4]
+					Sxz = stress_tensor[0][5]
+
+					Exx = strain_tensor[0]
+					Eyy = strain_tensor[1]
+					Ezz = strain_tensor[2]
+					Exy = strain_tensor[3]
+					Eyz = strain_tensor[4]
+					Exz = strain_tensor[5]
 
 					damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
 
