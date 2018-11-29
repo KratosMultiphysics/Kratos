@@ -1,4 +1,4 @@
-try:
+try: 
     import KratosMultiphysics
     # Check that applications were imported in the main script
     KratosMultiphysics.CheckRegisteredApplications("CoSimulationApplication")
