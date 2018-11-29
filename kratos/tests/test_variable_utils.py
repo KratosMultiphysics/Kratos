@@ -344,7 +344,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
     def test_sum_variable(self):
         current_model = Model()
-        
+
         ##set the model part
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DENSITY)
@@ -410,6 +410,98 @@ class TestVariableUtils(KratosUnittest.TestCase):
         self.assertAlmostEqual(elem_vect[0], 4.0, delta=1e-6)
         self.assertAlmostEqual(elem_vect[1], 8.0, delta=1e-6)
         self.assertAlmostEqual(elem_vect[2], 12.0, delta=1e-6)
+
+    def test_UpdateCurrentToInitialConfiguration(self):
+        current_model = Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DENSITY)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ##set the reference model part
+        ref_model_part = current_model.CreateModelPart("Reference")
+        ref_model_part.AddNodalSolutionStepVariable(DENSITY)
+        ref_model_part.AddNodalSolutionStepVariable(VELOCITY)
+        ref_model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        ref_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        ref_model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        ref_model_part_io.ReadModelPart(ref_model_part)
+
+        dx = 0.1
+        dy = -0.2
+        dz = 0.3
+
+        # update the current configuration, ONLY in master_mp, NOT in the reference
+        for node in model_part.Nodes:
+            node.X += dx
+            node.Y += dy
+            node.Z += dz
+
+        VariableUtils().UpdateCurrentToInitialConfiguration(model_part.Nodes)
+
+        # we set the updated configuration back to the initial configuration
+        # therefore testing against the initial configuration of the reference MP
+        for node, node_ref in zip(model_part.Nodes, ref_model_part.Nodes):
+            self.assertAlmostEqual(node.X0, node_ref.X0)
+            self.assertAlmostEqual(node.Y0, node_ref.Y0)
+            self.assertAlmostEqual(node.Z0, node_ref.Z0)
+
+            self.assertAlmostEqual(node.X, node_ref.X0)
+            self.assertAlmostEqual(node.Y, node_ref.Y0)
+            self.assertAlmostEqual(node.Z, node_ref.Z0)
+
+
+    def test_UpdateInitialToCurrentConfiguration(self):
+        current_model = Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DENSITY)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        ##set the reference model part
+        ref_model_part = current_model.CreateModelPart("Reference")
+        ref_model_part.AddNodalSolutionStepVariable(DENSITY)
+        ref_model_part.AddNodalSolutionStepVariable(VELOCITY)
+        ref_model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        ref_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        ref_model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        ref_model_part_io.ReadModelPart(ref_model_part)
+
+        dx = 0.1
+        dy = -0.2
+        dz = 0.3
+
+        # update the current configuration, in BOTH ModelParts!
+        for node, node_ref in zip(model_part.Nodes, ref_model_part.Nodes):
+            node.X += dx
+            node.Y += dy
+            node.Z += dz
+            node_ref.X += dx
+            node_ref.Y += dy
+            node_ref.Z += dz
+
+        VariableUtils().UpdateInitialToCurrentConfiguration(model_part.Nodes)
+
+        # we set the initial configuration to be the same as the current configuration
+        # therefore testing against the current configuration of the reference MP
+        for node, node_ref in zip(model_part.Nodes, ref_model_part.Nodes):
+            self.assertAlmostEqual(node.X0, node_ref.X)
+            self.assertAlmostEqual(node.Y0, node_ref.Y)
+            self.assertAlmostEqual(node.Z0, node_ref.Z)
+
+            self.assertAlmostEqual(node.X, node_ref.X)
+            self.assertAlmostEqual(node.Y, node_ref.Y)
+            self.assertAlmostEqual(node.Z, node_ref.Z)
 
 
 if __name__ == '__main__':

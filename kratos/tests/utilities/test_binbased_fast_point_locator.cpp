@@ -36,8 +36,7 @@ namespace Kratos
         * Checks the correct work of the binbased fast point locator
         * Test triangle 
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestBinBasedFastPointLocator1, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator1, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
@@ -118,8 +117,7 @@ namespace Kratos
         * Checks the correct work of the binbased fast point locator
         * Test tetrahedra
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestBinBasedFastPointLocator2, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator2, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
@@ -279,7 +277,7 @@ namespace Kratos
         * Test triangle for conditions
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestBinBasedFastPointLocator3, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(BinBasedFastPointLocator3, KratosCoreFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("test_model_part",2);

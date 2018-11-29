@@ -2,9 +2,9 @@
     "problem_data"         : {
         "problem_name"         : "pfem2_primitive_variables",
         "domain_size"          : 2,
-        "echo_level"           : 1,
+        "echo_level"           : 0,
         "start_time"           : 0.0,
-        "end_time"             : 1.0,
+        "end_time"             : 0.5,
         "parallel_type"        : "OpenMP",
         "number_of_threads"    : 1
     },
@@ -17,11 +17,11 @@
         "water_height_scale"       : "meters",
         "model_import_settings"    : {
             "input_type"               : "mdpa",
-            "input_filename"           : "element_tests/pfem2_primitive_variables"
+            "input_filename"           : "element_tests/square_domain"
         },
         "echo_level"               : 0,
         "buffer_size"              : 2,
-        "dynamic_tau"              : 0.0005,
+        "dynamic_tau"              : 0.005,
         "relative_tolerance"       : 1.0E-6,
         "absolute_tolerance"       : 1.0E-9,
         "maximum_iterations"       : 20,
@@ -81,7 +81,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "main_model_part.Initial_water_level-auto-1",
                 "variable_name"   : "HEIGHT",
-                "value"           : "1"
+                "value"           : "5"
             }
         }],
         "boundary_conditions_process_list"  : [{
@@ -104,7 +104,7 @@
                 "model_part_name" : "main_model_part.Imposed_flux-auto-2",
                 "variable_name"   : "VELOCITY",
                 "modulus"         : 0.0,
-                "direction"       : [6.123233995736766e-17, 1.0, 0.0],
+                "direction"       : [0.0, 1.0, 0.0],
                 "is_fixed_x"      : false,
                 "is_fixed_y"      : true
             }
@@ -117,6 +117,37 @@
                 "model_part_name" : "main_model_part.Body_Part-auto-1",
                 "variable_name"   : "BATHYMETRY",
                 "value"           : "z"
+            }
+        }],
+        "json_output_and_check_process" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part",
+                "check_variables" : ["HEIGHT"],
+                "input_file_name" : "element_tests/test_pfem2_primitive_element.json",
+                "time_frequency"  : 0.5
+            }
+        }]
+    },
+    "copy_the_process_into___processes___to_generate_or check_the_results_file" : {
+        "json_output_and_check_process" : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "json_output_process",
+            "Parameters"      : {
+                "model_part_name"  : "main_model_part",
+                "output_variables" : ["HEIGHT"],
+                "output_file_name" : "element_tests/test_pfem2_primitive_element.json",
+                "time_frequency"   : 0.5
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "from_json_check_result_process",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part",
+                "check_variables" : ["HEIGHT"],
+                "input_file_name" : "element_tests/test_pfem2_primitive_element.json",
+                "time_frequency"  : 0.5
             }
         }]
     }

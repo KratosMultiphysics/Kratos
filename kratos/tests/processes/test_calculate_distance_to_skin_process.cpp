@@ -363,5 +363,125 @@ namespace Kratos {
 		KRATOS_CHECK_NEAR(volume_part.GetNode(3).GetSolutionStepValue(DISTANCE), 0.968496, 1e-6);
 		KRATOS_CHECK_NEAR(volume_part.GetNode(4).GetSolutionStepValue(DISTANCE), 0.52827, 1e-6);
 	}
+
+    KRATOS_TEST_CASE_IN_SUITE(DistanceProcessDoubleEmbeddedVariable, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, -0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, -0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3,  0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4,  0.5, -0.5, 0.0);
+
+        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+        Parameters mesher_parameters(R"(
+        {
+            "number_of_divisions": 7,
+            "element_name": "Element2D3N"
+        })");
+
+        ModelPart& volume_part = current_model.CreateModelPart("Volume");
+        volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        volume_part.AddNodalSolutionStepVariable(TEMPERATURE);
+        StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+        // Generate the cube skin
+        const double cube_radious = 0.25;
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.AddNodalSolutionStepVariable(TEMPERATURE);
+        skin_part.CreateNewNode(1, -cube_radious, -cube_radious, 0.0);
+        skin_part.CreateNewNode(2, -cube_radious,  cube_radious, 0.0);
+        skin_part.CreateNewNode(3,  cube_radious,  cube_radious, 0.0);
+        skin_part.CreateNewNode(4,  cube_radious, -cube_radious, 0.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element2D2N",  1, {{1,2}}, p_properties);
+        skin_part.CreateNewElement("Element2D2N",  2, {{2,3}}, p_properties);
+        skin_part.CreateNewElement("Element2D2N",  3, {{3,4}}, p_properties);
+        skin_part.CreateNewElement("Element2D2N",  4, {{4,1}}, p_properties);
+
+        // Set the embedded cube double variable
+        for (auto &i_node : skin_part.Nodes()) {
+            i_node.FastGetSolutionStepValue(TEMPERATURE) = 1.0;
+        }
+
+        // Compute the discontinuous distance function
+        CalculateDistanceToSkinProcess<2> dist_proc(volume_part, skin_part);
+        dist_proc.Execute();
+        dist_proc.CalculateEmbeddedVariableFromSkin(TEMPERATURE, TEMPERATURE);
+
+        // Check values
+        KRATOS_CHECK_NEAR(volume_part.GetElement(16).GetValue(TEMPERATURE), 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(17).GetValue(TEMPERATURE), 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(68).GetValue(TEMPERATURE), 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(TEMPERATURE), 0.0, 1e-6);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DistanceProcessArrayEmbeddedVariable, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
+        Node<3>::Pointer p_point_1 = Kratos::make_shared<Node<3>>(1, -0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_shared<Node<3>>(2, -0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_shared<Node<3>>(3,  0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_shared<Node<3>>(4,  0.5, -0.5, 0.0);
+
+        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+        Parameters mesher_parameters(R"(
+        {
+            "number_of_divisions": 7,
+            "element_name": "Element2D3N"
+        })");
+
+        ModelPart& volume_part = current_model.CreateModelPart("Volume");
+        volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+        // Generate the cube skin
+        const double cube_radious = 0.25;
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.AddNodalSolutionStepVariable(VELOCITY);
+        skin_part.CreateNewNode(1, -cube_radious, -cube_radious, 0.0);
+        skin_part.CreateNewNode(2, -cube_radious,  cube_radious, 0.0);
+        skin_part.CreateNewNode(3,  cube_radious,  cube_radious, 0.0);
+        skin_part.CreateNewNode(4,  cube_radious, -cube_radious, 0.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element2D2N",  1, {{1,2}}, p_properties);
+        skin_part.CreateNewElement("Element2D2N",  2, {{2,3}}, p_properties);
+        skin_part.CreateNewElement("Element2D2N",  3, {{3,4}}, p_properties);
+        skin_part.CreateNewElement("Element2D2N",  4, {{4,1}}, p_properties);
+
+        // Set the embedded cube array variable
+        array_1d<double,3> velocity = ZeroVector(3);
+        velocity[0] = 1.0;
+        velocity[1] = 1.0;
+        for (auto &i_node : skin_part.Nodes()) {
+            i_node.FastGetSolutionStepValue(VELOCITY) = velocity;
+        }
+
+        // Compute the discontinuous distance function
+        CalculateDistanceToSkinProcess<2> dist_proc(volume_part, skin_part);
+        dist_proc.Execute();
+        dist_proc.CalculateEmbeddedVariableFromSkin(VELOCITY, EMBEDDED_VELOCITY);
+
+        // Check values
+        KRATOS_CHECK_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(16).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(17).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[0], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[1], 1.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(68).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[0], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[1], 0.0, 1e-6);
+        KRATOS_CHECK_NEAR(volume_part.GetElement(69).GetValue(EMBEDDED_VELOCITY)[2], 0.0, 1e-6);
+    }
+
+
 }
 }  // namespace Kratos.

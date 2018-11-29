@@ -857,6 +857,18 @@ public:
      */
     bool CheckDofs(ModelPart& rModelPart);
 
+    /**
+     * @brief This method updates the current nodal coordinates back to the initial coordinates
+     * @param rNodes the nodes to be updated
+     */
+    void UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
+
+    /**
+     * @brief This method updates the initial nodal coordinates to the current coordinates
+     * @param rNodes the nodes to be updated
+     */
+    void UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes);
+
     ///@}
     ///@name Acces
     ///@{

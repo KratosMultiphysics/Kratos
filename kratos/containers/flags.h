@@ -345,12 +345,10 @@ public:
         return results;
     }
 
-    KRATOS_DEPRECATED friend Flags operator&(const Flags& Left, const Flags& Right )
+    friend Flags operator&(const Flags& Left, const Flags& Right )
     {
-        // This looks like copy paste error but the idea is to
-        // define the & operator like the or one.
         Flags results(Left);
-        results |= Right;
+        results &= Right;
         return results;
     }
 
@@ -361,12 +359,10 @@ public:
         return *this;
     }
 
-    KRATOS_DEPRECATED const Flags& operator&=(const Flags& Other )
+    const Flags& operator&=(const Flags& Other )
     {
-        // This looks like copy paste error but the idea is to
-        // define the & operator like the or one.
-        mIsDefined |= Other.mIsDefined;
-        mFlags |= Other.mFlags;
+        mIsDefined &= Other.mIsDefined;
+        mFlags &= Other.mFlags;
         return *this;
     }
 

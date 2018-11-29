@@ -53,6 +53,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
                 "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
                 "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
+                "silent_strategy"                                   : true,
                 "simplified_semi_smooth_newton"                     : false,
                 "rescale_linear_solver"                             : false,
                 "use_mixed_ulm_solver"                              : true,
@@ -156,6 +157,11 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
     def Initialize(self):
         super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
 
+        # No verbosity from strategy
+        if self.contact_settings["silent_strategy"].GetBool() is True:
+            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+            mechanical_solution_strategy.SetEchoLevel(0)
+
         # We set the flag INTERACTION
         computing_model_part = self.GetComputingModelPart()
         if self.contact_settings["simplified_semi_smooth_newton"].GetBool() is True:
@@ -176,6 +182,10 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         #mechanical_solution_strategy.Predict()
         #mechanical_solution_strategy.SolveSolutionStep()
         #mechanical_solution_strategy.FinalizeSolutionStep()
+
+    def SolveSolutionStep(self):
+        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        return is_converged
 
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)

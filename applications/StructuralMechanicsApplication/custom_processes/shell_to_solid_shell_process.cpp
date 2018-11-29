@@ -58,7 +58,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 {
     KRATOS_TRY
 
-    Model& current_model = mrThisModelPart.GetOwnerModel();
+    Model& current_model = mrThisModelPart.GetModel();
 
     // The name of the submodelpart
     const std::string& model_part_name = mThisParameters["model_part_name"].GetString();

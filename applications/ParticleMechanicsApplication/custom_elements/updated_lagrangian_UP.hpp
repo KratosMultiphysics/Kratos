@@ -469,7 +469,7 @@ protected:
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
-                            double& rIntegrationWeight) override;
+                            const double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
@@ -478,7 +478,7 @@ protected:
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
                             Vector& rVolumeForce,
-                            double& rIntegrationWeight) override;
+                            const double& rIntegrationWeight) override;
 
 
     /**
@@ -487,21 +487,21 @@ protected:
 
     void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                              GeneralVariables& rVariables,
-                             double& rIntegrationWeight) override;
+                             const double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                              GeneralVariables& rVariables,
-                             double& rIntegrationWeight) override;
+                             const double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Kup matrix
      */
     virtual void CalculateAndAddKup (MatrixType& rK,
                                      GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
+                                     const double& rIntegrationWeight
                                     );
 
     /**
@@ -509,7 +509,7 @@ protected:
      */
     virtual void CalculateAndAddKpu(MatrixType& rK,
                                     GeneralVariables & rVariables,
-                                    double& rIntegrationWeight
+                                    const double& rIntegrationWeight
                                    );
 
 
@@ -518,7 +518,7 @@ protected:
      */
     virtual void CalculateAndAddKpp(MatrixType& rK,
                                     GeneralVariables & rVariables,
-                                    double& rIntegrationWeight
+                                    const double& rIntegrationWeight
                                    );
 
 
@@ -527,7 +527,7 @@ protected:
      */
     virtual void CalculateAndAddKppStab(MatrixType& rK,
                                         GeneralVariables & rVariables,
-                                        double& rIntegrationWeight
+                                        const double& rIntegrationWeight
                                        );
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
@@ -535,7 +535,7 @@ protected:
     void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
                                        GeneralVariables& rVariables,
                                        Vector& rVolumeForce,
-                                       double& rIntegrationWeight) override;
+                                       const double& rIntegrationWeight) override;
 
 
     /**
@@ -543,14 +543,14 @@ protected:
       */
     void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
                                        GeneralVariables & rVariables,
-                                       double& rIntegrationWeight) override;
+                                       const double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            double& rIntegrationWeight
+            const double& rIntegrationWeight
                                               );
 
 
@@ -559,7 +559,7 @@ protected:
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
-            double& rIntegrationWeight
+            const double& rIntegrationWeight
                                                   );
 
     ///**
@@ -787,4 +787,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined

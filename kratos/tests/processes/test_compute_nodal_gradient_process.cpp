@@ -50,7 +50,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalGradient1, KratosNodalGradientFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient1, KratosCoreFastSuite)
         {
             Model current_model;
             
@@ -130,7 +130,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestNodalGradient2, KratosNodalGradientFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient2, KratosCoreFastSuite)
         {
             Model current_model;
 

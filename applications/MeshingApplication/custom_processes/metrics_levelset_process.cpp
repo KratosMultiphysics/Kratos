@@ -39,7 +39,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
             "interpolation"                         : "Linear"
         }
     })" );
-    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
@@ -70,7 +70,8 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
     // Some checks
     VariableUtils().CheckVariableExists(mVariableGradient, nodes_array);
-    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
+    for (auto& i_node : nodes_array)
+        KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
@@ -78,6 +79,17 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
     // Tensor variable definition
     const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+
+    // Setting metric in case not defined
+    if (!nodes_array.begin()->Has(tensor_variable)) {
+        // Declaring auxiliar vector
+        const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i) {
+            auto it_node = nodes_array.begin() + i;
+            it_node->SetValue(tensor_variable, aux_zero_vector);
+        }
+    }
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i)  {
@@ -89,8 +101,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         double ratio = 1.0;
 
         double element_size = mMinSize;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
-        const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+        const double nodal_h = it_node->GetValue(NODAL_H);
         if (it_node->SolutionStepsDataHas(reference_var)) {
             const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
             ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);

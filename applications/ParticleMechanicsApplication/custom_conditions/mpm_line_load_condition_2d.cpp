@@ -25,7 +25,7 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
+
     MPMLineLoadCondition2D::MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
         : MPMBaseLoadCondition( NewId, pGeometry )
     {
@@ -34,7 +34,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     MPMLineLoadCondition2D::MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
     {
@@ -42,7 +42,7 @@ namespace Kratos
 
     //********************************* CREATE *******************************************
     //************************************************************************************
-    
+
     Condition::Pointer MPMLineLoadCondition2D::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
@@ -54,11 +54,11 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
-    Condition::Pointer MPMLineLoadCondition2D::Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes,  
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer MPMLineLoadCondition2D::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const
     {
         return Kratos::make_shared<MPMLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
@@ -66,7 +66,7 @@ namespace Kratos
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
-    
+
     MPMLineLoadCondition2D::~MPMLineLoadCondition2D()
     {
     }
@@ -74,16 +74,16 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void MPMLineLoadCondition2D::CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
+    void MPMLineLoadCondition2D::CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY;
-        
+
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int block_size = this->GetBlockSize();
@@ -98,7 +98,7 @@ namespace Kratos
                 rLeftHandSideMatrix.resize( mat_size, mat_size, false );
             }
 
-            noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
+            noalias( rLeftHandSideMatrix ) = ZeroMatrix(mat_size); //resetting LHS
         }
 
         //resizing as needed the RHS
@@ -158,13 +158,13 @@ namespace Kratos
         {
             noalias(line_load) = this->GetValue( LINE_LOAD );
         }
-        
+
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
-        {                   
+        {
             const double det_j = GetGeometry().DeterminantOfJacobian( integration_points[point_number] );
 
-            const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j); 
-            
+            const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
+
             array_1d<double, 3> normal;
             if(GetGeometry().WorkingSpaceDimension() == 2 )
             {
@@ -174,14 +174,14 @@ namespace Kratos
                 if(!Has(LOCAL_AXIS_2))
                     KRATOS_ERROR << "the variable LOCAL_AXES_2 is needed to compute the normal";
                 const auto& v2 = GetValue(LOCAL_AXIS_2);
-                
+
                 array_1d<double,3> v1 = GetGeometry()[1].Coordinates() - GetGeometry()[0].Coordinates();
-                
+
                 MathUtils<double>::CrossProduct(normal,v1,v2 );
                 normal /= norm_2(normal);
             }
-                
-            
+
+
             // Calculating the pressure on the gauss point
             double gauss_pressure = 0.0;
             for ( unsigned int ii = 0; ii < number_of_nodes; ii++ )
@@ -216,7 +216,7 @@ namespace Kratos
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
                 unsigned int base = ii * block_size;
-                
+
                 for(unsigned int k = 0; k < dimension; ++k)
                 {
                     rRightHandSideVector[base + k] += integration_weight * Ncontainer( point_number, ii ) * gauss_load[k];
@@ -280,7 +280,7 @@ namespace Kratos
         const Vector& N,
         const array_1d<double, 3>& Normal,
         double Pressure,
-        double IntegrationWeight 
+        double IntegrationWeight
         )
     {
         const unsigned int number_of_nodes = GetGeometry().size();
@@ -289,10 +289,10 @@ namespace Kratos
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = block_size * i;
-            
+
 
             const double coeff = Pressure * N[i] * IntegrationWeight;
-            
+
             rRightHandSideVector[index   ]  -= coeff * Normal[0];
             rRightHandSideVector[index + 1] -= coeff * Normal[1];
         }

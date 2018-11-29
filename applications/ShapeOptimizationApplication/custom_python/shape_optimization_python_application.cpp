@@ -28,31 +28,24 @@
 
 // ==============================================================================
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
 {
+    namespace py = pybind11;
 
-namespace Python
-{
+    py::class_<KratosShapeOptimizationApplication,
+        KratosShapeOptimizationApplication::Pointer,
+        KratosApplication >(m, "KratosShapeOptimizationApplication")
+        .def(py::init<>())
+        ;
 
-using namespace pybind11;
+    AddCustomUtilitiesToPython(m);
 
+    //registering variables in python
 
-
-  PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
-  {
-
-	  class_<KratosShapeOptimizationApplication,
-			  KratosShapeOptimizationApplication::Pointer,
-			  KratosApplication >(m, "KratosShapeOptimizationApplication")
-        .def(init<>())
-			;
-
-	AddCustomUtilitiesToPython(m);
-
-
-	//registering variables in python
-
-	// Geometry variables
+    // Geometry variables
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NORMALIZED_SURFACE_NORMAL);
 
     // Optimization variables
@@ -92,11 +85,9 @@ using namespace pybind11;
 
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAPPING_ID);
-  }
-
+}
 
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

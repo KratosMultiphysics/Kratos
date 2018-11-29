@@ -1,8 +1,6 @@
 {
     "problem_data"                     : {
         "problem_name"    : "mpi_cylinder_test",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "start_time"      : 0.0,
         "parallel_type"   : "MPI",
         "echo_level"      : 0,
@@ -40,9 +38,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
+        "model_part_name"              : "MainModelPart",
+        "domain_size"                  : 2,
         "maximum_iterations"           : 10,
-        "dynamic_tau"                  : 1.0,
-        "oss_switch"                   : 0,
         "echo_level"                   : 0,
         "consider_periodic_conditions" : false,
         "compute_reactions"            : false,
@@ -58,6 +56,11 @@
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 0.01
+        },
+        "stabilization" : {
+            "formulation"              : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 1.0
         }
     },
     "initial_conditions_process_list"  : [],

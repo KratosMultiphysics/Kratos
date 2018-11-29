@@ -48,6 +48,7 @@
 #include "add_modeler_to_python.h"
 #include "add_kratos_application_to_python.h"
 #include "add_linear_solvers_to_python.h"
+#include "add_factories_to_python.h"
 #include "add_amgcl_solver_to_python.h"
 #include "add_process_info_to_python.h"
 #include "add_constitutive_law_to_python.h"
@@ -114,6 +115,7 @@ PYBIND11_MODULE(Kratos, m)
 
      AddKratosApplicationToPython(m);
      AddLinearSolversToPython(m);
+     AddFactoriesToPython(m);
      AddAMGCLSolverToPython(m);
      AddStrategiesToPython(m);
      AddUtilitiesToPython(m);

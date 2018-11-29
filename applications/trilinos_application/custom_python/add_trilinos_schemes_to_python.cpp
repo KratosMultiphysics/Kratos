@@ -32,7 +32,6 @@
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 
-
 // Project includes
 #include "trilinos_application.h"
 #include "trilinos_space.h"
@@ -40,12 +39,12 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 
-//strategies
+// Strategies
 // #include "solving_strategies/strategies/solving_strategy.h"
 // #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 // #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-//schemes
+// Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
@@ -54,6 +53,9 @@
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
 // FluidDynamicsApplication schemes
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
@@ -65,22 +67,17 @@
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 
-// AdjointFluidApplication
-#include "../../AdjointFluidApplication/custom_utilities/response_function.h"
-#include "../../AdjointFluidApplication/custom_schemes/adjoint_steady_velocity_pressure_scheme.h"
-#include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_scheme.h"
+// Response function
+#include "response_functions/adjoint_response_function.h"
 
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
 
-
 namespace Kratos
 {
-
 namespace Python
 {
-
-using namespace pybind11;
+namespace py = pybind11;
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
@@ -105,8 +102,8 @@ void  AddSchemes(pybind11::module& m)
 
 //********************************************************************
     //********************************************************************
-    class_< TrilinosBaseSchemeType, typename TrilinosBaseSchemeType::Pointer >
-    (m, "TrilinosScheme").def(init< >() )
+    py::class_< TrilinosBaseSchemeType, typename TrilinosBaseSchemeType::Pointer >
+    (m, "TrilinosScheme").def(py::init< >() )
     .def( "Initialize", &TrilinosBaseSchemeType::Initialize )
     .def( "SchemeIsInitialized", &TrilinosBaseSchemeType::SchemeIsInitialized )
     .def( "ElementsAreInitialized", &TrilinosBaseSchemeType::ElementsAreInitialized )
@@ -126,119 +123,126 @@ void  AddSchemes(pybind11::module& m)
     .def("Check", &TrilinosBaseSchemeType::Check )
     ;
 
-    class_ <
+    py::class_ <
         ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
            (m,"TrilinosResidualBasedIncrementalUpdateStaticScheme")
-           .def(init< >() );
+           .def(py::init< >() );
 
-    class_ <
+    py::class_ <
         ResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         ResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>  >
            (
-               m,"TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip").def(init< unsigned int, unsigned int >()
+               m,"TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip").def(py::init< unsigned int, unsigned int >()
            );
 
-    class_ <
+    py::class_ <
         ResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
            (
-               m,"TrilinosResidualBasedLagrangianMonolithicScheme").def(init<int >()
+               m,"TrilinosResidualBasedLagrangianMonolithicScheme").def(py::init<int >()
            );
 
-    class_ <
+    py::class_ <
         TrilinosResidualBasedNewmarkScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename TrilinosResidualBasedNewmarkScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
            (
-               m,"TrilinosResidualBasedNewmarkScheme").def(init<double >()
+               m,"TrilinosResidualBasedNewmarkScheme").def(py::init<double >()
            );
 
-    class_ <
+    py::class_ <
         ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedBossakDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBossakDisplacementScheme")
-        .def(init<double >())
+        .def(py::init<double >())
         ;
 
-    class_ <
+    py::class_ <
         ResidualBasedBDFDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedBDFDisplacementScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBDFDisplacementScheme")
-        .def(init<  >())
-        .def(init <const std::size_t>())
+        .def(py::init<  >())
+        .def(py::init <const std::size_t>())
         ;
 
-    class_ <
+    py::class_ <
         ResidualBasedBDFCustomScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedBDFCustomScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType > (m,"TrilinosResidualBasedBDFCustomScheme")
-        .def(init<  >())
-        .def(init <const std::size_t>())
-        .def(init <const std::size_t, Parameters>())
+        .def(py::init<  >())
+        .def(py::init <const std::size_t>())
+        .def(py::init <const std::size_t, Parameters>())
         ;
 
     typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedPredictorCorrectorVelocityBossak;
 
     typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TurbulentBossakBaseType;
 
-    class_ <
+    py::class_ <
         TrilinosResidualBasedPredictorCorrectorVelocityBossak,
         typename TrilinosResidualBasedPredictorCorrectorVelocityBossak::Pointer,
         TrilinosBaseSchemeType >
            (
-               m,"TrilinosPredictorCorrectorVelocityBossakScheme").def(init<double, double >()
+               m,"TrilinosPredictorCorrectorVelocityBossakScheme").def(py::init<double, double >()
            );
 
-    class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,TrilinosBaseSchemeType >
+    py::class_ < TurbulentBossakBaseType, typename TurbulentBossakBaseType::Pointer,TrilinosBaseSchemeType >
         (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
-        .def(init<double, double, unsigned int, Process::Pointer >())
-        .def(init<double,double,unsigned int >())
-        .def(init<double,unsigned int, const Variable<int>&>())
+        .def(py::init<double, double, unsigned int, Process::Pointer >())
+        .def(py::init<double,double,unsigned int >())
+        .def(py::init<double,unsigned int, const Variable<int>&>())
         ;
 
-    class_ <
+    py::class_ <
         ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >(m,"TrilinosResidualBasedPredictorCorrectorBDFScheme")
-        .def(init<unsigned int, Variable<double>& >() );
+        .def(py::init<unsigned int, Variable<double>& >() );
 
-    class_ <
+    py::class_ <
         ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosBaseSchemeType >
         (m,"TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched")
-        .def(init<double, double, unsigned int>() );
+        .def(py::init<double, double, unsigned int>() );
 
-    class_ <
+    py::class_ <
         TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
         typename TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>::Pointer,
         TrilinosResidualBasedIncrementalUpdateStaticSchemeType >
         (m,"TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme")
-        .def(init< >());
+        .def(py::init< >());
 
     typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
 
-    class_ < GearSchemeBaseType, typename GearSchemeBaseType::Pointer, TrilinosBaseSchemeType >( m,"TrilinosGearScheme")
-            .def(init<Process::Pointer >() )
-            .def(init<>()) // constructor without a turbulence model
-            .def(init<const Variable<int>&>()) // constructor for periodic conditions
+    py::class_ < GearSchemeBaseType, typename GearSchemeBaseType::Pointer, TrilinosBaseSchemeType >( m,"TrilinosGearScheme")
+            .def(py::init<Process::Pointer >() )
+            .def(py::init<>()) // constructor without a turbulence model
+            .def(py::init<const Variable<int>&>()) // constructor for periodic conditions
     ;
 
-    class_<
-        AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-        typename AdjointSteadyVelocityPressureScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >( m,"TrilinosAdjointSteadyVelocityPressureScheme")
-        .def(init<Parameters&, ResponseFunction::Pointer>() );
+    typedef ResidualBasedAdjointStaticScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointStaticSchemeType;
+    py::class_<TrilinosResidualBasedAdjointStaticSchemeType, typename TrilinosResidualBasedAdjointStaticSchemeType::Pointer, TrilinosBaseSchemeType>
+        (m, "TrilinosResidualBasedAdjointStaticScheme")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+    ;
 
-    class_<
-        AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-        typename AdjointBossakScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>::Pointer,
-        TrilinosBaseSchemeType >( m,"TrilinosAdjointBossakScheme")
-        .def(init<Parameters&, ResponseFunction::Pointer>() );
+    typedef ResidualBasedAdjointSteadyScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedAdjointSteadySchemeType;
+    py::class_<TrilinosResidualBasedAdjointSteadySchemeType, typename TrilinosResidualBasedAdjointSteadySchemeType::Pointer, TrilinosResidualBasedAdjointStaticSchemeType>
+        (m, "TrilinosResidualBasedAdjointSteadyScheme")
+        .def(py::init<AdjointResponseFunction::Pointer>())
+    ;
+
+    typedef ResidualBasedAdjointBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedAdjointBossakSchemeType;
+    py::class_<TrilinosResidualBasedAdjointBossakSchemeType, typename TrilinosResidualBasedAdjointBossakSchemeType::Pointer, TrilinosBaseSchemeType>
+        (m, "TrilinosResidualBasedAdjointBossakScheme")
+        .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
+    ;
+
 }
 
 } // namespace Python.
