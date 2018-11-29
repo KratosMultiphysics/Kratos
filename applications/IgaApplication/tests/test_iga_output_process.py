@@ -118,7 +118,7 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
         # here the minimum settings are specified to test the default values!
         settings_nodal_results_process = KratosMultiphysics.Parameters("""{
               "nodal_results": [ ],
-              "integration_point_results": [ "KratosMultiphysics.IgaApplication.COORDINATES" ],
+              "integration_point_results": [ "COORDINATES" ],
               "output_file_name": "elemental_results.post.res",
               "model_part_name": "computing_domain",
               "file_label": "step",
@@ -128,14 +128,14 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
 
         post_eigen_process = IgaOutputProcess(test_model, settings_nodal_results_process)
 
-    #    post_eigen_process.ExecuteInitialize()
-    #    post_eigen_process.ExecuteBeforeSolutionLoop()
-    #    post_eigen_process.ExecuteInitializeSolutionStep()
-    #    post_eigen_process.ExecuteFinalizeSolutionStep()
-    #    post_eigen_process.ExecuteBeforeOutputStep()
-    #    post_eigen_process.PrintOutput()
-    #    post_eigen_process.ExecuteAfterOutputStep()
-    #    post_eigen_process.ExecuteFinalize()
+        post_eigen_process.ExecuteInitialize()
+        post_eigen_process.ExecuteBeforeSolutionLoop()
+        post_eigen_process.ExecuteInitializeSolutionStep()
+        post_eigen_process.ExecuteFinalizeSolutionStep()
+        post_eigen_process.ExecuteBeforeOutputStep()
+        post_eigen_process.PrintOutput()
+        post_eigen_process.ExecuteAfterOutputStep()
+        post_eigen_process.ExecuteFinalize()
 
         ## check the results
         #settings_check_process = KratosMultiphysics.Parameters("""
@@ -146,8 +146,8 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
         #}
         #""")
 
-        #settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
-        #settings_check_process["output_file_name"].SetString("Structure_EigenResults_0.post.res")
+        #settings_check_process["reference_file_name"].SetString(GetFilePath("elemental_results.ref"))
+        #settings_check_process["output_file_name"].SetString("elemental_results.post.res")
 
         #check_process = CompareTwoFilesCheckProcess(settings_check_process)
 
