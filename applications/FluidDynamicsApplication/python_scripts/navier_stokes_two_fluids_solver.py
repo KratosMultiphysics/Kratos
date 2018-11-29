@@ -106,7 +106,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVERGENCE)
+        self.main_model_part.
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
 

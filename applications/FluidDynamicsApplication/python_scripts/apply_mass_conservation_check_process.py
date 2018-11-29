@@ -29,11 +29,10 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         # writing first line in file
         if ( self.write_to_log ):
             with open("ApplyMassConservationCheckProcess.log", "w") as logFile:
-                logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\t" + "interfaceArea" + "\t" + "inFlowWater" + "\t" + "outFlowWater" + "\t" + "netFlowWater" + "\n" )
+                logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\t" + "interfaceArea" + "\t" + "inFlowWater" + "\t" + "outFlowWater" + "\t" + "netFlowWater" + "\t" + "DIVwater" + "\t" + "DIVair" + "\n" )
                 logFile.close()
 
         self.counter = 0
-
 
     def ExecuteInitialize(self):
         self.MassConservationCheckProcess.ExecuteInitialize()
@@ -51,7 +50,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
         self.counter = self.counter + 1
 
-        if ( self.counter > 5 ):
+        if ( self.counter > 2 ):
 
             # retrieve information if the values were updated
             updated = self.MassConservationCheckProcess.GetUpdateStatus()
@@ -68,6 +67,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
                 # divergenceInWater = 0.0
                 divergenceInWater = self.MassConservationCheckProcess.GetDivergenceWater()
+                divergenceInAir = self.MassConservationCheckProcess.GetDivergenceAir()
 
                 # managing the output to the console
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
@@ -77,9 +77,10 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Outflow = " + str(-outflow) )
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Net = " + str( inflow + outflow ) )
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Divergence in Water  = " + str( divergenceInWater ) )
+                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Divergence in Air    = " + str( divergenceInAir ) )
                 KratosMultiphysics.Logger.Flush()
 
                 # adds additional lines to the log file
                 if ( self.write_to_log ):
                     with open("ApplyMassConservationCheckProcess.log", "a+") as logFile:
-                        logFile.write( str(posVol) + "\t" + str(negVol) + "\t" + str(interfaceArea) + "\t" + str(inflow) + "\t" + str(-outflow) + "\t" + str(inflow+outflow) + "\n" )
+                        logFile.write( str(posVol) + "\t" + str(negVol) + "\t" + str(interfaceArea) + "\t" + str(inflow) + "\t" + str(-outflow) + "\t" + str(inflow+outflow) + "\t" + str(divergenceInWater) + "\t" + str(divergenceInAir) + "\n" )

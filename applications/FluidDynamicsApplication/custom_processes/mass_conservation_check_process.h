@@ -163,6 +163,8 @@ public:
 
     double ComputeDivergenceWater();
 
+    double ComputeDivergenceAir();
+
     void ShiftDistanceField( double deltaDist );
 
 
