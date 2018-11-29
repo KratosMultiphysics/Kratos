@@ -43,7 +43,11 @@ class CoSimulationBaseSolver(object):
     #               initialization of the variables and objects to be done here.
     #  @param self                      The object pointer. especially the geometries
     def Initialize(self):
-        pass
+        # Initialize IO
+        if(not self.io_is_initialized):
+            self.InitializeIO(self.echo_level)
+
+        # Initialize data (and geometries)
 
     ## InitializeIO : Initialize the IO class for this solver.
     #                   usually a particular type of solver has a particular default IO type
