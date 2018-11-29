@@ -204,6 +204,7 @@ class ConstructionUtility
                     if ((*it_cond_thermal).GetGeometry()[i_node].IsNot(ACTIVE))
                     {
                         active_condition = false;
+                        break;
                     }
                 }
                 if (active_condition) it_cond_thermal->Set(ACTIVE, true);
@@ -352,6 +353,7 @@ class ConstructionUtility
                     if ((*it_cond_thermal).GetGeometry()[i_node].IsNot(ACTIVE))
                     {
                         active_condition = false;
+                        break;
                     }
                 }
                 if (active_condition) it_cond_thermal->Set(ACTIVE, true);
@@ -391,7 +393,7 @@ class ConstructionUtility
                         for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            unsigned int active_condition = true;
+                            bool active_condition = true;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
@@ -427,7 +429,7 @@ class ConstructionUtility
                         for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            unsigned int active_condition = true;
+                            bool active_condition = true;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
@@ -487,7 +489,7 @@ class ConstructionUtility
                         for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            unsigned int active_condition = true;
+                            bool active_condition = true;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
@@ -524,7 +526,7 @@ class ConstructionUtility
                         for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            unsigned int active_condition = true;
+                            bool active_condition = true;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
