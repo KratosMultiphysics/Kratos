@@ -765,9 +765,9 @@ protected:
     /**
      * @brief This function computes the body force
      * @param IntegrationPoints The array containing the integration points
-	 * @param PointNumber The id of the integration point considered
-	 * @return The vector of body forces
-	 */
+     * @param PointNumber The id of the integration point considered
+     * @return The vector of body forces
+     */
     Vector GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
@@ -854,6 +854,34 @@ protected:
     */
     void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
     /**
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition
@@ -919,34 +947,6 @@ protected:
             rOutput[point_number] = mConstitutiveLawVector[point_number]->CalculateValue( Values, rVariable, rOutput[point_number] );
         }
     }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
 
     ///@}
     ///@name Private  Access
