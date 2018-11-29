@@ -72,13 +72,32 @@ void BaseSolidElement::Initialize()
 
 void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+    Values.SetStrainVector(this_constitutive_variables.StrainVector);
+    Values.SetStressVector(this_constitutive_variables.StressVector);
+    Values.SetConstitutiveMatrix(this_constitutive_variables.D);
+
+    // Reading integration points
+    const GeometryType& r_geometry = GetGeometry();
+    const Properties& r_properties = GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-        const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
-        mConstitutiveLawVector[point_number]->InitializeSolutionStep( GetProperties(),
-        GetGeometry(),
-        row( N_values, point_number ),
-        rCurrentProcessInfo
-        );
+        // Call the constitutive law to update material variables
+        mConstitutiveLawVector[point_number]->InitializeMaterialResponse(Values, GetStressMeasure());
+
+        // TODO: Deprecated, remove this
+        mConstitutiveLawVector[point_number]->InitializeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
     }
 }
 
@@ -87,13 +106,12 @@ void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 
 void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+    const GeometryType& r_geometry = GetGeometry();
+    const Properties& r_properties = GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-        mConstitutiveLawVector[point_number]->InitializeNonLinearIteration( GetProperties(),
-        GetGeometry(),
-        row( N_values, point_number ),
-        rCurrentProcessInfo
-        );
+        // TODO: Deprecated, remove this
+        mConstitutiveLawVector[point_number]->InitializeNonLinearIteration( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
     }
 }
 
@@ -102,13 +120,12 @@ void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 
 void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+    const GeometryType& r_geometry = GetGeometry();
+    const Properties& r_properties = GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-        mConstitutiveLawVector[point_number]->FinalizeNonLinearIteration( GetProperties(),
-        GetGeometry(),
-        row( N_values, point_number ),
-        rCurrentProcessInfo
-        );
+        // TODO: Deprecated, remove this
+        mConstitutiveLawVector[point_number]->FinalizeNonLinearIteration( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
     }
 }
 
@@ -134,16 +151,15 @@ void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     Values.SetConstitutiveMatrix(this_constitutive_variables.D);
 
     // Reading integration points
-    const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+    const GeometryType& r_geometry = GetGeometry();
+    const Properties& r_properties = GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
     for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
 
-        mConstitutiveLawVector[point_number]->FinalizeSolutionStep( GetProperties(),
-        GetGeometry(),
-        row( N_values, point_number ),
-        rCurrentProcessInfo
-        );
+        // TODO: Deprecated, remove this
+        mConstitutiveLawVector[point_number]->FinalizeSolutionStep( r_properties, r_geometry, row( N_values, point_number ), rCurrentProcessInfo);
     }
 }
 
@@ -155,13 +171,12 @@ void BaseSolidElement::InitializeMaterial()
     KRATOS_TRY
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[point_number]->InitializeMaterial( GetProperties(),
-            GetGeometry(),
-            row(N_values , point_number )
-            );
+            mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
         }
     } else
         KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
@@ -193,12 +208,11 @@ void BaseSolidElement::ResetConstitutiveLaw()
     KRATOS_TRY
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        const auto& N_values = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
         for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number )
-            mConstitutiveLawVector[point_number]->ResetMaterial( GetProperties(),
-            GetGeometry(),
-            row( N_values, point_number )
-            );
+            mConstitutiveLawVector[point_number]->ResetMaterial( r_properties,  r_geometry, row( N_values, point_number ) );
     }
 
     KRATOS_CATCH( "" )
