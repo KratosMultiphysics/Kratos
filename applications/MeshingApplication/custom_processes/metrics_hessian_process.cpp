@@ -89,7 +89,8 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
 
     // Some checks
     VariableUtils().CheckVariableExists(mVariable, nodes_array);
-    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
+    for (auto& i_node : nodes_array)
+        KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
@@ -115,8 +116,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
 
         const Vector& hessian = it_node->GetValue(AUXILIAR_HESSIAN);
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
-        const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+        const double nodal_h = it_node->GetValue(NODAL_H);
 
         double element_min_size = mMinSize;
         if ((element_min_size > nodal_h) && mEnforceCurrent) element_min_size = nodal_h;
