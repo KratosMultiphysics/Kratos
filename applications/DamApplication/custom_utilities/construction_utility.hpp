@@ -185,6 +185,32 @@ class ConstructionUtility
             }
         }
 
+        // CONDITIONS
+        const int nconditions = mrThermalModelPart.GetMesh(0).Conditions().size();
+
+        if (nconditions != 0)
+        {
+            ModelPart::ConditionsContainerType::iterator cond_begin_thermal = mrThermalModelPart.ConditionsBegin();
+
+            for (int k = 0; k < nconditions; ++k)
+            {
+                ModelPart::ConditionsContainerType::iterator it_cond_thermal = cond_begin_thermal + k;
+                const unsigned int number_of_points = (*it_cond_thermal).GetGeometry().PointsNumber();
+
+                bool active_condition = true;
+
+                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                {
+                    if ((*it_cond_thermal).GetGeometry()[i_node].IsNot(ACTIVE))
+                    {
+                        active_condition = false;
+                    }
+                }
+                if (active_condition) it_cond_thermal->Set(ACTIVE, true);
+                else it_cond_thermal->Set(ACTIVE, false);
+            }
+        }
+
         // Assign Alpha Initial in case of using Azenha Formulation
         if (mSourceType == "NonAdiabatic")
         {
@@ -307,6 +333,32 @@ class ConstructionUtility
             }
         }
 
+        // CONDITIONS
+        const int nconditions = mrThermalModelPart.GetMesh(0).Conditions().size();
+
+        if (nconditions != 0)
+        {
+            ModelPart::ConditionsContainerType::iterator cond_begin_thermal = mrThermalModelPart.ConditionsBegin();
+
+            for (int k = 0; k < nconditions; ++k)
+            {
+                ModelPart::ConditionsContainerType::iterator it_cond_thermal = cond_begin_thermal + k;
+                const unsigned int number_of_points = (*it_cond_thermal).GetGeometry().PointsNumber();
+
+                bool active_condition = true;
+
+                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                {
+                    if ((*it_cond_thermal).GetGeometry()[i_node].IsNot(ACTIVE))
+                    {
+                        active_condition = false;
+                    }
+                }
+                if (active_condition) it_cond_thermal->Set(ACTIVE, true);
+                else it_cond_thermal->Set(ACTIVE, false);
+            }
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -339,43 +391,17 @@ class ConstructionUtility
                         for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            unsigned int count = 0;
+                            unsigned int active_condition = true;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
+                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE))
                                 {
-                                    count++;
+                                    active_condition = false;
+                                    break;
                                 }
                             }
-                            if (count == number_of_points)
-                            {
-                                for (unsigned int m = 0; m < number_of_points; ++m)
-                                {
-                                    ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
-                                }
-                                this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
-
-                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
-                                last_condition_id++;
-                            }
-                        }
-                    }
-                    if ((it_thermal)->Is(ACTIVE) == true)
-                    {
-                        for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
-                        {
-                            const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            unsigned int count = 0;
-
-                            for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                            {
-                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE) == 1)
-                                {
-                                    count++;
-                                }
-                            }
-                            if (count == number_of_points)
+                            if (active_condition)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -401,43 +427,17 @@ class ConstructionUtility
                         for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            unsigned int count = 0;
+                            unsigned int active_condition = true;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == true)
+                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE))
                                 {
-                                    count++;
+                                    active_condition = false;
+                                    break;
                                 }
                             }
-                            if (count == number_of_points)
-                            {
-                                for (unsigned int m = 0; m < number_of_points; ++m)
-                                {
-                                    ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
-                                }
-                                this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
-
-                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
-                                last_condition_id++;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
-                        {
-                            const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            unsigned int count = 0;
-
-                            for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                            {
-                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE) == 1)
-                                {
-                                    count++;
-                                }
-                            }
-                            if (count == number_of_points)
+                            if (active_condition)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -487,43 +487,17 @@ class ConstructionUtility
                         for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            unsigned int count = 0;
+                            unsigned int active_condition = true;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
+                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE))
                                 {
-                                    count++;
+                                    active_condition = false;
+                                    break;
                                 }
                             }
-                            if (count == number_of_points)
-                            {
-                                for (unsigned int m = 0; m < number_of_points; ++m)
-                                {
-                                    ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
-                                }
-                                this->ActiveFaceHeatFluxStep(ConditionNodeIds);
-
-                                mrThermalModelPart.CreateNewCondition("FluxCondition2D2N", last_condition_id + 1, ConditionNodeIds, 0);
-                                last_condition_id++;
-                            }
-                        }
-                    }
-                    if ((it_thermal)->Is(ACTIVE) == true)
-                    {
-                        for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
-                        {
-                            const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
-                            unsigned int count = 0;
-
-                            for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                            {
-                                if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE) == 1)
-                                {
-                                    count++;
-                                }
-                            }
-                            if (count == number_of_points)
+                            if (active_condition)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
@@ -550,51 +524,17 @@ class ConstructionUtility
                         for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            unsigned int count = 0;
+                            unsigned int active_condition = true;
 
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
-                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == true)
+                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE))
                                 {
-                                    count++;
+                                    active_condition = false;
+                                    break;
                                 }
                             }
-                            if (count == number_of_points)
-                            {
-                                for (unsigned int m = 0; m < number_of_points; ++m)
-                                {
-                                    ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
-                                }
-                                this->ActiveFaceHeatFluxStep(ConditionNodeIds);
-
-                                if (number_of_points == 3)
-                                {
-                                    mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", last_condition_id + 1, ConditionNodeIds, 0);
-                                    last_condition_id++;
-                                }
-                                else
-                                {
-                                    mrThermalModelPart.CreateNewCondition("FluxCondition3D4N", last_condition_id + 1, ConditionNodeIds, 0);
-                                    last_condition_id++;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
-                        {
-                            const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
-                            unsigned int count = 0;
-
-                            for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
-                            {
-                                if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].FastGetSolutionStepValue(DAM_SURFACE_NODE) == 1)
-                                {
-                                    count++;
-                                }
-                            }
-                            if (count == number_of_points)
+                            if (active_condition)
                             {
                                 for (unsigned int m = 0; m < number_of_points; ++m)
                                 {
