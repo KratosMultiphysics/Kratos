@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:     BSD License
-//           Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//               Kratos default license: kratos/license.txt
 //
 //  Main authors:    Tobias Teschemacher
 //                   Michael Breitenberger
@@ -23,21 +23,21 @@ namespace Kratos
 {
     const std::vector<BrepTrimmingCurve>& BrepBoundaryLoop::GetTrimmingCurves() const
     {
-        return m_brep_trimming_curves;
+        return mBrepTrimmingCurves;
     }
 
 
-    bool& BrepBoundaryLoop::IsOuterLoop()
+    bool BrepBoundaryLoop::IsOuterLoop()
     {
-        return m_is_outer_loop;
+        return mIsOuterLoop;
     }
 
     /// Constructor.
     BrepBoundaryLoop::BrepBoundaryLoop(
         std::vector<BrepTrimmingCurve>& rBrepTrimmingCurves,
         bool rIsOuterLoop)
-        : m_brep_trimming_curves(rBrepTrimmingCurves),
-          m_is_outer_loop(rIsOuterLoop)
+        : mBrepTrimmingCurves(rBrepTrimmingCurves),
+          mIsOuterLoop(rIsOuterLoop)
     {
     }
 }  // namespace Kratos.

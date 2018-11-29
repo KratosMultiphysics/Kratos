@@ -43,8 +43,8 @@ namespace Kratos
         const std::string& rOutputFileName);
 
     std::vector<BrepModel> ImportNurbsBrepGeometry(
-        ModelPart& model_part, 
-        Parameters& rNurbsBrepGeometryJson);
+        ModelPart& rModelPart,
+        Parameters rNurbsBrepGeometryJson);
 
     /// Constructor.
     BrepJsonIO() {};
@@ -53,19 +53,7 @@ namespace Kratos
     virtual ~BrepJsonIO() {};
 
     ///@}
-  protected:
-
-  private:
-
   }; // Class BrepJsonIO
-  ///@}
-  ///@name Type Definitions
-  ///@{
-  ///@}
-  ///@name Input and output
-  ///@{
-  ///@}
-
 }  // namespace Kratos.
 
 #endif // KRATOS_BREP_JSON_IO_H_INCLUDED  defined

@@ -13,6 +13,8 @@
 #include "brep_trimming_curve.h"
 #include "brep_boundary_loop.h"
 
+#include "custom_utilities/iga_flags.h"
+
 // Kratos includes
 #include "includes/model_part.h"
 
@@ -85,21 +87,20 @@ namespace Kratos
         ///@}
         ///@name Life Cycle
         ///@{
-
         void GetGeometryIntegration(
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
         void GetGeometryIntegrationTrimmed(
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
         void CreateIntegrationElementsConditions(
@@ -107,36 +108,34 @@ namespace Kratos
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables) const;
 
         void GetIntegrationBrepEdge(
             ModelPart& rModelPart,
-            const int& trim_index,
+            const int trim_index,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
         void EvaluatePoint(
-            const double& rU,
-            const double& rV,
+            const double rU,
+            const double rV,
             Element::GeometryType::PointsArrayType& rNonZeroControlPoints,
             Vector& rShapeFunction,
             Matrix& rShapeFunctionDerivative,
             Matrix& rShapeFunctionSecondDerivative
             ) const;
 
-
         const Kratos::shared_ptr<Curve<2>> GetTrimCurve(
-            const int& trim_index) const;
+            const int trim_index) const;
 
         /*Returns the member NodeSurfaceGeometry3D object of the brep face.
         This object gives a NURBS representation of the surface of the face.*/
         const Kratos::shared_ptr<NodeSurfaceGeometry3D> GetSurface() const;
-
 
         /// Constructor.
         BrepFace(
@@ -148,37 +147,28 @@ namespace Kratos
             std::vector<EmbeddedPoint>& rEmbeddedPoints,
             Vector& rKnotVectorU,
             Vector& rKnotVectorV,
-            int& rP,
-            int& rQ,
+            int rP,
+            int rQ,
             IntVector& rControlPointIds,
             ModelPart& rModelPart);
 
         /// Destructor.
         virtual ~BrepFace() {};
-
         ///@}
-    protected:
-
     private:
-
-        ///@name Private methods
-        ///@{
-
-        ///@}
         ///@name Member Variables
         ///@{
         bool m_is_trimmed;
         bool m_is_rational;
-        std::vector<BrepBoundaryLoop> m_trimming_loops;
-        std::vector<BrepBoundaryLoop> m_embedded_loops;
-        std::vector<EmbeddedPoint> m_embedded_points;
+        std::vector<BrepBoundaryLoop> mTrimmingLoops;
+        std::vector<BrepBoundaryLoop> mEmbeddedLoops;
+        std::vector<EmbeddedPoint> mEmbeddedPoints;
 
         //3d surface parameters
-        IntVector& m_control_points_ids;
-        ModelPart& m_model_part;
+        ModelPart& mModelPart;
 
         //anurbs variables
-        std::shared_ptr<NodeSurfaceGeometry3D> m_node_surface_geometry_3d;
+        std::shared_ptr<NodeSurfaceGeometry3D> mNodeSurfaceGeometry3D;
         ///@}
 
     }; // Class BrepFace

@@ -1,3 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:     BSD License
+//           Kratos default license: kratos/license.txt
+//
+//  Main authors:    Tobias Teschemacher
+//                   Michael Breitenberger
+//
+
+
 #if !defined(KRATOS_BREP_BOUNDARY_LOOP_H_INCLUDED )
 #define  KRATOS_BREP_BOUNDARY_LOOP_H_INCLUDED
 
@@ -16,7 +30,7 @@ namespace Kratos
     ///@{
     /// Collection of all trimming curves which comply one full boundary loop.
     /** This class contains a collection of trimming curves that imply a boundary
-    loop of the underlying surface. The loop can either be an inner or outer loop.
+    *   loop of the underlying surface. The loop can either be an inner or outer loop.
     */
     class BrepBoundaryLoop
     {
@@ -33,7 +47,7 @@ namespace Kratos
 
         const std::vector<BrepTrimmingCurve>& GetTrimmingCurves() const;
 
-        bool& IsOuterLoop();
+        bool IsOuterLoop();
 
         //important function, to be implemented!!
         //std::vector<array_1d<double, 2>> GetBoundaryPolygon(unsigned int number_polygon_points);
@@ -47,13 +61,11 @@ namespace Kratos
         virtual ~BrepBoundaryLoop() {};
 
         ///@}
-    protected:
-
     private:
         ///@name Member Variables
         ///@{
-        std::vector<BrepTrimmingCurve> m_brep_trimming_curves;
-        bool m_is_outer_loop;
+        std::vector<BrepTrimmingCurve> mBrepTrimmingCurves;
+        bool mIsOuterLoop;
         ///@}
     }; // Class BrepBoundaryLoop
 

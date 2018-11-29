@@ -22,31 +22,31 @@ namespace Kratos
 {
     bool BrepModel::GetIntegrationDomainGeometry(
         ModelPart& rModelPart, 
-        int& brep_id,
+        const int brep_id,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
-        const int& rShapeFunctionDerivativesOrder,
+        const int rPropertiesId,
+        const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
         bool success = false;
 
-        for (int i = 0; i < m_brep_faces.size(); ++i)
+        for (int i = 0; i < mBrepFaces.size(); ++i)
         {
-            if (m_brep_faces[i].Id() == brep_id)
+            if (mBrepFaces[i].Id() == brep_id)
             {
-                m_brep_faces[i].GetGeometryIntegration(
+                mBrepFaces[i].GetGeometryIntegration(
                     rModelPart, rType, rName, rPropertiesId, 
                     rShapeFunctionDerivativesOrder, rVariables);
                 return true;
             }
         }
 
-        for (int i = 0; i < m_brep_edges.size(); ++i)
+        for (int i = 0; i < mBrepEdges.size(); ++i)
         {
-            if (m_brep_edges[i].Id() == brep_id)
+            if (mBrepEdges[i].Id() == brep_id)
             {
-                m_brep_faces[i].GetGeometryIntegration(
+                mBrepFaces[i].GetGeometryIntegration(
                     rModelPart, rType, rName, rPropertiesId, 
                     rShapeFunctionDerivativesOrder, rVariables);
                 return true;
@@ -58,25 +58,24 @@ namespace Kratos
 
     bool BrepModel::GetIntegrationDomainBrep(
         ModelPart& rModelPart, 
-        int& brep_id,
+        const int brep_id,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
-        const int& rShapeFunctionDerivativesOrder,
+        const int rPropertiesId,
+        const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        bool success = false;
-        for (int i = 0; i < m_brep_edges.size(); ++i)
+        for (int i = 0; i < mBrepEdges.size(); ++i)
         {
-            if (m_brep_edges[i].Id() == brep_id)
+            if (mBrepEdges[i].Id() == brep_id)
             {
-                BrepEdge::EdgeTopology edge_topology = m_brep_edges[i].GetEdgeTopology(0);
+                BrepEdge::EdgeTopology edge_topology = mBrepEdges[i].GetEdgeTopology(0);
 
-                for (int j = 0; j < m_brep_faces.size(); ++j)
+                for (int j = 0; j < mBrepFaces.size(); ++j)
                 {
-                    if (m_brep_faces[j].Id() == edge_topology.brep_id)
+                    if (mBrepFaces[j].Id() == edge_topology.brep_id)
                     {
-                        m_brep_faces[j].GetIntegrationBrepEdge(
+                        mBrepFaces[j].GetIntegrationBrepEdge(
                             rModelPart, edge_topology.trim_index,
                             rType, rName, rPropertiesId,
                             rShapeFunctionDerivativesOrder,
@@ -87,17 +86,17 @@ namespace Kratos
             }
         }
 
-        for (int i = 0; i < m_brep_vertices.size(); ++i)
+        for (int i = 0; i < mBrepVertices.size(); ++i)
         {
-            if (m_brep_vertices[i].Id() == brep_id)
+            if (mBrepVertices[i].Id() == brep_id)
             {
-                BrepVertex::VertexTopology vertex_topology = m_brep_vertices[i].GetVertexTopology(0);
+                BrepVertex::VertexTopology vertex_topology = mBrepVertices[i].GetVertexTopology(0);
 
-                for (int j = 0; j < m_brep_edges.size(); ++j)
+                for (int j = 0; j < mBrepEdges.size(); ++j)
                 {
-                    if (m_brep_edges[j].Id() == vertex_topology.brep_id)
+                    if (mBrepEdges[j].Id() == vertex_topology.brep_id)
                     {
-                        m_brep_edges[j].GetIntegrationBrep(
+                        mBrepEdges[j].GetIntegrationBrep(
                             rModelPart, 
                             vertex_topology.trim_index, 
                             rType, rName, rPropertiesId, 
@@ -108,26 +107,25 @@ namespace Kratos
                 }
             }
         }
-
-        return success;
+        return false;
     }
 
     bool BrepModel::GetIntegrationDomainBrepCoupling(
         ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
-        const int& rShapeFunctionDerivativesOrder,
+        const int rPropertiesId,
+        const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
         bool success = false;
 
-        for (int i = 0; i < m_brep_edges.size(); ++i)
+        for (int i = 0; i < mBrepEdges.size(); ++i)
         {
-            if (m_brep_edges[i].IsCouplingEdge())
+            if (mBrepEdges[i].IsCouplingEdge())
             {
-                auto master = m_brep_edges[i].GetEdgeTopology(0);
-                auto slave = m_brep_edges[i].GetEdgeTopology(1);
+                auto master = mBrepEdges[i].GetEdgeTopology(0);
+                auto slave = mBrepEdges[i].GetEdgeTopology(1);
 
                 GetIntegrationBrepCouplingEdge(
                     master, slave,
@@ -146,22 +144,22 @@ namespace Kratos
 
     bool BrepModel::GetIntegrationDomainBrepCoupling(
         ModelPart& rModelPart,
-        int& brep_id,
+        const int brep_id,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
-        const int& rShapeFunctionDerivativesOrder,
+        const int rPropertiesId,
+        const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
         bool success = false;
-        for (int i = 0; i < m_brep_edges.size(); ++i)
+        for (int i = 0; i < mBrepEdges.size(); ++i)
         {
-            if (m_brep_edges[i].Id() == brep_id)
+            if (mBrepEdges[i].Id() == brep_id)
             {
-                BrepEdge::EdgeTopology edge_topology = m_brep_edges[i].GetEdgeTopology(0);
-                if (m_brep_faces[i].Id() == edge_topology.brep_id)
+                BrepEdge::EdgeTopology edge_topology = mBrepEdges[i].GetEdgeTopology(0);
+                if (mBrepFaces[i].Id() == edge_topology.brep_id)
                 {
-                    m_brep_faces[i].GetIntegrationBrepEdge(
+                    mBrepFaces[i].GetIntegrationBrepEdge(
                         rModelPart, 
                         edge_topology.trim_index,
                         rType, 
@@ -183,8 +181,8 @@ namespace Kratos
         ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
-        const int& rShapeFunctionDerivativesOrder,
+        const int rPropertiesId,
+        const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables) const
     {
         Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
@@ -290,10 +288,10 @@ namespace Kratos
 
     const BrepFace& BrepModel::GetFace(const int& brep_id) const
     {
-        for (int i = 0; i < m_brep_faces.size(); ++i)
+        for (int i = 0; i < mBrepFaces.size(); ++i)
         {
-            if (m_brep_faces[i].GetId() == brep_id)
-                return m_brep_faces[i];
+            if (mBrepFaces[i].GetId() == brep_id)
+                return mBrepFaces[i];
         }
         KRATOS_ERROR << "brep_id not in list of brep faces." << std::endl;
     }
@@ -302,28 +300,28 @@ namespace Kratos
     // --------------------------------------------------------------------------
     const std::vector<BrepFace>& BrepModel::GetFaceVector() const
     {
-        return m_brep_faces;
+        return mBrepFaces;
     }
     const std::vector<BrepEdge>& BrepModel::GetEdgeVector() const
     {
-        return m_brep_edges;
+        return mBrepEdges;
     }
     const std::vector<BrepVertex>& BrepModel::GetVertexVector() const
     {
-        return m_brep_vertices;
+        return mBrepVertices;
     }
 
     BrepModel::BrepModel(
-        int& brep_id,
-        double& model_tolerance,
-        std::vector<BrepFace>& faces,
-        std::vector<BrepEdge>& edges,
-        std::vector<BrepVertex>& vertices)
-        : m_model_tolerance(model_tolerance),
-          m_brep_faces(faces),
-          m_brep_edges(edges),
-          m_brep_vertices(vertices),
-          IndexedObject(brep_id),
+        const int BrepId,
+        const double ModelTolerance,
+        std::vector<BrepFace>& Faces,
+        std::vector<BrepEdge>& Edges,
+        std::vector<BrepVertex>& Vertices)
+        : mModelTolerance(ModelTolerance),
+          mBrepFaces(Faces),
+          mBrepEdges(Edges),
+          mBrepVertices(Vertices),
+          IndexedObject(BrepId),
           Flags()
     {
 

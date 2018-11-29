@@ -18,24 +18,19 @@
 
 namespace Kratos
 {
-    /* If edge has more then one brep topology object, then the edge is a coupling
-    *  edge.
-    */
     bool BrepEdge::IsCouplingEdge()
     {
-        if (m_brep_edge_topology_vector.size() > 1)
-            return true;
-        else
-            return false;
+        return (mBrepEdgeTopologyVector.size() > 1);
     }
 
     const BrepEdge::EdgeTopology BrepEdge::GetEdgeTopology(
-        const int& rTopologyIndex) const
+        const int rTopologyIndex) const
     {
-        KRATOS_ERROR_IF(rTopologyIndex >= m_brep_edge_topology_vector.size()) 
-            << "Number of topology references smaller than selected index!" << std::endl;
+        KRATOS_ERROR_IF(rTopologyIndex >= mBrepEdgeTopologyVector.size())
+            << "BrepEdge::GetEdgeTopology: Number of topology references smaller than selected index! Selected index: " 
+            << rTopologyIndex << ", size of edge topologies: " << mBrepEdgeTopologyVector.size() << std::endl;
 
-        return m_brep_edge_topology_vector[rTopologyIndex];
+        return mBrepEdgeTopologyVector[rTopologyIndex];
     }
 
     void BrepEdge::GetIntegrationGeometry(ModelPart& rModelPart,
@@ -50,24 +45,24 @@ namespace Kratos
         //for (int trims = 0; trims < m_trimming_range_vector.size(); ++trims)
         //{
             //auto this_curve = Kratos::make_unique<Kratos::Curve<3>>(
-                //m_node_curve_geometry_3d, m_trimming_range_vector[trims].range);
-            auto spans = m_node_curve_geometry_3d->Spans();
+                //mNodeCurveGeometry3D, m_trimming_range_vector[trims].range);
+            auto spans = mNodeCurveGeometry3D->Spans();
 
             for (int i = 0; i < spans.size(); ++i)
             {
                 ANurbs::Interval<double> domain(spans[i].T0(), spans[i].T1());
 
-                int number_of_points = m_node_curve_geometry_3d->Degree() + 1;
+                int number_of_points = mNodeCurveGeometry3D->Degree() + 1;
                 auto integration_points = ANurbs::IntegrationPoints<double>::Points1(number_of_points, domain);
 
-                ANurbs::CurveShapeEvaluator<double> shape(m_node_curve_geometry_3d->Degree(), rShapeFunctionDerivativesOrder);
+                ANurbs::CurveShapeEvaluator<double> shape(mNodeCurveGeometry3D->Degree(), rShapeFunctionDerivativesOrder);
 
                 for (int j = 0; j < integration_points.size(); ++j)
                 {
                     Vector local_coordinates(1);
                     local_coordinates[0] = integration_points[j].t;
 
-                    shape.Compute(m_node_curve_geometry_3d->Knots(), integration_points[j].t);
+                    shape.Compute(mNodeCurveGeometry3D->Knots(), integration_points[j].t);
 
                     Vector N_0 = ZeroVector(shape.NbNonzeroPoles());
                     Matrix N_1 = ZeroMatrix(shape.NbNonzeroPoles(), 1);
@@ -75,7 +70,7 @@ namespace Kratos
                     Element::GeometryType::PointsArrayType non_zero_control_points;
                     for (int m = shape.FirstNonzeroPole(); m < shape.LastNonzeroPole() + 1; ++m)
                     {
-                        non_zero_control_points.push_back(m_node_curve_geometry_3d->Node(m));
+                        non_zero_control_points.push_back(mNodeCurveGeometry3D->Node(m));
 
                         N_0(m) = shape(0, m);
 
@@ -129,54 +124,53 @@ namespace Kratos
         const int& rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        for (int ep = 0; ep < m_embedded_points.size(); ++ep)
+        for (int ep = 0; ep < mEmbeddedPoints.size(); ++ep)
         {
-            if (m_embedded_points[ep].trim_index == trim_index)
+            if (mEmbeddedPoints[ep].trim_index == trim_index)
             {
                 ANurbs::CurveShapeEvaluator<double> shape(
-                    m_node_curve_geometry_3d->Degree(), 
+                    mNodeCurveGeometry3D->Degree(), 
                     rShapeFunctionDerivativesOrder);
 
-                shape.Compute(m_node_curve_geometry_3d->Knots(), m_embedded_points[ep].local_parameter);
+                shape.Compute(mNodeCurveGeometry3D->Knots(), mEmbeddedPoints[ep].local_parameter);
             }
         }
     }
 
     ///Constructor
     BrepEdge::BrepEdge(
-        int rBrepId,
+        const int rBrepId,
         std::vector<EdgeTopology>& rBrepEdgeTopologyVector,
         std::vector<TrimmingRange>& rTrimmingRangeVector,
         std::vector<EmbeddedPoint>& rEmbeddedPoints,
-        int& rDegree,
+        const int rDegree,
         Vector& rKnotVector,
         Vector& rActiveRange,
         std::vector<int>& rControlPointIds,
         ModelPart& rModelPart)
-        : m_brep_edge_topology_vector(rBrepEdgeTopologyVector),
-          m_trimming_range_vector(rTrimmingRangeVector),
-          m_embedded_points(rEmbeddedPoints),
-          m_active_range(rActiveRange),
-          m_control_point_ids(rControlPointIds),
-          m_model_part(rModelPart),
+        : mBrepEdgeTopologyVector(rBrepEdgeTopologyVector),
+          mTrimmingRangeVector(rTrimmingRangeVector),
+          mEmbeddedPoints(rEmbeddedPoints),
+          mActiveRange(rActiveRange),
+          mModelPart(rModelPart),
           IndexedObject(rBrepId),
           Flags()
     {
         int number_of_nodes = rControlPointIds.size();
 
-        m_node_curve_geometry_3d = Kratos::make_unique<NodeCurveGeometry3D>(
+        mNodeCurveGeometry3D = Kratos::make_unique<NodeCurveGeometry3D>(
             rDegree, number_of_nodes);
 
         for (int i = 0; i < rControlPointIds.size(); ++i)
         {
             Node<3>::Pointer node = rModelPart.pGetNode(rControlPointIds[i]);
-            m_node_curve_geometry_3d->SetNode(i, node);
-            m_node_curve_geometry_3d->SetWeight(i, node->GetValue(NURBS_CONTROL_POINT_WEIGHT));
+            mNodeCurveGeometry3D->SetNode(i, node);
+            mNodeCurveGeometry3D->SetWeight(i, node->GetValue(NURBS_CONTROL_POINT_WEIGHT));
         }
 
         for (int i = 0; i < rKnotVector.size() - 2; ++i)
         {
-            m_node_curve_geometry_3d->SetKnot(i, rKnotVector[i + 1]);
+            mNodeCurveGeometry3D->SetKnot(i, rKnotVector[i + 1]);
         }
     }
 } // namespace Kratos.

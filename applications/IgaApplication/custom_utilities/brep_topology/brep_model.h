@@ -21,47 +21,42 @@ namespace Kratos
     class BrepModel : public IndexedObject, public Flags
     {
     public:
-        ///@name Type Definitions
-        ///@{
-        //KRATOS_CLASS_POINTER_DEFINITION(BrepModel);
-
-        ///@}
         ///@name Life Cycle
         ///@{
 
         bool GetIntegrationDomainGeometry(
             ModelPart& rModelPart,
-            int& brep_id,
+            const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
         bool GetIntegrationDomainBrep(
             ModelPart& rModelPart,
-            int& brep_id,
+            const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
         bool GetIntegrationDomainBrepCoupling(
             ModelPart& rModelPart,
-            int& brep_id,
+            const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
         bool GetIntegrationDomainBrepCoupling(
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
         void GetIntegrationBrepCouplingEdge(
@@ -70,8 +65,8 @@ namespace Kratos
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int& rPropertiesId,
-            const int& rShapeFunctionDerivativesOrder,
+            const int rPropertiesId,
+            const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables) const;
 
         //BrepFace& GetFaceNonConst(const int& brep_id);
@@ -101,10 +96,10 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
-        double                  m_model_tolerance;
-        std::vector<BrepFace>   m_brep_faces;
-        std::vector<BrepEdge>   m_brep_edges;
-        std::vector<BrepVertex> m_brep_vertices;
+        double                  mModelTolerance;
+        std::vector<BrepFace>   mBrepFaces;
+        std::vector<BrepEdge>   mBrepEdges;
+        std::vector<BrepVertex> mBrepVertices;
 
         ///@}
     }; // Class BrepModel

@@ -26,17 +26,13 @@
 
 namespace Kratos
 {
-    ///@name Kratos Classes
-    ///@{
-    /// Edge in global space.
-    /** Detail class definition.
+    /// Edge.
+    /** Edge can deal as global independent Curve, as Brep and as Coupling Brep.
+    *   The topology of each edge is given by the TopologyEdge
     */
     class BrepEdge : public IndexedObject, public Flags
     {
     public:
-
-        //using Kratos::NurbsBrepModeler;
-
         /// Pointer definition of KratosNurbsBrepApplication
         KRATOS_CLASS_POINTER_DEFINITION(BrepEdge);
 
@@ -63,6 +59,7 @@ namespace Kratos
             }
         };
 
+        /* Used to embedd additional parts to the structure.*/
         struct EmbeddedPoint {
             int trim_index;
             double local_parameter;
@@ -74,7 +71,7 @@ namespace Kratos
             }
         };
 
-        /* Used to separate the curve into trimmed ranges. */
+        /* Used to trim the curve.*/
         struct TrimmingRange
         {
             int trim_index;
@@ -102,11 +99,10 @@ namespace Kratos
             }
         };
 
-        ///@name Life Cycle
-        ///@{
-
+        /* If edge has more then one brep topology object, then the edge can deal as
+        *  a coupling edge.
+        */
         bool IsCouplingEdge();
-
 
         void GetIntegrationGeometry(
             ModelPart& rModelPart,
@@ -126,15 +122,15 @@ namespace Kratos
             std::vector<std::string> rVariables);
 
         const EdgeTopology GetEdgeTopology(
-            const int& rTopologyIndex) const;
+            const int rTopologyIndex) const;
 
         ///Constructor
         BrepEdge(
-            int rBrepId,
+            const int rBrepId,
             std::vector<EdgeTopology>& rBrepEdgeTopologyVector,
             std::vector<TrimmingRange>& rTrimmingRangeVector,
             std::vector<EmbeddedPoint>& rEmbeddedPoints,
-            int& rDegree,
+            const int rDegree,
             Vector& rKnotVector,
             Vector& rActiveRange,
             std::vector<int>& rControlPointIds,
@@ -143,28 +139,20 @@ namespace Kratos
         /// Destructor.
         virtual ~BrepEdge() {};
 
-        ///@}
-    protected:
-
     private:
-
-        ///@name Member Variables
-        ///@{
         // topology parameter
-        std::vector<EdgeTopology>              m_brep_edge_topology_vector;
-        std::vector<TrimmingRange>             m_trimming_range_vector;
-        std::vector<EmbeddedPoint>             m_embedded_points;
+        std::vector<EdgeTopology>              mBrepEdgeTopologyVector;
+        std::vector<TrimmingRange>             mTrimmingRangeVector;
+        std::vector<EmbeddedPoint>             mEmbeddedPoints;
 
         //anurbs variables
-        std::shared_ptr<NodeCurveGeometry3D>   m_node_curve_geometry_3d;
+        std::shared_ptr<NodeCurveGeometry3D>   mNodeCurveGeometry3D;
 
         //3d curve parameters
-        Vector                        m_active_range;
-        std::vector<int>              m_control_point_ids;
-        ModelPart&                    m_model_part;
-        ///@}
-    }; // Class BrepEdge
+        Vector                        mActiveRange;
+        ModelPart&                    mModelPart;
 
+    }; // Class BrepEdge
 }  // namespace Kratos.
 
 #endif // KRATOS_BREP_EDGE_H_INCLUDED defined
