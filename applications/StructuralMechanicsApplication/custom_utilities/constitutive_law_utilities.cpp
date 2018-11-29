@@ -292,6 +292,35 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector)
+{
+    // We update the deformation gradient
+    Matrix equivalent_F(Dimension, Dimension);
+
+    if(Dimension == 2) {
+        equivalent_F(0,0) = 1.0 + rStrainVector[0];
+        equivalent_F(0,1) = 0.5 * rStrainVector[2];
+        equivalent_F(1,0) = 0.5 * rStrainVector[2];
+        equivalent_F(1,1) = 1.0 + rStrainVector[1];
+    } else {
+        equivalent_F(0,0) = 1.0 + rStrainVector[0];
+        equivalent_F(0,1) = 0.5 * rStrainVector[3];
+        equivalent_F(0,2) = 0.5 * rStrainVector[5];
+        equivalent_F(1,0) = 0.5 * rStrainVector[3];
+        equivalent_F(1,1) = 1.0 + rStrainVector[1];
+        equivalent_F(1,2) = 0.5 * rStrainVector[4];
+        equivalent_F(2,0) = 0.5 * rStrainVector[5];
+        equivalent_F(2,1) = 0.5 * rStrainVector[4];
+        equivalent_F(2,2) = 1.0 + rStrainVector[2];
+    }
+
+    return equivalent_F;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
     const MatrixType& rCauchyTensor,
     Vector& rStrainVector

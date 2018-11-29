@@ -81,6 +81,7 @@ def GetDefaultInputParameters():
                 "PostVirtualSeaSurfaceX4"      : 0.0,
                 "PostVirtualSeaSurfaceY4"      : 0.0
             },
+            "output_processes"                 :{},
 
             "ConfinementPressure"              : 0.0,
             "LoadingVelocity"                  : -0.10,
