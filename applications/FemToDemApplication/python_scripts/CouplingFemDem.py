@@ -977,11 +977,8 @@ class FEMDEM_Solution:
         for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
             condition.Set(KratosMultiphysics.TO_ERASE, True)
 
-        for node in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Nodes:
-            node.Set(KratosMultiphysics.TO_ERASE, True)
-
         self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
-        self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+        self.FEM_Solution.main_model_part.RemoveSubModelPart("ContactForcesDEMConditions")
 
 #============================================================================================================================
     def RemoveAloneDEMElements(self):
