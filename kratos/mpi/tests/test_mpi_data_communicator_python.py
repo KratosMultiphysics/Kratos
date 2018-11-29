@@ -137,6 +137,28 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
             self.assertEqual(recv_ints, [self.rank-1, self.rank-1])
             self.assertEqual(recv_doubles, [2.0*self.rank-2, 2.0*self.rank-2])
 
+    @UnitTest.skipIf(Kratos.ParallelEnvironment.GetDefaultDataCommunicator().Size() < 2, "This test does not work for a single process.")
+    def testSendRecvString(self):
+
+        if self.rank + 1 != self.size:
+            send_rank = self.rank + 1
+        else:
+            send_rank = 0
+
+        if self.rank != 0:
+            recv_rank = self.rank - 1
+        else:
+            recv_rank = self.size - 1
+
+        send_string = "Hello from rank {0}".format(self.rank)
+        send_lengths = [len(send_string),]
+
+        recv_lengths = self.world.SendRecvInts(   send_lengths, send_rank, recv_rank)
+        recv_string  = self.world.SendRecvString( send_string,  send_rank, recv_rank)
+
+        self.assertEqual(len(recv_string), recv_lengths[0])
+        self.assertEqual(recv_string, "Hello from rank {0}".format(recv_rank))
+
     def testBroadcastOperations(self):
         source_rank = 0
         broadcast_int = self.world.Broadcast(self.rank, source_rank)

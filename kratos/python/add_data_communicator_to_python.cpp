@@ -99,6 +99,7 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     // SendRecv
     .def("SendRecvInts",(std::vector<int> (DataCommunicator::*)(const std::vector<int>&, const int, const int) const) &DataCommunicator::SendRecv)
     .def("SendRecvDoubles",(std::vector<double> (DataCommunicator::*)(const std::vector<double>&, const int, const int) const) &DataCommunicator::SendRecv)
+    .def("SendRecvString",(std::string (DataCommunicator::*)(const std::string&, const int, const int) const) &DataCommunicator::SendRecv)
     // Broadcast
     .def("Broadcast", [](DataCommunicator& rSelf, int SourceMessage, const int SourceRank){
         rSelf.Broadcast(SourceMessage,SourceRank);
