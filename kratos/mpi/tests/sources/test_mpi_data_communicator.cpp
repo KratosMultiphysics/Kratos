@@ -1092,6 +1092,49 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosMPICoreFastSu
     #endif
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvString, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    std::string send_buffer("Hello world!");
+    std::string recv_buffer;
+    recv_buffer.resize(send_buffer.size()); // here we assume both send and recv buffers have the same size
+
+    if (world_size > 1)
+    {
+        // two-buffer version
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+
+        // return version
+        std::string return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 12);
+        KRATOS_CHECK_EQUAL(recv_buffer, send_buffer);
+        KRATOS_CHECK_EQUAL(return_buffer, send_buffer);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1)
+    {
+        // One of the ranks has the wrong source/destination
+        int wrong_send_rank = send_rank;
+        if (mpi_world_communicator.Rank() == 0) {
+            wrong_send_rank = 2;
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(send_buffer, wrong_send_rank, recv_buffer, recv_rank),"Error:");
+
+        // Input size != output size
+        std::string local_string_wrong_size;
+        local_string_wrong_size.resize(send_buffer.size()+1);
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SendRecv(local_string_wrong_size, send_rank, recv_buffer, recv_rank),"Input error in call to MPI_Sendrecv");
+    }
+    #endif
+}
+
 // Broadcast //////////////////////////////////////////////////////////////////
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastInt, KratosMPICoreFastSuite)

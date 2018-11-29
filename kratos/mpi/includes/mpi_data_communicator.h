@@ -213,6 +213,11 @@ class MPIDataCommunicator: public DataCommunicator
         const int SendDestination,
         const int RecvSource) const override;
 
+    std::string SendRecv(
+        const std::string& rSendValues,
+        const int SendDestination,
+        const int RecvSource) const override;
+
     void SendRecv(
         const std::vector<int>& rSendValues, const int SendDestination,
         std::vector<int>& rRecvValues, const int RecvSource) const override;
