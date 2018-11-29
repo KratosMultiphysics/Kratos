@@ -77,6 +77,10 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
+    std::vector<int> Sum(const std::vector<int>& rLocalValues, const int Root) const override;
+
+    std::vector<double> Sum(const std::vector<double>& rLocalValues, const int Root) const override;
+
     void Sum(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
@@ -93,6 +97,10 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
+    std::vector<int> Min(const std::vector<int>& rLocalValues, const int Root) const override;
+
+    std::vector<double> Min(const std::vector<double>& rLocalValues, const int Root) const override;
+
     void Min(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues,
@@ -108,6 +116,10 @@ class MPIDataCommunicator: public DataCommunicator
     double Max(const double rLocalValue, const int Root) const override;
 
     array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
+
+    std::vector<int> Max(const std::vector<int>& rLocalValues, const int Root) const override;
+
+    std::vector<double> Max(const std::vector<double>& rLocalValues, const int Root) const override;
 
     void Max(
         const std::vector<int>& rLocalValues,
@@ -127,6 +139,10 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const override;
 
+    std::vector<int> SumAll(const std::vector<int>& rLocalValue) const override;
+
+    std::vector<double> SumAll(const std::vector<double>& rLocalValue) const override;
+
     void SumAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const override;
@@ -140,6 +156,10 @@ class MPIDataCommunicator: public DataCommunicator
     double MinAll(const double rLocalValue) const override;
 
     array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const override;
+
+    std::vector<int> MinAll(const std::vector<int>& rLocalValues) const override;
+
+    std::vector<double> MinAll(const std::vector<double>& rLocalValues) const override;
 
     void MinAll(
         const std::vector<int>& rLocalValues,
@@ -155,6 +175,10 @@ class MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const override;
 
+    std::vector<int> MaxAll(const std::vector<int>& rLocalValues) const override;
+
+    std::vector<double> MaxAll(const std::vector<double>& rLocalValues) const override;
+
     void MaxAll(
         const std::vector<int>& rLocalValues,
         std::vector<int>& rGlobalValues) const override;
@@ -169,11 +193,25 @@ class MPIDataCommunicator: public DataCommunicator
 
     double ScanSum(const double rLocalValue) const override;
 
+    std::vector<int> ScanSum(const std::vector<int>& rLocalValues) const override;
+
+    std::vector<double> ScanSum(const std::vector<double>& rLocalValues) const override;
+
     void ScanSum(const std::vector<int>& rLocalValues, std::vector<int>& rPartialSums) const override;
 
     void ScanSum(const std::vector<double>& rLocalValues, std::vector<double>& rPartialSums) const override;
 
     // Sendrecv operations
+
+    std::vector<int> SendRecv(
+        const std::vector<int>& rSendValues,
+        const int SendDestination,
+        const int RecvSource) const override;
+
+    std::vector<double> SendRecv(
+        const std::vector<double>& rSendValues,
+        const int SendDestination,
+        const int RecvSource) const override;
 
     void SendRecv(
         const std::vector<int>& rSendValues, const int SendDestination,
@@ -207,6 +245,14 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Scatter operations
 
+    std::vector<int> Scatter(
+        const std::vector<int>& rSendValues,
+        const int SourceRank) const override;
+
+    std::vector<double> Scatter(
+        const std::vector<double>& rSendValues,
+        const int SourceRank) const override;
+
     void Scatter(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
@@ -215,6 +261,16 @@ class MPIDataCommunicator: public DataCommunicator
     void Scatter(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
+        const int SourceRank) const override;
+
+    // Scatterv operations
+
+    std::vector<int> Scatterv(
+        const std::vector<std::vector<int>>& rSendValues,
+        const int SourceRank) const override;
+
+    std::vector<double> Scatterv(
+        const std::vector<std::vector<double>>& rSendValues,
         const int SourceRank) const override;
 
     void Scatterv(
@@ -233,6 +289,14 @@ class MPIDataCommunicator: public DataCommunicator
 
     // Gather operations
 
+    std::vector<int> Gather(
+        const std::vector<int>& rSendValues,
+        const int DestinationRank) const override;
+
+    std::vector<double> Gather(
+        const std::vector<double>& rSendValues,
+        const int DestinationRank) const override;
+
     void Gather(
         const std::vector<int>& rSendValues,
         std::vector<int>& rRecvValues,
@@ -241,6 +305,16 @@ class MPIDataCommunicator: public DataCommunicator
     void Gather(
         const std::vector<double>& rSendValues,
         std::vector<double>& rRecvValues,
+        const int DestinationRank) const override;
+
+    // Gatherv operations
+
+    std::vector<std::vector<int>> Gatherv(
+        const std::vector<int>& rSendValues,
+        const int DestinationRank) const override;
+
+    std::vector<std::vector<double>> Gatherv(
+        const std::vector<double>& rSendValues,
         const int DestinationRank) const override;
 
     void Gatherv(
@@ -256,6 +330,14 @@ class MPIDataCommunicator: public DataCommunicator
         const std::vector<int>& rRecvCounts,
         const std::vector<int>& rRecvOffsets,
         const int DestinationRank) const override;
+
+    // Allgather operations
+
+    std::vector<int> AllGather(
+        const std::vector<int>& rSendValues) const override;
+
+    std::vector<double> AllGather(
+        const std::vector<double>& rSendValues) const override;
 
     void AllGather(
         const std::vector<int>& rSendValues,
@@ -347,16 +429,16 @@ class MPIDataCommunicator: public DataCommunicator
     template<class TDataType> void BroadcastDetail(
         TDataType& rBuffer, const int SourceRank) const;
 
-    template<class TDataType> void ScatterDetail(
-        const TDataType& rSendValues, TDataType& rRecvValues, const int SourceRank) const;
+    template<class TSendDataType, class TRecvDataType> void ScatterDetail(
+        const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int SourceRank) const;
 
     template<class TDataType> void ScattervDetail(
         const TDataType& rSendValues,
         const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
         TDataType& rRecvValues, const int SourceRank) const;
 
-    template<class TDataType> void GatherDetail(
-        const TDataType& rSendValues, TDataType& rRecvValues, const int RecvRank) const;
+    template<class TSendDataType, class TRecvDataType> void GatherDetail(
+        const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int RecvRank) const;
 
     template<class TDataType> void GathervDetail(
         const TDataType& rSendValues, TDataType& rRecvValues,
@@ -383,6 +465,28 @@ class MPIDataCommunicator: public DataCommunicator
         const TDataType& rSendValues, TDataType& rRecvValues,
         const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
         const int RecvRank) const;
+
+    template<class TDataType> void PrepareScattervBuffers(
+        const std::vector<std::vector<TDataType>>& rInputMessage,
+        std::vector<TDataType>& rScattervMessage,
+        std::vector<int>& rMessageLengths,
+        std::vector<int>& rMessageDistances,
+        std::vector<TDataType>& rResult,
+        const int SourceRank) const;
+
+    template<class TDataType> void PrepareGathervBuffers(
+        const std::vector<TDataType>& rGathervInput,
+        std::vector<TDataType>& rGathervMessage,
+        std::vector<int>& rMessageLengths,
+        std::vector<int>& rMessageDistances,
+        const int DestinationRank) const;
+
+    template<class TDataType> void PrepareGathervReturn(
+        const std::vector<TDataType>& rGathervMessage,
+        const std::vector<int>& rMessageLengths,
+        const std::vector<int>& rMessageDistances,
+        std::vector<std::vector<TDataType>>& rOutputMessage,
+        const int DestinationRank) const;
 
     template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&) const;
 

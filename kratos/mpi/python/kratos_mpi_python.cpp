@@ -11,10 +11,6 @@
 //                   Pooyan Dadvand
 //
 
-// System includes
-#include "includes/define_python.h"
-#include "includes/kratos_version.h"
-
 // External includes
 #include <pybind11/pybind11.h>
 

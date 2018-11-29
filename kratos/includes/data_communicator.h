@@ -106,6 +106,28 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Sum rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contribution to the sum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The summed quantity (meaningful only in Root).
+     */
+    virtual std::vector<int> Sum(const std::vector<int>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
+    /// Sum rLocalValues across all ranks in the Communicator (double version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local contribution to the sum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The summed quantity (meaningful only in Root).
+     */
+    virtual std::vector<double> Sum(const std::vector<double>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
     /// Sum rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the sum.
@@ -161,6 +183,28 @@ class DataCommunicator
     virtual array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const
     {
         return rLocalValue;
+    }
+
+    /// Obtain the minimum of rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local values to consider in computing the minimum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The minimum values (meaningful only in Root).
+     */
+    virtual std::vector<int> Min(const std::vector<int>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
+    /// Obtain the minimum of rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local values to consider in computing the minimum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The minimum values (meaningful only in Root).
+     */
+    virtual std::vector<double> Min(const std::vector<double>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
     }
 
     /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (int version).
@@ -220,6 +264,28 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Obtain the maximum of rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local values to consider in computing the maximum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The maximum values (meaningful only in Root).
+     */
+    virtual std::vector<int> Max(const std::vector<int>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
+    /// Obtain the maximum of rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Reduce.
+     *  @param[in] rLocalValues Local values to consider in computing the maximum.
+     *  @param[in] Root The rank where the result will be computed.
+     *  @return The maximum values (meaningful only in Root).
+     */
+    virtual std::vector<double> Max(const std::vector<double>& rLocalValues, const int Root) const
+    {
+        return rLocalValues;
+    }
+
     /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Reduce.
      *  @param[in] rLocalValues Local contributions to the maximum.
@@ -276,6 +342,26 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Sum rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Alleduce.
+     *  @param[in] rLocalValues Local contribution to the sum.
+     *  @return The summed quantites.
+     */
+    virtual std::vector<int> SumAll(const std::vector<int>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
+    /// Sum rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Alleduce.
+     *  @param[in] rLocalValues Local contribution to the sum.
+     *  @return The summed quantities.
+     */
+    virtual std::vector<double> SumAll(const std::vector<double>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
     /// Sum rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the sum.
@@ -324,6 +410,26 @@ class DataCommunicator
     virtual array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const
     {
         return rLocalValue;
+    }
+
+    /// Obtain the minima of rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local values to consider in computing minima.
+     *  @return The minimum values.
+     */
+    virtual std::vector<int> MinAll(const std::vector<int>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
+    /// Obtain the minima of rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local values to consider in computing minima.
+     *  @return The minimum values.
+     */
+    virtual std::vector<double> MinAll(const std::vector<double>& rLocalValues) const
+    {
+        return rLocalValues;
     }
 
     /// Obtain the minimum (for each term) of rLocalValues across all ranks in the Communicator (int version).
@@ -376,6 +482,26 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Obtain the maxima of rLocalValues across all ranks in the Communicator (int vector version).
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local values to consider in computing maxima.
+     *  @return The maximum values.
+     */
+    virtual std::vector<int> MaxAll(const std::vector<int>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
+    /// Obtain the maxima of rLocalValues across all ranks in the Communicator (double vector version).
+    /** This is a wrapper to MPI_Allreduce.
+     *  @param[in] rLocalValues Local values to consider in computing maxima.
+     *  @return The maximum values.
+     */
+    virtual std::vector<double> MaxAll(const std::vector<double>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
     /// Obtain the maximum (for each term) of rLocalValues across all ranks in the Communicator (int version).
     /** This is a wrapper to MPI_Allreduce.
      *  @param[in] rLocalValues Local contributions to the maximum.
@@ -420,6 +546,28 @@ class DataCommunicator
         return rLocalValue;
     }
 
+    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (int vector version).
+    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
+     *  This is a wrapper to MPI_Scan.
+     *  @param[in] rLocalValues Local contributions to the partial sum.
+     *  @return The summed quantities.
+     */
+    virtual std::vector<int> ScanSum(const std::vector<int>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
+    /// Compute the partial sums of rLocalValues across all ranks in the Communicator (double vector version).
+    /** The partial sum is the sum of this quantity from rank 0 to the current rank (included).
+     *  This is a wrapper to MPI_Scan.
+     *  @param[in] rLocalValues Local contributions to the partial sum.
+     *  @return The summed quantities.
+     */
+    virtual std::vector<double> ScanSum(const std::vector<double>& rLocalValues) const
+    {
+        return rLocalValues;
+    }
+
     /// Compute the partial sums of rLocalValues across all ranks in the Communicator (int version).
     /** The partial sum is the sum of a quantity from rank 0 to the current rank (included).
      *  This is a wrapper to MPI_Scan.
@@ -443,6 +591,60 @@ class DataCommunicator
     {}
 
     // Sendrecv operations
+
+    /// Exchange data with other ranks (int version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[in] RecvSource Rank values are expected from.
+     *  @return Received values from rank RecvSource.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> SendRecv(
+        const std::vector<int>& rSendValues,
+        const int SendDestination,
+        const int RecvSource) const
+    {
+        if (SendDestination == RecvSource)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<int>(0);
+        }
+    }
+
+    /// Exchange data with other ranks (double version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues Values to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[in] RecvSource Rank values are expected from.
+     *  @return Received values from rank RecvSource.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> SendRecv(
+        const std::vector<double>& rSendValues,
+        const int SendDestination,
+        const int RecvSource) const
+    {
+        if (SendDestination == RecvSource)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<double>(0);
+        }
+    }
 
     /// Exchange data with other ranks (int version).
     /** This is a wrapper for MPI_Sendrecv.
@@ -519,6 +721,54 @@ class DataCommunicator
 
     /// Wrapper for MPI_Scatter calls (int version).
     /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @return Scattered values for this rank.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> Scatter(
+        const std::vector<int>& rSendValues,
+        const int SourceRank) const
+    {
+        if (Rank() == SourceRank)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<int>(0);
+        }
+    }
+
+    /// Wrapper for MPI_Scatter calls (double version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @return Scattered values for this rank.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> Scatter(
+        const std::vector<double>& rSendValues,
+        const int SourceRank) const
+    {
+        if (Rank() == SourceRank)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<double>(0);
+        }
+    }
+
+    /// Wrapper for MPI_Scatter calls (int version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
      *  @param[out] rRecvValues Container for the values to be sent.
      *  @param[in] SourceRank The rank containing the values to be scattered.
      *  @note The expected size of rSendValues is the size of rRecvValues times DataCommunicator::Size().
@@ -540,6 +790,62 @@ class DataCommunicator
         std::vector<double>& rRecvValues,
         const int SourceRank) const
     {}
+
+    // Scatterv operations
+
+    /// Wrapper for MPI_Scatterv calls (int version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @return Scattered values for this rank.
+     *  @note rSendValues should contain as many vectors as ranks in the communicator.
+     *  The i-th vector in the list will be sent to rank i.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> Scatterv(
+        const std::vector<std::vector<int>>& rSendValues,
+        const int SourceRank) const
+    {
+        int rank = Rank();
+        if (rank == SourceRank && rank < static_cast<int>(rSendValues.size()) )
+        {
+            return rSendValues[rank];
+        }
+        else
+        {
+            return std::vector<int>(0);
+        }
+    }
+
+    /// Wrapper for MPI_Scatterv calls (double version).
+    /** @param[in] rSendValues Values to be scattered (meaningful only on SourceRank).
+     *  @param[in] SourceRank The rank containing the values to be scattered.
+     *  @return Scattered values for this rank.
+     *  @note rSendValues should contain as many vectors as ranks in the communicator.
+     *  The i-th vector in the list will be sent to rank i.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> Scatterv(
+        const std::vector<std::vector<double>>& rSendValues,
+        const int SourceRank) const
+    {
+        int rank = Rank();
+        if (rank == SourceRank && rank < static_cast<int>(rSendValues.size()) )
+        {
+            return rSendValues[rank];
+        }
+        else
+        {
+            return std::vector<double>(0);
+        }
+    }
 
     /// Wrapper for MPI_Scatterv calls (int version).
     /** @param[in] rSendValues Values to be scattered (meaningul only on SourceRank).
@@ -577,6 +883,54 @@ class DataCommunicator
 
     /// Wrapper for MPI_Gather calls (int version).
     /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[in] DestinationRank The rank where the values will be gathered.
+     *  @return Gathered values for this rank (meaningful only on DestinationRank).
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> Gather(
+        const std::vector<int>& rSendValues,
+        const int DestinationRank) const
+    {
+        if (Rank() == DestinationRank)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<int>();
+        }
+    }
+
+    /// Wrapper for MPI_Gather calls (double version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[in] DestinationRank The rank where the values will be gathered.
+     *  @return Gathered values for this rank (meaningful only on DestinationRank).
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> Gather(
+        const std::vector<double>& rSendValues,
+        const int DestinationRank) const
+    {
+        if (Rank() == DestinationRank)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::vector<double>();
+        }
+    }
+
+    /// Wrapper for MPI_Gather calls (int version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
      *  @param[out] rRecvValues Container for the result of the MPI_Allgather call.
      *  @param[in] DestinationRank The rank where the values will be gathered.
      *  @note rRecvValues is only meaningful on rank DestinationRank.
@@ -601,6 +955,58 @@ class DataCommunicator
         const int DestinationRank) const
     {}
 
+    // Gatherv operations
+
+    /// Wrapper for MPI_Gatherv calls (int version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[in] DestinationRank The rank where the values will be gathered.
+     *  @return Gathered values for this rank (meaningful only on DestinationRank).
+     *  On DestinationRank, the i-th component of the return corresponds to
+     *  the vector received from rank i.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<std::vector<int>> Gatherv(
+        const std::vector<int>& rSendValues,
+        const int DestinationRank) const
+    {
+        std::vector<std::vector<int>> output(0);
+        if (Rank() == DestinationRank)
+        {
+            output.resize(1);
+            output[0] = rSendValues;
+        }
+        return output;
+    }
+
+    /// Wrapper for MPI_Gatherv calls (double version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @param[in] DestinationRank The rank where the values will be gathered.
+     *  @return Gathered values for this rank (meaningful only on DestinationRank).
+     *  On DestinationRank, the i-th component of the return corresponds to
+     *  the vector received from rank i.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<std::vector<double>> Gatherv(
+        const std::vector<double>& rSendValues,
+        const int DestinationRank) const
+    {
+        std::vector<std::vector<double>> output(0);
+        if (Rank() == DestinationRank)
+        {
+            output.resize(1);
+            output[0] = rSendValues;
+        }
+        return output;
+    }
+
     /// Wrapper for MPI_Gatherv calls (int version).
     /** @param[in] rSendValues Values to be gathered from this rank.
      *  @param[out] rRecvValues Received values (meaningful only on DestinationRank).
@@ -632,6 +1038,36 @@ class DataCommunicator
         const std::vector<int>& rRecvOffsets,
         const int DestinationRank) const
     {}
+
+    // Allgather operations
+
+    /// Wrapper for MPI_Allgather calls (int version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @return Gathered values.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<int> AllGather(
+        const std::vector<int>& rSendValues) const
+    {
+        return rSendValues;
+    }
+
+    /// Wrapper for MPI_Allgather calls (double version).
+    /** @param[in] rSendValues Values to be gathered from this rank.
+     *  @return Gathered values.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::vector<double> AllGather(
+        const std::vector<double>& rSendValues) const
+    {
+        return rSendValues;
+    }
 
     /// Wrapper for MPI_Allgather calls (int version).
     /** @param rSendValues[in] Values to be gathered from this rank.
