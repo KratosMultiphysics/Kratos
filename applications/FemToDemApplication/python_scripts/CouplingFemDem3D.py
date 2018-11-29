@@ -185,7 +185,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		# Loop Over Elements to find the INACTIVE ones and generate the DEM only once
 		for Element in FEM_elements:
-
 			is_active     = True
 			DEM_Generated = Element.GetValue(KratosFemDem.DEM_GENERATED)
 

@@ -913,7 +913,6 @@ class FEMDEM_Solution:
             elem.SetValue(KratosFemDem.STRESS_VECTOR, [0.0,0.0,0.0])
             elem.SetValue(KratosFemDem.STRAIN_VECTOR, [0.0,0.0,0.0])
 
-
 #============================================================================================================================
 
     def GetMaximumConditionId(self):
