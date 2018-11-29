@@ -8,27 +8,28 @@ try :
 except ModuleNotFoundError:
     print(cs_tools.bcolors.FAIL + 'Numpy is not available ! Using python default lists for computation'+ cs_tools.bcolors.ENDC)
 
-from base_co_simulation_classes.co_simulation_base_extrapolator import CoSimulationBaseExtrapolator
+from base_co_simulation_classes.co_simulation_base_extrapolator import CoSimulationBasePredictor
 import co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 
 
 def Create(settings, solver):
-    extrapolator = LinearExtrapolator(settings, solver)
+    extrapolator = LinearPredictor(settings, solver)
     return extrapolator
 
 
-## Class LinearExtrapolator.
+## Class LinearPredictor.
 # This class contains the implementation for a linear extrapolator
 
-class LinearExtrapolator(CoSimulationBaseExtrapolator):
+class LinearPredictor(CoSimulationBasePredictor):
 
     def __init__( self, settings, solver ):
-        super(LinearExtrapolator, self).__init__(settings, solver)
+        super(LinearPredictor, self).__init__(settings, solver)
         default_settings = self._GetDefaultSettings()
         self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
         self.data_prev_iter = []
         self.data_current_iter = []
+        self.ResidualStorage = deque( maxlen = 2 ) # 0 is the latest , 1 is the previous
 
 
     def _GetDefaultSettings(self):
@@ -58,17 +59,13 @@ class LinearExtrapolator(CoSimulationBaseExtrapolator):
     #                               Called at the beginning of the nonlinear iteration (coupling iteration)
     #
     def InitializeNonLinearIteration(self):
-        self.data_current_iter = cs_tools.GetDataAsList(self.solver, self.data_name)
-        self._CalculateResidual()
-        self._ComputeUpdatedRelaxFactor()
-        self._ApplyRelaxationToData()
+        pass
 
     ## FinalizeNonLinearIteration : Function finalizes the non linear iteration (coupling iteration)
     #                               Called at the end of the nonlinear iteration (coupling iteration)
     #
     def FinalizeNonLinearIteration(self):
-        self.data_prev_iter = self.data_current_iter
-        self.iteration = self.iteration + 1
+        pass
 
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
