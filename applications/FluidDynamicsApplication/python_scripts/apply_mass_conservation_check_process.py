@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import math
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
@@ -37,7 +36,6 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         if ( self._write_to_log and self._is_printing_rank ):
             with open(self._my_log_file, "w") as logFile:
                 logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\n" )
-                logFile.close()
 
         if self._is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction of Mass Conservation Check Process finished.")
@@ -67,7 +65,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
             initNegVol = self._fluid_model_part.GetCommunicator().SumAll( initNegVol )
 
             # find the printing rank
-            if ( self._fluid_model_part.GetCommunicator().MyPID() == 0 ):
+            if ( self._is_printing_rank ):
                 # managing the output to the console
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
                 KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
