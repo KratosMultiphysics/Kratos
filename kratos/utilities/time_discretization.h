@@ -23,13 +23,13 @@
 namespace Kratos {
 namespace TimeDiscretization {
 
-class BDF1
+class KRATOS_API(KRATOS_CORE) BDF1
 {
 public:
     std::array<double, 2> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
-class BDF2
+class KRATOS_API(KRATOS_CORE) BDF2
 {
 public:
     std::array<double, 3> ComputeBDFCoefficients(double DeltaTime) const;
@@ -38,25 +38,25 @@ public:
                                                  double PreviousDeltaTime) const;
 };
 
-class BDF3
+class KRATOS_API(KRATOS_CORE) BDF3
 {
 public:
     std::array<double, 4> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
-class BDF4
+class KRATOS_API(KRATOS_CORE) BDF4
 {
 public:
     std::array<double, 5> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
-class BDF5
+class KRATOS_API(KRATOS_CORE) BDF5
 {
 public:
     std::array<double, 6> ComputeBDFCoefficients(double DeltaTime) const;
 };
 
-class BDF6
+class KRATOS_API(KRATOS_CORE) BDF6
 {
 public:
     std::array<double, 7> ComputeBDFCoefficients(double DeltaTime) const;
