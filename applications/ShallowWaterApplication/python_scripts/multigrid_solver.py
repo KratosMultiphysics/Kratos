@@ -61,7 +61,8 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         self.multigrid.PrepareModelPart()
 
     def AdvanceInTime(self, current_time):
-        dt = self._ComputeDeltaTime()
+        divisions = self.main_model_part.ProcessInfo[Meshing.SUBSCALE_INDEX] * self.multigrid.number_of_divisions_at_subscale
+        dt = self._ComputeDeltaTime() / 2**divisions
         new_time = current_time + dt
 
         self._GetComputingModelPart().CloneTimeStep(new_time)
@@ -70,3 +71,24 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         self.multigrid.ExecuteInitializeSolutionStep()
 
         return new_time
+
+    def InitializeSolutionStep(self):
+        if self._TimeBufferIsInitialized():
+            if self._GetComputingModelPart().NumberOfElements() != 0:
+                self.solver.InitializeSolutionStep()
+
+    def Predict(self):
+        if self._TimeBufferIsInitialized():
+            if self._GetComputingModelPart().NumberOfElements() != 0:
+                self.solver.Predict()
+
+    # def SolveSolutionStep(self):
+    #     if self._TimeBufferIsInitialized():
+    #         # if self._GetComputingModelPart().NumberOfElements() != 0:
+    #         is_converged = self.solver.SolveSolutionStep()
+    #         return is_converged
+
+    def FinalizeSolutionStep(self):
+        if self._TimeBufferIsInitialized():
+            if self._GetComputingModelPart().NumberOfElements() != 0:
+                self.solver.FinalizeSolutionStep()
