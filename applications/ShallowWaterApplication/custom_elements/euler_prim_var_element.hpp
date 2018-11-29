@@ -131,6 +131,17 @@ public:
         KRATOS_CATCH("")
     }
 
+    /// Clone a new Primitive variables element and return a pointer to it
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
+    {
+        KRATOS_TRY
+        Element::Pointer p_new_elem = Kratos::make_shared< EulerPrimVarElement <TNumNodes> >(NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
+        p_new_elem->SetData(this->GetData());
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
+        KRATOS_CATCH("")
+    }
+
     /// Check that all required data containers are properly initialized and registered in Kratos
     /**
      * @return 0 if no errors are detected.
@@ -200,9 +211,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void GetNodalValues(ElementVariables& rVariables);
+    void GetNodalValues(ElementVariables& rVariables) override;
 
-    void GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
+    void GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables) override;
 
     void ComputeAuxMatrices(
             const BoundedMatrix<double,TNumNodes, TNumNodes>& rNcontainer,

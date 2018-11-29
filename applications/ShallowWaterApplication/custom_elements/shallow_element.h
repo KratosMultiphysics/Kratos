@@ -151,6 +151,23 @@ public:
     }
 
     /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
+    {
+        KRATOS_TRY
+        Element::Pointer p_new_elem = Kratos::make_shared<ShallowElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        p_new_elem->SetData(this->GetData());
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
+        KRATOS_CATCH("")
+    }
+
+    /**
      * this determines the elemental equation ID vector for all elemental
      * DOFs
      * @param rResult: the elemental equation ID vector

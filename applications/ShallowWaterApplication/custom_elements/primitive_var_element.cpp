@@ -78,11 +78,11 @@ namespace Kratos
     void PrimitiveVarElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        
+
         unsigned int element_size = TNumNodes*3;
         if(rResult.size() != element_size)
             rResult.resize(element_size,false);                         // False says not to preserve existing storage!!
-        
+
         GeometryType& rGeom = GetGeometry();
         int counter=0;
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -91,7 +91,7 @@ namespace Kratos
             rResult[counter++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
             rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId();
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -101,11 +101,11 @@ namespace Kratos
     void PrimitiveVarElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        
+
         const unsigned int element_size = TNumNodes*3;
         if(rElementalDofList.size() != element_size)
             rElementalDofList.resize(element_size);
-        
+
         GeometryType& rGeom = GetGeometry();
         int counter=0;
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -114,7 +114,7 @@ namespace Kratos
             rElementalDofList[counter++] = rGeom[i].pGetDof(VELOCITY_Y);
             rElementalDofList[counter++] = rGeom[i].pGetDof(HEIGHT);
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -194,7 +194,7 @@ namespace Kratos
         // Build RHS
         // Source term (bathymetry contribution)
         noalias(rRightHandSideVector)  = -variables.gravity * prod(aux_w_grad_h, variables.depth);
-        
+
         // Source term (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
 
@@ -228,7 +228,7 @@ namespace Kratos
     {
         if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
         {
-            for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
+            for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
                 rValues[PointNumber] = double(this->GetValue(rVariable));
         }
     }
@@ -409,7 +409,7 @@ namespace Kratos
         for(unsigned int igauss = 0; igauss < TNumNodes; igauss++)
         {
             noalias(N) = row(rNcontainer, igauss);
-            
+
             // Build shape and derivatives functions at Gauss points
             for(unsigned int nnode = 0; nnode < TNumNodes; nnode++)
             {
@@ -438,6 +438,16 @@ namespace Kratos
             noalias(rScalarDiff) += prod(trans(DN_DX_height),DN_DX_height); // grad_q * grad_h
         }
 
+    }
+
+//----------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    void PrimitiveVarElement<TNumNodes>::CalculateLumpedMassMatrix(BoundedMatrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix)
+    {
+        const unsigned int element_size = 3*TNumNodes;
+        rMassMatrix  = IdentityMatrix(element_size, element_size);
+        rMassMatrix /= static_cast<double>(TNumNodes);
     }
 
 //----------------------------------------------------------------------

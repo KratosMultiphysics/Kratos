@@ -93,7 +93,7 @@ namespace Kratos
             rResult[counter++] = rGeom[i].GetDof(MOMENTUM_Y).EquationId();
             rResult[counter++] = rGeom[i].GetDof(HEIGHT).EquationId();
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -123,7 +123,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void ConservedVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) 
+    void ConservedVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -179,43 +179,43 @@ namespace Kratos
 
         noalias(mass_matrix) = mass_matrix_w + mass_matrix_q;
 
-        // Build LHS 
-        // Cross terms 
+        // Build LHS
+        // Cross terms
         //~ noalias(rLeftHandSideMatrix)  = aux_q_div_m;                                         // Add <q*div(hu)> to Mass Eq.
         noalias(rLeftHandSideMatrix)  = variables.gravity * variables.height * aux_w_grad_h; // Add <w,g*h*grad(h)> to Momentum Eq.
 
-        // Inertia terms 
+        // Inertia terms
         noalias(rLeftHandSideMatrix) += variables.dt_inv * mass_matrix;        // Add <N,N> to both Eq's
 
-        // Non linear terms 
+        // Non linear terms
         noalias(rLeftHandSideMatrix) += variables.velocity_div * mass_matrix;    // Add <q,div(u)*h> to Mass Eq. and <w,div(u)*hu> to Momentum Eq.
         //~ noalias(rLeftHandSideMatrix) += variables.velocity_div * mass_matrix_w;  // Add <w,div(u)*hu> to Momentum Eq.
         //~ noalias(rLeftHandSideMatrix) += aux_non_linear;                          // Add  and <w,hu*grad(u)> to Momentum Eq.
 
-        // Stabilization terms 
+        // Stabilization terms
         noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;  // Add art. diff. to Mass Eq.
         noalias(rLeftHandSideMatrix) +=         tau_m  * aux_m_diffus;  // Add art. diff. to Momentum Eq.
 
         // Friction term
         noalias(rLeftHandSideMatrix) += variables.gravity * variables.manning2 * abs_mom / height73 * mass_matrix_w;
 
-        // Build RHS 
-        // Source terms (bathymetry contribution) 
+        // Build RHS
+        // Source terms (bathymetry contribution)
         noalias(rRightHandSideVector)  = -variables.gravity * variables.height * prod(aux_w_grad_h, variables.depth); // Add <w,-g*h*grad(H)> to RHS (Momentum Eq.)
 
         // Source terms (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
 
-        // Inertia terms 
+        // Inertia terms
         noalias(rRightHandSideVector) += variables.dt_inv * prod(mass_matrix, variables.proj_unk);
 
-        // Subtracting the dirichlet term (since we use a residualbased approach) 
+        // Subtracting the dirichlet term (since we use a residualbased approach)
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);
 
         rRightHandSideVector *= Area * variables.lumping_factor;
         rLeftHandSideMatrix *= Area * variables.lumping_factor;
 
-        KRATOS_CATCH(""); 
+        KRATOS_CATCH("");
     }
 
 //----------------------------------------------------------------------
@@ -250,7 +250,7 @@ namespace Kratos
 
 //----------------------------------------------------------------------
 
-    template< unsigned int TNumNodes > 
+    template< unsigned int TNumNodes >
     void ConservedVarElement<TNumNodes>::GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables)
     {
         // Initialize outputs
@@ -310,16 +310,6 @@ namespace Kratos
             rVariables.velocity_grad /= rVariables.height_units;
             rVariables.velocity_div  /= rVariables.height_units;
         }
-    }
-
-//----------------------------------------------------------------------
-
-    template< unsigned int TNumNodes >
-    void ConservedVarElement<TNumNodes>::CalculateLumpedMassMatrix(BoundedMatrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix) 
-    {
-        const unsigned int element_size = 3*TNumNodes;
-        rMassMatrix  = IdentityMatrix(element_size, element_size);
-        rMassMatrix /= static_cast<double>(TNumNodes);
     }
 
 //----------------------------------------------------------------------
