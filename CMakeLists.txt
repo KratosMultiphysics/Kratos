@@ -16,8 +16,14 @@ set (KratosMultiphysics_MAJOR_VERSION 6)
 set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION Dev)
 
+# If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
+if(NOT DEFINED KRATOS_SOURCE_DIR)
+  message("-- No KRATOS_SOURCE_DIR is defined, using: ${CMAKE_SOURCE_DIR}")
+  set (KRATOS_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
+endif(NOT DEFINED KRATOS_SOURCE_DIR)
+
 # Set kratos specific module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
 # Include cmake modules
 include(DownloadLib)
@@ -234,7 +240,7 @@ find_package(Boost)
 
 if(NOT DEFINED Boost_FOUND)
     DownloadLib("Boost" "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.zip")
-    set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/external_libraries/boost_1_67_0")
+    set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost_1_67_0")
 endif(NOT DEFINED Boost_FOUND)
 
 # If not found, download:
@@ -308,7 +314,7 @@ if( ZLIB_FOUND )
     include_directories( ${ZLIB_INCLUDE_DIRS} )
 else( ZLIB_FOUND )
     message( "-- Preparing local ZLIB compilation.")
-    include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
+    include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
     # Compile our own
     add_subdirectory(external_libraries/zlib)
     # we have to add this for zconf
@@ -328,7 +334,7 @@ endif()
 ######################################################################################
 
 # Include dir for external libraries
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
@@ -389,19 +395,19 @@ if(${MPI_NEEDED} MATCHES ON )
 endif(${MPI_NEEDED} MATCHES ON )
 
 # Install Files
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_utilities.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/KratosLoader.py" DESTINATION KratosMultiphysics RENAME KratosLoader.py )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_utilities.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
+install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosLoader.py" DESTINATION KratosMultiphysics RENAME KratosLoader.py )
 
 # Install the libraries in the libs folder
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
 # Kratos Testing. Install everything except sources
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests
+    install(DIRECTORY ${KRATOS_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests
         PATTERN "*.git" EXCLUDE
         PATTERN "*.c"   EXCLUDE
         PATTERN "*.h"   EXCLUDE
