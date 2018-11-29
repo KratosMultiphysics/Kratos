@@ -233,11 +233,11 @@ void  AddContainersToPython(pybind11::module& m)
     .def(py::init<>( [](const std::string& name)
                  {
                     auto var_x = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
-                                    (name+"_X", name, 1);
+                                    (name+"_X", name, 0);
                     auto var_y = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
                                     (name+"_Y", name, 1);
                     auto var_z = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
-                                    (name+"_Z", name, 1);
+                                    (name+"_Z", name, 2);
                     return CreateVariable<Variable<array_1d<double, 3> >>(name);
                  } ))
     .def("__str__", PrintObject<Array1DVariable3>)
