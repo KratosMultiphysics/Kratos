@@ -228,20 +228,15 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 self.mapper.InverseMap(DF1DALPHA, DF1DALPHA_MAPPED)
 
                 # Compute scaling
+                max_norm_objective_gradient = self.optimization_utilities.ComputeMaxNormOfNodalVariable(DF1DALPHA_MAPPED)
+
                 if outer_iteration == 1 and inner_iteration == min(3,self.max_inner_iterations):
-                    max_norm_objective_term = 0.0
-
                     if self.bead_side == "positive" or self.bead_side == "negative":
-                        max_norm_penalty_term = 1.0
+                        max_norm_penalty_gradient = 1.0
                     elif self.bead_side == "both":
-                        max_norm_penalty_term = 2.0
+                        max_norm_penalty_gradient = 2.0
 
-                    for node in self.design_surface.Nodes:
-                        temp_value = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
-                        max_norm_objective_term = max(temp_value**2,max_norm_objective_term)
-                    max_norm_objective_term = math.sqrt(max_norm_objective_term)
-
-                    penalty_scaling = max_norm_objective_term/max_norm_penalty_term
+                    penalty_scaling = max_norm_objective_gradient/max_norm_penalty_gradient
 
                 # Compute penalization term
                 penalty_value = 0.0
@@ -337,6 +332,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 additional_values_to_log["penalty_lambda"] = current_lambda
                 additional_values_to_log["penalty_scaling"] = penalty_scaling
                 additional_values_to_log["penalty_factor"] = penalty_factor
+                additional_values_to_log["max_norm_objective_gradient"] = max_norm_objective_gradient
 
                 self.data_logger.LogCurrentValues(total_iteration, additional_values_to_log)
                 self.data_logger.LogCurrentDesign(total_iteration)

@@ -71,6 +71,27 @@ inline void InverseMapScalar(TMapper& mapper,
     mapper.InverseMap(origin_variable, destination_variable);
 }
 
+inline double ComputeL2NormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
+{
+    return utils.ComputeL2NormOfNodalVariable(variable);
+}
+
+inline double ComputeL2NormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
+{
+    return utils.ComputeL2NormOfNodalVariable(variable);
+}
+
+inline double ComputeMaxNormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
+{
+    return utils.ComputeMaxNormOfNodalVariable(variable);
+}
+
+inline double ComputeMaxNormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
+{
+    return utils.ComputeMaxNormOfNodalVariable(variable);
+}
+
+// ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -133,6 +154,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // ----------------------------------------------------------------
         .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
         .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
+        .def("ComputeL2NormOfNodalVariable", ComputeL2NormScalar)
+        .def("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
+        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
+        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
         ;
 
     // ========================================================================
