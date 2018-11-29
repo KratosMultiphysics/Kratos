@@ -22,6 +22,11 @@ if(NOT DEFINED KRATOS_SOURCE_DIR)
   set (KRATOS_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
 endif(NOT DEFINED KRATOS_SOURCE_DIR)
 
+if(NOT KRATOS_BINARY_DIR)
+message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
+set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
+endif(KRATOS_BINARY_DIR)
+
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
@@ -321,7 +326,7 @@ else( ZLIB_FOUND )
     # Compile our own
     add_subdirectory(external_libraries/zlib)
     # we have to add this for zconf
-    include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
+    include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
     set( ZLIB_LIBRARIES zlib )
 endif( ZLIB_FOUND )
 
