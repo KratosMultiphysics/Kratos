@@ -203,6 +203,9 @@ namespace Kratos
         rRightHandSideVector *= Area * variables.lumping_factor;
         rLeftHandSideMatrix *= Area * variables.lumping_factor;
 
+        double residual = norm_1 (rRightHandSideVector);
+        this->SetValue(RESIDUAL_NORM, residual);
+
         KRATOS_CATCH("")
     }
 
