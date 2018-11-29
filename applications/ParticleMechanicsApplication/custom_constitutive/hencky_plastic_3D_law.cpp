@@ -186,29 +186,7 @@ void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps,
 
     mpMPMFlowRule->InitializeMaterial(mpYieldCriterion, mpHardeningLaw, rProps);
 }
-//************************************************************************************
-//************************************************************************************
 
-
-void HenckyElasticPlastic3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    mpHardeningLaw->SetProperties(rMaterialProperties);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void HenckyElasticPlastic3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
 
 //************* COMPUTING  METHODS
 //************************************************************************************
