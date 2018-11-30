@@ -660,16 +660,15 @@ Matrix& HyperElastic3DLaw::Transform2DTo3D (Matrix& rMatrix)
 {
     if (rMatrix.size1() == 2 && rMatrix.size2() == 2)
     {
-        rMatrix.resize( 3, 3, true);
+        const BoundedMatrix<double,2,2> temp_matrix = rMatrix;
+        rMatrix.resize( 3, 3, false);
+        rMatrix = IdentityMatrix(3);
 
-        rMatrix( 0 , 2 ) = 0.0;
-        rMatrix( 1 , 2 ) = 0.0;
+        rMatrix(0,0) = temp_matrix(0,0);
+        rMatrix(1,1) = temp_matrix(1,1);
 
-        rMatrix( 2 , 0 ) = 0.0;
-        rMatrix( 2 , 1 ) = 0.0;
-
-        rMatrix( 2 , 2 ) = 1.0;
-
+        rMatrix(0,1) = temp_matrix(0,1);
+        rMatrix(1,0) = temp_matrix(1,0);
     }
     else if(rMatrix.size1() != 3 && rMatrix.size2() != 3)
     {
