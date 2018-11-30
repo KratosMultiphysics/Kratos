@@ -41,8 +41,8 @@ mv ${HOME}/ANurbs-master ${HOME}/ANurbs
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
 chmod 777 smtp-cli
 
-wget https://github.com/KratosMultiphysics/Kratos/archive/master.tar.gz
-tar xzf master.tar.gz
+wget https://github.com/KratosMultiphysics/Kratos/archive/master.tar.gz -O KratosMaster.tar.gz
+tar xzf KratosMaster.tar.gz
 mv ${HOME}/Kratos-master ${HOME}/Kratos
 cd ${HOME}/Kratos
 
