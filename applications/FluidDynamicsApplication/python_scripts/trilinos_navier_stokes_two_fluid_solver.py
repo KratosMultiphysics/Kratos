@@ -37,6 +37,7 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
             },
             "maximum_iterations": 7,
             "echo_level": 0,
+            "consider_periodic_conditions"	: false,
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
@@ -62,7 +63,6 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
             },
-            "periodic": "periodic",
             "move_mesh_flag": false,
             "formulation": {
                 "dynamic_tau": 1.0
