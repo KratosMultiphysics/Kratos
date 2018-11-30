@@ -14,22 +14,23 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self._my_log_file = "Mass_Conservation.log"
-
         default_parameters = KratosMultiphysics.Parameters( """
         {
             "model_part_name"                        : "default_model_part_name",
-            "mass_computation_frequency"             : 20,
+            "frequency_of_execution_in_time_steps"   : 5,
             "compare_to_initial_values"              : true,
-            "write_to_log_file"                      : true
+            "write_to_log_file"                      : true,
+            "log_file_name"                          : "mass_conservation.log"
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self._fluid_model_part = Model[settings["model_part_name"].GetString()]
         self._write_to_log = settings["write_to_log_file"].GetBool()
-        self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
+        self._my_log_file = settings["write_to_log_file"].GetString()
 
+        self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
+        
         self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
 
         # writing first line in file
