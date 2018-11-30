@@ -21,7 +21,7 @@ from analysis_stage import AnalysisStage
 # from pycompss.api.parameter import *
 
 # Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # get_value_from_remote is the equivalent of compss_wait_on
@@ -114,7 +114,7 @@ input:
 output:
         QoI         : Quantity of Interest
 '''
-@task(parameter_file_name=FILE_IN, returns=1)
+# @task(parameter_file_name=FILE_IN, returns=1)
 def execution_task(parameter_file_name, sample):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -136,7 +136,7 @@ output:
         ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
-@ExaquteTask(returns=1)
+# @ExaquteTask(returns=1)
 def exact_execution_task(model, parameters):
     sample = 1.0
     simulation = MultilevelMonteCarloAnalysis(model,parameters,sample)
@@ -154,7 +154,7 @@ output:
         serialized_model      : model serialized
         serialized_parameters : project parameters serialized
 '''
-@ExaquteTask(parameter_file_name=FILE_IN,returns=1)
+# @ExaquteTask(parameter_file_name=FILE_IN,returns=1)
 def serialize_model_projectparameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -181,7 +181,7 @@ input :
 output :
         relative_error        : relative error
 '''
-@ExaquteTask(returns=1)
+# @ExaquteTask(returns=1)
 def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
@@ -261,10 +261,10 @@ if __name__ == '__main__':
                 # time_ML[level].append(time_MLi)
                 mlmc_class.time_ML.values[level] = np.append(mlmc_class.time_ML.values[level],time_MLi)
     
-    # print(mlmc_class.difference_QoI.values,mlmc_class.time_ML.values)
+    print("values",mlmc_class.difference_QoI.values,mlmc_class.time_ML.values)
     mlmc_class.FinalizeScreeningPhase()
-    print(mlmc_class.difference_QoI.mean,mlmc_class.difference_QoI.sample_variance)
-    print(mlmc_class.time_ML.mean,mlmc_class.time_ML.sample_variance)
+    print("mean,variance QoI",mlmc_class.difference_QoI.mean,mlmc_class.difference_QoI.sample_variance)
+    print("mean,variance time",mlmc_class.time_ML.mean,mlmc_class.time_ML.sample_variance)
     print(mlmc_class.mesh_parameters)
     print(mlmc_class.rates_error)
     print(mlmc_class.BayesianVariance)
@@ -310,10 +310,10 @@ if __name__ == '__main__':
                     mlmc_class.difference_QoI.values[level] = np.append(mlmc_class.difference_QoI.values[level],run_results[-1] - run_results[-2])
                     mlmc_class.time_ML.values[level] = np.append(mlmc_class.time_ML.values[level],time_MLi)
 
-        # print(mlmc_class.difference_QoI.values,mlmc_class.time_ML.values)
+        print("values",mlmc_class.difference_QoI.values,mlmc_class.time_ML.values)
         mlmc_class.FinalizeMLMCPhase()
-        print(mlmc_class.difference_QoI.mean,mlmc_class.difference_QoI.sample_variance)
-        print(mlmc_class.time_ML.mean,mlmc_class.time_ML.sample_variance)
+        print("mean,variance QoI",mlmc_class.difference_QoI.mean,mlmc_class.difference_QoI.sample_variance)
+        print("mean,variance time",mlmc_class.time_ML.mean,mlmc_class.time_ML.sample_variance)
 
         print(mlmc_class.mean_mlmc_QoI)
         print(mlmc_class.rates_error)
