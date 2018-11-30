@@ -145,15 +145,6 @@ void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	this->SetValue(STRESS_THRESHOLD, equivalent_threshold); // remsehing
 	this->SetThreshold(equivalent_threshold);
 	this->SetValue(DAMAGE_ELEMENT, damage_element);
-
-	// Reset the nodal force flag for the next time step
-	Geometry<Node<3>> &nodes_element = this->GetGeometry();
-	for (int i = 0; i < 3; i++) {
-		#pragma omp critical
-		{
-			nodes_element[i].SetValue(NODAL_FORCE_APPLIED, false);
-		}
-	}
 }
 
 void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
@@ -218,11 +209,6 @@ void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 			noalias(InvJ) = ZeroMatrix(dimension, dimension);
 			double detJ = 0;
 			MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
-
-			if (detJ < 0) {
-				this->Set(ACTIVE, false); // element alone inside a crack
-				detJ = fabs(detJ);
-			}
 
 			if (detJ < 0)
 				KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
@@ -315,15 +301,13 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 
 		// Find Neighbour Elements
 		WeakPointerVector<Element> &elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-		if (elem_neigb.size() == 0) {
-			KRATOS_THROW_ERROR(std::invalid_argument, " Neighbour Elements not calculated --> size = ", elem_neigb.size())
-		}
+		KRATOS_ERROR_IF(elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
 
 		// Compute damage on each edge of the element
 		double damage[3] = {0.0, 0.0, 0.0};
 
 		// Loop Over Edges
-		for (int cont = 0; cont < 3; cont++) {
+		for (unsigned int cont = 0; cont < 3; cont++) {
 			bool is_active_neigh = true;
 			if (elem_neigb[cont].IsDefined(ACTIVE)) {
 				is_active_neigh = elem_neigb[cont].Is(ACTIVE);
@@ -356,7 +340,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 
 			this->IntegrateStressDamageMechanics(IntegratedStressVector, damagee, AverageStrain, AverageStress, cont, l_char);
 			damage[cont] = damagee;
-			this->Set_NonConvergeddamages(damagee, cont);
+			this->SetNonConvergedDamages(damagee, cont);
 
 		} // Loop Over Edges
 
@@ -367,19 +351,19 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		if (damage_element >= 0.999) {
 			damage_element = 0.999;
 		}
-		this->Set_NonConvergeddamage(damage_element);
+		this->SetNonConvergedDamage(damage_element);
 
 		const Vector &StressVector = this->GetValue(STRESS_VECTOR);
-		IntegratedStressVector = (1 - damage_element) * StressVector;
+		noalias(IntegratedStressVector) = (1.0 - damage_element) * StressVector;
 
 		this->SetIntegratedStressVector(IntegratedStressVector);
 
 		Matrix ConstitutiveMatrix = ZeroMatrix(voigt_size, voigt_size);
-		double E = this->GetProperties()[YOUNG_MODULUS];
-		double nu = this->GetProperties()[POISSON_RATIO];
+		const double E = this->GetProperties()[YOUNG_MODULUS];
+		const double nu = this->GetProperties()[POISSON_RATIO];
 		this->CalculateConstitutiveMatrix(ConstitutiveMatrix, E, nu);
 
-		noalias(rLeftHandSideMatrix) += prod(trans(B), IntegrationWeight * (1 - damage_element) * Matrix(prod(ConstitutiveMatrix, B))); //LHS
+		noalias(rLeftHandSideMatrix) += prod(trans(B), IntegrationWeight * (1.0 - damage_element) * Matrix(prod(ConstitutiveMatrix, B))); //LHS
 
 		Vector VolumeForce = ZeroVector(dimension);
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
@@ -392,29 +376,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		}
 
 		//compute and add internal forces (RHS = rRightHandSideVector = Fext - Fint)
-		noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(B), (1 - damage_element) * StressVector);
-
-		Vector NodalRHS = ZeroVector(6);
-		#pragma omp critical
-		{
-			Geometry<Node<3>> &nodes_element = this->GetGeometry();
-
-			// Loop Over nodes to apply the DEM contact forces to the FEM
-			for (int i = 0; i < 3; i++) {
-				bool IsDEM = nodes_element[i].GetValue(IS_DEM);
-				bool NodalForceApplied = nodes_element[i].GetValue(NODAL_FORCE_APPLIED);
-
-				if (IsDEM == true && NodalForceApplied == false) {
-					double ForceX = nodes_element[i].GetValue(NODAL_FORCE_X);
-					double ForceY = nodes_element[i].GetValue(NODAL_FORCE_Y);
-					NodalRHS[2 * i] += ForceX;
-					NodalRHS[2 * i + 1] += ForceY;
-					nodes_element[i].SetValue(NODAL_FORCE_APPLIED, true);
-				}
-			}
-		}
-		// Add nodal contact forces from the DEM
-		noalias(rRightHandSideVector) += NodalRHS;
+		noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(B), (1.0 - damage_element) * StressVector);
 	}
 	KRATOS_CATCH("")
 }
@@ -1026,7 +988,7 @@ void FemDem2DElement::RankineCriterion(
 
 	if (F <= 0.0) { // Elastic region --> Damage is constant
 		damage = this->GetConvergedDamage();
-		//this->Set_NonConvergeddamage(damage);
+		//this->SetNonConvergedDamage(damage);
 	} else {
 		damage = 1.0 - (c_max / f) * std::exp(A * (1.0 - f / c_max)); // Exponential softening law
 		if (damage > 0.99) {

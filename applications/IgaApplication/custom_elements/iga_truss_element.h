@@ -14,8 +14,6 @@
 #define KRATOS_IGA_TRUSS_ELEMENT_H_INCLUDED
 
 // System includes
-#include "includes/define.h"
-#include "includes/element.h"
 
 // External includes
 

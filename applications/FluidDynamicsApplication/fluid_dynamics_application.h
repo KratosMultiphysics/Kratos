@@ -70,7 +70,7 @@
 #include "custom_elements/embedded_ausas_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
-
+#include "custom_elements/vms_adjoint_element.h"
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
@@ -85,6 +85,7 @@
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_two_fluid_2d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 
 
@@ -378,6 +379,9 @@ private:
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
 
+    const VMSAdjointElement<2> mVMSAdjointElement2D;
+    const VMSAdjointElement<3> mVMSAdjointElement3D;
+
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
     const Euler2DLaw mEuler2DLaw;
@@ -385,6 +389,7 @@ private:
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
     const Newtonian2DLaw mNewtonian2DLaw;
     const Newtonian3DLaw mNewtonian3DLaw;
+    const NewtonianTwoFluid2DLaw mNewtonianTwoFluid2DLaw;
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
 
     ///@}

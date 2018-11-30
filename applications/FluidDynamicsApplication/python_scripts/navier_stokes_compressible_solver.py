@@ -167,9 +167,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
         (self.solver).Initialize()
 
 
-        (self.solver).Check()
-
-
         # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble()) # REMEMBER TO CHECK MY STAB CONSTANTS
 
         print ("Monolithic compressible solver initialization finished.")
