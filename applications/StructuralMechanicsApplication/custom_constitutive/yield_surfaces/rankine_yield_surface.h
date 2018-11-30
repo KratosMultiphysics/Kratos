@@ -119,7 +119,7 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, Dimension> principal_stress_vector(3, 0.0);
+        array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
         // The rEquivalentStress is the maximum principal stress
         rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
@@ -236,24 +236,22 @@ public:
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
-	/**
-     * @brief This method returns true if the yield
-	 * surfacecompares with the tension tield stress
+    /**
+     * @brief This method returns true if the yield surfacecompares with the tension tield stress
      */
     static bool IsWorkingWithTensionThreshold()
     {
         return true;
     }
 
-	/**
-     * @brief This method returns the scaling factor of the
-     * yield surface
-	 * surfacecompares with the tension tield stress
+    /**
+     * @brief This method returns the scaling factor of the yield surface surfacecompares with the tension tield stress
      */
     static double GetScaleFactorTension(const Properties& rMaterialProperties)
     {
         return 1.0;
-    }		
+    }
+
     ///@}
     ///@name Access
     ///@{
