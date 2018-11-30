@@ -177,8 +177,8 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 
 	// Functions to calculate the Constitutive tangent tensor by numerical derivation
 	double GetMaxValue(Vector Strain);
-	double GetMaxAbsValue(Vector Strain);
-	double GetMinAbsValue(Vector Strain);
+	double GetMaxAbsValue(const Vector& rVector);
+	double GetMinAbsValue(const Vector& rVector);
 
 	void SetStressVector(Vector toStressVector)
 	{
@@ -247,6 +247,34 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 		std::vector<Vector> &rValues,
 		const ProcessInfo &rCurrentProcessInfo) override;
 
+	// methods to compute numerical tangent tensor
+	void CalculateTangentTensor(
+		Matrix& TangentTensor,
+		const Vector& rStrainVectorGP,
+		const Vector& rStressVectorGP,
+		const Matrix& rElasticMatrix);
+
+	void CalculatePerturbation(
+		const Vector& rStrainVectorGP,
+		double& rPerturbation,
+		const int Component);
+
+	void PerturbateStrainVector(
+		Vector& rPerturbedStrainVector,
+		const Vector& rStrainVectorGP,
+		const double Perturbation,
+		const int Component);
+
+	void IntegratePerturbedStrain(
+		Vector& rPerturbedStressVector,
+		const Vector& rPerturbedStrainVector,
+		const Matrix& rElasticMatrix);
+
+	void AssignComponentsToTangentTensor(
+		Matrix& rTangentTensor,
+		const Vector& rDeltaStress,
+		const double Perturbation,
+		const int Component);
   protected:
 
 	 // Each component == Each edge
