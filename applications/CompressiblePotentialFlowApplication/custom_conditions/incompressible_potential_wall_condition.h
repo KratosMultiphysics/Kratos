@@ -267,7 +267,7 @@ public:
 
             const IncompressiblePotentialWallCondition &r_this = *this;
             const array_1d<double, 3> &v = r_this.GetValue(VELOCITY_INFINITY);
-            const double value = -inner_prod(v, An) / static_cast<double>(TNumNodes);
+            const double value = inner_prod(v, An) / static_cast<double>(TNumNodes);
 
             for (unsigned int i = 0; i < TNumNodes; ++i)
                 rRightHandSideVector[i] = value;
@@ -297,8 +297,8 @@ public:
             const array_1d<double, 3> &v = this-> GetValue(VELOCITY_INFINITY);
             double value_1,value_0;
             
-            value_0 = -inner_prod(v, An_0);
-            value_1 = -inner_prod(v, An_1);
+            value_0 = inner_prod(v, An_0);
+            value_1 = inner_prod(v, An_1);
 
             if(distances[0] > 0){ 
                 rRightHandSideVector[0] = value_0*N_0[0];
@@ -312,11 +312,6 @@ public:
                 rRightHandSideVector[1] =  value_1*N_1[1];
                 rRightHandSideVector[TNumNodes+1] = value_0*N_0[1];
             }
-            KRATOS_WATCH(distances[0])
-            KRATOS_WATCH(rRightHandSideVector[0])
-            KRATOS_WATCH(rRightHandSideVector[TNumNodes+0])
-            KRATOS_WATCH(rRightHandSideVector[1])
-            KRATOS_WATCH(rRightHandSideVector[TNumNodes+1])  
             //positive part
             // if (distances[0]>0){
             //     for (unsigned int i = 0; i < TNumNodes; i++)

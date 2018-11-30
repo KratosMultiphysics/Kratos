@@ -84,8 +84,12 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # self.FindWake()
     def DefineWakeFromLevelSet(self):
         KratosMultiphysics.ModelPartIO("wake").ReadModelPart(self.wake_line_model_part)   
-        origin=[0.25,0]  
+        origin=[-0.75,0]  
         angle=math.radians(-self.geometry_parameter) 
+        
+        for node in self.wake_line_model_part.Nodes:
+            node.X=-1+node.X+1e-4
+            node.Y=node.Y+1e-4
         RotateModelPart(origin,angle,self.wake_line_model_part)
         KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(self.fluid_model_part, self.wake_line_model_part).Execute()
         for elem in self.fluid_model_part.Elements:
@@ -149,6 +153,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
                 if(nneg>0 and npos>0) and (nneg_ls>0 and npos_ls>0):
                     elem.Set(KratosMultiphysics.INTERFACE) 
+                    print('KUTTA ELEMENT:',elem.Id)
                     elem.Set(KratosMultiphysics.ACTIVE,True)
                     
             from gid_output_process import GiDOutputProcess

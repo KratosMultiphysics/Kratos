@@ -34,7 +34,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                     "anisotropy_parameters": {   
                         "reference_variable_name"          : "DISTANCE",
                         "hmin_over_hmax_anisotropic_ratio"      : 0.5, 
-                        "boundary_layer_max_distance"           : 0.5, 
+                        "boundary_layer_max_distance"           : 1, 
                         "interpolation"                         : "Linear"
                     }
                 }
@@ -97,14 +97,15 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         if self.skin_model_part_name=='naca0012':
             angle=math.radians(-self.geometry_parameter)
             origin=[0.25+self.initial_point[0],0+self.initial_point[1]] #to be defined from skin model part
-            RotateModelPart(origin,angle,self.skin_model_part)
+            print(origin)            
             for node in self.skin_model_part.Nodes:
-                node.X=node.X+1e-5
-                node.Y=node.Y+1e-5
+                node.X=self.initial_point[0]+2*node.X+1e-5
+                node.Y=2*node.Y+1e-5
+            RotateModelPart(origin,angle,self.skin_model_part)
         elif self.skin_model_part_name=='circle':
             for node in self.skin_model_part.Nodes:
-                node.X=self.geometry_parameter*node.X+1e-5
-                node.Y=self.geometry_parameter*node.Y+1e-5
+                node.X=2*node.X+1e-5
+                node.Y=2*node.Y+1e-5
 
 
     def CalculateDistance(self):

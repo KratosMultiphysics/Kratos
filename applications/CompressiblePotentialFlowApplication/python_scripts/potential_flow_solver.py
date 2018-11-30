@@ -37,7 +37,7 @@ class LaplacianSolver(PythonSolver):
             "linear_solver_settings": {
                     "solver_type": "AMGCL",
                     "max_iteration": 400,
-                    "gmres_krylov_space_dimension": 300,
+                    "gmres_krylov_space_dimension": 500,
                     "smoother_type":"ilu0",
                     "coarsening_type":"ruge_stuben",
                     "coarse_enough" : 5000,
@@ -71,7 +71,9 @@ class LaplacianSolver(PythonSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,3)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,1.5)#n_parameter
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,10)#penalty stress
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,100)#penalty kutta
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
         
