@@ -155,6 +155,11 @@ public:
     void Execute() override {}
 
     /**
+     * @brief Perform a check with the parameters
+     */
+    int Check() override;
+
+    /**
      * ExecuteRefinement transfers the entities TO_REFINE from the
      * coarse to the refined model part and executes the refinement
      */
