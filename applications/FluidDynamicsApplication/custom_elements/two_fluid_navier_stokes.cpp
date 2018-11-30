@@ -240,12 +240,12 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
                                                     const ProcessInfo& rCurrentProcessInfo )
 {
     noalias( rOutput ) = ZeroVector( StrainSize );
-    
+
     if (rVariable == FLUID_STRESS) {
 
         // creating a new data container that goes out of scope after the function is left
         TElementData dataLocal;
-        
+
         // transferring the velocity (among other variables)
         dataLocal.Initialize(*this, rCurrentProcessInfo);
 
@@ -253,7 +253,7 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
         Matrix shape_functions;
         ShapeFunctionDerivativesArrayType shape_derivatives;
 
-        // computing DN_DX values for the strain rate         
+        // computing DN_DX values for the strain rate
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const unsigned int number_of_gauss_points = gauss_weights.size();
 
@@ -1940,6 +1940,47 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+}
+
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
+                                                                        std::vector<double> &rValues,
+                                                                        const ProcessInfo &rCurrentProcessInfo )
+{
+    if (rVariable == DIVERGENCE){
+
+        KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
+
+        GeometryType::Pointer p_geom = this->pGetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int NumGauss = IntegrationPoints.size();
+
+        if (rValues.size() != NumGauss){
+            rValues.resize(NumGauss);
+        }
+
+        Vector GaussPtsJDet = ZeroVector(NumGauss);
+        GeometryData::ShapeFunctionsGradientsType DN_DX;
+        p_geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
+
+        for (unsigned int i_gauss = 0; i_gauss < NumGauss; i_gauss++){
+
+            const Matrix gp_DN_DX = DN_DX[i_gauss];
+            double DVi_DXi = 0.0;
+
+            for(unsigned int nnode = 0; nnode < NumNodes; nnode++){
+
+                const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
+                for(unsigned int ndim = 0; ndim < Dim; ndim++){
+                    DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
+                }
+            }
+            rValues[i_gauss] = DVi_DXi;
+        }
+    } else {
+        KRATOS_DEBUG_ERROR << "Variable could not be retrieved from NavierStokesTwoFluid element" << std::endl;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
