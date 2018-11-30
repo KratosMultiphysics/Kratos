@@ -77,7 +77,7 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
 }
 
 
-void MultiscaleRefiningProcess::Check()
+int MultiscaleRefiningProcess::Check()
 {
     KRATOS_TRY
 
