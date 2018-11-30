@@ -1949,33 +1949,40 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
                                                                         std::vector<double> &rValues,
                                                                         const ProcessInfo &rCurrentProcessInfo )
 {
-    GeometryType::Pointer p_geom = this->pGetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
-    const unsigned int NumGauss = IntegrationPoints.size();
+    if (rVariable == DIVERGENCE){
 
-    if (rVariable == DIVERGENCE)
-    {
-        rValues = mDivergence;
+        KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
+
+        GeometryType::Pointer p_geom = this->pGetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int NumGauss = IntegrationPoints.size();
+
+        if (rValues.size() != NumGauss){
+            rValues.resize(NumGauss);
+        }
+
+        Vector GaussPtsJDet = ZeroVector(NumGauss);
+        GeometryData::ShapeFunctionsGradientsType DN_DX;
+        p_geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
+
+        for (unsigned int i_gauss = 0; i_gauss < NumGauss; i_gauss++){
+
+            const Matrix gp_DN_DX = DN_DX[i_gauss];
+            double DVi_DXi = 0.0;
+
+            for(unsigned int nnode = 0; nnode < NumNodes; nnode++){
+
+                const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
+                for(unsigned int ndim = 0; ndim < Dim; ndim++){
+                    DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
+                }
+            }
+            rValues[i_gauss] = DVi_DXi;
+        }
+    } else {
+        KRATOS_DEBUG_ERROR << "Variable could not be retrieved from NavierStokesTwoFluid element" << std::endl;
     }
 }
-
-
-template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
-{
-    GeometryType::Pointer p_geom = this->pGetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
-    const unsigned int NumGauss = IntegrationPoints.size();
-
-    if (rVariable == DIVERGENCE)
-    {
-        mDivergence = rValues;
-    }
-}
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation

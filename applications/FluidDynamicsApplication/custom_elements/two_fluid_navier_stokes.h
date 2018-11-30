@@ -225,13 +225,19 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Function to visualize the divergence field
+
+    /**
+     * @brief Get the Value On Integration Points object (used to visualize the divergence field)
+     *
+     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE)
+     * @param rValues Vector for the values at the Gauss integration points
+     * @param rCurrentProcessInfo ProcessInfo object
+     */
     void GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
                                         std::vector<double> &rValues,
                                         const ProcessInfo &rCurrentProcessInfo ) override;
 
-    void SetValueOnIntegrationPoints(   const Variable<double> &rVariable,
-                                        std::vector<double> &rValues,
-                                        const ProcessInfo &rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Friends
@@ -336,8 +342,6 @@ protected:
     ///@}
     ///@name Protected  Access
     ///@{
-
-    std::vector<double> mDivergence;
 
     ///@}
     ///@name Protected Inquiry

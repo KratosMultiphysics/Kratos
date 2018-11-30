@@ -645,7 +645,7 @@ double MassConservationCheckProcess::ComputeDivergenceAir(){
             }
         }
 
-        it_elem->SetValueOnIntegrationPoints( DIVERGENCE, ValueVector, mrModelPart.GetProcessInfo() );
+        // it_elem->SetValueOnIntegrationPoints( DIVERGENCE, ValueVector, mrModelPart.GetProcessInfo() );
     }
     return divergenceSum;
 }
@@ -703,7 +703,7 @@ double MassConservationCheckProcess::ComputeDivergenceCut(){
                 ValueVector[i_gauss] = DVi_DXi;
             }
         }
-        it_elem->SetValueOnIntegrationPoints( DIVERGENCE, ValueVector, mrModelPart.GetProcessInfo() );
+        // it_elem->SetValueOnIntegrationPoints( DIVERGENCE, ValueVector, mrModelPart.GetProcessInfo() );
     }
     return divergenceSum;
 }
