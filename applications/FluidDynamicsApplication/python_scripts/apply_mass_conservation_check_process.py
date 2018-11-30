@@ -30,7 +30,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         self._my_log_file = settings["log_file_name"].GetString()
 
         self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
-        
+
         self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
 
         # writing first line in file
