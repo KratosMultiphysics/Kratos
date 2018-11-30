@@ -198,7 +198,7 @@ private:
     ///@{
 
     ModelPart& mThisModelPart;                        /// The model part to compute
-    Variable<array_1d<double,3>> mVariableGradient;   /// The gradient variable
+    Variable<array_1d<double,3>>& mVariableGradient;  /// The gradient variable
     std::string mRatioReferenceVariable = "DISTANCE"; /// Variable used to compute the anisotropic ratio
     double mMinSize;                                  /// The minimal size of the elements
     bool mEnforceCurrent;                             /// With this we choose if we inforce the current nodal size (NODAL_H)
