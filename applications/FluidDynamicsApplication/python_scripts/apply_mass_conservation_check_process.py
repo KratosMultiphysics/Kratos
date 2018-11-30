@@ -27,7 +27,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
         self._fluid_model_part = Model[settings["model_part_name"].GetString()]
         self._write_to_log = settings["write_to_log_file"].GetBool()
-        self._my_log_file = settings["write_to_log_file"].GetString()
+        self._my_log_file = settings["log_file_name"].GetString()
 
         self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
         
