@@ -41,7 +41,7 @@ namespace Kratos
             gid_io.WriteMesh(ThisModelPart.GetMesh());
             gid_io.FinalizeMesh();
             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
-            gid_io.WriteNodalResults(NODAL_H, ThisModelPart.Nodes(), label, 0);
+            gid_io.WriteNodalResultsNonHistorical(NODAL_H, ThisModelPart.Nodes(), label);
             gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
         }
 
@@ -54,8 +54,6 @@ namespace Kratos
         {
             Model this_model;
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
-            
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
 
@@ -117,7 +115,7 @@ namespace Kratos
             mmg_process.Execute();
 
             // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(this_model_part);
             process.Execute();
 
 //             // DEBUG
@@ -126,7 +124,7 @@ namespace Kratos
             const double tolerance = 1.0e-4;
             for (auto& i_node : this_model_part.Nodes())
                 if (i_node.X() < 0.001 || i_node.X() > 1.9999)
-                    KRATOS_CHECK_LESS_EQUAL(i_node.FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(i_node.GetValue(NODAL_H) - 1.0, tolerance);
 
             for (auto& i_elem : this_model_part.Elements())
                 KRATOS_CHECK(i_elem.Is(ACTIVE));
@@ -143,7 +141,6 @@ namespace Kratos
             Model this_model;
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             
-            this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
             this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
@@ -275,7 +272,7 @@ namespace Kratos
             mmg_process.Execute();
 
             // Compute NodalH
-            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(this_model_part);
             process.Execute();
 
 //             // DEBUG
@@ -283,8 +280,8 @@ namespace Kratos
 
             double max = 0.0;
             for (auto& i_node : this_model_part.Nodes())
-                if (i_node.FastGetSolutionStepValue(NODAL_H) > max)
-                    max = i_node.FastGetSolutionStepValue(NODAL_H);
+                if (i_node.GetValue(NODAL_H) > max)
+                    max = i_node.GetValue(NODAL_H);
 
             const double tolerance = 1.0e-2;
             KRATOS_CHECK_LESS_EQUAL(std::abs(max - 1.0/std::sqrt(2.0))/max, tolerance);

@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
 
@@ -105,22 +104,8 @@ void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,
 
 
 double NewtonianTwoFluid3DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters& rParameters) const {
-    // Calculate Symetric gradient (Voigt notation)
-    const SizeType nnodes = 4;
-    const GeometryType& geom = rParameters.GetElementGeometry();
-    const Matrix& DN_DX = rParameters.GetShapeFunctionsDerivatives();
-
-    array_1d<double,6> S = ZeroVector(6);
-    for (unsigned int n = 0; n < nnodes; ++n)
-    {
-        const array_1d<double,3>& rVel = geom[n].FastGetSolutionStepValue(VELOCITY);
-        S[0] += DN_DX(n,0)*rVel[0];
-        S[1] += DN_DX(n,1)*rVel[1];
-        S[2] += DN_DX(n,2)*rVel[2];
-        S[3] += DN_DX(n,2)*rVel[1] + DN_DX(n,1)*rVel[2];
-        S[4] += DN_DX(n,2)*rVel[0] + DN_DX(n,0)*rVel[2];
-        S[5] += DN_DX(n,1)*rVel[0] + DN_DX(n,0)*rVel[1];
-    }
+    
+    const Vector& S = rParameters.GetStrainVector();
 
     // Norm of symetric gradient (cross terms don't get the 2)
     return std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2] + S[3]*S[3] + S[4]*S[4] + S[5]*S[5]);
