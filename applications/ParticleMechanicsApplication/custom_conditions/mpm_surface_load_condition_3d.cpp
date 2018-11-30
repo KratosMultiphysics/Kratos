@@ -200,7 +200,7 @@ namespace Kratos
                 rLeftHandSideMatrix.resize(mat_size, mat_size, false);
             }
 
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size); //resetting LHS
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
         }
 
         // Resizing as needed the RHS
@@ -267,7 +267,7 @@ namespace Kratos
         {
             const double det_j = MathUtils<double>::GeneralizedDet(J[point_number]);
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
-            auto& N = row(Ncontainer, point_number);
+            const auto& N = row(Ncontainer, point_number);
 
             ge[0] = J[point_number](0, 0);
             gn[0] = J[point_number](0, 1);
