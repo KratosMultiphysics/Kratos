@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 import KratosMultiphysics.IgaApplication as KratosIga
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -24,15 +24,15 @@ def CreateNodes(model_part):
     model_part.CreateNewNode(9, -0.49, -0.0,   0.0)
 
 def SetSolutionSteps(model_part):
-    model_part.GetNode(1).SetSolutionStepValue(DISPLACEMENT, [0,2,0.1])
-    model_part.GetNode(2).SetSolutionStepValue(DISPLACEMENT, [0,7.3,4.1])
-    model_part.GetNode(3).SetSolutionStepValue(DISPLACEMENT, [3,4,0.1])
-    model_part.GetNode(4).SetSolutionStepValue(DISPLACEMENT, [34,2,0.1])
-    model_part.GetNode(5).SetSolutionStepValue(DISPLACEMENT, [0,2,0.435])
-    model_part.GetNode(6).SetSolutionStepValue(DISPLACEMENT, [34,2,0.1])
-    model_part.GetNode(7).SetSolutionStepValue(DISPLACEMENT, [7,2,34.1])
-    model_part.GetNode(8).SetSolutionStepValue(DISPLACEMENT, [5,4,8.1])
-    model_part.GetNode(9).SetSolutionStepValue(DISPLACEMENT, [4,24,92])
+    model_part.GetNode(1).SetSolutionStepValue(KM.DISPLACEMENT, [0,2,0.1])
+    model_part.GetNode(2).SetSolutionStepValue(KM.DISPLACEMENT, [0,7.3,4.1])
+    model_part.GetNode(3).SetSolutionStepValue(KM.DISPLACEMENT, [3,4,0.1])
+    model_part.GetNode(4).SetSolutionStepValue(KM.DISPLACEMENT, [34,2,0.1])
+    model_part.GetNode(5).SetSolutionStepValue(KM.DISPLACEMENT, [0,2,0.435])
+    model_part.GetNode(6).SetSolutionStepValue(KM.DISPLACEMENT, [34,2,0.1])
+    model_part.GetNode(7).SetSolutionStepValue(KM.DISPLACEMENT, [7,2,34.1])
+    model_part.GetNode(8).SetSolutionStepValue(KM.DISPLACEMENT, [5,4,8.1])
+    model_part.GetNode(9).SetSolutionStepValue(KM.DISPLACEMENT, [4,24,92])
 
 def CreateElements(model_part):
     element1 = model_part.CreateNewElement("ShellKLDiscreteElement",1,[1,2,3,4,5,6,7,8,9])
@@ -44,11 +44,11 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
 
 
     def test_nodal_results(self):
-        test_model = KratosMultiphysics.Model()
+        test_model = KM.Model()
         model_part = test_model.CreateModelPart("Structure")
         comp_model_part = model_part.CreateSubModelPart("computing_domain")
 
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
 
         CreateNodes(comp_model_part)
 
@@ -56,11 +56,7 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
 
         # Use the process
         # here the minimum settings are specified to test the default values!
-        settings_nodal_results_process = KratosMultiphysics.Parameters("""{
-            "python_module": "iga_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "IgaOutputProcess",
-            "Parameters": {
+        settings_nodal_results_process = KM.Parameters("""{
               "nodal_results": [ "DISPLACEMENT" ],
               "integration_point_results": [ ],
               "output_file_name": "nodal_results.post.res",
@@ -68,7 +64,6 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
               "file_label": "step",
               "output_control_type": "time",
               "output_frequency": 0.1
-            }
           }""")
 
         post_eigen_process = IgaOutputProcess(test_model, settings_nodal_results_process)
@@ -105,23 +100,21 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
         #check_process.ExecuteFinalize()
 
     def test_nodal_results(self):
-        test_model = KratosMultiphysics.Model()
+        test_model = KM.Model()
         model_part = test_model.CreateModelPart("Structure")
         comp_model_part = model_part.CreateSubModelPart("computing_domain")
 
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
 
         CreateNodes(comp_model_part)
 
         SetSolutionSteps(comp_model_part)
 
+        print(KratosIga.COORDINATES)
+
         # Use the process
         # here the minimum settings are specified to test the default values!
-        settings_nodal_results_process = KratosMultiphysics.Parameters("""{
-            "python_module": "iga_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "IgaOutputProcess",
-            "Parameters": {
+        settings_nodal_results_process = KM.Parameters("""{
               "nodal_results": [ ],
               "integration_point_results": [ "COORDINATES" ],
               "output_file_name": "nodal_results.post.res",
@@ -129,7 +122,6 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
               "file_label": "step",
               "output_control_type": "time",
               "output_frequency": 0.1
-            }
           }""")
 
         post_eigen_process = IgaOutputProcess(test_model, settings_nodal_results_process)
