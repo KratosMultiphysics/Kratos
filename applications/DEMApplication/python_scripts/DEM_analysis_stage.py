@@ -5,6 +5,7 @@ import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0, '')
+from analysis_stage import AnalysisStage
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
@@ -25,7 +26,7 @@ else:
     import DEM_procedures
     import DEM_material_test_script
 
-class Solution(object):
+class DEMAnalysisStage(AnalysisStage):
 
     def GetParametersFileName(self):
         return "ProjectParametersDEM.json"
@@ -37,6 +38,7 @@ class Solution(object):
 
     def LoadParametersFile(self):
         self.DEM_parameters = self.GetInputParameters()
+        self.project_parameters = self.GetInputParameters()
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
 
@@ -53,8 +55,7 @@ class Solution(object):
     def GetMainPath(self):
         return os.getcwd()
 
-    def __init__(self, model):
-
+    def __init__(self, model, parameters):
         self.model = model
         self.main_path = self.GetMainPath()
         self.LoadParametersFile()
@@ -65,7 +66,6 @@ class Solution(object):
         self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
         self.aux = AuxiliaryUtilities()
-
 
         # Set the print function TO_DO: do this better...
         self.KRATOSprint = self.procedures.KRATOSprint
@@ -96,6 +96,7 @@ class Solution(object):
         self.solver = self.SetSolver()
         self.SetDt()
         self.SetFinalTime()
+        super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
@@ -237,14 +238,6 @@ class Solution(object):
                                                      self.DEM_parameters,
                                                      self.procedures)
 
-    def Run(self):
-        self.Initialize()
-
-        self.RunMainTemporalLoop()
-
-        self.Finalize()
-
-        self.CleanUpOperations()
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
@@ -265,12 +258,13 @@ class Solution(object):
     def Initialize(self):
         self.step = 0
         self.time = 0.0
+        self.time_old_print = 0.0
 
         self.AddVariables()
 
         self.ReadModelParts()
 
-        self.SetAnalyticFaceWatcher()  # TODO check order
+        self.SetAnalyticFaceWatcher()
 
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
@@ -283,7 +277,6 @@ class Solution(object):
         # Adding dofs
         self.AddAllDofs()
 
-        #-----------os.chdir(self.main_path)
         self.KRATOSprint("Initializing Problem...")
 
         self.GraphicalOutputInitialize()
@@ -304,7 +297,6 @@ class Solution(object):
         self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
 
         #Strategy Initialization
-        #-------------os.chdir(self.main_path)
 
         self.SolverInitialize()
 
@@ -316,7 +308,6 @@ class Solution(object):
 
         self.DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(self.DEM_parameters, self.graphs_path, self.spheres_model_part, self.rigid_face_model_part)
 
-        #------------os.chdir(self.graphs_path)
         self.DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(self.DEM_parameters, self.spheres_model_part, self.cluster_model_part, self.graphs_path, "EnergyPlot.grf")
 
         self.materialTest.Initialize(self.DEM_parameters, self.procedures, self.solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
@@ -325,15 +316,12 @@ class Solution(object):
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
 
-        #self.procedures.ModelData(self.spheres_model_part, self.solver) #check link with ModelDataInfo = "OFF"
-
         self.materialTest.PrintChart()
         self.materialTest.PrepareDataForGraph()
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self.solver.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
-        #-----os.chdir(self.main_path)
 
     def AddAllDofs(self):
         self.solver.AddDofs(self.spheres_model_part)
@@ -368,7 +356,6 @@ class Solution(object):
         return self.DEM_parameters["problem_name"].GetString()
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
-        #-----os.chdir(self.main_path)
 
         # Reading the model_part
         spheres_mp_filename = self.GetMpFilename()
@@ -379,7 +366,6 @@ class Solution(object):
         else:
             self.parallelutils.PerformInitialPartition(model_part_io_spheres)
 
-        #-----os.chdir(self.main_path)
         [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
 
@@ -411,49 +397,17 @@ class Solution(object):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
 
+    def RunMainTemporalLoop(self): # deprecated
+        self.RunSolutionLoop()
 
-    def RunMainTemporalLoop(self):
-
-        self.step = 0
-        self.time = 0.0
-        self.time_old_print = 0.0
-        while self.time < self.end_time:
-
-            self.InitializeTimeStep()
-            self.time = self.time + self.solver.dt
-            self.step += 1
-
-            self.UpdateTimeInModelParts()
-
-            self.BeforeSolveOperations(self.time)
-
-            self.SolverSolve()
-
-            self.AfterSolveOperations()
-
-            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
-
-            ##### adding DEM elements by the inlet ######
-            if self.DEM_parameters["dem_inlet_option"].GetBool():
-                self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
-
-            stepinfo = self.report.StepiReport(timer, self.time, self.step)
-            if stepinfo:
-                self.KRATOSprint(stepinfo)
-
-            #### PRINTING GRAPHS ####
-            #-------os.chdir(self.graphs_path)
-            self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
-            self.materialTest.MeasureForcesAndPressure()
-            self.materialTest.PrintGraph(self.time)
-            self.DEMFEMProcedures.PrintGraph(self.time)
-            self.DEMFEMProcedures.PrintBallsGraph(self.time)
-            self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
-            self.BeforePrintingOperations(self.time)
-            self.PrintResults()
-            self.FinalizeTimeStep(self.time)
-            if self.BreakSolutionStepsLoop():
-                break
+    def RunSolutionLoop(self):
+        while self.TheSimulationMustGoOn():
+            self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
+            self.InitializeSolutionStep()
+            self._GetSolver().Predict()
+            self._GetSolver().SolveSolutionStep()
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
 
     def RunAnalytics(self, time, is_time_to_print=True):
         for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
@@ -483,6 +437,9 @@ class Solution(object):
     def SolverSolve(self):
         self.solver.SolveSolutionStep()
 
+    def _GetSolver(self):
+        return self.solver
+
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
@@ -492,8 +449,14 @@ class Solution(object):
     def SetInitialNodalValues(self):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part)
 
-    def InitializeTimeStep(self):
-        pass
+    def InitializeTimeStep(self): # deprecated
+        self.InitializeSolutionStep()
+
+    def InitializeSolutionStep(self):
+
+        self.UpdateTimeInModelParts()
+
+        self.BeforeSolveOperations(self.time)
 
     def BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
@@ -502,6 +465,32 @@ class Solution(object):
 
     def BeforePrintingOperations(self, time):
         pass
+
+    def FinalizeSolutionStep(self):
+        super(DEMAnalysisStage, self).FinalizeSolutionStep()
+        self.AfterSolveOperations()
+
+        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
+
+        ##### adding DEM elements by the inlet ######
+        if self.DEM_parameters["dem_inlet_option"].GetBool():
+            self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
+
+        stepinfo = self.report.StepiReport(timer, self.time, self.step)
+        if stepinfo:
+            self.KRATOSprint(stepinfo)
+
+    def OutputSolutionStep(self):
+        #### PRINTING GRAPHS ####
+        self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
+        self.materialTest.MeasureForcesAndPressure()
+        self.materialTest.PrintGraph(self.time)
+        self.DEMFEMProcedures.PrintGraph(self.time)
+        self.DEMFEMProcedures.PrintBallsGraph(self.time)
+        self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
+        self.BeforePrintingOperations(self.time)
+        self.PrintResults()
+        self.FinalizeTimeStep(self.time)
 
     def AfterSolveOperations(self):
         if self.post_normal_impact_velocity_option:
@@ -519,6 +508,11 @@ class Solution(object):
     def BreakSolutionStepsLoop(self):
         return False
 
+    def TheSimulationMustGoOn(self):
+        it_must_or_not = self.time < self.end_time
+        it_must_or_not = it_must_or_not and not self.BreakSolutionStepsLoop()
+        return it_must_or_not
+
     def Finalize(self):
 
         self.KRATOSprint("Finalizing execution...")
@@ -527,8 +521,7 @@ class Solution(object):
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
-
-        #------os.chdir(self.main_path)
+        self.CleanUpOperations()
 
     def CleanUpOperations(self):
 
@@ -565,8 +558,6 @@ class Solution(object):
 
     def GraphicalOutputInitialize(self):
         self.demio.Initialize(self.DEM_parameters)
-
-        #-------------os.chdir(self.post_path)
         self.demio.InitializeMesh(self.all_model_parts)
 
     def PrintResultsForGid(self, time):
@@ -578,16 +569,12 @@ class Solution(object):
 
         self.demio.ShowPrintingResultsOnScreen(self.all_model_parts)
 
-        #------os.chdir(self.data_and_results)
         self.demio.PrintMultifileLists(time, self.post_path)
         self.solver.PrepareElementsForPrinting()
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self.solver.PrepareContactElementsForPrinting()
 
-        #os.chdir(self.post_path)
-
         self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
-        #------os.chdir(self.main_path)
         if "post_vtk_option" in self.DEM_parameters.keys():
             if self.DEM_parameters["post_vtk_option"].GetBool():
                 self.vtk_output.WriteResults(self.time)
@@ -595,7 +582,6 @@ class Solution(object):
     def GraphicalOutputFinalize(self):
         self.demio.FinalizeMesh()
         self.demio.CloseMultifiles()
-
 
     #these functions are needed for coupling, so that single time loops can be done
 
@@ -605,9 +591,8 @@ class Solution(object):
         self.time_old_print = 0.0
 
     def UpdateTimeParameters(self):
-        self.InitializeTimeStep()
-        self.time = self.time + self.solver.dt
-        self.step += 1
+        self.InitializeSolutionStep()
+        self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
