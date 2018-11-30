@@ -16,9 +16,9 @@ import navier_stokes_two_fluids_solver
 import trilinos_import_model_part_utility
 
 def CreateSolver(model, custom_settings):
-    return NavierStokesMPITwoFluidSolver(model, custom_settings)
+    return NavierStokesMPITwoFluidsSolver(model, custom_settings)
 
-class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver):
+class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver):
 
     def _ValidateSettings(self, settings):
 
@@ -74,7 +74,7 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
 
     def __init__(self, model, custom_settings):
         # (!!!) Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        super(NavierStokesMPITwoFluidSolver, self).__init__(model,custom_settings)
+        super(NavierStokesMPITwoFluidsSolver, self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
@@ -90,18 +90,18 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidSolver","Construction of NavierStokesMPITwoFluidSolver finished.")
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","Construction of NavierStokesMPITwoFluidsSolver finished.")
 
 
     def AddVariables(self):
 
-        super(NavierStokesMPITwoFluidSolver, self).AddVariables()
+        super(NavierStokesMPITwoFluidsSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         KratosMPI.mpi.world.barrier()
 
         if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidSolver","Variables for the Trilinos Two Fluid solver added correctly.")
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","Variables for the Trilinos Two Fluid solver added correctly.")
 
     def ImportModelPart(self):
         ## Construct the Trilinos import model part utility
@@ -112,19 +112,19 @@ class NavierStokesMPITwoFluidSolver(navier_stokes_two_fluids_solver.NavierStokes
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidSolver","MPI model reading finished.")
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","MPI model reading finished.")
 
     def PrepareModelPart(self):
-        super(NavierStokesMPITwoFluidSolver,self).PrepareModelPart()
+        super(NavierStokesMPITwoFluidsSolver,self).PrepareModelPart()
         ## Construct Trilinos the communicators
         self.trilinos_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
-        super(NavierStokesMPITwoFluidSolver, self).AddDofs()
+        super(NavierStokesMPITwoFluidsSolver, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
         if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidSolver","DOFs for the Trilinos Two Fluid solver added correctly.")
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPITwoFluidsSolver","DOFs for the Trilinos Two Fluid solver added correctly.")
 
 
     def Initialize(self):
