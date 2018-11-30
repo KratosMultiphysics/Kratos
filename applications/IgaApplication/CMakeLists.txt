@@ -42,17 +42,19 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_boundary_loop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_trimming_curve.cpp
     # elements
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_discrete_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_base_discrete_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_point_discrete_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/support_penalty_point_discrete_condition.cpp
-	
-    "${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp"
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
+    ${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp
 )
 
+## generate variables with the testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+  file(GLOB_RECURSE KRATOS_IGA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES})
+pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES} ${KRATOS_IGA_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosIgaApplication PRIVATE KratosCore)
 set_target_properties(KratosIgaApplication PROPERTIES PREFIX "")
 

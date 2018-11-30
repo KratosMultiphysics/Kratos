@@ -206,7 +206,7 @@ void RegisterCurveGeometryBase(
     using namespace pybind11::literals;
 
     using Type = CurveGeometryBase<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("Degree", &Type::Degree)
@@ -243,7 +243,7 @@ void RegisterCurveGeometry(
     using namespace pybind11::literals;
 
     using Type = CurveGeometry<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
     using Base = CurveGeometryBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
@@ -264,7 +264,7 @@ void RegisterSurfaceGeometryBase(
     using VectorType = Kratos::array_1d<double, TDimension>;
 
     using Type = SurfaceGeometryBase<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("DegreeU", &Type::DegreeU)
@@ -334,7 +334,7 @@ void RegisterSurfaceGeometry(
     using namespace pybind11::literals;
 
     using Type = SurfaceGeometry<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
     using Base = SurfaceGeometryBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
@@ -356,7 +356,7 @@ void RegisterNodeCurveGeometry(
     using VectorType = Kratos::array_1d<double, 3>;
 
     using Type = NodeCurveGeometry3D;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
     using Base = CurveGeometryBase<3>;
 
     using VariableComponent = Kratos::VariableComponent<
@@ -373,7 +373,7 @@ void RegisterNodeCurveGeometry(
             "Index"_a,
             "Value"_a)
         .def("Knots", &Type::Knots)
-        .def("Node", &Type::Node,
+        .def("Node", &Type::GetNode,
             "Index"_a)
         .def("SetNode", &Type::SetNode,
             "Index"_a,
@@ -436,7 +436,7 @@ void RegisterNodeSurfaceGeometry(
     using VectorType = Kratos::array_1d<double, 3>;
 
     using Type = NodeSurfaceGeometry3D;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
     using Base = ANurbs::SurfaceGeometryBase<VectorType>;
 
     using VariableComponent = Kratos::VariableComponent<
@@ -456,7 +456,7 @@ void RegisterNodeSurfaceGeometry(
         .def("SetKnotV", &Type::SetKnotV,
             "Index"_a,
             "Value"_a)
-        .def("Node", &Type::Node,
+        .def("Node", &Type::GetNode,
             "IndexU"_a,
             "IndexV"_a)
         .def("SetNode", &Type::SetNode,
@@ -533,7 +533,7 @@ void RegisterCurveBase(
     using namespace pybind11::literals;
 
     using Type = CurveBase<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("Domain", &Type::Domain)
@@ -556,11 +556,11 @@ void RegisterCurve(
     using GeometryType = CurveGeometry<TDimension>;
 
     using Type = Curve<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
     using Base = CurveBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
-        .def(pybind11::init<shared_ptr<GeometryType>,
+        .def(pybind11::init<Kratos::shared_ptr<GeometryType>,
             ANurbs::Interval<double>>(),
             "CurveGeometry"_a,
             "Domain"_a)
@@ -575,7 +575,7 @@ void RegisterSurfaceBase(
     using namespace pybind11::literals;
 
     using Type = SurfaceBase<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
         .def_property_readonly("DomainU", &Type::DomainU)
@@ -602,11 +602,11 @@ void RegisterSurface(
     using GeometryType = SurfaceGeometry<TDimension>;
 
     using Type = Surface<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
     using Base = SurfaceBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
-        .def(pybind11::init<shared_ptr<GeometryType>,
+        .def(pybind11::init<Kratos::shared_ptr<GeometryType>,
             ANurbs::Interval<double>, ANurbs::Interval<double>>(),
             "SurfaceGeometry"_a,
             "DomainU"_a,
@@ -622,12 +622,12 @@ void RegisterCurveOnSurface(
     using namespace pybind11::literals;
 
     using Type = CurveOnSurface<TDimension>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
     using Base = CurveBase<TDimension>;
 
     pybind11::class_<Type, Base, Holder>(m, name.c_str())
-        .def(pybind11::init<shared_ptr<CurveGeometryBase<2>>,
-            shared_ptr<SurfaceGeometryBase<TDimension>>,
+        .def(pybind11::init<Kratos::shared_ptr<CurveGeometryBase<2>>,
+            Kratos::shared_ptr<SurfaceGeometryBase<TDimension>>,
             ANurbs::Interval<double>>(),
             "CurveGeometry"_a,
             "SurfaceGeometry"_a,
@@ -646,10 +646,10 @@ void RegisterPointOnCurveProjection(
     using CurveBaseType = CurveBase<TDimension>;
 
     using Type = ANurbs::PointOnCurveProjection<VectorType>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
-        .def(pybind11::init<shared_ptr<CurveBaseType>, double>(),
+        .def(pybind11::init<Kratos::shared_ptr<CurveBaseType>, double>(),
             "Curve"_a,
             "Tolerance"_a)
         .def("Compute",
@@ -671,7 +671,7 @@ void RegisterCurveTessellation(
     using VectorType = Kratos::array_1d<double, TDimension>;
 
     using Type = ANurbs::CurveTessellation<VectorType>;
-    using Holder = shared_ptr<Type>;
+    using Holder = Kratos::shared_ptr<Type>;
 
     pybind11::class_<Type, Holder>(m, name.c_str())
         .def(pybind11::init<>())
