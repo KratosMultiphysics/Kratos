@@ -31,10 +31,10 @@ class IgaSolver(PythonSolver):
     _create_convergence_criterion
     _create_linear_solver
     _create_builder_and_solver
-    _create_iga_solution_strategy
+    _create_solution_strategy
 
     The iga_solution_strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_iga_solution_strategy, get_builder_and_solver,
+    using the getter functions get_solution_strategy, get_builder_and_solver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -187,7 +187,7 @@ class IgaSolver(PythonSolver):
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        iga_solution_strategy = self.get_iga_solution_strategy()
+        iga_solution_strategy = self.get_solution_strategy()
         iga_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         iga_solution_strategy.Initialize()
 
@@ -197,21 +197,21 @@ class IgaSolver(PythonSolver):
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        iga_solution_strategy = self.get_iga_solution_strategy()
+        iga_solution_strategy = self.get_solution_strategy()
         iga_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
-        self.get_iga_solution_strategy().InitializeSolutionStep()
+        self.get_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.get_iga_solution_strategy().Predict()
+        self.get_solution_strategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_iga_solution_strategy().Solve()
+        is_converged = self.get_solution_strategy().Solve()
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.get_iga_solution_strategy().FinalizeSolutionStep()
+        self.get_solution_strategy().FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
@@ -236,13 +236,13 @@ class IgaSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.get_iga_solution_strategy().SetEchoLevel(level)
+        self.get_solution_strategy().SetEchoLevel(level)
 
     def Clear(self):
-        self.get_iga_solution_strategy().Clear()
+        self.get_solution_strategy().Clear()
 
     def Check(self):
-        self.get_iga_solution_strategy().Check()
+        self.get_solution_strategy().Check()
 
     #### Specific internal functions ####
 
@@ -266,9 +266,9 @@ class IgaSolver(PythonSolver):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
 
-    def get_iga_solution_strategy(self):
+    def get_solution_strategy(self):
         if not hasattr(self, '_iga_strategy'):
-            self._iga_solution_strategy = self._create_iga_solution_strategy()
+            self._iga_solution_strategy = self._create_solution_strategy()
         return self._iga_solution_strategy
 
     def import_constitutive_laws(self):
@@ -406,7 +406,7 @@ class IgaSolver(PythonSolver):
         """
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
-    def _create_iga_solution_strategy(self):
+    def _create_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             iga_solution_strategy = self._create_linear_strategy()
