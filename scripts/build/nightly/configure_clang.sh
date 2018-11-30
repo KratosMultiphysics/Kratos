@@ -46,6 +46,7 @@ cmake .. \
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                                            \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                                           \
 -DIGA_APPLICATION=ON                                                                            \
+-DANURBS_ROOT="${HOME}/ANurbs"                                                                  \
 -DSWIMMING_DEM_APPLICATION=OFF                                                                  \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
