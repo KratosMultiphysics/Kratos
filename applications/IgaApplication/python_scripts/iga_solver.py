@@ -191,23 +191,23 @@ class IgaSolver(PythonSolver):
         iga_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         iga_solution_strategy.Initialize()
 
-        self.Check()
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Finished initialization.")
 
-    def Solve(self):
+    def InitializeSolutionStep(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        iga_solution_strategy = self.get_solution_strategy()
-        iga_solution_strategy.Solve()
-
-    def InitializeSolutionStep(self):
+            self.Initialize() #required after clearing
         self.get_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
         self.get_solution_strategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_solution_strategy().Solve()
+        is_converged = self.get_solution_strategy().SolveSolutionStep()
+        if not is_converged:
+            msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            self.print_warning_on_rank_zero("::[IgaSolver]:: ",msg)
         return is_converged
 
     def FinalizeSolutionStep(self):
@@ -267,9 +267,9 @@ class IgaSolver(PythonSolver):
         return self._builder_and_solver
 
     def get_solution_strategy(self):
-        if not hasattr(self, '_iga_strategy'):
-            self._iga_solution_strategy = self._create_solution_strategy()
-        return self._iga_solution_strategy
+        if not hasattr(self, '_solution_strategy'):
+            self._solution_strategy = self._create_solution_strategy()
+        return self._solution_strategy
 
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -295,8 +295,9 @@ class IgaSolver(PythonSolver):
         self.nurbs_brep_modeler = IgaApplication.NurbsBrepModeler(self.main_model_part)
 
         if self.settings["model_import_settings"]["input_type"].GetString() == "json":
-            geometry_file = open(self.settings["model_import_settings"]["input_filename"].GetString() + ".json",'r')
-            geometry_parameters = KratosMultiphysics.Parameters( geometry_file.read())
+
+            with open(self.settings["model_import_settings"]["input_filename"].GetString() + ".json",'r') as geometry_file:
+                geometry_parameters = KratosMultiphysics.Parameters( geometry_file.read())
             self.geometry_reader = IgaApplication.BrepJsonIO()
 
             self.nurbs_brep_modeler.ImportGeometry(self.geometry_reader, geometry_parameters)
