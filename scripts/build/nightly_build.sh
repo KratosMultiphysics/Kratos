@@ -32,6 +32,10 @@ unzip mmg.zip
 wget https://bitbucket.org/eigen/eigen/get/dbed8786ceed.tar.gz -O eigen.tar.gz
 tar xzf eigen.tar.gz
 mv ${HOME}/eigen-eigen-dbed8786ceed ${HOME}/eigen
+# ANurbs library
+wget https://github.com/oberbichler/ANurbs/archive/master.tar.gz -O AnurbsLibrary.tar.gz
+tar xzf AnurbsLibrary.tar.gz
+mv ${HOME}/ANurbs-master ${HOME}/ANurbs
 
 ## Step1: Prepare
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
