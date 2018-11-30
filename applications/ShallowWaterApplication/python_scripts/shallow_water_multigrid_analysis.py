@@ -39,7 +39,9 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             if self.current_subscale < self.maximum_subgrids:
+                self.sub_analysis._GetSolver()._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] = 0
                 self.sub_analysis.end_time = self.time
+                self.sub_analysis.InitializeSolver()
                 self.sub_analysis.RunSolutionLoop()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
@@ -48,6 +50,19 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
         super(ShallowWaterMultigridAnalysis, self).Finalize()
         if self.current_subscale < self.maximum_subgrids:
             self.sub_analysis.Finalize()
+
+    def InitializeSolver(self):
+        self._GetSolver().Initialize()
+
+    # def ExecuteBeforeSolutionLoop(self):
+    #     # This code is included in AnalysisStage.Initialize()
+    #     # Added specifically for the multigrid analysis
+    #     print('EXECUTE BEFORE SOLUTINO LOOP')
+    #     # for process in self._GetListOfProcesses():
+    #     #     print(process)
+    #     #     process.ExecuteBeforeSolutionLoop()
+    #     self._GetSolver().ExecuteBeforeSolutionLoop()
+    #     self._GetSolver().AddDofs()
 
     def _UpdateModelPartNamesInParameters(self):
         # Update the model part name in the processes parameters

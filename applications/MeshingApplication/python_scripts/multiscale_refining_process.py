@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
+import KratosMultiphysics.ShallowWaterApplication as Shallow # This is temporary
 
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -21,6 +22,8 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             "current_subscale"                : 0,
             "maximum_number_of_subscales"     : 4,
             "echo_level"                      : 0,
+            "error_variable"                  : "RESIDUAL_NORM",
+            "variable_threshold"              : 1e-3,
             "advanced_configuration"          : {
                 "echo_level"                      : 0,
                 "number_of_divisions_at_subscale" : 2,
@@ -39,6 +42,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         self.echo_level = self.settings['echo_level'].GetInt()
         self.current_subscale = self.settings['current_subscale'].GetInt()
         self.maximum_number_of_subscales = self.settings['maximum_number_of_subscales'].GetInt()
+        self.number_of_divisions_at_subscale = self.settings['advanced_configuration']['number_of_divisions_at_subscale'].GetInt()
 
         # Get the coarse and refined model part names
         self.coarse_model_part_name = self.settings['main_model_part_name'].GetString()
@@ -62,15 +66,11 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             self.refined_model_part.ProcessInfo[MeshingApplication.SUBSCALE_INDEX] = self.current_subscale
 
     def PrepareModelPart(self):
-        # Get the visualization model part
-        if (self.current_subscale == 0):
+        # Initialize the corresponding model part
+        if self.current_subscale == 0:
             self._InitializeVisualizationModelPart()
         else:
             self._InitializeRefinedModelPart()
-
-    def ExecuteInitialize(self):
-        # Create the new subscale process if needed
-        if self.current_subscale > 0:
             self.subscales_utility = MeshingApplication.MultiscaleRefiningProcess(
                 self.coarse_model_part,
                 self.refined_model_part,
@@ -84,9 +84,35 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
                 print(self.model[self.coarse_model_part_name])
                 print(self.model[self.refined_model_part_name])
 
+        # And her eI should create the utility
+
+    def ExecuteInitialize(self):
+        # Create the new subscale process if needed
+        # if self.current_subscale > 0:
+        #     self.subscales_utility = MeshingApplication.MultiscaleRefiningProcess(
+        #         self.coarse_model_part,
+        #         self.refined_model_part,
+        #         self.visualization_model_part,
+        #         self.settings["advanced_configuration"])
+        #
+        #     if self.echo_level > 0:
+        #         print('The multiscale process is initialized')
+        #
+        #     if self.echo_level > 1:
+        #         print(self.model[self.coarse_model_part_name])
+        #         print(self.model[self.refined_model_part_name])
+
+        # This is equivalent to the ExecuteBeforeSolutionLoop
+        if self.current_subscale > 0:
+            self._EvaluateCondition()
+            self._ExecuteRefinement()
+            self._ExecuteCoarsening()
+
     def ExecuteBeforeSolutionLoop(self):
         if self.current_subscale > 0:
+            self._EvaluateCondition()
             self._ExecuteRefinement()
+            self._ExecuteCoarsening()
 
     def ExecuteInitializeSolutionStep(self):
         if self.current_subscale == 0:
@@ -94,10 +120,15 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             step = self.coarse_model_part.ProcessInfo[KratosMultiphysics.STEP]
             self.visualization_model_part.ProcessInfo[KratosMultiphysics.TIME] = time
             self.visualization_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+        else:
+            substep = self.refined_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            self.subscales_utility.TransferSubstepToRefinedInterface(Shallow.HEIGHT, substep)
+            self.subscales_utility.TransferSubstepToRefinedInterface(KratosMultiphysics.VELOCITY, substep)
 
     def ExecuteFinalizeSolutionStep(self):
-        if self.current_subscale > 0:
-            self._ExecuteCoarsening()
+        # if self.current_subscale > 0:
+        #     self._ExecuteCoarsening()
+        pass
 
     def ExecuteBeforeOutputStep(self):
         pass
@@ -131,7 +162,20 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         MeshingApplication.MultiscaleRefiningProcess.InitializeRefinedModelPart(self.coarse_model_part, self.refined_model_part)
 
     def _ExecuteRefinement(self):
+        print('EXECUTING THE REFINEMENT !!!!!!!!')
         self.subscales_utility.ExecuteRefinement()
 
     def _ExecuteCoarsening(self):
+        print('EXECUTING THE COARSENING !!!!!!!!!')
         self.subscales_utility.ExecuteCoarsening()
+
+    def _EvaluateCondition(self):
+        print('EVALUATING REFINEMENT CONDITION !!!!!!!')
+        variable = getattr(KratosMultiphysics, self.settings["error_variable"].GetString())
+        threshold = self.settings["variable_threshold"].GetDouble()
+        # Set the nodes or the elements which are to refine
+        for elem in self.coarse_model_part.Elements:
+            residual = elem.GetValue(KratosMultiphysics.RESIDUAL_NORM)
+            if residual > threshold:
+                for node in elem.GetNodes():
+                    node.Set(KratosMultiphysics.TO_REFINE, True)

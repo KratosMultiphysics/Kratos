@@ -43,14 +43,17 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def ExecuteInitialize(self):
-        super(MultigridSolver, self).__init__(model, settings)
+    def Initialize(self):
         self.multigrid.ExecuteInitialize()
+        super(MultigridSolver, self).Initialize()
 
-    def _GetComputingModelPart(self):
-        return self.multigrid.GetRefinedModelPart()
+    # def ExecuteBeforeSolutionLoop(self):
+    #     self.multigrid.ExecuteBeforeSolutionLoop()
+    #     self.solver.Initialize()
 
     def ImportModelPart(self):
+        print('------------------- THE CURRENT SUBSCALE INDEX -----------------------')
+        print(self.main_model_part.ProcessInfo[Meshing.SUBSCALE_INDEX])
         if self.main_model_part.ProcessInfo[Meshing.SUBSCALE_INDEX] == 0:
             # Default implementation in the base class
             self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
@@ -61,7 +64,7 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         self.multigrid.PrepareModelPart()
 
     def AdvanceInTime(self, current_time):
-        divisions = self.main_model_part.ProcessInfo[Meshing.SUBSCALE_INDEX] * self.multigrid.number_of_divisions_at_subscale
+        divisions = self.main_model_part.ProcessInfo[Meshing.SUBSCALE_INDEX] * 2**self.multigrid.number_of_divisions_at_subscale
         dt = self._ComputeDeltaTime() / 2**divisions
         new_time = current_time + dt
 
@@ -71,6 +74,9 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         self.multigrid.ExecuteInitializeSolutionStep()
 
         return new_time
+
+    def _GetComputingModelPart(self):
+        return self.multigrid.GetRefinedModelPart()
 
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
