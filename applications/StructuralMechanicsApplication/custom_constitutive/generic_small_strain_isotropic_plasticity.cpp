@@ -86,13 +86,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
 
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-        }
-
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
+            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
             Vector& r_stress_vector = rValues.GetStressVector();
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+                Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
                 noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
             } else {
                 BaseType::CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
@@ -107,17 +106,11 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
         }
 
-        // Elastic Matrix
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-        }
-
-        // We compute the stress
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        // We compute the stress or the constitutive matrix
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
+            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
             // Elastic Matrix
-            if( r_constitutive_law_options.IsNot( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-                this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
-            }
+            this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
             // We get some variables
             double threshold = this->GetThreshold();
@@ -532,7 +525,7 @@ Matrix& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
         Matrix constitutive_matrix;
         this->CalculateElasticMatrix(constitutive_matrix, rParameterValues);
 
-        array_1d<double,VoigtSize> tmp = prod(constitutive_matrix, strain_vector - mPlasticStrain);
+        const array_1d<double,VoigtSize> tmp = prod(constitutive_matrix, strain_vector - mPlasticStrain);
         rValue = MathUtils<double>::StressVectorToTensor(tmp);
         return rValue;
     } else if (this->Has(rThisVariable)) {
