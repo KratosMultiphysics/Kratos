@@ -329,17 +329,7 @@ void LinearSolidElement::Initialize()
 
 void LinearSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
 
-    //call the constitutive law to initialize the solution step
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-        mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                GetGeometry(),
-                row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                rCurrentProcessInfo );
-
-
-    KRATOS_CATCH( "" )
 }
 
 
@@ -364,16 +354,6 @@ void LinearSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProces
 void LinearSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    //call the constitutive law to finalize the solution step
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-      mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
-	      GetGeometry(),
-              row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-	      rCurrentProcessInfo );
-
-    //IF INTERNAL VARIABLES EXIST; THE MATERIAL RESPONSE MUST BE FINALIZED ALSO
-    //see constitutive_law.h and other solid elements
 
 
     //explicit case:

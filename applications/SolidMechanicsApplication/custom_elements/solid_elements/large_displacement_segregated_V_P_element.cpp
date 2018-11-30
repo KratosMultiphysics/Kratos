@@ -218,26 +218,6 @@ void LargeDisplacementSegregatedVPElement::InitializeSolutionStep( ProcessInfo& 
 
     SolidElement::InitializeExplicitContributions();
 
-    switch(mStepVariable)
-    {
-      case VELOCITY_STEP:
-        {
-
-          for ( SizeType i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                                                               GetGeometry(),
-                                                               row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                                                               rCurrentProcessInfo );
-          break;
-        }
-      case PRESSURE_STEP:
-        {
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-    }
-
     this->Set(SolidElement::FINALIZED_STEP,false);
 
     KRATOS_CATCH( "" )

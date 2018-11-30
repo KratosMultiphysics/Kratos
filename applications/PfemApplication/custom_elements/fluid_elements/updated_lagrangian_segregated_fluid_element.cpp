@@ -213,27 +213,6 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeSolutionStep( ProcessInf
 
     FluidElement::InitializeExplicitContributions();
 
-    switch(mStepVariable)
-    {
-      case VELOCITY_STEP:
-        {
-
-          for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                                                               GetGeometry(),
-                                                               row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                                                               rCurrentProcessInfo );
-          break;
-        }
-      case PRESSURE_STEP:
-        {
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-    }
-
-
     KRATOS_CATCH( "" )
 
 }

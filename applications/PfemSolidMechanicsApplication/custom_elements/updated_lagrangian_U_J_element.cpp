@@ -1878,12 +1878,6 @@ namespace Kratos
          //call the constitutive law to update material variables
          mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
 
-         //call the constitutive law to finalize the solution step
-         mConstitutiveLawVector[PointNumber]->FinalizeSolutionStep( GetProperties(),
-               GetGeometry(),
-               Variables.N,
-               rCurrentProcessInfo );
-
          Variables.H = ElementalFT;
          Variables.detH = ElementalDetFT;
 
@@ -1898,11 +1892,6 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
    }
-   ////************************************************************************************
-   ////************************************************************************************
-
-   ////************************************************************************************
-   ////************************************************************************************
 
    ////************************************************************************************
    ////************************************************************************************
