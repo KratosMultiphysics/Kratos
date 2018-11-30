@@ -137,7 +137,7 @@ private:
     ///@name Member Variables
     ///@{
     
-    double response_value = 0;
+    double m_response_value = 0;
 
     ///@}
     ///@name Private Operators
@@ -146,6 +146,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    void CheckForBodyForces(ModelPart& rModelPart);
     ///@}
     ///@name Private  Access
     ///@{
