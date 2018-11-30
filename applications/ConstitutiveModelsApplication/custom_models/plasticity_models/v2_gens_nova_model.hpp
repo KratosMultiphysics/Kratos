@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_GENS_NOVA_MODEL_H_INCLUDED )
-#define  KRATOS_GENS_NOVA_MODEL_H_INCLUDED
+#if !defined(KRATOS_V2_GENS_NOVA_MODEL_H_INCLUDED )
+#define  KRATOS_V2_GENS_NOVA_MODEL_H_INCLUDED
 
 // System includes
 
@@ -32,6 +32,7 @@
 // 3. ps (mechanical)
 // 4. pt (ageing)
 // 5. pcSTAR = ps + (1+k) p_t
+// 6. Plastic Volumetric deformation Absolut Value
 // ... (the number now is then..., xD)
 
 namespace Kratos
@@ -61,7 +62,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) GensNovaModel : public NonAssociativePlasticityModel<TamagniniModel, GensNovaYieldSurface<GensNovaHardeningRule> >
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) V2GensNovaModel : public NonAssociativePlasticityModel<TamagniniModel, GensNovaYieldSurface<GensNovaHardeningRule> >
    {
       public:
 
@@ -92,21 +93,21 @@ namespace Kratos
          typedef BaseType::InternalVariablesType     InternalVariablesType;
 
 
-         /// Pointer definition of GensNovaModel
-         KRATOS_CLASS_POINTER_DEFINITION( GensNovaModel );
+         /// Pointer definition of V2GensNovaModel
+         KRATOS_CLASS_POINTER_DEFINITION( V2GensNovaModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.
-         GensNovaModel() : BaseType() { mInitialized = false; }
+         V2GensNovaModel() : BaseType() { mInitialized = false; }
 
          /// Copy constructor.
-         GensNovaModel(GensNovaModel const& rOther) : BaseType(rOther), mInitialized(rOther.mInitialized) {}
+         V2GensNovaModel(V2GensNovaModel const& rOther) : BaseType(rOther), mInitialized(rOther.mInitialized) {}
 
          /// Assignment operator.
-         GensNovaModel& operator=(GensNovaModel const& rOther)
+         V2GensNovaModel& operator=(V2GensNovaModel const& rOther)
          {
             BaseType::operator=(rOther);
             return *this;
@@ -115,11 +116,11 @@ namespace Kratos
          /// Clone.
          ConstitutiveModel::Pointer Clone() const override
          {
-            return ( GensNovaModel::Pointer(new GensNovaModel(*this)) );
+            return ( V2GensNovaModel::Pointer(new V2GensNovaModel(*this)) );
          }
 
          /// Destructor.
-         virtual ~GensNovaModel() {}
+         virtual ~V2GensNovaModel() {}
 
 
          ///@}
@@ -200,11 +201,27 @@ namespace Kratos
          /**
           * Get Values
           */
-         virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+         void SetValue(const Variable<double>& rVariable,
+               const double& rValue,
+               const ProcessInfo& rCurrentProcessInfo) override 
          {
             KRATOS_TRY
 
-            rValue=0;
+            if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF) {
+               mInternal.Variables[7] = rValue;
+            }
+            else if ( rVariable == NONLOCAL_PLASTIC_DEV_DEF) {
+               mInternal.Variables[8] = rValue;
+            }
+            else if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF_ABS) {
+               mInternal.Variables[9] = rValue;
+            }
+
+            KRATOS_CATCH("")
+         }
+         virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+         {
+            KRATOS_TRY
 
             if (rThisVariable==PLASTIC_STRAIN)
             {
@@ -225,7 +242,32 @@ namespace Kratos
             else if ( rThisVariable == PM)
             {
                rValue = this->mInternal.Variables[5];
-            } else {
+            } 
+            else if ( rThisVariable == PLASTIC_VOL_DEF)
+            {
+               rValue = this->mInternal.Variables[1];
+            }
+            else if ( rThisVariable == PLASTIC_DEV_DEF)
+            {
+               rValue = this->mInternal.Variables[2];
+            }
+            else if ( rThisVariable == PLASTIC_VOL_DEF_ABS)
+            {
+               rValue = this->mInternal.Variables[6];
+            }
+            else if ( rThisVariable == NONLOCAL_PLASTIC_VOL_DEF)
+            {
+               rValue = this->mInternal.Variables[7];
+            }
+            else if ( rThisVariable == NONLOCAL_PLASTIC_DEV_DEF)
+            {
+               rValue = this->mInternal.Variables[8];
+            }
+            else if ( rThisVariable == NONLOCAL_PLASTIC_VOL_DEF_ABS)
+            {
+               rValue = this->mInternal.Variables[9];
+            }
+            else {
                rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
             }
             return rValue;
@@ -246,20 +288,20 @@ namespace Kratos
          virtual std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "GensNovaModel" ;
+            buffer << "V2GensNovaModel" ;
             return buffer.str();
          }
 
          /// Print information about this object.
          virtual void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "GensNovaModel";
+            rOStream << "V2GensNovaModel";
          }
 
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "GensNovaModel Data";
+            rOStream << "V2GensNovaModel Data";
          }
 
 
@@ -289,6 +331,53 @@ namespace Kratos
          ///@}
          ///@name Protected Operations
          ///@{
+            // Calculate Stress and constitutive tensor
+            void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
+            {
+               KRATOS_TRY
+
+               // integrate "analytically" ps and pt from plastic variables. Then update the internal variables.
+
+               PlasticDataType Variables;
+               this->InitializeVariables( rValues, Variables);
+
+               const ModelDataType & rModelData = Variables.GetModelData();
+               const Properties & rMaterialProperties = rModelData.GetProperties();
+
+               const double & rPs0 = rMaterialProperties[PS];
+               const double & rPt0 = rMaterialProperties[PT];
+               const double & rChis = rMaterialProperties[CHIS];
+               const double & rChit = rMaterialProperties[CHIT];
+               const double & rhos = rMaterialProperties[RHOS];
+               const double & rhot = rMaterialProperties[RHOT];
+               const double & k = rMaterialProperties[KSIM];
+
+               const double & rPlasticVolDef = Variables.Internal.Variables[1]; 
+               const double & rPlasticDevDef = Variables.Internal.Variables[2];
+               const double & rPS     = Variables.Internal.Variables[3];
+               const double & rPT     = Variables.Internal.Variables[4];
+               const double & rPlasticVolDefAbs = Variables.Internal.Variables[6];
+
+               double ps;
+               ps = rPlasticVolDef + rChis * rPlasticDevDef; 
+               ps = (-rPs0) * std::exp( -rhos*ps);
+
+               double pt;
+               pt = rPlasticVolDefAbs + rChit * rPlasticDevDef; 
+               pt = (-rPt0) * std::exp( rhot*pt);
+
+               double pm;
+               pm = ps + (1.0+k)*pt;
+
+
+               mInternal.Variables[3] = ps;
+               mInternal.Variables[4] = pt;
+               mInternal.Variables[5] = pm;
+
+               NonAssociativePlasticityModel::CalculateStressAndConstitutiveTensors( rValues, rStressMatrix, rConstitutiveMatrix);
+
+               KRATOS_CATCH("")
+            }
             //***************************************************************************************
             //***************************************************************************************
             // Compute Elasto Plastic Matrix
@@ -334,7 +423,34 @@ namespace Kratos
             void ComputeOneStepElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rDeltaDeformationMatrix) override
             {
                KRATOS_TRY
+            
 
+               /*{ // debugging, or whatever
+                  const ModelDataType & rModelData = rVariables.GetModelData();
+                  const Properties & rMaterialProperties = rModelData.GetProperties();
+                  const double & rPs0 = rMaterialProperties[PS];
+                  const double & rPt0 = rMaterialProperties[PT];
+                  const double & rChis = rMaterialProperties[CHIS];
+                  const double & rChit = rMaterialProperties[CHIT];
+                  const double & rhos = rMaterialProperties[RHOS];
+                  const double & rhot = rMaterialProperties[RHOT];
+
+                  double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
+                  double & rPlasticDevDef = rVariables.Internal.Variables[2];
+                  double & rPS     = rVariables.Internal.Variables[3];
+                  double & rPT     = rVariables.Internal.Variables[4];
+                  double & rPlasticVolDefAbs = rVariables.Internal.Variables[6];
+
+                  double ps;
+                  ps = rPlasticVolDef + rChis * rPlasticDevDef; 
+                  ps = (-rPs0) * std::exp( -rhos*ps);
+
+                  double pt;
+                  pt = rPlasticVolDefAbs + rChit * rPlasticDevDef; 
+                  pt = (-rPt0) * std::exp( rhot*pt);
+                  
+
+               }*/
 
                const ModelDataType & rModelData = rVariables.GetModelData();
                const Properties & rMaterialProperties = rModelData.GetProperties();
@@ -425,14 +541,16 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               for (unsigned int i = 0; i < 10; i++) {
-                  double & plasticVolDefNew = rVariables.Internal.Variables[i]; 
-                  double & plasticVolDef    = mInternal.Variables[i];
+               mPreviousInternal.Variables[6] = mInternal.Variables[6];
+               mInternal.Variables[6] = mInternal.Variables[6] + fabs( rVariables.Internal.Variables[1] - mInternal.Variables[1]);
+               for (unsigned int i = 0; i < 6; i++) {
+                  double & rCurrentPlasticVariable = rVariables.Internal.Variables[i]; 
+                  double & rPreviousPlasticVariable    = mInternal.Variables[i];
 
-                  mPreviousInternal.Variables[i] = plasticVolDef;
-                  plasticVolDef = plasticVolDefNew;
-                  //std::cout <<  i << " , "  << mPreviousInternal.Variables[i] << " , " << plasticVolDef << std::endl;
+                  mPreviousInternal.Variables[i] = rPreviousPlasticVariable;
+                  rPreviousPlasticVariable = rCurrentPlasticVariable;
                }
+
 
                KRATOS_CATCH("")
             }
@@ -594,7 +712,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class GensNovaModel
+   }; // Class V2GensNovaModel
 
    ///@}
 
@@ -619,6 +737,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GENS_NOVA_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_V2_GENS_NOVA_MODEL_H_INCLUDED  defined 
 
 

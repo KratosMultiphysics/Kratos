@@ -173,5 +173,11 @@ QUESTION: Ploughing_PostProcess#CB#(False,True)
 VALUE: False
 QUESTION: GaussPoint_PostProcess#CB#(False,True)
 VALUE: False
+QUESTION: NonLocal_Plasticity#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(False,HIDE,Characteristic_length,#CURRENT#)
+DEPENDENCIES:(True,RESTORE,Characteristic_length,#CURRENT#)
+QUESTION: Characteristic_length
+VALUE: 0.0
 # Properties
 END GENERAL DATA

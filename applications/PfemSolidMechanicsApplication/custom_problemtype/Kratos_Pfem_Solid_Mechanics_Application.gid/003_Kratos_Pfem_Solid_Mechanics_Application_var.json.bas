@@ -204,7 +204,19 @@
 					       ]
         }
     },
-    "problem_process_list" : [{
+    "problem_process_list" : [
+*if(strcmp(GenData(NonLocal_Plasticity),"True")==0)
+     {
+        "help"            : "This process applies meshing to the problem domains",
+        "kratos_module"   : "KratosMultiphysics.ConstitutiveModelsApplication",
+        "python_module"   : "non_local_plasticity_process",
+        "process_name"    : "NonLocalPlasticityProcess",
+        "Parameters"      : {
+		"characteristic_length": *GenData(Characteristic_length)
+                             }
+     },
+*endif
+      {
         "help"            : "This process applies meshing to the problem domains",
         "kratos_module"   : "KratosMultiphysics.DelaunayMeshingApplication",
         "python_module"   : "remesh_domains_process",

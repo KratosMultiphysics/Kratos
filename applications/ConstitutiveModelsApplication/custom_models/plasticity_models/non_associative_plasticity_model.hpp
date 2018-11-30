@@ -18,6 +18,19 @@
 #include "custom_models/plasticity_models/plasticity_model.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
 
+
+
+// OBS. Variables are defined as:
+//double & rPlasticMultiplier = rVariables.Internal.Variables[0];
+//double & rPlasticVolDef = rVariables.Internal.Variables[1];
+//double & rPlasticDevDef = rVariables.Internal.Variables[2];
+//double & rPreconsolidationStress = rVariables.Interal.Variables[3]
+//double & rNonlocalPlasticVolDef = rVariables.Internal.Variables[4]
+
+
+
+
+
 namespace Kratos
 {
    ///@addtogroup ConstitutiveModelsApplication
@@ -88,7 +101,7 @@ namespace Kratos
 
             /// Copy constructor.
             NonAssociativePlasticityModel(NonAssociativePlasticityModel const& rOther) :BaseType(rOther), mInternal(rOther.mInternal), mPreviousInternal(rOther.mPreviousInternal),
-               mStressMatrix(rOther.mStressMatrix), mTotalB(rOther.mTotalB) {}
+               mStressMatrix(rOther.mStressMatrix) {}
 
             /// Assignment operator.
             NonAssociativePlasticityModel& operator=(NonAssociativePlasticityModel const& rOther)
@@ -97,7 +110,6 @@ namespace Kratos
                mInternal = rOther.mInternal;
                mPreviousInternal = rOther.mPreviousInternal;
                mStressMatrix = rOther.mStressMatrix;
-               mTotalB = rOther.mTotalB;
                return *this;
             }
 
@@ -144,12 +156,31 @@ namespace Kratos
                   double p, J2;
                   StressInvariantsUtilities::CalculateStressInvariants(mStressMatrix , p, J2, rValue);
                }
+               else if ( rThisVariable == PLASTIC_VOL_DEF) {
+                  rValue = mInternal.Variables[1];
+               }
+               else if ( rThisVariable == NONLOCAL_PLASTIC_VOL_DEF) {
+                  rValue = mInternal.Variables[4];
+               }
                return rValue;
 
 
                KRATOS_CATCH("")
             }
 
+            /**
+             * Set Values
+             */
+            void SetValue(const Variable<Vector>& rVariable,
+                  const Vector& rValue,
+                  const ProcessInfo& rCurrentProcessInfo) override 
+            {
+               KRATOS_TRY
+
+               this->mElasticityModel.SetValue( rVariable, rValue, rCurrentProcessInfo);
+
+               KRATOS_CATCH("")
+            }
             /**
              * Calculate Stresses
              */
@@ -233,6 +264,11 @@ namespace Kratos
                   this->mElasticityModel.CalculateStressTensor(rValues,rStressMatrix);
                   InitialYieldFunction = this->mYieldSurface.CalculateYieldCondition( Variables, InitialYieldFunction);
 
+                  if ( InitialYieldFunction > 10.0*Tolerance) {
+                     // correct the initial drift (nonlocal, transfer...)
+                     this->ReturnStressToYieldSurface( rValues, Variables);
+                  }
+
                   if ( (InitialYieldFunction < -Tolerance) && (Variables.TrialStateFunction > Tolerance) )
                   {
                      // compute solution with change
@@ -260,12 +296,10 @@ namespace Kratos
                   rConstitutiveMatrix = SetConstitutiveMatrixToTheApropiateSize( rConstitutiveMatrix, ConstitutiveMatrix, rStressMatrix );
                }
 
+
                if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {
                   this->UpdateInternalVariables( rValues, Variables, rStressMatrix );
                   mStressMatrix = rStressMatrix / rValues.GetTotalDeformationDet();
-                  const ModelDataType&  rModelData = Variables.GetModelData();
-                  const MatrixType & rTotalF = rModelData.GetTotalDeformationMatrix();
-                  mTotalB = prod( rTotalF, trans(rTotalF) );
                }
 
                KRATOS_CATCH(" ")
@@ -325,7 +359,6 @@ namespace Kratos
             InternalVariablesType  mInternal;
             InternalVariablesType  mPreviousInternal;
             MatrixType             mStressMatrix;
-            MatrixType             mTotalB;
 
             ///@}
             ///@name Protected Operators
@@ -615,7 +648,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               double Tolerance = 1.0E-6;
+               double Tolerance = 1.0E-5;
                double TimeStep = 0.25;
                double MinTimeStep = 1.0e-4;
                double DoneTimeStep = 0.0;
@@ -641,7 +674,9 @@ namespace Kratos
                   if ( ErrorMeasure < Tolerance) {
                      DoneTimeStep += TimeStep;
                   } else if ( TimeStep <= MinTimeStep) {
-                     std::cout << " ExplicitStressIntegrationDidNotConvege: StressError: " << ErrorMeasure << std::endl;
+                     if ( ErrorMeasure > 50*Tolerance) {
+                        std::cout << " ExplicitStressIntegrationDidNotConvege: StressError: " << ErrorMeasure << std::endl;
+                     }
                      DoneTimeStep += TimeStep;
                   } else {
                      rValues.StrainMatrix = InitialStress;
@@ -963,17 +998,21 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             // UpdateInternalVariables
-            virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix)
+            virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix) 
             {
                KRATOS_TRY
 
-      for (unsigned int i = 0; i < 2; i++) {
-         double & plasticVolDefNew = rVariables.Internal.Variables[i]; 
-         double & plasticVolDef    = mInternal.Variables[i];
+               double Precon = 0;
+               Precon = (this->mYieldSurface).GetHardeningRule().CalculateHardening( rVariables, Precon);
+               rVariables.Internal.Variables[3] = Precon;
 
-         mPreviousInternal.Variables[i] = plasticVolDef;
-         plasticVolDef = plasticVolDefNew;
-      }
+               for (unsigned int i = 0; i < 5; i++) {
+                  double & rCurrentPlasticVariable = rVariables.Internal.Variables[i]; 
+                  double & rPreviousPlasticVariable    = mInternal.Variables[i];
+
+                  mPreviousInternal.Variables[i] = rPreviousPlasticVariable;
+                  rPreviousPlasticVariable = rCurrentPlasticVariable;
+               }
 
                KRATOS_CATCH("")
             }

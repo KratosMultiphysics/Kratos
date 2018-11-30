@@ -59,6 +59,12 @@ namespace Kratos {
    KRATOS_REGISTER_VARIABLE( PM )   
    KRATOS_REGISTER_VARIABLE( PLASTIC_MULTIPLIER )   
 
+   KRATOS_REGISTER_VARIABLE( PLASTIC_VOL_DEF )   
+   KRATOS_REGISTER_VARIABLE( NONLOCAL_PLASTIC_VOL_DEF )   
+   KRATOS_REGISTER_VARIABLE( PLASTIC_VOL_DEF_ABS )   
+   KRATOS_REGISTER_VARIABLE( NONLOCAL_PLASTIC_VOL_DEF_ABS )   
+   KRATOS_REGISTER_VARIABLE( PLASTIC_DEV_DEF )   
+   KRATOS_REGISTER_VARIABLE( NONLOCAL_PLASTIC_DEV_DEF )   
     //specific constitutive models variables must be REGISTERED here
 
     //Register Constitutive Laws
@@ -112,7 +118,10 @@ namespace Kratos {
     Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );
     Serializer::Register( "SimoJ2PlasticityModel", mSimoJ2PlasticityModel );
     Serializer::Register( "CamClayModel", mCamClayModel );
+    Serializer::Register( "NonlocalCamClayModel", mNonlocalCamClayModel );
     Serializer::Register( "GensNovaModel", mGensNovaModel );
+    Serializer::Register( "V2GensNovaModel", mV2GensNovaModel );
+    Serializer::Register( "NonlocalV2GensNovaModel", mNonlocalV2GensNovaModel );
     Serializer::Register( "SimoJ2ThermoPlasticityModel", mSimoJ2ThermoPlasticityModel );
 
     //yield criteria

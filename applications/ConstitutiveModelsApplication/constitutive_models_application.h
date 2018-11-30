@@ -86,7 +86,10 @@
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/cam_clay_model.hpp"
+#include "custom_models/plasticity_models/nonlocal_cam_clay_model.hpp"
 #include "custom_models/plasticity_models/gens_nova_model.hpp"
+#include "custom_models/plasticity_models/v2_gens_nova_model.hpp"
+#include "custom_models/plasticity_models/nonlocal_v2_gens_nova_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
 //#include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 
@@ -305,8 +308,11 @@ namespace Kratos {
     const SimoJ2ThermoPlasticityModel              mSimoJ2ThermoPlasticityModel;
     const JohnsonCookJ2ThermoPlasticityModel       mJohnsonCookJ2ThermoPlasticityModel;
     const BakerJohnsonCookJ2ThermoPlasticityModel  mBakerJohnsonCookJ2ThermoPlasticityModel;
+    const NonlocalCamClayModel                     mNonlocalCamClayModel;
     const CamClayModel                             mCamClayModel;
     const GensNovaModel                            mGensNovaModel;
+    const V2GensNovaModel                          mV2GensNovaModel;
+    const NonlocalV2GensNovaModel                  mNonlocalV2GensNovaModel;
     const SimoJuExponentialDamageModel             mSimoJuExponentialDamageModel;
     const SimoJuExponentialDamageModel             mSimoJuModifiedExponentialDamageModel;
 

@@ -13,6 +13,7 @@
 // External includes
 
 // Project includes
+#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -39,6 +40,7 @@ PYBIND11_MODULE(KratosConstitutiveModelsApplication,m)
 
   AddCustomConstitutiveLawsToPython(m);
   AddCustomUtilitiesToPython(m);
+  AddCustomProcessesToPython(m);
 
       //registering variables in python
 
@@ -65,6 +67,13 @@ PYBIND11_MODULE(KratosConstitutiveModelsApplication,m)
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PT )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PM )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_MULTIPLIER )
+
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_VOL_DEF )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NONLOCAL_PLASTIC_VOL_DEF )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_VOL_DEF_ABS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NONLOCAL_PLASTIC_VOL_DEF_ABS )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_DEV_DEF )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NONLOCAL_PLASTIC_DEV_DEF )
 
 }
 

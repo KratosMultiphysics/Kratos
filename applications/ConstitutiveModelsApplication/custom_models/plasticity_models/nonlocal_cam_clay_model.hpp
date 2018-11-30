@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_CAM_CLAY_MODEL_H_INCLUDED )
-#define  KRATOS_CAM_CLAY_MODEL_H_INCLUDED
+#if !defined(KRATOS_NONLOCAL_CAM_CLAY_MODEL_H_INCLUDED )
+#define  KRATOS_NONLOCAL_CAM_CLAY_MODEL_H_INCLUDED
 
 // System includes
 
@@ -47,7 +47,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) CamClayModel : public NonAssociativePlasticityModel<BorjaModel, ModifiedCamClayYieldSurface<CamClayHardeningRule> >
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonlocalCamClayModel : public NonAssociativePlasticityModel<BorjaModel, ModifiedCamClayYieldSurface<CamClayHardeningRule> >
    {
       public:
 
@@ -77,21 +77,21 @@ namespace Kratos
          typedef BaseType::InternalVariablesType     InternalVariablesType;
 
 
-         /// Pointer definition of CamClayModel
-         KRATOS_CLASS_POINTER_DEFINITION( CamClayModel );
+         /// Pointer definition of NonlocalCamClayModel
+         KRATOS_CLASS_POINTER_DEFINITION( NonlocalCamClayModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.
-         CamClayModel() : BaseType() {}
+         NonlocalCamClayModel() : BaseType() {}
 
          /// Copy constructor.
-         CamClayModel(CamClayModel const& rOther) : BaseType(rOther) {}
+         NonlocalCamClayModel(NonlocalCamClayModel const& rOther) : BaseType(rOther) {}
 
          /// Assignment operator.
-         CamClayModel& operator=(CamClayModel const& rOther)
+         NonlocalCamClayModel& operator=(NonlocalCamClayModel const& rOther)
          {
             BaseType::operator=(rOther);
             return *this;
@@ -100,11 +100,11 @@ namespace Kratos
          /// Clone.
          ConstitutiveModel::Pointer Clone() const override
          {
-            return Kratos::make_shared<CamClayModel>(*this);
+            return Kratos::make_shared<NonlocalCamClayModel>(*this);
          }
 
          /// Destructor.
-         ~CamClayModel() override {}
+         ~NonlocalCamClayModel() override {}
 
 
          ///@}
@@ -115,6 +115,27 @@ namespace Kratos
          ///@}
          ///@name Operations
          ///@{
+         //*******************************************************************************
+         //*******************************************************************************
+         // Calculate Stress and constitutive tensor
+         void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
+         {
+            KRATOS_TRY
+           
+            double LocalPlasticStrain = mInternal.Variables[1];
+            double NonLocalPlasticStrain = mInternal.Variables[4];
+            mInternal.Variables[1] = mInternal.Variables[4];
+
+            NonAssociativePlasticityModel::CalculateStressAndConstitutiveTensors( rValues, rStressMatrix, rConstitutiveMatrix);
+
+            if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {
+               mInternal.Variables[1] = LocalPlasticStrain + ( mInternal.Variables[1] -  NonLocalPlasticStrain);
+            } else {
+               mInternal.Variables[1] = LocalPlasticStrain;
+            }
+
+            KRATOS_CATCH("")
+         }
 
          /**
           * Check
@@ -123,9 +144,9 @@ namespace Kratos
          {
             KRATOS_TRY
 
-            //LMV: to be implemented. but should not enter in the base one
+      //LMV: to be implemented. but should not enter in the base one
 
-            return 0;
+      return 0;
 
             KRATOS_CATCH("")
          }
@@ -145,21 +166,6 @@ namespace Kratos
             return false;
          }
 
-         /**
-          * Set Values
-          */
-         void SetValue(const Variable<double>& rVariable,
-               const double& rValue,
-               const ProcessInfo& rCurrentProcessInfo) override 
-         {
-            KRATOS_TRY
-
-            if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF) {
-               mInternal.Variables[4] = rValue;
-            }
-
-            KRATOS_CATCH("")
-         }
 
          /**
           * Get Values
@@ -173,20 +179,39 @@ namespace Kratos
             {
                rValue = this->mInternal.Variables[0];
             }
+
+
             else if (rThisVariable==DELTA_PLASTIC_STRAIN)
             {
                rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
             }
+
             else if (rThisVariable==PRE_CONSOLIDATION_STRESS)
             {
                rValue = this->mInternal.Variables[3];
             }
+
             else {
                rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
             }
             return rValue;
          }
 
+         /**
+          * Set Values
+          */
+         void SetValue(const Variable<double>& rVariable,
+               const double& rValue,
+               const ProcessInfo& rCurrentProcessInfo) override 
+         {
+            KRATOS_TRY
+
+      if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF) {
+         mInternal.Variables[4] = rValue;
+      }
+
+            KRATOS_CATCH("")
+         }
          ///@}
          ///@name Inquiry
          ///@{
@@ -200,20 +225,20 @@ namespace Kratos
          std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "CamClayModel" ;
+            buffer << "NonlocalCamClayModel" ;
             return buffer.str();
          }
 
          /// Print information about this object.
          void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "CamClayModel";
+            rOStream << "NonlocalCamClayModel";
          }
 
          /// Print object's data.
          void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "CamClayModel Data";
+            rOStream << "NonlocalCamClayModel Data";
          }
 
 
@@ -232,7 +257,6 @@ namespace Kratos
          ///@}
          ///@name Protected member Variables
          ///@{
-
 
          ///@}
          ///@name Protected Operators
@@ -313,7 +337,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class CamClayModel
+   }; // Class NonlocalCamClayModel
 
    ///@}
 
