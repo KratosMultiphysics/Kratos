@@ -1,6 +1,7 @@
 # import Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
+import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -40,4 +41,5 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    run_cpp_unit_tests.run()
     KratosUnittest.runTests(AssembleTestSuites())
