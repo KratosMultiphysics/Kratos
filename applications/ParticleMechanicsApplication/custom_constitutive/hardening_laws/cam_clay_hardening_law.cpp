@@ -33,7 +33,7 @@ namespace Kratos
 CamClayHardeningLaw::CamClayHardeningLaw()
 	:MPMHardeningLaw()
 {
-   
+
 }
 
 
@@ -68,11 +68,7 @@ CamClayHardeningLaw::~CamClayHardeningLaw()
 //*******************************CALCULATE TOTAL HARDENING****************************
 //************************************************************************************
 
-/* This function return the updated Preconsolidation Pressure P_c with the following inputs:
-    @ rAlpha: Hardening Parameter (Plastic Volumetric Strain)
-    @ rOldPreconsolidationPressure: Old Value of Preconsolidation Pressure P_c at the previous time step t_n
-*/
-double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure)
+double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double &rOldPreconsolidationPressure)
 {
     const double swelling_slope = GetProperties()[SWELLING_SLOPE];
     const double other_slope    = GetProperties()[NORMAL_COMPRESSION_SLOPE];
@@ -80,7 +76,7 @@ double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double
     rHardening = rOldPreconsolidationPressure * (std::exp (- rAlpha / (other_slope-swelling_slope) ) ) ;
     return rHardening;
 }
-  
+
 
 void CamClayHardeningLaw::save( Serializer& rSerializer ) const
 {

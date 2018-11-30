@@ -1,6 +1,8 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
 
+## This is process is related to add_mass processes
+
 def Factory(settings, Model):
     if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")

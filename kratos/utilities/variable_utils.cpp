@@ -470,4 +470,41 @@ bool VariableUtils::CheckDofs(ModelPart& rModelPart)
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
+    KRATOS_TRY;
+
+    const int num_nodes = rNodes.size();
+    const auto nodes_begin = rNodes.begin();
+
+    #pragma omp parallel for
+    for (int i=0; i<num_nodes; i++) {
+        const auto it_node  = nodes_begin + i;
+        noalias(it_node->Coordinates()) = it_node->GetInitialPosition();
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes) {
+    KRATOS_TRY;
+
+    const int num_nodes = rNodes.size();
+    const auto nodes_begin = rNodes.begin();
+
+    #pragma omp parallel for
+    for (int i=0; i<num_nodes; i++) {
+        const auto it_node  = nodes_begin + i;
+        noalias(it_node->GetInitialPosition()) = it_node->Coordinates();
+    }
+
+    KRATOS_CATCH("");
+}
+
 } /* namespace Kratos.*/

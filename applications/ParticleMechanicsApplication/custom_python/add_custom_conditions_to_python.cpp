@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -35,23 +35,19 @@
 
 
 
-namespace Kratos
-{
+namespace Kratos{
+namespace Python{
 
-  namespace Python
-  {
-    using namespace pybind11;
 
     typedef Condition                            ConditionBaseType;
     typedef Geometry<Node<3> >                        GeometryType;
     typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
     typedef GeometryType::PointsArrayType           NodesArrayType;
 
-    void  AddCustomConditionsToPython(pybind11::module& m)
+    void AddCustomConditionsToPython(pybind11::module& m)
     {
 
     }
 
-  }  // namespace Python.
-
+}  // namespace Python.
 }  // namespace Kratos.

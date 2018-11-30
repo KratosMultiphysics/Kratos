@@ -39,7 +39,8 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #build model part and element
-        self.model_part = KratosMultiphysics.ModelPart(self.settings["model_part_name"].GetString())
+        self.model = KratosMultiphysics.Model()
+        self.model_part = self.model.CreateModelPart(self.settings["model_part_name"].GetString())
         self.echo_level = self.settings["echo_level"].GetInt()
 
         #read nodes
@@ -239,5 +240,3 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
 
             module = importlib.import_module(module_name)
             return getattr(module,splitted[-1])
-
-

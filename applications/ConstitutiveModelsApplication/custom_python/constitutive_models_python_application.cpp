@@ -25,16 +25,16 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 PYBIND11_MODULE(KratosConstitutiveModelsApplication,m)
 {
 
-  class_<KratosConstitutiveModelsApplication,
+  py::class_<KratosConstitutiveModelsApplication,
          KratosConstitutiveModelsApplication::Pointer,
          KratosApplication>(m,"KratosConstitutiveModelsApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
   AddCustomConstitutiveLawsToPython(m);

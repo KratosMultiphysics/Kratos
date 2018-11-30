@@ -217,7 +217,7 @@ public:
 
         // check domain dimension and element
         const unsigned int working_space_dimension =
-            rModelPart.Elements().begin()->WorkingSpaceDimension();
+            rModelPart.Elements().begin()->GetGeometry().WorkingSpaceDimension();
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const unsigned int domain_size =

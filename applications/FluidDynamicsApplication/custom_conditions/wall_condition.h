@@ -216,7 +216,7 @@ namespace Kratos
 
         Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
         {
-	  		return Kratos::make_shared<WallCondition>(NewId, pGeom, pProperties);
+            return Kratos::make_shared<WallCondition>(NewId, pGeom, pProperties);
         }
 
         /**
@@ -257,7 +257,8 @@ namespace Kratos
                                           VectorType& rRightHandSideVector,
                                           ProcessInfo& rCurrentProcessInfo) override
         {
-			unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+            const ProcessInfo& r_process_info = rCurrentProcessInfo;
+            unsigned int step = r_process_info[FRACTIONAL_STEP];
             if ( step == 1)
             {
                 // Initialize local contributions
@@ -293,11 +294,9 @@ namespace Kratos
                     noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes,TNumNodes);
                     noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
-                    const double dt = rCurrentProcessInfo[DELTA_TIME];
-                    const double equivalent_structural_density = rCurrentProcessInfo[DENSITY];
+                    const double dt = r_process_info[DELTA_TIME];
+                    const double equivalent_structural_density = r_process_info[DENSITY];
                     const double diag_term = dt*Area*N/( equivalent_structural_density );
-
-					//KRATOS_WATCH(equivalent_structural_density)
 
                     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
                     {
@@ -519,21 +518,21 @@ namespace Kratos
         std::string Info() const override
         {
             std::stringstream buffer;
-			this->PrintInfo(buffer);
+            this->PrintInfo(buffer);
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
-	   	{
-			rOStream << "WallCondition" << TDim << "D #" << this->Id();
-		}
+        {
+            rOStream << "WallCondition" << TDim << "D #" << this->Id();
+        }
 
         /// Print object's data.
         void PrintData(std::ostream& rOStream) const override
-	   	{
-			this->pGetGeometry()->PrintData(rOStream);
-		}
+        {
+            this->pGetGeometry()->PrintData(rOStream);
+        }
 
 
         ///@}

@@ -1,14 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
-//                   
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
+//
 //
 
 
@@ -23,19 +23,17 @@
 #include "custom_processes/particle_erase_process.h"
 #include "includes/node.h"
 
-namespace Kratos
-{
+namespace Kratos{
+namespace Python{
 
-namespace Python
-{
-void  AddCustomProcessesToPython(pybind11::module& m)
-{
-    using namespace pybind11;
+    void  AddCustomProcessesToPython(pybind11::module& m)
+    {
+        namespace py = pybind11;
 
-    class_<ParticleEraseProcess, ParticleEraseProcess::Pointer, Process>(m,"ParticleEraseProcess")
-    .def(init<ModelPart&>());
-      
-}
+        py::class_<ParticleEraseProcess, ParticleEraseProcess::Pointer, Process>(m,"ParticleEraseProcess")
+        .def(py::init<ModelPart&>());
+
+    }
 
 }  // namespace Python.
 

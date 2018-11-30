@@ -106,7 +106,7 @@ void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPa
     KRATOS_TRY;
     ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     const Element& r_elem = KratosComponents<Element>::Get(rElementName);
-    r_process_info[DOMAIN_SIZE] = r_elem.WorkingSpaceDimension();
+    r_process_info[DOMAIN_SIZE] = r_elem.GetGeometry().WorkingSpaceDimension();
     rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(ACCELERATION);

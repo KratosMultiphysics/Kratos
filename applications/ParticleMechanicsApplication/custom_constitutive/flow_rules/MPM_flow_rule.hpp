@@ -64,15 +64,15 @@ public:
     ///@{
 
     typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
-    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
-    typedef const Properties*              PropertiesPointer;
 
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
+
+    typedef const Properties*              PropertiesPointer;
 
     KRATOS_DEFINE_LOCAL_FLAG( IMPLEX_ACTIVE );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_REGION );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_RATE_REGION );
     KRATOS_DEFINE_LOCAL_FLAG( RETURN_MAPPING_COMPUTED );
-
 
     struct PlasticFactors
     {
@@ -111,7 +111,6 @@ public:
         friend class Serializer;
 
         // A private default constructor necessary for serialization
-
         void save(Serializer& rSerializer) const
         {
             rSerializer.save("PlasticDissipation",PlasticDissipation);
@@ -150,10 +149,11 @@ public:
 
         double CharacteristicSize;
 
-        Matrix TrialIsoStressMatrix;
+        Matrix TrialIsoStressMatrix {ZeroMatrix(3)};
 
-        Matrix StrainMatrix;
-        Matrix MainDirections;
+        Matrix StrainMatrix {ZeroMatrix(3)};
+
+        Matrix MainDirections {IdentityMatrix(3)};
 
         ThermalVariables Thermal;
 
@@ -175,7 +175,6 @@ public:
             DeltaTime   = 1;
             Temperature = 0;
         }
-
 
         void initialize()
         {
@@ -206,14 +205,13 @@ public:
         //needed in IMPLEX calculation
         double EquivalentPlasticStrainOld;
 
-
     public:
 
         void clear()
         {
             EquivalentPlasticStrain = 0;
             AccumulatedPlasticVolumetricStrain = 0;
-            AccumulatedPlasticDeviatoricStrain = 0; 
+            AccumulatedPlasticDeviatoricStrain = 0;
             DeltaPlasticStrain = 0;
             DeltaPlasticVolumetricStrain = 0;
             DeltaPlasticDeviatoricStrain = 0;
@@ -224,7 +222,6 @@ public:
             BulkModulus = 0;
             EquivalentPlasticStrainOld = 0;
         }
-
 
         void print()
         {
@@ -242,7 +239,6 @@ public:
         friend class Serializer;
 
         // A private default constructor necessary for serialization
-
         void save(Serializer& rSerializer) const
         {
             rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
@@ -261,7 +257,7 @@ public:
             rSerializer.load("AccumulatedPlasticVolumetricStrain",AccumulatedPlasticVolumetricStrain);
             rSerializer.load("DeltaPlasticVolumetricStrain",DeltaPlasticVolumetricStrain);
             rSerializer.load("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
-            rSerializer.load("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);           
+            rSerializer.load("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);
             rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
         };
     };
@@ -277,7 +273,6 @@ public:
     /// Default constructor.
     MPMFlowRule()
     {
-        //KRATOS_ERROR << std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!", "" )
     };
 
     /// Initialization constructor.
@@ -335,11 +330,11 @@ public:
 
     virtual void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
     {
-        //set yield criterion
+        // Set yield criterion
         mpYieldCriterion = pYieldCriterion;
         mpYieldCriterion->InitializeMaterial(pHardeningLaw, rMaterialProperties);
 
-        //initialize material variables
+        // Initialize material variables
         mInternalVariables.clear();
         mThermalVariables.clear();
 
@@ -350,7 +345,7 @@ public:
 
         mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);
 
-        //initialize material variables
+        // Initialize material variables
         mInternalVariables.clear();
         mThermalVariables.clear();
 
@@ -365,7 +360,6 @@ public:
     {
         return mInternalVariables;
     };
-
 
     const ThermalVariables & GetThermalVariables()
     {
@@ -411,7 +405,7 @@ public:
         KRATOS_ERROR << "Calling the base class function (GetPlasticRegion) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
-    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
     {
         KRATOS_ERROR << "Calling the base class function (CalculatePrincipalStressTrial) in MPM FlowRule:: illegal operation!" << std::endl;
     };
@@ -477,7 +471,7 @@ protected:
     virtual double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm )
     {
         KRATOS_ERROR << "Calling the base class function (CalculateStressNorm) in MPM FlowRule:: illegal operation!" << std::endl;
-    
+
         return rStressNorm;
     };
 
@@ -599,6 +593,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MPM_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_MPM_FLOW_RULE_H_INCLUDED  defined
 
 

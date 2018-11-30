@@ -417,9 +417,12 @@ class NonConformantOneSideMapTest(UnitTest.TestCase):
             check_solid_results()
 
     def SetUpProblem(self):
+        # Creating a Kratos model to store the fluid and structure model parts
+        self.model = Model()
+
         # Defining a model part for the fluid and one for the structure
-        self.fluid_main_model_part = ModelPart("fluid_part")
-        self.solid_main_model_part = ModelPart("solid_part")
+        self.fluid_main_model_part = self.model.CreateModelPart("fluid_part")
+        self.solid_main_model_part = self.model.CreateModelPart("solid_part")
 
         # Set the domain size (2D or 3D test)
         self.solid_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.domain_size)
@@ -534,7 +537,7 @@ class NonConformantOneSideMapTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test = NonConformantOneSideMapTest()
     test.setUp()
-    test.print_output = True
+    test.print_output = False
     # test.test2D_1()
     # test.test2D_2()
     # test.test3D_1()

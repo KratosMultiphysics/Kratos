@@ -95,7 +95,7 @@ namespace Kratos
         * Test 1 layer
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess1, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess1, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part =  current_model.CreateModelPart("Main");
@@ -127,7 +127,7 @@ namespace Kratos
         * Test 2 layer
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess2, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess2, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part =  current_model.CreateModelPart("Main");
@@ -159,7 +159,7 @@ namespace Kratos
         * Test 2 layer with external conditions
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess3, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShellToSolidShellProcess3, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main");

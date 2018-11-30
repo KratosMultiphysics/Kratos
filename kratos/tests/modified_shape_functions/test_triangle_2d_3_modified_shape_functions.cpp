@@ -85,7 +85,7 @@ namespace Kratos
 				positive_interface_side_weights,
 				GeometryData::GI_GAUSS_1);
 
-			triangle_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+			triangle_shape_functions.ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
 				negative_interface_side_sh_func,
 				negative_interface_side_sh_func_gradients,
 				negative_interface_side_weights,
@@ -399,7 +399,7 @@ namespace Kratos
 				positive_interface_side_weights,
 				GeometryData::GI_GAUSS_1);
 
-			triangle_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+			triangle_shape_functions.ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
 				negative_interface_side_sh_func,
 				negative_interface_side_sh_func_gradients,
 				negative_interface_side_weights,

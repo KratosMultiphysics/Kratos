@@ -6,6 +6,7 @@ import math
 
 
 class TestMatrixInterface(KratosUnittest.TestCase):
+
     def test_assignement(self):
         a = Matrix(2,3)
 
@@ -28,7 +29,8 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 A[i,j] = i
 
         #matrix vector
-        b = Vector(3,1.0)
+        b = Vector(3)
+        b.fill(1.0)
         c = A*b
         for i in range(len(c)):
             self.assertEqual(c[i],i*A.Size2())
@@ -41,8 +43,10 @@ class TestMatrixInterface(KratosUnittest.TestCase):
 
 
     def test_matrix_sum(self):
-        A = Matrix(2,3,1.0)
-        B = Matrix(2,3,2.0)
+        A = Matrix(2,3)
+        A.fill(1.0)
+        B = Matrix(2,3)
+        B.fill(2.0)
         C = A+B
 
         for i in range(A.Size1()):
@@ -56,8 +60,10 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 self.assertEqual(C[i,j], A[i,j])
 
     def test_matrix_diff(self):
-        A = Matrix(2,3,1.0)
-        B = Matrix(2,3,2.0)
+        A = Matrix(2,3)
+        A.fill(1.0)
+        B = Matrix(2,3)
+        B.fill(2.0)
         C = A-B
 
         for i in range(A.Size1()):
@@ -70,7 +76,8 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 self.assertEqual(C[i,j], A[i,j])
 
     def test_scalar_prod(self):
-        A = Matrix(2,3,2.0)
+        A = Matrix(2,3)
+        A.fill(2.0)
         C = A*2.0
 
         for i in range(A.Size1()):

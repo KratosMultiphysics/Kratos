@@ -24,7 +24,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomLinearSolversToPython(pybind11::module& m)
 {
@@ -35,10 +35,10 @@ void  AddCustomLinearSolversToPython(pybind11::module& m)
 
     typedef MixedULMLinearSolver<SpaceType,  LocalSpaceType> MixedULMLinearSolverType;
 
-    class_<MixedULMLinearSolverType, typename MixedULMLinearSolverType::Pointer, IterativeSolverType>(m, "MixedULMLinearSolver")
-    .def(init<LinearSolverType::Pointer >())
-    .def(init<LinearSolverType::Pointer,double, const std::size_t >())
-    .def(init<LinearSolverType::Pointer, Parameters>())
+    py::class_<MixedULMLinearSolverType, typename MixedULMLinearSolverType::Pointer, IterativeSolverType>(m, "MixedULMLinearSolver")
+    .def(py::init<LinearSolverType::Pointer >())
+    .def(py::init<LinearSolverType::Pointer,double, const std::size_t >())
+    .def(py::init<LinearSolverType::Pointer, Parameters>())
     ;
 }
 

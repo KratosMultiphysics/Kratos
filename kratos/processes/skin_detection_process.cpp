@@ -52,6 +52,7 @@ void SkinDetectionProcess<TDim>::Execute()
     /* NEIGHBOUR ELEMENTS */
     // Create the inverse_face_map
     HashMapVectorIntType inverse_face_map;
+    HashMapVectorIntIdsType properties_face_map;
 
     for(IndexType i = 0; i < number_of_elements; ++i) {
         auto it_elem = mrModelPart.Elements().begin() + i;
@@ -88,6 +89,7 @@ void SkinDetectionProcess<TDim>::Execute()
             if(it_check == inverse_face_map.end() ) {
                 // If it doesn't exist it is added to the database
                 inverse_face_map.insert(std::pair<VectorIndexType, VectorIndexType>(vector_ids, ordered_vector_ids));
+                properties_face_map.insert(std::pair<VectorIndexType, IndexType>(vector_ids, (it_elem->pGetProperties())->Id()));
             }
         }
     }
@@ -127,6 +129,7 @@ void SkinDetectionProcess<TDim>::Execute()
             if(it_check != face_set.end() ) {
                 // If it exists we remove from the inverse map
                 inverse_face_map.erase(vector_ids);
+                properties_face_map.erase(vector_ids);
             } else {
                 // If it doesn't exist it is added to the database
                 face_set.insert(vector_ids);
@@ -165,17 +168,17 @@ void SkinDetectionProcess<TDim>::Execute()
     std::unordered_set<IndexType> nodes_in_the_skin;
 
     // Create the auxiliar conditions
-    Properties::Pointer p_prop_0 = mrModelPart.pGetProperties(0);
     for (auto& map : inverse_face_map) {
         condition_id += 1;
 
         const VectorIndexType& nodes_face = map.second;
+        Properties::Pointer p_prop = mrModelPart.pGetProperties(properties_face_map[map.first]);
 
         for (auto& index : nodes_face)
             nodes_in_the_skin.insert(index);
 
         const std::string complete_name = pre_name + name_condition + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
-        auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop_0);
+        auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop);
         r_auxiliar_model_part.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
         p_cond->Initialize();

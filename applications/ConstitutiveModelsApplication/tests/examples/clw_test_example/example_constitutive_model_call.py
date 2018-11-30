@@ -6,7 +6,8 @@ nnodes = 3
 dim = 3
 
 #define a model part and create new nodes
-model_part = ModelPart("test")
+model = Model()
+model_part = model.CreateModelPart("test")
 node1 = model_part.CreateNewNode(1,0.0,0.0,0.0)
 node2 = model_part.CreateNewNode(2,1.0,0.0,0.0)
 node3 = model_part.CreateNewNode(3,0.0,1.0,0.0)
@@ -125,4 +126,3 @@ print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 cl.FinalizeMaterialResponseCauchy( cl_params )
 cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
-

@@ -154,7 +154,7 @@ class TestRestart(KratosUnittest.TestCase):
 
         model_part = ReadModelPart(GetFilePath("test_model_part_io_read"), temporary_model)
 
-        serializer_save = KratosMultiphysics.Serializer(file_name, serializer_flag)
+        serializer_save = KratosMultiphysics.FileSerializer(file_name, serializer_flag)
         serializer_save.Save(model_part.Name, model_part)
         
 
@@ -163,7 +163,7 @@ class TestRestart(KratosUnittest.TestCase):
 
         loaded_model_part = current_model.CreateModelPart(model_part_name)
 
-        serializer_load = KratosMultiphysics.Serializer(file_name, serializer_flag)
+        serializer_load = KratosMultiphysics.FileSerializer(file_name, serializer_flag)
         serializer_load.Load(loaded_model_part.Name, loaded_model_part)
 
         return loaded_model_part

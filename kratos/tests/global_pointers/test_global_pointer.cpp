@@ -33,7 +33,7 @@ class TestClass {
 };
 
 // Basic Type
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateRaw, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateRaw, KratosCoreFastSuite)
 {
     int sample_var = 1337;
 
@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateRaw, KratosCoreFastSuit)
     KRATOS_CHECK_EQUAL(*from_raw, sample_var);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstRaw, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstRaw, KratosCoreFastSuite)
 {
     const int sample_var = 1337;
 
@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstRaw, KratosCoreFastSuit)
     KRATOS_CHECK_EQUAL(*from_raw, sample_var);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyRaw, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyRaw, KratosCoreFastSuite)
 {
     int sample_var = 1337;
     int new_value = 42;
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyRaw, KratosCoreFastSuit)
 }
 
 // Class
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuite)
 {
     TestClass sample_var(1337);
 
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateClass, KratosCoreFastSuit)
     KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstClass, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstClass, KratosCoreFastSuite)
 {
     const TestClass sample_var(1337);
 
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstClass, KratosCoreFastSuit)
     KRATOS_CHECK_EQUAL((*from_raw).getVar(), sample_var.getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuite)
 {
     TestClass sample_var(1337);
 
@@ -97,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyClass, KratosCoreFastSuit)
 }
 
 // Kratos::shared_ptr
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateSharedPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateSharedPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
 
@@ -108,7 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateSharedPtr, KratosCoreFastSuit)
     KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), sample_var->getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstSharedPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstSharedPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
 
@@ -119,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstSharedPtr, KratosCoreFastSuit)
     KRATOS_CHECK_EQUAL((*from_shared_ptr).getVar(), sample_var->getVar());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifySharedPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifySharedPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
 
@@ -134,7 +134,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifySharedPtr, KratosCoreFastSuit)
 }
 
 // Kratos::weak_ptr
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
     typedef Kratos::weak_ptr<TestClass> WeakPtrType;
@@ -152,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateWeakPtr, KratosCoreFastSuit)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
     typedef Kratos::weak_ptr<TestClass> WeakPtrType;
@@ -170,7 +170,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCreateConstWeakPtr, KratosCoreFastSuit)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyWeakPtr, KratosCoreFastSuit)
+KRATOS_TEST_CASE_IN_SUITE(GlobalPointerModifyWeakPtr, KratosCoreFastSuite)
 {
     typedef Kratos::shared_ptr<TestClass> PtrType;
     typedef Kratos::weak_ptr<TestClass> WeakPtrType;

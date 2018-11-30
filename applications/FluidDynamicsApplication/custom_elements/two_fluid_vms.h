@@ -350,8 +350,8 @@ KRATOS_WATCH(Ngauss);  */
 
         // Porous media losses
         const Properties& r_properties = this->GetProperties();
-        const double A = r_properties[LIN_DARCY_COEF];
-        const double B = r_properties[NONLIN_DARCY_COEF];
+        const double c1 = r_properties[LIN_DARCY_COEF];
+        const double c2 = r_properties[NONLIN_DARCY_COEF];
 
 
         //****************************************************
@@ -385,7 +385,7 @@ KRATOS_WATCH(Ngauss);  */
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
 
-            const double DarcyTerm = this->CalculateDarcyTerm(A,B,N);
+            const double DarcyTerm = this->CalculateDarcyTerm(Density, Viscosity, c1, c2, N);
             // Calculate stabilization parameters
             double TauOne, TauTwo;
 
@@ -501,7 +501,7 @@ KRATOS_WATCH(Ngauss);  */
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
 
-            const double DarcyTerm = this->CalculateDarcyTerm(A,B,N);
+            const double DarcyTerm = this->CalculateDarcyTerm(Density, Viscosity, c1, c2, N);
 
             double TauOne,TauTwo;
             this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
@@ -1107,6 +1107,8 @@ protected:
     }
 
     virtual double CalculateDarcyTerm(
+        const double Density,
+        const double DynamicViscosity,
         const double LinearCoefficient,
         const double NonlinearCoefficient,
         const array_1d<double, TNumNodes>& rShapefunctions) {
@@ -1115,7 +1117,7 @@ protected:
         this->GetAdvectiveVel(velocity, rShapefunctions);
         const double velocity_norm = MathUtils<double>::Norm3(velocity);
 
-        return LinearCoefficient + NonlinearCoefficient*velocity_norm;
+        return DynamicViscosity * LinearCoefficient + Density * NonlinearCoefficient*velocity_norm;
     }
 
     ///@}
