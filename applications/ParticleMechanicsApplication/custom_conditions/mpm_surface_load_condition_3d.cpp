@@ -92,7 +92,7 @@ namespace Kratos
         const array_1d<double, 3 >& ge,
         const array_1d<double, 3 >& gn,
         const Matrix& DN_De,
-        const Vector& N,
+        const RowMatrix& N,
         const double Pressure,
         const double Weight)
     {
@@ -152,7 +152,7 @@ namespace Kratos
 
     void MPMSurfaceLoadCondition3D::CalculateAndAddPressureForce(
         VectorType& rResidualVector,
-        const Vector& N,
+        const RowMatrix& N,
         const array_1d<double, 3 >& Normal,
         const double Pressure,
         const double Weight,
