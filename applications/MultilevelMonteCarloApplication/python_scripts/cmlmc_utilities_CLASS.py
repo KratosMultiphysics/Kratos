@@ -365,6 +365,7 @@ class MultilevelMonteCarlo(object):
 
 
 
+
     '''
     function computing the number of levels for iteration "i" of the cmlmc algorithm
     '''
