@@ -789,6 +789,37 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = ParallelEnvironment::GetDefaultDataCommunicator();
+
+    const int world_size = r_world.Size();
+    const int world_rank = r_world.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    std::string send_buffer("Hello world!");
+    // The output is only needed to be of the same size, I initialize it to check it later.
+    std::string recv_buffer("************");
+
+    // two-buffer version
+    serial_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+    KRATOS_CHECK_C_STRING_EQUAL(recv_buffer.c_str(), "************");
+
+    // return version
+    std::string return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+    if (send_rank == world_rank)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer, send_buffer);
+    }
+    else
+    {
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 0);
+    }
+}
+
 // Broadcast //////////////////////////////////////////////////////////////////
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosMPICoreFastSuite)

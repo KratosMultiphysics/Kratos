@@ -438,6 +438,21 @@ std::vector<double> MPIDataCommunicator::SendRecv(
     return recv_values;
 }
 
+std::string MPIDataCommunicator::SendRecv(
+    const std::string& rSendValues,
+    const int SendDestination,
+    const int RecvSource) const
+{
+    int send_size = rSendValues.size();
+    int recv_size;
+    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+
+    std::string recv_values;
+    recv_values.resize(recv_size);
+    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    return recv_values;
+}
+
 void MPIDataCommunicator::SendRecv(
     const std::vector<int>& rSendValues, const int SendDestination,
     std::vector<int>& rRecvValues, const int RecvSource) const
@@ -448,6 +463,13 @@ void MPIDataCommunicator::SendRecv(
 void MPIDataCommunicator::SendRecv(
     const std::vector<double>& rSendValues, const int SendDestination,
     std::vector<double>& rRecvValues, const int RecvSource) const
+{
+    SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
+}
+
+void MPIDataCommunicator::SendRecv(
+        const std::string& rSendValues, const int SendDestination,
+        std::string& rRecvValues, const int RecvSource) const
 {
     SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
 }
@@ -1318,6 +1340,11 @@ template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::vector<int>
     return MPI_INT;
 }
 
+template<> inline MPI_Datatype MPIDataCommunicator::MPIDatatype<std::string>(const std::string&) const
+{
+    return MPI_CHAR;
+}
+
 // Buffer argument deduction
 
 template<> inline void* MPIDataCommunicator::MPIBuffer(int& rValues) const
@@ -1378,6 +1405,20 @@ template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::vector<d
     return rValues.data();
 }
 
+template<> inline void* MPIDataCommunicator::MPIBuffer(std::string& rValues) const
+{
+    // Note: this uses the fact that the C++11 standard defines std::strings to
+    // be contiguous in memory to perform MPI communication (based on char*) in place.
+    // In older C++, this cannot be expected to be always the case, so a copy of the
+    // string would be required.
+    return const_cast<char *>(rValues.data());
+}
+
+template<> inline const void* MPIDataCommunicator::MPIBuffer(const std::string& rValues) const
+{
+    return rValues.data();
+}
+
 // MPI message size deduction
 
 template<> inline int MPIDataCommunicator::MPIMessageSize(const int& rValues) const
@@ -1401,6 +1442,11 @@ template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<int>
 }
 
 template<> inline int MPIDataCommunicator::MPIMessageSize(const std::vector<double>& rValues) const
+{
+    return rValues.size();
+}
+
+template<> inline int MPIDataCommunicator::MPIMessageSize(const std::string& rValues) const
 {
     return rValues.size();
 }

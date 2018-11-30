@@ -646,6 +646,33 @@ class DataCommunicator
         }
     }
 
+    /// Exchange data with other ranks (string version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues String to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the string will be sent to.
+     *  @param[in] RecvSource Rank the string is expected from.
+     *  @return Received string from rank RecvSource.
+     *  @note This version has a performance penalty compared to the variant
+     *  taking both input and output buffers, since the dimensions of the
+     *  receiving buffer have to be communicated. If the dimensions of the
+     *  receiving buffer are known at the destination rank, the other variant
+     *  should be preferred.
+     */
+    virtual std::string SendRecv(
+        const std::string& rSendValues,
+        const int SendDestination,
+        const int RecvSource) const
+    {
+        if (SendDestination == RecvSource)
+        {
+            return rSendValues;
+        }
+        else
+        {
+            return std::string("");
+        }
+    }
+
     /// Exchange data with other ranks (int version).
     /** This is a wrapper for MPI_Sendrecv.
      *  @param[in] rSendValues Values to send to rank SendDestination.
@@ -668,6 +695,18 @@ class DataCommunicator
     virtual void SendRecv(
         const std::vector<double>& rSendValues, const int SendDestination,
         std::vector<double>& rRecvValues, const int RecvSource) const
+    {}
+
+    /// Exchange data with other ranks (string version).
+    /** This is a wrapper for MPI_Sendrecv.
+     *  @param[in] rSendValues String to send to rank SendDestination.
+     *  @param[in] SendDestination Rank the string will be sent to.
+     *  @param[out] rRecvValues Received string from rank RecvSource.
+     *  @param[in] RecvSource Rank the string is expected from.
+     */
+    virtual void SendRecv(
+        const std::string& rSendValues, const int SendDestination,
+        std::string& rRecvValues, const int RecvSource) const
     {}
 
     // Broadcast
