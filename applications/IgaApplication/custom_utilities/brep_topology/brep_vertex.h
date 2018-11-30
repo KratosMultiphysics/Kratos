@@ -47,11 +47,11 @@ namespace Kratos
         ///@{
         VertexTopology GetVertexInformation(const int& rTopologyIndex);
 
-        const BrepVertex::VertexTopology BrepVertex::GetVertexTopology(
+        const BrepVertex::VertexTopology GetVertexTopology(
             const int& rTopologyIndex) const;
 
         /// Constructor.
-        BrepVertex::BrepVertex(unsigned int& rVertexId,
+        BrepVertex(unsigned int& rVertexId,
             std::vector<VertexTopology>& rBrepVertexTopologyVector,
             int rControlPointId,
             Vector& rPoint)

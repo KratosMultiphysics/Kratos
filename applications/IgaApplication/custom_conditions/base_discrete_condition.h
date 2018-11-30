@@ -33,7 +33,7 @@ namespace Kratos
 /**
 * @class BaseDiscreteCondition
 * @ingroup IGAStructuralMechanicsApplication
-* @brief This is base clase used to define discrete elements, 
+* @brief This is base clase used to define discrete elements,
 *        it is based on displacement degrees of freedom
 * @author Tobias Teschemacher
 */
@@ -60,7 +60,7 @@ public:
     {};
 
     // Constructor using an array of nodes with properties
-    BaseDiscreteCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) 
+    BaseDiscreteCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         :Condition(NewId, pGeometry, pProperties)
     {};
 
@@ -72,7 +72,7 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer BaseDiscreteCondition::Create(
+    Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const override
@@ -257,7 +257,7 @@ protected:
     * CalculateJacobian computes the mapping from Geometry to Parameter Space.
     *
     * @param[in] DN_De derivatives of shape functions in two directions.
-    * @param[out] Jacobian calculated Jacobian. 
+    * @param[out] Jacobian calculated Jacobian.
     * @param[in] rWorkingSpaceDimension GeometrySpace coordinates. For surfaces default 3.
     * @param[in] rLocalSpaceDimension ParameterSpace coordinates For surfaces default 2.
     */

@@ -293,7 +293,7 @@ namespace Kratos
             for (std::size_t i = 0; i < brep_json["edges"].size(); i++)
             {
                 // For better reading
-                Parameters edge_dict(brep_json["edges"][i]);
+                Parameters edge_dict = brep_json["edges"][i];
 
                 std::vector<BrepEdge::EdgeTopology> brep_edge_topology_vector;
 
@@ -346,18 +346,18 @@ namespace Kratos
                 // trimming range
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 std::vector<BrepEdge::TrimmingRange> brep_trimming_range_vector;
-                if (brep_json["edges"].Has("trimmming_ranges"))
-                {
-                    for (std::size_t t = 0; t < brep_json["edges"]["trimmming_ranges"].size(); t++)
-                    {
-                        int trim_index = brep_json["edges"]["trimmming_ranges"][t]["trim_index"].GetInt();
-                        Vector range(2);
-                        range(0) = brep_json["edges"]["trimmming_ranges"][t]["range"][0].GetDouble();
-                        range(1) = brep_json["edges"]["trimmming_ranges"][t]["range"][1].GetDouble();
-                        BrepEdge::TrimmingRange trimming_range(trim_index, range);
-                        brep_trimming_range_vector.push_back(trimming_range);
-                    }
-                }
+                // if (brep_json["edges"].Has("trimmming_ranges"))
+                // {
+                //     for (std::size_t t = 0; t < brep_json["edges"]["trimmming_ranges"].size(); t++)
+                //     {
+                //         int trim_index = brep_json["edges"]["trimmming_ranges"][t]["trim_index"].GetInt();
+                //         Vector range(2);
+                //         range(0) = brep_json["edges"]["trimmming_ranges"][t]["range"][0].GetDouble();
+                //         range(1) = brep_json["edges"]["trimmming_ranges"][t]["range"][1].GetDouble();
+                //         BrepEdge::TrimmingRange trimming_range(trim_index, range);
+                //         brep_trimming_range_vector.push_back(trimming_range);
+                //     }
+                // }
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // edge topology

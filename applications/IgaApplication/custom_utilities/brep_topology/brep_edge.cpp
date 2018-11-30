@@ -27,7 +27,7 @@ namespace Kratos
         const int rTopologyIndex) const
     {
         KRATOS_ERROR_IF(rTopologyIndex >= mBrepEdgeTopologyVector.size())
-            << "BrepEdge::GetEdgeTopology: Number of topology references smaller than selected index! Selected index: " 
+            << "BrepEdge::GetEdgeTopology: Number of topology references smaller than selected index! Selected index: "
             << rTopologyIndex << ", size of edge topologies: " << mBrepEdgeTopologyVector.size() << std::endl;
 
         return mBrepEdgeTopologyVector[rTopologyIndex];
@@ -70,7 +70,7 @@ namespace Kratos
                     Element::GeometryType::PointsArrayType non_zero_control_points;
                     for (int m = shape.FirstNonzeroPole(); m < shape.LastNonzeroPole() + 1; ++m)
                     {
-                        non_zero_control_points.push_back(mNodeCurveGeometry3D->Node(m));
+                        non_zero_control_points.push_back(mNodeCurveGeometry3D->GetNode(m));
 
                         N_0(m) = shape(0, m);
 
@@ -129,7 +129,7 @@ namespace Kratos
             if (mEmbeddedPoints[ep].trim_index == trim_index)
             {
                 ANurbs::CurveShapeEvaluator<double> shape(
-                    mNodeCurveGeometry3D->Degree(), 
+                    mNodeCurveGeometry3D->Degree(),
                     rShapeFunctionDerivativesOrder);
 
                 shape.Compute(mNodeCurveGeometry3D->Knots(), mEmbeddedPoints[ep].local_parameter);

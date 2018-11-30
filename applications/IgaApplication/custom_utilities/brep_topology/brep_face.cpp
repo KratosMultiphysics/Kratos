@@ -54,7 +54,7 @@ namespace Kratos
                         mNodeSurfaceGeometry3D->KnotsU(),
                         mNodeSurfaceGeometry3D->KnotsV(),
                         //mNodeSurfaceGeometry3D->Weights(),
-                        integration_points[k].u, 
+                        integration_points[k].u,
                         integration_points[k].v);
 
                     Element::GeometryType::PointsArrayType non_zero_control_points;
@@ -69,7 +69,7 @@ namespace Kratos
                         int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
                         int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
 
-                        non_zero_control_points.push_back(mNodeSurfaceGeometry3D->Node(
+                        non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(
                             shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
 
                         N_0[n] = shape(0, indexU, indexV);
@@ -201,7 +201,7 @@ namespace Kratos
     {
         Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
 
-        int number_of_points_spans = 
+        int number_of_points_spans =
             mNodeSurfaceGeometry3D->DegreeU()
             + mNodeSurfaceGeometry3D->DegreeV() + 1;
 
@@ -234,10 +234,10 @@ namespace Kratos
                 Matrix shape_function_derivative;
                 Matrix shape_function_second_derivative;
 
-                EvaluatePoint(derivatives[0][0], derivatives[0][1], 
+                EvaluatePoint(derivatives[0][0], derivatives[0][1],
                     control_points,
-                    shape_function, 
-                    shape_function_derivative, 
+                    shape_function,
+                    shape_function_derivative,
                     shape_function_second_derivative);
                 if (rType == "element")
                 {
@@ -328,7 +328,7 @@ namespace Kratos
                 int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
                 int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
 
-                non_zero_control_points.push_back(mNodeSurfaceGeometry3D->Node(indexU, indexV));
+                non_zero_control_points.push_back(mNodeSurfaceGeometry3D->GetNode(indexU, indexV));
 
                 N_0[n] = shape(0, indexU, indexV);
                 N_1(n, 0) = shape(1, indexU, indexV);
@@ -418,7 +418,7 @@ namespace Kratos
             int indexU = shape.NonzeroPoleIndices()[n].first - shape.FirstNonzeroPoleU();
             int indexV = shape.NonzeroPoleIndices()[n].second - shape.FirstNonzeroPoleV();
 
-            rNonZeroControlPoints.push_back(mNodeSurfaceGeometry3D->Node(
+            rNonZeroControlPoints.push_back(mNodeSurfaceGeometry3D->GetNode(
                 shape.NonzeroPoleIndices()[n].first, shape.NonzeroPoleIndices()[n].second));
 
             rShapeFunction[n] = shape(0, indexU, indexV);
@@ -455,7 +455,7 @@ namespace Kratos
 
     const Kratos::shared_ptr<NodeSurfaceGeometry3D> BrepFace::GetSurface() const
     {
-        return mNodeSurfaceGeometry3D; 
+        return mNodeSurfaceGeometry3D;
     }
 
 

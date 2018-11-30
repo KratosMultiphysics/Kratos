@@ -112,7 +112,7 @@ namespace Kratos
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
-        void BrepEdge::GetIntegrationBrep(
+        void GetIntegrationBrep(
             ModelPart& rModelPart,
             const int& trim_index,
             const std::string& rType,
