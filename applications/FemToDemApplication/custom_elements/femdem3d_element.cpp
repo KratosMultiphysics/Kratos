@@ -383,8 +383,8 @@ void FemDem3DElement::CalculateLocalSystem(
 
 		double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
 		const Matrix &B = this->GetBMatrix();
-		Vector IntegratedStressVector = ZeroVector(voigt_size);
-		Vector DamagesOnEdges = ZeroVector(this->GetNumberOfEdges());
+		Vector integrated_stress_vector = ZeroVector(voigt_size);
+		Vector damages_edges = ZeroVector(this->GetNumberOfEdges());
 
 		// Loop over edges of the element
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
@@ -402,21 +402,20 @@ void FemDem3DElement::CalculateLocalSystem(
 												 AverageStressVector, 
 												 edge, 
 												 characteristic_length,
-												 uniaxial_stress);
-						 
+												 uniaxial_stress);	 
 			this->SetNonConvergedEquivalentStress(uniaxial_stress, edge);
 			this->SetNonConvergedDamages(damage_edge, edge);
-			DamagesOnEdges[edge] = damage_edge;
+			damages_edges[edge] = damage_edge;
 		} // End loop over edges
 
-		double damage_element = this->CalculateElementalDamage(DamagesOnEdges);
+		double damage_element = this->CalculateElementalDamage(damages_edges);
 		if (damage_element >= 0.999)
 			damage_element = 0.999;
 		this->SetNonConvergedDamages(damage_element);
 
 		const Vector &StressVector = this->GetValue(STRESS_VECTOR);
-		IntegratedStressVector = (1.0 - damage_element) * StressVector;
-		this->SetIntegratedStressVector(IntegratedStressVector);
+		integrated_stress_vector = (1.0 - damage_element) * StressVector;
+		this->SetIntegratedStressVector(integrated_stress_vector);
 
 		Matrix ConstitutiveMatrix = ZeroMatrix(voigt_size, voigt_size);
 		const double E = this->GetProperties()[YOUNG_MODULUS];
@@ -1415,5 +1414,35 @@ void FemDem3DElement::SetValueOnIntegrationPoints(
 		this->SetValue(rVariable, rValues[point_number]);
 	}
 }
+
+
+// Methods to compute the tangent tensor by numerical derivation
+void FemDem3DElement::CalculateTangentTensor(
+	Matrix& TangentTensor,
+	const Vector& rStrainVectorGP,
+	const Vector& rStressVectorGP
+	)
+{
+	const double number_components = rStrainVectorGP.size();
+	TangentTensor.resize(number_components, number_components);
+	Vector perturbed_stress, perturbed_strain;
+	for (unsigned int component = 0; component < number_components; components++) {
+		double perturbation;
+		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
+		this->PerturbateStrainVector(perturbed_strain, perturbation, component);
+		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain);
+		const Vector delta_stress = perturbed_stress - rStressVectorGP;
+		this->AssignComponentsToTangentTensor(TangentTensor, delta_stress, perturbation, component);
+	}
+}
+
+void FemDem3DElement::CalculatePerturbation()
+
+
+
+
+
+
+
 
 } // namespace Kratos

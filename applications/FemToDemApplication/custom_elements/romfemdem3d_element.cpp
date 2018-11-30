@@ -281,10 +281,10 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
 		const Matrix &B = this->GetBMatrix();
 		Vector IntegratedStressVectorConcrete = ZeroVector(voigt_size);
-		Vector DamagesOnEdges = ZeroVector(6);
+		Vector damages_edges = ZeroVector(6);
 
 		// Loop over edges of the element
-		for (int edge = 0; edge < 6; edge++) {
+		for (unsigned int edge = 0; edge < 6; edge++) {
 			const std::vector<Element *> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
 
 			Vector AverageStressVectorConcrete, AverageStrainVectorConcrete, IntegratedStressVectorOnEdge;
@@ -304,14 +304,13 @@ void RomFemDem3DElement::CalculateLocalSystem(
 												 uniaxial_stress);
 			this->SetNonConvergedDamages(damage_edge, edge);
 			this->SetNonConvergedEquivalentStress(uniaxial_stress, edge);
-			DamagesOnEdges[edge] = damage_edge;
+			damages_edges[edge] = damage_edge;
 
 		} // End loop over edges
 
 		// Compute elemental damage
-		double damage_element = this->CalculateElementalDamage(DamagesOnEdges);
-		if (damage_element >= 0.999)
-		{
+		double damage_element = this->CalculateElementalDamage(damages_edges);
+		if (damage_element >= 0.999) {
 			damage_element = 0.999;
 		}
 		this->SetNonConvergedDamages(damage_element);
@@ -333,9 +332,7 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		this->CalculateConstitutiveMatrix(ConstitutiveMatrixSteel, Es, nus);
 
 		const double k = this->GetProperties()[STEEL_VOLUMETRIC_PART];
-
 		Matrix CompositeTangentMatrix = k * ConstitutiveMatrixSteel + (1.0 - k) * (1.0 - damage_element) * ConstitutiveMatrixConcrete;
-
 		noalias(rLeftHandSideMatrix) += prod(trans(B), IntegrationWeight * Matrix(prod(CompositeTangentMatrix, B))); // LHS
 
 		Vector VolumeForce = ZeroVector(dimension);

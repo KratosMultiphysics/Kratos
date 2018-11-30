@@ -214,7 +214,6 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 												 edge, 
 												 Lchar, 
 				                                 uniaxial_stress);
-
 			this->SetNonConvergedDamages(damage_edge, edge);
 			this->SetNonConvergedEquivalentStress(uniaxial_stress, edge);
 			DamagesOnEdges[edge] = damage_edge;
