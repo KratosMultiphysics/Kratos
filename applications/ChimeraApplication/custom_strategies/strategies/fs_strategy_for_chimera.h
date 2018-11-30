@@ -316,7 +316,6 @@ public:
             }
             if (!Converged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
                 KRATOS_INFO("Predictor-correctior iterations did not converge.") << std::endl;
-
         }
         else
         {
@@ -548,12 +547,11 @@ protected:
         bool Converged = false;
         int Rank = rModelPart.GetCommunicator().MyPID();
 
-
         // making MPC of velocity active for Chimera
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
 
-        for (auto mpcData : (*mpcDataVector))
+       /*  for (auto mpcData : (*mpcDataVector))
         {
             if(mpcData->GetVelocityOrPressure() == "Velocity")
             {
@@ -565,10 +563,8 @@ protected:
                 mpcData->SetActive(false);
                 KRATOS_INFO("made one MPC inactive for Velocity ")<<std::endl;
             }
-        }
-
+        } */
         KRATOS_INFO("before Momentum iteration ") <<std::endl;
-
         for(std::size_t it = 0; it < mMaxVelocityIter; ++it)
         {
             if ( BaseType::GetEchoLevel() > 1 && Rank == 0)
@@ -577,16 +573,13 @@ protected:
             // build momentum system and solve for fractional step velocity increment
             rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
             double NormDv = mpMomentumStrategy->Solve();
-
 //            // Compute projections (for stabilization)
 //            rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
 //            this->ComputeSplitOssProjections(rModelPart);
-
 //            // Additional steps // Moved to end of step
 //            for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
 //                 iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
 //                (*iExtraSteps)->Execute();
-
             // Check convergence
             Converged = this->CheckFractionalStepConvergence(NormDv);
 
@@ -603,6 +596,7 @@ protected:
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
+        
         this->ComputeSplitOssProjections(rModelPart);
 
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
@@ -621,7 +615,7 @@ protected:
             }
         }
 
-        for (auto mpcData : (*mpcDataVector))
+        /* for (auto mpcData : (*mpcDataVector))
         {
             if(mpcData->GetVelocityOrPressure() == "Pressure")
             {
@@ -634,17 +628,17 @@ protected:
                 KRATOS_INFO("made one MPC inactive for pressure ")<<std::endl;
             }
         }
-
+ */
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             KRATOS_INFO("Calculating Pressure.")<< std::endl;
         //double NormDp = 0;
         double NormDp = mpPressureStrategy->Solve();
 
-        for (auto mpcData : (*mpcDataVector))
+        /* for (auto mpcData : (*mpcDataVector))
         {
             mpcData->SetActive(true);
             KRATOS_INFO("made all patch active after solving for pressure ")<<std::endl;
-        }
+        } */
 
 #pragma omp parallel
         {
@@ -677,7 +671,7 @@ protected:
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         double NormV = 0.00;
-
+        
 #pragma omp parallel reduction(+:NormV)
         {
             ModelPart::NodeIterator NodeBegin;
@@ -814,6 +808,24 @@ protected:
 
         ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
         MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+
+       /*  
+        for (auto& r_cond : rModelPart.GetSubModelPart()) {
+            r_cond.Calculate(CONV_PROJ);
+            r_cond.Calculate(PRESS_PROJ);
+            r_cond.Calculate(DIVPROJ);
+            r_cond.Calculate(NODAL_AREA);
+        }
+
+        Constructor(slave_node=>Geometry, std::vector<Element*>, std::vector<double> weights)
+
+        Calculate(rVariable)
+        {
+            auto& varrrr = node.FastGetSolutionStepValue(rVariable);
+            for node in Master_nodes:
+                conv_proj += (masterNode.FastGetSolutionStepValue(rVariable))*weight;
+        }
+        */
         for (auto mpcData : (*mpcDataVector))
         {
             if (mpcData->GetVelocityOrPressure()=="Velocity")
@@ -928,7 +940,6 @@ protected:
             }
 
             //KRATOS_INFO("Interpolating end step velocity to slave nodes from their Masters")<<std::endl;
-
             ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
             MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
             for (auto mpcData : (*mpcDataVector))
@@ -941,8 +952,6 @@ protected:
                         MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
                         std::size_t slaveNodeId = slaveDofMap.first;
                         NodeType &node = rModelPart.Nodes()[slaveNodeId];
-                        //KRATOS_INFO("interpolating for node id")<<node.Id()<<std::endl;
-                        //KRATOS_INFO("It has a velocity of Vx")<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
                         node.FastGetSolutionStepValue(VELOCITY_X)=0;
                         node.FastGetSolutionStepValue(VELOCITY_Y)=0;
                         for (auto masterDofMapElem : masterDofMap)
@@ -953,13 +962,9 @@ protected:
                             std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
                             double weight = masterDofMapElem.second;
                             NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
-                            //KRATOS_INFO("master node velocity x")<<masterNode.FastGetSolutionStepValue(VELOCITY_X)<<"and weight is"<<weight<<std::endl;
-                            //KRATOS_INFO("master node velocity y")<<masterNode.FastGetSolutionStepValue(VELOCITY_Y)<<"and weight is"<<weight<<std::endl;
                             node.FastGetSolutionStepValue(VELOCITY_X) +=(masterNode.FastGetSolutionStepValue(VELOCITY_X))*weight;
                             node.FastGetSolutionStepValue(VELOCITY_Y) +=(masterNode.FastGetSolutionStepValue(VELOCITY_Y))*weight;
                         }
-                        //KRATOS_INFO("interpolated value Velocity X for node id ")<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_X)<<std::endl;
-                        //KRATOS_INFO("interpolated value Velocity Y for node id ")<<node.Id()<<"is::"<<node.FastGetSolutionStepValue(VELOCITY_Y)<<std::endl;
                     }
                 }
             }

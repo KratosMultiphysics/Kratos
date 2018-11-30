@@ -167,12 +167,14 @@ public:
         // Saving th original system size
         const IndexType initial_sys_size = rLHSContribution.size1();
 
+        mLocalIndices.Reset();
+        CalculateLocalSlaveIndices(rEquationIds, mLocalIndices);
         // first fill in the rEquationIds using the above function (overloaded one)
         ApplyConstraints<TContainerType>(rCurrentContainer, rEquationIds, rCurrentProcessInfo); // now rEquationIds has all the slave equation ids appended to it.
         IndexType total_number_of_masters = rEquationIds.size() - initial_sys_size;
         // Calculating the local indices corresponding to internal, master, slave dofs of this container
         CalculateLocalIndices(rEquationIds, mLocalIndices, total_number_of_masters);
-        // resizing the matrices to the new required length
+        // resizing the matrices to the new required length        
         ResizeAndInitializeLocalMatrices(rLHSContribution, rRHSContribution, rEquationIds.size());
 
         // Calculating the F = T'*(F-K*g) which is local to this container
@@ -329,15 +331,11 @@ private:
         }
     }
 
-
-
-
     /**
      * @brief   Resets the member vectors and matrices to zero and zero size
      */
     void Reset()
     {
-        mLocalIndices.Reset();
         mTransformationMatrixLocal.resize(0,0, false);
         mConstantVectorLocal.resize(0, false);
         mMasterEquationIds.clear();
@@ -351,12 +349,10 @@ private:
      */
     void CalculateLocalIndices(EquationIdVectorType& rEquationIds, LocalIndicesType& rLocalIndexStructure, IndexType rTotalNumberOfMasters)
     {
-        CalculateLocalSlaveIndices(rEquationIds, rLocalIndexStructure);
+        //CalculateLocalSlaveIndices(rEquationIds, rLocalIndexStructure);
         CalculateLocalInternalIndices(rEquationIds, rLocalIndexStructure);
         CalculateLocalMasterIndices(rEquationIds, rLocalIndexStructure, rTotalNumberOfMasters);
     }
-
-
 
     /**
      * @brief   This function calculates the local slave indices of a given element or condition
@@ -371,8 +367,10 @@ private:
         {
             auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(eq_id);
             if (global_master_slave_constraint != mrGlobalMasterSlaveConstraints.end())
-                rLocalIndexStructure.slave_index_vector.push_back(index);
-
+                {
+                    //if(index<9)
+                        rLocalIndexStructure.slave_index_vector.push_back(index);
+                }
             index++;
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalSlaveIndices failed ..");

@@ -136,13 +136,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
     void SetUpSystem(
         ModelPart &rModelPart) override
     {
-        KRATOS_INFO("YEHHHHHH INSIDE NEW BUILDER AND SOLVER");
         BaseType::SetUpSystem(rModelPart);
         KRATOS_INFO("Number of constraints")<<rModelPart.NumberOfMasterSlaveConstraints()<<std::endl;
         if(rModelPart.NumberOfMasterSlaveConstraints() > 0)
         {
             FormulateGlobalMasterSlaveRelations(rModelPart);
-            KRATOS_INFO("YEHHHHHH INSIDE NEW BUILDER AND SOLVER 1");
         }
     }
 
@@ -163,7 +161,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
         if(mGlobalMasterSlaveConstraints.size() > 0)
         {
             BuildWithConstraints(pScheme, rModelPart, A, b);
-            KRATOS_INFO("YEHHHHHH INSIDE NEW BUILDER AND SOLVER 2");
         } 
         else
             BaseType::Build(pScheme, rModelPart, A, b);
@@ -405,7 +402,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
         auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; k++)
-        {
+        {   
             auto it = constraints_begin + k;
             it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
         }
@@ -692,7 +689,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
 
         Timer::Stop("MatrixStructure");
     }
-
     /*
     * This function is exactly same as the Build() function in base class except that the function
     * has the call to ApplyConstraints function call once the LHS or RHS are computed by elements and conditions
@@ -885,7 +881,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
      */
     void AssembleConstraint(ModelPart::MasterSlaveConstraintType& rMasterSlaveConstraint, ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY
+        //KRATOS_TRY
         int slave_count = 0;
         LocalSystemMatrixType relation_matrix(0,0);
         LocalSystemVectorType constant_vector(0);
@@ -909,15 +905,14 @@ class ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera
             global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             for (auto master_equation_id : master_equation_ids)
             {
-                    global_constraint->second->AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
-                    master_count++;
+                global_constraint->second->AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
+                master_count++;
             }
             slave_count++;
         }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera::AssembleSlaves failed ...");
+        //KRATOS_INFO("GLOBAL MASTER SLAVE constraint")<<mGlobalMasterSlaveConstraints<<std::endl;
+        //KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraintsForChimera::AssembleSlaves failed ...");
     }
-
-
 
     /**
      * @brief   this method resets the LHS and RHS values of the AuxilaryGlobalMasterSlaveRelation objects

@@ -1,3 +1,4 @@
+import time
 import KratosMultiphysics as km
 import KratosMultiphysics.FluidDynamicsApplication as kfd
 import KratosMultiphysics.ChimeraApplication as kchim
@@ -35,6 +36,7 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
         self.reference_file = "reference_chimera_monolithic_simple_test"
 
     def testMonolithic(self):
+        start = time.clock()
         self.check_tolerance = 1e-6
         # Set to true to get post-process files for the test
         self.print_reference_values = False
@@ -51,8 +53,11 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
             kratos_utilities.DeleteFileIfExisting("test_chimera_monolithic_simple_input_0.post.msh")
             kratos_utilities.DeleteFileIfExisting("test_chimera_monolithic_simple_input_0.post.res")
             #self._checkResults()
+        end = time.clock()
+        print("Time taken for monolithic chimera simulation",end-start)
     
     def testFractionalStep(self):
+        start = time.clock()
         self.check_tolerance = 1e-6
         # Set to true to get post-process files for the test
         self.print_reference_values = False
@@ -68,8 +73,11 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
             kratos_utilities.DeleteFileIfExisting("chimera_fractionalstep_simple_test.post.lst")
             kratos_utilities.DeleteFileIfExisting("test_chimera_fractionalstep_simple_input_0.post.msh")
             kratos_utilities.DeleteFileIfExisting("test_chimera_fractionalstep_simple_input_0.post.res")
-            
+        end = time.clock()
+        print("Time taken for fractional step chimera simulation",end-start)
+
     def testMultipleOverlappingPatch(self):
+        start = time.clock()
         self.check_tolerance = 1e-6
         # Set to true to get post-process files for the test
         self.print_reference_values = False
@@ -86,6 +94,8 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
             kratos_utilities.DeleteFileIfExisting("chimera_multiple_overlapping_patch.post.lst")
             kratos_utilities.DeleteFileIfExisting("test_chimera_multiple_overlapping_simple_0.post.msh")
             kratos_utilities.DeleteFileIfExisting("test_chimera_multiple_overlapping_simple_0.post.res")
+        end = time.clock()
+        print("Time taken for Multiple overlapping chimera simulation",end-start)
     
     def _run_test(self,settings_file_name):
         self.model = km.Model()
@@ -160,7 +170,7 @@ if __name__ == '__main__':
     #test_case.setUp()
     test_case.testMonolithic()
     test_case.testFractionalStep()
-    #test_case.testMultipleOverlappingPatch()
+    test_case.testMultipleOverlappingPatch()
     print("completed all tests")
 
 

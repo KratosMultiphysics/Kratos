@@ -49,7 +49,6 @@ KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintTests, KratosCoreFastSuite)
 
         c1->CalculateLocalSystem(transformation_matrix, constant_vector, process_info);
 
-
         KRATOS_CHECK_EQUAL(master_vector.size(), 1);
         KRATOS_CHECK_EQUAL(slave_vector.size(), 1);
 

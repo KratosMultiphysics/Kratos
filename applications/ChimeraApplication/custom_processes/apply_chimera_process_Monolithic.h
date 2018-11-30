@@ -18,6 +18,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 
 // External includes
 #include "includes/kratos_flags.h"
@@ -102,6 +103,10 @@ class ApplyChimeraProcessMonolithic : public Process
 	typedef MpcData::VariableType VariableType;
 	typedef Node<3> NodeType;
 	typedef Kratos::shared_ptr<ModelPart> ModelPartPointer;
+
+	typedef std::vector<IndexType> ConstraintIdsVectorType;
+	ConstraintIdsVectorType VectorOfConstraintIds;
+    std::unordered_map <IndexType, ConstraintIdsVectorType > NodeIdToConstraintIdsMap; 
 
 	///@}
 	///@name Life Cycle
@@ -202,17 +207,32 @@ class ApplyChimeraProcessMonolithic : public Process
 		Clear();
 		//for multipatch
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
-			{
-				it->Set(VISITED, false);
-				it->SetValue(SPLIT_ELEMENT,false);
-			}
-		int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
-		for (int i = 1;i<=number_of_constraints;++i)
 		{
-			mrMainModelPart.RemoveMasterSlaveConstraint(i);
+			it->Set(VISITED, false);
+			it->SetValue(SPLIT_ELEMENT,false);
 		}
+
+		/* 		
+		int constraintId = 0;
+		mrMainModelPart.MasterSlaveConstraints().Sort();
+		for(ModelPart::MasterSlaveConstraintContainerType::iterator it = mrMainModelPart.MasterSlaveConstraintsBegin();it<mrMainModelPart.MasterSlaveConstraintsEnd();++it)
+		{	
+			constraintId = (*it).Id();
+			if(constraintId<10)
+				KRATOS_INFO("first constraint")<<constraintId<<std::endl;
+			mrMainModelPart.RemoveMasterSlaveConstraint(constraintId);
+		} 
+		*/
+
+	 	ModelPart::MasterSlaveConstraintContainerType::iterator it = mrMainModelPart.MasterSlaveConstraintsEnd()-1;
+		int constraintId = (*it).Id();
+
+		for (int i = 1;i<=constraintId;++i)
+		{
+			mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(i);
+			//mrMainModelPart.RemoveMasterSlaveConstraint(i);
+		} 
 		
-		//mrMainModelPart.RemoveMasterSlaveConstraintsFromAllLevels();
 	}
 
 	void ExecuteBeforeOutputStep() override
@@ -236,8 +256,11 @@ class ApplyChimeraProcessMonolithic : public Process
 		const int max_results = 10000;
 		typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 		const int n_boundary_nodes = rBoundaryModelPart.Nodes().size();
+		
+		ConstraintIdsVectorType ConstrainIdsForTheNode;
 
 		std::size_t counter = 0;
+		std::size_t removed_counter = 0;
 
 		for (int i = 0; i < n_boundary_nodes; i++)
 		{
@@ -265,22 +288,28 @@ class ApplyChimeraProcessMonolithic : public Process
 				}
 				//Defining master slave relation for pressure
 				RemoveMasterSlaveRelationWithNodesAndVariable(pMpc, *p_boundary_node, PRESSURE);
+				
+				ConstrainIdsForTheNode = NodeIdToConstraintIdsMap[p_boundary_node->Id()];
+				for (int i = 0; i < ConstrainIdsForTheNode.size(); i++)
+				{	
+					//KRATOS_INFO("REMOVED CONSTRAINTS")<<ConstrainIdsForTheNode[i]<<std::endl;
+					mrMainModelPart.RemoveMasterSlaveConstraintFromAllLevels(ConstrainIdsForTheNode[i]);
+					removed_counter++;
+				}
+				p_boundary_node->Set(VISITED, false);
 			}
 
 			// Initialise the boundary nodes dofs to 0 at ever time steps
-
 			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
 			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
 
 			if (TDim == 3)
 				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
-
 			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
 
 			if (is_found == true)
-			{
+			{	
 				Geometry<Node<3>> &geom = pElement->GetGeometry();
-
 				for (std::size_t i = 0; i < geom.size(); i++)
 				{
 					//Interpolation of velocity
@@ -302,6 +331,7 @@ class ApplyChimeraProcessMonolithic : public Process
 						//Defining master slave relation for pressure
 						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
 						counter++;
+					
 				} // end of loop over host element nodes
 
 				// Setting the buffer 1 same buffer 0
@@ -309,15 +339,19 @@ class ApplyChimeraProcessMonolithic : public Process
 				p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0);
 				if (TDim == 3)
 					p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0);
-
 				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
 			}
 			p_boundary_node->Set(VISITED, true);
-
+			
+			NodeIdToConstraintIdsMap[p_boundary_node->Id()]=VectorOfConstraintIds;
+			VectorOfConstraintIds.clear();
 		} // end of loop over boundary nodes
 
 		counter /= TDim + 1;
 		KRATOS_INFO("Pressure nodes from") << rBoundaryModelPart.Name() << " is coupled" << counter <<  std::endl;
+
+		KRATOS_INFO("number of constriants created for this combination")<<counter*9<<std::endl;
+		KRATOS_INFO("number of constriants removed for this combination")<<removed_counter<<std::endl;
 	}
 
 	void ApplyMpcConstraintConservative(ModelPart &rBoundaryModelPart, BinBasedPointLocatorPointerType &pBinLocator, MpcDataPointerType pMpc)
@@ -450,13 +484,15 @@ class ApplyChimeraProcessMonolithic : public Process
 							MainDomainOrNot = -1 ;
 
 						FormulateChimera(MainDomainOrNot);
+
+						int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
 					}
 				}
 			}
 		}
 		KRATOS_INFO("End of chimera loop") << std::endl;
 		int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
-		KRATOS_INFO("total number of constraints created")<<number_of_constraints<<std::endl;
+		KRATOS_INFO("Total number of constraints created so far")<<number_of_constraints<<std::endl;
 	}
 
 	//Apply Chimera with or without overlap
@@ -822,12 +858,25 @@ void AddMasterSlaveRelationWithNodesAndVariableComponents(MpcDataPointerType pMp
 {
 	int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
 	number_of_constraints++;
+
+	int constraintId = 0;
+
+	if(mrMainModelPart.MasterSlaveConstraints().size()!=0)
+	{
+		mrMainModelPart.MasterSlaveConstraints().Sort();
+		ModelPart::MasterSlaveConstraintContainerType::iterator it = mrMainModelPart.MasterSlaveConstraintsEnd()-1;
+		constraintId = (*it).Id();
+		constraintId++;
+	}
+	else
+		constraintId = 1;
+	
 	SlaveNode.Set(SLAVE);
 	DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
 	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
 	AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
-	mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", number_of_constraints, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant); 
-
+	mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", constraintId, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant); 
+	VectorOfConstraintIds.push_back(constraintId);
 }
 
 void AddMasterSlaveRelationWithNodeIdsAndVariableComponents(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableComponentType &MasterVariable, IndexType SlaveNodeId, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
@@ -845,11 +894,25 @@ void AddMasterSlaveRelationWithNodesAndVariable(MpcDataPointerType pMpc, Node<3>
 {	
 	int number_of_constraints = mrMainModelPart.MasterSlaveConstraints().size();
 	number_of_constraints++;
+
+	int constraintId = 0;
+
+	if(mrMainModelPart.MasterSlaveConstraints().size()!=0)
+	{
+		mrMainModelPart.MasterSlaveConstraints().Sort();
+		ModelPart::MasterSlaveConstraintContainerType::iterator it = mrMainModelPart.MasterSlaveConstraintsEnd()-1;
+		constraintId = (*it).Id();
+		constraintId++;
+	}
+	else
+		constraintId = 1;
+	
 	SlaveNode.Set(SLAVE);
 	DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
 	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
 	AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
-	mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", number_of_constraints, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant); 
+	mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", constraintId, MasterNode, MasterVariable, SlaveNode, SlaveVariable, weight, constant); 
+	VectorOfConstraintIds.push_back(constraintId);
 }
 
 void AddMasterSlaveRelationWithNodeIdsAndVariable(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableType &MasterVariable, IndexType SlaveNodeId, VariableType &SlaveVariable, double weight, double constant = 0.0)
