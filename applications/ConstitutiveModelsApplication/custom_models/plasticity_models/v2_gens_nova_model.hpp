@@ -219,9 +219,16 @@ namespace Kratos
 
             KRATOS_CATCH("")
          }
+
+
+         /**
+          * Get Values
+          */
          virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
          {
             KRATOS_TRY
+
+            rValue=0;
 
             if (rThisVariable==PLASTIC_STRAIN)
             {
@@ -354,8 +361,6 @@ namespace Kratos
 
                const double & rPlasticVolDef = Variables.Internal.Variables[1]; 
                const double & rPlasticDevDef = Variables.Internal.Variables[2];
-               const double & rPS     = Variables.Internal.Variables[3];
-               const double & rPT     = Variables.Internal.Variables[4];
                const double & rPlasticVolDefAbs = Variables.Internal.Variables[6];
 
                double ps;

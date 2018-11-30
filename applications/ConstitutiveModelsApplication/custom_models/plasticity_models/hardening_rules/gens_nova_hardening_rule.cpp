@@ -113,12 +113,9 @@ namespace Kratos
     const Properties& rMaterialProperties = rModelData.GetProperties();
     const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
-    const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-    const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
-
     const double & rPS     = rVariables.Internal.Variables[3];
     const double & rPT     = rVariables.Internal.Variables[4];
-    const double & rPCstar = rVariables.Internal.Variables[5];
+    //const double & rPCstar = rVariables.Internal.Variables[5];
     const double & rhos = rMaterialProperties[RHOS];
     const double & rhot = rMaterialProperties[RHOT];
     const double & k = rMaterialProperties[KSIM];

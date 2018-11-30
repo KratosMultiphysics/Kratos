@@ -1,4 +1,4 @@
-//
+
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                  LMonforte $
 //   Last modified by:    $Co-Author:                         $
@@ -91,13 +91,13 @@ namespace Kratos
      * Calculate Hardening functions
      */
 
-    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening); //do not override -> it must hide the method
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening);
 
     /**
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening); //do not override -> it must hide the method
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening);
 
 
     ///@}

@@ -199,6 +199,11 @@ namespace Kratos
 
             return false;
          }
+
+
+         /**
+          * Get Values
+          */
          void SetValue(const Variable<double>& rVariable,
                const double& rValue,
                const ProcessInfo& rCurrentProcessInfo) override 
@@ -374,8 +379,6 @@ namespace Kratos
 
                const double & rPlasticVolDef = Variables.Internal.Variables[1]; 
                const double & rPlasticDevDef = Variables.Internal.Variables[2];
-               const double & rPS     = Variables.Internal.Variables[3];
-               const double & rPT     = Variables.Internal.Variables[4];
                const double & rPlasticVolDefAbs = Variables.Internal.Variables[6];
 
                double ps;
@@ -386,9 +389,13 @@ namespace Kratos
                pt = rPlasticVolDefAbs + rChit * rPlasticDevDef; 
                pt = (-rPt0) * std::exp( rhot*pt);
 
+               double pm;
+               pm = ps + (1.0+k)*pt;
+
+
                mInternal.Variables[3] = ps;
                mInternal.Variables[4] = pt;
-               mInternal.Variables[5] = ps + (1.0+k)*pt;
+               mInternal.Variables[5] = pm;
 
                NonAssociativePlasticityModel::CalculateStressAndConstitutiveTensors( rValues, rStressMatrix, rConstitutiveMatrix);
 
@@ -453,7 +460,7 @@ namespace Kratos
                KRATOS_TRY
             
 
-               { // debugging, or whatever
+               /*{ // debugging, or whatever
                   const ModelDataType & rModelData = rVariables.GetModelData();
                   const Properties & rMaterialProperties = rModelData.GetProperties();
                   const double & rPs0 = rMaterialProperties[PS];
@@ -462,6 +469,7 @@ namespace Kratos
                const double & rChit = rMaterialProperties[CHIT];
                   const double & rhos = rMaterialProperties[RHOS];
                const double & rhot = rMaterialProperties[RHOT];
+
                   double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
                   double & rPlasticDevDef = rVariables.Internal.Variables[2];
                   double & rPS     = rVariables.Internal.Variables[3];
@@ -477,7 +485,7 @@ namespace Kratos
                   pt = (-rPt0) * std::exp( rhot*pt);
                   
 
-               }
+               }*/
 
                const ModelDataType & rModelData = rVariables.GetModelData();
                const Properties & rMaterialProperties = rModelData.GetProperties();
