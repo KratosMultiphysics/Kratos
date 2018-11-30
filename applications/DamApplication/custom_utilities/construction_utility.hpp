@@ -100,7 +100,7 @@ class ConstructionUtility
             ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.ElementsBegin();
             mNumNode = el_begin->GetGeometry().PointsNumber();
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
@@ -111,7 +111,7 @@ class ConstructionUtility
 
             // Same nodes for both computing model part
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int i = 0; i < nnodes; ++i)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -132,7 +132,7 @@ class ConstructionUtility
                 ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).ElementsBegin();
                 mNumNode = el_begin->GetGeometry().PointsNumber();
 
-    #pragma omp parallel for
+                #pragma omp parallel for
                 for (int k = 0; k < soil_nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it = el_begin + k;
@@ -143,7 +143,7 @@ class ConstructionUtility
 
                 // Same nodes for both computing model part
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalSoilPart).NodesBegin();
-    #pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < soil_nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -164,7 +164,7 @@ class ConstructionUtility
                 ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(mThermalExistingPart).ElementsBegin();
                 mNumNode = el_begin->GetGeometry().PointsNumber();
 
-    #pragma omp parallel for
+                #pragma omp parallel for
                 for (int k = 0; k < existing_nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it = el_begin + k;
@@ -175,7 +175,7 @@ class ConstructionUtility
 
                 // Same nodes for both computing model part
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.GetSubModelPart(mThermalExistingPart).NodesBegin();
-    #pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < existing_nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -185,13 +185,38 @@ class ConstructionUtility
             }
         }
 
+        // Thermal Conditions
+        const int nconditions = mrThermalModelPart.GetMesh(0).Conditions().size();
+
+        if (nconditions != 0)
+        {
+            ModelPart::ConditionsContainerType::iterator cond_begin_thermal = mrThermalModelPart.ConditionsBegin();
+
+            for (int k = 0; k < nconditions; ++k)
+            {
+                ModelPart::ConditionsContainerType::iterator it_cond_thermal = cond_begin_thermal + k;
+                const unsigned int number_of_points = (*it_cond_thermal).GetGeometry().PointsNumber();
+                unsigned int count = 0;
+
+                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                {
+                    if ((*it_cond_thermal).GetGeometry()[i_node].Is(ACTIVE) == true)
+                    {
+                        count++;
+                    }
+                }
+                if (count == number_of_points) it_cond_thermal->Set(ACTIVE, true);
+                else it_cond_thermal->Set(ACTIVE, false);
+            }
+        }
+
         // Assign Alpha Initial in case of using Azenha Formulation
         if (mSourceType == "NonAdiabatic")
         {
             if (mAging == false)
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-#pragma omp parallel for
+            #pragma omp parallel for
                 for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -201,7 +226,7 @@ class ConstructionUtility
             else
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-#pragma omp parallel for
+            #pragma omp parallel for
                 for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -236,7 +261,7 @@ class ConstructionUtility
             double current_height = mReferenceCoordinate + (mHeight / mPhases) * (phase);
             double previous_height = mReferenceCoordinate + (mHeight / mPhases) * (phase - 1);
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -286,7 +311,7 @@ class ConstructionUtility
             ModelPart::ElementsContainerType::iterator el_begin = mrMechanicalModelPart.GetSubModelPart(MechanicalSubModelPartName).ElementsBegin();
             ModelPart::ElementsContainerType::iterator el_begin_thermal = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).ElementsBegin();
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int k = 0; k < nelements; ++k)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + k;
@@ -304,6 +329,31 @@ class ConstructionUtility
                         it->GetGeometry()[i].Set(ACTIVE, true);
                     }
                 }
+            }
+        }
+
+        // Thermal Conditions
+        const int nconditions = mrThermalModelPart.GetMesh(0).Conditions().size();
+
+        if (nconditions != 0)
+        {
+            ModelPart::ConditionsContainerType::iterator cond_begin_thermal = mrThermalModelPart.ConditionsBegin();
+
+            for (int k = 0; k < nconditions; ++k)
+            {
+                ModelPart::ConditionsContainerType::iterator it_cond_thermal = cond_begin_thermal + k;
+                const unsigned int number_of_points = (*it_cond_thermal).GetGeometry().PointsNumber();
+                unsigned int count = 0;
+
+                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                {
+                    if ((*it_cond_thermal).GetGeometry()[i_node].Is(ACTIVE) == true)
+                    {
+                        count++;
+                    }
+                }
+                if (count == number_of_points) it_cond_thermal->Set(ACTIVE, true);
+                else it_cond_thermal->Set(ACTIVE, false);
             }
         }
 
@@ -330,7 +380,6 @@ class ConstructionUtility
 
             if (Dim == 2)
             {
-// #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -341,6 +390,7 @@ class ConstructionUtility
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Edges()[i_edge].PointsNumber();
                             unsigned int count = 0;
+
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
                                 if ((*it_thermal).GetGeometry().Edges()[i_edge][i_node].Is(ACTIVE) == true)
@@ -355,11 +405,9 @@ class ConstructionUtility
                                     ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
                                 }
                                 this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
-// #pragma omp critical
-                                {
-                                    mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
-                                    last_condition_id++;
-                                }
+
+                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
+                                last_condition_id++;
                             }
                         }
                     }
@@ -367,7 +415,6 @@ class ConstructionUtility
             }
             else
             {
-// #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -378,6 +425,7 @@ class ConstructionUtility
                         {
                             const unsigned int number_of_points = (*it_thermal).GetGeometry().Faces()[i_face].PointsNumber();
                             unsigned int count = 0;
+
                             for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
                             {
                                 if ((*it_thermal).GetGeometry().Faces()[i_face][i_node].Is(ACTIVE) == true)
@@ -392,11 +440,9 @@ class ConstructionUtility
                                     ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
                                 }
                                 this->DeactiveFaceHeatFluxStep(ConditionNodeIds);
-// #pragma omp critical
-                                {
-                                    mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
-                                    last_condition_id++;
-                                }
+
+                                mrThermalModelPart.RemoveConditionFromAllLevels(last_condition_id + 1, 0);
+                                last_condition_id++;
                             }
                         }
                     }
@@ -427,8 +473,7 @@ class ConstructionUtility
 
             if (Dim == 2)
             {
-// Searching for thermal boundary conditions Edges
-// #pragma omp parallel for
+                // Searching for thermal boundary conditions Edges
                 for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -454,11 +499,9 @@ class ConstructionUtility
                                     ConditionNodeIds[m] = (*it_thermal).GetGeometry().Edges()[i_edge][m].Id();
                                 }
                                 this->ActiveFaceHeatFluxStep(ConditionNodeIds);
-// #pragma omp critical
-                                {
-                                    mrThermalModelPart.CreateNewCondition("FluxCondition2D2N", last_condition_id + 1, ConditionNodeIds, 0);
-                                    last_condition_id++;
-                                }
+
+                                mrThermalModelPart.CreateNewCondition("FluxCondition2D2N", last_condition_id + 1, ConditionNodeIds, 0);
+                                last_condition_id++;
                             }
                         }
                     }
@@ -466,8 +509,7 @@ class ConstructionUtility
             }
             else
             {
-// Searching for thermal boundary conditions
-// #pragma omp parallel for
+                // Searching for thermal boundary conditions
                 for (int k = 0; k < nelements; ++k)
                 {
                     ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
@@ -493,18 +535,16 @@ class ConstructionUtility
                                     ConditionNodeIds[m] = (*it_thermal).GetGeometry().Faces()[i_face][m].Id();
                                 }
                                 this->ActiveFaceHeatFluxStep(ConditionNodeIds);
-// #pragma omp critical
+
+                                if (number_of_points == 3)
                                 {
-                                    if (number_of_points == 3)
-                                    {
-                                        mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", last_condition_id + 1, ConditionNodeIds, 0);
-                                        last_condition_id++;
-                                    }
-                                    else
-                                    {
-                                        mrThermalModelPart.CreateNewCondition("FluxCondition3D4N", last_condition_id + 1, ConditionNodeIds, 0);
-                                        last_condition_id++;
-                                    }
+                                    mrThermalModelPart.CreateNewCondition("FluxCondition3D3N", last_condition_id + 1, ConditionNodeIds, 0);
+                                    last_condition_id++;
+                                }
+                                else
+                                {
+                                    mrThermalModelPart.CreateNewCondition("FluxCondition3D4N", last_condition_id + 1, ConditionNodeIds, 0);
+                                    last_condition_id++;
                                 }
                             }
                         }
@@ -533,7 +573,7 @@ class ConstructionUtility
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -574,7 +614,7 @@ class ConstructionUtility
             double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int i = 0; i < nnodes; ++i)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -661,7 +701,7 @@ class ConstructionUtility
         double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
