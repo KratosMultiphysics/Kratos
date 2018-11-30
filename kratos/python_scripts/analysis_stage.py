@@ -38,7 +38,9 @@ class AnalysisStage(object):
         else:
             self.is_printing_rank = True
 
+        list_additional_vars = self.__GetListOfAdditionalHistoricalVariables()
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
+        self._GetSolver().AddAdditionalVariables(list_additional_vars) # this creates the solver and adds the variables
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -274,3 +276,20 @@ class AnalysisStage(object):
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+
+    def __GetListOfAdditionalHistoricalVariables(self):
+        list_additional_vars = []
+        self.__CreateListOfAdditionalHistoricalVariables("processes", list_additional_vars)
+        self.__CreateListOfAdditionalHistoricalVariables("output_processes", list_additional_vars)
+
+        return list_additional_vars
+
+    def __CreateListOfAdditionalHistoricalVariables(self, parameter_name, list_additional_vars):
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(self.model)
+
+        if self.project_parameters.Has(parameter_name):
+            processes_params = self.project_parameters[parameter_name]
+
+            for value in processes_params.values():
+                list_additional_vars.extend(factory.GetListOfRequiredHistoricalVariables(value))

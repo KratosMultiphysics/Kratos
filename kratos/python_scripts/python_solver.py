@@ -39,6 +39,9 @@ class PythonSolver(object):
         """
         pass
 
+    def AddAdditionalVariables(self, list_additional_variables):
+        pass
+
     def AddDofs(self):
         """This function add the Dofs needed by this PythonSolver to the the ModelPart
         It has to be called AFTER the ModelPart is read!
