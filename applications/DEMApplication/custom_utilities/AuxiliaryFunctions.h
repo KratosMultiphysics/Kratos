@@ -197,9 +197,9 @@ namespace Kratos {
 	    }
 	} //SwitchCase
 
-	inline array_1d<double,3> LinearTimeIncreasingFunction(const array_1d<double,3>& external_total_applied_force, const double current_time, const double final_time)
+	inline array_1d<double,3> LinearTimeIncreasingFunction(const array_1d<double,3>& external_total_applied_force, const double current_time, const double end_time)
 	{
-            array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/final_time;
+            array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/end_time;
             return externally_applied_force_now;
 
         }// LinearTimeIncreasingFunction
