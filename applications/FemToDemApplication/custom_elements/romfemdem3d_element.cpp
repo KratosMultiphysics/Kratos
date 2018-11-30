@@ -291,15 +291,20 @@ void RomFemDem3DElement::CalculateLocalSystem(
 			this->CalculateAverageStressOnEdge(AverageStressVectorConcrete, EdgeNeighbours);
 			this->CalculateAverageStrainOnEdge(AverageStrainVectorConcrete, EdgeNeighbours);
 
-			double DamageEdge = 0.0;
-			double Lchar = this->Get_l_char(edge);
+			double damage_edge = 0.0, uniaxial_stress;
+			const double Lchar = this->Get_l_char(edge);
 
 			// Integrate the stress on edge DAMAGE
-			this->IntegrateStressDamageMechanics(IntegratedStressVectorOnEdge, DamageEdge,
-												 AverageStrainVectorConcrete, AverageStressVectorConcrete, edge, Lchar);
-
-			this->SetNonConvergedDamages(DamageEdge, edge);
-			DamagesOnEdges[edge] = DamageEdge;
+			this->IntegrateStressDamageMechanics(IntegratedStressVectorOnEdge, 
+												 damage_edge,
+												 AverageStrainVectorConcrete, 
+												 AverageStressVectorConcrete, 
+												 edge, 
+												 Lchar, 
+												 uniaxial_stress);
+			this->SetNonConvergedDamages(damage_edge, edge);
+			this->SetNonConvergedEquivalentStress(uniaxial_stress, edge);
+			DamagesOnEdges[edge] = damage_edge;
 
 		} // End loop over edges
 

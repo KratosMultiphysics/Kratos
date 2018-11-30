@@ -143,11 +143,12 @@ namespace Kratos
 			this->CalculateAverageStrainOnEdge(average_strain_edge, edge);
 			this->CalculateCharacteristicLength(characteristic_length, edge);
 			Vector integrated_edge_stress;
+			double uniaxial_stress;
 
 			this->IntegrateStressDamageMechanics(
 				integrated_edge_stress, damages_edges(edge),
 				average_strain_edge, average_stress_edge, edge,
-				characteristic_length);
+				characteristic_length, uniaxial_stress);
 
 			this->SetNonConvergedDamages(damages_edges(edge), edge);
 		}

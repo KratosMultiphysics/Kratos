@@ -21,6 +21,7 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 {
 
   public:
+  	static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 	/// Default constructors
 	FemDem3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -45,7 +46,6 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 
 	// *************** Methods Alejandro Cornejo ***************
 	//**********************************************************
-	static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
 	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo);
 	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo);
@@ -87,15 +87,18 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void Get2MinValues(Vector &MaxValues, double a, double b, double c);
 
 	void IntegrateStressDamageMechanics(Vector &rIntegratedStress,
-										double &rDamage, const Vector &StrainVector, const Vector &StressVector, int cont, double L_char);
+										double &rDamage, 
+										const Vector &StrainVector, 
+										const Vector &StressVector, 
+										int cont, 
+										double L_char,
+										double& rUniaxialStress);
 
-	void ModifiedMohrCoulombCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void RankineCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void DruckerPragerCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void SimoJuCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StrainVector, const Vector &StressVector, int cont, double L_char);
-	void RankineFragileLaw(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
-
-	void TangentModifiedMohrCoulombCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
+	void ModifiedMohrCoulombCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
+	void RankineCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
+	void DruckerPragerCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
+	void SimoJuCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StrainVector, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
+	void RankineFragileLaw(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
 
 	// Stress Invariants in 3D
 	double CalculateI1Invariant(Vector StressVector);
@@ -152,9 +155,7 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	{
 		this->SetNonConvergedDamages(0.0);
 		this->SetNonConvergedEquivalentStress(0.0);
-
-		for (int cont = 0; cont < 6; cont++)
-		{
+		for (int cont = 0; cont < 6; cont++) {
 			this->SetNonConvergedDamages(0, cont);
 			this->SetNonConvergedEquivalentStress(0, cont);
 		}

@@ -205,13 +205,19 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 			this->CalculateAverageStressOnEdge(AverageStressVector, EdgeNeighbours);
 			this->CalculateAverageStrainOnEdge(AverageStrainVector, EdgeNeighbours);
 
-			double DamageEdge;
+			double damage_edge, uniaxial_stress;
 			const double Lchar = this->Get_l_char(edge);
-			this->IntegrateStressDamageMechanics(IntegratedStressVectorOnEdge, DamageEdge,
-												 AverageStrainVector, AverageStressVector, edge, Lchar);
+			this->IntegrateStressDamageMechanics(IntegratedStressVectorOnEdge, 
+												 damage_edge,
+												 AverageStrainVector, 
+				                                 AverageStressVector, 
+												 edge, 
+												 Lchar, 
+				                                 uniaxial_stress);
 
-			this->SetNonConvergedDamages(DamageEdge, edge);
-			DamagesOnEdges[edge] = DamageEdge;
+			this->SetNonConvergedDamages(damage_edge, edge);
+			this->SetNonConvergedEquivalentStress(uniaxial_stress, edge);
+			DamagesOnEdges[edge] = damage_edge;
 		} // End loop over edges
 
         double damage_element = this->CalculateElementalDamage(DamagesOnEdges);
