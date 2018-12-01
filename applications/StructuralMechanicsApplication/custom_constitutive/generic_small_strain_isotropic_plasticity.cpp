@@ -324,7 +324,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     mPlasticDissipation = plastic_dissipation;
     mPlasticStrain = plastic_strain;
     mThreshold = threshold;
-    mUniaxialStress = uniaxial_stress;
 }
 
 /***********************************************************************************/
@@ -333,9 +332,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
 template <class TConstLawIntegratorType>
 bool GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        return true;
-    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+    if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
     } else {
         return BaseType::Has(rThisVariable);
@@ -377,9 +374,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::SetValue(
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        mUniaxialStress = rValue;
-    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+    if (rThisVariable == PLASTIC_DISSIPATION) {
         mPlasticDissipation = rValue;
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
@@ -412,9 +407,7 @@ double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::GetValue
     double& rValue
     )
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        rValue = mUniaxialStress;
-    } else if (rThisVariable == PLASTIC_DISSIPATION) {
+    if (rThisVariable == PLASTIC_DISSIPATION) {
         rValue = mPlasticDissipation;
     } else {
         BaseType::GetValue(rThisVariable, rValue);
@@ -469,13 +462,51 @@ double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
     double& rValue
     )
 {
-    if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+    if (rThisVariable == UNIAXIAL_STRESS) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
         // Calculate the stress vector
-        Vector stress_vector;
-        this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, stress_vector);
+        CalculateMaterialResponseCauchy(rParameterValues);
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+
+        BoundedArrayType aux_stress_vector = r_stress_vector;
+        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress( aux_stress_vector, r_strain_vector, rValue, rParameterValues);
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+    } else if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // Calculate the stress vector
+        CalculateMaterialResponseCauchy(rParameterValues);
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
 
         // Compute the equivalent plastic strain
-        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(stress_vector, mUniaxialStress, mPlasticStrain, 0.0, rParameterValues, rValue);
+        double uniaxial_stress;
+        this->CalculateValue(rParameterValues, UNIAXIAL_STRESS, uniaxial_stress);
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, uniaxial_stress, mPlasticStrain, 0.0, rParameterValues, rValue);
         return rValue;
     } else {
         return this->GetValue(rThisVariable, rValue);
