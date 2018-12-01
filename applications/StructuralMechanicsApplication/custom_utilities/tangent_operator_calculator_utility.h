@@ -398,8 +398,12 @@ public:
         const std::size_t ComponentJ
         )
     {
-        noalias(rPerturbedDeformationGradient) = rDeformationGradientGP;
-        rPerturbedDeformationGradient(ComponentI, ComponentJ) += Perturbation;
+        Matrix aux_perturbation_matrix = IdentityMatrix(rDeformationGradientGP.size1());
+        if (ComponentI == ComponentJ)
+            aux_perturbation_matrix(ComponentI, ComponentJ) += Perturbation;
+        else
+            aux_perturbation_matrix(ComponentI, ComponentJ) += 0.5 * Perturbation;
+        noalias(rPerturbedDeformationGradient) = prod(aux_perturbation_matrix, rDeformationGradientGP);
     }
 
     /**
