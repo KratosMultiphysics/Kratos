@@ -399,10 +399,12 @@ public:
         )
     {
         Matrix aux_perturbation_matrix = IdentityMatrix(rDeformationGradientGP.size1());
-        if (ComponentI == ComponentJ)
+        if (ComponentI == ComponentJ) {
             aux_perturbation_matrix(ComponentI, ComponentJ) += Perturbation;
-        else
+        } else {
             aux_perturbation_matrix(ComponentI, ComponentJ) += 0.5 * Perturbation;
+            aux_perturbation_matrix(ComponentJ, ComponentI) += 0.5 * Perturbation;
+        }
         noalias(rPerturbedDeformationGradient) = prod(aux_perturbation_matrix, rDeformationGradientGP);
     }
 
