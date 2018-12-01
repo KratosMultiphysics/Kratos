@@ -16,7 +16,6 @@ Import_StringDynamicsApplication = False
 Import_ConvectionDiffusionApplication = False
 Import_MeshMovingApplication = False
 Import_IncompressibleFluidApplication = False
-Import_StructuralApplication = False
 Import_StructuralMechanicsApplication = False
 Import_FSIApplication = False
 Import_ConstitutiveLawsApplication = False
@@ -65,7 +64,6 @@ print("Import_ConvectionDiffusionApplication: False")
 print("Import_MeshingApplication: False")
 print("Import_MeshMovingApplication: False")
 print("Import_IncompressibleFluidApplication: False")
-print("Import_StructuralApplication: False")
 print("Import_StructuralMechanicsApplication: False")
 print("Import_FSIApplication: False")
 print("Import_ConstitutiveLawsApplication: False")
@@ -116,7 +114,6 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_MeshingApplication: " + str(Import_MeshingApplication))
     print("Import_MeshMovingApplication: " + str(Import_MeshMovingApplication))
     print("Import_IncompressibleFluidApplication: " + str(Import_IncompressibleFluidApplication))
-    print("Import_StructuralApplication: " + str(Import_StructuralApplication))
     print("Import_StructuralMechanicsApplication: " + str(Import_StructuralMechanicsApplication))
     print("Import_FSIApplication: " + str(Import_FSIApplication))
     print("Import_ConstitutiveLawsApplication: " + str(Import_ConstitutiveLawsApplication))
@@ -284,15 +281,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         print("KratosIncompressibleFluidApplication application created")
         kernel.ImportApplication(incompressible_fluid_application)
         print("KratosIncompressibleFluidApplication Succesfully imported")
-
-    if(Import_StructuralApplication):
-        print("importing KratosStructuralApplication ...")
-        sys.path.append(applications_path + '/structural_application/python_scripts')
-        sys.path.append(applications_path + '/structural_application/Linux')
-        from KratosStructuralApplication import *
-        structural_application = KratosStructuralApplication()
-        kernel.ImportApplication(structural_application)
-        print("KratosStructuralApplication Succesfully imported")
 
     if(Import_StructuralMechanicsApplication):
         print("importing StructuralMehcanicsApplication ...")
@@ -559,8 +547,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(mesh_moving_app)
     if(Import_IncompressibleFluidApplication):
         kernel.InitializeApplication(incompressible_fluid_application)
-    if(Import_StructuralApplication):
-        kernel.InitializeApplication(structural_application)
     if(Import_StructuralMechanicsApplication):
         kernel.InitializeApplication(structural_mechanics_application)
     if(Import_ConvectionDiffusionApplication):
