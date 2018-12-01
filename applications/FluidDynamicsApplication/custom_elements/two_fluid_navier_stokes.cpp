@@ -205,6 +205,8 @@ int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcess
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
+    KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
+
     return 0;
 
     KRATOS_CATCH("");
@@ -1950,8 +1952,6 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
 {
     if (rVariable == DIVERGENCE){
 
-        KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
-
         GeometryType::Pointer p_geom = this->pGetGeometry();
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
         const unsigned int NumGauss = IntegrationPoints.size();
@@ -1978,8 +1978,6 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
             }
             rValues[i_gauss] = DVi_DXi;
         }
-    } else {
-        KRATOS_DEBUG_ERROR << "Variable could not be retrieved from NavierStokesTwoFluid element" << std::endl;
     }
 }
 
