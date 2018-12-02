@@ -68,17 +68,16 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
         CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
 
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
-        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
+    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
         Vector& r_stress_vector = rValues.GetStressVector();
-        if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-            CalculateElasticMatrix( r_constitutive_matrix, rValues);
-            noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
-        } else {
-            CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
-        }
+        CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
+    
+    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        CalculateElasticMatrix( r_constitutive_matrix, rValues);
+    }
+    
     KRATOS_CATCH("");
 }
 
