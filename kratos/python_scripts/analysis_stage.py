@@ -38,9 +38,9 @@ class AnalysisStage(object):
         else:
             self.is_printing_rank = True
 
+        self._GetSolver().AddVariables() # this creates the solver and adds it's variables
         list_additional_vars = self.__GetListOfAdditionalHistoricalVariables()
-        self._GetSolver().AddVariables() # this creates the solver and adds the variables
-        self._GetSolver().AddAdditionalVariables(list_additional_vars) # this creates the solver and adds the variables
+        self._GetSolver().AddAdditionalVariables(list_additional_vars)
 
     def Run(self):
         """This function executes the entire AnalysisStage

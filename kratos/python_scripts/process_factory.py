@@ -20,6 +20,7 @@ class KratosProcessFactory(object):
             else: # Otherwise an error is thrown
                 Logger.PrintWarning("Your list of processes: ", process_list)
                 raise NameError("python_module must be defined in your parameters. Check all your processes")
+
         return constructed_processes
 
     def GetListOfRequiredHistoricalVariables( self, process_list):
@@ -32,10 +33,10 @@ class KratosProcessFactory(object):
             # The python_module is the actual scrpt that must be launch
             if(item.Has("python_module")):
                 python_module = __import__(item["python_module"].GetString())
+                # not all processes define/need this method, therefore
+                # an explicit check is necessary
                 if hasattr(python_module, "GetHistoricalVariables"):
                     required_variables.extend(python_module.GetHistoricalVariables(item["Parameters"]))
-                else:
-                    print("DOES NOT HAVE IT!!!!")
 
         return required_variables
 

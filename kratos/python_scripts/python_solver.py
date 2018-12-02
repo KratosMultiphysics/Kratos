@@ -40,6 +40,10 @@ class PythonSolver(object):
         pass
 
     def AddAdditionalVariables(self, list_additional_variables):
+        """This function adds additional historical variables to the ModelPart
+        Those can e.g. be needed by processes or utilities.
+        It has to be called BEFORE the ModelPart is read!
+        """
         pass
 
     def AddDofs(self):
