@@ -38,19 +38,18 @@ void ComputeNodalGradientProcess<TVarType, THist>::Execute()
     const auto& r_first_element_geometry = it_element_begin->GetGeometry();
     const std::size_t dimension = r_first_element_geometry.WorkingSpaceDimension();
     const std::size_t local_space_dimension = r_first_element_geometry.LocalSpaceDimension();
-    const std::size_t number_of_nodes = r_first_element_geometry.size();
+    const std::size_t number_of_nodes = r_first_element_geometry.PointsNumber();
     
     // The integration points
     const auto& integration_method = r_first_element_geometry.GetDefaultIntegrationMethod();
     const auto& integration_points = r_first_element_geometry.IntegrationPoints(integration_method);
     const std::size_t number_of_integration_points = integration_points.size();
     
-    Matrix DN_DX(number_of_nodes, dimension);
-    Vector N(number_of_nodes);
-    Matrix Ncontainer(number_of_integration_points, number_of_nodes);
-    Matrix J0(dimension, local_space_dimension);
-
-    #pragma omp parallel for private(DN_DX,  N, Ncontainer, J0)
+    Matrix DN_DX = ZeroMatrix(number_of_nodes, dimension);
+    Vector N = ZeroVector(number_of_nodes);
+    Matrix J0 = ZeroMatrix(dimension, local_space_dimension);
+    
+    #pragma omp parallel for firstprivate(DN_DX,  N, J0)
     for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i) {
         auto it_elem = it_element_begin + i;
         auto& r_geometry = it_elem->GetGeometry();
@@ -60,13 +59,12 @@ void ComputeNodalGradientProcess<TVarType, THist>::Execute()
             values[i] = r_geometry[i].FastGetSolutionStepValue(mrOriginVariable);
         
         // The containers of the shape functions and the local gradients
-        noalias(Ncontainer) = r_geometry.ShapeFunctionsValues(integration_method);
+        const auto& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
         const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(integration_method);
         
         for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
-        
             // Getting the shape functions
-            noalias(N) = row(Ncontainer,point_number);
+            noalias(N) = row(rNcontainer, point_number);
             
             // Getting the jacobians and local gradients
             GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);

@@ -59,7 +59,6 @@ namespace Kratos
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             
@@ -74,6 +73,10 @@ namespace Kratos
             NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
             NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
             NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+            
+            // Initialize nodal area
+            for (auto& node : this_model_part.Nodes())
+                node.SetValue(NODAL_AREA, 0.0);
             
             // Now we create the "conditions"
             std::vector<NodeType::Pointer> element_nodes_0 (3);
@@ -139,7 +142,6 @@ namespace Kratos
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             
@@ -161,6 +163,10 @@ namespace Kratos
             NodeType::Pointer p_node_10 = this_model_part.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
             NodeType::Pointer p_node_11 = this_model_part.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
             NodeType::Pointer p_node_12 = this_model_part.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
+            
+            // Initialize nodal area
+            for (auto& node : this_model_part.Nodes())
+                node.SetValue(NODAL_AREA, 0.0);
             
             // Now we create the "conditions"
             std::vector<NodeType::Pointer> element_nodes_0 (4);
