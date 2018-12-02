@@ -309,11 +309,6 @@ public:
        mpLinearSystemSolver = pLinearSystemSolver;
     }
 
-    void SetLinearSystemSolver(typename TLinearSolver::Pointer pLinearSystemSolver)
-    {
-       mpLinearSystemSolver = pLinearSystemSolver;
-    }
-
     /**
      * @brief Function to perform the building of the LHS, depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number unrestrained dofs
      * @param pScheme The pointer to the integration scheme
