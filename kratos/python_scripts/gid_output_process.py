@@ -8,10 +8,6 @@ def GetHistoricalVariables(settings):
     nodal_results = settings["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
     for i in range(nodal_results.size()):
         required_vars.append(KratosGlobals.GetVariable(nodal_results[i].GetString()))
-    print(nodal_results.PrettyPrintJsonString())
-    print(required_vars)
-    for var in required_vars:
-        print("\t", var)
     return required_vars
 
 def Factory(settings, Model):
