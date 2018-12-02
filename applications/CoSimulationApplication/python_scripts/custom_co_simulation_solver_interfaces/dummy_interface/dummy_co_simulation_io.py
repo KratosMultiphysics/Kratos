@@ -1,17 +1,17 @@
 # co simulation imports
-from co_simulation_base_io import CoSimulationBaseIO
+from base_co_simulation_classes.co_simulation_base_io import CoSimulationBaseIO
 import co_simulation_tools as tools
 
 
-def Create(settings):
-    return DummyCoSimulationIO(settings)
+def Create(model, custom_settings):
+    return DummyCoSimulationIO(model, custom_settings)
 
 
 class DummyCoSimulationIO(CoSimulationBaseIO):
     ## The constructor
     #
     #  @param self            The object pointer.
-    def __init__(self, settings):
+    def __init__(self, model, settings):
         self.echo_level = 0
         self.settings = settings
 

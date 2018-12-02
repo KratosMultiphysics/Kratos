@@ -8,7 +8,7 @@ eg : "name_in_JSON" : "python module(file) name"
 available_solver_interfaces = {
     "kratos_structural"    : "kratos_interfaces.kratos_structural_co_simulation_solver",
     "kratos_fluid"         : "kratos_interfaces.kratos_fluid_co_simulation_solver",
-    "dummy"                : "dummy_co_simulation_solver"
+    "dummy_solver"         : "dummy_interface.dummy_co_simulation_solver"
     }
 
 def CreateSolverInterface(solver_name, settings):

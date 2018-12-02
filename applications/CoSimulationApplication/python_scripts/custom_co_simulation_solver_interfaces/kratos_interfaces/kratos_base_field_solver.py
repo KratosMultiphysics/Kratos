@@ -32,6 +32,7 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
         self._GetAnalysisStage().Initialize()
         self.InitializeIO()
 
+
     def Finalize(self):
         self._GetAnalysisStage().Finalize()
 

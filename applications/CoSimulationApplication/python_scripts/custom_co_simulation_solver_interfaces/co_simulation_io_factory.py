@@ -8,7 +8,7 @@ eg : "name_in_JSON" : "python module(file) name"
 available_ios = {
     "kratos" : "kratos_interfaces.kratos_io",
     "sdof"   : "su2_io",
-    "dummy"  : "dummy_co_simulation_io"
+    "dummy"  : "dummy_interface.dummy_co_simulation_io"
 }
 
 def CreateIO(model, io_type, settings):

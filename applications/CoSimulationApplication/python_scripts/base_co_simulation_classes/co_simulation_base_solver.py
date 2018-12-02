@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division
 import custom_co_simulation_solver_interfaces.co_simulation_io_factory as io_factory
 import co_simulation_tools as tools
 cs_data_structure = tools.cs_data_structure
+import collections
 
 ##
 #  IMPORTANT : This is a BASE CLASS
@@ -31,7 +32,7 @@ class CoSimulationBaseSolver(object):
         self.cosim_solver_settings = cosim_solver_settings
         self.cosim_solver_settings.ValidateAndAssignDefaults(default_setting)
         self.SetEchoLevel( self.cosim_solver_settings["echo_level"].IsInt() )
-        self.data_list = self._GetDataList()
+        self.data_list = self._GetDataMap()
         self.geo_names = self._GetGeoNames()
         self.model = cs_data_structure.Model() ## Where all the co-simulation meshes are stored.
         # This is the map of all the geometries that a solver can have
@@ -205,18 +206,18 @@ class CoSimulationBaseSolver(object):
     def _GetIOType(self):
         raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling _GetIOName function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
 
-    ## _GetDataList : Private Function to obtain the list of data objects
+    ## _GetDataMap : Private Function to obtain the map of data objects
     #
     #  @param self            The object pointer.
-    def _GetDataList(self):
-        data_list = {}
+    def _GetDataMap(self):
+        data_map = collections.OrderedDict()
         num_data = self.cosim_solver_settings["data"].size()
         for i in range(num_data):
             data_conf = self.cosim_solver_settings["data"][i]
             data_conf = self._MakeDataConfig(data_conf)
-            data_list[data_conf["name"].GetString()] = data_conf
+            data_map[data_conf["name"].GetString()] = data_conf
 
-        return data_list
+        return data_map
 
     def _MakeDataConfig(self,custom_config):
         default_config = cs_data_structure.Parameters("""
