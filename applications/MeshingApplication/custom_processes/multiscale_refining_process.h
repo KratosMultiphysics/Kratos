@@ -81,7 +81,7 @@ namespace Kratos {
  *     FATHER_CONDITION         : the pointer to the coarse condition
  * @author Miguel Maso Sotomayor
  */
-class MultiscaleRefiningProcess : public Process
+class KRATOS_API(MESHING_APPLICATION) MultiscaleRefiningProcess : public Process
 {
 public:
 
@@ -153,6 +153,11 @@ public:
     ///@{
 
     void Execute() override {}
+
+    /**
+     * @brief Perform a check with the parameters
+     */
+    int Check() override;
 
     /**
      * ExecuteRefinement transfers the entities TO_REFINE from the
@@ -349,11 +354,6 @@ public:
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-     * @brief Perform a check with the parameters
-     */
-    void Check();
 
     /**
      * @brief

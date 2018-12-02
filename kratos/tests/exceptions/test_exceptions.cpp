@@ -28,7 +28,7 @@ namespace Kratos
          * Checks if CPP works as exception
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(CPPExceptionTest, KratosCoreExceptionsFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(CPPExceptionTest, KratosCoreFastSuite)
         {
             try {
                 throw 1;
@@ -43,7 +43,7 @@ namespace Kratos
          * Checks if KRATOS_ERROR works as exception
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERRORTest, KratosCoreExceptionsFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERRORTest, KratosCoreFastSuite)
         {
             try { 
                 KRATOS_ERROR << std::endl;
@@ -58,7 +58,7 @@ namespace Kratos
          * Checks if KRATOS_ERROR_IF works as exception
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERROR_IFTest, KratosCoreExceptionsFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERROR_IFTest, KratosCoreFastSuite)
         {
             try { 
                 KRATOS_ERROR_IF(true) << std::endl;
@@ -73,7 +73,7 @@ namespace Kratos
          * Checks if KRATOS_ERROR_IF_NOT works as exception
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERROR_IF_NOTTest, KratosCoreExceptionsFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(KRATOS_ERROR_IF_NOTTest, KratosCoreFastSuite)
         {
             try { 
                 KRATOS_ERROR_IF_NOT(false) << std::endl;

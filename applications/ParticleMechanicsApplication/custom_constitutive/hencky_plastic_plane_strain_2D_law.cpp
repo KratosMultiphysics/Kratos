@@ -117,12 +117,12 @@ Matrix HenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToAppropiateDi
 {
     if(rConstitutiveMatrix.size1() == 6)
     {
-        rConstitutiveMatrix = ZeroMatrix(6,6);
+        rConstitutiveMatrix = ZeroMatrix(6);
         rConstitutiveMatrix = rElastoPlasticTangentMatrix;
     }
     else
     {
-        rConstitutiveMatrix = ZeroMatrix(3,3);
+        rConstitutiveMatrix = ZeroMatrix(3);
 
         rConstitutiveMatrix(0, 0) = rElastoPlasticTangentMatrix(0, 0);
         rConstitutiveMatrix(0, 1) = rElastoPlasticTangentMatrix(0, 1);
@@ -145,18 +145,18 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
         MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
         Vector& rMainStrain)
 {
-    Matrix Auxiliar = ZeroMatrix(3,3);
+    Matrix Auxiliar = ZeroMatrix(3);
     Auxiliar(0,0) = rCauchyGreenMatrix(0,0);
     Auxiliar(1,1) = rCauchyGreenMatrix(1,1);
     Auxiliar(0,1) = rCauchyGreenMatrix(0,1);
     Auxiliar(1,0) = rCauchyGreenMatrix(1,0);
     Auxiliar(2,2) = 1.0;
-    Matrix AuxEigenVectors = ZeroMatrix(3,3);
+    Matrix AuxEigenVectors = ZeroMatrix(3);
     Vector AuxEigenValues  = ZeroVector(3);
     ParticleMechanicsMathUtilities<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
 
 
-    Matrix EigenVectors = ZeroMatrix(3,3);
+    Matrix EigenVectors = ZeroMatrix(3);
     EigenVectors(0,0) = AuxEigenVectors(0,0);
     EigenVectors(1,0) = AuxEigenVectors(1,0);
     EigenVectors(1,1) = AuxEigenVectors(1,1);

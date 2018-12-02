@@ -26,8 +26,7 @@ namespace Kratos
         /**
         * Checks the correct work of the Has methods
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestHasMethods, KratosConstitutiveLawFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawHasMethods, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
@@ -42,8 +41,7 @@ namespace Kratos
         /**
         * Checks the correct work of the GetStrainMeasure method
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestGetStrainMeasureMethod, KratosConstitutiveLawFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawGetStrainMeasureMethod, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
@@ -53,8 +51,7 @@ namespace Kratos
         /**
         * Checks the correct work of the ValidateInput method
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestValidateInputMethod, KratosConstitutiveLawFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawValidateInputMethod, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
             Properties prop = Properties();
@@ -65,8 +62,7 @@ namespace Kratos
         /**
         * Checks the correct work of the IsIncremental method
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestIsIncrementalMethod, KratosConstitutiveLawFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIsIncrementalMethod, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 
@@ -76,8 +72,7 @@ namespace Kratos
         /**
         * Checks the correct work of the GetStressMeasure method
         */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestGetStressMeasureMethod, KratosConstitutiveLawFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawGetStressMeasureMethod, KratosCoreFastSuite)
         {
             ConstitutiveLaw this_cl = ConstitutiveLaw();
 

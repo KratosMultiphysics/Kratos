@@ -191,8 +191,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         (self.solver).Initialize()
 
-        self.solver.Check()
-
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Solver initialization finished.")
 
     def SolveSolutionStep(self):

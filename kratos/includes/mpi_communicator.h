@@ -32,6 +32,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/stream_serializer.h"
 #include "includes/model_part.h"
 #include "mpi.h"
 
@@ -715,7 +716,7 @@ public:
      **/
     bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects) override
     {
-        Kratos::Serializer particleSerializer;
+        Kratos::StreamSerializer particleSerializer;
         AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
@@ -727,7 +728,7 @@ public:
     **/
     bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects) override
     {
-        Kratos::Serializer particleSerializer;
+        Kratos::StreamSerializer particleSerializer;
         AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
@@ -739,7 +740,7 @@ public:
     **/
     bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects) override
     {
-        Kratos::Serializer particleSerializer;
+        Kratos::StreamSerializer particleSerializer;
         AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
@@ -1657,7 +1658,7 @@ private:
         {
             if(mpi_rank != i)
             {
-                Kratos::Serializer particleSerializer;
+                Kratos::StreamSerializer particleSerializer;
 
                 particleSerializer.save("VariableList",mpVariables_list);
                 particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
@@ -1714,7 +1715,7 @@ private:
         {
             if (i != mpi_rank && msgRecvSize[i])
             {
-                Kratos::Serializer particleSerializer;
+                Kratos::StreamSerializer particleSerializer;
                 std::stringstream * serializer_buffer;
 
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();

@@ -37,11 +37,7 @@
             "input_filename" : "cooks_membrane_tests/cook_membrane_2D_test_Grid"
         },
         "particle_per_element"               : 3,
-        "pressure_dofs"                      : true,
-        "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
-        }
+        "pressure_dofs"                      : true
     },
     "processes"        : {
         "constraints_process_list" : [{

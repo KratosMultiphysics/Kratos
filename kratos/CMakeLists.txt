@@ -25,7 +25,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/process_info.cpp;
-    # ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
@@ -34,6 +33,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_preconditioner_factory.cpp;
     #${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/containers/data_value_container.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/fast_transfer_between_model_parts_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_worst_element_smoothing_process.cpp;
@@ -59,6 +59,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/embedded_skin_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/brute_force_point_locator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
@@ -66,6 +67,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/assign_unique_model_part_collection_tag_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/read_materials_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_redistribution_utility.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/auxiliar_model_part_utilities.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
@@ -185,6 +187,18 @@ endif(USE_COTIRE MATCHES ON)
 install(TARGETS Kratos DESTINATION libs )
 install(TARGETS KratosCore DESTINATION libs)
 
+# Kratos Testing. Install everything except sources
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION kratos
+    PATTERN "*.git" EXCLUDE
+    PATTERN "*.c" EXCLUDE
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.hpp" EXCLUDE
+    )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install python scripts
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)

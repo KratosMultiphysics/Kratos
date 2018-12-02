@@ -130,8 +130,8 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(ParticleMathUtilsQRFactorizationCalculation, KratosParticleMechanicsFastSuite)
     {
         // Initialize vectors and matrices
-        Matrix Q = ZeroMatrix(3,3);
-        Matrix R = ZeroMatrix(3,3);
+        Matrix Q = ZeroMatrix(3);
+        Matrix R = ZeroMatrix(3);
 
         // QR Factorization
         Matrix A = CreateSymmetricTest3Matrix3x3();
@@ -174,7 +174,7 @@ namespace Testing
         // Initialize vectors and matrices
         Vector eigen_values_2  = ZeroVector(2);
         Vector eigen_values_3  = ZeroVector(3);
-        Matrix eigen_vectors_3 = ZeroMatrix(3,3);
+        Matrix eigen_vectors_3 = ZeroMatrix(3);
 
         // 1. Compute EigenValues
         Matrix A = CreateTestMatrix3x3();

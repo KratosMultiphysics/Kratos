@@ -106,11 +106,12 @@ public:
         mPlasticDissipation(rOther.mPlasticDissipation),
         mThreshold(rOther.mThreshold),
         mPlasticStrain(rOther.mPlasticStrain),
-        mPreviousStressVector(rOther.mPreviousStressVector),
-        mBackStressVector(rOther.mBackStressVector),
         mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation),
         mNonConvThreshold(rOther.mNonConvThreshold),
         mNonConvPlasticStrain(rOther.mNonConvPlasticStrain),
+        mUniaxialStress(rOther.mUniaxialStress),
+        mPreviousStressVector(rOther.mPreviousStressVector),
+        mBackStressVector(rOther.mBackStressVector),
         mNonConvergedBackStressVector(rOther.mNonConvergedBackStressVector),
         mNonConvergedPreviousStressVector(rOther.mNonConvergedPreviousStressVector)
     {

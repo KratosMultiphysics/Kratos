@@ -47,9 +47,43 @@ namespace Kratos
 
 namespace Python
 {
+    typedef Geometry<Node<3> > GeometryType;
+    typedef GeometryType::PointsArrayType NodesArrayType;
+    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
-    const PointerVector< Node<3> >& ConstGetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
-    PointerVector< Node<3> >& GetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
+    const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
+    PointerVector< Node<3> >& GetPoints( GeometryType& geom ) { return geom.Points(); }
+
+    array_1d<double,3> GetNormal(
+        GeometryType& dummy,
+        CoordinatesArrayType& LocalCoords
+        )
+    {
+        return( dummy.AreaNormal(LocalCoords) );
+    }
+
+    array_1d<double,3> FastGetNormal(GeometryType& dummy)
+    {
+        CoordinatesArrayType LocalCoords;
+        LocalCoords.clear();
+        return( dummy.AreaNormal(LocalCoords) );
+    }
+
+    array_1d<double,3> GetUnitNormal(
+        GeometryType& dummy,
+        CoordinatesArrayType& LocalCoords
+        )
+    {
+        return( dummy.UnitNormal(LocalCoords) );
+    }
+
+    array_1d<double,3> FastGetUnitNormal(GeometryType& dummy)
+    {
+        CoordinatesArrayType LocalCoords;
+        LocalCoords.clear();
+        return( dummy.UnitNormal(LocalCoords) );
+    }
 
 void  AddGeometriesToPython(pybind11::module& m)
 {
@@ -62,10 +96,14 @@ void  AddGeometriesToPython(pybind11::module& m)
     py::class_<GeometryType, GeometryType::Pointer >(m,"Geometry")
     .def(py::init<>())
     .def(py::init< GeometryType::PointsArrayType& >())
+    .def("WorkingSpaceDimension",&GeometryType::WorkingSpaceDimension)
+    .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
-    .def("AreaNormal",&GeometryType::AreaNormal)
-    .def("UnitNormal",&GeometryType::UnitNormal)
+    .def("AreaNormal",GetNormal)
+    .def("AreaNormal",FastGetNormal)
+    .def("UnitNormal",GetUnitNormal)
+    .def("UnitNormal",FastGetUnitNormal)
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)

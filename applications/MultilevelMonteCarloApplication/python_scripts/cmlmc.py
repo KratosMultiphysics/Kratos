@@ -14,8 +14,9 @@ References:
 function that gives as output a list containing the mesh discretization parameter
 we consider the number of elements of a uniform grid on the same domain to be this parameter
 refinement strategy:
-uniform mesh on level "lev" with h_lev=(1/N0)*2^(-lev)
-i.e. level = 0, h_{lev=0} = 0.25
+uniform mesh on level "lev" with h_lev=h_0*M^(-lev)
+here M = 2
+i.e.    level = 0, h_{lev=0} = 0.25
         level = 1, h_{lev=1} = 0.2/2 = 0.125
         level = 2, h_{lev=2} = 0.2/4 = 0.0625
         ...
@@ -26,11 +27,11 @@ def Nf_law(lev):
     M  = 2.
     NFF = (N0*np.power(M,lev))
     Nf2 = 2*NFF**2
-    # Nobile wrote the following:
-    # N0 = 5.
-    # M  = 2.
-    # NFF = (N0*np.power(M,lev))
-    # Nf2 = NFF**2
+    '''in [PNL17] it is exploited the following:
+    N0 = 5.
+    M  = 2.
+    NFF = (N0*np.power(M,lev))
+    Nf2 = NFF**2'''
     '''
     NFF is the number of elements on a boundary line
     Nf2 is the number of triangular elements in the square domain (approximately, if mesh non uniform)
@@ -44,7 +45,7 @@ M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
 M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
 s_n^2 = M_{2,n} / (n-1)
 '''
-def update_onepass_M(sample, old_mean, old_M2, nsam):
+def update_onepass_M_VAR(sample, old_mean, old_M2, nsam):
     delta = np.subtract(sample, old_mean)
     if nsam == 1:
         new_mean = sample
@@ -119,15 +120,18 @@ def compute_tolerance_i(settings_ML,iE,iter_def):
     r1 = settings_ML[2]
     r2 = settings_ML[3]
     tolF = settings_ML[5]
-    if iter_def <= iE:
+    if iter_def < iE:
         tol = (r1**(iE-iter_def) * r2**(-1))*tolF
-    else:
+    elif iter_def > iE:
         tol = (r2**(iE-iter_def) * r2**(-1))*tolF
+    else:
+        tol = tolF
     return tol
 
 
 '''
 function computing the problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma] using least squares fit
+we consider level > 0 to compute calpha,alpha,cbeta,beta for robustness reasons
 see [PNL17] pp.7-8
 '''
 def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
@@ -136,14 +140,14 @@ def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
     '''##################### MEAN - alpha ########################################
     NUMPY: linear fit
     why not considered also M_{L=0}?'''
-    pa = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(bias_ratesLS[1::]),1) # in [PNL17] not used level = 0
+    pa = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(bias_ratesLS[1::]),1)
     alpha   = -pa[0]
     C1      = 2**pa[1]
 
     '''##################### VAR - beta ##########################################
     NUMPY: linear fit
     why not considered also M_{L=0}?'''
-    pb          = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(variance_ratesLS[1::]),1) # in [PNL17] not used level = 0
+    pb          = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(variance_ratesLS[1::]),1)
     beta        = -pb[0]
     C2          = 2**pb[1]
 
@@ -161,10 +165,10 @@ def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
 function computing the splitting parameter theta \in (0,1)
 see [PNL17] pp. 5-6,8-11
 '''
-def theta_model(ratesLS,toll,nDoF):
+def theta_model(ratesLS,tol,nDoF):
     Calpha = ratesLS[0]
     alpha = ratesLS[1]
-    theta_i = 1.0 - (Calpha * (nDoF)**(-alpha))/toll
+    theta_i = 1.0 - (Calpha * (nDoF)**(-alpha))/tol
     return theta_i
 
 
@@ -206,7 +210,7 @@ def compute_levels(tol,nsam,ratesLS,ndof_all,BayesianVariance,mean,variance,sett
             raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
 
         Wtot = coeff1 * coeff2
-        # print("print level and correspondent cost",lev,Wtot)
+        print("print level and correspondent cost",lev,Wtot)
         if Wtot < Wmin:
             Wmin = Wtot
             Lopt_local = lev
@@ -243,6 +247,7 @@ def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,se
     coeff3 = np.sum(np.sqrt(np.multiply(model_cost,BayesianVariance)))
        
     opt_number_samples = np.multiply(coeff1*coeff3,coeff2)
+    print("optimal number of samples computed = ",opt_number_samples)
     
     for i in range (0,len(opt_number_samples)):
         opt_number_samples[i] = np.ceil(opt_number_samples[i])

@@ -10,21 +10,9 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
-
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/kratos_components.h"

@@ -75,7 +75,7 @@ class MeshMovingAnalysis(AnalysisStage):
             processes_block_names = ["boundary_conditions_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", "Using the old way to create the processes, this will be removed!")
+                KratosMultiphysics.Logger.PrintWarning("MeshMovingAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:

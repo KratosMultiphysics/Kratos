@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -68,6 +68,44 @@ namespace Python
 {
 typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
+// Discontinuous distance computation auxiliar functions
+template<std::size_t TDim>
+void CalculateDiscontinuousEmbeddedVariableFromSkinDouble(
+    CalculateDiscontinuousDistanceToSkinProcess<TDim> &rDiscDistProcess,
+    const Variable<double> &rVariable,
+    const Variable<double> &rEmbeddedVariable)
+{
+    rDiscDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
+}
+
+template<std::size_t TDim>
+void CalculateDiscontinuousEmbeddedVariableFromSkinArray(
+    CalculateDiscontinuousDistanceToSkinProcess<TDim> &rDiscDistProcess,
+    const Variable<array_1d<double,3>> &rVariable,
+    const Variable<array_1d<double,3>> &rEmbeddedVariable)
+{
+    rDiscDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
+}
+
+// Continuous distance computation auxiliar functions
+template<std::size_t TDim>
+void CalculateEmbeddedVariableFromSkinDouble(
+    CalculateDistanceToSkinProcess<TDim> &rDistProcess,
+    const Variable<double> &rVariable,
+    const Variable<double> &rEmbeddedVariable)
+{
+    rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
+}
+
+template<std::size_t TDim>
+void CalculateEmbeddedVariableFromSkinArray(
+    CalculateDistanceToSkinProcess<TDim> &rDistProcess,
+    const Variable<array_1d<double,3>> &rVariable,
+    const Variable<array_1d<double,3>> &rEmbeddedVariable)
+{
+    rDistProcess.CalculateEmbeddedVariableFromSkin(rVariable, rEmbeddedVariable);
+}
+
 void  AddProcessesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -82,16 +120,17 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
+    .def("Check",&Process::Check)
     .def("__str__", PrintObject<Process>)
     ;
 
     // Find NODAL_H (Historical variables stored)
-    py::class_<FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>, FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalHProcess")
+    py::class_<FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>, FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalHProcess")
     .def(py::init<ModelPart&>())
     ;
 
     // Find NODAL_H (Non-historical variables stored)
-    py::class_<FindNodalHProcess<FindNodalH::SaveAsNonHistoricalVariable>, FindNodalHProcess<FindNodalH::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindNodalHNonHistoricalProcess")
+    py::class_<FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>, FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindNodalHNonHistoricalProcess")
     .def(py::init<ModelPart&>())
     ;
 
@@ -157,11 +196,18 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<const Geometry< Node<3> >&, ModelPart&, Parameters&>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
     ;
 
-    py::class_<TetrahedralMeshOrientationCheck, TetrahedralMeshOrientationCheck::Pointer, Process>(m,"TetrahedralMeshOrientationCheck")
+    auto orientation_check_interface = py::class_<TetrahedralMeshOrientationCheck, TetrahedralMeshOrientationCheck::Pointer, Process>(m,"TetrahedralMeshOrientationCheck")
             .def(py::init<ModelPart&, bool>())
+            .def(py::init<ModelPart&, bool, Kratos::Flags>())
     .def("SwapAll",&TetrahedralMeshOrientationCheck::SwapAll)
     .def("SwapNegativeElements",&TetrahedralMeshOrientationCheck::SwapNegativeElements)
     ;
+    orientation_check_interface.attr("ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS") = &TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS;
+    orientation_check_interface.attr("NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS") = &TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS;
+    orientation_check_interface.attr("COMPUTE_NODAL_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_NODAL_NORMALS;
+    orientation_check_interface.attr("NOT_COMPUTE_NODAL_NORMALS") = &TetrahedralMeshOrientationCheck::NOT_COMPUTE_NODAL_NORMALS;
+    orientation_check_interface.attr("COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::COMPUTE_CONDITION_NORMALS;
+    orientation_check_interface.attr("NOT_COMPUTE_CONDITION_NORMALS") = &TetrahedralMeshOrientationCheck::NOT_COMPUTE_CONDITION_NORMALS;
 
     py::class_<ComputeBDFCoefficientsProcess, ComputeBDFCoefficientsProcess::Pointer, Process>(m,"ComputeBDFCoefficientsProcess")
             .def(py::init<ModelPart&, const unsigned int>())
@@ -259,20 +305,28 @@ void  AddProcessesToPython(pybind11::module& m)
 
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
-            .def(py::init<ModelPart&, ModelPart&>())
-            ;
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<2>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
+        ;
 
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
-            .def(py::init<ModelPart&, ModelPart&>())
-            ;
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<3>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
+        ;
 
     // Continuous distance computation methods
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
-            .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
-            .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
+        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
 
     py::class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")

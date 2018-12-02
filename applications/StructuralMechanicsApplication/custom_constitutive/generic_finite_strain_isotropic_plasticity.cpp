@@ -538,6 +538,10 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
     )
 {
     if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        // Calculate the stress vector
+        Vector stress_vector;
+        this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, stress_vector);
+
         // The plastic deformation gradient
         const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
@@ -550,8 +554,8 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
         Vector plastic_strain;
         this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
 
-        const Vector& r_stress_vector = rParameterValues.GetStressVector();
-        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, mUniaxialStress, plastic_strain, 0.0, rParameterValues, rValue);
+        // Compute the equivalent plastic strain
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(stress_vector, mUniaxialStress, plastic_strain, 0.0, rParameterValues, rValue);
 
         // We revert the deformation gradient
         rParameterValues.SetDeterminantF(deformation_gradient_determinant_backup);

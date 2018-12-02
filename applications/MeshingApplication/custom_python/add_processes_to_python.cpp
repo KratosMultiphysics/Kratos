@@ -170,5 +170,3 @@ void  AddProcessesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-
-

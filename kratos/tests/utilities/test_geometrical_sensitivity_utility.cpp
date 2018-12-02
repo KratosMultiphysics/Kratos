@@ -5,9 +5,9 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 license: AdjointFluidApplication/license.txt
+//					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Michael Andre, https://github.com/msandre
+//  Main authors:    
 //
 
 // External includes

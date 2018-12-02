@@ -96,7 +96,7 @@ void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
         // Modify the nodal distance values to avoid bad intersections
         if (mContinuousDistance) {
             // Compute NODAL_H (used for computing the distance tolerance)
-            FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable> nodal_h_calculator(mrModelPart);
+            FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable> nodal_h_calculator(mrModelPart);
             nodal_h_calculator.Execute();
             // Modify the continuous distance field
             this->ModifyDistance();
