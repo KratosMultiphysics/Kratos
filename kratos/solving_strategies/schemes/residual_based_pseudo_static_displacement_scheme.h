@@ -89,7 +89,8 @@ public:
      * @param ThisParameters Parameters with the Rayleigh variable
      */
     explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
-      :DerivedBaseType(0.0)
+      :DerivedBaseType(0.0),
+       mRayleighBeta(NODAL_MAUX)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
@@ -353,7 +354,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const Variable<double> mRayleighBeta; /// The Rayleigh Beta variable
+    Variable<double> mRayleighBeta; /// The Rayleigh Beta variable
 
     ///@}
     ///@name Private Operators
