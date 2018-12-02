@@ -224,7 +224,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    const bool inline EmbeddedSkinUtility<TDim>::ElementIsSplit(
+    bool inline EmbeddedSkinUtility<TDim>::ElementIsSplit(
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances)
     {
