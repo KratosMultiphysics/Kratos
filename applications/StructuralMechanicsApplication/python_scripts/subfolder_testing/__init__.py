@@ -1,1 +1,0 @@
-print("\tHello from the sub-folder init.py")
