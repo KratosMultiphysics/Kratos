@@ -94,6 +94,12 @@ public:
     explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
         : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3)
     {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "damp_factor_m" : -0.3
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
 
     /**

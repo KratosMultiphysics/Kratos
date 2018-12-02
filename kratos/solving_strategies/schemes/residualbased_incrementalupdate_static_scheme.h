@@ -97,7 +97,13 @@ public:
      */
     explicit ResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters)
         : BaseType()
-    {}
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
 
     /** Default onstructor.
     */
