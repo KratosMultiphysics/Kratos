@@ -131,7 +131,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
         else
         {
             Matrix ConstitutiveMatrix(StrainVector.size(),StrainVector.size());
-            noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size(), StrainVector.size() );
+            noalias(ConstitutiveMatrix) = ZeroMatrix(StrainVector.size());
             this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
             this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
         }
@@ -150,7 +150,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
             if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
             {
                 Matrix ConstitutiveMatrix( StrainVector.size(), StrainVector.size() );
-                noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size(), StrainVector.size() );
+                noalias(ConstitutiveMatrix) = ZeroMatrix(StrainVector.size());
 
                 this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
                 this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
@@ -239,7 +239,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 	        else
             {
                 Matrix ConstitutiveMatrix( StrainVector.size() ,StrainVector.size());
-                noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size() ,StrainVector.size());
+                noalias(ConstitutiveMatrix) = ZeroMatrix(StrainVector.size());
 
                 this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
                 this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
@@ -260,7 +260,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
                     if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
                     {
                         Matrix ConstitutiveMatrix( StrainVector.size(), StrainVector.size());
-                        noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size(), StrainVector.size());
+                        noalias(ConstitutiveMatrix) = ZeroMatrix(StrainVector.size());
 
                         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
                         this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );

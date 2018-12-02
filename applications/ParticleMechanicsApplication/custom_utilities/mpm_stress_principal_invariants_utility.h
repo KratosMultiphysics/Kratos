@@ -60,9 +60,9 @@ namespace Kratos
 
                   for(unsigned int i=0; i<3; i++)
                   {
-                        principal_direction_1(i) = rMainDirections(0,i);
-                        principal_direction_2(i) = rMainDirections(1,i);
-                        principal_direction_3(i) = rMainDirections(2,i);
+                        principal_direction_1[i] = rMainDirections(0,i);
+                        principal_direction_2[i] = rMainDirections(1,i);
+                        principal_direction_3[i] = rMainDirections(2,i);
                   }
 
                   // Reorder and swap
@@ -96,9 +96,9 @@ namespace Kratos
                   // Copy back to original matrix
                   for(unsigned int i=0; i<3; i++)
                   {
-                        rMainDirections(i,0) = principal_direction_1(i);
-                        rMainDirections(i,1) = principal_direction_2(i);
-                        rMainDirections(i,2) = principal_direction_3(i);
+                        rMainDirections(i,0) = principal_direction_1[i];
+                        rMainDirections(i,1) = principal_direction_2[i];
+                        rMainDirections(i,2) = principal_direction_3[i];
                   }
             }
 

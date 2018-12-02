@@ -343,12 +343,16 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& normal = slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
+            array_1d<double, TDim> aux_normal;
+            for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                aux_normal[i_dim] = normal[i_dim];
+            }
             const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
 
             double& weighted_gap = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
             #pragma omp atomic
-            weighted_gap += inner_prod(aux_array, - subrange(normal, 0, TDim));
+            weighted_gap += inner_prod(aux_array, - aux_normal);
         }
 
         // We reset the flag

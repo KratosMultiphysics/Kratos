@@ -81,7 +81,6 @@ class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.
                                                                             self.settings["move_mesh_flag"].GetBool())
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-        (self.solver).Check()
 
         if self.settings["stabilization"].Has("dynamic_tau"):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["stabilization"]["dynamic_tau"].GetDouble())

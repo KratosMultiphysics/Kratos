@@ -19,8 +19,8 @@ class StabilizedFormulation(object):
         self.condition_name = "MonolithicWallCondition"
         self.process_data = {}
 
-        if settings.Has("formulation"):
-            formulation = settings["formulation"].GetString()
+        if settings.Has("element_type"):
+            formulation = settings["element_type"].GetString()
             if formulation == "vms":
                 self._SetUpClassicVMS(settings)
             elif formulation == "qsvms":
@@ -31,7 +31,7 @@ class StabilizedFormulation(object):
                 self._SetUpFIC(settings)
         else:
             print(settings)
-            raise RuntimeError("Argument \'formulation\' not found in stabilization settings.")
+            raise RuntimeError("Argument \'element_type\' not found in stabilization settings.")
 
     def SetProcessInfo(self,model_part):
         for variable,value in self.process_data.items():
@@ -39,7 +39,7 @@ class StabilizedFormulation(object):
 
     def _SetUpClassicVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "formulation": "vms",
+            "element_type": "vms",
             "use_orthogonal_subscales": false,
             "dynamic_tau": 0.01
         }""")
@@ -54,7 +54,7 @@ class StabilizedFormulation(object):
 
     def _SetUpQSVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "formulation": "qsvms",
+            "element_type": "qsvms",
             "use_orthogonal_subscales": false,
             "dynamic_tau": 0.0
         }""")
@@ -68,7 +68,7 @@ class StabilizedFormulation(object):
 
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "formulation": "dvms",
+            "element_type": "dvms",
             "use_orthogonal_subscales": false,
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
@@ -81,7 +81,7 @@ class StabilizedFormulation(object):
 
     def _SetUpFIC(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "formulation": "fic",
+            "element_type": "fic",
             "beta": 0.8,
             "adjust_beta_dynamically": false
         }""")
@@ -114,8 +114,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 "input_filename": "unknown_name",
                 "reorder": false
             },
-            "stabilization": {
-                "formulation": "vms"
+            "formulation": {
+                "element_type": "vms"
             },
             "maximum_iterations": 10,
             "echo_level": 0,
@@ -149,29 +149,41 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "turbulence_model": "None"
         }""")
 
+        settings = self._BackwardsCompatibilityHelper(settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+    def _BackwardsCompatibilityHelper(self,settings):
         ## Backwards compatibility -- deprecation warnings
+        if settings.Has("stabilization"):
+            msg  = "Input JSON data contains deprecated setting \'stabilization\'.\n"
+            msg += "Please rename it to \'formulation\' (and rename \'stabilization/formulation\' to \'formulation/element_type\' if it exists).\n"
+            KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
+            settings.AddValue("formulation", settings["stabilization"])
+            settings.RemoveValue("stabilization")
+            settings["formulation"].AddValue("element_type", settings["formulation"]["formulation"])
+            settings["formulation"].RemoveValue("formulation")
+
         if settings.Has("oss_switch"):
             msg  = "Input JSON data contains deprecated setting \'oss_switch\' (int).\n"
-            msg += "Please define \'stabilization/formulation\' (set it to \'vms\')\n"
-            msg += "and set \'stabilization/use_orthogonal_subscales\' (bool) instead."
+            msg += "Please define \'formulation/element_type\' (set it to \'vms\')\n"
+            msg += "and set \'formulation/use_orthogonal_subscales\' (bool) instead."
             KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
-            if not settings.Has("stabilization"):
-                settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
-            settings["stabilization"].AddEmptyValue("use_orthogonal_subscales")
-            settings["stabilization"]["use_orthogonal_subscales"].SetBool(bool(settings["oss_switch"].GetInt()))
+            if not settings.Has("formulation"):
+                settings.AddValue("formulation",KratosMultiphysics.Parameters(r'{"element_type":"vms"}'))
+            settings["formulation"].AddEmptyValue("use_orthogonal_subscales")
+            settings["formulation"]["use_orthogonal_subscales"].SetBool(bool(settings["oss_switch"].GetInt()))
             settings.RemoveValue("oss_switch")
         if settings.Has("dynamic_tau"):
             msg  = "Input JSON data contains deprecated setting \'dynamic_tau\' (float).\n"
-            msg += "Please define \'stabilization/formulation\' (set it to \'vms\') and \n"
-            msg += "set \'stabilization/dynamic_tau\' (float) instead."
+            msg += "Please define \'formulation/element_type\' (set it to \'vms\') and \n"
+            msg += "set \'formulation/dynamic_tau\' (float) instead."
             KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
-            if not settings.Has("stabilization"):
-                settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
-            settings["stabilization"].AddEmptyValue("dynamic_tau")
-            settings["stabilization"]["dynamic_tau"].SetDouble(settings["dynamic_tau"].GetDouble())
+            if not settings.Has("formulation"):
+                settings.AddValue("formulation",KratosMultiphysics.Parameters(r'{"element_type":"vms"}'))
+            settings["formulation"].AddEmptyValue("dynamic_tau")
+            settings["formulation"]["dynamic_tau"].SetDouble(settings["dynamic_tau"].GetDouble())
             settings.RemoveValue("dynamic_tau")
-
-        settings.ValidateAndAssignDefaults(default_settings)
         return settings
 
 
@@ -181,9 +193,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
 
-        self.stabilization = StabilizedFormulation(self.settings["stabilization"])
-        self.element_name = self.stabilization.element_name
-        self.condition_name = self.stabilization.condition_name
+        self.formulation = StabilizedFormulation(self.settings["formulation"])
+        self.element_name = self.formulation.element_name
+        self.condition_name = self.formulation.condition_name
 
         scheme_type = self.settings["time_scheme"].GetString()
         if scheme_type == "bossak":
@@ -296,11 +308,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        self.stabilization.SetProcessInfo(self.computing_model_part)
+        self.formulation.SetProcessInfo(self.computing_model_part)
 
         (self.solver).Initialize()
-
-        self.solver.Check()
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
 
@@ -323,5 +333,5 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def _SetUpSteadySimulation(self):
         '''Overwrite time stepping parameters so that they do not interfere with steady state simulations.'''
         self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
-        if self.settings["stabilization"].Has("dynamic_tau"):
-            self.settings["stabilization"]["dynamic_tau"].SetDouble(0.0)
+        if self.settings["formulation"].Has("dynamic_tau"):
+            self.settings["formulation"]["dynamic_tau"].SetDouble(0.0)

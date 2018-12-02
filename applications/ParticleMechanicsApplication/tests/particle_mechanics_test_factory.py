@@ -62,6 +62,10 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
 
+### Axis-Symmetric Tests
+class AxisSymmetricCircularPlate2DTriTest(ParticleMechanicsTestFactory):
+    file_name = "axisym_tests/circular_plate_axisym_test"
+
 ### Beam Tests
 class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/cantilever_beam/static_point_load_2D_tri_test"
@@ -92,3 +96,7 @@ class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
 ### Gravity Application Tests
 class GravityApplicationTest(ParticleMechanicsTestFactory):
     file_name = "gravity_tests/dynamic_gravity_application_test"
+
+### Slip Boundary Tests
+class SlipBoundaryTest(ParticleMechanicsTestFactory):
+    file_name = "slip_tests/slip_boundary_test"

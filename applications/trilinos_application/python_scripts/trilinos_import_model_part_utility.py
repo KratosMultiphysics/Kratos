@@ -29,37 +29,67 @@ class TrilinosImportModelPartUtility():
         self.ImportModelPart()
 
     def ImportModelPart(self):
-        input_type = self.settings["model_import_settings"]["input_type"].GetString()
+        model_part_import_settings = self.settings["model_import_settings"]
+        input_type = model_part_import_settings["input_type"].GetString()
 
         if input_type == "mdpa":
-            input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+            input_filename = model_part_import_settings["input_filename"].GetString()
 
             # Unless otherwise stated, always perform the Metis partitioning
-            if not self.settings["model_import_settings"].Has("perform_partitioning"):
-                self.settings["model_import_settings"].AddEmptyValue("perform_partitioning")
-                self.settings["model_import_settings"]["perform_partitioning"].SetBool(True)
+            if not model_part_import_settings.Has("perform_partitioning"):
+                model_part_import_settings.AddEmptyValue("perform_partitioning")
+                model_part_import_settings["perform_partitioning"].SetBool(True)
 
-            perform_partitioning = self.settings["model_import_settings"]["perform_partitioning"].GetBool()
+            perform_partitioning = model_part_import_settings["perform_partitioning"].GetBool()
+
+            # Setting some mdpa-import-related flags
+            import_flags = KratosMultiphysics.ModelPartIO.READ
+            if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
+                if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
+                    import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
+            skip_timer = True
+            if model_part_import_settings.Has("skip_timer"):
+                skip_timer = model_part_import_settings["skip_timer"].GetBool()
+            if skip_timer:
+                import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
+
+            # Select the partitioning method (File by default)
+            partition_in_memory = False
+            if model_part_import_settings.Has("partition_in_memory"):
+                partition_in_memory = model_part_import_settings["partition_in_memory"].GetBool()
 
             if perform_partitioning == True:
                 KratosMultiphysics.CheckRegisteredApplications("MetisApplication")
                 import KratosMultiphysics.MetisApplication as KratosMetis
 
-                ## Serial partition of the original .mdpa file
-                if KratosMPI.mpi.rank == 0:
+                # Partition of the original .mdpa file
+                number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
+                domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+                verbosity = self.settings["echo_level"].GetInt()
 
-                    # Original .mdpa file reading
-                    model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
+                # Make sure that the condition goes to the same partition as the element is a face of
+                sync_conditions = True
 
-                    # Partition of the original .mdpa file
-                    number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
-                    domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-                    verbosity = self.settings["echo_level"].GetInt()
-                    sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of
-                    partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
+                # Original .mdpa file reading
+                model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename)
+
+                if not partition_in_memory:
+                    ## Serial partition of the original .mdpa file
+                    if KratosMPI.mpi.rank == 0:
+                        partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
+                        partitioner.Execute()
+
+                        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
+                else:
+                    # Create a second io that does not reorder the parts while reading from memory
+                    serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename, import_flags)
+
+                    partitioner = KratosMetis.MetisDivideHeterogeneousInputInMemoryProcess(model_part_io, serial_model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                     partitioner.Execute()
+                    serial_model_part_io.ReadModelPart(self.main_model_part)
 
-                    KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
+                    if KratosMPI.mpi.rank == 0:
+                        KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
 
             else:
                 if (KratosMPI.mpi.rank == 0):
@@ -69,14 +99,15 @@ class TrilinosImportModelPartUtility():
 
             ## Reset as input file name the obtained Metis partition one
             mpi_input_filename = input_filename + "_" + str(KratosMPI.mpi.rank)
-            self.settings["model_import_settings"]["input_filename"].SetString(mpi_input_filename)
+            model_part_import_settings["input_filename"].SetString(mpi_input_filename)
 
             ## Read the new generated *.mdpa files
-            KratosMultiphysics.ModelPartIO(mpi_input_filename).ReadModelPart(self.main_model_part)
+            if not partition_in_memory:
+                KratosMultiphysics.ModelPartIO(mpi_input_filename, import_flags).ReadModelPart(self.main_model_part)
 
         elif input_type == "rest":
             from trilinos_restart_utility import TrilinosRestartUtility as RestartUtility
-            restart_settings = self.settings["model_import_settings"].Clone()
+            restart_settings = model_part_import_settings.Clone()
 
             restart_settings.RemoveValue("input_type")
 

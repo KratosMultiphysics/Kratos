@@ -74,33 +74,33 @@ namespace Python{
 
         // Strategy Type
         py::class_< MPMStrategyType2D,typename MPMStrategyType2D::Pointer, BaseSolvingStrategyType >(m,"MPM2D")
-        .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
-        .def( "SearchElement", &MPMStrategyType2D::SearchElement)
-        .def( "MP16ShapeFunctions", &MPMStrategyType2D::MP16ShapeFunctions)
-        .def( "MP33ShapeFunctions", &MPMStrategyType2D::MP33ShapeFunctions)
-        .def( "SetEchoLevel", &MPMStrategyType2D::SetEchoLevel)
-        ;
+            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
+            .def( "SearchElement", &MPMStrategyType2D::SearchElement)
+            .def( "MP16ShapeFunctions", &MPMStrategyType2D::MP16ShapeFunctions)
+            .def( "MP33ShapeFunctions", &MPMStrategyType2D::MP33ShapeFunctions)
+            .def( "SetEchoLevel", &MPMStrategyType2D::SetEchoLevel)
+            ;
 
         py::class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
-        .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
-        .def( "SearchElement", &MPMStrategyType3D::SearchElement)
-        .def( "MP16ShapeFunctions", &MPMStrategyType3D::MP16ShapeFunctions)
-        .def( "MP33ShapeFunctions", &MPMStrategyType3D::MP33ShapeFunctions)
-        .def( "SetEchoLevel", &MPMStrategyType3D::SetEchoLevel)
-        ;
+            .def(py::init< ModelPart&, ModelPart&, ModelPart&, LinearSolverType::Pointer,const Element&, bool, std::string, std::string, int, bool, bool>() )
+            .def( "SearchElement", &MPMStrategyType3D::SearchElement)
+            .def( "MP16ShapeFunctions", &MPMStrategyType3D::MP16ShapeFunctions)
+            .def( "MP33ShapeFunctions", &MPMStrategyType3D::MP33ShapeFunctions)
+            .def( "SetEchoLevel", &MPMStrategyType3D::SetEchoLevel)
+            ;
 
         py::class_< MPMResidualBasedNewtonRaphsonStrategyType,typename MPMResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >(m,"MPMResidualBasedNewtonRaphsonStrategy")
-        .def(py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >() )
-        .def(py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >() )
-        .def("SetMaxIterationNumber", &MPMResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
-        .def("GetMaxIterationNumber", &MPMResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
-        .def("SetInitializePerformedFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
-        .def("GetInitializePerformedFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
-        .def("SetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
-        .def("GetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
-        .def("SetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetFinalizeSolutionStepFlag)
-        .def("GetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetFinalizeSolutionStepFlag)
-        ;
+            .def(py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >() )
+            .def(py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >() )
+            .def("SetMaxIterationNumber", &MPMResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
+            .def("GetMaxIterationNumber", &MPMResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
+            .def("SetInitializePerformedFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
+            .def("GetInitializePerformedFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
+            .def("SetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+            .def("GetKeepSystemConstantDuringIterations", &MPMResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+            .def("SetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::SetFinalizeSolutionStepFlag)
+            .def("GetFinalizeSolutionStepFlag", &MPMResidualBasedNewtonRaphsonStrategyType::GetFinalizeSolutionStepFlag)
+            ;
 
     }
 
