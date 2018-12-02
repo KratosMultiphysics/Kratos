@@ -111,7 +111,7 @@ namespace Kratos
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
             }
                          
-            typedef ComputeNodalGradientProcess<2, Variable<double>, Historical> GradientType;
+            typedef ComputeNodalGradientProcess<Variable<double>, Historical> GradientType;
             GradientType process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT);
             process.Execute();
             
@@ -267,7 +267,7 @@ namespace Kratos
             }
                       
             // Compute gradient
-            typedef ComputeNodalGradientProcess<3, Variable<double>, Historical> GradientType;
+            typedef ComputeNodalGradientProcess<Variable<double>, Historical> GradientType;
             GradientType process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT);
             process.Execute();
             
