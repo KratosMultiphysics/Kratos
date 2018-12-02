@@ -252,6 +252,6 @@ for dim in dim_vector:
     #     outstring = outstring.replace("//substitute_gausspt_subscale_3D", v_s_gauss_out)
 
 ## Write the modified template
-out = open("embedded_ausas_navier_stokes.cpp",'w')
+out = open("embedded_ausas_navier_stokes_boundary_terms.cpp",'w')
 out.write(outstring)
 out.close()
