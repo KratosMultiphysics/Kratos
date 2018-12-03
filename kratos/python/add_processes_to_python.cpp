@@ -266,34 +266,26 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     /* Historical */
-    // DOUBLE
-    py::class_<ComputeNodalGradientProcess<Variable<double>, Historical>, ComputeNodalGradientProcess<Variable<double>, Historical>::Pointer, Process>(m,"ComputeNodalGradientProcess2D")
+    py::class_<ComputeNodalGradientProcess< Historical>, ComputeNodalGradientProcess<Historical>::Pointer, Process>(m,"ComputeNodalGradientProcess")
+    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
     
-    m.attr("ComputeNodalGradientProcess3D") = m.attr("ComputeNodalGradientProcess2D");
-
-    // COMPONENT
-    py::class_<ComputeNodalGradientProcess<component_type, Historical>, ComputeNodalGradientProcess<component_type, Historical>::Pointer, Process>(m,"ComputeNodalGradientProcessComp2D")
-    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    ;
-
-    m.attr("ComputeNodalGradientProcessComp3D") = m.attr("ComputeNodalGradientProcessComp2D");
+    m.attr("ComputeNodalGradientProcess2D") = m.attr("ComputeNodalGradientProcess");
+    m.attr("ComputeNodalGradientProcess3D") = m.attr("ComputeNodalGradientProcess");
+    m.attr("ComputeNodalGradientProcessComp2D") = m.attr("ComputeNodalGradientProcess");
+    m.attr("ComputeNodalGradientProcessComp3D") = m.attr("ComputeNodalGradientProcess");
     
     /* Non-Historical */
-    // DOUBLE
-    py::class_<ComputeNodalGradientProcess<Variable<double>, NonHistorical>, ComputeNodalGradientProcess<Variable<double>, NonHistorical>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess2D")
+    py::class_<ComputeNodalGradientProcess<NonHistorical>, ComputeNodalGradientProcess<NonHistorical>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
+    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    m.attr("ComputeNonHistoricalNodalGradientProcess3D") = m.attr("ComputeNonHistoricalNodalGradientProcess2D");
-    
-    // COMPONENT
-    py::class_<ComputeNodalGradientProcess<component_type, NonHistorical>, ComputeNodalGradientProcess<component_type, NonHistorical>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcessComp2D")
-    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    ;
-    
-    m.attr("ComputeNonHistoricalNodalGradientProcessComp3D") = m.attr("ComputeNonHistoricalNodalGradientProcessComp2D");
+    m.attr("ComputeNonHistoricalNodalGradientProcess2D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
+    m.attr("ComputeNonHistoricalNodalGradientProcess3D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
+    m.attr("ComputeNonHistoricalNodalGradientProcessComp2D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
+    m.attr("ComputeNonHistoricalNodalGradientProcessComp3D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
 
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")

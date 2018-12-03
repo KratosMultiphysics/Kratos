@@ -57,7 +57,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @tparam THist If the variable is historical or not
 */
-template<class TVarType, HistoricalValues THist> 
+template<HistoricalValues THist> 
 class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {
@@ -72,18 +72,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Default constructor. (double)
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
-        TVarType& rOriginVariable,
+        Variable<double>& rOriginVariable,
         Variable<array_1d<double,3> >& rGradientVariable,
         Variable<double>& rAreaVariable = NODAL_AREA
-        ) :mrModelPart(rModelPart),
-           mrOriginVariable(rOriginVariable),
-           mrGradientVariable(rGradientVariable),
-           mrAreaVariable(rAreaVariable)
-    {
-    }
+        );
+    
+    /// Default constructor. (component)
+    ComputeNodalGradientProcess(
+        ModelPart& rModelPart,
+        component_type& rOriginVariable,
+        Variable<array_1d<double,3> >& rGradientVariable,
+        Variable<double>& rAreaVariable = NODAL_AREA
+        );
 
     /// Destructor.
     ~ComputeNodalGradientProcess() override
@@ -197,10 +200,11 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrModelPart;                            // The main model part
-    TVarType& mrOriginVariable;                        // The scalar variable to compute
-    Variable<array_1d<double,3> >& mrGradientVariable; // The resultant gradient variable
-    Variable<double>& mrAreaVariable;                  // The auxiliar area variable
+    ModelPart& mrModelPart;                                     // The main model part
+    std::vector<Variable<double>> mrOriginVariableDoubleList;   // The scalar variable list to compute
+    std::vector<component_type> mrOriginVariableComponentsList; // The scalar variable list to compute (components) 
+    Variable<array_1d<double,3> >& mrGradientVariable;          // The resultant gradient variable
+    Variable<double>& mrAreaVariable;                           // The auxiliar area variable
 
     ///@}
     ///@name Private Operators
