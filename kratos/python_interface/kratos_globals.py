@@ -96,7 +96,7 @@ class KratosGlobals:
         elif kernel.HasFlagsVariable(VarName):
             return True
         elif kernel.HasVariableData(VarName):
-            raise True
+            return True
         else:
             return False
 
