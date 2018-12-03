@@ -18,7 +18,7 @@ rm -rf "${KRATOS_BLD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 cmake -H"${KRATOS_SRC}" -B"${KRATOS_BLD}/${KRATOS_BUILD_TYPE}"
 
 # Buid
-cmake --build "${KRATOS_BLD}/${KRATOS_BUILD_TYPE}" -- -j32 install
+cmake --build "${KRATOS_BLD}/${KRATOS_BUILD_TYPE}" -- -j$(nproc) install
 
 ## Optional ##
 
