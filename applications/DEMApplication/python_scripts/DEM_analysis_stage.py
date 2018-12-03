@@ -376,7 +376,7 @@ class DEMAnalysisStage(AnalysisStage):
             model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Walls. Continuing.')
+            self.KRATOSprint('No mdpa file found for DEM walls. Continuing.')
 
         max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part))
         max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part))
@@ -386,7 +386,7 @@ class DEMAnalysisStage(AnalysisStage):
             model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_clusters.ReadModelPart(self.cluster_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Clusters. Continuing.')
+            self.KRATOSprint('No mdpa file found for DEM clusters. Continuing.')
 
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         if max_elem_Id != old_max_elem_Id_spheres:
@@ -400,7 +400,7 @@ class DEMAnalysisStage(AnalysisStage):
             model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
             model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
         else:
-            self.KRATOSprint('No .mdpa file found for DEM Inlets. Continuing.')
+            self.KRATOSprint('No mdpa file found for DEM inlets. Continuing.')
 
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
