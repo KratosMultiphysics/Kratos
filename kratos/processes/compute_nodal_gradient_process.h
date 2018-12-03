@@ -209,11 +209,11 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrModelPart;                                     // The main model part
-    std::vector<Variable<double>> mrOriginVariableDoubleList;   // The scalar variable list to compute
-    std::vector<ComponentType> mrOriginVariableComponentsList; // The scalar variable list to compute (components)
-    Variable<array_1d<double,3> >& mrGradientVariable;          // The resultant gradient variable
-    Variable<double>& mrAreaVariable;                           // The auxiliar area variable
+    ModelPart& mrModelPart;                                     /// The main model part
+    std::vector<Variable<double>> mrOriginVariableDoubleList;   /// The scalar variable list to compute
+    std::vector<ComponentType> mrOriginVariableComponentsList;  /// The scalar variable list to compute (components)
+    Variable<array_1d<double,3> >& mrGradientVariable;          /// The resultant gradient variable
+    Variable<double>& mrAreaVariable;                           /// The auxiliar area variable
 
     ///@}
     ///@name Private Operators
