@@ -22,10 +22,10 @@ if(NOT DEFINED KRATOS_SOURCE_DIR)
   set (KRATOS_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
 endif(NOT DEFINED KRATOS_SOURCE_DIR)
 
-if(NOT KRATOS_BINARY_DIR)
+if(NOT DEFINED KRATOS_BINARY_DIR)
 message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
 set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
-endif(KRATOS_BINARY_DIR)
+endif(NOT DEFINED KRATOS_BINARY_DIR)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
@@ -192,7 +192,7 @@ endif(NOT DEFINED KRATOS_BUILD_TESTING)
 
 if(NOT DEFINED INSTALL_PYTHON_FILES)
   set(INSTALL_PYTHON_FILES ON)
-endif(NOT DEFINED KRATOS_BUILD_TESTING)
+endif(NOT DEFINED INSTALL_PYTHON_FILES)
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     message("-- Kratos Tests are: Enabled")
@@ -209,9 +209,13 @@ endif(USE_COTIRE MATCHES ON)
 
 # Reset pybind11 config and remove -LTO on FullDebug to speedup linking time,
 if(CMAKE_BUILD_TYPE MATCHES FullDebug)
+    set(KRATOS_PYBIND11_NO_LTO ON)
+endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
+
+if(DEFINED KRATOS_PYBIND11_NO_LTO)
     set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
     set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
-endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
+endif(DEFINED KRATOS_PYBIND11_NO_LTO)
 
 # Set installation directory
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -248,13 +252,17 @@ endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 # Finding and including BOOST library (version should not matter anymore)
 find_package(Boost)
 
-if(Boost_FOUND)
-  message("-- Boost found in ${BOOST_INCLUDE_DIRS}")
-else(Boost_FOUND)
+if(NOT Boost_FOUND)
+    # Trying to find in in external libraries
+    find_package(Boost HINTS "${KRATOS_SOURCE_DIR}/external_libraries/boost" "${KRATOS_SOURCE_DIR}/external_libraries/boost_1_67_0")
+endif(NOT Boost_FOUND)
+
+if(NOT Boost_FOUND)
+    # Trying to download it
     DownloadLib("Boost" "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.zip")
     set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost_1_67_0")
     find_package(Boost)
-endif(Boost_FOUND)
+endif(NOT Boost_FOUND)
 
 # If not found, download:
 
