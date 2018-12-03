@@ -161,8 +161,9 @@ public:
         // Loop over components of the strain
         Vector& r_perturbed_strain = rValues.GetStrainVector();
         Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
-        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
-            if (ApproximationOrder == 1) {
+        if (ApproximationOrder == 1) {
+            for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+
                 // Apply the perturbation
                 PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
 
@@ -172,7 +173,13 @@ public:
                 // Compute tangent moduli
                 const Vector delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
                 CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain, delta_stress, i_component);
-            } else {
+
+                // Reset the values to the initial ones
+                noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+            }
+        } else {
+            for (IndexType i_component = 0; i_component < num_components; ++i_component) {
                 // Apply the perturbation (positive)
                 PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
 
@@ -199,11 +206,11 @@ public:
 
                 // Finally we compute the components
                 CalculateComponentsToTangentTensorSecondOrder(auxiliar_tensor, strain_plus, strain_minus, stress_plus, stress_minus, i_component);
-            }
 
-            // Reset the values to the initial ones
-            noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
-            noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+                // Reset the values to the initial ones
+                noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+            }
         }
         noalias(r_tangent_tensor) = auxiliar_tensor;
     }
@@ -258,9 +265,10 @@ public:
         Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
         Matrix& r_perturbed_deformation_gradient = const_cast<Matrix&>(rValues.GetDeformationGradientF());
         double& r_perturbed_det_deformation_gradient = const_cast<double&>(rValues.GetDeterminantF());
-        for (IndexType i_component = 0; i_component < size1; ++i_component) {
-            for (IndexType j_component = i_component; j_component < size2; ++j_component) {
-                if (ApproximationOrder == 1) {
+
+        if (ApproximationOrder == 1) {
+            for (IndexType i_component = 0; i_component < size1; ++i_component) {
+                for (IndexType j_component = i_component; j_component < size2; ++j_component) {
                     // Apply the perturbation
                     PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
 
@@ -273,7 +281,16 @@ public:
                     // Finally we compute the components
                     const IndexType voigt_index = CalculateVoigtIndex(delta_stress.size(), i_component, j_component);
                     CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain, delta_stress, voigt_index);
-                } else if (ApproximationOrder == 2) {
+
+                    // Reset the values to the initial ones
+                    noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+                    noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
+                    r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
+                }
+            }
+        } else if (ApproximationOrder == 2) {
+            for (IndexType i_component = 0; i_component < size1; ++i_component) {
+                for (IndexType j_component = i_component; j_component < size2; ++j_component) {
                     // Apply the perturbation (positive)
                     PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
 
@@ -302,12 +319,12 @@ public:
                     // Finally we compute the components
                     const IndexType voigt_index = CalculateVoigtIndex(stress_plus.size(), i_component, j_component);
                     CalculateComponentsToTangentTensorSecondOrder(auxiliar_tensor, strain_plus, strain_minus, stress_plus, stress_minus, voigt_index);
-                }
 
-                // Reset the values to the initial ones
-                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
-                noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
-                r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
+                    // Reset the values to the initial ones
+                    noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+                    noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
+                    r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
+                }
             }
         }
         noalias(r_tangent_tensor) = auxiliar_tensor;
