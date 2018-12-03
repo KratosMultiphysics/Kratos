@@ -381,12 +381,14 @@ namespace Kratos
                const double & rPlasticDevDef = Variables.Internal.Variables[2];
                const double & rPlasticVolDefAbs = Variables.Internal.Variables[6];
 
+               double sq2_3 = sqrt(2.0/3.0);
+
                double ps;
-               ps = rPlasticVolDef + rChis * rPlasticDevDef; 
+               ps = rPlasticVolDef + sq2_3 * rChis * rPlasticDevDef; 
                ps = (-rPs0) * std::exp( -rhos*ps);
 
                double pt;
-               pt = rPlasticVolDefAbs + rChit * rPlasticDevDef; 
+               pt = rPlasticVolDefAbs + sq2_3 * rChit * rPlasticDevDef; 
                pt = (-rPt0) * std::exp( rhot*pt);
 
                double pm;
@@ -612,6 +614,8 @@ namespace Kratos
                const Properties & rMaterialProperties = rModelData.GetProperties();
                double rhos = rMaterialProperties[RHOS];
                double rhot = rMaterialProperties[RHOT];
+               double chis = rMaterialProperties[CHIS];
+               double chit = rMaterialProperties[CHIT];
                double k =  rMaterialProperties[KSIM];
                // evaluate constitutive matrix and plastic flow
                double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
@@ -656,11 +660,12 @@ namespace Kratos
                      DevPlasticIncr += pow( DeltaGamma * DeltaStressYieldCondition(i) - VolPlasticIncr/3.0, 2.0);
                   for (unsigned int i = 3; i < 6; i++)
                      DevPlasticIncr += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
-                  rPlasticDevDef += sqrt(DevPlasticIncr);
+                  DevPlasticIncr = DeltaGamma/fabs(DeltaGamma) * sqrt(DevPlasticIncr);
+                  rPlasticDevDef += DevPlasticIncr;
 
 
-                  double hs =  rhos * rPS * (VolPlasticIncr + 0.0);
-                  double ht = rhot * rPT * ( -fabs(VolPlasticIncr)  + 0.0);
+                  double hs =  rhos * rPS * (VolPlasticIncr + chis * sqrt(2.0/3.0)* DevPlasticIncr);
+                  double ht = rhot * rPT * ( -fabs(VolPlasticIncr)  + chit*sqrt(2.0/3.0)*DevPlasticIncr);
                   rPS -= hs;
                   rPT -= ht;
 
