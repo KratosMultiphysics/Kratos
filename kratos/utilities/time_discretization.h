@@ -63,32 +63,38 @@ public:
 class Newmark
 {
 public:
-    double GetBeta()  const { return 0.25; }
+    Newmark(const double NewmarkBeta=0.25)
+        : mNewmarkBeta(NewmarkBeta) {}
+    double GetBeta()  const { return mNewmarkBeta; }
     double GetGamma() const { return 0.5; }
+private:
+    double mNewmarkBeta;
 };
 
 class Bossak
 {
 public:
-    Bossak(const double AlphaM)
-        : mAlphaM(AlphaM) {}
+    Bossak(const double AlphaM, const double NewmarkBeta=0.25)
+        : mAlphaM(AlphaM), mNewmarkBeta(NewmarkBeta) {}
     double GetAlphaM() const { return mAlphaM; }
     double GetBeta()   const { return 0.5 + mAlphaM; }
-    double GetGamma()  const { return 0.25 * (1+mAlphaM) * (1+mAlphaM); }
+    double GetGamma()  const { return mNewmarkBeta * (1+mAlphaM) * (1+mAlphaM); }
 private:
+    double mNewmarkBeta;
     double mAlphaM;
 };
 
 class GeneralizedAlpha
 {
 public:
-    GeneralizedAlpha(const double AlphaM, const double AlphaF)
-        : mAlphaM(AlphaM), mAlphaF(AlphaF) {}
+    GeneralizedAlpha(const double AlphaM, const double AlphaF, const double NewmarkBeta=0.25)
+        : mAlphaM(AlphaM), mAlphaF(AlphaF), mNewmarkBeta(NewmarkBeta) {}
     double GetAlphaM() const { return mAlphaM; }
     double GetAlphaF() const { return mAlphaF; }
     double GetBeta()   const { return 0.5 + mAlphaM - mAlphaF; }
-    double GetGamma()  const { return 0.25 * (1+mAlphaM-mAlphaF) * (1+mAlphaM-mAlphaF); }
+    double GetGamma()  const { return mNewmarkBeta * (1+mAlphaM-mAlphaF) * (1+mAlphaM-mAlphaF); }
 private:
+    double mNewmarkBeta;
     double mAlphaM;
     double mAlphaF;
 };
