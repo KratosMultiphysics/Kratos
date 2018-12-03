@@ -299,7 +299,8 @@ void ComputingConvergenceRate(
     const bool Debug = false,
     const bool AnalyticReference = true,
     double Alpha = 1.0,
-    const std::size_t MaxNumberIters = 10
+    const std::size_t MaxNumberIters = 10,
+    const std::size_t IntegrationOrder = 2
     )
 {
     const std::size_t voigt_size = TDim == 3 ? 6 : 3;
@@ -319,7 +320,7 @@ void ComputingConvergenceRate(
     Vector expected_delta_stress = ZeroVector(voigt_size);
     Vector computed_delta_stress = ZeroVector(voigt_size);
 
-    const double quadratic_threshold = 1.8;
+    const double quadratic_threshold = IntegrationOrder == 2 ? 1.8 : 1.0;
 
     std::vector<double> vector_errors(MaxNumberIters);
     for (std::size_t iter = 0; iter < MaxNumberIters; ++iter) {
@@ -341,9 +342,9 @@ void ComputingConvergenceRate(
         }
 
         if (FiniteDeformation) {
-            TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(rCLConfigurationValues, pConstitutiveLaw.get(), ConstitutiveLaw::StressMeasure::StressMeasure_PK2, true, 2);
+            TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(rCLConfigurationValues, pConstitutiveLaw.get(), ConstitutiveLaw::StressMeasure::StressMeasure_PK2, true, IntegrationOrder);
         } else {
-            TangentOperatorCalculatorUtility::CalculateTangentTensor(rCLConfigurationValues, pConstitutiveLaw.get(), ConstitutiveLaw::StressMeasure::StressMeasure_PK2, true, 2);
+            TangentOperatorCalculatorUtility::CalculateTangentTensor(rCLConfigurationValues, pConstitutiveLaw.get(), ConstitutiveLaw::StressMeasure::StressMeasure_PK2, true, IntegrationOrder);
         }
 
         const Matrix tangent_moduli_perturbed = rTangentModuli;
@@ -519,7 +520,43 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticKirchhoffHyperElasticCasePertubationTensorUti
 /**
  * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesFirstOrderCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite)
+{
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    ConstitutiveLaw::Parameters cl_configuration_values;
+    Properties& r_material_properties = r_model_part.GetProperties(1);
+    Vector stress_vector, strain_vector;
+    Matrix tangent_moduli, deformation_gradient_F;
+    double det_deformation_gradient_F;
+    SettingBasicCase(r_model_part, cl_configuration_values, r_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, 2);
+
+    // Creating constitutive law
+    auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("SmallStrainIsotropicPlasticity3DVonMisesVonMises").Clone();
+    r_material_properties.SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+
+    // Creating geometry
+    Create3DGeometryHexahedra(r_model_part);
+
+    // Assigning geometry
+    auto& r_geom = r_model_part.Elements().begin()->GetGeometry();
+    cl_configuration_values.SetElementGeometry(r_geom);
+
+    // Initializing law
+    p_constitutive_law->InitializeMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+
+    // Computing convergence rate
+    ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, false, false, 1.0, 4, 1);
+}
+
+/**
+ * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
+ */
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesCaseSecondOrderPertubationTensorUtility, KratosStructuralMechanicsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
