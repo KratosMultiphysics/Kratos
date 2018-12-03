@@ -261,7 +261,7 @@ if __name__ == '__main__':
                 # time_ML[level].append(time_MLi)
                 mlmc_class.time_ML.values[level] = np.append(mlmc_class.time_ML.values[level],time_MLi)
     
-    print("values",mlmc_class.difference_QoI.values,mlmc_class.time_ML.values)
+    # print("values",mlmc_class.difference_QoI.values,mlmc_class.time_ML.values)
     mlmc_class.FinalizeScreeningPhase()
     print("mean,variance QoI",mlmc_class.difference_QoI.mean,mlmc_class.difference_QoI.sample_variance)
     print("mean,variance time",mlmc_class.time_ML.mean,mlmc_class.time_ML.sample_variance)
@@ -310,7 +310,7 @@ if __name__ == '__main__':
                     mlmc_class.difference_QoI.values[level] = np.append(mlmc_class.difference_QoI.values[level],run_results[-1] - run_results[-2])
                     mlmc_class.time_ML.values[level] = np.append(mlmc_class.time_ML.values[level],time_MLi)
 
-        print("values",mlmc_class.difference_QoI.values,mlmc_class.time_ML.values)
+        # print("values",mlmc_class.difference_QoI.values,mlmc_class.time_ML.values)
         mlmc_class.FinalizeMLMCPhase()
         print("mean,variance QoI",mlmc_class.difference_QoI.mean,mlmc_class.difference_QoI.sample_variance)
         print("mean,variance time",mlmc_class.time_ML.mean,mlmc_class.time_ML.sample_variance)

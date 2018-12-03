@@ -23,7 +23,6 @@ class StatisticalVariable(object):
     def __init__(self):
         '''
         Constructor of the class
-
         Keyword arguments:
         self : an instance of a class
         '''
@@ -40,9 +39,12 @@ class StatisticalVariable(object):
         self.bias_error = None
         '''statistical error of the variable'''
         self.statistical_error = None
+        '''type of variable: scalar or field'''
+        self.type = None
+
 
     '''
-    update mean and second moment values
+    function updating mean and second moment values and computing the sample variance
     M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
     M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
     s_n^2 = M_{2,n} / (n-1)
@@ -69,11 +71,11 @@ class StatisticalVariable(object):
         del(new_mean, new_M2, new_sample_variance)
 
 
+'''TODO: inser distinction between scalar and field Quantity of Interests'''
 class MultilevelMonteCarlo(object):
     '''The base class for the MultilevelMonteCarlo-classes'''
     def __init__(self,settings):
         '''The constructor of the MultilevelMonteCarlo-Object
-
         Keyword arguments:
         self     : an instance of a class
         settings : the settings of the Multilevel Monte Carlo simulation
@@ -153,6 +155,7 @@ class MultilevelMonteCarlo(object):
         self.difference_QoI = StatisticalVariable()
         self.difference_QoI.values = [[] for i in range (self.settings["Lscreening"]+1)] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
         '''time_ML : time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized in consecutive levels'''
+        self.difference_QoI.type = "scalar"
         self.time_ML = StatisticalVariable()
         self.time_ML.values = [[] for i in range (self.settings["Lscreening"]+1)] # list containing the time to compute the level=l simulations
 
@@ -204,7 +207,7 @@ class MultilevelMonteCarlo(object):
         '''Compute Optimal Number of Levels for iteration i L_i'''
         self.ComputeLevels()
         '''compute theta splitting parameter according to the current_number_levels and tolerance_i'''
-        self.ComputeTheta()
+        self.ComputeTheta(self.current_number_levels)
         '''compute number of samples according to BayesianVariance and theta_i parameters'''
         self.ComputeNumberSamples()
         '''prepare lists'''
@@ -288,7 +291,7 @@ class MultilevelMonteCarlo(object):
         pg          = np.polyfit(np.log2(mesh_param_ratesLS),np.log2(cost_ML_ratesLS),1)
         gamma       = pg[0]
         C3          = 2**pg[1]
-        '''update the dictionary'''
+        '''update the rates error dictionary'''
         self.rates_error["calpha"] = C1
         self.rates_error["alpha"] = alpha
         self.rates_error["cbeta"] = C2
@@ -315,7 +318,7 @@ class MultilevelMonteCarlo(object):
         mean_local = self.difference_QoI.mean[:]
         variance_local = self.difference_QoI.sample_variance[:]
         nsam_local = self.number_samples[:]
-
+        '''append null values to evaluate the Bayesian variance for all levels'''
         if len(mean_local) < (levels+1):
             for i in range (0,(levels+1)-len(mean_local)):
                 mean_local.append(0.0)
@@ -325,7 +328,7 @@ class MultilevelMonteCarlo(object):
         if len(nsam_local) < (levels+1):
             for i in range ((levels+1)-len(nsam_local)):
                 nsam_local.append(0)
-
+        '''estimate the Bayesian variance'''
         BayesianVariance = []
         for level in range (0, (levels+1)):
             mu = calfa*mesh_param[level]**(-alfa)
@@ -336,11 +339,14 @@ class MultilevelMonteCarlo(object):
         self.BayesianVariance = BayesianVariance
         del(BayesianVariance)
 
+
     '''
-    function computing the iteration parameter i_E
-    the first i_E iterations are needed to obtain increasingly accurate estimates of the problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma]
-    the iterations i>i_E prevent redundant computations due to fluctuations in the estimate of P=[calpha,alpha,cbeta,beta,cgamma,gamma] by solving the problem for a slightly smaller tolerance than the desired one
-    the function "compute_tolerance_i" computes the tolerance for itaeration "i"
+    function computing the minimum number of iterations number_iterations_iE of the MLMC algorithm
+    iteration < number_iterations_iE : iterations needed to obtain increasingly accurate estimates of the
+                                       problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma]
+    iteration > number_iterations_iE : iterations preventing redundant computations due to fluctuations
+                                       in the estimate of P=[calpha,alpha,cbeta,beta,cgamma,gamma]
+                                       by solving the problem for a slightly smaller tolerance than the desired one
     '''
     def ComputeNumberIterationsMLMC(self):
         tolF = self.settings["tolF"]
@@ -349,6 +355,10 @@ class MultilevelMonteCarlo(object):
         r1 = self.settings["r1"]
         self.number_iterations_iE = np.floor((-np.log(tolF)+np.log(r2)+np.log(tol0))/(np.log(r1)))
 
+
+    '''
+    function computing the tolerance for the i^th iteration
+    '''
     def ComputeTolerancei(self):
         tolF = self.settings["tolF"]
         r2 = self.settings["r2"]
@@ -364,146 +374,127 @@ class MultilevelMonteCarlo(object):
         self.tolerance_i = tol
 
 
-
-
     '''
-    function computing the number of levels for iteration "i" of the cmlmc algorithm
+    function computing the number of levels for i^th iteration of the algorithm
     '''
     def ComputeLevels(self):
-        '''observe I have already computed mesh parameters for all the possible levels, i.e. up to Lmax'''
         tol = self.tolerance_i
-        Wmin   = 1e10
-        Lopt_local = self.current_number_levels
-        nsam_local = self.number_samples
-        Cgamma = self.rates_error["cgamma"]
+        Wmin   = 1e10 # high cost to compare with all the level costs (needs to be a high value)
+        current_number_levels = self.current_number_levels
+        cgamma = self.rates_error["cgamma"]
         gamma  = self.rates_error["gamma"]
-        Calpha = self.rates_error["calpha"]
+        calpha = self.rates_error["calpha"]
         alpha = self.rates_error["alpha"]
-        Cphi = self.settings["cphi"]
-        mesh_param_all = self.mesh_parameters
-        mean = self.difference_QoI.mean
-        variance = self.difference_QoI.sample_variance
+        cphi = self.settings["cphi"]
+        mesh_parameters_all_levels = self.mesh_parameters
         Lmax = self.settings["Lmax"]
         Lmin = self.current_number_levels
-
+        '''prepare mesh_parameters_all_levels and BayesianVariance to have both length = Lmax + 1'''
         if len(self.BayesianVariance) < (Lmax+1):
             self.EstimateBayesianVariance(Lmax)
         BayesianVariance = self.BayesianVariance
-        '''now both mesh_param_all and BayesianVariance have length = Lmax + 1'''
-        model_cost = np.multiply(Cgamma,np.power(mesh_param_all,gamma))
-        '''also model_cost has length = Lmax + 1'''
-                                                                
-        
+        model_cost = np.multiply(cgamma,np.power(mesh_parameters_all_levels,gamma)) # model_cost has length = Lmax + 1
+
+        '''observe it is not mandatory to increase the number of levels and we may continue using the number of levels of the previous cmlmc iteration, i.e. Lmin'''
         for lev in range(Lmin, Lmax+1):
-            '''it is not mandatory to increase the number of levels and we may continue using the number of levels of the previous iteration, i.e. Lmin
-            consider theta_i = 1.0 - (calpha*(M_L**(-alpha)))/tol_i'''
-            theta_i = 1.0 - (Calpha * (mesh_param_all[lev])**(-alpha))/tol # I do not call the def "theta_model",
-                                                                    # because I cannot use a task inside a task
+            # theta_i = 1.0 - (calpha * (mesh_parameters_all_levels[lev])**(-alpha))/tol # use the ComputeTheta function to evaluate theta for level lev
+            self.ComputeTheta(lev)
+            theta_i = self.theta_i
             if (theta_i > 0.0) and (theta_i < 1.0):
-                '''update the cost in future: for the levels we know use cost_ML
-                                            for the levels we do not know use "cgamma*Ml**gamma", where Ml is the mesh parameter'''
                 coeff2 = np.sum(np.sqrt(np.multiply(model_cost[0:lev+1],BayesianVariance[0:lev+1])))
                 coeff2 = coeff2**2.0
-                coeff1 = (Cphi/(theta_i*tol))**2.0 # formula in case QoI is scalar, if QoI use the formula described in [PNL16]
-                
+                coeff1 = (cphi/(theta_i*tol))**2.0 # formula in case QoI is scalar, if QoI is a field use the formula described in [PNL17]
             else:
                 raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
-
             Wtot = coeff1 * coeff2
             print("print level and correspondent cost",lev,Wtot)
+            '''change number of levels if the cost condition is satisfied'''
             if Wtot < Wmin:
                 Wmin = Wtot
-                Lopt_local = lev
-        
-        if Lopt_local > Lmin:
-            Lopt_local = Lmin + 1
-            '''i.e. add one level per time
-            note that the number of levels starts from 0, not from 1,
-            so we have a difference of one between the number of levels
-            and the length of the arrays
-            (e.g. difference_value, mesh_param_all or number_sample)'''
-        BayesianVariance = BayesianVariance[0:Lopt_local+1]
-        '''need to leave Lopt, and so the new BayesianVariance value,
-        because I need this value to compute number of samples'''
-
+                current_number_levels = lev
+        '''add maximum one level per time'''
+        if current_number_levels > Lmin:
+            current_number_levels = Lmin + 1
+        '''update length of Bayesian variance with respect to the current levels'''
+        BayesianVariance = BayesianVariance[0:current_number_levels+1]
+        '''update variables'''
         self.BayesianVariance = BayesianVariance
-        self.current_number_levels = Lopt_local
+        self.current_number_levels = current_number_levels
         self.previous_number_levels = Lmin
+        del(tol,Wmin,current_number_levels,cgamma,gamma,calpha,alpha,cphi,mesh_parameters_all_levels,Lmax,Lmin)
 
 
     '''
     function computing the splitting parameter theta \in (0,1)
     '''
-    def ComputeTheta(self):
-        Calpha = self.rates_error["calpha"]
+    def ComputeTheta(self,level):
+        calpha = self.rates_error["calpha"]
         alpha = self.rates_error["alpha"]
         tol = self.tolerance_i
-        mesh_param = self.mesh_parameters[self.current_number_levels]
-        self.theta_i = 1.0 - (Calpha * (mesh_param)**(-alpha))/tol
+        mesh_param = self.mesh_parameters[level]
+        self.theta_i = 1.0 - (calpha * (mesh_param)**(-alpha))/tol
         if (self.theta_i < 0.0) or (self.theta_i > 1.0):
             raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
+        del(calpha,alpha,tol,mesh_param)
+
 
     '''
-    function computing the new number of samples for each level for the iteration "i" of the cmlmc algorithm
+    function computing the updated number of samples for each level for the i^th iteration of the cmlmc algorithm
     '''
     def ComputeNumberSamples(self):
-        L_opt = self.current_number_levels
+        current_number_levels = self.current_number_levels
         BayesianVariance = self.BayesianVariance
-        minNadd = np.multiply(np.ones(L_opt+1),self.settings["minimum_add_level"])
-        Cgamma = self.rates_error["cgamma"]
+        min_samples_add = np.multiply(np.ones(current_number_levels+1),self.settings["minimum_add_level"])
+        cgamma = self.rates_error["cgamma"]
         gamma  = self.rates_error["gamma"]
-        Cphi = self.settings["cphi"]
-        mesh_param_local = self.mesh_parameters[0:L_opt+1]
+        cphi = self.settings["cphi"]
+        mesh_parameters_current_levels = self.mesh_parameters[0:current_number_levels+1]
         theta = self.theta_i
         tol = self.tolerance_i
         nsam = self.number_samples
-
-        coeff1 = (Cphi/(theta*tol))**2.0
-        model_cost = np.multiply(Cgamma,np.power(mesh_param_local,gamma))
-
+        '''compute optimal number of samples and store previous number of samples'''
+        coeff1 = (cphi/(theta*tol))**2.0
+        model_cost = np.multiply(cgamma,np.power(mesh_parameters_current_levels,gamma))
         coeff2 = np.sqrt(np.divide(BayesianVariance,model_cost))
         coeff3 = np.sum(np.sqrt(np.multiply(model_cost,BayesianVariance)))
-        
         opt_number_samples = np.multiply(coeff1*coeff3,coeff2)
         print("optimal number of samples computed = ",opt_number_samples)
-        
-        for i in range (0,len(opt_number_samples)):
-            opt_number_samples[i] = np.ceil(opt_number_samples[i])
-            opt_number_samples[i] = opt_number_samples[i].astype(int)
-
+        if (len(opt_number_samples) != current_number_levels+1):
+            raise Exception ("length optimal number of samples and current optimal number of level not coherent")
+        for lev in range (current_number_levels+1):
+            opt_number_samples[lev] = np.ceil(opt_number_samples[lev])
+            opt_number_samples[lev] = opt_number_samples[lev].astype(int)
         if len(nsam) < len(opt_number_samples):
-            for i in range (0,len(opt_number_samples)-len(nsam)):
+            for i in range (len(opt_number_samples)-len(nsam)):
                 nsam.append(0)
+        '''copy local string and avoid reference since we modify it'''
         previous_number_samples = nsam[:]
-
-        dNsam = []
-        for l in range(0,L_opt+1):
-            dNsam.append(opt_number_samples[l] - nsam[l])
-            if dNsam[l] <= 0.:
-                dNsam[l] = 0.
-                opt_number_samples[l] = nsam[l]
-                '''i.e. here I set that if NlOPT[l] is smaller than the previous
-                number of samples, I keep the previous number of samples'''
-    
-            if (dNsam[l] > 0.) and (dNsam[l] < minNadd[l]):
-                dNsam[l] = minNadd[l]
-                opt_number_samples[l] = nsam[l] + dNsam[l]
-                '''i.e. the minimum addition of samples is given by the array minNadd
-                so if the new number of samples would be smaller than the old
-                number of samples, I set to have an addition of minNadd[l] samples'''
-            
-            nsam[l] = opt_number_samples[l]
-        for i in range (0,len(dNsam)):
-            dNsam[i] = int(dNsam[i])
-            # dNsam[i] = dNsam[i].astype(int)
-            nsam[i] = int(nsam[i])
-            # nsam[i] = nsam[i].astype(int)
-
-        '''note that I do not decrease the number of samples wrt previous MLMC iterations!!'''
+        '''evaluate difference between new and previous number of samples'''
+        diff_nsam = []
+        for lev in range(current_number_levels+1):
+            diff_nsam.append(opt_number_samples[lev] - nsam[lev])
+            '''set here that if the optimal number of samples is smaller than
+            the previous number of samples, keep the previous number of samples,
+            i.e. do not decrease the number of samples w.r.t. previous iteration'''
+            if diff_nsam[lev] <= 0.:
+                diff_nsam[lev] = 0.
+                opt_number_samples[lev] = nsam[lev]
+            '''set here to have an addition of minimum min_samples_add per level'''
+            if (diff_nsam[lev] > 0.) and (diff_nsam[lev] < min_samples_add[lev]):
+                diff_nsam[lev] = min_samples_add[lev]
+                opt_number_samples[lev] = nsam[lev] + diff_nsam[lev]
+            nsam[lev] = opt_number_samples[lev]
+        '''convert current number of samples and difference number of samples to integers'''
+        for lev in range (current_number_levels+1):
+            diff_nsam[lev] = int(diff_nsam[lev])
+            nsam[lev] = int(nsam[lev])
+        '''update variables and delete local variables'''
         self.number_samples = nsam
-        self.difference_number_samples = dNsam
+        self.difference_number_samples = diff_nsam
         self.previous_number_samples = previous_number_samples
-        return nsam,dNsam,previous_number_samples
+        del(current_number_levels,BayesianVariance,min_samples_add,cgamma,gamma,cphi,mesh_parameters_current_levels,\
+        theta,tol,nsam,opt_number_samples,previous_number_samples,diff_nsam)
+
 
     '''
     function computing the mlmc estimator for the mean of the Quantity of Interest
@@ -520,9 +511,9 @@ class MultilevelMonteCarlo(object):
     '''
     def ComputeTotalErrorMLMC(self):
         self.difference_QoI.bias_error = np.abs(self.difference_QoI.mean[self.current_number_levels])
-        var_bayes = np.zeros(np.size(self.number_samples))
-        for i in range(self.current_number_levels+1):
-            var_bayes[i] = self.BayesianVariance[i]/self.number_samples[i]
-        self.difference_QoI.statistical_error = self.settings["cphi"] * np.sqrt(np.sum(var_bayes))
+        variance_from_bayesian = np.zeros(np.size(self.number_samples))
+        for lev in range(self.current_number_levels+1):
+            variance_from_bayesian[lev] = self.BayesianVariance[lev]/self.number_samples[lev]
+        self.difference_QoI.statistical_error = self.settings["cphi"] * np.sqrt(np.sum(variance_from_bayesian))
         TErr = self.difference_QoI.bias_error + self.difference_QoI.statistical_error
         self.TErr = TErr
