@@ -185,14 +185,39 @@ class ConstructionUtility
             }
         }
 
-        // Thermal Conditions
-        const int nconditions = mrThermalModelPart.GetMesh(0).Conditions().size();
+        // Mechanical Conditions
+        const int nconditions_mech = mrMechanicalModelPart.GetMesh(0).Conditions().size();
 
-        if (nconditions != 0)
+        if (nconditions_mech != 0)
+        {
+            ModelPart::ConditionsContainerType::iterator cond_begin_mech = mrMechanicalModelPart.ConditionsBegin();
+
+            for (int k = 0; k < nconditions_mech; ++k)
+            {
+                ModelPart::ConditionsContainerType::iterator it_cond_mech = cond_begin_mech + k;
+                const unsigned int number_of_points = (*it_cond_mech).GetGeometry().PointsNumber();
+                unsigned int count = 0;
+
+                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                {
+                    if ((*it_cond_mech).GetGeometry()[i_node].Is(ACTIVE) == true)
+                    {
+                        count++;
+                    }
+                }
+                if (count == number_of_points) it_cond_mech->Set(ACTIVE, true);
+                else it_cond_mech->Set(ACTIVE, false);
+            }
+        }
+
+        // Thermal Conditions
+        const int nconditions_thermal = mrThermalModelPart.GetMesh(0).Conditions().size();
+
+        if (nconditions_thermal != 0)
         {
             ModelPart::ConditionsContainerType::iterator cond_begin_thermal = mrThermalModelPart.ConditionsBegin();
 
-            for (int k = 0; k < nconditions; ++k)
+            for (int k = 0; k < nconditions_thermal; ++k)
             {
                 ModelPart::ConditionsContainerType::iterator it_cond_thermal = cond_begin_thermal + k;
                 const unsigned int number_of_points = (*it_cond_thermal).GetGeometry().PointsNumber();
@@ -332,14 +357,39 @@ class ConstructionUtility
             }
         }
 
-        // Thermal Conditions
-        const int nconditions = mrThermalModelPart.GetMesh(0).Conditions().size();
+        // Mechanical Conditions
+        const int nconditions_mech = mrMechanicalModelPart.GetMesh(0).Conditions().size();
 
-        if (nconditions != 0)
+        if (nconditions_mech != 0)
+        {
+            ModelPart::ConditionsContainerType::iterator cond_begin_mech = mrMechanicalModelPart.ConditionsBegin();
+
+            for (int k = 0; k < nconditions_mech; ++k)
+            {
+                ModelPart::ConditionsContainerType::iterator it_cond_mech = cond_begin_mech + k;
+                const unsigned int number_of_points = (*it_cond_mech).GetGeometry().PointsNumber();
+                unsigned int count = 0;
+
+                for (unsigned int i_node = 0; i_node < number_of_points; ++i_node)
+                {
+                    if ((*it_cond_mech).GetGeometry()[i_node].Is(ACTIVE) == true)
+                    {
+                        count++;
+                    }
+                }
+                if (count == number_of_points) it_cond_mech->Set(ACTIVE, true);
+                else it_cond_mech->Set(ACTIVE, false);
+            }
+        }
+
+        // Thermal Conditions
+        const int nconditions_thermal = mrThermalModelPart.GetMesh(0).Conditions().size();
+
+        if (nconditions_thermal != 0)
         {
             ModelPart::ConditionsContainerType::iterator cond_begin_thermal = mrThermalModelPart.ConditionsBegin();
 
-            for (int k = 0; k < nconditions; ++k)
+            for (int k = 0; k < nconditions_thermal; ++k)
             {
                 ModelPart::ConditionsContainerType::iterator it_cond_thermal = cond_begin_thermal + k;
                 const unsigned int number_of_points = (*it_cond_thermal).GetGeometry().PointsNumber();

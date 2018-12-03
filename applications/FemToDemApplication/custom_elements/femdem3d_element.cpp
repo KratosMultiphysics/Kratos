@@ -108,18 +108,20 @@ void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	// After the mapping, the thresholds of the edges ( are equal to 0.0) are imposed equal to the IP threshold
 	const Vector thresholds = this->GetThresholds();
 	const double ElementThreshold = this->GetValue(STRESS_THRESHOLD);
-	if (thresholds[0] == 0.0 && thresholds[1] == 0.0 && thresholds[2] == 0.0) {
+	if (thresholds[0] + thresholds[1] + thresholds[2] + thresholds[3] +
+	 thresholds[4] + thresholds[4] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
 			this->SetThreshold(ElementThreshold, edge);
 		}
 	}
 
 	// IDEM with the edge damages
-	const Vector DamageEdges = this->GetDamages();
-	const double DamageElement = this->GetValue(DAMAGE_ELEMENT);
-	if (DamageEdges[0] == 0.0 && DamageEdges[1] == 0.0 && DamageEdges[2] == 0.0) {
+	const Vector damage_edges = this->GetDamages();
+	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
+	if (damage_edges[0] + damage_edges[1] + damage_edges[2] + 
+	 damage_edges[3] + damage_edges[4] + damage_edges[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
-			this->SetConvergedDamages(DamageElement, edge);
+			this->SetConvergedDamages(damage_element, edge);
 		}
 	}
 }
@@ -240,9 +242,6 @@ void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	this->ResetNonConvergedVars();
 	this->SetValue(DAMAGE_ELEMENT, damage_element);
 	this->SetValue(STRESS_THRESHOLD, this->GetMaxValue(this->GetThresholds()));
-
-	// Reset the nodal force flag for the next time step
-	Geometry<Node<3>> &NodesElement = this->GetGeometry();
 }
 
 void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
