@@ -793,7 +793,7 @@ class FEMDEM_Solution:
         # open general Displ/Reaction File
         self.PlotFile = open("PlotFile.txt","w")
         self.PlotFile.write("This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!\n\n")
-        self.PlotFile.write("       time          displ_x        displ_y       Reaction_x     Reaction_y    \n")
+        self.PlotFile.write("       time                   displ_x               displ_y         Reaction_x     Reaction_y    \n")
         self.PlotFile.close()
         self.TimePreviousPlotting = 0.0
         self.PlotFilesNodesList    = []
@@ -822,7 +822,7 @@ class FEMDEM_Solution:
                 Id = self.FEM_Solution.ProjectParameters["watch_elements_list"][elem].GetInt()
                 iPlotFileElem = open("PlotElement_" + str(Id) + ".txt","w")
                 iPlotFileElem.write("\n")
-                iPlotFileElem.write("       time             Sxx           Syy             Sxy           Exx             Eyy          Exy           Damage  \n")
+                iPlotFileElem.write("          time                       Sxx                   Syy                      Sxy                    Exx                     Eyy                   Exy                Damage  \n")
                 iPlotFileElem.close()
                 self.PlotFilesElementsList.append(iPlotFileElem)
                 self.PlotFilesElementsIdList.append(Id)
