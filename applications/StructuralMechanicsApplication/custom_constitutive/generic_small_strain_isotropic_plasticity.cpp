@@ -109,8 +109,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         // We compute the stress or the constitutive matrix
         if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
             r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
-            // Elastic Matrix
-            this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
 
             // We get some variables
             double threshold = this->GetThreshold();
@@ -121,8 +119,10 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
                 predictive_stress_vector = rValues.GetStressVector();
             } else {
-                // S0 = r_constitutive_matrix:(E-Ep)
-                predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+                // S0 = Elastic stress with strain (E-Ep)
+                Vector aux_stress = ZeroVector(VoigtSize);
+                BaseType::CalculatePK2Stress(r_strain_vector - plastic_strain, aux_stress, rValues);
+                noalias(predictive_stress_vector) = aux_stress;
             }
 
             // Initialize Plastic Parameters
@@ -131,6 +131,10 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
             BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
             BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
 
+            // Elastic Matrix
+            this->CalculateElasticMatrix(r_constitutive_matrix, rValues);
+
+            // Compute the plastic parameters
             const double F = TConstLawIntegratorType::CalculatePlasticParameters(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
                 threshold, plastic_denominator, f_flux, g_flux,
