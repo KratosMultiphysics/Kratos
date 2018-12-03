@@ -105,7 +105,9 @@ public:
     static void CalculateTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveLaw* pConstitutiveLaw,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
+        const bool ConsiderPertubationThreshold = true,
+        const IndexType ApproximationOrder = 2
         )
     {
         // Ensure the proper flag
@@ -113,9 +115,9 @@ public:
         const bool use_element_provided_strain = cl_options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         if (use_element_provided_strain) {
-            CalculateTangentTensorSmallDeformationProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+            CalculateTangentTensorSmallDeformationProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold, ApproximationOrder);
         } else {
-            CalculateTangentTensorSmallDeformationNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+            CalculateTangentTensorSmallDeformationNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold, ApproximationOrder);
         }
     }
 
@@ -128,44 +130,80 @@ public:
     static void CalculateTangentTensorSmallDeformationProvidedStrain(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveLaw *pConstitutiveLaw,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
+        const bool ConsiderPertubationThreshold = true,
+        const IndexType ApproximationOrder = 2
         )
     {
         // Converged values to be storaged
-        const Vector strain_vector_gp = rValues.GetStrainVector();
-        const Vector stress_vector_gp = rValues.GetStressVector();
+        const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
+        const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
         // The number of components
-        const SizeType num_components = stress_vector_gp.size();
+        const SizeType num_components = unperturbed_stress_vector_gp.size();
 
         // The tangent tensor
         Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
         r_tangent_tensor.clear();
         Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
+      
+        // Calculate the perturbation
+        double pertubation;
+        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+            double component_perturbation;
+            CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
+            pertubation = std::max(component_perturbation, pertubation);
+        }
+      
+        // We check that the perturbation has a threshold value of PerturbationThreshold
+        if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
         // Loop over components of the strain
         Vector& r_perturbed_strain = rValues.GetStrainVector();
         Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
-            // Calculate the perturbation
-            double pertubation;
-            CalculatePerturbation(r_perturbed_strain, i_component, pertubation);
+            if (ApproximationOrder == 1) {
+                // Apply the perturbation
+                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
 
-            // We check that the perturbation has a threshold value of PerturbationThreshold
-            //if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-            // Apply the perturbation
-            PerturbateStrainVector(r_perturbed_strain, strain_vector_gp, pertubation, i_component);
+                // Compute tangent moduli
+                const Vector delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
+                CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain, delta_stress, i_component);
+            } else {
+                // Apply the perturbation (positive)
+                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, pertubation, i_component);
 
-            // We continue with the calculations
-            IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-            const Vector& delta_stress = r_perturbed_integrated_stress - stress_vector_gp;
-            CalculateComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, i_component);
+                // Compute stress (plus)
+                const Vector strain_plus = r_perturbed_strain;
+                const Vector stress_plus = r_perturbed_integrated_stress;
+
+                // Reset the values to the initial ones
+                noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+
+                // Apply the perturbation (negative)
+                PerturbateStrainVector(r_perturbed_strain, unperturbed_strain_vector_gp, - pertubation, i_component);
+
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+                // Compute stress (minus)
+                const Vector strain_minus = r_perturbed_strain;
+                const Vector stress_minus = r_perturbed_integrated_stress;
+
+                // Finally we compute the components
+                CalculateComponentsToTangentTensorSecondOrder(auxiliar_tensor, strain_plus, strain_minus, stress_plus, stress_minus, i_component);
+            }
 
             // Reset the values to the initial ones
-            noalias(r_perturbed_strain) = strain_vector_gp;
-            noalias(r_perturbed_integrated_stress) = stress_vector_gp;
+            noalias(r_perturbed_strain) = unperturbed_strain_vector_gp;
+            noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
         }
         noalias(r_tangent_tensor) = auxiliar_tensor;
     }
@@ -179,14 +217,17 @@ public:
     static void CalculateTangentTensorSmallDeformationNotProvidedStrain(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveLaw *pConstitutiveLaw,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy,
+        const bool ConsiderPertubationThreshold = true,
+        const IndexType ApproximationOrder = 2
         )
     {
         // Converged values to be storaged
-        const Vector stress_vector_gp = rValues.GetStressVector();
+        const Vector unperturbed_strain_vector_gp = Vector(rValues.GetStrainVector());
+        const Vector unperturbed_stress_vector_gp = Vector(rValues.GetStressVector());
 
         // The number of components
-        const SizeType num_components = stress_vector_gp.size();
+        const SizeType num_components = unperturbed_stress_vector_gp.size();
 
         // Converged values to be storaged (only used in case of elements that not provide the strain)
         const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
@@ -200,34 +241,71 @@ public:
         const std::size_t size1 = unperturbed_deformation_gradient_gp.size1();
         const std::size_t size2 = unperturbed_deformation_gradient_gp.size2();
 
+        KRATOS_ERROR_IF_NOT(ApproximationOrder == 1 || ApproximationOrder == 2) << "The approximation order for the perturbation is " << ApproximationOrder << ". Options are 1 and 2" << std::endl;
+
+        // Calculate the perturbation
+        double pertubation;
+        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+            double component_perturbation;
+            CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
+            pertubation = std::max(component_perturbation, pertubation);
+        }
+        // We check that the perturbation has a threshold value of PerturbationThreshold
+        if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+      
         // Loop over components of the strain
+        Vector& r_perturbed_strain = rValues.GetStrainVector();
         Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
         Matrix& r_perturbed_deformation_gradient = const_cast<Matrix&>(rValues.GetDeformationGradientF());
         double& r_perturbed_det_deformation_gradient = const_cast<double&>(rValues.GetDeterminantF());
         for (IndexType i_component = 0; i_component < size1; ++i_component) {
             for (IndexType j_component = i_component; j_component < size2; ++j_component) {
-                // Calculate the perturbation
-                double pertubation;
-                CalculatePerturbationFiniteDeformation(r_perturbed_deformation_gradient, i_component, j_component, pertubation);
+                if (ApproximationOrder == 1) {
+                    // Apply the perturbation
+                    PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
 
-                // We check that the perturbation has a threshold value of PerturbationThreshold
-                //if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+                    // We continue with the calculations
+                    IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-                // Apply the perturbation
-                PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
+                    // Compute delta stress
+                    const Vector delta_stress = r_perturbed_integrated_stress - unperturbed_stress_vector_gp;
 
-                // We continue with the calculations
-                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+                    // Finally we compute the components
+                    const IndexType voigt_index = CalculateVoigtIndex(delta_stress.size(), i_component, j_component);
+                    CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain, delta_stress, voigt_index);
+                } else if (ApproximationOrder == 2) {
+                    // Apply the perturbation (positive)
+                    PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
 
-                // Compute delta stress
-                const Vector& delta_stress = r_perturbed_integrated_stress - stress_vector_gp;
+                    // We continue with the calculations
+                    IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-                // Finally we compute the components
-                const IndexType voigt_index = CalculateVoigtIndex(delta_stress, i_component, j_component);
-                CalculateComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, voigt_index);
+                    // Compute stress (plus)
+                    const Vector strain_plus = r_perturbed_strain;
+                    const Vector stress_plus = r_perturbed_integrated_stress;
+
+                    // Reset the values to the initial ones
+                    noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
+                    noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
+                    r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
+
+                    // Apply the perturbation (negative)
+                    PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, - pertubation, i_component, j_component);
+
+                    // We continue with the calculations
+                    IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+                    // Compute stress (minus)
+                    const Vector strain_minus = r_perturbed_strain;
+                    const Vector stress_minus = r_perturbed_integrated_stress;
+
+                    // Finally we compute the components
+                    const IndexType voigt_index = CalculateVoigtIndex(stress_plus.size(), i_component, j_component);
+                    CalculateComponentsToTangentTensorSecondOrder(auxiliar_tensor, strain_plus, strain_minus, stress_plus, stress_minus, voigt_index);
+                }
 
                 // Reset the values to the initial ones
-                noalias(r_perturbed_integrated_stress) = stress_vector_gp;
+                noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
                 noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
                 r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
             }
@@ -243,72 +321,59 @@ public:
      */
     static void CalculateTangentTensorFiniteDeformation(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw *pConstitutiveLaw,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_PK2
+        ConstitutiveLaw* pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_PK2,
+        const bool ConsiderPertubationThreshold = true,
+        const IndexType ApproximationOrder = 2
         )
     {
-        const Variable<Vector>& r_stress_variable = rStressMeasure == ConstitutiveLaw::StressMeasure_PK2 ? PK2_STRESS_VECTOR : KIRCHHOFF_STRESS_VECTOR;
-
-        // Converged values to be storaged
-        const Vector stress_vector_gp = rValues.GetStressVector();
-        const Matrix unperturbed_deformation_gradient_gp = Matrix(rValues.GetDeformationGradientF());
-        const double det_unperturbed_deformation_gradient_gp = double(rValues.GetDeterminantF());
-
-        // The number of components
-        const SizeType num_components = stress_vector_gp.size();
-
-        const std::size_t size1 = unperturbed_deformation_gradient_gp.size1();
-        const std::size_t size2 = unperturbed_deformation_gradient_gp.size2();
-
-        double aux_det;
-        Matrix inverse_perturbed_deformation_gradient(size1, size2);
-        Matrix deformation_gradient_increment(size1, size2);
-
-        // The tangent tensor
-        Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
-        r_tangent_tensor.clear();
-        Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
-
-        // Loop over components of the strain
-        Vector& r_perturbed_integrated_stress = rValues.GetStressVector();
-        Matrix& r_perturbed_deformation_gradient = const_cast<Matrix&>(rValues.GetDeformationGradientF());
-        double& r_perturbed_det_deformation_gradient = const_cast<double&>(rValues.GetDeterminantF());
-        for (std::size_t i_component = 0; i_component < size1; ++i_component) {
-            for (std::size_t j_component = i_component; j_component < size2; ++j_component) {
-                // Calculate the perturbation
-                double pertubation;
-                CalculatePerturbationFiniteDeformation(r_perturbed_deformation_gradient, i_component, j_component, pertubation);
-
-                // We check that the perturbation has a threshold value of PerturbationThreshold
-                if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
-
-                // Apply the perturbation
-                PerturbateDeformationGradient(r_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp, pertubation, i_component, j_component);
-
-                // We continue with the calculations
-                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
-
-                // We compute the new predictive stress vector // TODO: I need to check this, maybe I am overcomplicating everything
-                MathUtils<double>::InvertMatrix(r_perturbed_deformation_gradient,inverse_perturbed_deformation_gradient, aux_det);
-                deformation_gradient_increment = prod(inverse_perturbed_deformation_gradient, unperturbed_deformation_gradient_gp);
-                rValues.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient_increment));
-                rValues.SetDeformationGradientF(deformation_gradient_increment);
-                Vector delta_stress;
-                pConstitutiveLaw->CalculateValue(rValues, r_stress_variable, delta_stress);
-
-                // Finally we compute the components
-                const IndexType voigt_index = CalculateVoigtIndex(delta_stress, i_component, j_component);
-                CalculateComponentsToTangentTensor(auxiliar_tensor, delta_stress, pertubation, voigt_index);
-
-                // Reset the values to the initial ones
-                noalias(r_perturbed_integrated_stress) = stress_vector_gp;
-                noalias(r_perturbed_deformation_gradient) = unperturbed_deformation_gradient_gp;
-                r_perturbed_det_deformation_gradient = det_unperturbed_deformation_gradient_gp;
-            }
-        }
-
-        noalias(r_tangent_tensor) = auxiliar_tensor;
+        CalculateTangentTensorSmallDeformationNotProvidedStrain(rValues, pConstitutiveLaw, rStressMeasure, ConsiderPertubationThreshold, ApproximationOrder);
     }
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     /**
      * @brief This method computes the pertubation
@@ -318,7 +383,7 @@ public:
      */
     static void CalculatePerturbation(
         const Vector& rStrainVector,
-        const std::size_t Component,
+        const IndexType Component,
         double& rPerturbation
         )
     {
@@ -345,8 +410,8 @@ public:
      */
     static void CalculatePerturbationFiniteDeformation(
         const Matrix& rDeformationGradient,
-        const std::size_t ComponentI,
-        const std::size_t ComponentJ,
+        const IndexType ComponentI,
+        const IndexType ComponentJ,
         double& rPerturbation
         )
     {
@@ -375,7 +440,7 @@ public:
         Vector& rPerturbedStrainVector,
         const Vector& rStrainVectorGP,
         const double Perturbation,
-        const int Component
+        const IndexType Component
         )
     {
         noalias(rPerturbedStrainVector) = rStrainVectorGP;
@@ -394,8 +459,8 @@ public:
         Matrix& rPerturbedDeformationGradient,
         const Matrix& rDeformationGradientGP,
         const double Perturbation,
-        const std::size_t ComponentI,
-        const std::size_t ComponentJ
+        const IndexType ComponentI,
+        const IndexType ComponentJ
         )
     {
         Matrix aux_perturbation_matrix = IdentityMatrix(rDeformationGradientGP.size1());
@@ -416,7 +481,7 @@ public:
      */
     static void IntegratePerturbedStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw *pConstitutiveLaw,
+        ConstitutiveLaw* pConstitutiveLaw,
         const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
         )
     {
@@ -445,19 +510,15 @@ public:
         double& rMaxValue
         )
     {
-        const std::size_t dimension = rArrayValues.size();
-        std::vector<double> non_zero_values;
+        const SizeType dimension = rArrayValues.size();
 
-        for (std::size_t i = 1; i < dimension; ++i) {
-            if (std::abs(rArrayValues[i]) > tolerance)
-                non_zero_values.push_back(std::abs(rArrayValues[i]));
-        }
-        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
-
-        double aux = std::abs(non_zero_values[0]);
-        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
-            if (non_zero_values[i] > aux)
-                aux = non_zero_values[i];
+        IndexType counter = 0;
+        double aux = 0.0;
+        for (IndexType i = 0; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) > aux) {
+                aux = std::abs(rArrayValues[i]);
+                ++counter;
+            }
         }
 
         rMaxValue = aux;
@@ -473,22 +534,22 @@ public:
         double& rMaxValue
         )
     {
-        const std::size_t size1 = rMatrixValues.size1();
-        const std::size_t size2 = rMatrixValues.size2();
-        std::vector<double> non_zero_values;
+        // Sizes of the matrix
+        const SizeType size1 = rMatrixValues.size1();
+        const SizeType size2 = rMatrixValues.size2();
 
-        for (std::size_t i = 0; i < size1; ++i) {
-            for (std::size_t j = 0; j < size2; ++j) {
-                if (std::abs(rMatrixValues(i, j)) > tolerance)
-                    non_zero_values.push_back(std::abs(rMatrixValues(i, j)));
+        // The deformation gradient is an identity matrix for zero deformation
+        const Matrix working_matrix = rMatrixValues - IdentityMatrix(size1);
+
+        IndexType counter = 0;
+        double aux = 0.0;
+        for (IndexType i = 0; i < size1; ++i) {
+            for (IndexType j = 0; j < size2; ++j) {
+                if (std::abs(working_matrix(i, j)) > aux) {
+                    aux = std::abs(working_matrix(i, j));
+                    ++counter;
+                }
             }
-        }
-        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The deformation gradient is full of 0's..." << std::endl;
-
-        double aux = std::abs(non_zero_values[0]);
-        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
-            if (non_zero_values[i] > aux)
-                aux = non_zero_values[i];
         }
 
         rMaxValue = aux;
@@ -504,19 +565,15 @@ public:
         double& rMinValue
         )
     {
-        const std::size_t  dimension = rArrayValues.size();
-        std::vector<double> non_zero_values;
+        const SizeType dimension = rArrayValues.size();
 
-        for (std::size_t i = 0; i < dimension; ++i) {
-            if (std::abs(rArrayValues[i]) > tolerance)
-                non_zero_values.push_back(std::abs(rArrayValues[i]));
-        }
-        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
-
-        double aux = std::abs(non_zero_values[0]);
-        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
-            if (non_zero_values[i] < aux)
-                aux = non_zero_values[i];
+        IndexType counter = 0;
+        double aux = std::numeric_limits<double>::max();
+        for (IndexType i = 0; i < dimension; ++i) {
+            if (std::abs(rArrayValues[i]) < aux) {
+                aux = std::abs(rArrayValues[i]);
+                ++counter;
+            }
         }
 
         rMinValue = aux;
@@ -532,22 +589,22 @@ public:
         double& rMinValue
         )
     {
-        const std::size_t size1 = rMatrixValues.size1();
-        const std::size_t size2 = rMatrixValues.size2();
-        std::vector<double> non_zero_values;
+       // Sizes of the matrix
+        const SizeType size1 = rMatrixValues.size1();
+        const SizeType size2 = rMatrixValues.size2();
 
-        for (std::size_t i = 0; i < size1; ++i) {
-            for (std::size_t j = 0; j < size2; ++j) {
-                if (std::abs(rMatrixValues(i, j)) > tolerance)
-                    non_zero_values.push_back(std::abs(rMatrixValues(i, j)));
+        // The deformation gradient is an identity matrix for zero deformation
+        const Matrix working_matrix = rMatrixValues - IdentityMatrix(size1);
+
+        IndexType counter = 0;
+        double aux = std::numeric_limits<double>::max();
+        for (IndexType i = 0; i < size1; ++i) {
+            for (IndexType j = 0; j < size2; ++j) {
+                if (std::abs(working_matrix(i, j)) < aux) {
+                    aux = std::abs(working_matrix(i, j));
+                    ++counter;
+                }
             }
-        }
-        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The deformation gradient is full of 0's..." << std::endl;
-
-        double aux = std::abs(non_zero_values[0]);
-        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
-            if (non_zero_values[i] < aux)
-                aux = non_zero_values[i];
         }
 
         rMinValue = aux;
@@ -556,20 +613,46 @@ public:
     /**
      * @brief This calculates the values to the tangent tensor
      * @param rTangentTensor The desired tangent tensor
+     * @param rVectorStrain The perturbated strain considered
      * @param rDeltaStress The increment of stress
-     * @param Perturbation The pertubation considered
      * @param Component Index of the component to compute
      */
-    static void CalculateComponentsToTangentTensor(
+    static void CalculateComponentsToTangentTensorFirstOrder(
         Matrix& rTangentTensor,
+        const Vector& rVectorStrain,
         const Vector& rDeltaStress,
-        const double Perturbation,
         const IndexType Component
         )
     {
+        const double perturbation = rVectorStrain[Component];
         const SizeType voigt_size = rDeltaStress.size();
         for (IndexType row = 0; row < voigt_size; ++row) {
-            rTangentTensor(row, Component) = rDeltaStress[row] / Perturbation;
+            rTangentTensor(row, Component) = rDeltaStress[row] / perturbation;
+        }
+    }
+
+    /**
+     * @brief This calculates the values to the tangent tensor
+     * @param rTangentTensor The desired tangent tensor
+     * @param rVectorStrainPlus The positive perturbated strain considered
+     * @param rVectorStrainMinus The negative perturbated strain considered
+     * @param rStressPlus The stress with positive perturbation
+     * @param rStressMinus The stress with negative perturbation
+     * @param Component Index of the component to compute
+     */
+    static void CalculateComponentsToTangentTensorSecondOrder(
+        Matrix& rTangentTensor,
+        const Vector& rVectorStrainPlus,
+        const Vector& rVectorStrainMinus,
+        const Vector& rStressPlus,
+        const Vector& rStressMinus,
+        const IndexType Component
+        )
+    {
+        const double perturbation = (rVectorStrainPlus[Component] - rVectorStrainMinus[Component]);
+        const SizeType voigt_size = rStressPlus.size();
+        for (IndexType row = 0; row < voigt_size; ++row) {
+            rTangentTensor(row, Component) = (rStressPlus[row] - rStressMinus[row]) / perturbation;
         }
     }
 
@@ -580,13 +663,12 @@ public:
      * @param Component Index of the component to compute
      */
     static IndexType CalculateVoigtIndex(
-        const Vector& rDeltaStress,
+        const SizeType VoigtSize,
         const IndexType ComponentI,
         const IndexType ComponentJ
         )
     {
-        const SizeType voigt_size = rDeltaStress.size();
-        if (voigt_size == 6) {
+        if (VoigtSize == 6) {
             switch(ComponentI) {
                 case 0:
                     switch(ComponentJ) {
