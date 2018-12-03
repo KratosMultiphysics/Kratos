@@ -63,6 +63,8 @@ public:
 class Newmark
 {
 public:
+    // Attention, when changing the defaults do this also in the python-interface!
+    // pybind cannot detect them automatically!
     Newmark(const double NewmarkBeta=0.25)
         : mNewmarkBeta(NewmarkBeta) {}
     double GetBeta()  const { return mNewmarkBeta; }
@@ -74,6 +76,8 @@ private:
 class Bossak
 {
 public:
+    // Attention, when changing the defaults do this also in the python-interface!
+    // pybind cannot detect them automatically!
     Bossak(const double AlphaM=-0.3,
            const double NewmarkBeta=0.25)
         : mAlphaM(AlphaM),
@@ -89,6 +93,8 @@ private:
 class GeneralizedAlpha
 {
 public:
+    // Attention, when changing the defaults do this also in the python-interface!
+    // pybind cannot detect them automatically!
     GeneralizedAlpha(const double AlphaM=-0.3,
                      const double AlphaF=0.0,
                      const double NewmarkBeta=0.25)
