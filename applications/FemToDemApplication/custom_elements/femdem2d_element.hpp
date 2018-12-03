@@ -113,6 +113,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	// Lode's angle
 	double CalculateLodeAngle(double J2, double J3);
 	void UpdateDataBase();
+	void CalculateAverageStressOnEdge(const Element* Neighbour, const Element* CurrentElement, Vector& rAverageStress);
 
 	// Converged values
 	void SetThreshold(double af, int cont) { mThresholds[cont] = af; }

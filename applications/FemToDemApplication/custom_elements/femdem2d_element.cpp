@@ -105,28 +105,7 @@ void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 
 void FemDem2DElement::UpdateDataBase()
 {
-	//Loop over edges
-	for (unsigned int cont = 0; cont < 3; cont++) {
-
-	} // End Loop over edges
-
-	const double damage_element = this->GetNonConvergedDamage();
-	this->SetConvergedDamage(damage_element);
-
-	if (damage_element >= 0.98) {
-		this->Set(ACTIVE, false);
-	}
-
-	// computation of the equivalent damage threshold and damage of the element for AMR mapping
-	Vector thresholds = this->GetThresholds();
-
-	Vector two_min_values;
-	this->Get2MaxValues(two_min_values, thresholds[0], thresholds[1], thresholds[2]); // todo ojo con la funcion modificada
-	const double equivalent_threshold = 0.5 * (two_min_values[0] + two_min_values[1]);	  // El menor o mayor?? TODO
-
-	this->SetValue(STRESS_THRESHOLD, equivalent_threshold); // remsehing
-	this->SetThreshold(equivalent_threshold);
-	this->SetValue(DAMAGE_ELEMENT, damage_element);
+ // todo
 }
 
 void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
@@ -280,6 +259,9 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
 	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
 
+	WeakPointerVector<Element> &elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+	KRATOS_ERROR_IF(elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
+
 	// Loop Over Integration Points
 	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
 		Matrix InvJ(dimension, dimension);
@@ -322,11 +304,33 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		//(after calling the constitutive law StressVector and ConstitutiveMatrix are set and can be used)
 		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
+		// Loop over edges of the element...
+        double damage_edges[3] = {0.0, 0.0, 0.0};
+		Vector average_stress_edge = ZeroVector(3);
+        for (unsigned int edge = 0; edge < 3; edge++) {
+			this->CalculateAverageStressOnEdge(&elem_neigb[edge], this, average_stress_edge);
+
+
+
+
+
+			// to be continued....
+		}
+
 	} // Loop Over Integration Points
 
 
 
 	KRATOS_CATCH("")
+}
+
+void FemDem2DElement::CalculateAverageStressOnEdge(
+	const Element* Neighbour, 
+	const Element* CurrentElement, 
+	Vector& rAverageStress
+	)
+{
+
 }
 
 void FemDem2DElement::CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX)
