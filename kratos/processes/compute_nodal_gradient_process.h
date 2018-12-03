@@ -33,7 +33,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;
 
 ///@}
 ///@name  Enum's
@@ -92,7 +92,7 @@ public:
     /// Default constructor. (component)
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
-        component_type& rOriginVariable,
+        ComponentType& rOriginVariable,
         Variable<array_1d<double,3> >& rGradientVariable,
         Variable<double>& rAreaVariable = NODAL_AREA
         );
@@ -211,7 +211,7 @@ private:
     
     ModelPart& mrModelPart;                                     // The main model part
     std::vector<Variable<double>> mrOriginVariableDoubleList;   // The scalar variable list to compute
-    std::vector<component_type> mrOriginVariableComponentsList; // The scalar variable list to compute (components) 
+    std::vector<ComponentType> mrOriginVariableComponentsList; // The scalar variable list to compute (components)
     Variable<array_1d<double,3> >& mrGradientVariable;          // The resultant gradient variable
     Variable<double>& mrAreaVariable;                           // The auxiliar area variable
 

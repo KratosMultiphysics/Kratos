@@ -13,9 +13,6 @@
 //
 
 /* System includes */
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 /* External includes */
 
@@ -155,7 +152,7 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
 template<>
 ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::ComputeNodalGradientProcess(
     ModelPart& rModelPart, 
-    component_type& rOriginVariable, 
+    ComponentType& rOriginVariable,
     Variable<array_1d<double,3> >& rGradientVariable, 
     Variable<double>& rAreaVariable)
     :mrModelPart(rModelPart), mrGradientVariable(rGradientVariable), mrAreaVariable(rAreaVariable)
@@ -178,7 +175,7 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
 template<>
 ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::ComputeNodalGradientProcess(
     ModelPart& rModelPart, 
-    component_type& rOriginVariable, 
+    ComponentType& rOriginVariable,
     Variable<array_1d<double,3> >& rGradientVariable, 
     Variable<double>& rAreaVariable)
     :mrModelPart(rModelPart), mrGradientVariable(rGradientVariable), mrAreaVariable(rAreaVariable)
@@ -187,7 +184,7 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
     
     // We push the components list
     mrOriginVariableComponentsList.push_back(rOriginVariable);
-    
+
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable << std::endl;
     KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
