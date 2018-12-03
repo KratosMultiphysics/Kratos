@@ -18,6 +18,9 @@ KratosGlobals = kratos_globals.KratosGlobals(
 # Initialize Kernel so that core variables have an assigned Key even if we are not importing applications
 KratosGlobals.Kernel.Initialize()
 
+# adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
+__path__.append(KratosLoader.kratos_scripts)
+
 def CheckForPreviousImport():
 
     first_caller = KratosGlobals.AuthorizedCaller[
@@ -48,6 +51,5 @@ def CheckForPreviousImport():
 def CheckRegisteredApplications(*applications):
     for app in applications:
        if not KratosGlobals.Kernel.IsImported(app):
-           import __main__           
-           raise Exception("Application "+ app + " was not imported in the main script ("+__main__.__file__+")") 
-       
+           import __main__
+           raise Exception("Application "+ app + " was not imported in the main script ("+__main__.__file__+")")
