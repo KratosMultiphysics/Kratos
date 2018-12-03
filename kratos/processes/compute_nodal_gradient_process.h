@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/enums.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
 
@@ -49,15 +48,25 @@ namespace Kratos
 ///@{
 
 /**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct ComputeNodalGradientProcessSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
+    
+/**
  * @class ComputeNodalGradientProcess
  * @ingroup KratosCore
  * @brief Compute Nodal Gradient process
  * @details This process computes the gradient of a certain variable stored in the nodes
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
- * @tparam THist If the variable is historical or not
+ * @tparam THistorical If the variable is historical or not
 */
-template<HistoricalValues THist> 
+template<bool THistorical> 
 class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {

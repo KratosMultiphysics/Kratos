@@ -266,7 +266,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     /* Historical */
-    py::class_<ComputeNodalGradientProcess< Historical>, ComputeNodalGradientProcess<Historical>::Pointer, Process>(m,"ComputeNodalGradientProcess")
+    py::class_<ComputeNodalGradientProcess< ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalGradientProcess")
     .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
@@ -277,7 +277,7 @@ void  AddProcessesToPython(pybind11::module& m)
     m.attr("ComputeNodalGradientProcessComp3D") = m.attr("ComputeNodalGradientProcess");
     
     /* Non-Historical */
-    py::class_<ComputeNodalGradientProcess<NonHistorical>, ComputeNodalGradientProcess<NonHistorical>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
+    py::class_<ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
     .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
