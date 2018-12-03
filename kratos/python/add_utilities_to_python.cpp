@@ -789,22 +789,25 @@ void AddUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<TimeDiscretization::Newmark>(m, "Newmark")
-        .def(py::init<>())
+        .def(py::init<const double>(),
+            py::arg("newmark_beta")=0.25)
         .def("GetBeta", &TimeDiscretization::Newmark::GetBeta)
         .def("GetGamma", &TimeDiscretization::Newmark::GetGamma)
         ;
     py::class_<TimeDiscretization::Bossak>(m, "Bossak")
-        .def(py::init<const double>())
-        .def("GetAlphaM", &TimeDiscretization::Bossak::GetAlphaM)
+        .def(py::init<const double, const double>(),
+            py::arg("alpha_m")=-0.3, py::arg("newmark_beta")=0.25)
         .def("GetBeta", &TimeDiscretization::Bossak::GetBeta)
         .def("GetGamma", &TimeDiscretization::Bossak::GetGamma)
+        .def("GetAlphaM", &TimeDiscretization::Bossak::GetAlphaM)
         ;
     py::class_<TimeDiscretization::GeneralizedAlpha>(m, "GeneralizedAlpha")
-        .def(py::init<const double, const double>())
-        .def("GetAlphaM", &TimeDiscretization::GeneralizedAlpha::GetAlphaM)
-        .def("GetAlphaF", &TimeDiscretization::GeneralizedAlpha::GetAlphaF)
+        .def(py::init<const double, const double, const double>(),
+            py::arg("alpha_m")=-0.3, py::arg("alpha_f")=0.0, py::arg("newmark_beta")=0.25)
         .def("GetBeta", &TimeDiscretization::GeneralizedAlpha::GetBeta)
         .def("GetGamma", &TimeDiscretization::GeneralizedAlpha::GetGamma)
+        .def("GetAlphaM", &TimeDiscretization::GeneralizedAlpha::GetAlphaM)
+        .def("GetAlphaF", &TimeDiscretization::GeneralizedAlpha::GetAlphaF)
         ;
 
     std::size_t (*GetMinimumBufferSizeBDF1)(const TimeDiscretization::BDF1&) = &TimeDiscretization::GetMinimumBufferSize;
