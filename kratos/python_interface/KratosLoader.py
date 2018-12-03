@@ -1,3 +1,4 @@
+import sys
 import os.path
 kratos_libs=os.path.abspath(os.path.join(os.path.dirname(__file__),'../libs'))
 kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../applications'))
