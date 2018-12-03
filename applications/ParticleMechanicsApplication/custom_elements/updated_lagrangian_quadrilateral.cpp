@@ -1537,28 +1537,28 @@ Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rRe
         rResult.resize( 4, false );
 
         // Shape Functions (if the first node of the connettivity is the node at the bottom left)
-        rResult( 0 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult( 1 ) = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult( 2 ) = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        rResult( 3 ) = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
 
         //Shape Function (if the first node of the connettivity is the node at the top left)
-        //rResult( 0 ) = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult( 1 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        //rResult( 2 ) = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        //rResult( 3 ) = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        //rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        //rResult[1] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        //rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        //rResult[3] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
 
         //Shape Function (if the first node of the connettivity is the node at the top right)
-        //rResult( 0 ) = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult( 1 ) = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult( 2 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        //rResult( 3 ) = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        //rResult[0] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        //rResult[1] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        //rResult[2] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        //rResult[3] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
 
         //Shape Function (if the first node of the connettivity is the node at the bottom right)
-        //rResult( 0 ) = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        //rResult( 1 ) = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult( 2 ) = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        //rResult( 3 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        //rResult[0] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        //rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        //rResult[2] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        //rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
 
     }
     else if (dimension == 3)
@@ -1567,14 +1567,14 @@ Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rRe
 
         // Shape Functions (if the first node of the connettivity is the node at (-1,-1,-1))
         // NOTE: Implemented based on Carlos Felippa's Lecture on AFEM Chapter 11
-        rResult( 0 ) = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
-        rResult( 1 ) = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
-        rResult( 2 ) = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
-        rResult( 3 ) = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
-        rResult( 4 ) = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
-        rResult( 5 ) = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
-        rResult( 6 ) = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
-        rResult( 7 ) = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
+        rResult[0] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
+        rResult[1] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
+        rResult[2] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
+        rResult[3] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
+        rResult[4] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
+        rResult[5] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
+        rResult[6] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
+        rResult[7] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
     }
 
     return rResult;

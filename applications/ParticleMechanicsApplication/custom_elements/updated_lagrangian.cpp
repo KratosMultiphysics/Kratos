@@ -1617,9 +1617,9 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
 
         // 2. Get Shape functions: N
-        rResult( 0 ) = 1 - rPointLocal[0] - rPointLocal[1] ;
-        rResult( 1 ) = rPointLocal[0] ;
-        rResult( 2 ) = rPointLocal[1];
+        rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
+        rResult[1] = rPointLocal[0] ;
+        rResult[2] = rPointLocal[1];
     }
     else if (dimension == 3)
     {
@@ -1630,10 +1630,10 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
 
         // 2. Get Shape functions: N
-        rResult( 0 ) =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
-        rResult( 1 ) = rPointLocal[0] ;
-        rResult( 2 ) = rPointLocal[1];
-        rResult( 3 ) = rPointLocal[2];
+        rResult[0] =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
+        rResult[1] = rPointLocal[0] ;
+        rResult[2] = rPointLocal[1];
+        rResult[3] = rPointLocal[2];
     }
 
     return rResult;
