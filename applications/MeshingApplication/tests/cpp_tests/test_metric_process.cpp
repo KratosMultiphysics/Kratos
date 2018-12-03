@@ -254,10 +254,11 @@ namespace Kratos
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
                 it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(NODAL_AREA, 0.0);
                 it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
             }
 
-            typedef ComputeNodalGradientProcess<2, Variable<double>, Historical> GradientType;
+            typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> GradientType;
             GradientType gradient_process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT, NODAL_AREA);
             gradient_process.Execute();
 
@@ -303,11 +304,12 @@ namespace Kratos
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
                 it_node->SetValue(NODAL_H, 1.0);
+                it_node->SetValue(NODAL_AREA, 0.0);
                 it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
             }
 
             // Compute gradient
-            typedef ComputeNodalGradientProcess<3, Variable<double>, Historical> GradientType;
+            typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> GradientType;
             GradientType gradient_process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT, NODAL_AREA);
             gradient_process.Execute();
 

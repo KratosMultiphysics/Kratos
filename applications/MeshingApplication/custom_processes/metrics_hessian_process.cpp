@@ -224,17 +224,24 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
 {
     // Iterate in the nodes
     NodesArrayType& nodes_array = mThisModelPart.Nodes();
-    const int num_nodes = nodes_array.end() - nodes_array.begin();
+    const int num_nodes = static_cast<int>(nodes_array.size());
 
     // Declaring auxiliar vector
-    const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
+    const TensorArrayType aux_zero_array = ZeroVector(3 * (TDim - 1));
+    const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
 
+    // Initialize auxiliar variables
+    const auto& it_nodes_begin = nodes_array.begin();
     #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i)
-        (nodes_array.begin() + i)->SetValue(AUXILIAR_HESSIAN, aux_zero_vector);
+    for(int i = 0; i < num_nodes; ++i) {
+        auto it_node = it_nodes_begin + i;
+        it_node->SetValue(NODAL_AREA, 0.0);
+        it_node->SetValue(AUXILIAR_HESSIAN, aux_zero_array);
+        it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
+    }
 
     // Compute auxiliar gradient
-    ComputeNodalGradientProcess<TDim, TVarType, NonHistorical> gradient_process = ComputeNodalGradientProcess<TDim, TVarType, NonHistorical>(mThisModelPart, mVariable, AUXILIAR_GRADIENT, NODAL_AREA);
+    auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mThisModelPart, mVariable, AUXILIAR_GRADIENT, NODAL_AREA);
     gradient_process.Execute();
 
     // Iterate in the conditions
