@@ -98,30 +98,76 @@ class TestTimeDiscretization(KratosUnittest.TestCase):
         self.assertEqual(KM.GetMinimumBufferSize(bdf), 7)
 
     def test_Newmark(self):
+        # testing defaults
         gen_alpha = KM.Newmark()
-
         self.assertAlmostEqual(gen_alpha.GetBeta(), 0.25)
         self.assertAlmostEqual(gen_alpha.GetGamma(), 0.5)
+
+        # testing with input
+        newmark_beta = 0.2
+        gen_alpha = KM.Newmark(newmark_beta)
+        self.assertAlmostEqual(gen_alpha.GetBeta(), newmark_beta)
+
+        # testing with named input
+        newmark_beta = 0.15
+        gen_alpha = KM.Newmark(newmark_beta=newmark_beta)
+        self.assertAlmostEqual(gen_alpha.GetBeta(), newmark_beta)
 
         self.assertEqual(KM.GetMinimumBufferSize(gen_alpha), 2)
 
     def test_Bossak(self):
-        alpha_m = -0.3
-        gen_alpha = KM.Bossak(alpha_m)
-
+        # testing defaults
+        gen_alpha = KM.Bossak()
         self.assertAlmostEqual(gen_alpha.GetBeta(), 0.2)
         self.assertAlmostEqual(gen_alpha.GetGamma(), 0.1225)
+        self.assertAlmostEqual(gen_alpha.GetAlphaM(), -0.3)
+
+        # testing with input
+        newmark_beta = 0.2
+        gen_alpha = KM.Bossak(newmark_beta=newmark_beta)
+        self.assertAlmostEqual(gen_alpha.GetBeta(), 0.2)
+        self.assertAlmostEqual(gen_alpha.GetGamma(), 0.098)
+        self.assertAlmostEqual(gen_alpha.GetAlphaM(), -0.3)
+
+        # testing with input
+        alpha_m = -0.2
+        newmark_beta = 0.2
+        gen_alpha = KM.Bossak(alpha_m, newmark_beta)
+        self.assertAlmostEqual(gen_alpha.GetBeta(), 0.3)
+        self.assertAlmostEqual(gen_alpha.GetGamma(), 0.128)
         self.assertAlmostEqual(gen_alpha.GetAlphaM(), alpha_m)
 
         self.assertEqual(KM.GetMinimumBufferSize(gen_alpha), 2)
 
     def test_GeneralizedAlpha(self):
+        # testing defaults
+        gen_alpha = KM.GeneralizedAlpha()
+
+        self.assertAlmostEqual(gen_alpha.GetBeta(), 0.2)
+        self.assertAlmostEqual(gen_alpha.GetGamma(), 0.1225)
+        self.assertAlmostEqual(gen_alpha.GetAlphaM(), -0.3)
+        self.assertAlmostEqual(gen_alpha.GetAlphaF(), 0.0)
+
+        # testing with input
         alpha_m = -0.3
         alpha_f = 0.1
         gen_alpha = KM.GeneralizedAlpha(alpha_m, alpha_f)
 
         self.assertAlmostEqual(gen_alpha.GetBeta(), 0.1)
         self.assertAlmostEqual(gen_alpha.GetGamma(), 0.09)
+        self.assertAlmostEqual(gen_alpha.GetAlphaM(), alpha_m)
+        self.assertAlmostEqual(gen_alpha.GetAlphaF(), alpha_f)
+
+        self.assertEqual(KM.GetMinimumBufferSize(gen_alpha), 2)
+
+        # testing with input
+        alpha_m = -0.3
+        alpha_f = 0.1
+        newmark_beta = 0.1
+        gen_alpha = KM.GeneralizedAlpha(alpha_m, alpha_f, newmark_beta)
+
+        self.assertAlmostEqual(gen_alpha.GetBeta(), 0.1)
+        self.assertAlmostEqual(gen_alpha.GetGamma(), 0.036)
         self.assertAlmostEqual(gen_alpha.GetAlphaM(), alpha_m)
         self.assertAlmostEqual(gen_alpha.GetAlphaF(), alpha_f)
 
