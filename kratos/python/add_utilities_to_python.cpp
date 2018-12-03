@@ -789,27 +789,27 @@ void AddUtilitiesToPython(pybind11::module& m)
         ;
 
     py::class_<TimeDiscretization::Newmark>(m, "Newmark")
-        .def(py::init<const double>(),
-            // Attention, when changing the defaults do this also in the C++ - constructors!
-            // pybind cannot detect them automatically!
-            py::arg("newmark_beta")=0.25)
+        .def(py::init<>())
+        .def(py::init<const double>())
+        .def(py::init<const double, const double>())
         .def("GetBeta", &TimeDiscretization::Newmark::GetBeta)
         .def("GetGamma", &TimeDiscretization::Newmark::GetGamma)
         ;
     py::class_<TimeDiscretization::Bossak>(m, "Bossak")
-        .def(py::init<const double, const double>(),
-            // Attention, when changing the defaults do this also in the C++ - constructors!
-            // pybind cannot detect them automatically!
-            py::arg("alpha_m")=-0.3, py::arg("newmark_beta")=0.25)
+        .def(py::init<>())
+        .def(py::init<const double>())
+        .def(py::init<const double, const double>())
+        .def(py::init<const double, const double, const double>())
         .def("GetBeta", &TimeDiscretization::Bossak::GetBeta)
         .def("GetGamma", &TimeDiscretization::Bossak::GetGamma)
         .def("GetAlphaM", &TimeDiscretization::Bossak::GetAlphaM)
         ;
     py::class_<TimeDiscretization::GeneralizedAlpha>(m, "GeneralizedAlpha")
-        .def(py::init<const double, const double, const double>(),
-            // Attention, when changing the defaults do this also in the C++ - constructors!
-            // pybind cannot detect them automatically!
-            py::arg("alpha_m")=-0.3, py::arg("alpha_f")=0.0, py::arg("newmark_beta")=0.25)
+        .def(py::init<>())
+        .def(py::init<const double>())
+        .def(py::init<const double, const double>())
+        .def(py::init<const double, const double, const double>())
+        .def(py::init<const double, const double, const double, const double>())
         .def("GetBeta", &TimeDiscretization::GeneralizedAlpha::GetBeta)
         .def("GetGamma", &TimeDiscretization::GeneralizedAlpha::GetGamma)
         .def("GetAlphaM", &TimeDiscretization::GeneralizedAlpha::GetAlphaM)

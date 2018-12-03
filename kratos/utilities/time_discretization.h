@@ -63,52 +63,76 @@ public:
 class Newmark
 {
 public:
-    // Attention, when changing the defaults do this also in the python-interface!
-    // pybind cannot detect them automatically!
-    Newmark(const double NewmarkBeta=0.25)
+    explicit Newmark() {}
+
+    explicit Newmark(const double NewmarkBeta)
         : mNewmarkBeta(NewmarkBeta) {}
+
+    explicit Newmark(const double NewmarkBeta, const double NewmarkGamma)
+        : mNewmarkBeta(NewmarkBeta), mNewmarkGamma(NewmarkGamma) {}
+
     double GetBeta()  const { return mNewmarkBeta; }
-    double GetGamma() const { return 0.5; }
+    double GetGamma() const { return mNewmarkGamma; }
+
 private:
-    double mNewmarkBeta;
+    double mNewmarkBeta=0.25;
+    double mNewmarkGamma=0.5;
 };
 
 class Bossak
 {
 public:
-    // Attention, when changing the defaults do this also in the python-interface!
-    // pybind cannot detect them automatically!
-    Bossak(const double AlphaM=-0.3,
-           const double NewmarkBeta=0.25)
-        : mAlphaM(AlphaM),
-          mNewmarkBeta(NewmarkBeta) {}
+    explicit Bossak() {}
+
+    explicit Bossak(const double AlphaM)
+        : mAlphaM(AlphaM) {}
+
+    explicit Bossak(const double AlphaM, const double NewmarkBeta)
+        : mAlphaM(AlphaM), mNewmarkBeta(NewmarkBeta) {}
+
+    explicit Bossak(const double AlphaM, const double NewmarkBeta, const double NewmarkGamma)
+        : mAlphaM(AlphaM), mNewmarkBeta(NewmarkBeta),
+          mNewmarkGamma(NewmarkGamma) {}
+
     double GetAlphaM() const { return mAlphaM; }
-    double GetBeta()   const { return 0.5 + mAlphaM; }
+    double GetBeta()   const { return mNewmarkGamma + mAlphaM; }
     double GetGamma()  const { return mNewmarkBeta * (1+mAlphaM) * (1+mAlphaM); }
+
 private:
-    double mAlphaM;
-    double mNewmarkBeta;
+    double mAlphaM=-0.3;
+    double mNewmarkBeta=0.25;
+    double mNewmarkGamma=0.5;
 };
 
 class GeneralizedAlpha
 {
 public:
-    // Attention, when changing the defaults do this also in the python-interface!
-    // pybind cannot detect them automatically!
-    GeneralizedAlpha(const double AlphaM=-0.3,
-                     const double AlphaF=0.0,
-                     const double NewmarkBeta=0.25)
-        : mAlphaM(AlphaM),
-          mAlphaF(AlphaF),
-          mNewmarkBeta(NewmarkBeta) {}
+    explicit GeneralizedAlpha() {}
+
+    explicit GeneralizedAlpha(const double AlphaM)
+        : mAlphaM(AlphaM) {}
+
+    explicit GeneralizedAlpha(const double AlphaM, const double AlphaF)
+        : mAlphaM(AlphaM), mAlphaF(AlphaF) {}
+
+    explicit GeneralizedAlpha(const double AlphaM, const double AlphaF, const double NewmarkBeta)
+        : mAlphaM(AlphaM), mAlphaF(AlphaF), mNewmarkBeta(NewmarkBeta) {}
+
+    explicit GeneralizedAlpha(const double AlphaM, const double AlphaF,
+                              const double NewmarkBeta, const double NewmarkGamma)
+        : mAlphaM(AlphaM), mAlphaF(AlphaF),
+          mNewmarkBeta(NewmarkBeta), mNewmarkGamma(NewmarkGamma) {}
+
     double GetAlphaM() const { return mAlphaM; }
     double GetAlphaF() const { return mAlphaF; }
-    double GetBeta()   const { return 0.5 + mAlphaM - mAlphaF; }
+    double GetBeta()   const { return mNewmarkGamma + mAlphaM - mAlphaF; }
     double GetGamma()  const { return mNewmarkBeta * (1+mAlphaM-mAlphaF) * (1+mAlphaM-mAlphaF); }
+
 private:
-    double mAlphaM;
-    double mAlphaF;
-    double mNewmarkBeta;
+    double mAlphaM=-0.3;
+    double mAlphaF=0.0;
+    double mNewmarkBeta=0.25;
+    double mNewmarkGamma=0.5;
 };
 
 std::size_t GetMinimumBufferSize(const BDF1& rTimeDiscr) { return 2;}
