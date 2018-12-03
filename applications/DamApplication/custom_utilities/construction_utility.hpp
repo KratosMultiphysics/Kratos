@@ -452,7 +452,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mCurrentHeight + (mHeight / mPhases)) || solid)
+                        if ((central_position(direction) <= mCurrentHeight + (mHeight / mPhases)))
                         {
                             for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                             {
@@ -493,7 +493,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mCurrentHeight + (mHeight / mPhases)) || solid)
+                        if ((central_position(direction) <= mCurrentHeight + (mHeight / mPhases)))
                         {
                             for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                             {
