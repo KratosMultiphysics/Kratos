@@ -331,7 +331,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 {
     // e = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
     //Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( 3, 3 );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
@@ -474,7 +474,7 @@ void HyperElastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariable
 						  Vector& rVolStressVector )
 {
 
-    Matrix VolStressMatrix ( 3 , 3 );
+    Matrix VolStressMatrix = ZeroMatrix( 3 , 3 );
 
     double Pressure = 0;
     Pressure = this->CalculateVolumetricPressure (rElasticVariables, Pressure);

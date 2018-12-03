@@ -250,7 +250,7 @@ void HenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCa
     // E = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
 
     // Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( 3, 3 );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 

@@ -400,7 +400,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAlmansiStrain(const Matrix& rF,
     Matrix LeftCauchyGreen = prod( rF, trans( rF ) );
 
     // Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( dimension, dimension );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( dimension, dimension );
     double det_b=0;
     MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
