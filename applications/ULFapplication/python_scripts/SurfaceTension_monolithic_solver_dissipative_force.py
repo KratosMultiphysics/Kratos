@@ -2,25 +2,17 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.ULFApplication import *
-from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.ULFApplication import *
+#from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.FSIApplication import *
+#from KratosMultiphysics.PFEMApplication import *
+#from KratosMultiphysics.ALEApplication import *
+#from KratosMultiphysics.IncompressibleFluidApplication import *
+import math
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
-
-variables_dictionary = {"PRESSURE" : PRESSURE,
-                        "VELOCITY" : VELOCITY,
-                        "REACTION" : REACTION,
-                        "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
-                        "DISPLACEMENT" : DISPLACEMENT,
-                        "IS_INTERFACE" : IS_INTERFACE,
-                        "IS_STRUCTURE" : IS_STRUCTURE,
-                        "VISCOUS_STRESSX": VISCOUS_STRESSX,
-                        "VISCOUS_STRESSY": VISCOUS_STRESSY,
-                        "IS_WATER": IS_WATER,
-                        "DENSITY": DENSITY,
-                        "VISCOSITY": VISCOSITY}
 
 
 def AddVariables(model_part, config=None):
@@ -72,13 +64,9 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_LINE_EQUILIBRIUM)
     model_part.AddNodalSolutionStepVariable(NORMAL_EQUILIBRIUM)
     model_part.AddNodalSolutionStepVariable(NORMAL_TRIPLE_POINT)
-    #model_part.AddNodalSolutionStepVariable(PHASE_FRACTION_GRADIENT)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM_X)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM_X)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM_X)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM_Y)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM_Y)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM_Y)
+    #model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_GRADIENT)
+    model_part.AddNodalSolutionStepVariable(PHASE_FRACTION_GRADIENT)
+
 
 
 def AddDofs(model_part, config=None):
@@ -93,8 +81,8 @@ def AddDofs(model_part, config=None):
     print("dofs for the SurfaceTension monolithic solver added correctly")
 
 
-class STMonolithicSolver:
-    def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x,zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y):
+class STMonolithicSolverwdisp:
+    def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM):
         self.model_part = model_part
         self.domain_size = domain_size
         # eul_model_part can be 0 (meaning that the model part is lagrangian) or 1 (eulerian)
@@ -126,18 +114,16 @@ class STMonolithicSolver:
         self.max_iter = 30
         self.contact_angle = contact_angle
         self.gamma = gamma
-        self.zeta_dissapative_JM_x = zeta_dissapative_JM_x
-        self.zeta_dissapative_BM_x = zeta_dissapative_BM_x
-        self.zeta_dissapative_SM_x = zeta_dissapative_SM_x
-        self.zeta_dissapative_JM_y = zeta_dissapative_JM_y
-        self.zeta_dissapative_BM_y = zeta_dissapative_BM_y
-        self.zeta_dissapative_SM_y = zeta_dissapative_SM_y
+        
+        # dissipative force variables
+        self.zeta_dissapative_JM = zeta_dissapative_JM
+        self.zeta_dissapative_BM = zeta_dissapative_BM
+        self.zeta_dissapative_SM = zeta_dissapative_SM
         #self.gamma_sl = gamma_sl
         #self.gamma_sv = gamma_sv
-        
 
         # default settings
-        self.echo_level = 0
+        self.echo_level = 1
         self.compute_reactions = True
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
@@ -168,7 +154,7 @@ class STMonolithicSolver:
             self.node_erase_process = NodeEraseProcess(model_part);
             self.add_nodes=True
             self.alpha_shape = 3.5;
-            self.mark_free_surface_process = MarkFreeSurfaceProcess(model_part);
+            ######self.ulf_apply_bc_process = UlfApplyBCProcess(model_part);
             #self.mark_fluid_process = MarkFluidProcess(model_part);
 
 	  #saving the limits of the box (all the nodes external to this will be erased)
@@ -187,11 +173,18 @@ class STMonolithicSolver:
 
             if(domain_size == 2):
                 self.Mesher =  TriGenDropletModeler()
-                self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+                #self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
                 #this is needed if we want to also store the conditions a node belongs to
                 self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
+                
+            elif (domain_size == 3):
+                self.Mesher = TetGenDropletModeler()
+                #`self.Mesher = TetGenPfemModeler()            
+                #self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
+	      #this is needed if we want to also store the conditions a node belongs to
+                self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,3, 20)
 
-            (self.fluid_neigh_finder).Execute();
+            #(self.fluid_neigh_finder).Execute();
             Hfinder  = FindNodalHProcess(model_part);
             Hfinder.Execute();
 
@@ -238,18 +231,17 @@ class STMonolithicSolver:
 
         self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
         self.model_part.ProcessInfo.SetValue(SURFACE_TENSION_COEF, self.gamma)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM_X, self.zeta_dissapative_JM_x)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM_X, self.zeta_dissapative_BM_x)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM_X, self.zeta_dissapative_SM_x)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM_Y, self.zeta_dissapative_JM_y)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM_Y, self.zeta_dissapative_BM_y)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM_Y, self.zeta_dissapative_SM_y)
-
+        
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM, self.zeta_dissapative_JM)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM, self.zeta_dissapative_BM)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM, self.zeta_dissapative_SM)
+        #self.model_part.ProcessInfo.SetValue(SOLID_LIQIUD_SURFTENS_COEFF, self.gamma_sl)
+        #self.model_part.ProcessInfo.SetValue(SOLID_AIR_SURFTENS_COEFF, self.gamma_sv)
 
         if(self.eul_model_part == 0):
 	    #marking the fluid
-            (self.fluid_neigh_finder).Execute();
-            (self.mark_free_surface_process).Execute();
+            #(self.fluid_neigh_finder).Execute();
+            ######(self.ulf_apply_bc_process).Execute();
             if (self.domain_size == 2):
                 FindTriplePoint().FindTriplePoint2D(self.model_part)
             self.Remesh()
@@ -267,16 +259,28 @@ class STMonolithicSolver:
 
         NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
         for node in self.model_part.Nodes:
-            if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
+            if (node.GetSolutionStepValue(IS_BOUNDARY) == 0.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
                 node.SetSolutionStepValue(NORMAL_X,0,0.0)
                 node.SetSolutionStepValue(NORMAL_Y,0,0.0)
                 node.SetSolutionStepValue(NORMAL_Z,0,0.0)
+
         if (self.domain_size == 2):
             FindTriplePoint().FindTriplePoint2D(self.model_part)
             CalculateCurvature().CalculateCurvature2D(self.model_part)
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
             self.cont_angle_cond()
+        elif (self.domain_size == 3):
+            FindTriplePoint().FindTriplePoint3D(self.model_part)
+            CalculateCurvature().CalculateCurvature3D(self.model_part)
+            for node in self.model_part.Nodes:
+                node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
+            CalculateContactAngle().CalculateContactAngle3D(self.model_part)
+            CalculateNodalLength().CalculateNodalLength3D(self.model_part)
+            CalculateNormalEq().CalculateNormalEq3D(self.model_part)
+            CalculateAdhesionForce().CalculateAdhesionForce3D(self.model_part)
+            self.cont_angle_cond3D()
+
         #self.solver.MoveMesh()
         (self.solver).Solve() #it dumps in this line... 20151020
         #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
@@ -285,7 +289,6 @@ class STMonolithicSolver:
 
         if(self.eul_model_part == 0):
             #(self.fluid_neigh_finder).Execute();
-            (self.fluid_neigh_finder).Execute();
             self.Remesh();
 
 
@@ -301,7 +304,9 @@ class STMonolithicSolver:
     ##########################################
     def Remesh(self):
 
+        #self.UlfUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
         self.UlfUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.1)
+        #self.UlfUtils.MarkExcessivelyCloseNodes(self.model_part.Nodes, 0.0002)
 
         ##erase all conditions and elements prior to remeshing
         ((self.model_part).Elements).clear();
@@ -311,13 +316,15 @@ class STMonolithicSolver:
         h_factor=0.25;
 
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateMeshDroplet("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
-
-        (self.fluid_neigh_finder).Execute();
+            (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
+        elif (self.domain_size == 3):
+            (self.Mesher).ReGenerateMeshDroplet3D("SurfaceTension3D","Condition3D", self.model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
+            
+        #(self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
 
         #print "marking fluid" and applying fluid boundary conditions
-        (self.mark_free_surface_process).Execute();
+        #####(self.ulf_apply_bc_process).Execute();
         #(self.mark_fluid_process).Execute();
         (self.UlfUtils).CalculateNodalArea(self.model_part,self.domain_size);
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
@@ -335,13 +342,13 @@ class STMonolithicSolver:
                 node.SetSolutionStepValue(FLAG_VARIABLE,0,0.0)
 #
             for node in self.model_part.Nodes:
-                if (node.GetSolutionStepValue(IS_FREE_SURFACE) > 0.99999999999999999999):
+                if (node.GetSolutionStepValue(IS_FREE_SURFACE) > 0.99999999):
                     node.SetSolutionStepValue(FLAG_VARIABLE, 0, 1.0)
                     node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
                 else:
                     node.SetSolutionStepValue(IS_INTERFACE, 0, 0.0)
             for node in self.model_part.Nodes:
-                if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
+                if (node.GetSolutionStepValue(IS_BOUNDARY) == 0.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
                     node.SetSolutionStepValue(NORMAL_X,0,0.0)
                     node.SetSolutionStepValue(NORMAL_Y,0,0.0)
                     node.SetSolutionStepValue(NORMAL_Z,0,0.0)
@@ -350,46 +357,95 @@ class STMonolithicSolver:
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
             self.cont_angle_cond()
+        elif (self.domain_size == 3):
+            FindTriplePoint().FindTriplePoint3D(self.model_part)
+            #for node in self.model_part.Nodes:
+                #if (node.GetSolutionStepValue(IS_BOUNDARY) > 0.99999999 and node.GetSolutionStepValue(IS_STRUCTURE) == 0.0):
+                    #node.SetSolutionStepValue(IS_FREE_SURFACE, 0, 1.0)
+                    #node.SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
+            #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
+            CalculateCurvature().CalculateCurvature3D(self.model_part)
+            for node in self.model_part.Nodes:
+                node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
+            CalculateContactAngle().CalculateContactAngle3D(self.model_part)
+            CalculateNodalLength().CalculateNodalLength3D(self.model_part)
+            CalculateNormalEq().CalculateNormalEq3D(self.model_part)
+            CalculateAdhesionForce().CalculateAdhesionForce3D(self.model_part)
+            self.cont_angle_cond3D()
 
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
-        print("end of remesh function")
+        #print("end of remesh function")
     ######################################################################
 
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
 
     def cont_angle_cond(self):
+        theta_adv = + 2.0
+        theta_rec = - 2.0
+	#theta_adv = self.contact_angle + 0.5
+	#theta_rec = self.contact_angle - 0.5
+        time = self.model_part.ProcessInfo.GetValue(TIME)
+        dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+	#x_mean = 0.0
+	#found_tp = 0
+	################## For sessile drop examples
+        for node in self.model_part.Nodes:
+            if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
+                node.Free(VELOCITY_X)
+            else:
+                node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                node.Fix(VELOCITY_X)
+            if ((node.GetSolutionStepValue(TRIPLE_POINT) == 0.0) and (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0)):
+                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)        
+ 
+    def cont_angle_cond3D(self):
         theta_adv = self.contact_angle + 1.0
         theta_rec = self.contact_angle - 1.0
         time = self.model_part.ProcessInfo.GetValue(TIME)
-        dt   = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
-        ################### For sessile drop examples
-        for node in self.model_part.Nodes:
-            if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-                node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Y)
+        dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+	################## For sessile drop examples
+        if (time < 2*dt):
+            for node in self.model_part.Nodes:
                 if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-                    if (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv or node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec):
-                        b = Vector(2)
-                        b[0] = 0.0
-                        b[1] = 0.0
-                        b[0] = node.GetSolutionStepValue(DISPLACEMENT_X)
-                        b[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
-                        b[1] = 0.0
-                        node.SetSolutionStepValue(DISPLACEMENT_X,0,b[0])
-                        node.SetSolutionStepValue(DISPLACEMENT_Y,0,b[1])
+                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)
+                    node.Fix(VELOCITY_Z)	  
+        else:
+            for node in self.model_part.Nodes:
+                if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0 or node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
+                    node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
+                    node.Fix(VELOCITY_Z)
+                    if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) and (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
+                    #if (node.GetSolutionStepValue(CONTACT_ANGLE) == theta_rec or node.GetSolutionStepValue(CONTACT_ANGLE) == theta_rec):
+                        #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                        node.Fix(VELOCITY_X)
+                        node.Fix(VELOCITY_Y)
+                    else:
+                        #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
                         node.Free(VELOCITY_X)
                         node.Free(VELOCITY_Y)
-                    else:
-                        node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                        node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                        node.Fix(VELOCITY_Y)
-                        node.Fix(VELOCITY_X)
+                    #if (node.Z < 0.0):
+                        #(TO_ERASE,True)
+                #if ((node.GetSolutionStepValue(TRIPLE_POINT) == 0.0) and (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0)):
+                        #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                        #node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
+                        #node.Fix(VELOCITY_X)
+                        #node.Fix(VELOCITY_Y)
+                        #node.Fix(VELOCITY_Z)
 
-def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y): #FOR 3D!
-    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle,zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y)
+
+def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM): #FOR 3D!
+    fluid_solver = STMonolithicSolverwdisp(model_part, config.domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
 
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha

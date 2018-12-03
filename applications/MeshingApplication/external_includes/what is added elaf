@@ -1,0 +1,12 @@
+
+for 3D lagrangian droplets
+
+meshing application
+1. external-include-tetgen droplets refine - added
+2. custom python - add mesher to python - modified
+
+ULF applications
+1.adding the python script SurfaceTension_3DMonolithic_solver
+2.adding the example
+
+

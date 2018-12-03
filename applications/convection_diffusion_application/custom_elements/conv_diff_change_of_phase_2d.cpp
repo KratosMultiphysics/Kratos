@@ -127,6 +127,7 @@ void ConvDiffChangeOfPhase2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatr
     proj *= lumping_factor;
     ms_vel_gauss *= lumping_factor;
 
+    //elaf this is pagge 135 of thesis pavel
     double alpha = conductivity/(density*specific_heat);
 
     //calculating parameter tau
@@ -134,17 +135,20 @@ void ConvDiffChangeOfPhase2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatr
     double c2 = 2.00;
     double h = sqrt(2.00*Area);
     double norm_u =norm_2(ms_vel_gauss);
+    
+       //elaf comment//tau from equation 4.41 in pavel thesis
+    double tau = 1.00 / ( c1*alpha/(h*h) + c2*norm_u/h );
     double tau = 1.00 / ( c1*alpha/(h*h) + c2*norm_u/h );
 
     //getting the BDF2 coefficients (not fixed to allow variable time step)
     //the coefficients INCLUDE the time step
     const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
-    //CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
+    //CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX \\elaf\\ is it 4.134
     noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
     noalias(rLeftHandSideMatrix) = outer_prod(msN,ms_u_DN);
 
-    //CONVECTION STABILIZING CONTRIBUTION (Suu)
+    //CONVECTION STABILIZING CONTRIBUTION (Suu) \\elaf\\ is it 4.134
     noalias(rLeftHandSideMatrix) += (tau) * outer_prod(ms_u_DN,ms_u_DN);
 
     //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX

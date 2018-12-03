@@ -129,7 +129,7 @@ namespace Kratos
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	{
 	    //Find the neighbours of TRIPLE_POINT at the boundary
-	    if (im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	    if (im->FastGetSolutionStepValue(TRIPLE_POINT) > 0.9999999)
 	    {
 		temp[0] = im->FastGetSolutionStepValue(NORMAL_TRIPLE_POINT_X);
 		temp[1] = im->FastGetSolutionStepValue(NORMAL_TRIPLE_POINT_Y);

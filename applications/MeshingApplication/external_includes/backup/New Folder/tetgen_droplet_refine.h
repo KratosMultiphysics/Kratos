@@ -8,8 +8,8 @@
 
  
 
-#if !defined(KRATOS_TETGEN_PFEM_MODELER_H_INCLUDED )
-#define  KRATOS_TETGEN_PFEM_MODELER_H_INCLUDED
+#if !defined(KRATOS_TETGEN_DROPLET_MODELER_H_INCLUDED )
+#define  KRATOS_TETGEN_DROPLET_MODELER_H_INCLUDED
   
 
 
@@ -20,26 +20,33 @@
 #include <boost/timer.hpp>
 
 
-
 #include "tetgen.h" // Defined tetgenio, tetrahedralize().
 
 // Project includes
 #include "includes/define.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/model_part.h"
-#include "includes/deprecated_variables.h"
+// #include "includes/deprecated_variables.h"
 
+#include "includes/kratos_application.h"
+// #include "/home/elaf/Kratos/applications/ULFapplication/ULF_application_variables.h"
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application.h"
 #include "processes/node_erase_process.h"
 #include "includes/deprecated_variables.h"
+#include "includes/variables.h"
+
 
 #include "spatial_containers/spatial_containers.h"
+#include "tetgen_pfem_refine.h"
 //#include "containers/bucket.h"
 //#include "containers/kd_tree.h"
 //#include "external_includes/trigen_refine.h"
+
+
+
 namespace Kratos
 {	
 		
@@ -66,28 +73,28 @@ namespace Kratos
 	/// Short class definition.
 	/** Detail class definition.
 	*/
-	class TetGenPfemModeler  
+	class TetGenDropletModeler : public TetGenPfemModeler
 	{
 	public:
 		///@name Type Definitions
 		///@{
 
 		/// Pointer definition of TetGenPfemModeler
-		KRATOS_CLASS_POINTER_DEFINITION(TetGenPfemModeler);
+		KRATOS_CLASS_POINTER_DEFINITION(TetGenDropletModeler);
 
 		///@}
 		///@name Life Cycle 
 		///@{ 
 
 		/// Default constructor.
-	    TetGenPfemModeler() :
+	    TetGenDropletModeler() :
 		mJ(ZeroMatrix(3,3)), //local jacobian
 		mJinv(ZeroMatrix(3,3)), //inverse jacobian
 		mc(ZeroVector(3)), //dimension = number of nodes
 		mRhs(ZeroVector(3)){} //dimension = number of nodes
 
 		/// Destructor.
-		virtual ~TetGenPfemModeler()= default;
+		~TetGenDropletModeler() override= default;
 
 
 		///@}
@@ -102,7 +109,7 @@ namespace Kratos
 
 		//*******************************************************************************************
 		//*******************************************************************************************
-		void ReGenerateMesh(
+		void ReGenerateMeshDroplet3D(
 			ModelPart& ThisModelPart , 
 			Element const& rReferenceElement, 
 			Condition const& rReferenceBoundaryCondition,
@@ -123,24 +130,18 @@ namespace Kratos
 			KRATOS_WATCH(" ENTERED TETGENMESHSUITE PFEM of Meshing Application")
 			
 			//clearing elements
-                        
-                        int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 
 			ThisModelPart.Elements().clear();
 // 			ThisModelPart.Conditions().clear();
                         
+                        int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 
-                        
-//20151124 ajarauta -> TO FINISH!!! INSERT NODE AT CENTER OF FACE IF TRIANGLE IS TOO BIG
+                        //20151124 ajarauta -> TO FINISH!!! INSERT NODE AT CENTER OF FACE IF TRIANGLE IS TOO BIG
 			int id = (ThisModelPart.Nodes().end() - 1)->Id() + 1;
-			
                         
-                        //n_struc==ic->GetGeometry().size())
-                        
-                        
-                        
-                        double mesh_size = 0.0;
-                        for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ;
+                        // Loop to find the initial mesh size. Once it finds a face with two TRIPLE_POINT nodes, it computes this value and exits the loop
+			double mesh_size = 0.0;
+			for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ;
 			    ic != ThisModelPart.ConditionsEnd() ; ic++)
 			    {
 			      if (ic->GetGeometry().size()==3)
@@ -154,593 +155,408 @@ namespace Kratos
 				n_tp		 += ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT);
 				n_tp		 += ic->GetGeometry()[2].FastGetSolutionStepValue(TRIPLE_POINT);
                                 
-/*                                unsigned int n_fs = ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
+                                unsigned int n_fs = ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
 				n_fs		 += ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
-				n_fs		 += ic->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE);*/
-                                
-				/////// 1
-// 				if ((n_st) == 3 && (n_tp == 0))
-// 				{
-//                                     mesh_size  = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
-//                                     mesh_size += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
-//                                     mesh_size += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
-//                                     mesh_size *= 0.33333333333;
-//                                   
-//                                     int ii = 0;
-//                                     int jj = 1;
-//                                     int kk = 2;
-//                                     // Node with index kk is the one that is not on the contact line
-//                                     double xi=ic->GetGeometry()[ii].X();
-//                                     double yi=ic->GetGeometry()[ii].Y();
-//                                     double zi=ic->GetGeometry()[ii].Z();
-//                                     double xj=ic->GetGeometry()[jj].X();
-//                                     double yj=ic->GetGeometry()[jj].Y();
-//                                     double zj=ic->GetGeometry()[jj].Z();
-//                                     double xk=ic->GetGeometry()[kk].X();
-//                                     double yk=ic->GetGeometry()[kk].Y();
-//                                     double zk=ic->GetGeometry()[kk].Z();
-//                                     
-//                                     array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
-//                                     array_1d<double,3> rik = Vector3D(xi,yi,zi,xk,yk,zk);
-//                                     array_1d<double,3> rjk = Vector3D(xj,yj,zj,xk,yk,zk);
-//                                     
-//                                     double dist_ij = Norm3D(rij);
-//                                     double dist_ik = Norm3D(rik);
-//                                     double dist_jk = Norm3D(rjk);
-// 
-//                                     //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
-//                                     Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-//                                 
-//                                     double factor = 2.0;	
-//                                     if ((dist_ij > factor*mesh_size) || (dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size))
-//                                     {
-//                                         id++;
-//                                         double x = 0.3333333333333*(xi+xj+xk);
-//                                         double y = 0.3333333333333*(yi+yj+yk);
-// //                                         double z = 0.3333333333333*(zi+zj+zk);
-//                                         double z = 0.0;
-//                             
-//                                         Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
-// 
-//                                         //putting the new node also in an auxiliary list
-//                                         KRATOS_WATCH("adding nodes to list")										
-// 
-//                                         std::cout << "new node id = " << pnode->Id() << std::endl;
-//                                         //generating the dofs
-//                                         for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-//                                         {
-//                                         Node<3>::DofType& rDof = *iii;
-//                                         Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-//                                         (p_new_dof)->FreeDof();
-//                                         }
-//                                         Geometry<Node<3> >& geom = ic->GetGeometry();
-// 
-//                                         InterpolateOnFace(geom, ii, jj, kk, step_data_size, pnode);
-//                                         const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-//                                         pnode->X0() = pnode->X() - disp[0];
-//                                         pnode->Y0() = pnode->Y() - disp[1];
-// //                                         pnode->Z0() = pnode->Z() - disp[2];
-//                                         pnode->Z0() = 0.0;
-//                                         KRATOS_WATCH("Added node at the FACE with all IS_STRUCTURE, no TRIPLE_POINT")
-//                                         
-// //                                         n_struc==ic->GetGeometry().size()
-// 
-//                     // 			
-//                                     }
-//                                     
-//                                  
-// //                                     if ((dist_ik < mesh_size * 0.333 ) || (dist_jk < mesh_size * 0.333) || (dist_ij < mesh_size * 0.333))
-// //                                     {
-// // //                                         ic->GetGeometry()[kk].Set(TO_ERASE,true);
-// //                                         ic->GetGeometry()[ii].Set(TO_ERASE,true);
-// // //                                          ic->GetGeometry()[jj].Set(TO_ERASE,true);
-// //                                         KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF IS_STRUCTURE IS_STRUCTURE ELAF kkkkk")
-// //                                     }
-//                                 
-// //                                     if ((dist_ik < mesh_size *  0.67) || (dist_ij < mesh_size *  0.67))
-// //                                     {
-// // //                                          ic->GetGeometry()[kk].Set(TO_ERASE,true);
-// //                                         ic->GetGeometry()[ii].Set(TO_ERASE,true);
-// // //                                          ic->GetGeometry()[jj].Set(TO_ERASE,true);
-// //                                         KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF IS_STRUCTURE IS_STRUCTURE ELAF iiii")
-// //                                     }
-// //                                     
-// //                                     if ((dist_jk < mesh_size *  0.67 ) || (dist_ij < mesh_size * 0.67))
-// //                                     {
-// // //                                             ic->GetGeometry()[kk].Set(TO_ERASE,true);
-// // //                                          ic->GetGeometry()[ii].Set(TO_ERASE,true);
-// //                                         ic->GetGeometry()[jj].Set(TO_ERASE,true);
-// //                                         KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF IS_STRUCTURE IS_STRUCTURE ELAF jjjjj")
-// //                                     }
-//                                         
-//                                     
-// //                                     
-//  				}
-//  				
-//  				/////////////////////////////////////////////////////////////////////////////////////////
-//                               }
-//                             }
-                            /////////////////////////////////////////////////////////////////////////////////////////////
-                            
-                                /////// 2
-                                
-                                
-                                if (((n_st) == 3 && (n_tp == 2)))
+				n_fs		 += ic->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE);
+				
+				if ((n_tp == 0) || (n_tp == 3) || (n_tp == 1))
 				{
-                                        mesh_size  = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size *= 0.33333333333;
-                                        
-                                        int ii = 0;
-                                        int jj = 1;
-                                        int kk = 2;
-                                        if (ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT) == 0.0)
-                                        {
-                                            ii = 1;
-                                            jj = 2;
-                                            kk = 0;
-                                        }
-                                        if (ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT) == 0.0)
-                                        {
-                                            ii = 0;
-                                            jj = 2;
-                                            kk = 1;
-                                        }				    
-                                        double xi=ic->GetGeometry()[ii].X();
-                                        double yi=ic->GetGeometry()[ii].Y();
-                                        double zi=ic->GetGeometry()[ii].Z();
-                                        double xj=ic->GetGeometry()[jj].X();
-                                        double yj=ic->GetGeometry()[jj].Y();
-                                        double zj=ic->GetGeometry()[jj].Z();
-                                        double xk=ic->GetGeometry()[kk].X();
-                                        double yk=ic->GetGeometry()[kk].Y();
-                                        double zk=ic->GetGeometry()[kk].Z();
-                                        
-                                        array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
-                                        array_1d<double,3> rik = Vector3D(xi,yi,zi,xk,yk,zk);
-                                        array_1d<double,3> rjk = Vector3D(xj,yj,zj,xk,yk,zk);
-                                        
-                                        double dist_ij = Norm3D(rij);
-                                        double dist_ik = Norm3D(rik);
-                                        double dist_jk = Norm3D(rjk);
-
-                                        //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
-                                        Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-                                    
-                                        double factor = 2.55;	
-                                        if ((dist_ij > factor*mesh_size) || (dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size))
-                                        {
-                                            id++;
-                                            double x = 0.3333333333333*(xi+xj+xk);
-                                            double y = 0.3333333333333*(yi+yj+yk);
-                                            double z = 0.3333333333333*(zi+zj+zk);
+				  mesh_size  = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
+				  mesh_size += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
+				  mesh_size += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
+				  mesh_size *= 0.33333333333;
+				}
                                 
-                                            Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
-
-                                            //putting the new node also in an auxiliary list
-                                            KRATOS_WATCH("adding nodes to list")										
-
-                                            std::cout << "new node id = " << pnode->Id() << std::endl;
-                                            //generating the dofs
-                                            for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-                                            {
-                                            Node<3>::DofType& rDof = *iii;
-                                            Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-                                            (p_new_dof)->FreeDof();
-                                            }
-                                            Geometry<Node<3> >& geom = ic->GetGeometry();
-
-                                            InterpolateOnFace(geom, ii, jj, kk, step_data_size, pnode);
-                                            const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-                                            pnode->X0() = pnode->X() - disp[0];
-                                            pnode->Y0() = pnode->Y() - disp[1];
-                                            pnode->Z0() = pnode->Z() - disp[2];
-                                            KRATOS_WATCH("Added node at the EDGE with all IS_STRUCTURE, two TRIPLE_POINT")
-                                        }
-                                    }
-                                    
-//                                         if ((dist_ik < mesh_size * 0.5 ) || (dist_jk < mesh_size * 0.5))
-//                                         {
-//                                         ic->GetGeometry()[kk].Set(TO_ERASE,true);
-//                                         KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF two_TP two_TP ELAF kkkkk")
-//                                         }
-                                
-//                                         if ((dist_ik < mesh_size * 0.5 ) || (dist_jk < mesh_size * 0.5) || (dist_ij < mesh_size * 0.5))
-//                                         {
-//                                             if ( ic->GetGeometry()[ii].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-//                                             {
-//                                                 ic->GetGeometry()[ii].Set(TO_ERASE,true);
-//                                                 KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF two_TP  ELAF iiii")
-//                                             }
-//                                                 
-//                                             else if ( ic->GetGeometry()[jj].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-//                                             {
-//                                                 ic->GetGeometry()[jj].Set(TO_ERASE,true);
-//                                                 KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF two_TP  ELAF jjjj")
-//                                             }
-//                                                 
-//                                             else if ( ic->GetGeometry()[kk].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-//                                             {
-//                                                 ic->GetGeometry()[kk].Set(TO_ERASE,true);
-//                                                 KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF two_TP  ELAF kkkk")
-//                                             }
-//                                         }
-
-
-
-
-//                                 }
-                                
-                                ////// 3
-                                
-                                if ((n_st) == 3 && (n_tp == 1))
+                                if (n_tp == 2)
 				{
-                                    mesh_size  = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
-                                    mesh_size += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
-                                    mesh_size += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
-                                    mesh_size *= 0.33333333333;
-                                    
-                                    int ii = 0;
+				  mesh_size  = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_LENGTH);
+				  mesh_size += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_LENGTH);
+				  mesh_size += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_LENGTH);
+				  mesh_size *= 0.5;
+				}
+				
+ 
+			      }
+			      // Finish loop if mesh_size has been obtained
+			      if (mesh_size != 0.0)
+				break;
+			    }
+			    
+                        for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ;
+			    ic != ThisModelPart.ConditionsEnd() ; ic++)
+			    {
+			      if (ic->GetGeometry().size()==3)
+			      {
+				unsigned int n_fs = ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
+				n_fs		 += ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
+				n_fs		 += ic->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE);
+				
+				unsigned int n_tp = ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT);
+				n_tp		 += ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT);
+				n_tp		 += ic->GetGeometry()[2].FastGetSolutionStepValue(TRIPLE_POINT);	
+				
+				unsigned int n_st = ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);
+				n_st		 += ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
+				n_st		 += ic->GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);
+								
+				if ((n_fs == 1) && (n_tp == 2))
+				{
+				    int ii = 0;
 				    int jj = 1;
 				    int kk = 2;
-				    if (ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT) == 1.0)
+				    if (ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE) < 1e-15)
+				    {
+				        ii = 1;
+					jj = 2;
+					kk = 0;
+				    }
+				    if (ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE) < 1e-15)
+				    {
+				        ii = 0;
+					jj = 2;
+					kk = 1;
+				    }
+				    // Node with index kk is the one that is not on the contact line
+				    double xi=ic->GetGeometry()[ii].X();
+				    double yi=ic->GetGeometry()[ii].Y();
+				    double zi=ic->GetGeometry()[ii].Z();
+				    double xj=ic->GetGeometry()[jj].X();
+				    double yj=ic->GetGeometry()[jj].Y();
+				    double zj=ic->GetGeometry()[jj].Z();
+				    double xk=ic->GetGeometry()[kk].X();
+				    double yk=ic->GetGeometry()[kk].Y();
+				    double zk=ic->GetGeometry()[kk].Z();
+                                    
+                                    
+				    //array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
+				    array_1d<double,3> rik = Vector3D(xi,yi,zi,xk,yk,zk);
+				    array_1d<double,3> rjk = Vector3D(xj,yj,zj,xk,yk,zk);
+				    
+				    //double dist_ij = Norm3D(rij);
+				    double dist_ik = Norm3D(rik);
+				    double dist_jk = Norm3D(rjk);
+                                    
+                                    //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
+				    Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+				
+				    double factor = 1.25;	
+				    if ((dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size))
+				    {
+				      id++;
+// 				      double x = 0.3333333333333*(xi+xj+xk); (elaf changed because will be added in tripple point and z will be negative)
+// 				      double y = 0.3333333333333*(yi+yj+yk);
+// 				      double z = 0.3333333333333*(zi+zj+zk);
+                                      
+                                      double x = 0.3333333333333*(xi+xj+xk);
+				      double y = 0.3333333333333*(yi+yj+yk);
+				      double z = 0.0;
+			    
+                                      Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+
+				      //putting the new node also in an auxiliary list
+				      KRATOS_WATCH("adding nodes to list")										
+
+				      std::cout << "new node id = " << pnode->Id() << std::endl;
+				      //generating the dofs
+				      for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+				      {
+					Node<3>::DofType& rDof = *iii;
+					Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+					(p_new_dof)->FreeDof();
+				      }
+				      Geometry<Node<3> >& geom = ic->GetGeometry();
+
+// 				      InterpolateOnEdge(geom, ii, kk, step_data_size, pnode);
+				      InterpolateOnFace(geom, ii, jj, kk, step_data_size, pnode);
+				      const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+				      pnode->X0() = pnode->X() - disp[0];
+				      pnode->Y0() = pnode->Y() - disp[1];
+				      pnode->Z0() = pnode->Z() - disp[2];
+				      KRATOS_WATCH("Added node at the FACE with IS_FREE_SURFACE")
+				    }				    
+				}
+
+				if (n_st == 3)
+				{
+				  if (n_tp == 0 || n_tp == 3)
+				  {
+				    int ii = 0;
+				    int jj = 1;
+				    int kk = 2;
+				    // Node with index kk is the one that is not on the contact line
+				    double xi=ic->GetGeometry()[ii].X();
+				    double yi=ic->GetGeometry()[ii].Y();
+				    double zi=ic->GetGeometry()[ii].Z();
+				    double xj=ic->GetGeometry()[jj].X();
+				    double yj=ic->GetGeometry()[jj].Y();
+				    double zj=ic->GetGeometry()[jj].Z();
+				    double xk=ic->GetGeometry()[kk].X();
+				    double yk=ic->GetGeometry()[kk].Y();
+				    double zk=ic->GetGeometry()[kk].Z();
+				    
+				    array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
+				    array_1d<double,3> rik = Vector3D(xi,yi,zi,xk,yk,zk);
+				    array_1d<double,3> rjk = Vector3D(xj,yj,zj,xk,yk,zk);
+				    
+				    double dist_ij = Norm3D(rij);
+				    double dist_ik = Norm3D(rik);
+				    double dist_jk = Norm3D(rjk);
+
+				    //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
+				    Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+                                    
+                                    
+//                                     double nodal_h = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
+// 				    nodal_h       += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
+// 				    nodal_h       += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
+// 				    nodal_h       *= 0.33333333333333333;
+
+				
+				    double factor = 1.25;	
+ 				    if ((dist_ij > factor*mesh_size) || (dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size))
+                                     {
+				      id++;
+				      double x = 0.3333333333333*(xi+xj+xk);
+				      double y = 0.3333333333333*(yi+yj+yk);
+                                      double z = 0.0;
+			    
+				      Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+
+				      //putting the new node also in an auxiliary list
+				      KRATOS_WATCH("adding nodes to list")										
+
+				      std::cout << "new node id = " << pnode->Id() << std::endl;
+				      //generating the dofs
+				      for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+				      {
+					Node<3>::DofType& rDof = *iii;
+					Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+					(p_new_dof)->FreeDof();
+				      }
+				      Geometry<Node<3> >& geom = ic->GetGeometry();
+                                      
+                                      //InterpolateOnEdge(geom, ii, jj, step_data_size, pnode);
+				      InterpolateOnFace(geom, ii, jj, kk, step_data_size, pnode);
+				      const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+				      pnode->X0() = pnode->X() - disp[0];
+				      pnode->Y0() = pnode->Y() - disp[1];
+                                      pnode->Z0() = pnode->Z() - disp[2];
+				      KRATOS_WATCH("Added node at the FACE with all IS_STRUCTURE, no TRIPLE_POINT")
+                                      
+				    }
+				  }
+				  
+                                  if (n_tp == 1)
+				  {
+				    int ii = 0;
+				    int jj = 1;
+				    int kk = 2;
+				    if (ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
 				    {
 				        ii = 1;
 					jj = 0;
 					kk = 2;
 				    }
-				    if (ic->GetGeometry()[2].FastGetSolutionStepValue(TRIPLE_POINT) == 1.0)
+				    if (ic->GetGeometry()[2].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
 				    {
 				        ii = 2;
 					jj = 0;
 					kk = 1;
-				    }				    
+				    }			    
 				    // Node with index ii is the TRIPLE_POINT
-                                    double xi=ic->GetGeometry()[ii].X();
-                                    double yi=ic->GetGeometry()[ii].Y();
-                                    double zi=ic->GetGeometry()[ii].Z();
-                                    double xj=ic->GetGeometry()[jj].X();
-                                    double yj=ic->GetGeometry()[jj].Y();
-                                    double zj=ic->GetGeometry()[jj].Z();
-                                    double xk=ic->GetGeometry()[kk].X();
-                                    double yk=ic->GetGeometry()[kk].Y();
-                                    double zk=ic->GetGeometry()[kk].Z();
-                                    
-                                    array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
-                                    array_1d<double,3> rik = Vector3D(xi,yi,zi,xk,yk,zk);
-                                    array_1d<double,3> rjk = Vector3D(xj,yj,zj,xk,yk,zk);
-                                    
-                                    double dist_ij = Norm3D(rij);
-                                    double dist_ik = Norm3D(rik);
-                                    double dist_jk = Norm3D(rjk);
+				    double xi=ic->GetGeometry()[ii].X();
+				    double yi=ic->GetGeometry()[ii].Y();
+				    double zi=ic->GetGeometry()[ii].Z();
+				    double xj=ic->GetGeometry()[jj].X();
+				    double yj=ic->GetGeometry()[jj].Y();
+				    double zj=ic->GetGeometry()[jj].Z();
+				    double xk=ic->GetGeometry()[kk].X();
+				    double yk=ic->GetGeometry()[kk].Y();
+				    double zk=ic->GetGeometry()[kk].Z();
+				    
+				    array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
+				    array_1d<double,3> rik = Vector3D(xi,yi,zi,xk,yk,zk);
+				    
+				    double dist_ij = Norm3D(rij);
+				    double dist_ik = Norm3D(rik);
 
-                                    //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
-                                    Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-                                
-                                    double factor = 2.55;	
-                                    if ((dist_ij > factor*mesh_size) || (dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size))
-                                    {
-                                        id++;
-                                        double x = 0.3333333333333*(xi+xj+xk);
-                                        double y = 0.3333333333333*(yi+yj+yk);
-                                        double z = 0.3333333333333*(zi+zj+zk);
-                            
-                                        Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+				    //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
+				    Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+				
+				    double factor = 1.25;	
+				    if ((dist_ij > factor*mesh_size) || (dist_ik > factor*mesh_size))
+				    {
+				      id++;
+				      double x = 0.3333333333333*(xi+xj+xk);
+				      double y = 0.3333333333333*(yi+yj+yk);
+				      double z = 0.0;
+			    
+				      Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 
-                                        //putting the new node also in an auxiliary list
-                                        KRATOS_WATCH("adding nodes to list")										
+				      //putting the new node also in an auxiliary list
+				      KRATOS_WATCH("adding nodes to list")										
 
-                                        std::cout << "new node id = " << pnode->Id() << std::endl;
-                                        //generating the dofs
-                                        for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-                                        {
-                                        Node<3>::DofType& rDof = *iii;
-                                        Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-                                        (p_new_dof)->FreeDof();
-                                        }
-                                        Geometry<Node<3> >& geom = ic->GetGeometry();
+				      std::cout << "new node id = " << pnode->Id() << std::endl;
+				      //generating the dofs
+				      for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+				      {
+					Node<3>::DofType& rDof = *iii;
+					Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+					(p_new_dof)->FreeDof();
+				      }
+				      Geometry<Node<3> >& geom = ic->GetGeometry();
 
-                                        InterpolateOnFace(geom, ii, jj, kk, step_data_size, pnode);
-                                        const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-                                        pnode->X0() = pnode->X() - disp[0];
-                                        pnode->Y0() = pnode->Y() - disp[1];
-                                        pnode->Z0() = pnode->Z() - disp[2];
-                                        KRATOS_WATCH("Added node at the FACE with all IS_STRUCTURE, one TRIPLE_POINT")
-                                        
-//                                         double factor_2 = 0.75;			
-//                                         if ( (dist_ki < factor_2*nodal_h) || (dist_kj < factor_2*nodal_h) )
-//                                             ic->GetGeometry()[kk].Set(TO_ERASE,true);
-                                        
+				      InterpolateOnFace(geom, ii, jj, kk, step_data_size, pnode);
+				      const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+				      pnode->X0() = pnode->X() - disp[0];
+				      pnode->Y0() = pnode->Y() - disp[1];
+				      KRATOS_WATCH("Added node at the FACE with all IS_STRUCTURE, one TRIPLE_POINT")
+				    }				    
+				  }
+				  if (n_tp == 2)
+				  {
+				    int ii = 0;
+				    int jj = 1;
+				    int kk = 2;
+				    if (ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
+				    {
+				        ii = 1;
+					jj = 2;
+					kk = 0;
 				    }
+				    if (ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
+				    {
+				        ii = 0;
+					jj = 2;
+					kk = 1;
+				    }				    
+				    // Node with index kk is the only not TRIPLE_POINT
+				    double xi=ic->GetGeometry()[ii].X();
+				    double yi=ic->GetGeometry()[ii].Y();
+				    double zi=ic->GetGeometry()[ii].Z();
+				    double xj=ic->GetGeometry()[jj].X();
+				    double yj=ic->GetGeometry()[jj].Y();
+				    double zj=ic->GetGeometry()[jj].Z();
 				    
-                                }
-                              }
-                            }
+				    array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
 				    
+				    double dist_ij = Norm3D(rij);
+
+				    //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
+				    Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 				    
-//                                     if ((dist_ik < mesh_size * 0.5 ) || (dist_jk < mesh_size * 0.5))
-//                                     {
-//                                         ic->GetGeometry()[kk].Set(TO_ERASE,true);
-// //                                         ic->GetGeometry()[jj].Set(TO_ERASE,true);
-// //                                          ic->GetGeometry()[jj].Set(TO_ERASE,true);
-//                                         KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF one_tp one_tp ELAF kkkkk")
-//                                     }
-//                                     
-//                                     if ((dist_jk < mesh_size * 0.5 ) || (dist_ij < mesh_size * 0.5))
-//                                     {
-// //                                             ic->GetGeometry()[kk].Set(TO_ERASE,true);
-// //                                          ic->GetGeometry()[ii].Set(TO_ERASE,true);
-//                                         ic->GetGeometry()[jj].Set(TO_ERASE,true);
-//                                         KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF one_tp one_tp ELAF jjjjj")
-//                                     }
+				    double factor_edge = 1.25;
+				    if ( dist_ij > factor_edge*mesh_size)
+				    {
+				      id++;
+				      double x = 0.5*(xi+xj);
+				      double y = 0.5*(yi+yj);
+				      double z = 0.0;
+			    
+				      Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 
+				      //putting the new node also in an auxiliary list
+				      KRATOS_WATCH("adding nodes to list")										
 
-//                                     if ((dist_ik < mesh_size * 0.5 ) || (dist_jk < mesh_size * 0.5) || (dist_ij < mesh_size * 0.5))
-//                                     {
-//                                         if ( ic->GetGeometry()[ii].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-//                                         {
-//                                             ic->GetGeometry()[ii].Set(TO_ERASE,true);
-//                                             KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF one_tp one_tp ELAF iiii")
-//                                         }
-//                                             
-// //                                         else if ( ic->GetGeometry()[jj].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-// //                                         {
-// //                                             ic->GetGeometry()[jj].Set(TO_ERASE,true);
-// //                                             KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF one_tp one_tp ELAF jjjj")
-// //                                         }
-//                                             
-//                                         else if ( ic->GetGeometry()[kk].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-//                                         {
-//                                             ic->GetGeometry()[kk].Set(TO_ERASE,true);
-//                                             KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF one_tp one_tp ELAF kkkk")
-//                                         }
-//                                         }
-// 
-// 				    
-//                                 }
-                                /////// 4
-                                
-                                /*
-                                if ((n_fs == 1) && (n_tp == 2) || (n_fs == 2) && (n_tp == 1) )
-                                {
-                                        mesh_size  = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size *= 0.33333333333;
-                                        int ii = 0;
-                                        int jj = 1;
-                                        int kk = 2;
-                                        if (ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
-                                        {
-                                            ii = 1;
-                                            jj = 2;
-                                            kk = 0;
-                                        }
-                                        if (ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
-                                        {
-                                            ii = 0;
-                                            jj = 2;
-                                            kk = 1;
-                                        }
-                                        // Node with index kk is the one that is not on the contact line
-                                        double xi=ic->GetGeometry()[ii].X();
-                                        double yi=ic->GetGeometry()[ii].Y();
-                                        double zi=ic->GetGeometry()[ii].Z();
-                                        double xj=ic->GetGeometry()[jj].X();
-                                        double yj=ic->GetGeometry()[jj].Y();
-                                        double zj=ic->GetGeometry()[jj].Z();
-                                        double xk=ic->GetGeometry()[kk].X();
-                                        double yk=ic->GetGeometry()[kk].Y();
-                                        double zk=ic->GetGeometry()[kk].Z();
-                                        
-                                        
-                                        array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
-                                        array_1d<double,3> rik = Vector3D(xi,yi,zi,xk,yk,zk);
-                                        array_1d<double,3> rjk = Vector3D(xj,yj,zj,xk,yk,zk);
-                                        
-                                        double dist_ij = Norm3D(rij);
-                                        double dist_ik = Norm3D(rik);
-                                        double dist_jk = Norm3D(rjk);
-                                        
-                                        //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
-                                        Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-                                    
-                                        double factor = 1.5;	
-                                        if ((dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size) || (dist_ij > factor*mesh_size))
-                                        {
-                                        id++;
-                                        double x = 0.3333333333333*(xi+xj+xk);
-                                        double y = 0.3333333333333*(yi+yj+yk);
-                                        double z = 0.3333333333333*(zi+zj+zk);
-                                
-                                        Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+				      std::cout << "new node id = " << pnode->Id() << std::endl;
+				      //generating the dofs
+				      for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+				      {
+					Node<3>::DofType& rDof = *iii;
+					Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+					(p_new_dof)->FreeDof();
+				      }
+				      Geometry<Node<3> >& geom = ic->GetGeometry();
 
-                                        //putting the new node also in an auxiliary list
-                                        KRATOS_WATCH("adding nodes to list")										
+				      InterpolateOnEdge(geom, ii, jj, step_data_size, pnode);
+				      const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+				      pnode->X0() = pnode->X() - disp[0];
+				      pnode->Y0() = pnode->Y() - disp[1];
+				      KRATOS_WATCH("Added node at the EDGE with all IS_STRUCTURE, two TRIPLE_POINT")
+				    }	
+				  }
+				}				
+			      }
+			    }			
+			    
+//                         //20161129 ajarauta - DELETE IS_STRUCTURE NODE IF IT GETS TOO CLOSE TO AN EDGE FORMED BY TWO TRIPLE_POINT NODES
+			for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ; ic != ThisModelPart.ConditionsEnd() ; ic++)
+			{
+			    if (ic->GetGeometry().size()==3)
+			    {
+				unsigned int n_trip = ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT);
+				n_trip    += ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT);
+				n_trip    += ic->GetGeometry()[2].FastGetSolutionStepValue(TRIPLE_POINT);
+				
+				unsigned int n_struc = ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);			
+				n_struc    += ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
+				n_struc    += ic->GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);				
+								
+				if ((n_struc==ic->GetGeometry().size()) && (n_trip == 2))
+				{
+				    int ii = 0;
+				    int jj = 1;
+				    int kk = 2;
+				    if (ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
+				    {
+				        ii = 1;
+					jj = 2;
+					kk = 0;
+				    }
+				    if (ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
+				    {
+				        ii = 0;
+					jj = 2;
+					kk = 1;
+				    }
+				    // Node with index kk is the one that is not on the contact line
+				    double xi=ic->GetGeometry()[ii].X();
+				    double yi=ic->GetGeometry()[ii].Y();
+				    double zi=ic->GetGeometry()[ii].Z();
+				    double xj=ic->GetGeometry()[jj].X();
+				    double yj=ic->GetGeometry()[jj].Y();
+				    double zj=ic->GetGeometry()[jj].Z();
+				    double xk=ic->GetGeometry()[kk].X();
+				    double yk=ic->GetGeometry()[kk].Y();
+				    double zk=ic->GetGeometry()[kk].Z();
+				    
+				    array_1d<double,3> rki = Vector3D(xk,yk,zk,xi,yi,zi);
+				    array_1d<double,3> rkj = Vector3D(xk,yk,zk,xj,yj,zj);
+				    
+				    double dist_ki = Norm3D(rki);
+				    double dist_kj = Norm3D(rkj);
+				    
+				    double nodal_h = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
+				    nodal_h       += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
+				    nodal_h       += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
+				    nodal_h       *= 0.33333333333333333;
 
-                                        std::cout << "new node id = " << pnode->Id() << std::endl;
-                                        //generating the dofs
-                                        for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-                                        {
-                                            Node<3>::DofType& rDof = *iii;
-                                            Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-                                            (p_new_dof)->FreeDof();
-                                        }
-                                        Geometry<Node<3> >& geom = ic->GetGeometry();
-
-    // 				      InterpolateOnEdge(geom, ii, kk, step_data_size, pnode);
-                                        InterpolateOnFace(geom, ii, jj, kk, step_data_size, pnode);
-                                        const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-                                        pnode->X0() = pnode->X() - disp[0];
-                                        pnode->Y0() = pnode->Y() - disp[1];
-                                        pnode->Z0() = pnode->Z() - disp[2];
-                                        KRATOS_WATCH("Added node at the FACE with IS_FREE_SURFACE")
-                                        }
-                                        
-
-                                        
-//                                         if ((dist_ik < mesh_size * 0.5 ) || (dist_jk < mesh_size * 0.5 ) || (dist_ij < mesh_size * 0.5))
-//                                             {
-//                                                 ic->GetGeometry()[kk].Set(TO_ERASE,true);
-// //                                              ic->GetGeometry()[ii].Set(TO_ERASE,true);
-// //                                                 ic->GetGeometry()[jj].Set(TO_ERASE,true);
-//                                                 KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF FACE FACE ELAF kkkkkk")
-// //                                                 KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF FACE FACE ELAF jjjjj")
-//                                             }
-
-                                        if ((dist_ik < mesh_size * 0.5 ) || (dist_jk < mesh_size * 0.5) || (dist_ij < mesh_size * 0.5))
-                                        {
-                                            if ( ic->GetGeometry()[ii].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-                                            {
-                                                ic->GetGeometry()[ii].Set(TO_ERASE,true);
-                                                KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF one_tp one_tp ELAF iiii")
-                                            }
-                                                
-                                            else if ( ic->GetGeometry()[jj].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-                                            {
-                                                ic->GetGeometry()[jj].Set(TO_ERASE,true);
-                                                KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF one_tp one_tp ELAF jjjj")
-                                            }
-                                                
-                                            else if ( ic->GetGeometry()[kk].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15)
-                                            {
-                                                ic->GetGeometry()[kk].Set(TO_ERASE,true);
-                                                KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF one_tp one_tp ELAF kkkk")
-                                            }
-                                        }
-                                            
-                                        
+				    double factor = 0.75;			
+				    if ( (dist_ki < factor*nodal_h) || (dist_kj < factor*nodal_h) )
+					ic->GetGeometry()[kk].Set(TO_ERASE,true);
 				}
-                                
-                                
-                         /////// 5
-                                
-                                if ((n_fs == 3) && (n_tp == 0) )
-                                {
-                                        mesh_size  = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
-                                        mesh_size *= 0.33333333333;
-                                        int ii = 0;
-                                        int jj = 1;
-                                        int kk = 2;
-                                        if (ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
-                                        {
-                                            ii = 1;
-                                            jj = 2;
-                                            kk = 0;
-                                        }
-                                        if (ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
-                                        {
-                                            ii = 0;
-                                            jj = 2;
-                                            kk = 1;
-                                        }
-                                        // Node with index kk is the one that is not on the contact line
-                                        double xi=ic->GetGeometry()[ii].X();
-                                        double yi=ic->GetGeometry()[ii].Y();
-                                        double zi=ic->GetGeometry()[ii].Z();
-                                        double xj=ic->GetGeometry()[jj].X();
-                                        double yj=ic->GetGeometry()[jj].Y();
-                                        double zj=ic->GetGeometry()[jj].Z();
-                                        double xk=ic->GetGeometry()[kk].X();
-                                        double yk=ic->GetGeometry()[kk].Y();
-                                        double zk=ic->GetGeometry()[kk].Z();
-                                        
-                                        
-                                        array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
-                                        array_1d<double,3> rik = Vector3D(xi,yi,zi,xk,yk,zk);
-                                        array_1d<double,3> rjk = Vector3D(xj,yj,zj,xk,yk,zk);
-                                        
-                                        double dist_ij = Norm3D(rij);
-                                        double dist_ik = Norm3D(rik);
-                                        double dist_jk = Norm3D(rjk);
-                                        
-                                        //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
-                                        Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-                                    
-                                        double factor = 2.5;	
-                                        if ((dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size) || (dist_ij > factor*mesh_size))
-                                        {
-                                        id++;
-                                        double x = 0.3333333333333*(xi+xj+xk);
-                                        double y = 0.3333333333333*(yi+yj+yk);
-                                        double z = 0.3333333333333*(zi+zj+zk);
-                                
-                                        Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
-
-                                        //putting the new node also in an auxiliary list
-                                        KRATOS_WATCH("adding nodes to list")										
-
-                                        std::cout << "new node id = " << pnode->Id() << std::endl;
-                                        //generating the dofs
-                                        for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-                                        {
-                                            Node<3>::DofType& rDof = *iii;
-                                            Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-                                            (p_new_dof)->FreeDof();
-                                        }
-                                        Geometry<Node<3> >& geom = ic->GetGeometry();
-
-    // 				      InterpolateOnEdge(geom, ii, kk, step_data_size, pnode);
-                                        InterpolateOnFace(geom, ii, jj, kk, step_data_size, pnode);
-                                        const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-                                        pnode->X0() = pnode->X() - disp[0];
-                                        pnode->Y0() = pnode->Y() - disp[1];
-                                        pnode->Z0() = pnode->Z() - disp[2];
-                                        KRATOS_WATCH("Added node at the FACE with IS_FREE_SURFACE")
-                                        }
-                                        
-                                        if ((dist_ik < mesh_size * 0.35 ) || (dist_jk < mesh_size * 0.35))
-                                            {
-                                            ic->GetGeometry()[kk].Set(TO_ERASE,true);
-//                                             ic->GetGeometry()[ii].Set(TO_ERASE,true);
-//                                             ic->GetGeometry()[jj].Set(TO_ERASE,true);
-                                            KRATOS_WATCH("we find some points to be deleted ELAF ELAF ELAF ELAF FACE ELAF kkkkk")
-                                            }
-                                    
-
-                                            
-                                            ///////////////////
-                                        
-				}
-                                
-                                ///////
-			    }
-                            }
-                        */
-  
-			//20161129 ajarauta - DELETE IS_STRUCTURE NODE IF IT GETS TOO CLOSE TO AN EDGE FORMED BY TWO TRIPLE_POINT NODES
-// 			for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ; ic != ThisModelPart.ConditionsEnd() ; ic++)
-// 			{
-// 			    if (ic->GetGeometry().size()==3)
-// 			    {
-// 				unsigned int n_trip = ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT);
-// 				n_trip    += ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT);
-// 				n_trip    += ic->GetGeometry()[2].FastGetSolutionStepValue(TRIPLE_POINT);
-// 				
-// 				unsigned int n_struc = ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);			
-// 				n_struc    += ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
-// 				n_struc    += ic->GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);				
-// 								
-// 				if ((n_struc==ic->GetGeometry().size()) && (n_trip == 2))
+				
+				
+// 				//elaf
+//                                 if ((n_struc==ic->GetGeometry().size()))
 // 				{
 // 				    int ii = 0;
 // 				    int jj = 1;
 // 				    int kk = 2;
-// 				    if (ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT) == 0.0)
+// 				    if (ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE) != 0)
 // 				    {
 // 				        ii = 1;
 // 					jj = 2;
 // 					kk = 0;
 // 				    }
-// 				    if (ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT) == 0.0)
+// 				    if (ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE) != 0)
 // 				    {
 // 				        ii = 0;
 // 					jj = 2;
 // 					kk = 1;
 // 				    }
+//   
+// 				    
 // 				    // Node with index kk is the one that is not on the contact line
 // 				    double xi=ic->GetGeometry()[ii].X();
 // 				    double yi=ic->GetGeometry()[ii].Y();
@@ -752,11 +568,13 @@ namespace Kratos
 // 				    double yk=ic->GetGeometry()[kk].Y();
 // 				    double zk=ic->GetGeometry()[kk].Z();
 // 				    
-// 				    array_1d<double,3> rki = Vector3D(xk,yk,zk,xi,yi,zi);
+// 				    array_1d<double,3> rij = Vector3D(xi,yi,zi,xj,yj,zj);
+//                                     array_1d<double,3> rki = Vector3D(xk,yk,zk,xi,yi,zi);
 // 				    array_1d<double,3> rkj = Vector3D(xk,yk,zk,xj,yj,zj);
 // 				    
 // 				    double dist_ki = Norm3D(rki);
 // 				    double dist_kj = Norm3D(rkj);
+//                                     double dist_ij = Norm3D(rij);
 // 				    
 // 				    double nodal_h = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
 // 				    nodal_h       += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
@@ -764,26 +582,44 @@ namespace Kratos
 // 				    nodal_h       *= 0.33333333333333333;
 // 
 // 				    double factor = 0.75;			
-// 				    if ( (dist_ki < factor*nodal_h) || (dist_kj < factor*nodal_h) )
+// 				    if ( (dist_ki < factor*nodal_h) || (dist_kj < factor*nodal_h) || (dist_ij < factor*nodal_h))
 // 					ic->GetGeometry()[kk].Set(TO_ERASE,true);
 // 				}
-// 			    }
-// 			}
-			
-			//20161129 ajarauta -> Find those interior nodes close to the contact line and IS_STRUCTURE nodes to avoid deletion of interface elements
-// 			for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
-// 			{
-// 			    if ((im->FastGetSolutionStepValue(IS_BOUNDARY) == 0.0) && (im->Z() < 0.00004) && (im->Z() > 0.00002))
-// 			        im->GetValue(ERASE_FLAG) = 1.0;
+// 				
+ 			    }
+			}
+// 			
+                        //20161129 ajarauta -> Find those interior nodes close to the contact line and IS_STRUCTURE nodes to avoid deletion of interface elements
+//  			for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+//  			{
+//  			    if ((im->FastGetSolutionStepValue(IS_BOUNDARY) < 1e-15) && (im->Z() < 0.00004) && (im->Z() > 0.00002))
+// 			        im->Set(TO_ERASE,true);
 // 			}
 // 			
-// 			ThisModelPart.Conditions().clear();
+//                         
+//                         //elaf
+//                         for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+//  			{
+//  			    if ((im->FastGetSolutionStepValue(IS_STRUCTURE) != 0) && (im->Z() < 0.0))
+// 			        im->Set(TO_ERASE,true);
+// 			}
+// 			
+//                         //elaf
+//                         for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+//  			{
+//  			    if ((im->FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15 ) && (im->Z() < 0.0))
+// 			        im->Set(TO_ERASE,true);
+// 			}
+// 			
+    // 			ThisModelPart.Conditions().clear();
 
                         
-
 			boost::timer auxiliary;
 			////////////////////////////////////////////////////////////
-			typedef Node<3> PointType;
+			
+                        
+                        
+                        typedef Node<3> PointType;
 			typedef Node<3>::Pointer PointPointerType;
 			//typedef PointerVector<PointType>           PointVector;
 			typedef std::vector<PointType::Pointer>           PointVector;
@@ -845,7 +681,7 @@ namespace Kratos
 					n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
 						if (n_points_in_radius>1)
 						{
-						if ((in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0.0) || (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0) || (in->FastGetSolutionStepValue(IS_FREE_SURFACE)!= 0.0) || (in->FastGetSolutionStepValue(IS_STRUCTURE)!= 0.0)) 
+						if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0.0)
 							{
 							in->Set(TO_ERASE,true);
 							//below is just for the bladder example
@@ -950,12 +786,29 @@ namespace Kratos
 				nb += int( (nodes_begin + out.tetrahedronlist[base+1]-1)->FastGetSolutionStepValue(IS_STRUCTURE) );
 				nb += int( (nodes_begin + out.tetrahedronlist[base+2]-1)->FastGetSolutionStepValue(IS_STRUCTURE) );
 				nb += int((nodes_begin + out.tetrahedronlist[base+3]-1)->FastGetSolutionStepValue(IS_STRUCTURE) );
+                                
+                                //check number of nodes on contact line
+				int ntp = int( (nodes_begin + out.tetrahedronlist[base]-1)->FastGetSolutionStepValue(TRIPLE_POINT) );
+				ntp += int( (nodes_begin + out.tetrahedronlist[base+1]-1)->FastGetSolutionStepValue(TRIPLE_POINT) );
+				ntp += int( (nodes_begin + out.tetrahedronlist[base+2]-1)->FastGetSolutionStepValue(TRIPLE_POINT) );
+				ntp += int((nodes_begin + out.tetrahedronlist[base+3]-1)->FastGetSolutionStepValue(TRIPLE_POINT) );	
+				
+				int nfv = int( (nodes_begin + out.tetrahedronlist[base]-1)->FastGetSolutionStepValue(FLAG_VARIABLE) );
+				nfv += int( (nodes_begin + out.tetrahedronlist[base+1]-1)->FastGetSolutionStepValue(FLAG_VARIABLE) );
+				nfv += int( (nodes_begin + out.tetrahedronlist[base+2]-1)->FastGetSolutionStepValue(FLAG_VARIABLE) );
+				nfv += int((nodes_begin + out.tetrahedronlist[base+3]-1)->FastGetSolutionStepValue(FLAG_VARIABLE) );	
 
 				//check the number of nodes of bo			node_erase.Execute();undary
 				int nfs = int( (nodes_begin + out.tetrahedronlist[base]-1)->FastGetSolutionStepValue(IS_FREE_SURFACE) );
 				nfs += int( (nodes_begin + out.tetrahedronlist[base+1]-1)->FastGetSolutionStepValue(IS_FREE_SURFACE) );
 				nfs += int( (nodes_begin + out.tetrahedronlist[base+2]-1)->FastGetSolutionStepValue(IS_FREE_SURFACE) );
 				nfs += int((nodes_begin + out.tetrahedronlist[base+3]-1)->FastGetSolutionStepValue(IS_FREE_SURFACE) );
+                                
+                                //check the number of interface elements
+				int nint = int( (nodes_begin + out.tetrahedronlist[base]-1)->FastGetSolutionStepValue(IS_INTERFACE) );
+				nint += int( (nodes_begin + out.tetrahedronlist[base+1]-1)->FastGetSolutionStepValue(IS_INTERFACE) );
+				nint += int( (nodes_begin + out.tetrahedronlist[base+2]-1)->FastGetSolutionStepValue(IS_INTERFACE) );
+				nint += int((nodes_begin + out.tetrahedronlist[base+3]-1)->FastGetSolutionStepValue(IS_INTERFACE) );
 				
 				//check the number of nodes of boundary
 				int nfluid = int( (nodes_begin + out.tetrahedronlist[base]-1)->FastGetSolutionStepValue(IS_FLUID) );
@@ -967,12 +820,11 @@ namespace Kratos
 				n_lag += int( (nodes_begin + out.tetrahedronlist[base+1]-1)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) );
 				n_lag += int( (nodes_begin + out.tetrahedronlist[base+2]-1)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) );
 				n_lag += int((nodes_begin + out.tetrahedronlist[base+3]-1)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) );
-                                
-                                int ntp = int( (nodes_begin + out.tetrahedronlist[base]-1)->FastGetSolutionStepValue(TRIPLE_POINT) );
-				ntp += int( (nodes_begin + out.tetrahedronlist[base+1]-1)->FastGetSolutionStepValue(TRIPLE_POINT) );
-				ntp += int( (nodes_begin + out.tetrahedronlist[base+2]-1)->FastGetSolutionStepValue(TRIPLE_POINT) );
-				ntp += int((nodes_begin + out.tetrahedronlist[base+3]-1)->FastGetSolutionStepValue(TRIPLE_POINT) );
-                                
+
+				
+				//cases:
+                                //4 nodes on the wall - elminate
+				// at least one node of boundary OR at least one node NOT of fluid --> pass alpha shape
                                 
                                 if (vol < 1E-40) // slivers
 				{
@@ -981,18 +833,9 @@ namespace Kratos
 				}
 				else
 				{
-//                                     if ((ntp >=3 && nb >=3) || (ntp >=2 && nfs >=2)) //at least node node at contact line
-// 				    {
-// 					preserved_list[el] = false;
-//                                     }
 				    if(nb == 4) // 4 nodes on the wall
 					preserved_list[el] = false;
-// 				    else if (ntp >=1) //at least node node at contact line
-// 				    {
-// 					preserved_list[el] = true;
-// 					number_of_preserved_elems += 1;
-// 				    }
-//                                     if (nb >=0.9 && nb <=3.1 && ntp != 1.0) //at least node node at contact line
+// 				    else if (ntp != 0) //at least node node at contact line
 // 				    {
 // 					preserved_list[el] = true;
 // 					number_of_preserved_elems += 1;
@@ -1001,26 +844,8 @@ namespace Kratos
 				    {
 				      if (nfs != 0) //close to the free surface or external
 				      {
-					if( radius  < prescribed_h * alpha_param ) //the nodes are not all on the boundary
+					if( radius  < prescribed_h * alpha_param * 1.5) //the nodes are not all on the boundary (elaf added 1.5)
 					{
-// 					    if(nb == 1 && n_lag == 3)// && nb != 0 && nfv == 3) //20161217 ajarauta: this is for Lap_Young example with "Step" initial shape
-// 						preserved_list[el] = false;
-// 					    else if(nb == 2 && n_lag == 2)// && nb != 0 && nfv == 3)
-// 						preserved_list[el] = false;
-// 					    else if(nb == 3 && n_lag == 1)// && nb != 0 && nfv == 3)
-// 						preserved_list[el] = false;
-// 					    else if(nb == 3 && n_lag == 3)// && (nb == 1 || nb == 2))
-// 						preserved_list[el] = false;	
-// 					    else if(nint == 2 && n_lag == 3 && (nb == 1 || nb == 2))
-// 						preserved_list[el] = false;						    
-// 					    else if(nint == 3 && n_lag == 2 && (nb == 1 || nb == 2))
-// 						preserved_list[el] = false;					    
-// 					    else if(nint == 3 && n_lag == 2)// && nb != 0)
-// 						preserved_list[el] = false;
-// 					    else if(nint == 2 && n_lag == 3)// && nb != 0)
-// 						preserved_list[el] = false;				    
-// 					    else
-// 					    {
 						preserved_list[el] = true; //preserve!!
 						number_of_preserved_elems += 1;
 // 					    }
@@ -1030,119 +855,41 @@ namespace Kratos
 						preserved_list[el] = false;					
 					}
 				      }
-				      else if (nfluid < 3.9)
-				      {
-					if( radius  < prescribed_h * alpha_param ) //the nodes are not all on the boundary
+
+				      
+				      else if (nfluid < 3.99999999999) //close to the free surface or external
 					{
-						preserved_list[el] = true; //preserve!!
-						number_of_preserved_elems += 1;
-					}			
-					else
+						if( radius  < prescribed_h * alpha_param * 1.5) //alpha shape says to preserve (elaf added 1.5)
+							 //the nodes are not all on the boundary
+						{
+							preserved_list[el] = true; //preserve!!
+							number_of_preserved_elems += 1;
+						}
+						else
+						{
+							preserved_list[el] = false;
+							
+						}
+					}
+					
+					else //internal elements should be preserved as much as possible not to create holes
 					{
-						preserved_list[el] = false;					
-					}				      
-				      }
-				      else
-				      {
-					preserved_list[el] = true;
-					number_of_preserved_elems += 1;
+						if( radius  < prescribed_h * alpha_param * 5.0) 
+						{
+//std::cout << "element not deleted" <<std::endl;
+							preserved_list[el] = true; //preserve!!
+							number_of_preserved_elems += 1;
+						}
+                                                else
+ 						{
+                                                //std::cout << "sliver removed" << std::endl;
+ 							preserved_list[el] = false;
+ 							
+ 						}
 				      }
 				    }
 				}
-
 				
-// 				//cases:
-// 				//4 nodes on the wall - elminate
-// 				// at least one node of boundary OR at least one node NOT of fluid --> pass alpha shape
-// 				/*
-// 				if(nb == 4) // 4 nodes on the wall
-// 					preserved_list[el] = false;
-// 				else if (nboundary != 0 || nfluid != 4) //close to the free surface or external
-// 				{
-// 					if( radius  < prescribed_h * alpha_param && //alpha shape says to preserve
-// 						nb!=4) //the nodes are not all on the boundary
-// 					{
-// 						preserved_list[el] = true; //preserve!!
-// 						number_of_preserved_elems += 1;
-// 					}					
-// 				}
-// 				else
-// 				{
-// 					preserved_list[el] = true;
-// 					number_of_preserved_elems += 1;
-// 				}
-// 				*/
-// 				if(nb == 4) // 4 nodes on the wall
-// 				{
-// 					preserved_list[el] = false;
-// 					
-// 				}
-// 				else 
-// 				{
-// 					//if (nfs != 0 || nfluid != 4) //close to the free surface or external
-// 					if (n_lag >= 2 && nb==3 ) //close to the free surface or external
-// 					{
-// 						if( radius  < prescribed_h * 1.5*alpha_param ) //alpha shape says to preserve
-// 							 //the nodes are not all on the boundary
-// 						{
-// 							preserved_list[el] = true; //preserve!!
-// 							number_of_preserved_elems += 1;
-// 						}
-// 						else
-// 						{
-// 							preserved_list[el] = false;
-// 							
-// 						}					
-// 					}
-// 					else if (nfs != 0 ) //close to the free surface or external
-// 					{
-// 						if( radius  < prescribed_h * alpha_param ) //alpha shape says to preserve
-// 							 //the nodes are not all on the boundary
-// 						{
-// 							preserved_list[el] = true; //preserve!!
-// 							number_of_preserved_elems += 1;
-// 						}
-// 						else
-// 						{
-// 							preserved_list[el] = false;
-// 							
-// 						}
-// 					}
-// 
-// 					
-// 					else if (nfluid < 3.9) //close to the free surface or external
-// 					{
-// 						if( radius  < prescribed_h * alpha_param ) //alpha shape says to preserve
-// 							 //the nodes are not all on the boundary
-// 						{
-// 							preserved_list[el] = true; //preserve!!
-// 							number_of_preserved_elems += 1;
-// 						}
-// 						else
-// 						{
-// 							preserved_list[el] = false;
-// 							
-// 						}
-// 					}
-// 					
-// 					else //internal elements should be preserved as much as possible not to create holes
-// 					{
-// 						if( radius  < prescribed_h * alpha_param * 5.0 ) 
-// 						{
-// //std::cout << "element not deleted" <<std::endl;
-// 							preserved_list[el] = true; //preserve!!
-// 							number_of_preserved_elems += 1;
-// 						}
-// 						else
-// 						{
-// //std::cout << "sliver removed" << std::endl;
-// 							preserved_list[el] = false;
-// 							
-// 						}
-// //						preserved_list[el] = true;
-// //						number_of_preserved_elems += 1;
-// 					}
-// 				}
 
 			}
 			std::cout << "time for passing alpha shape" << alpha_shape_time.elapsed() << std::endl;
@@ -1242,7 +989,7 @@ namespace Kratos
 			//char regeneration_options[] = "rQJYq1.8anS";
 			if (add_nodes==true)
 				{
-				char mesh_regen_opts[] = "rQJYYqnS";
+				char mesh_regen_opts[] = "rQJYYq2.0nS";
 				tetrahedralize(mesh_regen_opts, &in2, &outnew);
 				KRATOS_WATCH("Adaptive remeshing executed")
 				}
@@ -1270,10 +1017,13 @@ namespace Kratos
 			typedef PointVector::iterator PointIterator;
 			typedef std::vector<double>               DistanceVector;
 			typedef std::vector<double>::iterator     DistanceIterator;
+
 			int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
+
 			// bucket types
 			typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
 			typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
+
 			// DynamicBins;	
 			typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;
 			//typedef Tree< StaticBins > Bin; 			     //Binstree;
@@ -1422,7 +1172,8 @@ namespace Kratos
 					
 									
 					//KRATOS_WATCH(results.size())
-					for(auto it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
+					//for(auto it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
+                                        for(PointIterator it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
 	 				{
 						bool is_inside=false; 
 														
@@ -1447,12 +1198,20 @@ namespace Kratos
 			ThisModelPart.Conditions().clear();
 			
 			//set the coordinates to the original value
-			for(auto & list_of_new_node : list_of_new_nodes)
+// 			for(auto & list_of_new_node : list_of_new_nodes)
+// 			{				
+// 				const array_1d<double,3>& disp = list_of_new_node->FastGetSolutionStepValue(DISPLACEMENT);
+// 				list_of_new_node->X0() = list_of_new_node->X() - disp[0];
+// 				list_of_new_node->Y0() = list_of_new_node->Y() - disp[1];
+// 				list_of_new_node->Z0() = list_of_new_node->Z() - disp[2];	
+// 			}
+                        
+                        for( PointVector::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
 			{				
-				const array_1d<double,3>& disp = list_of_new_node->FastGetSolutionStepValue(DISPLACEMENT);
-				list_of_new_node->X0() = list_of_new_node->X() - disp[0];
-				list_of_new_node->Y0() = list_of_new_node->Y() - disp[1];
-				list_of_new_node->Z0() = list_of_new_node->Z() - disp[2];	
+				const array_1d<double,3>& disp = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
+				(*it)->X0() = (*it)->X() - disp[0];
+				(*it)->Y0() = (*it)->Y() - disp[1];
+				(*it)->Z0() = (*it)->Z() - disp[2];	
 			}
 			//cleaning unnecessary data
 			in2.deinitialize();
@@ -1553,31 +1312,66 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				// 1 ----- 0 3 2
 				// 2 ----- 0 1 3
 				// 3 ----- 0 2 1
-
+                                
+                                //(elaf)
+                                if (outnew.neighborlist[base] == -1 && outnew.neighborlist[base+1] == -1 && outnew.neighborlist[base+2] == -1 && outnew.neighborlist[base+3] == -1)
+					  KRATOS_WATCH("SLIVER.. NOT SAVING AS A FACE")
+				else
+				{
 				//node 1
+// // 				    int counter=0;
+// // 
+// // 
+// // 				//if( neighb(0).expired()  );
+// //                                     if( outnew.neighborlist[base] == -1)
+// //                                     {
+// //                                             CreateBoundaryFace(1, 2, 3, ThisModelPart,   0, *(iii.base()), rReferenceBoundaryCondition, properties );
+// //                                     }
+// //                                     //if(neighb(1).expired() );
+// //                                     if( outnew.neighborlist[base+1] == -1)
+// //                                     {
+// //                                             CreateBoundaryFace(0,3,2, ThisModelPart,   1, *(iii.base()), rReferenceBoundaryCondition, properties );
+// //                                     }
+// //                                     if( outnew.neighborlist[base+2] == -1)
+// //                                     //if(neighb(2).expired() );
+// //                                     {
+// //                                             CreateBoundaryFace(0,1,3, ThisModelPart,   2, *(iii.base()), rReferenceBoundaryCondition, properties );
+// //                                     }
+// //                                     if( outnew.neighborlist[base+3] == -1)
+// //                                     //if(neighb(3).expired() );
+// //                                     {
+// //                                             CreateBoundaryFace(0,2,1, ThisModelPart,   3, *(iii.base()), rReferenceBoundaryCondition, properties );
+// //                                     }
+// //                                 }
+                                    
+                                    int counter=0;
 
-				//if( neighb(0).expired()  );
-				if( outnew.neighborlist[base] == -1)
-				{
-					CreateBoundaryFace(1, 2, 3, ThisModelPart,   0, *(iii.base()), rReferenceBoundaryCondition, properties );
-				}
-				//if(neighb(1).expired() );
-				if( outnew.neighborlist[base+1] == -1)
-				{
-					CreateBoundaryFace(0,3,2, ThisModelPart,   1, *(iii.base()), rReferenceBoundaryCondition, properties );
-				}
-				if( outnew.neighborlist[base+2] == -1)
-				//if(neighb(2).expired() );
-				{
-					CreateBoundaryFace(0,1,3, ThisModelPart,   2, *(iii.base()), rReferenceBoundaryCondition, properties );
-				}
-				if( outnew.neighborlist[base+3] == -1)
-				//if(neighb(3).expired() );
-				{
-					CreateBoundaryFace(0,2,1, ThisModelPart,   3, *(iii.base()), rReferenceBoundaryCondition, properties );
-				}
+				    //if( neighb(0).expired()  );
+				    if( outnew.neighborlist[base] == -1)
+				    {
+					    CreateBoundaryFace(1, 2, 3, ThisModelPart,   0, *(iii.base()), rReferenceBoundaryCondition, properties );
+				    counter++;
+				      
+				    }
+				    //if(neighb(1).expired() );
+				    if( outnew.neighborlist[base+1] == -1)
+				    {
+					    CreateBoundaryFace(0,3,2, ThisModelPart,   1, *(iii.base()), rReferenceBoundaryCondition, properties );
+				    }
+				    if( outnew.neighborlist[base+2] == -1)
+				    //if(neighb(2).expired() );
+				    {
+					    CreateBoundaryFace(0,1,3, ThisModelPart,   2, *(iii.base()), rReferenceBoundaryCondition, properties );
+				    }
+				    if( outnew.neighborlist[base+3] == -1)
+				    //if(neighb(3).expired() );
+				    {
+					    CreateBoundaryFace(0,2,1, ThisModelPart,   3, *(iii.base()), rReferenceBoundaryCondition, properties );
+				    }
+				  }
 
-			}
+// // 
+ 			}
 			outnew.deinitialize();
 			outnew.initialize();
 			std::cout << "time for adding faces" << adding_faces.elapsed() << std::endl;;
@@ -1717,7 +1511,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		    double norm_a = Norm3D(a);
 		    double norm_b = Norm3D(b);
 		    double temp = 0.0;
-		    if (norm_a*norm_b == 0.0)
+		    if (norm_a*norm_b < 1e-15)
 		        temp = 0.0;
 		    else
 		        temp = DotProduct3D(a,b)/(norm_a*norm_b);
@@ -1752,7 +1546,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		    
 		    return Norm3D(x);
 		}
-
 
 
 
@@ -1822,7 +1615,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			//not to have values, like 0.33 0.66 resulting if we would have been interpolating them in the same way 		
 			//as the normal variables, like Velocity etc		
 			
-                        pnode->FastGetSolutionStepValue(IS_BOUNDARY)=0.0;
+			pnode->FastGetSolutionStepValue(IS_BOUNDARY)=0.0;
 			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;
 			pnode->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
@@ -1831,7 +1624,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			pnode->FastGetSolutionStepValue(TRIPLE_POINT) = 0.0;
 			pnode->FastGetSolutionStepValue(CONTACT_ANGLE) = 0.0;
 		}
-		
 		
 		void InterpolateOnFace( Geometry<Node<3> >& geom, int point1, int point2, int point3, unsigned int step_data_size, Node<3>::Pointer pnode)
 		{
@@ -1848,7 +1640,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			    KRATOS_WATCH(point1)
 			    KRATOS_WATCH(point2)
 			    KRATOS_WATCH(point3)
-// 			    KRATOS_ERROR(std::logic_error,"THE EDGE POINTS ARE INVALID ", "");
+			    KRATOS_THROW_ERROR(std::logic_error,"THE EDGE POINTS ARE INVALID ", "");
 			}
 												    
 			double* node0_data = geom[point1].SolutionStepData().Data(step);
@@ -1876,7 +1668,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		    pnode->FastGetSolutionStepValue(NORMAL_TRIPLE_POINT) = ZeroVector(3);
 		    pnode->FastGetSolutionStepValue(CONTACT_ANGLE) = 0.0;
 				    
-		    pnode->Set(TO_ERASE,false);;
+		    pnode->Set(TO_ERASE,false);
 
 		    if (pnode->FastGetSolutionStepValue(IS_INTERFACE)>0.2)
 			pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
@@ -1934,7 +1726,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			{
 			    KRATOS_WATCH(point1)
 			    KRATOS_WATCH(point2)
-// 			    KRATOS_ERROR(std::logic_error,"THE EDGE POINTS ARE INVALID ", "");
+			    KRATOS_THROW_ERROR(std::logic_error,"THE EDGE POINTS ARE INVALID ", "");
 			}
 												    
 			double* node0_data = geom[point1].SolutionStepData().Data(step);
@@ -1963,7 +1755,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		    pnode->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
 		    pnode->FastGetSolutionStepValue(DISPLACEMENT_Z) = 0.0;
 				    
-		    pnode->Set(TO_ERASE,false);;
+		    pnode->Set(TO_ERASE,false);
 
 		    if (pnode->FastGetSolutionStepValue(IS_INTERFACE)>0.4)
 		    {
@@ -1990,9 +1782,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			pnode->FastGetSolutionStepValue(TRIPLE_POINT) = 0.0;
 		    }
 		}		  
-		
-		
-		
 		
 		inline double CalculateVol(	const double x0, const double y0, const double z0,
 						const double x1, const double y1, const double z1,
@@ -2232,12 +2021,12 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		///@{ 
 
 		/// Assignment operator.
-		TetGenPfemModeler& operator=(TetGenPfemModeler const& rOther);
+		TetGenDropletModeler& operator=(TetGenDropletModeler const& rOther);
 
 
 		///@}    
 
-	}; // Class TetGenPfemModeler 
+	}; // Class TetGenDropletModeler
 
 	///@} 
 
@@ -2252,11 +2041,11 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 	/// input stream function
 	inline std::istream& operator >> (std::istream& rIStream, 
-		TetGenPfemModeler& rThis);
+		TetGenDropletModeler& rThis);
 
 	/// output stream function
 	inline std::ostream& operator << (std::ostream& rOStream, 
-		const TetGenPfemModeler& rThis)
+		const TetGenDropletModeler& rThis)
 	{
 		rThis.PrintInfo(rOStream);
 		rOStream << std::endl;
@@ -2270,3 +2059,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 }  // namespace Kratos.
 
 #endif // KRATOS_TETGEN_PFEM_MODELER_H_INCLUDED  defined 
+
+
+

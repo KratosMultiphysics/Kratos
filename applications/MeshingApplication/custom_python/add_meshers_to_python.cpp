@@ -26,6 +26,7 @@
 #include "external_includes/tetgen_pfem_refine_face.h"
 #include "external_includes/tetgen_pfem_contact.h"
 #include "external_includes/tetgen_cdt.h"
+// #include "external_includes/tetgen_droplet_refine.h"
 #else
 #define REAL double
 #endif 
@@ -62,13 +63,28 @@ using namespace pybind11;
 //                                                                                       //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//tetgen pfem refine
+// tetgen pfem refine
 void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, NodeEraseProcess& NodeErase,bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
 {
     Mesher.ReGenerateMesh(rModelPart,
                           KratosComponents<Element>::Get(ElementName),
                           KratosComponents<Condition>::Get(ConditionName),NodeErase,RemNodes, AddNodes,  AlphaShape, HFactor     );
 }
+
+// void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, NodeEraseProcess& NodeErase, bool RemNodes, bool AddNodes, double AlphaShape, double HFactor)
+// {
+//     Mesher.ReGenerateMesh(rModelPart, rElements,
+//                           KratosComponents<Element>::Get(ElementName),
+//                           KratosComponents<Condition>::Get(ConditionName),NodeErase,RemNodes, AddNodes,  AlphaShape, HFactor     );
+// }
+
+//Alex-elaf -> for the droplet 3D
+// void TetRegenerateMeshDROPLET3D(TetGenDropletModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, NodeEraseProcess& node_erase,bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor)
+// {
+//     Mesher.ReGenerateMesh(model_part,
+//                           KratosComponents<Element>::Get(ElementName),
+//                           KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	);
+// }
 
 //tetgen pfem refine
 void GenerateCDT(TetGenCDT& Mesher, ModelPart& rModelPart, char* ElementName, bool AddNodes, unsigned int PropertyId)
@@ -233,6 +249,13 @@ void  AddMeshersToPython(pybind11::module& m)
     .def("ReGenerateMesh",TetRegenerateMesh)
     .def("ReGenerateMesh",&TetGenPfemModeler::ReGenerateMesh)
     ;
+    
+    
+//     class_<TetGenDropletModeler, TetGenDropletModeler::Pointer >(m, "TetGenDropletModeler")
+//     .def(init< >())
+//     .def("ReGenerateMeshDROPLET3D",TetRegenerateMeshDROPLET3D)
+//     .def("ReGenerateMeshDROPLET3D",&TetGenDropletModeler::ReGenerateMesh)
+//     ;
 
     class_<TetGenPfemRefineFace, TetGenPfemRefineFace::Pointer >(m, "TetGenPfemRefineFace")
     .def(init< >())

@@ -72,7 +72,7 @@ output_time = 0.01
 output_step = 10
 VolumeOutput = True
 
-nodal_results=["VELOCITY","PRESSURE"]
+nodal_results=["VELOCITY","PRESSURE","TEMPERATURE"]
 gauss_points_results=[]
 GiDPostMode = "Binary"
 GiDWriteMeshFlag = True

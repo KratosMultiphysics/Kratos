@@ -242,7 +242,7 @@ namespace Kratos
 
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
 	{
-	      if (im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
+	      if (im->FastGetSolutionStepValue(TRIPLE_POINT) * 1000.0 != 0.0)
 	      {
 		///////////////////////////////////////////////////////////////////////////////////////////////
 		// For node i, you find all its neighbor conditions. This is a set of triangles (faces)
@@ -384,6 +384,9 @@ namespace Kratos
 		    im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_Y) *= -1.0;
 		}
 	      }
+	      
+	      else
+                im->FastGetSolutionStepValue(CONTACT_ANGLE) = 0.0;
 	}
 	
 	KRATOS_CATCH("")

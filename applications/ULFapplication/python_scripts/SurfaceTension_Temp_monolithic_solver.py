@@ -75,9 +75,12 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(NORMAL_EQUILIBRIUM)
     model_part.AddNodalSolutionStepVariable(NORMAL_TRIPLE_POINT)
     #model_part.AddNodalSolutionStepVariable(PHASE_FRACTION_GRADIENT)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM)
-    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM_X)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM_X)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM_X)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM_Y)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM_Y)
+    model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM_Y)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE)
     model_part.AddNodalSolutionStepVariable(SURFACE_TENSION_COEF)
 
@@ -95,7 +98,7 @@ def AddDofs(model_part, config=None):
 
 
 class STMonolithicSolver:
-    def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp):
+    def __init__(self, model_part, domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y,surface_temp):
         self.model_part = model_part
         self.domain_size = domain_size
         # eul_model_part can be 0 (meaning that the model part is lagrangian) or 1 (eulerian)
@@ -128,9 +131,12 @@ class STMonolithicSolver:
         self.contact_angle = contact_angle
         self.gamma = gamma
         self.surface_temp = surface_temp
-        self.zeta_dissapative_JM = zeta_dissapative_JM
-        self.zeta_dissapative_BM = zeta_dissapative_BM
-        self.zeta_dissapative_SM = zeta_dissapative_SM
+        self.zeta_dissapative_JM_x = zeta_dissapative_JM_x
+        self.zeta_dissapative_BM_x = zeta_dissapative_BM_x
+        self.zeta_dissapative_SM_x = zeta_dissapative_SM_x
+        self.zeta_dissapative_JM_y = zeta_dissapative_JM_y
+        self.zeta_dissapative_BM_y = zeta_dissapative_BM_y
+        self.zeta_dissapative_SM_y = zeta_dissapative_SM_y
         #self.gamma_sl = gamma_sl
         #self.gamma_sv = gamma_sv
         
@@ -237,9 +243,12 @@ class STMonolithicSolver:
 
         self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
         self.model_part.ProcessInfo.SetValue(SURFACE_TENSION_COEF, self.gamma)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM, self.zeta_dissapative_JM)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM, self.zeta_dissapative_BM)
-        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM, self.zeta_dissapative_SM)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM_X, self.zeta_dissapative_JM_x)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM_X, self.zeta_dissapative_BM_x)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM_X, self.zeta_dissapative_SM_x)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_JM_Y, self.zeta_dissapative_JM_y)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_BM_Y, self.zeta_dissapative_BM_y)
+        self.model_part.ProcessInfo.SetValue(DISSIPATIVE_FORCE_COEFF_SM_Y, self.zeta_dissapative_SM_y)
         self.model_part.ProcessInfo.SetValue(TEMPERATURE, self.surface_temp)
 
         if(self.eul_model_part == 0):
@@ -269,6 +278,7 @@ class STMonolithicSolver:
                 node.SetSolutionStepValue(NORMAL_Z,0,0.0)
         if (self.domain_size == 2):
             FindTriplePoint().FindTriplePoint2D(self.model_part)
+            self.temp()
             CalculateCurvature().CalculateCurvature2D(self.model_part)
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
@@ -342,6 +352,7 @@ class STMonolithicSolver:
                     node.SetSolutionStepValue(NORMAL_Y,0,0.0)
                     node.SetSolutionStepValue(NORMAL_Z,0,0.0)
             FindTriplePoint().FindTriplePoint2D(self.model_part)
+            self.temp()
             CalculateCurvature().CalculateCurvature2D(self.model_part)
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
@@ -353,6 +364,23 @@ class STMonolithicSolver:
 
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
+        
+    def temp(self):
+        const = 1.0
+        surface_temp = self.surface_temp
+        gamma = self.gamma
+        time = self.model_part.ProcessInfo.GetValue(TIME)
+        dt   = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+        surface_temp = const * time * 100.0 + surface_temp
+        for node in self.model_part.Nodes:
+            if (node.GetSolutionStepValue(IS_BOUNDARY)!=0):
+                node.SetSolutionStepValue(TEMPERATURE,0, surface_temp)
+                node.Free(TEMPERATURE)
+                gamma = 0.07275*(1.0-0.00212*(surface_temp-293.15))
+                node.SetSolutionStepValue(SURFACE_TENSION_COEF,0, gamma)
+                node.Free(SURFACE_TENSION_COEF)
+                CalculateCurvature().CalculateCurvature2D(self.model_part)
+                CalculateNodalLength().CalculateNodalLength2D(self.model_part)
 
     def cont_angle_cond(self):
         theta_adv = self.contact_angle + 1.0
@@ -384,8 +412,8 @@ class STMonolithicSolver:
                         node.Fix(VELOCITY_Y)
                         node.Fix(VELOCITY_X)
 
-def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp): #FOR 3D!
-    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp)
+def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, surface_temp): #FOR 3D!
+    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle,  zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, surface_temp)
 
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha

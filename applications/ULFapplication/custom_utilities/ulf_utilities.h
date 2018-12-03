@@ -675,13 +675,12 @@ void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double fac
                             {
                                 //if thats not the wall node, remove it
                                 
-				//if (geom[i].FastGetSolutionStepValue(FIXED_WALL) == 0.0)
+				//if (geom[i].FastGetSolutionStepValue(FIXED_WALL) == 0.0) elaf
 			        //if (geom[i].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
-				if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY) == 0.0 || geom[i].FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
-                                {
-                                    geom[i].Set(TO_ERASE, true);
-                                    KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
-                                }
+// 				if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY) == 0.0 || geom[i].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) elaf
+//                                     geom[i].Set(TO_ERASE, true); elaf
+//                                     KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!") elaf
+//                                 }
                             }
                         }
 			//if (n_wall>1.0)

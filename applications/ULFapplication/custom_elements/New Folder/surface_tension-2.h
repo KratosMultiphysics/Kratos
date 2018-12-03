@@ -1395,7 +1395,7 @@ protected:
         
         //elaf end august 1st
         
-	//adding dissipative_forces related varialbes (like true or false to either use them or no). for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model.
+	//adding dissipative_forces varialbes
         double zeta_dissapative_JM_x = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_JM_X];
         double zeta_dissapative_BM_x = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_BM_X];
         double zeta_dissapative_SM_x = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_SM_X];
@@ -1676,7 +1676,7 @@ protected:
                   double cap_x   =  mu *  v_clx_abs / gamma;
                   double cap_y   =  mu *  v_cly_abs / gamma;
                   
-                  //here we need to make sure that we are having the dissipative forces in oppiste direction of the motion by controlling the sign of the zeta_dissapative,,,
+     
                   if (v_clx < 0.0)
                   {
                       zeta_dissapative_JM_x = - 1.0 * zeta_dissapative_JM_x;
@@ -1799,7 +1799,7 @@ protected:
 	double theta_s = rCurrentProcessInfo[CONTACT_ANGLE_STATIC];
         
         
-        //adding dissipative_forces related varialbes (like true or false to either use them or no). for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model. For example, We will be using this when we are going to have droplet basement on the XZ plane for example so we will disable the y contribution.
+        //adding dissipative_forces varialbes
         double zeta_dissapative_JM_x = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_JM_X];
         double zeta_dissapative_BM_x = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_BM_X];
         double zeta_dissapative_SM_x = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_SM_X];
@@ -1810,8 +1810,6 @@ protected:
         double zeta_dissapative_BM_z = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_BM_Z];
         double zeta_dissapative_SM_z = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_SM_Z];
         
-        
-         //these variable are for testing purposes: For example, (testfacta) is either zero or one, this is mainly to see where I am adding the dissipative forces in this surface_tension.h file, and which one will be working fine. 
         double testfacta = rCurrentProcessInfo[TESTFACTA];
         double testfactb = rCurrentProcessInfo[TESTFACTB];
         double testfactc = rCurrentProcessInfo[TESTFACTC];
@@ -2392,7 +2390,7 @@ protected:
 //          
 	    double mu, rho;
 	    mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
-// 	    rho = this->GetGeometry()[ii].FastGetSolutionStepValue(DENSITY);
+	    rho = this->GetGeometry()[ii].FastGetSolutionStepValue(DENSITY);
 //                   mu *= rho;
 	  
 	    //capillary
@@ -2404,7 +2402,6 @@ protected:
 	    double cap_y   =  mu *  v_cly_abs / gamma;
 	    double cap_z   =  mu *  v_clz_abs / gamma;
             
-            //here we need to make sure that we are having the dissipative forces in oppiste direction of the motion by controlling the sign of the zeta_dissapative,,,
             if (v_clx < 0.0)
             {
                 zeta_dissapative_JM_x = - 1.0 * zeta_dissapative_JM_x;
@@ -2432,28 +2429,26 @@ protected:
 	    rRightHandSideVector[4*ii]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfacta; 
 	    rRightHandSideVector[4*ii+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfacta;
 	    rRightHandSideVector[4*ii+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfacta; 
-            
-            
-// // // //                 
-// // // //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-// // // 	    rRightHandSideVector[4*ii]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	    rRightHandSideVector[4*ii+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
-// // // 	    rRightHandSideVector[4*ii+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // //                 
-// // // //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-// // // 	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
-// // // 	    if (cap > 0.01)
-// // // 	    {
-// // // 	      rRightHandSideVector[4*ii]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	      rRightHandSideVector[4*ii+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
-// // // 	      rRightHandSideVector[4*ii+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // 	    }
-// // // 	    else
-// // // 	    {
-// // // 	      rRightHandSideVector[4*ii]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
-// // // 	      rRightHandSideVector[4*ii+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
-// // // 	      rRightHandSideVector[4*ii+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
-// // // 	    }
+//                 
+//                   // using Bracke's model : gamma 2.24 ca ^(0.54)
+	    rRightHandSideVector[4*ii]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
+	    rRightHandSideVector[4*ii+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
+	    rRightHandSideVector[4*ii+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
+//                 
+//                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
+	    if (cap > 0.01)
+	    {
+	      rRightHandSideVector[4*ii]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
+	      rRightHandSideVector[4*ii+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
+	      rRightHandSideVector[4*ii+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
+	    }
+	    else
+	    {
+	      rRightHandSideVector[4*ii]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
+	      rRightHandSideVector[4*ii+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
+	      rRightHandSideVector[4*ii+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
+	    }
 	    // end of adding disppative force
             
 	    rDampingMatrix(4*ii,4*ii)     += 0.5*gamma*dt*msN[ii]*msN[ii]*nlen1 - msWorkMatrix(ii,ii);
@@ -2493,36 +2488,34 @@ protected:
 	    double v_cly = this->GetGeometry()[jj].FastGetSolutionStepValue(VELOCITY_Y);
 	    double v_clz = this->GetGeometry()[jj].FastGetSolutionStepValue(VELOCITY_Z);
             
-            //here we need to make sure that we are having the dissipative forces in oppiste direction of the motion by controlling the sign of the zeta_dissapative,,,
             if (v_clx < 0.0)
             {
                 zeta_dissapative_JM_x = - 1.0 * zeta_dissapative_JM_x;
-//                 zeta_dissapative_BM_x = - 1.0 * zeta_dissapative_BM_x;
-//                 zeta_dissapative_SM_x = - 1.0 * zeta_dissapative_SM_x;
+                zeta_dissapative_BM_x = - 1.0 * zeta_dissapative_BM_x;
+                zeta_dissapative_SM_x = - 1.0 * zeta_dissapative_SM_x;
             }
             
       
             if (v_cly < 0.0)
             {
                 zeta_dissapative_JM_y = - 1.0 * zeta_dissapative_JM_y;
-//                 zeta_dissapative_BM_y = - 1.0 * zeta_dissapative_BM_y;
-//                 zeta_dissapative_SM_y = - 1.0 * zeta_dissapative_SM_y;
+                zeta_dissapative_BM_y = - 1.0 * zeta_dissapative_BM_y;
+                zeta_dissapative_SM_y = - 1.0 * zeta_dissapative_SM_y;
             }
             
             
             if (v_clz < 0.0)
             {
                 zeta_dissapative_JM_z = - 1.0 * zeta_dissapative_JM_z;
-//                 zeta_dissapative_BM_z = - 1.0 * zeta_dissapative_BM_z;
-//                 zeta_dissapative_SM_z = - 1.0 * zeta_dissapative_SM_z;
+                zeta_dissapative_BM_z = - 1.0 * zeta_dissapative_BM_z;
+                zeta_dissapative_SM_z = - 1.0 * zeta_dissapative_SM_z;
             }
 //          
 	    double mu, rho;
 	    mu  = this->GetGeometry()[jj].FastGetSolutionStepValue(VISCOSITY);
-// 	    rho = this->GetGeometry()[jj].FastGetSolutionStepValue(DENSITY);
+	    rho = this->GetGeometry()[jj].FastGetSolutionStepValue(DENSITY);
 //                   mu *= rho;
-// 	    std::cout << "mu mu mu mu mu mu mu mu mu mu mu mumumumumumumumumumumu = " << mu << std::endl;
-          
+	  
 	    //capillary
 	    double v_clx_abs = fabs (v_clx);
 	    double v_cly_abs = fabs (v_cly);
@@ -2533,32 +2526,55 @@ protected:
 	    double cap_z   =  mu *  v_clz_abs / gamma;
             
             
+            if (v_clx < 0.0)
+            {
+                zeta_dissapative_JM_x = - 1.0 * zeta_dissapative_JM_x;
+                zeta_dissapative_BM_x = - 1.0 * zeta_dissapative_BM_x;
+                zeta_dissapative_SM_x = - 1.0 * zeta_dissapative_SM_x;
+            }
+            
+      
+            if (v_cly < 0.0)
+            {
+                zeta_dissapative_JM_y = - 1.0 * zeta_dissapative_JM_y;
+                zeta_dissapative_BM_y = - 1.0 * zeta_dissapative_BM_y;
+                zeta_dissapative_SM_y = - 1.0 * zeta_dissapative_SM_y;
+            }
+            
+            
+            if (v_clz < 0.0)
+            {
+                zeta_dissapative_JM_z = - 1.0 * zeta_dissapative_JM_z;
+                zeta_dissapative_BM_z = - 1.0 * zeta_dissapative_BM_z;
+                zeta_dissapative_SM_z = - 1.0 * zeta_dissapative_SM_z;
+            }
+            
 	    // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
 	    rRightHandSideVector[4*jj]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfactb; 
 	    rRightHandSideVector[4*jj+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfactb;
 	    rRightHandSideVector[4*jj+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfactb; 
 //                 
-// // // //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-// // // 	    rRightHandSideVector[4*jj]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	    rRightHandSideVector[4*jj+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
-// // // 	    rRightHandSideVector[4*jj+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // //                 
-// // // //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-// // // 	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
-// // // 	    if (cap > 0.01)
-// // // 	    {
-// // // 	      rRightHandSideVector[4*jj]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	      rRightHandSideVector[4*jj+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
-// // // 	      rRightHandSideVector[4*jj+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // 	    }
-// // // 	    else
-// // // 	    {
-// // // 	      rRightHandSideVector[4*jj]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
-// // // 	      rRightHandSideVector[4*jj+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
-// // // 	      rRightHandSideVector[4*jj+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
-// // // 	    }
-// // // 	    // end of adding disppative force
-// // // 	    
+//                   // using Bracke's model : gamma 2.24 ca ^(0.54)
+	    rRightHandSideVector[4*jj]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
+	    rRightHandSideVector[4*jj+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
+	    rRightHandSideVector[4*jj+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
+//                 
+//                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
+	    if (cap > 0.01)
+	    {
+	      rRightHandSideVector[4*jj]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
+	      rRightHandSideVector[4*jj+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
+	      rRightHandSideVector[4*jj+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
+	    }
+	    else
+	    {
+	      rRightHandSideVector[4*jj]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
+	      rRightHandSideVector[4*jj+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
+	      rRightHandSideVector[4*jj+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
+	    }
+	    // end of adding disppative force
+	    
 	    rDampingMatrix(4*jj,4*jj)     += 0.5*gamma*dt*msN[jj]*msN[jj]*nlen2 - msWorkMatrix(jj,jj);
 	    rDampingMatrix(4*jj+1,4*jj+1) += 0.5*gamma*dt*msN[jj]*msN[jj]*nlen2 - msWorkMatrix(jj,jj);
 	    rDampingMatrix(4*jj+2,4*jj+2) += 0.5*gamma*dt*msN[jj]*msN[jj]*nlen2 - msWorkMatrix(jj,jj);
@@ -2595,7 +2611,7 @@ protected:
 //          
 	    double mu, rho;
 	    mu  = this->GetGeometry()[kk].FastGetSolutionStepValue(VISCOSITY);
-// 	    rho = this->GetGeometry()[kk].FastGetSolutionStepValue(DENSITY);
+	    rho = this->GetGeometry()[kk].FastGetSolutionStepValue(DENSITY);
 //                   mu *= rho;
 	  
 	    //capillary
@@ -2607,7 +2623,7 @@ protected:
 	    double cap_y   =  mu *  v_cly_abs / gamma;
 	    double cap_z   =  mu *  v_clz_abs / gamma;
             
-            //here we need to make sure that we are having the dissipative forces in oppiste direction of the motion by controlling the sign of the zeta_dissapative,,,
+            
             if (v_clx < 0.0)
             {
                 zeta_dissapative_JM_x = - 1.0 * zeta_dissapative_JM_x;
@@ -2635,25 +2651,25 @@ protected:
 	    rRightHandSideVector[4*kk+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfactc;
 	    rRightHandSideVector[4*kk+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfactc; 
 //                 
-// // // //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-// // // 	    rRightHandSideVector[4*kk]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	    rRightHandSideVector[4*kk+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
-// // // 	    rRightHandSideVector[4*kk+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // //                 
-// // // //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-// // // 	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
-// // // 	    if (cap > 0.01)
-// // // 	    {
-// // // 	      rRightHandSideVector[4*kk]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	      rRightHandSideVector[4*kk+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
-// // // 	      rRightHandSideVector[4*kk+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // 	    }
-// // // 	    else
-// // // 	    {
-// // // 	      rRightHandSideVector[4*kk]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
-// // // 	      rRightHandSideVector[4*kk+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
-// // // 	      rRightHandSideVector[4*kk+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
-// // // 	    }
+//                   // using Bracke's model : gamma 2.24 ca ^(0.54)
+	    rRightHandSideVector[4*kk]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
+	    rRightHandSideVector[4*kk+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
+	    rRightHandSideVector[4*kk+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
+//                 
+//                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
+	    if (cap > 0.01)
+	    {
+	      rRightHandSideVector[4*kk]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
+	      rRightHandSideVector[4*kk+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
+	      rRightHandSideVector[4*kk+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
+	    }
+	    else
+	    {
+	      rRightHandSideVector[4*kk]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
+	      rRightHandSideVector[4*kk+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
+	      rRightHandSideVector[4*kk+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
+	    }
 	    // end of adding disppative force
 	  }
 	  else
@@ -2744,7 +2760,7 @@ protected:
   //          
 	      double mu, rho;
 	      mu  = this->GetGeometry()[ll].FastGetSolutionStepValue(VISCOSITY);
-// 	      rho = this->GetGeometry()[ll].FastGetSolutionStepValue(DENSITY);
+	      rho = this->GetGeometry()[ll].FastGetSolutionStepValue(DENSITY);
   //                   mu *= rho;
 	    
 	      //capillary
@@ -2756,7 +2772,6 @@ protected:
 	      double cap_y   =  mu *  v_cly_abs / gamma;
 	      double cap_z   =  mu *  v_clz_abs / gamma;
               
-              //here we need to make sure that we are having the dissipative forces in oppiste direction of the motion by controlling the sign of the zeta_dissapative,,,
               if (v_clx < 0.0)
               {
                 zeta_dissapative_JM_x = - 1.0 * zeta_dissapative_JM_x;
@@ -2785,25 +2800,25 @@ protected:
 	      rRightHandSideVector[4*ll+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfactd;
 	      rRightHandSideVector[4*ll+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfactd; 
   //                 
-// // //   //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-// // // 	      rRightHandSideVector[4*ll]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	      rRightHandSideVector[4*ll+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
-// // // 	      rRightHandSideVector[4*ll+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // //   //                 
-// // //   //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-// // // 	      double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
-// // // 	      if (cap > 0.01)
-// // // 	      {
-// // // 		rRightHandSideVector[4*ll]	    -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 		rRightHandSideVector[4*ll+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
-// // // 		rRightHandSideVector[4*ll+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // 	      }
-// // // 	      else
-// // // 	      {
-// // // 		rRightHandSideVector[4*ll]	    -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
-// // // 		rRightHandSideVector[4*ll+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
-// // // 		rRightHandSideVector[4*ll+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
-// // // 	      }
+  //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
+	      rRightHandSideVector[4*ll]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
+	      rRightHandSideVector[4*ll+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
+	      rRightHandSideVector[4*ll+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
+  //                 
+  //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+	      double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
+	      if (cap > 0.01)
+	      {
+		rRightHandSideVector[4*ll]	    -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
+		rRightHandSideVector[4*ll+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
+		rRightHandSideVector[4*ll+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
+	      }
+	      else
+	      {
+		rRightHandSideVector[4*ll]	    -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
+		rRightHandSideVector[4*ll+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
+		rRightHandSideVector[4*ll+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
+	      }
 	      // end of adding disppative force
 	      
 	      
