@@ -1952,8 +1952,8 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
 {
     if (rVariable == DIVERGENCE){
 
-        auto p_geom = this->pGetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = p_geom->IntegrationPoints(GeometryData::GI_GAUSS_2);
+        auto& rGeom = this->GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const unsigned int num_gauss = IntegrationPoints.size();
 
         if (rValues.size() != num_gauss){
@@ -1962,7 +1962,7 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
 
         Vector GaussPtsJDet = ZeroVector(num_gauss);
         GeometryData::ShapeFunctionsGradientsType DN_DX;
-        p_geom->ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
+        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
 
         for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
 
@@ -1971,7 +1971,7 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
 
             for(unsigned int nnode = 0; nnode < NumNodes; nnode++){
 
-                const Vector vel = (*p_geom)[nnode].GetSolutionStepValue( VELOCITY );
+                const array_1d<double,3> vel = rGeom[nnode].GetSolutionStepValue(VELOCITY);
                 for(unsigned int ndim = 0; ndim < Dim; ndim++){
                     DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
                 }
