@@ -14,6 +14,7 @@
 #define KRATOS_MORTAR_UTILITIES
 
 // System includes
+#include <numeric>
 #include <unordered_map>
 
 // External includes
