@@ -7,6 +7,9 @@ CheckForPreviousImport()
 
 import gid_output_process
 
+def GetHistoricalVariables(settings):
+    return gid_output_process.GetHistoricalVariables(settings)
+
 def Factory(settings, Model):
     if(type(settings) != Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
