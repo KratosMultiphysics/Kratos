@@ -278,6 +278,10 @@ class AnalysisStage(object):
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
 
     def _GetListOfAdditionalHistoricalVariables(self):
+        """This function returns the list of (additional) historicsl variables
+        needed in the simulation
+        It can be overridden in derived classes
+        """
         list_additional_vars = []
         self.__GetListOfAdditionalVariablesFromProcesses("processes", list_additional_vars)
         self.__GetListOfAdditionalVariablesFromProcesses("output_processes", list_additional_vars)
@@ -285,6 +289,8 @@ class AnalysisStage(object):
         return list_additional_vars
 
     def __GetListOfAdditionalVariablesFromProcesses(self, parameter_name, list_additional_vars):
+        """This function extracts the required historical variables needed by the processes
+        """
         from process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
 
