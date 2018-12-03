@@ -32,8 +32,6 @@ public:
 class KRATOS_API(KRATOS_CORE) BDF2
 {
 public:
-    std::array<double, 3> ComputeBDFCoefficients(double DeltaTime) const;
-
     std::array<double, 3> ComputeBDFCoefficients(double DeltaTime,
                                                  double PreviousDeltaTime) const;
 };

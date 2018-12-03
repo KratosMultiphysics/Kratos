@@ -35,22 +35,6 @@ std::array<double, 2> BDF1::ComputeBDFCoefficients(const double DeltaTime) const
     return coefficients;
 }
 
-std::array<double, 3> BDF2::ComputeBDFCoefficients(const double DeltaTime) const
-{
-    KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
-        << "Expects DeltaTime > 0!" << std::endl;
-
-    const double denom = 2.0*DeltaTime;
-
-    std::array<double, 3> coefficients;
-
-    coefficients[0] =  3.0 / denom;
-    coefficients[1] = -4.0 / denom;
-    coefficients[2] =  2.0 / denom;
-
-    return coefficients;
-}
-
 std::array<double, 3> BDF2::ComputeBDFCoefficients(const double DeltaTime, const double PreviousDeltaTime) const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())

@@ -21,14 +21,8 @@ class TestTimeDiscretization(KratosUnittest.TestCase):
         bdf = KM.BDF2()
 
         delta_time = 0.11
-
-        coeffs = bdf.ComputeBDFCoefficients(delta_time)
-        self.assertEqual(len(coeffs), 3)
-        self.assertAlmostEqual(coeffs[0], 1.5/delta_time)
-        self.assertAlmostEqual(coeffs[1], -2.0/delta_time)
-        self.assertAlmostEqual(coeffs[2], 1.0/delta_time)
-
         prev_delta_time = 0.089
+
         coeffs = bdf.ComputeBDFCoefficients(delta_time, prev_delta_time)
         self.assertEqual(len(coeffs), 3)
 
