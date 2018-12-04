@@ -253,6 +253,15 @@ class MultilevelMonteCarlo(object):
 
 
     '''
+    function adding the QoI and MLMC time values to the corresponding level and object of the variable
+    '''
+    def AddResults(self,simulation_results):
+        difference_QoI_value = simulation_results["QoI_finer_level"] - simulation_results["QoI_coarser_level"]
+        self.difference_QoI.values["finer_level"] = np.append(self.difference_QoI.values["finer_level"],difference_QoI_value)
+        self.time_ML.values["finer_level"] = np.append(self.time_ML.values["finer_level"],simulation_results["total_MLMC_time"])
+
+
+    '''
     function giving as output the mesh discretization parameter
     the mesh parameter is the reciprocal of the minimum mesh size of the grid
     h_lev=h_0*M^(-lev)
