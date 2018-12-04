@@ -453,6 +453,7 @@ void FemDem3DElement::CalculateLocalSystem(
 		const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
 
 		Matrix ConstitutiveMatrix = Values.GetConstitutiveMatrix();
+		this->CalculateDeformationMatrix(B, DN_DX);
 
 		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(ConstitutiveMatrix, B))); // LHS
 

@@ -227,15 +227,15 @@ void RomFemDem3DElement::CalculateLocalSystem(
 	VectorType &rRightHandSideVector,
 	ProcessInfo &rCurrentProcessInfo)
 {
+//*****************************
 	KRATOS_TRY
 
+	//1.-Initialize sizes for the system components:
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 	const unsigned int voigt_size = dimension * (dimension + 1) / 2;
-
-	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 	const unsigned int system_size = number_of_nodes * dimension;
-	
+
 	if (rLeftHandSideMatrix.size1() != system_size)
 		rLeftHandSideMatrix.resize(system_size, system_size, false);
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(system_size, system_size);
@@ -244,10 +244,39 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		rRightHandSideVector.resize(system_size, false);
 	noalias(rRightHandSideVector) = ZeroVector(system_size);
 
+	Vector StrainVector(voigt_size);
+	noalias(StrainVector) = ZeroVector(voigt_size);
+	Vector StressVector(voigt_size);
+	noalias(StressVector) = ZeroVector(voigt_size);
+	Matrix ConstitutiveMatrix(voigt_size, voigt_size);
+	noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
+	Matrix B(voigt_size, dimension * number_of_nodes);
+	noalias(B) = ZeroMatrix(voigt_size, dimension * number_of_nodes);
+	Matrix DN_DX(number_of_nodes, dimension);
+	noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
+
+	//deffault values for the infinitessimal theory
+	double detF = 1;
+	Matrix F(dimension, dimension);
+	noalias(F) = identity_matrix<double>(dimension);
+
+	//3.-Calculate elemental system:
+
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+	//get the shape functions [N] (for the order of the default integration method)
+	const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+
+	//get the shape functions parent coodinates derivative [dN/d�] (for the order of the default integration method)
+	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
+	//calculate delta position (here coincides with the current displacement)
 	Matrix DeltaPosition(number_of_nodes, dimension);
 	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
 	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
 
+	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
@@ -263,8 +292,10 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
 		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
+		//compute cartesian derivatives for this integration point  [dN/dx_n]
+		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+
 		double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
-		const Matrix &B = this->GetBMatrix();
 		Vector IntegratedStressVectorConcrete = ZeroVector(voigt_size);
 		Vector damages_edges = ZeroVector(6);
 
@@ -310,6 +341,7 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		this->CalculateConstitutiveMatrix(ConstitutiveMatrixSteel, Es, nus);
 
 		const double k = this->GetProperties()[STEEL_VOLUMETRIC_PART];
+		this->CalculateDeformationMatrix(B, DN_DX);
 		Matrix CompositeTangentMatrix = k * ConstitutiveMatrixSteel + (1.0 - k) * (1.0 - damage_element) * ConstitutiveMatrixConcrete;
 		noalias(rLeftHandSideMatrix) += prod(trans(B), IntegrationWeight * Matrix(prod(CompositeTangentMatrix, B))); // LHS
 
