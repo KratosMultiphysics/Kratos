@@ -25,10 +25,9 @@
 #include "utilities/openmp_utils.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
+#include "response_functions/adjoint_response_function.h"
 
 // Application includes
-//#include "custom_response_functions/response_utilities/adjoint_structural_response_function.h"
-#include "response_functions/adjoint_response_function.h"
 
 namespace Kratos
 {

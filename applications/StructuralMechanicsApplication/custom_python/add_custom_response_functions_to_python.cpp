@@ -25,12 +25,11 @@
 #include "custom_response_functions/response_utilities/mass_response_function_utility.h"
 #include "custom_response_functions/response_utilities/eigenfrequency_response_function_utility.h"
 
+#include "response_functions/adjoint_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_structural_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
-
-#include "response_functions/adjoint_response_function.h"
 
 // Adjoint postprocessing
 #include "custom_response_functions/response_utilities/adjoint_postprocess.h"
@@ -73,10 +72,6 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     py::class_<AdjointStructuralResponseFunction, AdjointStructuralResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointStructuralResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
-        /*.def("Initialize", &AdjointStructuralResponseFunction::Initialize)
-        .def("InitializeSolutionStep", &AdjointStructuralResponseFunction::InitializeSolutionStep)
-        .def("FinalizeSolutionStep", &AdjointStructuralResponseFunction::FinalizeSolutionStep)
-        .def("CalculateValue", &AdjointStructuralResponseFunction::CalculateValue);*/
 
     py::class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointStructuralResponseFunction>
         (m, "AdjointLocalStressResponseFunction")
