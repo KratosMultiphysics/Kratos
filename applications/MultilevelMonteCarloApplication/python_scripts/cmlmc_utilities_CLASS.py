@@ -131,7 +131,7 @@ class MultilevelMonteCarlo(object):
         '''mesh_parameters : reciprocal of minimal mesh size'''        
         self.mesh_parameters = []
         '''size_mesh : minimal mesh size'''
-        self.size_mesh = []
+        self.sizes_mesh = []
         '''BayesianVariance : Bayesian variance'''
         self.BayesianVariance = []
         '''number_iterations : theoretical number of iterations the MLMC algorithm will perform'''
@@ -149,6 +149,8 @@ class MultilevelMonteCarlo(object):
         '''TErr : total error of MLMC algorithm, the sum of bias and statistical error is an overstmation of the real total error
                   TErr := \abs(E^MLMC[QoI] - E[QoI])'''
         self.TErr = None
+        '''compute mesh parameter for each mesh'''
+        self.ComputeMeshParameters()
 
         '''difference_QoI : Quantity of Interest of the considered problem organized in consecutive levels
                             difference_QoI.values := Y_l = QoI_M_l - Q_M_l-1'''
@@ -186,8 +188,6 @@ class MultilevelMonteCarlo(object):
             for i_sample in range(self.number_samples[level]):
                 self.difference_QoI.UpdateOnepassMeanVariance(level,i_sample)
                 self.time_ML.UpdateOnepassMeanVariance(level,i_sample)
-        '''compute mesh parameter for each mesh'''
-        self.ComputeMeshParameters()
         '''compute parameters by least square fit to estimate Bayesian VAR'''
         self.ComputeRatesLS()
         '''compute Bayesian VAR V^c[Y_l]'''
@@ -253,12 +253,54 @@ class MultilevelMonteCarlo(object):
 
 
     '''
+    function printing informations about screening phase
+    '''
+    def ScreeningInfoScreeningPhase(self):
+        # print("values computed of QoI = ",self.difference_QoI.values)
+        # print("values computed time_ML",self.time_ML.values)
+        print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
+        print("mean and variance time_ML",self.time_ML.mean,self.time_ML.sample_variance)
+        print("rates coefficient = ",self.rates_error)
+        print("estimated Bayesian variance = ",self.BayesianVariance)
+        print("minimum number of MLMC iterations = ",self.number_iterations_iE)
+
+
+    '''
+    function printing informations about initializing MLMC phase
+    '''
+    def ScreeningInfoInitializeMLMCPhase(self):
+        print("\n ######## CMLMC iter = ",self.current_iteration,"######## \n")
+        print("current tolerance = ",self.tolerance_i)
+        print("updated estimated Bayesian Variance initialize phase = ",self.BayesianVariance)
+        print("current number of levels = ",self.current_number_levels)
+        print("previous number of levels = ",self.previous_number_levels)
+        print("current splitting parameter = ",self.theta_i)
+        print("current number of samples",self.number_samples)
+        print("difference number of samples = ",self.difference_number_samples)
+        print("previous number of samples = ",self.previous_number_samples)
+
+
+    '''
+    function printing informations about finalizing MLMC phase
+    '''
+    def ScreeningInfoFinalizeMLMCPhase(self):
+        # print("values computed of QoI = ",self.difference_QoI.values)
+        # print("values computed time_ML",self.time_ML.values)
+        print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
+        print("mean and variance time_ML",self.time_ML.mean,self.time_ML.sample_variance)
+        print("rates coefficient = ",self.rates_error)
+        print("estimated Bayesian variance = ",self.BayesianVariance)
+        print("multilevel monte carlo mean estimator = ",self.mean_mlmc_QoI)
+        print("TErr = bias + statistical error = ",self.TErr)
+        
+
+    '''
     function adding the QoI and MLMC time values to the corresponding level and object of the variable
     '''
     def AddResults(self,simulation_results):
         difference_QoI_value = simulation_results["QoI_finer_level"] - simulation_results["QoI_coarser_level"]
-        self.difference_QoI.values["finer_level"] = np.append(self.difference_QoI.values["finer_level"],difference_QoI_value)
-        self.time_ML.values["finer_level"] = np.append(self.time_ML.values["finer_level"],simulation_results["total_MLMC_time"])
+        self.difference_QoI.values[simulation_results["finer_level"]] = np.append(self.difference_QoI.values[simulation_results["finer_level"]],difference_QoI_value)
+        self.time_ML.values[simulation_results["finer_level"]] = np.append(self.time_ML.values[simulation_results["finer_level"]],simulation_results["total_MLMC_time"])
 
 
     '''
@@ -272,7 +314,7 @@ class MultilevelMonteCarlo(object):
         for level in range(self.settings["Lmax"]+1):
             h_current_level = h0 * M**(-level)
             mesh_parameter_current_level = h_current_level**(-1)
-            self.size_mesh.append(h_current_level)
+            self.sizes_mesh.append(h_current_level)
             self.mesh_parameters.append(mesh_parameter_current_level)
 
 
@@ -414,9 +456,9 @@ class MultilevelMonteCarlo(object):
                 coeff2 = coeff2**2.0
                 coeff1 = (cphi/(theta_i*tol))**2.0 # formula in case QoI is scalar, if QoI is a field use the formula described in [PNL17]
             else:
-                raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
+                raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1) :",theta_i)
             Wtot = coeff1 * coeff2
-            print("print level and correspondent cost",lev,Wtot)
+            # print("print level and correspondent cost",lev,Wtot)
             '''change number of levels if the cost condition is satisfied'''
             if Wtot < Wmin:
                 Wmin = Wtot
@@ -467,7 +509,7 @@ class MultilevelMonteCarlo(object):
         coeff2 = np.sqrt(np.divide(BayesianVariance,model_cost))
         coeff3 = np.sum(np.sqrt(np.multiply(model_cost,BayesianVariance)))
         opt_number_samples = np.multiply(coeff1*coeff3,coeff2)
-        print("optimal number of samples computed = ",opt_number_samples)
+        # print("optimal number of samples computed = ",opt_number_samples)
         if (len(opt_number_samples) != current_number_levels+1):
             raise Exception ("length optimal number of samples and current optimal number of level not coherent")
         for lev in range (current_number_levels+1):
