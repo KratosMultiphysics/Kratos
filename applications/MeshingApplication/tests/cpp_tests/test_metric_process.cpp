@@ -363,7 +363,7 @@ namespace Kratos
             }
 
             // Compute metric
-            ComputeHessianSolMetricProcess<2, Variable<double>> hessian_process = ComputeHessianSolMetricProcess<2, Variable<double>>(this_model_part, DISTANCE);
+            auto hessian_process = ComputeHessianSolMetricProcess(this_model_part, DISTANCE);
             hessian_process.Execute();
 
 //             // DEBUG
@@ -408,7 +408,7 @@ namespace Kratos
             }
 
             // Compute metric
-            ComputeHessianSolMetricProcess<3, Variable<double>> hessian_process = ComputeHessianSolMetricProcess<3, Variable<double>>(this_model_part, DISTANCE);
+            auto hessian_process = ComputeHessianSolMetricProcess(this_model_part, DISTANCE);
             hessian_process.Execute();
 
 //             // DEBUG
