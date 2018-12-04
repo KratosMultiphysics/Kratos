@@ -123,7 +123,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos
     KRATOS_ERROR_IF_NOT(mpIntefaceCommunicator) << "mpIntefaceCommunicator is a nullptr!" << std::endl;
 
     const MapperInterfaceInfoUniquePointerType p_ref_interface_info = Kratos::make_unique<NearestNeighborInterfaceInfo>();
-    const auto interface_object_construction_type_origin = InterfaceObject::Node_Coords;
+    const auto interface_object_construction_type_origin = InterfaceObject::ConstructionType::Node_Coords;
 
     mpIntefaceCommunicator->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
                                                   MappingOptions,

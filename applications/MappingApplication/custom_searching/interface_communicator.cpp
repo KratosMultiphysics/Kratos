@@ -155,7 +155,7 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(InterfaceObject::Constr
 {
     mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
 
-    if (InterfaceObjectTypeOrigin == InterfaceObject::Node_Coords) {
+    if (InterfaceObjectTypeOrigin == InterfaceObject::ConstructionType::Node_Coords) {
         const SizeType num_nodes = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
         const auto nodes_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Nodes().ptr_begin();
 
@@ -168,7 +168,7 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(InterfaceObject::Constr
         }
     }
 
-    else if (InterfaceObjectTypeOrigin == InterfaceObject::Geometry_Center) {
+    else if (InterfaceObjectTypeOrigin == InterfaceObject::ConstructionType::Geometry_Center) {
         const SizeType num_elements = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfElements();
         const SizeType num_conditions = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
 
