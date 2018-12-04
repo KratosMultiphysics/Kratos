@@ -401,7 +401,7 @@ void RomFemDem3DElement::CalculateOnIntegrationPoints(
 	}
 	else if (rVariable == CONCRETE_STRESS_TENSOR_INTEGRATED)
 	{
-		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetIntegratedStressVector());
+		rOutput[0] = MathUtils<double>::StressVectorToTensor((1.0 - mDamage) * this->GetValue(CONCRETE_STRESS_VECTOR));
 	}
 }
 
@@ -809,8 +809,10 @@ void RomFemDem3DElement::GetValueOnIntegrationPoints(
 	std::vector<double> &rValues,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	if (rVariable == DAMAGE_ELEMENT || rVariable == IS_DAMAGED || rVariable == STRESS_THRESHOLD || rVariable == PLASTIC_DISSIPATION_CAPAP)
-	{
+	if (rVariable == DAMAGE_ELEMENT ||
+	    rVariable == IS_DAMAGED || 
+		rVariable == STRESS_THRESHOLD || 
+		rVariable == PLASTIC_DISSIPATION_CAPAP) {
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 	}
 }
@@ -821,45 +823,34 @@ void RomFemDem3DElement::CalculateOnIntegrationPoints(
 	std::vector<double> &rOutput,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	if (rVariable == DAMAGE_ELEMENT)
-	{
+	if (rVariable == DAMAGE_ELEMENT) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-		{
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(DAMAGE_ELEMENT));
 		}
 	}
 
-	if (rVariable == IS_DAMAGED)
-	{
+	if (rVariable == IS_DAMAGED) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-		{
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(IS_DAMAGED));
 		}
 	}
 
-	if (rVariable == STRESS_THRESHOLD)
-	{
+	if (rVariable == STRESS_THRESHOLD) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-		{
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(STRESS_THRESHOLD));
 		}
 	}
 
-	if (rVariable == PLASTIC_DISSIPATION_CAPAP)
-	{
+	if (rVariable == PLASTIC_DISSIPATION_CAPAP) {
 		rOutput.resize(1);
-		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0)
-		{
-			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-			{
+		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0) {
+			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 				rOutput[PointNumber] = double(this->GetCapap());
 			}
-		}
-		else
-		{
+		} else {
 			double dummy = 0.0;
 			rOutput[0] = dummy;
 		}
