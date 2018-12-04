@@ -26,7 +26,7 @@ namespace Kratos {
         if (failure_type == 0) {
             double tension_limit = 0.5 * 1e6 * (element1->GetFastProperties()->GetContactSigmaMin() + element2->GetFastProperties()->GetContactSigmaMin()); //N/m2
 
-            Matrix average_stress_tensor = ZeroMatrix(3,3);
+            BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     average_stress_tensor(i,j) = 0.5 * ((*(element1->mSymmStressTensor))(i,j) + (*(element2->mSymmStressTensor))(i,j));
