@@ -50,6 +50,12 @@ kratos/includes/kratos_version.h
 
 *.h~
 
+# Visual Studio Code
+.vs
+
+# Boost in external_libraries
+external_libraries/boost
+
 applications/FluidDynamicsApplication/test_examples/fs_cavity/ProjectParameters\.py
 
 applications/FluidDynamicsApplication/test_examples/fs_cavity/run_test\.py
