@@ -21,7 +21,6 @@
 // Project includes
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -63,8 +62,7 @@ struct CalculateNodalAreaSettings
  * @author Vicente Mataix Ferrandiz
  */
 template<bool THistorical = true>
-// class KRATOS_API(KRATOS_CORE) CalculateNodalAreaProcess
-class CalculateNodalAreaProcess
+class KRATOS_API(KRATOS_CORE) CalculateNodalAreaProcess
     : public Process
 {
 public:
@@ -76,6 +74,12 @@ public:
     
     /// Size type definition
     typedef std::size_t SizeType;
+
+    /// The definition of the node
+    typedef Node<3> NodeType;
+
+    /// The definition of the node iterator
+    typedef ModelPart::NodeIterator NodeIterator;
     
     /// Pointer definition of CalculateNodalAreaProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateNodalAreaProcess);
@@ -122,60 +126,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        // Set to zero the nodal area        
-        const auto it_node_begin = mrModelPart.NodesBegin();
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-            auto it_node = it_node_begin + i;
-            it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-        }
-
-        const auto& it_element_begin = mrModelPart.ElementsBegin();
-        const auto& r_first_element_geometry = it_element_begin->GetGeometry();
-        const std::size_t local_space_dimension = r_first_element_geometry.LocalSpaceDimension();
-        const std::size_t number_of_nodes = r_first_element_geometry.PointsNumber();
-        
-        // The integration points
-        const auto& integration_method = r_first_element_geometry.GetDefaultIntegrationMethod();
-        const auto& integration_points = r_first_element_geometry.IntegrationPoints(integration_method);
-        const std::size_t number_of_integration_points = integration_points.size();
-        
-        Vector N = ZeroVector(number_of_nodes);
-        Matrix J0 = ZeroMatrix(mDomainSize, local_space_dimension);
-        
-        #pragma omp parallel for firstprivate(N, J0)
-        for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i) {
-            auto it_elem = it_element_begin + i;
-            auto& r_geometry = it_elem->GetGeometry();
-            
-            // The containers of the shape functions
-            const auto& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
-            
-            for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
-                // Getting the shape functions
-                noalias(N) = row(rNcontainer, point_number);
-                
-                // Getting the jacobians and local gradients
-                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
-                const double detJ0 = MathUtils<double>::GeneralizedDet(J0);
-                const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
-                
-                for(std::size_t i_node =0; i_node < number_of_nodes; ++i_node) {
-                    #pragma omp atomic 
-                    r_geometry[i_node].FastGetSolutionStepValue(NODAL_AREA) += N[i_node] * gauss_point_volume;
-                }
-            }
-        }
-    
-        mrModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-
-        KRATOS_CATCH("");
-
-    }
+    void Execute() override;
 
     ///@}
     ///@name Access
@@ -273,6 +224,28 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method gets the current value of the NODAL_AREA
+     * @param rNode The node iterator to be get
+     * @return The current value of NODAL_AREA
+     */
+    double& GetAreaValue(NodeType& rNode);
+
+    /**
+     * @brief This method sets the current value of the NODAL_AREA to the given one
+     * @param rNode The node iterator to be get
+     * @param Value The current value of NODAL_AREA
+     */
+    void SetAreaValue(
+        NodeType& rNode,
+        const double Value
+        );
+
+    /**
+     * @brief This method sets the current value of the NODAL_AREA to the maximum
+     * @param itNode The node iterator to be set
+     */
+    void SetInitialValue(NodeIterator itNode);
 
     ///@}
     ///@name Private  Access
