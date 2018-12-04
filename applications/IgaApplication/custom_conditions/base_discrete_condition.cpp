@@ -81,6 +81,7 @@ namespace Kratos
         if (rRightHandSideVector.size() != number_of_dofs) {
             rRightHandSideVector.resize(number_of_dofs);
         }
+        rRightHandSideVector = ZeroVector(number_of_dofs);
 
         CalculateAll(left_hand_side_matrix, rRightHandSideVector,
             rCurrentProcessInfo, false, true);
@@ -96,6 +97,7 @@ namespace Kratos
             || rLeftHandSideMatrix.size2() != number_of_dofs) {
             rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
         }
+        rLeftHandSideMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
 
         VectorType right_hand_side_vector = Vector(0);
 
@@ -114,10 +116,12 @@ namespace Kratos
             || rLeftHandSideMatrix.size2() != number_of_dofs) {
             rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
         }
+        //rLeftHandSideMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
 
         if (rRightHandSideVector.size() != number_of_dofs) {
             rRightHandSideVector.resize(number_of_dofs);
         }
+        //rRightHandSideVector = ZeroVector(number_of_dofs);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
             rCurrentProcessInfo, true, true);
@@ -128,7 +132,24 @@ namespace Kratos
         array_1d<double, 3>& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        if (rVariable == VELOCITY) {
+        if (rVariable == COORDINATES)
+        {
+            std::cout << "we are here" << std::endl;
+            const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
+            if (rOutput.size() != 3)
+                rOutput.resize(3);
+            rOutput = ZeroVector(3);
+            for (SizeType i = 0; i < N.size(); i++)
+            {
+                const NodeType & iNode = GetGeometry()[i];
+                const array_1d<double, 3>& coords = iNode.Coordinates();
+
+                rOutput[0] += N[i] * coords[0];
+                rOutput[1] += N[i] * coords[1];
+                rOutput[2] += N[i] * coords[2];
+            }
+        }
+        else if (rVariable == VELOCITY) {
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
             array_1d<double, 3> velocity = ZeroVector(3);
@@ -169,23 +190,7 @@ namespace Kratos
         Vector& rOutput,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        if (rVariable == COORDINATES) 
-		{
-            const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
-            if (rOutput.size() != 3)
-                rOutput.resize(3);
-            rOutput = ZeroVector(3);
-            for (SizeType i = 0; i < N.size(); i++)
-            {
-                const NodeType & iNode = GetGeometry()[i];
-                const array_1d<double, 3>& coords = iNode.Coordinates();
-
-                rOutput[0] += N[i] * coords[0];
-                rOutput[1] += N[i] * coords[1];
-                rOutput[2] += N[i] * coords[2];
-            }
-        }
-        else if (rVariable == EXTERNAL_FORCES_VECTOR) 
+        if (rVariable == EXTERNAL_FORCES_VECTOR) 
         {
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
             if (rOutput.size() != 3)
@@ -328,8 +333,8 @@ namespace Kratos
         const int rLocalSpaceDimension)
     {
         Jacobian.resize(rWorkingSpaceDimension, rLocalSpaceDimension);
-
         Jacobian.clear();
+
         for (unsigned int i = 0; i < DN_De.size1(); i++)
         {
             for (unsigned int k = 0; k<rWorkingSpaceDimension; k++)

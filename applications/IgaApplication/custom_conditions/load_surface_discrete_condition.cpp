@@ -31,34 +31,26 @@ namespace Kratos
         const int number_of_control_points = NumberOfNodes();
         const int mat_size = NumberOfDofs();
 
-        //std::cout << "check 1" << std::endl;
-
-
         Vector fLoads = ZeroVector(mat_size);
 
         const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
         const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
         const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
-        //std::cout << "check 2" << std::endl;
         Vector g3 = ZeroVector(3);
-        CalculateBaseVector(g3, DN_De);
-
-        KRATOS_WATCH(DN_De)
+        IgaSurfaceUtilties::CalculateBaseVector(GetGeometry(), DN_De, g3);
 
         const double d_area = norm_2(g3);
         const double integration_weight_area = integration_weight * d_area;
-        KRATOS_WATCH(integration_weight_area)
-            KRATOS_WATCH(d_area)
-        //std::cout << "check 3" << std::endl;
+
+        KRATOS_WATCH(d_area)
+        KRATOS_WATCH(integration_weight)
+
         // Surface loads
         if (this->Has(SURFACE_LOAD))
         {
-            Vector surface_load = ZeroVector(3);// this->GetValue(SURFACE_LOAD);
-            //KRATOS_WATCH(surface_load)
-            surface_load[2] = 1.0;
-            //KRATOS_WATCH(surface_load)
-            //std::cout << "check 3.2" << std::endl;
+            Vector surface_load = this->GetValue(SURFACE_LOAD);
+
             for (int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
@@ -68,7 +60,6 @@ namespace Kratos
             }
         }
 
-        std::cout << "check 4" << std::endl;
         // Pressure loads
         if (this->Has(PRESSURE))
         {
@@ -96,7 +87,7 @@ namespace Kratos
             rBaseVector.resize(3);
         rBaseVector = ZeroVector(3);
 
-        Matrix Jacobian;
+        Matrix Jacobian = ZeroMatrix(3,2);
         CalculateJacobian(rDN_De, Jacobian, 3, 2);
 
         Vector g1 = ZeroVector(3);
@@ -109,7 +100,7 @@ namespace Kratos
         g1[2] = Jacobian(2, 0);
         g2[2] = Jacobian(2, 1);
 
-        KRATOS_WATCH(Jacobian)
+        //KRATOS_WATCH(Jacobian)
 
         MathUtils<double>::CrossProduct(rBaseVector, g1, g2);
     }

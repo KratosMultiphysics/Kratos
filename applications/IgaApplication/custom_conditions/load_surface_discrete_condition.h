@@ -28,6 +28,7 @@
 #include "iga_application_variables.h"
 #include "custom_conditions/base_discrete_condition.h"
 
+#include "custom_utilities/geometry_utilities/iga_surface_utilities.h"
 
 namespace Kratos
 {
