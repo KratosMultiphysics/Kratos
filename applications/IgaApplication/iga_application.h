@@ -26,6 +26,8 @@
 
 #include "custom_conditions/support_penalty_point_discrete_condition.h"
 #include "custom_conditions/load_point_discrete_condition.h"
+#include "custom_conditions/load_surface_discrete_condition.h"
+
 
 namespace Kratos {
 
@@ -167,6 +169,9 @@ private:
 
     const IgaTrussElement mIgaTrussElement;
     const ShellKLDiscreteElement mShellKLDiscreteElement;
+
+    const LoadSurfaceDiscreteCondition mLoadSurfaceDiscreteCondition;
+    //const CouplingPenaltyDiscreteCondition mCouplingPenaltyDiscreteCondition;
 
     ///@}
     ///@name Private Operators

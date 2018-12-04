@@ -82,7 +82,7 @@ namespace Kratos
 
                     if (rType == "element")
                     {
-                        int id = 0;
+                        int id = 1;
                         if (rModelPart.GetRootModelPart().Elements().size() > 0)
                             id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
@@ -98,7 +98,7 @@ namespace Kratos
 
                     if (rType == "condition")
                     {
-                        int id = 0;
+                        int id = 1;
                         if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                             id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
@@ -282,7 +282,7 @@ namespace Kratos
                 {
                     for (int sh_nonzero = 0; sh_nonzero < shape_function.size(); ++sh_nonzero)
                     {
-                        if (shape_function(sh_nonzero) > 0.0)
+                        if (shape_function(sh_nonzero) > 1e-5)
                         {
                             rModelPart.AddNode(control_points(sh_nonzero));
                         }
@@ -371,7 +371,7 @@ namespace Kratos
             {
                 for (int sh_nonzero = 0; sh_nonzero < N_0.size(); ++sh_nonzero)
                 {
-                    if (N_0(sh_nonzero) > 0.0)
+                    if (N_0(sh_nonzero) > 1e-5)
                     {
                         rModelPart.AddNode(non_zero_control_points(sh_nonzero));
                     }

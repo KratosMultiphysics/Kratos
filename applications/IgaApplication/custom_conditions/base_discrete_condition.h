@@ -24,6 +24,7 @@
 
 #include "utilities/math_utils.h"
 
+#include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/condition.h"
 #include "includes/variables.h"
@@ -227,8 +228,41 @@ public:
     void PrintData(std::ostream& rOStream) const {
         pGetGeometry()->PrintData(rOStream);
     }
-    ///@}
 
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        const SizeType number_of_nodes = this->GetGeometry().size();
+        const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+
+        // Verify that the variables are correctly initialized
+        KRATOS_CHECK_VARIABLE_KEY(SHAPE_FUNCTION_VALUES)
+
+        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+        for (IndexType i = 0; i < number_of_nodes; i++) {
+            NodeType &rnode = this->GetGeometry()[i];
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, rnode)
+
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
+            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        }
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
 protected:
 
     ///@name Protected member Variables

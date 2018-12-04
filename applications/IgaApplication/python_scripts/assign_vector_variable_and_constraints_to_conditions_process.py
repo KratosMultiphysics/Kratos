@@ -9,7 +9,6 @@ def Factory(settings, model):
 
 ## All the processes python should be derived from "Process"
 class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Process):
-    The name should not contain "Constraint"
     def __init__(self, model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
@@ -55,14 +54,14 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
             x_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, x_params) )
-            flag_name = "KratosMultiphysics.IgaApplication.IGAFlags.FIX_" + settings["variable_name"].GetString() + "_X"
-            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
-            KratosMultiphysics.VariableUtils().SetFlag(the_flag, True, self.model_part.Conditions)
+            self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(model, x_params) )
+            flag_name = "KratosMultiphysics.IgaApplication.IgaFlags.FIX_" + settings["variable_name"].GetString() + "_X"
+            #the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
+            KratosMultiphysics.VariableUtils().SetFlag(eval(flag_name), True, self.model_part.Conditions)
         else:
-            flag_name = "KratosMultiphysics.IgaApplication.IGAFlags.FIX_" + settings["variable_name"].GetString() + "_X"
-            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
-            KratosMultiphysics.VariableUtils().SetFlag(the_flag, False, self.model_part.Conditions)
+            flag_name = "KratosMultiphysics.IgaApplication.IgaFlags.FIX_" + settings["variable_name"].GetString() + "_X"
+            #the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
+            KratosMultiphysics.VariableUtils().SetFlag(eval(flag_name), False, self.model_part.Conditions)
 
         # component Y
         if(not settings["value"][1].IsNull()):
@@ -73,14 +72,14 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
             y_params.AddValue("value",settings["value"][1])
             y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
             y_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, y_params) )
-            flag_name = "KratosMultiphysics.IgaApplication.IGAFlags.FIX_" + settings["variable_name"].GetString() + "_Y"
-            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
-            KratosMultiphysics.VariableUtils().SetFlag(the_flag, True, self.model_part.Conditions)
+            self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(model, y_params) )
+            flag_name = "KratosMultiphysics.IgaApplication.IgaFlags.FIX_" + settings["variable_name"].GetString() + "_Y"
+            #the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
+            KratosMultiphysics.VariableUtils().SetFlag(eval(flag_name), True, self.model_part.Conditions)
         else:
-            flag_name = "KratosMultiphysics.IgaApplication.IGAFlags.FIX_" + settings["variable_name"].GetString() + "_Y"
-            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
-            KratosMultiphysics.VariableUtils().SetFlag(the_flag, False, self.model_part.Conditions)
+            flag_name = "KratosMultiphysics.IgaApplication.IgaFlags.FIX_" + settings["variable_name"].GetString() + "_Y"
+            #the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
+            KratosMultiphysics.VariableUtils().SetFlag(eval(flag_name), False, self.model_part.Conditions)
 
         # component Z
         if(not settings["value"][2].IsNull()):
@@ -91,16 +90,14 @@ class AssignVectorVariableAndConstraintsToConditionProcess(KratosMultiphysics.Pr
             z_params.AddValue("value",settings["value"][2])
             z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
             z_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, z_params) )
-            flag_name = "KratosMultiphysics.IgaApplication.IGAFlags.FIX_" + settings["variable_name"].GetString() + "_Z"
-            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
-            KratosMultiphysics.VariableUtils().SetFlag(the_flag, True, self.model_part.Conditions)
+            self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(model, z_params) )
+            flag_name = "KratosMultiphysics.IgaApplication.IgaFlags.FIX_" + settings["variable_name"].GetString() + "_Z"
+            #the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
+            KratosMultiphysics.VariableUtils().SetFlag(eval(flag_name), True, self.model_part.Conditions)
         else:
-            flag_name = "KratosMultiphysics.IgaApplication.IGAFlags.FIX_" + settings["variable_name"].GetString() + "_Z"
-            the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name) I think this does not work, I think only the name should be passed
-            KratosMultiphysics.VariableUtils().SetFlag(the_flag, False, self.model_part.Conditions)
-
-TODO missing the calls in the other processes-functions
+            flag_name = "KratosMultiphysics.IgaApplication.IgaFlags.FIX_" + settings["variable_name"].GetString() + "_Z"
+            #the_flag = KratosMultiphysics.KratosGlobals.GetFlag(flag_name)
+            KratosMultiphysics.VariableUtils().SetFlag(eval(flag_name), False, self.model_part.Conditions)
 
     def ExecuteInitializeSolutionStep(self):
         for process in self.aux_processes:

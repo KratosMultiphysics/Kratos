@@ -45,11 +45,11 @@ namespace Kratos
             Matrix Stiffness = ZeroMatrix(3, mat_size);
             for (unsigned int i = 0; i < number_of_control_points; i++)
             {
-                if (Is(IGAFlags::FIX_DISPLACEMENT_X))
+                if (Is(IgaFlags::FIX_DISPLACEMENT_X))
                     Stiffness(0, 3 * i) = N[i];
-                if (Is(IGAFlags::FIX_DISPLACEMENT_Y))
+                if (Is(IgaFlags::FIX_DISPLACEMENT_Y))
                     Stiffness(1, 3 * i + 1) = N[i];
-                if (Is(IGAFlags::FIX_DISPLACEMENT_Z))
+                if (Is(IgaFlags::FIX_DISPLACEMENT_Z))
                     Stiffness(2, 3 * i + 2) = N[i];
             }
             const array_1d<double, 3>& displacement = this->GetValue(DISPLACEMENT);

@@ -30,7 +30,7 @@ namespace Kratos
 /** This class implements the flags needed in the IGAApplication.
 * Some of them are exposed to Python
 */
-class IGAFlags
+class IgaFlags
 {
 public:
     ///@name Type Definitions
@@ -48,7 +48,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG(IS_REVERSED);
     ///@}
 
-}; // Class IGAFlags
+}; // Class IgaFlags
 
 }  // namespace Kratos.
 
