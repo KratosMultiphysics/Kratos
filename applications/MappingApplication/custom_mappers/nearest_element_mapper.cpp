@@ -174,7 +174,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         for (IndexType i=0; i<mInterfaceInfos.size(); ++i) {
             // the approximations will be processed in the next step if necessary
             if (!mInterfaceInfos[i]->GetIsApproximation()) {
-                mInterfaceInfos[i]->GetValue(distance);
+                mInterfaceInfos[i]->GetValue(distance, MapperInterfaceInfo::InfoType::Dummy);
                 if (distance < min_distance) {
                     min_distance = distance;
                     found_idx = static_cast<int>(i); // TODO explicit conversion needed?
@@ -187,7 +187,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             for (IndexType i=0; i<mInterfaceInfos.size(); ++i) {
                 // now the approximations are being checked
                 if (mInterfaceInfos[i]->GetIsApproximation()) {
-                    mInterfaceInfos[i]->GetValue(distance);
+                    mInterfaceInfos[i]->GetValue(distance, MapperInterfaceInfo::InfoType::Dummy);
                     if (distance < min_distance) {
                         min_distance = distance;
                         found_idx = static_cast<int>(i); // TODO explicit conversion needed?
@@ -202,7 +202,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
         std::vector<double> sf_values;
 
-        mInterfaceInfos[found_idx]->GetValue(sf_values);
+        mInterfaceInfos[found_idx]->GetValue(sf_values, MapperInterfaceInfo::InfoType::Dummy);
 
         if (rLocalMappingMatrix.size1() != 1 || rLocalMappingMatrix.size2() != sf_values.size()) {
             rLocalMappingMatrix.resize(1, sf_values.size(), false);
@@ -211,7 +211,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             rLocalMappingMatrix(0,i) = sf_values[i];
         }
 
-        mInterfaceInfos[found_idx]->GetValue(rOriginIds);
+        mInterfaceInfos[found_idx]->GetValue(rOriginIds, MapperInterfaceInfo::InfoType::Dummy);
 
         KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 

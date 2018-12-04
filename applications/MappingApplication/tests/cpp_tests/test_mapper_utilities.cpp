@@ -463,10 +463,10 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     int found_id;
-    p_nearest_neighbor_info_1->GetValue(found_id);
+    p_nearest_neighbor_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_id, expected_id_found_1);
     double neighbor_dist;
-    p_nearest_neighbor_info_1->GetValue(neighbor_dist);
+    p_nearest_neighbor_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
 
     const double dist_1_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_1);
@@ -478,9 +478,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     p_nearest_neighbor_info_2->ProcessSearchResult(interface_node_3, dist_3_2);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
-    p_nearest_neighbor_info_2->GetValue(found_id);
+    p_nearest_neighbor_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_id, expected_id_found_2);
-    p_nearest_neighbor_info_2->GetValue(neighbor_dist);
+    p_nearest_neighbor_info_2->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
 
     const double dist_1_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_1);
@@ -492,9 +492,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     p_nearest_neighbor_info_3->ProcessSearchResult(interface_node_3, dist_3_3);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
-    p_nearest_neighbor_info_3->GetValue(found_id);
+    p_nearest_neighbor_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_id, expected_id_found_3);
-    p_nearest_neighbor_info_3->GetValue(neighbor_dist);
+    p_nearest_neighbor_info_3->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
 
     // Now finally we can construct the container
@@ -542,18 +542,18 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     const auto& r_info_2 = (*p_interface_info_container_new)[1][1];
     const auto& r_info_3 = (*p_interface_info_container_new)[0][0];
 
-    r_info_1->GetValue(found_id);
+    r_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_id, expected_id_found_1);
-    r_info_2->GetValue(found_id);
+    r_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_id, expected_id_found_2);
-    r_info_3->GetValue(found_id);
+    r_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_id, expected_id_found_3);
 
-    r_info_1->GetValue(neighbor_dist);
+    r_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
-    r_info_2->GetValue(neighbor_dist);
+    r_info_2->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
-    r_info_3->GetValue(neighbor_dist);
+    r_info_3->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
 
     // Test if the correct object type was created

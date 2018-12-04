@@ -143,17 +143,17 @@ public:
     ///@name Access
     ///@{
 
-    virtual void GetValue(int& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    virtual void GetValue(std::size_t& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    virtual void GetValue(double& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    virtual void GetValue(bool& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    virtual void GetValue(GeometryType& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(int& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::size_t& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(double& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(bool& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(GeometryType& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
 
-    virtual void GetValue(std::vector<int>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    virtual void GetValue(std::vector<std::size_t>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    virtual void GetValue(std::vector<double>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    virtual void GetValue(std::vector<bool>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
-    virtual void GetValue(std::vector<GeometryType>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<int>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<std::size_t>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<double>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<bool>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<GeometryType>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
 
     ///@}
     ///@name Input and output

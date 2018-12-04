@@ -61,18 +61,18 @@ void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
         int nearest_neighbor_id;
         double nearest_neighbor_distance;
-        mInterfaceInfos[0]->GetValue(nearest_neighbor_id);
-        mInterfaceInfos[0]->GetValue(nearest_neighbor_distance);
+        mInterfaceInfos[0]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
+        mInterfaceInfos[0]->GetValue(nearest_neighbor_distance, MapperInterfaceInfo::InfoType::Dummy);
 
         for (SizeType i=1; i<mInterfaceInfos.size(); ++i) {
             // no check if this InterfaceInfo is an approximation is necessary
             // bcs this does not exist for NearestNeighbor
             double distance;
-            mInterfaceInfos[i]->GetValue(distance);
+            mInterfaceInfos[i]->GetValue(distance, MapperInterfaceInfo::InfoType::Dummy);
 
             if (distance < nearest_neighbor_distance) {
                 nearest_neighbor_distance = distance;
-                mInterfaceInfos[i]->GetValue(nearest_neighbor_id);
+                mInterfaceInfos[i]->GetValue(nearest_neighbor_id, MapperInterfaceInfo::InfoType::Dummy);
             }
         }
 
