@@ -61,6 +61,7 @@ class ParallelDistanceCalculator
 public:
     ///@name Type Definitions
     ///@{
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
 
     /// Pointer definition of ParallelDistanceCalculator
     KRATOS_CLASS_POINTER_DEFINITION(ParallelDistanceCalculator);
@@ -87,7 +88,8 @@ public:
                             const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
                             const unsigned int max_levels,
-                            const double max_distance)
+                            const double max_distance,
+                            Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     {
         KRATOS_TRY
 
@@ -95,7 +97,7 @@ public:
                          
 		ResetVariables(rModelPart,rDistanceVar, max_distance);
 
-		CalculateExactDistancesOnDividedElements(rModelPart, rDistanceVar, rAreaVar, max_distance);
+		CalculateExactDistancesOnDividedElements(rModelPart, rDistanceVar, rAreaVar, max_distance, Options);
 
         ExtendDistancesByLayer(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
 
@@ -764,7 +766,8 @@ private:
     void CalculateExactDistancesOnDividedElements(ModelPart& rModelPart,
                             const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
-							const double MaxDistance)
+							const double MaxDistance,
+                            Flags Options)
 	{
         KRATOS_TRY
 
@@ -790,7 +793,11 @@ private:
 
              if (is_divided == true)
              {
-                 GeometryUtils::CalculateTetrahedraDistances(element_geometry, dist);
+
+                 if (Options.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE))
+                    GeometryUtils::CalculateTetrahedraDistancesToPlane(element_geometry, dist);
+                 else
+                    GeometryUtils::CalculateTetrahedraDistances(element_geometry, dist);
 
                  // loop over nodes and apply the new distances.
                  for (unsigned int i_node = 0; i_node < element_geometry.size(); i_node++)
@@ -806,7 +813,7 @@ private:
                     element_geometry[i_node].GetValue(IS_VISITED) = 1;
 
                     element_geometry[i_node].UnSetLock();
-                }
+                  }
             }
         }
 
@@ -1081,6 +1088,11 @@ private:
 ///@name Type Definitions
 ///@{
 
+template< unsigned int TDim>
+const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
+
+template< unsigned int TDim>
+const Kratos::Flags ParallelDistanceCalculator<TDim>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0, false));
 
 ///@}
 ///@name Input and output
