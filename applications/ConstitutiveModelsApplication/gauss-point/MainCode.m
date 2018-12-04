@@ -126,7 +126,7 @@ for i = 1:size(Strain,1)
         eDev(i) = eDev(i) + (Strain(i,e)-eVol(i))^2;
     end
     for e = 4:6
-        eDev(i) = eDev(i) + 2*(Strain(i,e))^2;
+        eDev(i) = eDev(i) + 2*(Strain(i,e)/2.0)^2;
     end
     eDev(i) = sqrt(0.5*eDev(i))*sqrt(3);
 end
