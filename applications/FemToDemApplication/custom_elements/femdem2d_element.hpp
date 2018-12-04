@@ -136,8 +136,6 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void SetNonConvergedDamages(double af, int cont) { mNonConvergedDamages[cont] = af; }
 	double GetNonConvergedDamages(int cont) { return mNonConvergedDamages[cont]; }
 
-	void SetNonConvergedDamage(double af) { mNonConvergedDamage = af; }
-	double GetNonConvergedDamage() { return mNonConvergedDamage; }
 
 	// Characteristic length Calculations
 	double CalculateCharacteristicLength(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont);
@@ -176,7 +174,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	Vector mDamages = ZeroVector(3); // Converged mDamage on each edge
 	double mDamage = 0.0;			 // Converged mDamage
 	Vector mNonConvergedDamages = ZeroVector(3); // mDamages on edges of "i" iteration
-	double mNonConvergedDamage = 0.0; // mDamage of the element of "i" iteration
+
 }; // Class FemDem2DElement
 
 } // Namespace Kratos

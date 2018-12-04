@@ -105,7 +105,13 @@ void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 
 void FemDem2DElement::UpdateDataBase()
 {
- // todo
+	for (unsigned int edge = 0; edge < 3; edge++) {
+		mDamages[edge] = mNonConvergedDamages[edge];
+		mThresholds[edge] = mNonConvergedThresholds[edge];
+	}
+
+	mDamage = this->CalculateElementalDamage(mDamages);
+	mThreshold = this->CalculateElementalDamage(mThresholds);
 }
 
 void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
@@ -218,7 +224,16 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 	//1.-Initialize sizes for the system components:
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-	unsigned int voigt_size = dimension * (dimension + 1) * 0.5;
+	const unsigned int voigt_size = dimension * (dimension + 1) / 2;
+	const unsigned int system_size = number_of_nodes * dimension;
+
+	if (rLeftHandSideMatrix.size1() != system_size)
+		rLeftHandSideMatrix.resize(system_size, system_size, false);
+	noalias(rLeftHandSideMatrix) = ZeroMatrix(system_size, system_size);
+
+	if (rRightHandSideVector.size() != system_size)
+		rRightHandSideVector.resize(system_size, false);
+	noalias(rRightHandSideVector) = ZeroVector(system_size);
 
 	Vector StrainVector(voigt_size);
 	noalias(StrainVector) = ZeroVector(voigt_size);
@@ -270,7 +285,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
 		double integration_weight = integration_points[PointNumber].Weight() * detJ;
-		if (dimension == 2) integration_weight *= this->GetProperties()[THICKNESS];
+		integration_weight *= this->GetProperties()[THICKNESS];
 
 		if (detJ < 0)
 			KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
@@ -354,19 +369,17 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		}
 
 		//compute and add internal forces (RHS = rRightHandSideVector = Fext - Fint)
-		noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), (1.0 - damage_element) * predictive_stress_vector);
+		noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), integrated_stress_vector);
 
 	} // Loop Over Integration Points
-
-
-
 	KRATOS_CATCH("")
 }
+
 double FemDem2DElement::CalculateElementalDamage(const Vector& rEdgeDamages)
 {
 	Vector two_max_values = ZeroVector(2);
 	this->Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
-	return 0.5*(two_max_values[0] + two_max_values[1]);
+	return 0.5 * (two_max_values[0] + two_max_values[1]);
 }
 
 void FemDem2DElement::CalculateAverageStressOnEdge(
@@ -563,17 +576,12 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 	if (rVariable == DAMAGE_ELEMENT) {
 		rOutput.resize(1);
 		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(DAMAGE_ELEMENT));
-		}
-	} else if (rVariable == IS_DAMAGED) {
-		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(IS_DAMAGED));
+			rOutput[PointNumber] = mDamage;
 		}
 	} else if (rVariable == STRESS_THRESHOLD) {
 		rOutput.resize(1);
 		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(STRESS_THRESHOLD));
+			rOutput[PointNumber] = mThreshold;
 		}
 	}
 }
@@ -613,7 +621,6 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 			rOutput[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
 		}
 	}
-
 	KRATOS_CATCH("")
 }
 
