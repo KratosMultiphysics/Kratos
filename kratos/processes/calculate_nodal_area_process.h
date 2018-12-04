@@ -8,44 +8,29 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborators:   Vicente Mataix Ferrandiz
 //
-
-
 
 #if !defined(KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED )
 #define  KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "utilities/geometry_utilities.h"
 
-
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType NodesContainerType;
-typedef  ModelPart::ElementsContainerType ElementsContainerType;
-
 
 ///@}
 ///@name  Enum's
@@ -59,9 +44,26 @@ typedef  ModelPart::ElementsContainerType ElementsContainerType;
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct CalculateNodalAreaSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
+    
+/** 
+ * @class CalculateNodalAreaProcess
+ * @ingroup KratosCore 
+ * @brief Computes NODAL_AREA
+ * @details Calculate the NODAL_AREA for computing the weighted area in each node
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
+// template<bool THistorical = true>
+// class KRATOS_API(KRATOS_CORE) CalculateNodalAreaProcess
 class CalculateNodalAreaProcess
     : public Process
 {
@@ -69,6 +71,12 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Index type definition
+    typedef std::size_t IndexType;
+    
+    /// Size type definition
+    typedef std::size_t SizeType;
+    
     /// Pointer definition of CalculateNodalAreaProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateNodalAreaProcess);
 
@@ -76,20 +84,29 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    /// avg_elems ------ expected number of neighbour elements per node.,
-    /// avg_nodes ------ expected number of neighbour Nodes
-    /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    CalculateNodalAreaProcess(ModelPart& model_part, unsigned int domain_size)
-        : mr_model_part(model_part), mdomain_size(domain_size)
+    /**
+     * @brief Default constructor.
+     * @param rModelPart The model part to be computed
+     * @param DomainSize The size of the space, if the value is not provided will compute from the model part
+     */
+    CalculateNodalAreaProcess(
+        ModelPart& rModelPart, 
+        const SizeType DomainSize = 0
+        ): mrModelPart(rModelPart),
+           mDomainSize(DomainSize)
     {
+        // In case is not provided we will take from the model part
+        if (mDomainSize == 0) {
+            const auto& it_element_begin = mrModelPart.ElementsBegin();
+            const auto& r_first_element_geometry = it_element_begin->GetGeometry();
+            mDomainSize = r_first_element_geometry.WorkingSpaceDimension();
+        }
     }
 
     /// Destructor.
     ~CalculateNodalAreaProcess() override
     {
     }
-
 
     ///@}
     ///@name Operators
@@ -109,64 +126,60 @@ public:
     {
         KRATOS_TRY
 
-        //set to zero the nodal area
-        for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin();
-                in!=mr_model_part.NodesEnd(); in++)
-        {
-            in->FastGetSolutionStepValue(NODAL_AREA) = 0.00;
+        // Set to zero the nodal area        
+        const auto it_node_begin = mrModelPart.NodesBegin();
+        #pragma omp parallel for
+        for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i) {
+            auto it_node = it_node_begin + i;
+            it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
         }
 
-        if(mdomain_size == 2)
-        {
-            double area = 0.0;
-            for(ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin();
-                    i!=mr_model_part.ElementsEnd(); i++)
-            {
-                //calculating shape functions values
-                Geometry< Node<3> >& geom = i->GetGeometry();
-
-                area = GeometryUtils::CalculateVolume2D(geom);
-                area *= 0.333333333333333333333333333;
-
-
-                geom[0].FastGetSolutionStepValue(NODAL_AREA) += area;
-                geom[1].FastGetSolutionStepValue(NODAL_AREA) += area;
-                geom[2].FastGetSolutionStepValue(NODAL_AREA) += area;
+        const auto& it_element_begin = mrModelPart.ElementsBegin();
+        const auto& r_first_element_geometry = it_element_begin->GetGeometry();
+        const std::size_t local_space_dimension = r_first_element_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_first_element_geometry.PointsNumber();
+        
+        // The integration points
+        const auto& integration_method = r_first_element_geometry.GetDefaultIntegrationMethod();
+        const auto& integration_points = r_first_element_geometry.IntegrationPoints(integration_method);
+        const std::size_t number_of_integration_points = integration_points.size();
+        
+        Vector N = ZeroVector(number_of_nodes);
+        Matrix J0 = ZeroMatrix(mDomainSize, local_space_dimension);
+        
+        #pragma omp parallel for firstprivate(N, J0)
+        for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i) {
+            auto it_elem = it_element_begin + i;
+            auto& r_geometry = it_elem->GetGeometry();
+            
+            // The containers of the shape functions
+            const auto& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
+            
+            for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+                // Getting the shape functions
+                noalias(N) = row(rNcontainer, point_number);
+                
+                // Getting the jacobians and local gradients
+                GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
+                const double detJ0 = MathUtils<double>::GeneralizedDet(J0);
+                const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
+                
+                for(std::size_t i_node =0; i_node < number_of_nodes; ++i_node) {
+                    #pragma omp atomic 
+                    r_geometry[i_node].FastGetSolutionStepValue(NODAL_AREA) += N[i_node] * gauss_point_volume;
+                }
             }
         }
-        else if(mdomain_size == 3)
-        {
-            for(ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin();
-                    i!=mr_model_part.ElementsEnd(); i++)
-            {
-                double vol;
-                //calculating shape functions values
-                Geometry< Node<3> >& geom = i->GetGeometry();
-
-                vol = GeometryUtils::CalculateVolume3D(geom);
-                vol *= 0.25;
-
-                geom[0].FastGetSolutionStepValue(NODAL_AREA) += vol;
-                geom[1].FastGetSolutionStepValue(NODAL_AREA) += vol;
-                geom[2].FastGetSolutionStepValue(NODAL_AREA) += vol;
-                geom[3].FastGetSolutionStepValue(NODAL_AREA) += vol;
-            }
-        }
-
-        mr_model_part.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-
-
+    
+        mrModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
         KRATOS_CATCH("");
 
     }
 
-
-
     ///@}
     ///@name Access
     ///@{
-
 
     ///@}
     ///@name Inquiry
@@ -247,9 +260,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
-    unsigned int mdomain_size;
-
+    
+    ModelPart& mrModelPart;  /// The model part where the nodal area is computed
+    SizeType mDomainSize;    /// The dimension of the space
 
     ///@}
     ///@name Private Operators
