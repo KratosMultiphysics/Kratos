@@ -73,10 +73,7 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-=======
->>>>>>> Release-6.0
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")

@@ -36,25 +36,17 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
         super(ConvectionDiffusionStationarySolver, self).__init__(main_model_part, custom_settings)
         self.print_on_rank_zero("::[ConvectionDiffusionStationarySolver]:: ", "Construction finished")
 
-<<<<<<< HEAD
     def GetMinimumBufferSize(self):
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
             return 2
         else:
             return 1
 
-=======
->>>>>>> Release-6.0
     #### Private functions ####
 
     def _create_solution_scheme(self):
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[ConvectionDiffusionApplication.THETA] = 1.0
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
-<<<<<<< HEAD
         convection_diffusion_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return convection_diffusion_scheme
-=======
-        mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        return mechanical_scheme
->>>>>>> Release-6.0

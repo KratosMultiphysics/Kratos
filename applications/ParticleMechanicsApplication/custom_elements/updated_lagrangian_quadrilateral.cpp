@@ -474,10 +474,6 @@ void UpdatedLagrangianQuadrilateral::CalculateDeformationMatrix(Matrix& rB,
             rB( 2, index + 0 ) = rDN_DX( i, 1 );
             rB( 2, index + 1 ) = rDN_DX( i, 0 );
         }
-<<<<<<< HEAD
-=======
-
->>>>>>> Release-6.0
     }
     else if( dimension == 3 )
     {
@@ -571,10 +567,6 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddExternalForces(VectorType& r
         {
             rRightHandSideVector[index + j] += rVariables.N[i] * rVolumeForce[j];
         }
-<<<<<<< HEAD
-=======
-
->>>>>>> Release-6.0
     }
 
     KRATOS_CATCH( "" )
@@ -691,10 +683,6 @@ Vector& UpdatedLagrangianQuadrilateral::CalculateVolumeForce( Vector& rVolumeFor
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     rVolumeForce = ZeroVector(dimension);
-<<<<<<< HEAD
-=======
-
->>>>>>> Release-6.0
     rVolumeForce = this->GetValue(MP_VOLUME_ACCELERATION)* this->GetValue(MP_MASS);
 
     return rVolumeForce;

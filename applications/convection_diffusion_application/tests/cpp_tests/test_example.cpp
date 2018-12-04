@@ -4,11 +4,7 @@
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
-<<<<<<< HEAD
 //					 Kratos default license: kratos/license.txt
-=======
-//   license: convection_diffusion_application/license.txt
->>>>>>> Release-6.0
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -33,11 +29,6 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(ExampleTest, KratosConvectionDiffusionFastSuite) 
         {
-<<<<<<< HEAD
-=======
-            constexpr double tolerance = 1e-6;
-            
->>>>>>> Release-6.0
             // Check
             KRATOS_CHECK(true);
         }
