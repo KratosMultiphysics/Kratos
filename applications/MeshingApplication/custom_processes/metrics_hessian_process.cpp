@@ -179,8 +179,8 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     // Initialize auxiliar variables
     const auto& it_nodes_begin = nodes_array.begin();
     #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = it_nodes_begin + i;
+    for(int i_node = 0; i_node < num_nodes; ++i_node) {
+        auto it_node = it_nodes_begin + i_node;
         it_node->SetValue(NODAL_AREA, 0.0);
         it_node->SetValue(AUXILIAR_HESSIAN, aux_zero_hessian);
         it_node->SetValue(AUXILIAR_GRADIENT, aux_zero_vector);
@@ -205,8 +205,8 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     Matrix J0 = ZeroMatrix(dimension, local_space_dimension);
 
     #pragma omp parallel for firstprivate(DN_DX,  N, J0)
-    for(int i = 0; i < num_elements; ++i) {
-        auto it_elem = it_element_begin + i;
+    for(int i_elem = 0; i_elem < num_elements; ++i_elem) {
+        auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
 
         // The containers of the shape functions and the local gradients
@@ -289,9 +289,12 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     }
 
     #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->GetValue(AUXILIAR_HESSIAN) /= it_node->GetValue(NODAL_AREA);
+    for(int i_node = 0; i_node < num_nodes; ++i_node) {
+        auto it_node = nodes_array.begin() + i_node;
+        const double nodal_area = it_node->GetValue(NODAL_AREA);
+        if (nodal_area > std::numeric_limits<double>::epsilon()) {
+            it_node->GetValue(AUXILIAR_HESSIAN) /= nodal_area;
+        }
     }
 }
 

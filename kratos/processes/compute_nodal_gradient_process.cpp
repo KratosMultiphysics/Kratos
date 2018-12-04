@@ -47,17 +47,17 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
     Matrix J0 = ZeroMatrix(dimension, local_space_dimension);
     
     #pragma omp parallel for firstprivate(DN_DX,  N, J0)
-    for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i) {
-        auto it_elem = it_element_begin + i;
+    for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
+        auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
     
         Vector values(number_of_nodes);
         if (mrOriginVariableDoubleList.size() > 0) {
-            for(std::size_t i=0; i<number_of_nodes; ++i)
-                values[i] = r_geometry[i].FastGetSolutionStepValue(mrOriginVariableDoubleList[0]);
+            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
+                values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(mrOriginVariableDoubleList[0]);
         } else {
-            for(std::size_t i=0; i<number_of_nodes; ++i)
-                values[i] = r_geometry[i].FastGetSolutionStepValue(mrOriginVariableComponentsList[0]);
+            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node)
+                values[i_node] = r_geometry[i_node].FastGetSolutionStepValue(mrOriginVariableComponentsList[0]);
         }
         
         // The containers of the shape functions and the local gradients
@@ -79,18 +79,18 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
             const Vector grad = prod(trans(DN_DX), values);
             const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
             
-            for(std::size_t i=0; i<number_of_nodes; ++i) {
+            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 for(std::size_t k=0; k<dimension; ++k) {
-                    double& val = GetGradient(r_geometry, i,k);
+                    double& val = GetGradient(r_geometry, i_node,k);
                     
                     #pragma omp atomic
-                    val += N[i] * gauss_point_volume*grad[k];
+                    val += N[i_node] * gauss_point_volume*grad[k];
                 }
                 
-                double& vol = r_geometry[i].GetValue(mrAreaVariable);
+                double& vol = r_geometry[i_node].GetValue(mrAreaVariable);
                 
                 #pragma omp atomic
-                vol += N[i] * gauss_point_volume;
+                vol += N[i_node] * gauss_point_volume;
             }
         }
     }
