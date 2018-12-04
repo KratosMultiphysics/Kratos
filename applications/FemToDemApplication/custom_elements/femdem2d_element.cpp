@@ -269,6 +269,9 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		double detJ = 0;
 		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
+		double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		if (dimension == 2) integration_weight *= this->GetProperties()[THICKNESS];
+
 		if (detJ < 0)
 			KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
 
@@ -305,23 +308,65 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
 		// Loop over edges of the element...
-        double damage_edges[3] = {0.0, 0.0, 0.0};
 		Vector average_stress_edge = ZeroVector(3);
+		Vector average_strain_edge = ZeroVector(3);
         for (unsigned int edge = 0; edge < 3; edge++) {
 			this->CalculateAverageStressOnEdge(&elem_neigb[edge], this, average_stress_edge);
+			this->CalculateAverageStrainOnEdge(&elem_neigb[edge], this, average_strain_edge);
+
+			// We recover converged values
+			double threshold = mThresholds[edge];
+			double damage = mDamages[edge];
+
+			const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
+			this->IntegrateStressDamageMechanics(
+									threshold,
+									damage,
+									average_strain_edge,
+									average_stress_edge,
+									edge,
+									length);
+			mNonConvergedDamages[edge] = damage;
+			mNonConvergedThresholds[edge] = threshold;
+		} // Loop over edges
+
+		// Calculate the elemental Damage...
+		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+		// mNonConvergedDamage = damage_element;
+		const Vector& predictive_stress_vector = this->GetValue(STRESS_VECTOR);
+		const Vector& integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
+
+		Matrix B;
+		this->CalculateDeformationMatrix(B, DN_DX);
+		const Matrix& C =  Values.GetConstitutiveMatrix();
+
+		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(C, B)));
 
 
-
-
-
-			// to be continued....
+		Vector VolumeForce = ZeroVector(dimension);
+		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
+		// RHS
+		for (unsigned int i = 0; i < number_of_nodes; i++) {
+			int index = dimension * i;
+			for (unsigned int j = 0; j < dimension; j++) {
+				rRightHandSideVector[index + j] += integration_weight * N[i] * VolumeForce[j];
+			}
 		}
+
+		//compute and add internal forces (RHS = rRightHandSideVector = Fext - Fint)
+		noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), (1.0 - damage_element) * predictive_stress_vector);
 
 	} // Loop Over Integration Points
 
 
 
 	KRATOS_CATCH("")
+}
+double FemDem2DElement::CalculateElementalDamage(const Vector& rEdgeDamages)
+{
+	Vector two_max_values = ZeroVector(2);
+	this->Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
+	return 0.5*(two_max_values[0] + two_max_values[1]);
 }
 
 void FemDem2DElement::CalculateAverageStressOnEdge(
@@ -330,7 +375,16 @@ void FemDem2DElement::CalculateAverageStressOnEdge(
 	Vector& rAverageStress
 	)
 {
+	rAverageStress = 0.5*(Neighbour->GetValue(STRESS_VECTOR) + CurrentElement->GetValue(STRESS_VECTOR));
+}
 
+void FemDem2DElement::CalculateAverageStrainOnEdge(
+	const Element* Neighbour, 
+	const Element* CurrentElement, 
+	Vector& rAverageStrain
+	)
+{
+	rAverageStrain = 0.5*(Neighbour->GetValue(STRAIN_VECTOR) + CurrentElement->GetValue(STRAIN_VECTOR));
 }
 
 void FemDem2DElement::CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX)
@@ -563,7 +617,7 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 	KRATOS_CATCH("")
 }
 
-double FemDem2DElement::CalculateLchar(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont)
+double FemDem2DElement::CalculateCharacteristicLength(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont)
 {
 	Geometry<Node<3>> &NodesElem1 = CurrentElement->GetGeometry(); // 3 nodes of the Element 1
 	Geometry<Node<3>> NodesElem2 = NeibElement.GetGeometry();	   // "         " 2

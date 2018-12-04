@@ -164,7 +164,7 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	// Characteristic length Calculations
 	void Set_l_char(double af, int cont) { mL_char[cont] = af; }
 	double Get_l_char(int cont) { return mL_char[cont]; }
-	void CalculateLchar();
+	void CalculateCharacteristicLength();
 
 	// Auxiliar functions...
 	void IterationPlus() { iteration++; }
@@ -205,6 +205,7 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	Matrix GetBMatrix() { return mB; }
 
 	void CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX);
+	double CalculateElementalDamage(const Vector& EdgeDamages);
 
 	// Fills mEdgeNeighboursContainer
 	void ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo);
@@ -234,7 +235,6 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 		M(5, 1) = 3;
 	}
 
-	double CalculateElementalDamage(const Vector &EdgeDamages);
 	double GetNumberOfEdges() {return mNumberOfEdges;}
 
 	void SetValueOnIntegrationPoints(

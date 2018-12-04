@@ -114,6 +114,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	double CalculateLodeAngle(double J2, double J3);
 	void UpdateDataBase();
 	void CalculateAverageStressOnEdge(const Element* Neighbour, const Element* CurrentElement, Vector& rAverageStress);
+	void CalculateAverageStrainOnEdge(const Element* Neighbour, const Element* CurrentElement, Vector& rAverageStrain);
 
 	// Converged values
 	void SetThreshold(double af, int cont) { mThresholds[cont] = af; }
@@ -139,7 +140,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	double GetNonConvergedDamage() { return mNonConvergedDamage; }
 
 	// Characteristic length Calculations
-	double CalculateLchar(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont);
+	double CalculateCharacteristicLength(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont);
 
 	// Auxiliar functions...
 	void IterationPlus() { iteration++; }
@@ -148,6 +149,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 
 	void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
 	Vector &CalculateVolumeForce(Vector &rVolumeForce, const Vector &rN);
+	double CalculateElementalDamage(const Vector& rEdgeDamages);
 
 	// Functions to calculate the Constitutive tangent tensor by numerical derivation
 	double GetMaxValue(const Vector& rValues);
@@ -169,6 +171,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	int iteration = 0;
 	// Each component == Each edge
 	Vector mThresholds = ZeroVector(3); // Stress mThreshold on edge
+	Vector mNonConvergedThresholds = ZeroVector(3); // Stress mThreshold on edge
 	double mThreshold = 0.0;
 	Vector mDamages = ZeroVector(3); // Converged mDamage on each edge
 	double mDamage = 0.0;			 // Converged mDamage
@@ -177,4 +180,4 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 }; // Class FemDem2DElement
 
 } // Namespace Kratos
-#endif // KRATOS_ALECORNVEL_ELEMENT_H_INCLUDED  defined
+#endif 

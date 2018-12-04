@@ -101,7 +101,7 @@ void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
 	if (this->GetIteration() == 0) {
 		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
-		this->CalculateLchar();
+		this->CalculateCharacteristicLength();
 		this->IterationPlus();
 	}
 
@@ -790,7 +790,7 @@ void FemDem3DElement::CalculateOnIntegrationPoints(
 }
 
 // Fills the array of characteristic lengths of the element
-void FemDem3DElement::CalculateLchar()
+void FemDem3DElement::CalculateCharacteristicLength()
 {
 	Geometry<Node<3>> &NodesElem = this->GetGeometry();
 	Matrix Indexes;
