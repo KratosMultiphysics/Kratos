@@ -149,11 +149,10 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    /// Calculate the scalar valued response function
-    /*double AdjointStructuralResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointStructuralResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         return 0.0;
-    }*/
+    }
 };
 
 

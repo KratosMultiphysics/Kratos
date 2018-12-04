@@ -88,7 +88,7 @@ namespace Kratos
 
     }
 
-    /*double AdjointNodalDisplacementResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointNodalDisplacementResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -98,7 +98,7 @@ namespace Kratos
         return mpTracedNode->FastGetSolutionStepValue(r_traced_dof, 0);
 
         KRATOS_CATCH("");
-    }*/
+    }
 
     void AdjointNodalDisplacementResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,

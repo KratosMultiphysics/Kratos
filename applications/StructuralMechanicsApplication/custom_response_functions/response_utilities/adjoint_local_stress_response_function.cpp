@@ -42,7 +42,7 @@ namespace Kratos
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
 
 
-    /*double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -57,7 +57,7 @@ namespace Kratos
         return stress_value;
 
         KRATOS_CATCH("");
-    }*/
+    }
 
     void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,

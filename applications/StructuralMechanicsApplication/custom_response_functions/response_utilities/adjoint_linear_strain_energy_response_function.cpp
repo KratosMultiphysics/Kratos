@@ -51,7 +51,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    /*double AdjointLinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointLinearStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -80,7 +80,7 @@ namespace Kratos
         return response_value;
 
         KRATOS_CATCH("");
-    }*/
+    }
 
     void AdjointLinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<array_1d<double, 3>>& rVariable,

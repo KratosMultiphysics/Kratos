@@ -84,7 +84,7 @@ public:
     void GetNeighboringElementPointer();
 
 
-    //double CalculateValue(ModelPart& rModelPart) override;
+    double CalculateValue(ModelPart& rModelPart) override;
 
 
     void CalculateGradient(const Element& rAdjointElement,

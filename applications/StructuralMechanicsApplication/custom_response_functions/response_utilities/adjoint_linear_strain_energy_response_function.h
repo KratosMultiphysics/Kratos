@@ -79,7 +79,7 @@ public:
 
     void Initialize() override;
 
-    //double CalculateValue(ModelPart& rModelPart) override;
+    double CalculateValue(ModelPart& rModelPart) override;
 
     ///@}
     ///@name Access

@@ -106,12 +106,8 @@ public:
                                                    const ProcessInfo& rProcessInfo) override;
 
 
-    //double CalculateValue(ModelPart& rModelPart) override;
+    double CalculateValue(ModelPart& rModelPart) override;
 
-    double CalculateValue() override
-    {
-        return 0.0;
-    }
 
     ///@}
 
