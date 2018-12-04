@@ -553,29 +553,30 @@ public:
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 
 			auto element_itr = grid_model_part.Elements().begin() + i;
+            auto& rGeom = element_itr->GetGeometry();
 			element_itr->Reset(ACTIVE);
             if (m_GeometryElement == "Triangle"){
-                element_itr->GetGeometry()[0].Reset(ACTIVE);
-                element_itr->GetGeometry()[1].Reset(ACTIVE);
-                element_itr->GetGeometry()[2].Reset(ACTIVE);
+                rGeom[0].Reset(ACTIVE);
+                rGeom[1].Reset(ACTIVE);
+                rGeom[2].Reset(ACTIVE);
 
                 if (TDim ==3)
                 {
-                    element_itr->GetGeometry()[3].Reset(ACTIVE);
+                    rGeom[3].Reset(ACTIVE);
                 }
             }
             else if (m_GeometryElement == "Quadrilateral"){
-                element_itr->GetGeometry()[0].Reset(ACTIVE);
-                element_itr->GetGeometry()[1].Reset(ACTIVE);
-                element_itr->GetGeometry()[2].Reset(ACTIVE);
-                element_itr->GetGeometry()[3].Reset(ACTIVE);
+                rGeom[0].Reset(ACTIVE);
+                rGeom[1].Reset(ACTIVE);
+                rGeom[2].Reset(ACTIVE);
+                rGeom[3].Reset(ACTIVE);
 
                 if (TDim ==3)
                 {
-                    element_itr->GetGeometry()[4].Reset(ACTIVE);
-                    element_itr->GetGeometry()[5].Reset(ACTIVE);
-                    element_itr->GetGeometry()[6].Reset(ACTIVE);
-                    element_itr->GetGeometry()[7].Reset(ACTIVE);
+                    rGeom[4].Reset(ACTIVE);
+                    rGeom[5].Reset(ACTIVE);
+                    rGeom[6].Reset(ACTIVE);
+                    rGeom[7].Reset(ACTIVE);
                 }
             }
 		}
@@ -608,28 +609,29 @@ public:
                 {
                     pelem->Set(ACTIVE);
                     element_itr->GetGeometry() = pelem->GetGeometry();
+                    auto& rGeom = element_itr->GetGeometry();
                     if (m_GeometryElement == "Triangle")
                     {
-                        element_itr->GetGeometry()[0].Set(ACTIVE);
-                        element_itr->GetGeometry()[1].Set(ACTIVE);
-                        element_itr->GetGeometry()[2].Set(ACTIVE);
+                        rGeom[0].Set(ACTIVE);
+                        rGeom[1].Set(ACTIVE);
+                        rGeom[2].Set(ACTIVE);
                         if (TDim ==3)
                         {
-                            element_itr->GetGeometry()[3].Set(ACTIVE);
+                            rGeom[3].Set(ACTIVE);
                         }
                     }
                     else if(m_GeometryElement == "Quadrilateral")
                     {
-                        element_itr->GetGeometry()[0].Set(ACTIVE);
-                        element_itr->GetGeometry()[1].Set(ACTIVE);
-                        element_itr->GetGeometry()[2].Set(ACTIVE);
-                        element_itr->GetGeometry()[3].Set(ACTIVE);
+                        rGeom[0].Set(ACTIVE);
+                        rGeom[1].Set(ACTIVE);
+                        rGeom[2].Set(ACTIVE);
+                        rGeom[3].Set(ACTIVE);
                         if (TDim ==3)
                         {
-                            element_itr->GetGeometry()[4].Set(ACTIVE);
-                            element_itr->GetGeometry()[5].Set(ACTIVE);
-                            element_itr->GetGeometry()[6].Set(ACTIVE);
-                            element_itr->GetGeometry()[7].Set(ACTIVE);
+                            rGeom[4].Set(ACTIVE);
+                            rGeom[5].Set(ACTIVE);
+                            rGeom[6].Set(ACTIVE);
+                            rGeom[7].Set(ACTIVE);
                         }
                     }
                 }

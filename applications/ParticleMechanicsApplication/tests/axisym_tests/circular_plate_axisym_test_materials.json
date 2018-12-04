@@ -1,0 +1,18 @@
+{
+    "properties" : [{
+        "model_part_name" : "Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "HyperElasticAxisym2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 1.0,
+                "DENSITY"       : 750.0,
+                "YOUNG_MODULUS" : 10000000.0,
+                "POISSON_RATIO" : 0.24
+            },
+            "Tables"           : {}
+        }
+    }]
+}
