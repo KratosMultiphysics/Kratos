@@ -8,7 +8,7 @@ import numpy as np
 # from pycompss.api.parameter import *
 
 # Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # get_value_from_remote is the equivalent of compss_wait_on
@@ -27,7 +27,7 @@ M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
 M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
 s_n^2 = M_{2,n} / (n-1)
 '''
-@ExaquteTask(returns=3)
+# @ExaquteTask(returns=3)
 def update_onepass_M_VAR(sample, old_mean, old_M2, nsam):
     delta = np.subtract(sample, old_mean)
     if nsam == 1:
