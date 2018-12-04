@@ -93,7 +93,7 @@ class SphericElementGlobalPhysicsCalculator
             KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing nodal variable ", r_variable);
           }
 
-        Vector max_values;
+        std::vector<double> max_values;
         double max_val = - std::numeric_limits<double>::max();
         max_values.resize(OpenMPUtils::GetNumThreads());
 
@@ -566,7 +566,7 @@ class SphericElementGlobalPhysicsCalculator
         ///@name Friends
         ///@{
 
-        DenseVector<unsigned int>& GetElementPartition()
+        std::vector<unsigned int>& GetElementPartition()
         {
           return (mElementsPartition);
         }
@@ -608,7 +608,7 @@ class SphericElementGlobalPhysicsCalculator
         ///@}
         ///@name Protected  Access
         ///@{
-        DenseVector<unsigned int> mElementsPartition;
+        std::vector<unsigned int> mElementsPartition;
 
         ///@}
         ///@name Protected Inquiry

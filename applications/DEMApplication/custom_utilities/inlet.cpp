@@ -187,7 +187,7 @@ namespace Kratos {
 
     void DEM_Inlet::DettachElements(ModelPart& r_modelpart, unsigned int& max_Id) {
 
-        DenseVector<unsigned int> ElementPartition;
+        std::vector<unsigned int> ElementPartition;
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
@@ -296,7 +296,7 @@ namespace Kratos {
 
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
-            DenseVector<unsigned int> ElementPartition;
+            std::vector<unsigned int> ElementPartition;
             OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
             typedef ElementsArrayType::iterator ElementIterator;
             #pragma omp parallel
@@ -365,7 +365,7 @@ namespace Kratos {
 
     void DEM_Inlet::DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id) {
 
-        DenseVector<unsigned int> ElementPartition;
+        std::vector<unsigned int> ElementPartition;
         typedef ElementsArrayType::iterator ElementIterator;
         std::vector<int> ids_to_remove;
 
