@@ -63,13 +63,12 @@ public:
 class Newmark
 {
 public:
-    explicit Newmark() {}
+    Newmark() = default;
 
-    explicit Newmark(const double NewmarkBeta)
-        : mNewmarkBeta(NewmarkBeta) {}
-
-    explicit Newmark(const double NewmarkBeta, const double NewmarkGamma)
-        : mNewmarkBeta(NewmarkBeta), mNewmarkGamma(NewmarkGamma) {}
+    explicit Newmark(const double NewmarkBeta,
+                     const double NewmarkGamma)
+        : mNewmarkBeta(NewmarkBeta),
+          mNewmarkGamma(NewmarkGamma) {}
 
     double GetBeta()  const { return mNewmarkBeta; }
     double GetGamma() const { return mNewmarkGamma; }
@@ -82,16 +81,16 @@ private:
 class Bossak
 {
 public:
-    explicit Bossak() {}
+    Bossak() = default;
 
     explicit Bossak(const double AlphaM)
         : mAlphaM(AlphaM) {}
 
-    explicit Bossak(const double AlphaM, const double NewmarkBeta)
-        : mAlphaM(AlphaM), mNewmarkBeta(NewmarkBeta) {}
-
-    explicit Bossak(const double AlphaM, const double NewmarkBeta, const double NewmarkGamma)
-        : mAlphaM(AlphaM), mNewmarkBeta(NewmarkBeta),
+    explicit Bossak(const double AlphaM,
+                    const double NewmarkBeta,
+                    const double NewmarkGamma)
+        : mAlphaM(AlphaM),
+          mNewmarkBeta(NewmarkBeta),
           mNewmarkGamma(NewmarkGamma) {}
 
     double GetAlphaM() const { return mAlphaM; }
@@ -107,21 +106,21 @@ private:
 class GeneralizedAlpha
 {
 public:
-    explicit GeneralizedAlpha() {}
+    GeneralizedAlpha() = default;
 
-    explicit GeneralizedAlpha(const double AlphaM)
-        : mAlphaM(AlphaM) {}
+    explicit GeneralizedAlpha(const double AlphaM,
+                              const double AlphaF)
+        : mAlphaM(AlphaM),
+          mAlphaF(AlphaF) {}
 
-    explicit GeneralizedAlpha(const double AlphaM, const double AlphaF)
-        : mAlphaM(AlphaM), mAlphaF(AlphaF) {}
-
-    explicit GeneralizedAlpha(const double AlphaM, const double AlphaF, const double NewmarkBeta)
-        : mAlphaM(AlphaM), mAlphaF(AlphaF), mNewmarkBeta(NewmarkBeta) {}
-
-    explicit GeneralizedAlpha(const double AlphaM, const double AlphaF,
-                              const double NewmarkBeta, const double NewmarkGamma)
-        : mAlphaM(AlphaM), mAlphaF(AlphaF),
-          mNewmarkBeta(NewmarkBeta), mNewmarkGamma(NewmarkGamma) {}
+    explicit GeneralizedAlpha(const double AlphaM,
+                              const double AlphaF,
+                              const double NewmarkBeta,
+                              const double NewmarkGamma)
+        : mAlphaM(AlphaM),
+          mAlphaF(AlphaF),
+          mNewmarkBeta(NewmarkBeta),
+          mNewmarkGamma(NewmarkGamma) {}
 
     double GetAlphaM() const { return mAlphaM; }
     double GetAlphaF() const { return mAlphaF; }
