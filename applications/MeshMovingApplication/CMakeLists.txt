@@ -25,6 +25,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosMeshMovingApplication MODULE THIN_LTO ${KRATOS_MESH_MOVING_APPLICATION_SOURCES} ${KRATOS_MESH_MOVING_TESTING_SOURCES})
 target_link_libraries(KratosMeshMovingApplication PRIVATE KratosCore )
+set_target_properties(KratosMeshMovingApplication PROPERTIES COMPILE_DEFINITIONS "MESH_MOVING_APPLICATION=EXPORT,API")
 set_target_properties(KratosMeshMovingApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd

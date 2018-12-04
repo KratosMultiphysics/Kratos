@@ -65,7 +65,11 @@ namespace Kratos
 /** 
  * @class KratosConvectionDiffusionApplication
  * @ingroup KratosConvectionDiffusionApplication
+<<<<<<< HEAD
  * @brief The Convection Diffusion Application contains a series of elements and conditions and the corresponding strategies and solvers within Kratos Multiphysics necesaries in order to simulate a convection-diffusion problem
+=======
+ * @brief The Convection DIffusion Application contains a series of elements and conditions and the corresponding strategies and solvers within Kratos Multiphysics necesaries in order to simulate a convection-diffusion problem
+>>>>>>> Release-6.0
  * @details The application includes tests to check the proper functioning of the application. Features:  
 - A set of *Neumann* conditions:
      * Flux conditions

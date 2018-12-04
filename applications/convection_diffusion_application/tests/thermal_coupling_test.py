@@ -161,7 +161,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
             if node.X == boundary_x:
                 node.Fix(KratosMultiphysics.TEMPERATURE)
-
+                
     def setUpDirichletCouplingBoundary(self,model_part):
         for cond in model_part.Conditions:
             for node in cond.GetNodes():

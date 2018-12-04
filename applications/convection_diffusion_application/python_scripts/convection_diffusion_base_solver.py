@@ -9,17 +9,28 @@ KratosMultiphysics.CheckRegisteredApplications("ConvectionDiffusionApplication")
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
+<<<<<<< HEAD
 # Importing the base class
 from python_solver import PythonSolver
 
+=======
+>>>>>>> Release-6.0
 # Other imports
 import os
 
 
+<<<<<<< HEAD
 def CreateSolver(model, custom_settings):
     return ConvectionDiffusionBaseSolver(model, custom_settings)
 
 class ConvectionDiffusionBaseSolver(PythonSolver):
+=======
+def CreateSolver(main_model_part, custom_settings):
+    return ConvectionDiffusionBaseSolver(main_model_part, custom_settings)
+
+
+class ConvectionDiffusionBaseSolver(object):
+>>>>>>> Release-6.0
     """The base class for convection-diffusion solvers.
 
     This class provides functions for importing and exporting models,
@@ -33,15 +44,24 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     _create_convergence_criterion
     _create_linear_solver
     _create_builder_and_solver
+<<<<<<< HEAD
     _create_convection_diffusion_solution_strategy
 
     The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
     using the getter functions get_convection_diffusion_solution_strategy, get_builder_and_solver,
+=======
+    _create_mechanical_solution_strategy
+    _create_restart_utility
+
+    The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
+    using the getter functions get_mechanical_solution_strategy, get_builder_and_solver,
+>>>>>>> Release-6.0
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
+<<<<<<< HEAD
     model -- the model containing the modelpart used to construct the solver.
     settings -- Kratos parameters containing solver settings.
     """
@@ -55,11 +75,30 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "echo_level": 0,
             "analysis_type": "linear",
             "solver_type": "convection_diffusion_base_solver",
+=======
+    settings -- Kratos parameters containing solver settings.
+    main_model_part -- the model part used to construct the solver.
+    """
+    def __init__(self, main_model_part, custom_settings):
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "echo_level": 0,
+            "buffer_size": 2,
+            "analysis_type": "non_linear",
+>>>>>>> Release-6.0
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+<<<<<<< HEAD
             "computing_model_part_name" : "thermal_computing_domain",
+=======
+            "restart_settings" : {
+                "load_restart"  : false,
+                "save_restart"  : false
+            },
+            "computing_model_part_name" : "Thermal",
+>>>>>>> Release-6.0
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -77,9 +116,12 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "specific_heat_variable"        : "SPECIFIC_HEAT",
                 "reaction_variable"             : "REACTION_FLUX"
             },
+<<<<<<< HEAD
             "time_stepping" : {
                 "time_step": 1.0
             },
+=======
+>>>>>>> Release-6.0
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
@@ -93,22 +135,35 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings":{
+<<<<<<< HEAD
                 "solver_type": "AMGCL",
                 "smoother_type":"ilu0",
                 "krylov_type":"gmres",
                 "coarsening_type":"aggregation",
+=======
+                "solver_type": "BICGSTABSolver",
+                "preconditioner_type": "DiagonalPreconditioner",
+>>>>>>> Release-6.0
                 "max_iteration": 5000,
                 "tolerance": 1e-9,
                 "scaling": false
             },
             "element_replace_settings" : {
                 "element_name" : "EulerianConvDiff",
+<<<<<<< HEAD
                 "condition_name" : "FluxCondition"
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
             "buffer_size" : -1
+=======
+                "condition_name" : "Condition"
+            },
+            "problem_domain_sub_model_part_list": ["conv_diff_body"],
+            "processes_sub_model_part_list": [""],
+            "auxiliary_variables_list" : []
+>>>>>>> Release-6.0
         }
         """)
 
@@ -140,6 +195,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: SPECIFIC HEAT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["specific_heat_variable"].GetString())
             if not custom_settings["convection_diffusion_variables"].Has("reaction_variable"):
                 self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: REACTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["reaction_variable"].GetString())
+<<<<<<< HEAD
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
@@ -170,6 +226,25 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         if target_model_part == None:
             target_model_part = self.main_model_part
 
+=======
+    
+        # Overwrite the default settings with user-provided parameters.
+        self.settings = custom_settings
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
+        self.main_model_part = main_model_part
+        self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
+
+        # Set if the analysis is restarted
+        if self.settings["restart_settings"].Has("load_restart"):
+            load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
+        else:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
+    def AddVariables(self):
+>>>>>>> Release-6.0
         ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
         '''
         convention_diffusion_settings = KratosMultiphysics.ConvectionDiffusionSettings()
@@ -209,6 +284,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         reaction_variable = self.settings["convection_diffusion_variables"]["reaction_variable"].GetString()
         if (reaction_variable is not ""):
             convention_diffusion_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable))
+<<<<<<< HEAD
 
         target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
 
@@ -253,6 +329,52 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return 1
 
     def AddDofs(self):
+=======
+            
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
+        
+        if self.main_model_part.ProcessInfo.Has(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS):
+            if convention_diffusion_settings.IsDefinedDensityVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDensityVariable())
+            if convention_diffusion_settings.IsDefinedDiffusionVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDiffusionVariable())
+            if convention_diffusion_settings.IsDefinedUnknownVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetUnknownVariable())
+            if convention_diffusion_settings.IsDefinedVolumeSourceVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetVolumeSourceVariable())
+            if convention_diffusion_settings.IsDefinedSurfaceSourceVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSurfaceSourceVariable())
+            if convention_diffusion_settings.IsDefinedProjectionVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetProjectionVariable())
+            if convention_diffusion_settings.IsDefinedConvectionVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetConvectionVariable())
+            if convention_diffusion_settings.IsDefinedMeshVelocityVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetMeshVelocityVariable())
+            if convention_diffusion_settings.IsDefinedTransferCoefficientVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetTransferCoefficientVariable())
+            if convention_diffusion_settings.IsDefinedVelocityVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetVelocityVariable())
+            if convention_diffusion_settings.IsDefinedSpecificHeatVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSpecificHeatVariable())
+            if convention_diffusion_settings.IsDefinedReactionVariable():
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionVariable())
+        else:
+            raise Exception("The provided main_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
+        
+        # Adding nodal area variable (some solvers use it. TODO: Ask)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        # If LaplacianElement is used
+        if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        
+        self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Variables ADDED")
+
+    def GetMinimumBufferSize(self):
+        return 2
+
+    def AddDofs(self):
+        # this can safely be called also for restarts, it is internally checked if the dofs exist already
+>>>>>>> Release-6.0
         settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
         if settings.IsDefinedReactionVariable():
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
@@ -261,18 +383,57 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
+<<<<<<< HEAD
         """This function imports the ModelPart
         """
         if self.solver_imports_model_part:
             self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
+=======
+        """ Legacy function, use ReadModelPart and PrepareModelPartForSolver instead """
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Importing model part.")
+        problem_path = os.getcwd()
+        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+        if self.is_restarted():
+            self.get_restart_utility().LoadRestart()
+        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            # Import model part from mdpa file.
+            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Finished reading model part from mdpa file.")
+            self.PrepareModelPartForSolver()
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
+        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Finished importing model part.")
+
+    def ReadModelPart(self):
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Reading model part.")
+        problem_path = os.getcwd()
+        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+        if self.is_restarted():
+            self.get_restart_utility().LoadRestart()
+        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            # Import model part from mdpa file.
+            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Finished reading model part from mdpa file.")
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
+        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Finished reading model part.")
+
+    def PrepareModelPartForSolver(self):
+            
+>>>>>>> Release-6.0
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
 
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
+<<<<<<< HEAD
 
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
@@ -282,10 +443,25 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.print_on_rank_zero(self.model)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
+=======
+            
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+        
+            self._set_and_fill_buffer()
+        
+        self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
+
+    def ExportModelPart(self):
+        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
+        file = open(name_out_file + ".mdpa","w")
+        file.close()
+        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
+>>>>>>> Release-6.0
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Initializing ...")
+<<<<<<< HEAD
         # The convection_diffusion solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -293,16 +469,30 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         convection_diffusion_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         if not self.is_restarted():
             convection_diffusion_solution_strategy.Initialize()
+=======
+        # The mechanical solution strategy is created here if it does not already exist.
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        if not self.is_restarted():
+            mechanical_solution_strategy.Initialize()
+>>>>>>> Release-6.0
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
             try:
+<<<<<<< HEAD
                 convection_diffusion_solution_strategy.SetInitializePerformedFlag(True)
+=======
+                mechanical_solution_strategy.SetInitializePerformedFlag(True)
+>>>>>>> Release-6.0
             except AttributeError:
                 pass
         self.Check()
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Finished initialization.")
 
+<<<<<<< HEAD
     def GetOutputVariables(self):
         pass
 
@@ -324,6 +514,40 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self.get_convection_diffusion_solution_strategy().FinalizeSolutionStep()
+=======
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+
+    def GetOutputVariables(self):
+        pass
+
+    def SaveRestart(self):
+        # Check could be integrated in the utility
+        # It is here intentionally, this way the utility is only created if it is actually needed!
+        if self.settings["restart_settings"].Has("save_restart"):
+            if (self.settings["restart_settings"]["save_restart"].GetBool() == True):
+                # the check if this step is a restart-output step is done internally
+                self.get_restart_utility().SaveRestart()
+
+    def Solve(self):
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy.Solve()
+
+    def InitializeSolutionStep(self):
+        self.get_mechanical_solution_strategy().InitializeSolutionStep()
+
+    def Predict(self):
+        self.get_mechanical_solution_strategy().Predict()
+
+    def SolveSolutionStep(self):
+        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        return is_converged
+
+    def FinalizeSolutionStep(self):
+        self.get_mechanical_solution_strategy().FinalizeSolutionStep()
+>>>>>>> Release-6.0
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -334,6 +558,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return new_time
 
     def ComputeDeltaTime(self):
+<<<<<<< HEAD
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
@@ -353,6 +578,22 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def Check(self):
         self.get_convection_diffusion_solution_strategy().Check()
+=======
+        return self.delta_time
+
+    def SetDeltaTime(self, dt):
+        # This is a TEMPORARY function until the solver can compute dt!
+        self.delta_time = dt
+
+    def SetEchoLevel(self, level):
+        self.get_mechanical_solution_strategy().SetEchoLevel(level)
+
+    def Clear(self):
+        self.get_mechanical_solution_strategy().Clear()
+
+    def Check(self):
+        self.get_mechanical_solution_strategy().Check()
+>>>>>>> Release-6.0
 
     #### Specific internal functions ####
 
@@ -376,14 +617,27 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
 
+<<<<<<< HEAD
     def get_convection_diffusion_solution_strategy(self):
         if not hasattr(self, '_convection_diffusion_solution_strategy'):
             self._convection_diffusion_solution_strategy = self._create_convection_diffusion_solution_strategy()
         return self._convection_diffusion_solution_strategy
+=======
+    def get_mechanical_solution_strategy(self):
+        if not hasattr(self, '_mechanical_solution_strategy'):
+            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+        return self._mechanical_solution_strategy
+
+    def get_restart_utility(self):
+        if not hasattr(self, '_restart_utility'):
+            self._restart_utility = self._create_restart_utility()
+        return self._restart_utility
+>>>>>>> Release-6.0
 
     def import_materials(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
+<<<<<<< HEAD
             # Add constitutive laws and material properties from json file to model parts.
             material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
             material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
@@ -391,16 +645,91 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
             # We set the properties that are nodal
             self._assign_nodally_properties()
+=======
+            import read_materials_process
+            # Create a dictionary of model parts.
+            Model = KratosMultiphysics.Model()
+            Model.AddModelPart(self.main_model_part)
+            # Add constitutive laws and material properties from json file to model parts.
+            read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
+            
+            # We set the properties that are nodal
+            self._assign_nodally_properties()
+            
+>>>>>>> Release-6.0
             materials_imported = True
         else:
             materials_imported = False
         return materials_imported
 
+<<<<<<< HEAD
+=======
+    def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
+        """Transfer matching settings from origin to destination.
+
+        If a name in origin matches a name in destination, then the setting is
+        validated against the destination.
+
+        The typical use is for validating and extracting settings in derived classes:
+
+        class A:
+            def __init__(self, model_part, a_settings):
+                default_a_settings = Parameters('''{
+                    ...
+                }''')
+                a_settings.ValidateAndAssignDefaults(default_a_settings)
+        class B(A):
+            def __init__(self, model_part, custom_settings):
+                b_settings = Parameters('''{
+                    ...
+                }''') # Here the settings contain default values.
+                self.validate_and_transfer_matching_settings(custom_settings, b_settings)
+                super().__init__(model_part, custom_settings)
+        """
+        for name, dest_value in destination_settings.items():
+            if origin_settings.Has(name): # Validate and transfer value.
+                orig_value = origin_settings[name]
+                if dest_value.IsDouble() and orig_value.IsDouble():
+                    destination_settings[name].SetDouble(origin_settings[name].GetDouble())
+                elif dest_value.IsInt() and orig_value.IsInt():
+                    destination_settings[name].SetInt(origin_settings[name].GetInt())
+                elif dest_value.IsBool() and orig_value.IsBool():
+                    destination_settings[name].SetBool(origin_settings[name].GetBool())
+                elif dest_value.IsString() and orig_value.IsString():
+                    destination_settings[name].SetString(origin_settings[name].GetString())
+                elif dest_value.IsArray() and orig_value.IsArray():
+                    if dest_value.size() != orig_value.size():
+                        raise Exception('len("' + name + '") != ' + str(dest_value.size()))
+                    for i in range(dest_value.size()):
+                        if dest_value[i].IsDouble() and orig_value[i].IsDouble():
+                            dest_value[i].SetDouble(orig_value[i].GetDouble())
+                        elif dest_value[i].IsInt() and orig_value[i].IsInt():
+                            dest_value[i].SetInt(orig_value[i].GetInt())
+                        elif dest_value[i].IsBool() and orig_value[i].IsBool():
+                            dest_value[i].SetBool(orig_value[i].GetBool())
+                        elif dest_value[i].IsString() and orig_value[i].IsString():
+                            dest_value[i].SetString(orig_value[i].GetString())
+                        elif dest_value[i].IsSubParameter() and orig_value[i].IsSubParameter():
+                            self.validate_and_transfer_matching_settings(orig_value[i], dest_value[i])
+                            if len(orig_value[i].items()) != 0:
+                                raise Exception('Json settings not found in default settings: ' + orig_value[i].PrettyPrintJsonString())
+                        else:
+                            raise Exception('Unsupported parameter type.')
+                elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
+                    self.validate_and_transfer_matching_settings(orig_value, dest_value)
+                    if len(orig_value.items()) != 0:
+                        raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
+                else:
+                    raise Exception('Unsupported parameter type.')
+                origin_settings.RemoveValue(name)
+
+>>>>>>> Release-6.0
     def is_restarted(self):
         # this function avoids the long call to ProcessInfo and is also safer
         # in case the detection of a restart is changed later
         return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
 
+<<<<<<< HEAD
     #### Private functions ####
 
     def _assign_nodally_properties(self):
@@ -413,6 +742,28 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             model_part = self.model.GetModelPart(materials["properties"][i]["model_part_name"].GetString())
             mat = materials["properties"][i]["Material"]
 
+=======
+    def print_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-solvers
+        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
+
+    def print_warning_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-solvers
+        KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
+
+    #### Private functions ####
+
+    def _assign_nodally_properties(self):
+        
+        # We transfer the values of the con.diff variables to the nodes
+        with open(self.settings["material_import_settings"]["materials_filename"].GetString(), 'r') as parameter_file:
+            materials = KratosMultiphysics.Parameters(parameter_file.read())
+            
+        for i in range(materials["properties"].size()):
+            model_part = self.main_model_part.GetSubModelPart(materials["properties"][i]["model_part_name"].GetString())
+            mat = materials["properties"][i]["Material"]
+            
+>>>>>>> Release-6.0
             for key, value in mat["Variables"].items():
                 var = KratosMultiphysics.KratosGlobals.GetVariable(key)
                 if (self._check_variable_to_set(var)):
@@ -422,7 +773,11 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                         KratosMultiphysics.VariableUtils().SetVectorVar(var, value.GetVector(), model_part.Nodes)
                     else:
                         raise ValueError("Type of value is not available")
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> Release-6.0
     def _check_variable_to_set(self, var):
         thermal_settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
         if (thermal_settings.IsDefinedDensityVariable()):
@@ -451,7 +806,11 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 return True
         else:
             return False
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> Release-6.0
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
         # Auxiliary parameters object for the CheckAndPepareModelProcess
@@ -493,13 +852,29 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
 
+<<<<<<< HEAD
+=======
+    def _get_restart_settings(self):
+        restart_settings = self.settings["restart_settings"].Clone()
+        restart_settings.AddValue("input_filename", self.settings["model_import_settings"]["input_filename"])
+        restart_settings.AddValue("echo_level", self.settings["echo_level"])
+        restart_settings.RemoveValue("load_restart")
+        restart_settings.RemoveValue("save_restart")
+
+        return restart_settings
+
+>>>>>>> Release-6.0
     def _get_element_condition_replace_settings(self):
         # Duplicate model part
         num_nodes_elements = 0
         if (len(self.main_model_part.Elements) > 0):
+<<<<<<< HEAD
             for elem in self.main_model_part.Elements:
                 num_nodes_elements = len(elem.GetNodes())
                 break
+=======
+            num_nodes_elements = len(self.main_model_part.Elements[1].GetNodes())
+>>>>>>> Release-6.0
 
         ## Elements
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
@@ -525,6 +900,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                     self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D27N")
         else:
             raise Exception("DOMAIN_SIZE not set")
+<<<<<<< HEAD
 
         ## Conditions
         num_nodes_conditions = 0
@@ -532,6 +908,13 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             for cond in self.main_model_part.Conditions:
                 num_nodes_conditions = len(cond.GetNodes())
                 break
+=======
+        
+        ## Conditions
+        num_nodes_conditions = 0
+        if (len(self.main_model_part.Conditions) > 0):
+            num_nodes_conditions = len(self.main_model_part.Conditions[1].GetNodes())
+>>>>>>> Release-6.0
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
                 self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition2D2N")
@@ -559,7 +942,11 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         #modeler.GenerateModelPart(self.main_model_part, self.GetComputingModelPart(), self.settings["element_replace_settings"]["element_name"].GetString(), self.settings["element_replace_settings"]["condition_name"].GetString())
 
         return self.settings["element_replace_settings"]
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> Release-6.0
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
@@ -573,9 +960,15 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return conv_params
 
     def _create_convergence_criterion(self):
+<<<<<<< HEAD
         import base_convergence_criteria_factory as convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
         return convergence_criterion.convergence_criterion
+=======
+        import convergence_criteria_factory
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
+        return convergence_criterion.mechanical_convergence_criterion
+>>>>>>> Release-6.0
 
     def _create_linear_solver(self):
         import linear_solver_factory
@@ -594,6 +987,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         """Create the solution scheme for the structural problem.
         """
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
+<<<<<<< HEAD
 
 
     def _create_convection_diffusion_solution_strategy(self):
@@ -605,10 +999,24 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 convection_diffusion_solution_strategy = self._create_newton_raphson_strategy()
             else:
                 convection_diffusion_solution_strategy = self._create_line_search_strategy()
+=======
+        
+
+    def _create_mechanical_solution_strategy(self):
+        analysis_type = self.settings["analysis_type"].GetString()
+        if analysis_type == "linear":
+            mechanical_solution_strategy = self._create_linear_strategy()
+        elif analysis_type == "non_linear":
+            if(self.settings["line_search"].GetBool() == False):
+                mechanical_solution_strategy = self._create_newton_raphson_strategy()
+            else:
+                mechanical_solution_strategy = self._create_line_search_strategy()
+>>>>>>> Release-6.0
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
+<<<<<<< HEAD
         return convection_diffusion_solution_strategy
 
     def _create_linear_strategy(self):
@@ -618,6 +1026,17 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               convection_diffusion_scheme,
+=======
+        return mechanical_solution_strategy
+
+    def _create_linear_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        mechanical_scheme = self.get_solution_scheme()
+        linear_solver = self.get_linear_solver()
+        builder_and_solver = self.get_builder_and_solver()
+        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
+                                                              mechanical_scheme,
+>>>>>>> Release-6.0
                                                               linear_solver,
                                                               builder_and_solver,
                                                               self.settings["compute_reactions"].GetBool(),
@@ -627,6 +1046,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
+<<<<<<< HEAD
         convection_diffusion_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         convection_diffusion_convergence_criterion = self.get_convergence_criterion()
@@ -635,6 +1055,16 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                                         convection_diffusion_scheme,
                                         linear_solver,
                                         convection_diffusion_convergence_criterion,
+=======
+        mechanical_scheme = self.get_solution_scheme()
+        linear_solver = self.get_linear_solver()
+        mechanical_convergence_criterion = self.get_convergence_criterion()
+        builder_and_solver = self.get_builder_and_solver()
+        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
+                                        mechanical_scheme,
+                                        linear_solver,
+                                        mechanical_convergence_criterion,
+>>>>>>> Release-6.0
                                         builder_and_solver,
                                         self.settings["max_iteration"].GetInt(),
                                         self.settings["compute_reactions"].GetBool(),
@@ -643,6 +1073,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
+<<<<<<< HEAD
         convection_diffusion_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         convection_diffusion_convergence_criterion = self.get_convergence_criterion()
@@ -651,8 +1082,28 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                             convection_diffusion_scheme,
                             linear_solver,
                             convection_diffusion_convergence_criterion,
+=======
+        mechanical_scheme = self.get_solution_scheme()
+        linear_solver = self.get_linear_solver()
+        mechanical_convergence_criterion = self.get_convergence_criterion()
+        builder_and_solver = self.get_builder_and_solver()
+        return KratosMultiphysics.LineSearchStrategy(computing_model_part,
+                            mechanical_scheme,
+                            linear_solver,
+                            mechanical_convergence_criterion,
+>>>>>>> Release-6.0
                             builder_and_solver,
                             self.settings["max_iteration"].GetInt(),
                             self.settings["compute_reactions"].GetBool(),
                             self.settings["reform_dofs_at_each_step"].GetBool(),
                             self.settings["move_mesh_flag"].GetBool())
+<<<<<<< HEAD
+=======
+
+    def _create_restart_utility(self):
+        """Create the restart utility. Has to be overridden for MPI/trilinos-solvers"""
+        import restart_utility
+        rest_utility = restart_utility.RestartUtility(self.main_model_part,
+                                                      self._get_restart_settings())
+        return rest_utility
+>>>>>>> Release-6.0

@@ -115,18 +115,28 @@ class BuoyancyTest(UnitTest.TestCase):
         if self.convection_diffusion_solver == 'bfecc':
             import bfecc_convection_diffusion_solver as thermal_solver
         elif self.convection_diffusion_solver == 'eulerian':
-            import convection_diffusion_solver as thermal_solver
+            import convection_diffusion_solver
+            self.thermal_solver = convection_diffusion_solver.CreateSolver(self.fluid_model_part,Parameters(r'''{}'''))
         else:
             raise Exception("Unsupported convection-diffusion solver option: {0}".format(self.convection_diffusion_solver))
 
-        thermal_solver.AddVariables(self.fluid_model_part)
+        if self.convection_diffusion_solver == 'bfecc':
+            thermal_solver.AddVariables(self.fluid_model_part)
+        elif self.convection_diffusion_solver == 'eulerian':
+            self.thermal_solver.AddVariables()
 
         model_part_io = ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.fluid_model_part)
 
         self.fluid_model_part.SetBufferSize(2)
         vms_monolithic_solver.AddDofs(self.fluid_model_part)
-        thermal_solver.AddDofs(self.fluid_model_part)
+
+        if self.convection_diffusion_solver == 'bfecc':
+            thermal_solver.AddDofs(self.fluid_model_part)
+        elif self.convection_diffusion_solver == 'eulerian':
+            self.thermal_solver.AddDofs()
+
+        self.fluid_model_part.ProcessInfo.SetValue(DOMAIN_SIZE,self.domain_size)
 
         # Building custom fluid solver
         self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
@@ -246,9 +256,13 @@ class BuoyancyTest(UnitTest.TestCase):
         for step in range(self.nsteps):
             time = time+self.dt
             self.fluid_model_part.CloneTimeStep(time)
+            self.fluid_model_part.ProcessInfo[STEP] += 1
             self.buoyancy_process.ExecuteInitializeSolutionStep()
             self.fluid_solver.Solve()
-            self.thermal_solver.Solve()
+            self.thermal_solver.InitializeSolutionStep()
+            self.thermal_solver.Predict()
+            self.thermal_solver.SolveSolutionStep()
+            self.thermal_solver.FinalizeSolutionStep()
 
     def checkResults(self):
 

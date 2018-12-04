@@ -133,7 +133,6 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
         time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
         self.printed_step_count += 1
         self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.printed_step_count
-
         # Write results to the initiated result file
         self._write_mp_results(time)
 
@@ -154,12 +153,8 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
         else:
             return ( self.step_count >= self.next_output )
 
-
     # Private Functions
-    def _get_pretty_time(self,time):
         pretty_time = "{0:.12g}".format(time)
-        pretty_time = float(pretty_time)
-        return pretty_time
 
     def _get_attribute(self, my_string, function_pointer, attribute_type):
         """Return the python object named by the string argument.

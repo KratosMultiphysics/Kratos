@@ -491,7 +491,6 @@ void UpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHandSi
             rRightHandSideVector[index_up + j] += rVariables.N[i] * rVolumeForce[j];
         }
     }
-
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
@@ -779,7 +778,6 @@ void UpdatedLagrangianUP::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
             indexi++;
         }
     }
-
     KRATOS_CATCH( "" )
 }
 
