@@ -59,7 +59,7 @@ class MonteCarloAnalysis(AnalysisStage):
         self.sample = sample
         super(MonteCarloAnalysis,self).__init__(input_model,input_parameters)
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        # self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
     def _CreateSolver(self):
         import convection_diffusion_stationary_solver
@@ -104,6 +104,9 @@ right now we are using the midpoint rule to evaluate the integral: improve!
 def EvaluateQuantityOfInterest(simulation):
     """here we evaluate the QoI of the problem: int_{domain} SOLUTION(x,y) dx dy
     we use the midpoint rule to evaluate the integral"""
+    # '''declare and initialize NODAL_AREA as non historical variable:
+    # this way I only store the values in the current nodes and not also in the buffer'''
+    # KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, simulation._GetSolver().main_model_part.Nodes)
     KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     Q = 0.0
     for node in simulation._GetSolver().main_model_part.Nodes:
@@ -306,14 +309,14 @@ if __name__ == '__main__':
     print("solving after two refinements to check if works OK")
 
 
-    number_samples = 10
+    number_samples = 2
     Qlist = []
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
     print("solve for sample = 1.0")
     ExactExpectedValueQoI = exact_execution_task(pickled_model_2,pickled_parameters) 
     print("solve for sample = 1.0 OK")
-    stop
+    
     print("solve MC")
     for instance in range (0,number_samples):
         Qlist.append(execution_task(pickled_model_2,pickled_parameters))
@@ -328,9 +331,9 @@ if __name__ == '__main__':
     '''Evaluation of the relative error between the computed mean value and the expected value of the QoI'''
     relative_error = compare_mean(MC_mean,ExactExpectedValueQoI)
     # print("Values QoI:",Qlist)
-    MC_mean = get_value_from_remote(MC_mean)
-    ExactExpectedValueQoI = get_value_from_remote(ExactExpectedValueQoI)
-    relative_error = get_value_from_remote(relative_error)
+    # MC_mean = get_value_from_remote(MC_mean)
+    # ExactExpectedValueQoI = get_value_from_remote(ExactExpectedValueQoI)
+    # relative_error = get_value_from_remote(relative_error)
     print("\nMC mean = ",MC_mean,"exact mean = ",ExactExpectedValueQoI)
     print("relative error: ",relative_error)
 
@@ -338,26 +341,26 @@ if __name__ == '__main__':
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
-    # model_serializer = pickle.loads(pickled_model_2)
-    # current_model = KratosMultiphysics.Model()
-    # model_serializer.Load("ModelSerialization",current_model)
-    # del(model_serializer)
-    # serialized_parameters = pickle.loads(pickled_parameters)
-    # current_parameters = KratosMultiphysics.Parameters()
-    # serialized_parameters.Load("ParametersSerialization",current_parameters)
-    # del(serialized_parameters)
-    # sample = 1.0
-    # simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
-    # simulation.Run()
-    # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-    # error = 0.0
-    # L2norm_analyticalsolution = 0.0
-    # for node in simulation._GetSolver().main_model_part.Nodes:
-    #     local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-    #     error = error + local_error
-    #     local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-    #     L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
-    # error = np.sqrt(error)
-    # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
-    # print("L2 relative error = ", error/L2norm_analyticalsolution)
+    model_serializer = pickle.loads(pickled_model_2)
+    current_model = KratosMultiphysics.Model()
+    model_serializer.Load("ModelSerialization",current_model)
+    del(model_serializer)
+    serialized_parameters = pickle.loads(pickled_parameters)
+    current_parameters = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization",current_parameters)
+    del(serialized_parameters)
+    sample = 1.0
+    simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
+    simulation.Run()
+    KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
+    error = 0.0
+    L2norm_analyticalsolution = 0.0
+    for node in simulation._GetSolver().main_model_part.Nodes:
+        local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+        error = error + local_error
+        local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+        L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
+    error = np.sqrt(error)
+    L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
+    print("L2 relative error = ", error/L2norm_analyticalsolution)
    
