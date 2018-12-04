@@ -257,12 +257,12 @@ if(NOT Boost_FOUND)
     find_package(Boost HINTS "${KRATOS_SOURCE_DIR}/external_libraries/boost" "${KRATOS_SOURCE_DIR}/external_libraries/boost_1_67_0")
 endif(NOT Boost_FOUND)
 
-if(NOT Boost_FOUND)
-    # Trying to download it
-    DownloadLib("Boost" "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.zip")
-    set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost_1_67_0")
-    find_package(Boost)
-endif(NOT Boost_FOUND)
+# if(NOT Boost_FOUND)
+#     # Trying to download it
+#     DownloadLib("Boost" "https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.zip")
+#     set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost_1_67_0")
+#     find_package(Boost)
+# endif(NOT Boost_FOUND)
 
 # If not found, download:
 
