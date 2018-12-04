@@ -34,7 +34,7 @@ void ComputeNodalGradientProcess<TDim, TVarType, THist>::Execute()
     // Set to zero
     ClearGradient();
     
-    BoundedMatrix<double,TDim+1,  TDim> DN_DX;
+    BoundedMatrix<double,TDim+1, TDim> DN_DX;
     array_1d<double,TDim+1> N;
     double Volume;
     
@@ -45,20 +45,20 @@ void ComputeNodalGradientProcess<TDim, TVarType, THist>::Execute()
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
         
         array_1d<double, TDim+1> values;
-        for(unsigned int i=0; i<TDim+1; ++i)
+        for(std::size_t i=0; i<TDim+1; ++i)
             values[i] = geom[i].FastGetSolutionStepValue(mrOriginVariable);
         
         const array_1d<double,TDim> grad = prod(trans(DN_DX), values);
         
-        for(unsigned int i=0; i<TDim+1; ++i) {
-            for(unsigned int k=0; k<TDim; ++k) {
+        for(std::size_t i=0; i<TDim+1; ++i) {
+            for(std::size_t k=0; k<TDim; ++k) {
                 double& val = GetGradient(geom, i,k);
                 
                 #pragma omp atomic
                 val += N[i]*Volume*grad[k];
             }
             
-            double& vol = geom[i].FastGetSolutionStepValue(mrAreaVariable);
+            double& vol = geom[i].GetValue(mrAreaVariable);
             
             #pragma omp atomic
             vol += N[i]*Volume;
@@ -85,7 +85,7 @@ ComputeNodalGradientProcess<2, Variable<double>, Historical>::ComputeNodalGradie
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
-    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
     
     KRATOS_CATCH("")
 }
@@ -104,8 +104,8 @@ ComputeNodalGradientProcess<2, Variable<double>, NonHistorical>::ComputeNodalGra
     KRATOS_TRY
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable << std::endl;
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
     
     KRATOS_CATCH("")
 }
@@ -125,7 +125,7 @@ ComputeNodalGradientProcess<3, Variable<double>, Historical>::ComputeNodalGradie
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
-    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
     
     KRATOS_CATCH("")
 }
@@ -144,8 +144,8 @@ ComputeNodalGradientProcess<3, Variable<double>, NonHistorical>::ComputeNodalGra
     KRATOS_TRY
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable << std::endl;
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
     
     KRATOS_CATCH("")
 }
@@ -165,7 +165,7 @@ ComputeNodalGradientProcess<2, component_type, Historical>::ComputeNodalGradient
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
-    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
     
     KRATOS_CATCH("")
 }
@@ -184,8 +184,8 @@ ComputeNodalGradientProcess<2, component_type, NonHistorical>::ComputeNodalGradi
     KRATOS_TRY
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable << std::endl;
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
     
     KRATOS_CATCH("")
 }
@@ -205,7 +205,7 @@ ComputeNodalGradientProcess<3, component_type, Historical>::ComputeNodalGradient
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
-    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
     
     KRATOS_CATCH("")
 }
@@ -224,8 +224,8 @@ ComputeNodalGradientProcess<3, component_type, NonHistorical>::ComputeNodalGradi
     KRATOS_TRY
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable;
-    VariableUtils().CheckVariableExists(rAreaVariable, mrModelPart.Nodes());
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable << std::endl;
+    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
     
     KRATOS_CATCH("")
 }
@@ -239,7 +239,7 @@ void ComputeNodalGradientProcess<2, Variable<double>, Historical>::ClearGradient
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrAreaVariable) = 0.0;
+        it_node->SetValue(mrAreaVariable, 0.0);
         it_node->FastGetSolutionStepValue(mrGradientVariable).clear();
     }
 }
@@ -253,7 +253,7 @@ void ComputeNodalGradientProcess<3, Variable<double>, Historical>::ClearGradient
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrAreaVariable) = 0.0;
+        it_node->SetValue(mrAreaVariable, 0.0);
         it_node->FastGetSolutionStepValue(mrGradientVariable).clear();
     }
 }
@@ -264,7 +264,7 @@ void ComputeNodalGradientProcess<2, component_type, Historical>::ClearGradient()
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrAreaVariable) = 0.0;
+        it_node->SetValue(mrAreaVariable, 0.0);
         it_node->FastGetSolutionStepValue(mrGradientVariable).clear();
     }
 }
@@ -278,7 +278,7 @@ void ComputeNodalGradientProcess<3, component_type, Historical>::ClearGradient()
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrAreaVariable) = 0.0;
+        it_node->SetValue(mrAreaVariable, 0.0);
         it_node->FastGetSolutionStepValue(mrGradientVariable).clear();
     }
 }
@@ -294,7 +294,7 @@ void ComputeNodalGradientProcess<2, Variable<double>, NonHistorical>::ClearGradi
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrAreaVariable) = 0.0;
+        it_node->SetValue(mrAreaVariable, 0.0);
         it_node->SetValue(mrGradientVariable, AuxZeroVector);
     }
 }
@@ -310,7 +310,7 @@ void ComputeNodalGradientProcess<3, Variable<double>, NonHistorical>::ClearGradi
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrAreaVariable) = 0.0;
+        it_node->SetValue(mrAreaVariable, 0.0);
         it_node->SetValue(mrGradientVariable, AuxZeroVector);
     }
 }
@@ -326,7 +326,7 @@ void ComputeNodalGradientProcess<2, component_type, NonHistorical>::ClearGradien
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrAreaVariable) = 0.0;
+        it_node->SetValue(mrAreaVariable, 0.0);
         it_node->SetValue(mrGradientVariable, AuxZeroVector);
     }
 }
@@ -342,7 +342,7 @@ void ComputeNodalGradientProcess<3, component_type, NonHistorical>::ClearGradien
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrAreaVariable) = 0.0;
+        it_node->SetValue(mrAreaVariable, 0.0);
         it_node->SetValue(mrGradientVariable, AuxZeroVector);
     }
 }
@@ -476,7 +476,7 @@ void ComputeNodalGradientProcess<2, Variable<double>, Historical>::PonderateGrad
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node = mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->FastGetSolutionStepValue(mrAreaVariable);
+        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
     }
 }
 
@@ -489,7 +489,7 @@ void ComputeNodalGradientProcess<3, Variable<double>, Historical>::PonderateGrad
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node = mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->FastGetSolutionStepValue(mrAreaVariable);
+        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
     }
 }
 
@@ -503,7 +503,7 @@ void ComputeNodalGradientProcess<2, component_type, Historical>::PonderateGradie
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i)
     {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->FastGetSolutionStepValue(mrAreaVariable);
+        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
     }
 }
 
@@ -517,7 +517,7 @@ void ComputeNodalGradientProcess<3, component_type, Historical>::PonderateGradie
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i)
     {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->FastGetSolutionStepValue(mrAreaVariable);
+        it_node->FastGetSolutionStepValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
     }
 }
 
@@ -531,7 +531,7 @@ void ComputeNodalGradientProcess<2, Variable<double>, NonHistorical>::PonderateG
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i)
     {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->GetValue(mrGradientVariable) /= it_node->FastGetSolutionStepValue(mrAreaVariable);
+        it_node->GetValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
     }
 }
 
@@ -544,7 +544,7 @@ void ComputeNodalGradientProcess<3, Variable<double>, NonHistorical>::PonderateG
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->GetValue(mrGradientVariable) /= it_node->FastGetSolutionStepValue(mrAreaVariable);
+        it_node->GetValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
     }
 }
 
@@ -557,7 +557,7 @@ void ComputeNodalGradientProcess<2, component_type, NonHistorical>::PonderateGra
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->GetValue(mrGradientVariable) /= it_node->FastGetSolutionStepValue(mrAreaVariable);
+        it_node->GetValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
     }
 }
 
@@ -570,7 +570,7 @@ void ComputeNodalGradientProcess<3, component_type, NonHistorical>::PonderateGra
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node=mrModelPart.NodesBegin()+i;
-        it_node->GetValue(mrGradientVariable) /= it_node->FastGetSolutionStepValue(mrAreaVariable);
+        it_node->GetValue(mrGradientVariable) /= it_node->GetValue(mrAreaVariable);
     }
 }
 
