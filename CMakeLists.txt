@@ -254,7 +254,8 @@ find_package(Boost)
 
 if(NOT Boost_FOUND)
     # Trying to find in in external libraries
-    find_package(Boost HINTS "${KRATOS_SOURCE_DIR}/external_libraries/boost" "${KRATOS_SOURCE_DIR}/external_libraries/boost_1_67_0")
+	set(BOOST_ROOT "${KRATOS_SOURCE_DIR}/external_libraries/boost")
+    find_package(Boost)
 endif(NOT Boost_FOUND)
 
 # if(NOT Boost_FOUND)
