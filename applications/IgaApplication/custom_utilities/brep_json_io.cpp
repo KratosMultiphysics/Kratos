@@ -32,7 +32,7 @@ namespace Kratos
         {
             const Vector& local_parameters = element->GetValue(LOCAL_COORDINATES);
             //const Vector& global_coordinates = element->Calculate(COORDINATES);
-            file << separator << "[" << element->Id() << ", " << element->GetValue(FACE_BREP_ID) << ",[" << local_parameters[0] << ", " << local_parameters[1] << "]]";
+            file << separator << "[" << element->Id() << ", " << element->GetValue(BREP_ID) << ",[" << local_parameters[0] << ", " << local_parameters[1] << "]]";
             separator = ",";
         }
         file << "]}";

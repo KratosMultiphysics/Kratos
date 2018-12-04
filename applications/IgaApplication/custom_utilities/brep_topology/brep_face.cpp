@@ -50,6 +50,10 @@ namespace Kratos
 
                 for (int k = 0; k < integration_points.size(); ++k)
                 {
+                    array_1d<double, 2> local_coordinates;
+                    local_coordinates[0] = integration_points[k].u;
+                    local_coordinates[1] = integration_points[k].v;
+
                     shape.Compute(
                         mNodeSurfaceGeometry3D->KnotsU(),
                         mNodeSurfaceGeometry3D->KnotsV(),
@@ -94,6 +98,9 @@ namespace Kratos
                         element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
                         element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
                         element->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
+
+                        element->SetValue(LOCAL_COORDINATES, local_coordinates);
+                        element->SetValue(BREP_ID, this->Id());
                     }
 
                     if (rType == "condition")
@@ -110,6 +117,9 @@ namespace Kratos
                         condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
                         condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
                         condition->SetValue(INTEGRATION_WEIGHT, integration_points[k].weight);
+
+                        condition->SetValue(LOCAL_COORDINATES, local_coordinates);
+                        condition->SetValue(BREP_ID, this->Id());
                     }
                 }
             }
@@ -239,6 +249,9 @@ namespace Kratos
                     shape_function,
                     shape_function_derivative,
                     shape_function_second_derivative);
+
+                rModelPart.AddNodes(control_points.begin(), control_points.end());
+
                 if (rType == "element")
                 {
                     int id = 0;
@@ -249,7 +262,7 @@ namespace Kratos
 
                     element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
                     element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
-                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_second_derivative);
+                    element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, shape_function_second_derivative);
 
                     Vector tangents(2);
                     tangents[0] = derivatives[1][0];
@@ -257,6 +270,8 @@ namespace Kratos
                     element->SetValue(TANGENTS, tangents);
 
                     element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
+
+                    element->SetValue(BREP_ID, this->Id());
                 }
                 if (rType == "condition")
                 {
@@ -268,7 +283,7 @@ namespace Kratos
 
                     condition->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
                     condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
-                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_second_derivative);
+                    condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, shape_function_second_derivative);
 
                     Vector tangents(2);
                     tangents[0] = derivatives[1][0];
@@ -276,6 +291,8 @@ namespace Kratos
                     condition->SetValue(TANGENTS, tangents);
 
                     condition->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
+
+                    condition->SetValue(BREP_ID, this->Id());
                 }
                 // for strong application of properties on control point nodes
                 if (rType == "node")
@@ -348,7 +365,7 @@ namespace Kratos
 
                 element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                 element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_2);
+                element->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
                 element->SetValue(INTEGRATION_WEIGHT, rIntegrationPoints[k].weight);
             }
 
@@ -362,7 +379,7 @@ namespace Kratos
 
                 condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                 condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
-                condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_2);
+                condition->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, N_2);
                 condition->SetValue(INTEGRATION_WEIGHT, rIntegrationPoints[k].weight);
             }
 
