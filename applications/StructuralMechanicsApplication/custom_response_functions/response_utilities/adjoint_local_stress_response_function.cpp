@@ -41,24 +41,6 @@ namespace Kratos
 
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
 
-
-    double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
-    {
-        KRATOS_TRY;
-
-        double stress_value = 0.0;
-
-        if(mStressTreatment == StressTreatment::Mean)
-            stress_value = CalculateMeanElementStress(rModelPart);
-        else if (mStressTreatment == StressTreatment::GaussPoint)
-            stress_value = CalculateGaussPointStress(rModelPart);
-        else if (mStressTreatment == StressTreatment::Node)
-            stress_value = CalculateNodeStress(rModelPart);
-        return stress_value;
-
-        KRATOS_CATCH("");
-    }
-
     void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
@@ -172,6 +154,23 @@ namespace Kratos
 
         if (rSensitivityGradient.size() != 0)
             rSensitivityGradient.resize(0, false);
+
+        KRATOS_CATCH("");
+    }
+
+    double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
+    {
+        KRATOS_TRY;
+
+        double stress_value = 0.0;
+
+        if(mStressTreatment == StressTreatment::Mean)
+            stress_value = CalculateMeanElementStress(rModelPart);
+        else if (mStressTreatment == StressTreatment::GaussPoint)
+            stress_value = CalculateGaussPointStress(rModelPart);
+        else if (mStressTreatment == StressTreatment::Node)
+            stress_value = CalculateNodeStress(rModelPart);
+        return stress_value;
 
         KRATOS_CATCH("");
     }

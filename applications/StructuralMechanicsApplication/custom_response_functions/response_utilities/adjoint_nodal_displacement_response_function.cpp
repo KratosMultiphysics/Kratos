@@ -65,41 +65,6 @@ namespace Kratos
 
     AdjointNodalDisplacementResponseFunction::~AdjointNodalDisplacementResponseFunction(){}
 
-    /// Find one element which is bounded by the traced node. The element is needed for assembling the adjoint load.
-    void AdjointNodalDisplacementResponseFunction::GetNeighboringElementPointer()
-    {
-        KRATOS_TRY;
-
-        for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
-        {
-            const SizeType number_of_nodes = (*elem_it)->GetGeometry().PointsNumber();
-            for(IndexType i = 0; i < number_of_nodes; ++i)
-            {
-                if((*elem_it)->GetGeometry()[i].Id() == mpTracedNode->Id())
-                {
-                    mpNeighboringElement = (*elem_it);
-                    return;
-                }
-            }
-        }
-        KRATOS_ERROR << "No neighboring element is available for the traced node." << std::endl;
-
-        KRATOS_CATCH("");
-
-    }
-
-    double AdjointNodalDisplacementResponseFunction::CalculateValue(ModelPart& rModelPart)
-    {
-        KRATOS_TRY;
-
-        const VariableComponentType& r_traced_dof =
-            KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
-
-        return mpTracedNode->FastGetSolutionStepValue(r_traced_dof, 0);
-
-        KRATOS_CATCH("");
-    }
-
     void AdjointNodalDisplacementResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
@@ -185,6 +150,40 @@ namespace Kratos
 
         if (rSensitivityGradient.size() != 0)
             rSensitivityGradient.resize(0, false);
+
+        KRATOS_CATCH("");
+    }
+
+    double AdjointNodalDisplacementResponseFunction::CalculateValue(ModelPart& rModelPart)
+    {
+        KRATOS_TRY;
+
+        const VariableComponentType& r_traced_dof =
+            KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
+
+        return mpTracedNode->FastGetSolutionStepValue(r_traced_dof, 0);
+
+        KRATOS_CATCH("");
+    }
+
+    /// Find one element which is bounded by the traced node. The element is needed for assembling the adjoint load.
+    void AdjointNodalDisplacementResponseFunction::GetNeighboringElementPointer()
+    {
+        KRATOS_TRY;
+
+        for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
+        {
+            const SizeType number_of_nodes = (*elem_it)->GetGeometry().PointsNumber();
+            for(IndexType i = 0; i < number_of_nodes; ++i)
+            {
+                if((*elem_it)->GetGeometry()[i].Id() == mpTracedNode->Id())
+                {
+                    mpNeighboringElement = (*elem_it);
+                    return;
+                }
+            }
+        }
+        KRATOS_ERROR << "No neighboring element is available for the traced node." << std::endl;
 
         KRATOS_CATCH("");
     }
