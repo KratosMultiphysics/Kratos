@@ -355,6 +355,8 @@ namespace Kratos
                 N_2(n, 2) = shape(4, indexU, indexV);
             }
 
+            rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
+
             if (rType == "element")
             {
                 int id = 0;

@@ -116,12 +116,12 @@ namespace Kratos
             || rLeftHandSideMatrix.size2() != number_of_dofs) {
             rLeftHandSideMatrix.resize(number_of_dofs, number_of_dofs);
         }
-        //rLeftHandSideMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
+        rLeftHandSideMatrix = ZeroMatrix(number_of_dofs, number_of_dofs);
 
         if (rRightHandSideVector.size() != number_of_dofs) {
             rRightHandSideVector.resize(number_of_dofs);
         }
-        //rRightHandSideVector = ZeroVector(number_of_dofs);
+        rRightHandSideVector = ZeroVector(number_of_dofs);
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
             rCurrentProcessInfo, true, true);
