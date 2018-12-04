@@ -111,6 +111,10 @@ void FemDem2DElement::UpdateDataBase()
 void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
 	this->UpdateDataBase();
+
+	if (mDamage >= 0.98) {
+		this->Set(ACTIVE, false);
+	}
 }
 
 void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
