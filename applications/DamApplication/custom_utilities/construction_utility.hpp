@@ -47,7 +47,7 @@ class ConstructionUtility
 
         // Getting values
         mGravityDirection = rParameters["gravity_direction"].GetString();
-        mReferenceCoordinate = mCurrentHeight = rParameters["reservoir_bottom_coordinate_in_gravity_direction"].GetDouble();
+        mReferenceCoordinate = mHighestBlockHeight = rParameters["reservoir_bottom_coordinate_in_gravity_direction"].GetDouble();
         mHeight = rParameters["height_dam"].GetDouble();
         mPhases = rParameters["number_of_phases"].GetInt();
         mSourceType = rParameters["source_type"].GetString();
@@ -332,7 +332,7 @@ class ConstructionUtility
         // Getting the value of the table and computing the current height
         double current_height = mReferenceCoordinate + (mHeight / mPhases) * current_number_of_phase;
 
-        if (current_height > mCurrentHeight) mCurrentHeight = current_height;
+        if (current_height > mHighestBlockHeight) mHighestBlockHeight = current_height;
 
         if (nelements != 0)
         {
@@ -452,7 +452,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mCurrentHeight + (mHeight / mPhases)))
+                        if ((central_position(direction) <= mHighestBlockHeight + (mHeight / mPhases)))
                         {
                             for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                             {
@@ -493,7 +493,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mCurrentHeight + (mHeight / mPhases)))
+                        if ((central_position(direction) <= mHighestBlockHeight + (mHeight / mPhases)))
                         {
                             for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                             {
@@ -566,7 +566,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mCurrentHeight + (mHeight / mPhases)))
+                        if ((central_position(direction) <= mHighestBlockHeight + (mHeight / mPhases)))
                         {
                             for (unsigned int i_edge = 0; i_edge < (*it_thermal).GetGeometry().EdgesNumber(); ++i_edge)
                             {
@@ -608,7 +608,7 @@ class ConstructionUtility
                     // Elements
                     if ((it_thermal)->IsNot(ACTIVE))
                     {
-                        if ((central_position(direction) <= mCurrentHeight + (mHeight / mPhases)))
+                        if ((central_position(direction) <= mHighestBlockHeight + (mHeight / mPhases)))
                         {
                             for (unsigned int i_face = 0; i_face < (*it_thermal).GetGeometry().FacesNumber(); ++i_face)
                             {
@@ -763,7 +763,7 @@ class ConstructionUtility
     bool mActivateSoilPart;
     bool mActivateExistingPart;
     double mReferenceCoordinate;
-    double mCurrentHeight;
+    double mHighestBlockHeight;
     double mHeight;
     int mPhases;
     double mH0;
