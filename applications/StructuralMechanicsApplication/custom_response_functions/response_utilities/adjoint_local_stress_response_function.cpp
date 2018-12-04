@@ -95,7 +95,7 @@ namespace Kratos
         if(rAdjointElement.Id() == mpTracedElement->Id())
         {
             ProcessInfo process_info = rProcessInfo;
-            this->CalculateElementContributionToSensitivityGradient(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
+            this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
                                                                     rSensitivityGradient, process_info);
         }
         else
@@ -132,7 +132,7 @@ namespace Kratos
         if(rAdjointElement.Id() == mpTracedElement->Id())
         {
             ProcessInfo process_info = rProcessInfo;
-            this->CalculateElementContributionToSensitivityGradient(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
+            this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
                                                                     rSensitivityGradient, process_info);
         }
         else
@@ -227,38 +227,38 @@ namespace Kratos
 
     }
 
-    void AdjointLocalStressResponseFunction::CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,
+    void AdjointLocalStressResponseFunction::CalculateElementContributionToPartialSensitivity(Element& rAdjointElement,
                                       const std::string& rVariableName,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
+                                      const Matrix& rSensitivityMatrix,
+                                      Vector& rSensitivityGradient,
                                       ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
-        rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, rVariableName);
+        rAdjointElement.SetValue(DESIGN_VARIABLE_NAME, rVariableName);
 
         Matrix stress_design_variable_derivative;
 
         if(mStressTreatment == StressTreatment::Mean)
         {
-            rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractMeanStressDerivative(stress_design_variable_derivative, rResponseGradient);
+            rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
+            this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
         else if(mStressTreatment == StressTreatment::GaussPoint)
         {
-            rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rResponseGradient);
+            rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
+            this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
         else if(mStressTreatment == StressTreatment::Node)
         {
-            rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractNodeStressDerivative(stress_design_variable_derivative, rResponseGradient);
+            rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_design_variable_derivative, rProcessInfo);
+            this->ExtractNodeStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
         }
 
-        KRATOS_ERROR_IF(rResponseGradient.size() != rDerivativesMatrix.size1())
+        KRATOS_ERROR_IF(rSensitivityGradient.size() != rSensitivityMatrix.size1())
              << "Size of partial stress design variable derivative does not fit!" << std::endl;
 
-        rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, "");
+        rAdjointElement.SetValue(DESIGN_VARIABLE_NAME, "");
 
         KRATOS_CATCH("");
     }

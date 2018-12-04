@@ -185,10 +185,10 @@ private:
 
     double CalculateNodeStress(ModelPart& rModelPart);
 
-    void CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,
+    void CalculateElementContributionToPartialSensitivity(Element& rAdjointElement,
                                       const std::string& rVariableName,
-                                      const Matrix& rDerivativesMatrix,
-                                      Vector& rResponseGradient,
+                                      const Matrix& rSensitivityMatrix,
+                                      Vector& rSensitivityGradient,
                                       ProcessInfo& rProcessInfo);
 
     void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
