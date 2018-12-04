@@ -99,7 +99,7 @@ void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 
 void FemDem2DElement::UpdateDataBase()
 {
-	for (unsigned int edge = 0; edge < 3; edge++) {
+	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
 		mDamages[edge] = mNonConvergedDamages[edge];
 		mThresholds[edge] = mNonConvergedThresholds[edge];
 	}
@@ -119,9 +119,6 @@ void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 
 void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
 {
-	//*****************************
-	KRATOS_TRY
-
 	//1.-Initialize sizes for the system components:
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -211,7 +208,6 @@ void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 		this->SetValue(STRESS_VECTOR, Values.GetStressVector());
 	}
-	KRATOS_CATCH("")
 }
 
 void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
@@ -332,13 +328,12 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 			double damage = mDamages[edge];
 
 			const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
-			this->IntegrateStressDamageMechanics(
-									threshold,
-									damage,
-									average_strain_edge,
-									average_stress_edge,
-									edge,
-									length);
+			this->IntegrateStressDamageMechanics(threshold,
+											     damage,
+											     average_strain_edge,
+											     average_stress_edge,
+											     edge,
+											     length);
 			mNonConvergedDamages[edge] = damage;
 			mNonConvergedThresholds[edge] = threshold;
 		} // Loop over edges

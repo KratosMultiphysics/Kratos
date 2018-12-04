@@ -38,12 +38,10 @@ FemDem3DElement::FemDem3DElement(IndexType NewId, GeometryType::Pointer pGeometr
 
 	// Each component == Each edge
 	mNumberOfEdges = 6;
-	mF_sigmas = ZeroVector(mNumberOfEdges);   // Equivalent stress
+	mNonConvergedThresholds = ZeroVector(mNumberOfEdges);   // Equivalent stress
 	mThresholds = ZeroVector(mNumberOfEdges); // Stress mThreshold on edge
 	mDamages = ZeroVector(mNumberOfEdges); // Converged mDamage on each edge
 	mNonConvergedDamages = ZeroVector(mNumberOfEdges); // mDamages on edges of "i" iteration
-	mNonConvergedFsigmas = ZeroVector(mNumberOfEdges); // Equivalent stress of "i" iteration
-	mL_char = ZeroVector(mNumberOfEdges); // Characteristic length on each edge
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -99,29 +97,27 @@ FemDem3DElement::~FemDem3DElement()
 
 void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-	if (this->GetIteration() == 0) {
-		this->ComputeEdgeNeighbours(rCurrentProcessInfo);
-		this->CalculateCharacteristicLength();
-		this->IterationPlus();
-	}
+	this->ComputeEdgeNeighbours(rCurrentProcessInfo);
+	this->InitializeInternalVariablesAfterMapping();
+}
 
+void FemDem3DElement::InitializeInternalVariablesAfterMapping()
+{
 	// After the mapping, the thresholds of the edges ( are equal to 0.0) are imposed equal to the IP threshold
-	const Vector thresholds = this->GetThresholds();
-	const double ElementThreshold = this->GetValue(STRESS_THRESHOLD);
-	if (thresholds[0] + thresholds[1] + thresholds[2] + thresholds[3] +
-	 thresholds[4] + thresholds[4] < std::numeric_limits<double>::epsilon()) {
+	const double element_threhsold = this->GetValue(STRESS_THRESHOLD);
+	if (mThresholds[0] + mThresholds[1] + mThresholds[2] + mThresholds[3] +
+	    mThresholds[4] + mThresholds[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
-			this->SetThreshold(ElementThreshold, edge);
+			mThresholds[edge] = element_threhsold;
 		}
 	}
 
 	// IDEM with the edge damages
-	const Vector damage_edges = this->GetDamages();
 	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
-	if (damage_edges[0] + damage_edges[1] + damage_edges[2] + 
-	 damage_edges[3] + damage_edges[4] + damage_edges[5] < std::numeric_limits<double>::epsilon()) {
+	if (mDamages[0] + mDamages[1] + mDamages[2] + mDamages[3] + mDamages[4] +
+		mDamages[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
-			this->SetConvergedDamages(damage_element, edge);
+			mDamages[edge] = damage_element;
 		}
 	}
 }
@@ -217,38 +213,28 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 
 } // End finding edge neighbour elements
 
+void FemDem3DElement::UpdateDataBase()
+{	
+	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
+		mDamages[edge] = mNonConvergedDamages[edge];
+		mThresholds[edge] = mNonConvergedThresholds[edge];
+	}
+
+	mDamage = this->CalculateElementalDamage(mDamages);
+	mThreshold = this->CalculateElementalDamage(mThresholds);
+}
+
 void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-	this->SetToZeroIteration();
-	//Loop over edges
-	for (unsigned int cont = 0; cont < this->GetNumberOfEdges(); cont++) {
-		this->SetConvergedDamages(this->GetNonConvergedDamages(cont), cont);
-		this->SetConvergedEquivalentStress(this->GetNonConvergedEquivalentStress(cont), cont);
-		const double current_equivalent_stress = this->GetConvergedEquivalentStress(cont);
-		
-		if (current_equivalent_stress > this->GetThreshold(cont)) {
-			this->SetThreshold(current_equivalent_stress, cont);
-		}
-
-	} // End Loop over edges
-
-	const double damage_element = this->GetNonConvergedDamage();
-	this->SetConvergedDamage(damage_element);
+	this->UpdateDataBase();
 
 	if (damage_element >= 0.98) {
 		this->Set(ACTIVE, false);
 	}
-
-	this->ResetNonConvergedVars();
-	this->SetValue(DAMAGE_ELEMENT, damage_element);
-	this->SetValue(STRESS_THRESHOLD, this->GetMaxValue(this->GetThresholds()));
 }
 
 void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
 {
-	//*****************************
-	KRATOS_TRY
-
 	//1.-Initialize sizes for the system components:
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -334,11 +320,7 @@ void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 		//(after calling the constitutive law StressVector and ConstitutiveMatrix are set and can be used)
 		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 		this->SetValue(STRESS_VECTOR, Values.GetStressVector());
-
-		this->CalculateDeformationMatrix(B, DN_DX);
-		this->SetBMatrix(B);
 	}
-	KRATOS_CATCH("")
 }
 
 void FemDem3DElement::CalculateLocalSystem(
@@ -346,14 +328,15 @@ void FemDem3DElement::CalculateLocalSystem(
 	VectorType &rRightHandSideVector,
 	ProcessInfo &rCurrentProcessInfo)
 {
+	//*****************************
 	KRATOS_TRY
 
+	//1.-Initialize sizes for the system components:
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-	unsigned int voigt_size = dimension * (dimension + 1) / 2;
+	const unsigned int voigt_size = dimension * (dimension + 1) / 2;
+	const unsigned int system_size = number_of_nodes * dimension;
 
-	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-	unsigned int system_size = number_of_nodes * dimension;
 	if (rLeftHandSideMatrix.size1() != system_size)
 		rLeftHandSideMatrix.resize(system_size, system_size, false);
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(system_size, system_size);
@@ -362,10 +345,39 @@ void FemDem3DElement::CalculateLocalSystem(
 		rRightHandSideVector.resize(system_size, false);
 	noalias(rRightHandSideVector) = ZeroVector(system_size);
 
+	Vector StrainVector(voigt_size);
+	noalias(StrainVector) = ZeroVector(voigt_size);
+	Vector StressVector(voigt_size);
+	noalias(StressVector) = ZeroVector(voigt_size);
+	Matrix ConstitutiveMatrix(voigt_size, voigt_size);
+	noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
+	Matrix B(voigt_size, dimension * number_of_nodes);
+	noalias(B) = ZeroMatrix(voigt_size, dimension * number_of_nodes);
+	Matrix DN_DX(number_of_nodes, dimension);
+	noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
+
+	//deffault values for the infinitessimal theory
+	double detF = 1;
+	Matrix F(dimension, dimension);
+	noalias(F) = identity_matrix<double>(dimension);
+
+	//3.-Calculate elemental system:
+
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+	//get the shape functions [N] (for the order of the default integration method)
+	const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+
+	//get the shape functions parent coodinates derivative [dN/d�] (for the order of the default integration method)
+	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
+	//calculate delta position (here coincides with the current displacement)
 	Matrix DeltaPosition(number_of_nodes, dimension);
 	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
 	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
 
+	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
@@ -373,68 +385,85 @@ void FemDem3DElement::CalculateLocalSystem(
 	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
 
 	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
-		const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
-		Vector N = row(Ncontainer, PointNumber);
-
-		double detJ = 0;
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
+		double detJ = 0;
 		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
-		double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
-		const Matrix &B = this->GetBMatrix();
-		Vector integrated_stress_vector = ZeroVector(voigt_size);
-		Vector damages_edges = ZeroVector(this->GetNumberOfEdges());
+		double integration_weight = integration_points[PointNumber].Weight() * detJ;
 
+		if (detJ < 0)
+			KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
+
+		//compute cartesian derivatives for this integration point  [dN/dx_n]
+		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+
+		//set shape functions for this integration point
+		Vector N = row(Ncontainer, PointNumber);
+
+		//b.-compute infinitessimal strain
+		this->CalculateInfinitesimalStrain(StrainVector, DN_DX);
+
+		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+		//set constitutive law variables: (it passes only references to this local variables)
+		Values.SetStrainVector(StrainVector);
+		Values.SetStressVector(StressVector);
+		Values.SetConstitutiveMatrix(ConstitutiveMatrix);
+		Values.SetShapeFunctionsDerivatives(DN_DX);
+		Values.SetShapeFunctionsValues(N);
+		//values to be set:
+		Values.SetDeterminantF(detF);
+		Values.SetDeformationGradientF(F);
+
+		//set constitutive law flags:
+		Flags &ConstitutiveLawOptions = Values.GetOptions();
+
+		//compute stress and constitutive matrix
+		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+		//CALL THE CONSTITUTIVE LAW (for this integration point)
+		//(after calling the constitutive law StressVector and ConstitutiveMatrix are set and can be used)
+		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+		const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
 		// Loop over edges of the element
-		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
+		for (unsigned int edge = 0; edge < mNumberEdges; edge++) {
 			std::vector<Element*> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
-			Vector AverageStressVector, AverageStrainVector, IntegratedStressVectorOnEdge;
+			Vector average_stress_edge, average_strain_edge;
 
-			this->CalculateAverageStressOnEdge(AverageStressVector, EdgeNeighbours);
-			this->CalculateAverageStrainOnEdge(AverageStrainVector, EdgeNeighbours);
+			this->CalculateAverageStressOnEdge(average_stress_edge, EdgeNeighbours);
+			this->CalculateAverageStrainOnEdge(average_strain_edge, EdgeNeighbours);
 
-			double damage_edge, uniaxial_stress;
-			const double characteristic_length = this->Get_l_char(edge);
-			this->IntegrateStressDamageMechanics(IntegratedStressVectorOnEdge, 
+			double damage_edge = mDamages[edge];
+			double threshold = mThresholds[edge];
+
+			this->IntegrateStressDamageMechanics(threshold, 
 												 damage_edge,
-												 AverageStrainVector, 
-												 AverageStressVector, 
+												 average_strain_edge, 
+												 average_stress_edge, 
 												 edge, 
-												 characteristic_length,
-												 uniaxial_stress);	 
-			this->SetNonConvergedEquivalentStress(uniaxial_stress, edge);
-			this->SetNonConvergedDamages(damage_edge, edge);
-			damages_edges[edge] = damage_edge;
+												 characteristic_lengths[edge]);
+			mNonConvergedDamages[edge] = damage;
+			mNonConvergedThresholds[edge] = threshold;
 		} // End loop over edges
 
-		double damage_element = this->CalculateElementalDamage(damages_edges);
-		if (damage_element >= 0.999)
-			damage_element = 0.999;
-		this->SetNonConvergedDamages(damage_element);
+		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+		const Vector &stress_vector = this->GetValue(STRESS_VECTOR);
+		integrated_stress_vector = (1.0 - damage_element) * stress_vector;
 
-		const Vector &StressVector = this->GetValue(STRESS_VECTOR);
-		integrated_stress_vector = (1.0 - damage_element) * StressVector;
-		this->SetIntegratedStressVector(integrated_stress_vector);
+		Matrix ConstitutiveMatrix = Values.GetConstitutiveMatrix();
 
-		Matrix ConstitutiveMatrix = ZeroMatrix(voigt_size, voigt_size);
-		const double E = this->GetProperties()[YOUNG_MODULUS];
-		const double nu = this->GetProperties()[POISSON_RATIO];
-		this->CalculateConstitutiveMatrix(ConstitutiveMatrix, E, nu);
-
-		noalias(rLeftHandSideMatrix) += prod(trans(B), IntegrationWeight * (1.0 - damage_element) * Matrix(prod(ConstitutiveMatrix, B))); // LHS
+		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(ConstitutiveMatrix, B))); // LHS
 
 		Vector VolumeForce = ZeroVector(dimension);
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
-
-		// RHS
 		for (unsigned int i = 0; i < number_of_nodes; i++) {
 			const int index = dimension * i;
 			for (unsigned int j = 0; j < dimension; j++) {
 				rRightHandSideVector[index + j] += IntegrationWeight * N[i] * VolumeForce[j];
 			}
 		}
-
 		//compute and add internal forces (RHS = rRightHandSideVector = Fext - Fint)
 		noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(B), integrated_stress_vector);
 	}
@@ -626,54 +655,30 @@ void FemDem3DElement::CalculateAverageStressOnEdge(
 	Vector &rAverageVector,
 	const std::vector<Element *>& VectorOfElems)
 {
-	KRATOS_TRY
-
 	Vector CurrentElementStress = this->GetValue(STRESS_VECTOR);
 	rAverageVector = CurrentElementStress;
 	int counter = 0;
 
 	for (unsigned int elem = 0; elem < VectorOfElems.size(); elem++) {
-		// Only take into account the active elements
-		bool is_active = true;
-		if (VectorOfElems[elem]->IsDefined(ACTIVE)) {
-			is_active = VectorOfElems[elem]->Is(ACTIVE);
-		}
-
-		if (is_active == true) {
-			rAverageVector += VectorOfElems[elem]->GetValue(STRESS_VECTOR);
-			counter++;
-		}
+		rAverageVector += VectorOfElems[elem]->GetValue(STRESS_VECTOR);
+		counter++;
 	}
 	rAverageVector /= (counter + 1);
-
-	KRATOS_CATCH("")
 }
 
 void FemDem3DElement::CalculateAverageStrainOnEdge(
 	Vector &rAverageVector,
 	const std::vector<Element*>& VectorOfElems)
 {
-	KRATOS_TRY
-
 	Vector CurrentElementStress = this->GetValue(STRAIN_VECTOR);
 	rAverageVector = CurrentElementStress;
 	int counter = 0;
 
 	for (unsigned int elem = 0; elem < VectorOfElems.size(); elem++) {
-		// Only take into account the active elements
-		bool is_active = true;
-		if (VectorOfElems[elem]->IsDefined(ACTIVE)) {
-			is_active = VectorOfElems[elem]->Is(ACTIVE);
-		}
-
-		if (is_active == true) {
-			rAverageVector += VectorOfElems[elem]->GetValue(STRAIN_VECTOR);
-			counter++;
-		}
+		rAverageVector += VectorOfElems[elem]->GetValue(STRAIN_VECTOR);
+		counter++;
 	}
 	rAverageVector /= (counter + 1);
-
-	KRATOS_CATCH("")
 }
 
 // Double values
@@ -790,13 +795,14 @@ void FemDem3DElement::CalculateOnIntegrationPoints(
 }
 
 // Fills the array of characteristic lengths of the element
-void FemDem3DElement::CalculateCharacteristicLength()
+Vector void FemDem3DElement::CalculateCharacteristicLengths()
 {
+	Vector lengths = ZeroVector(mNumberEdges)
 	Geometry<Node<3>> &NodesElem = this->GetGeometry();
 	Matrix Indexes;
 	this->SetNodeIndexes(Indexes);
 
-	for (unsigned int edge = 0; edge < 6; edge++) {
+	for (unsigned int edge = 0; edge < mNumberEdges; edge++) {
 		const double X1 = NodesElem[Indexes(edge, 0)].X();
 		const double X2 = NodesElem[Indexes(edge, 1)].X();
 		const double Y1 = NodesElem[Indexes(edge, 0)].Y();
@@ -804,9 +810,9 @@ void FemDem3DElement::CalculateCharacteristicLength()
 		const double Z1 = NodesElem[Indexes(edge, 0)].Z();
 		const double Z2 = NodesElem[Indexes(edge, 1)].Z();
 
-		const double characteristic_length = std::sqrt((X1 - X2) * (X1 - X2) + (Y1 - Y2) * (Y1 - Y2) + (Z1 - Z2) * (Z1 - Z2));
-		this->Set_l_char(characteristic_length, edge);
+		lengths[edge] = std::sqrt((X1 - X2) * (X1 - X2) + (Y1 - Y2) * (Y1 - Y2) + (Z1 - Z2) * (Z1 - Z2));
 	}
+	return lengths;
 }
 
 void FemDem3DElement::Get2MaxValues(Vector &MaxValues, double a, double b, double c)
@@ -1057,45 +1063,43 @@ double FemDem3DElement::GetMinAbsValue(
 
 // ******* DAMAGE MECHANICS YIELD SURFACES AND EXPONENTIAL SOFTENING ********
 void FemDem3DElement::IntegrateStressDamageMechanics(
-	Vector &rIntegratedStress,
+	double& rThreshold,
 	double &rDamage,
 	const Vector &rStrainVector,
 	const Vector &rStressVector,
-	int cont,
-	double Length,
-	double& rUniaxialStress)
+	int Edge,
+	double Length
+	)
 {
 	const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 	if (yield_surface == "ModifiedMohrCoulomb") {
-		this->ModifiedMohrCoulombCriterion(rIntegratedStress, rDamage, 
-			rStressVector, cont, Length, rUniaxialStress);
+		this->ModifiedMohrCoulombCriterion(rThreshold, rDamage, 
+			rStressVector, Edge, Length, rUniaxialStress);
 	} else if (yield_surface == "SimoJu") {
-		this->SimoJuCriterion(rIntegratedStress, rDamage, 
-			rStrainVector, rStressVector, cont, Length, rUniaxialStress);
+		this->SimoJuCriterion(rThreshold, rDamage, 
+			rStrainVector, rStressVector, Edge, Length, rUniaxialStress);
 	} else if (yield_surface == "Rankine") {
-		this->RankineCriterion(rIntegratedStress, rDamage, 
-			rStressVector, cont, Length, rUniaxialStress);
+		this->RankineCriterion(rThreshold, rDamage, 
+			rStressVector, Edge, Length, rUniaxialStress);
 	} else if (yield_surface == "DruckerPrager") {
-		this->DruckerPragerCriterion(rIntegratedStress, rDamage, 
-			rStressVector, cont, Length, rUniaxialStress);
+		this->DruckerPragerCriterion(rThreshold, rDamage, 
+			rStressVector, Edge, Length, rUniaxialStress);
 	} else if (yield_surface == "RankineFragile") {
-		this->RankineFragileLaw(rIntegratedStress, rDamage, 
-			rStressVector, cont, Length, rUniaxialStress);
+		this->RankineFragileLaw(rThreshold, rDamage, 
+			rStressVector, Edge, Length, rUniaxialStress);
 	} else {
 		KRATOS_ERROR << "Yield Surface not defined "<< std::endl;
 	}
 }
 
 void FemDem3DElement::ModifiedMohrCoulombCriterion(
-	Vector &rIntegratedStress,
-	double &rDamage,
-	const Vector &StressVector,
-	int cont,
-	double Length,
-	double& rUniaxialStress
+	double& rThreshold,
+	double &rDamage, 
+	const Vector &StressVector, 
+	const int Edge, 
+	const double Length
 	)
 {
-	rIntegratedStress.resize(6);
 	const auto& properties = this->GetProperties();
 	const double sigma_c = properties[YIELD_STRESS_C];
 	const double sigma_t = properties[YIELD_STRESS_T];
@@ -1132,41 +1136,39 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 	KRATOS_ERROR_IF(A < tolerance) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	// Check Modified Mohr-Coulomb criterion
+	double uniaxial_stress;
 	if (I1 < tolerance) {
-		rUniaxialStress = 0.0;
+		uniaxial_stress = 0.0;
 	} else {
 		const double theta = CalculateLodeAngle(J2, J3);
-		rUniaxialStress = (2.00 * std::tan(Globals::Pi * 0.25 + friction_angle * 0.5) / std::cos(friction_angle)) *
+		uniaxial_stress = (2.00 * std::tan(Globals::Pi * 0.25 + friction_angle * 0.5) / std::cos(friction_angle)) *
 						  ((I1 * K3 / 3.0) + std::sqrt(J2) * (K1 * std::cos(theta) - K2 * std::sin(theta) * sinphi /
 			              std::sqrt(3.0)));
 	}
 
-	if (this->GetThreshold(cont) < tolerance) {
-		this->SetThreshold(c_max, cont); // 1st iteration sets threshold as c_max
-	}  else if (c_max > this->GetThreshold(cont)) { // remeshing stuff
-		this->SetThreshold(c_max, cont);
+	if (rThreshold < tolerance) {
+		rThreshold = c_max; // 1st iteration sets threshold as c_max
+	}  else if (c_max > rThreshold) { // remeshing stuff
+		rThreshold = c_max;
 	}
-	const double c_threshold = this->GetThreshold(cont);
 
-	const double F = rUniaxialStress - c_threshold;
+	const double F = uniaxial_stress - rThreshold;
 	if (F <= 0.0) { // Elastic region --> Damage is constant
 		rDamage = this->GetConvergedDamages(cont);
 	} else {
-		rDamage = 1.0 - (c_max / rUniaxialStress) * std::exp(A * (1.0 - rUniaxialStress / c_max)); // Exponential softening law
+		rDamage = 1.0 - (c_max / uniaxial_stress) * std::exp(A * (1.0 - uniaxial_stress / c_max)); // Exponential softening law
 		if (rDamage > 0.99)
 			rDamage = 0.99;
 	}
-	noalias(rIntegratedStress) = StressVector;
-	rIntegratedStress *= (1.0 - rDamage);
 }
 
 void FemDem3DElement::RankineCriterion(
-	Vector &rIntegratedStress,
-	double &rDamage,
-	const Vector &StressVector,
-	int cont,
-	double Length,
-	double& rUniaxialStress)
+	double& rThreshold,
+	double &rDamage, 
+	const Vector &StressVector, 
+	const int Edge, 
+	const double Length
+	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
 	this->CalculatePrincipalStresses(PrincipalStressVector, StressVector);
@@ -1184,26 +1186,23 @@ void FemDem3DElement::RankineCriterion(
 	const double A = 1.00 / (Gt * E / (Length * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < tolerance) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
-	rUniaxialStress = GetMaxValue(PrincipalStressVector);
+	double uniaxial_stress = GetMaxValue(PrincipalStressVector);
 
-	if (this->GetThreshold(cont) < tolerance) {
-		this->SetThreshold(c_max, cont); // 1st iteration sets threshold as c_max
-	}  else if (c_max > this->GetThreshold(cont)) { // remeshing stuff
-		this->SetThreshold(c_max, cont);
+	if (rThreshold < tolerance) {
+		rThreshold = c_max; // 1st iteration sets threshold as c_max
+	}  else if (c_max > rThreshold) { // remeshing stuff
+		rThreshold = c_max;
 	}
-	const double c_threshold = this->GetThreshold(cont);
 
-	const double F = rUniaxialStress - c_threshold;
+	const double F = uniaxial_stress - rThreshold;
 
 	if (F <= 0) { // Elastic region --> Damage is constant
 		rDamage = this->GetConvergedDamages(cont);
 	} else {
-		rDamage = 1.0 - (c_max / rUniaxialStress) * std::exp(A * (1.0 - rUniaxialStress / c_max)); // Exponential softening law
+		rDamage = 1.0 - (c_max / uniaxial_stress) * std::exp(A * (1.0 - uniaxial_stress / c_max)); // Exponential softening law
 		if (rDamage > 0.99)
 			rDamage = 0.99;
 	}
-	noalias(rIntegratedStress) = StressVector;
-	rIntegratedStress *= (1.0 - rDamage);
 }
 
 void FemDem3DElement::DruckerPragerCriterion(

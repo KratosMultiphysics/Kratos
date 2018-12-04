@@ -86,19 +86,18 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void Get2MaxValues(Vector &MaxValues, double a, double b, double c);
 	void Get2MinValues(Vector &MaxValues, double a, double b, double c);
 
-	void IntegrateStressDamageMechanics(Vector &rIntegratedStress,
-										double &rDamage, 
-										const Vector &StrainVector, 
-										const Vector &StressVector, 
-										int cont, 
-										double L_char,
-										double& rUniaxialStress);
+	void IntegrateStressDamageMechanics(double& rThreshold,
+										double &rDamage,
+										const Vector &rStrainVector,
+										const Vector &rStressVector,
+										int Edge,
+										double Length);
 
-	void ModifiedMohrCoulombCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
-	void RankineCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
-	void DruckerPragerCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
-	void SimoJuCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StrainVector, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
-	void RankineFragileLaw(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char, double& rUniaxialStress);
+	void ModifiedMohrCoulombCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
+	void RankineCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
+	void DruckerPragerCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
+	void SimoJuCriterion(double& rThreshold, double &Damage, const Vector &StrainVector, const Vector &StressVector, int cont, double L_char);
+	void RankineFragileLaw(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
 
 	// Stress Invariants in 3D
 	double CalculateI1Invariant(Vector StressVector);
@@ -129,12 +128,6 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void SetConvergedDamage(double af) { mDamage = af; }
 	double GetDamage() { return mDamage; }
 
-	void SetConvergedEquivalentStress(double af) { mF_sigma = af; }
-	double GetConvergedEquivalentStress() { return mF_sigma; }
-
-	void SetConvergedEquivalentStress(double af, int cont) { mF_sigmas[cont] = af; }
-	double GetConvergedEquivalentStress(int cont) { return mF_sigmas[cont]; }
-
 	void SetConvergedDamages(double af, int cont) { mDamages[cont] = af; }
 	double GetConvergedDamages(int cont) { return mDamages[cont]; }
 
@@ -142,28 +135,7 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void SetNonConvergedDamages(double af, int cont) { mNonConvergedDamages[cont] = af; }
 	double GetNonConvergedDamages(int cont) { return mNonConvergedDamages[cont]; }
 
-	void SetNonConvergedDamages(double af) { mNonConvergedDamage = af; }
-	double GetNonConvergedDamage() { return mNonConvergedDamage; }
-
-	void SetNonConvergedEquivalentStress(double af, int cont) { mNonConvergedFsigmas[cont] = af; }
-	double GetNonConvergedEquivalentStress(int cont) { return mNonConvergedFsigmas[cont]; }
-
-	void SetNonConvergedEquivalentStress(double af) { mNonConvergedFsigma = af; }
-	double GetNonConvergedEquivalentStress() { return mNonConvergedFsigma; }
-
-	void ResetNonConvergedVars()
-	{
-		this->SetNonConvergedDamages(0.0);
-		this->SetNonConvergedEquivalentStress(0.0);
-		for (int cont = 0; cont < 6; cont++) {
-			this->SetNonConvergedDamages(0, cont);
-			this->SetNonConvergedEquivalentStress(0, cont);
-		}
-	}
-
 	// Characteristic length Calculations
-	void Set_l_char(double af, int cont) { mL_char[cont] = af; }
-	double Get_l_char(int cont) { return mL_char[cont]; }
 	void CalculateCharacteristicLength();
 
 	// Auxiliar functions...
@@ -180,29 +152,6 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	double GetMaxAbsValue(const Vector& rVector);
 	double GetMinAbsValue(const Vector& rVector);
 
-	void SetStressVector(Vector toStressVector)
-	{
-		toStressVector.resize(6);
-		mStressVector = toStressVector;
-	}
-	Vector GetStressVector() { return mStressVector; }
-
-	void SetStrainVector(Vector toStrainVector)
-	{
-		toStrainVector.resize(6);
-		mStrainVector = toStrainVector;
-	}
-	Vector GetStrainVector() { return mStrainVector; }
-
-	void SetIntegratedStressVector(Vector toIntegratedStressVector)
-	{
-		toIntegratedStressVector.resize(6);
-		mIntegratedStressVector = toIntegratedStressVector;
-	}
-	Vector GetIntegratedStressVector() { return mIntegratedStressVector; }
-
-	void SetBMatrix(Matrix toBMatrix) { mB = toBMatrix; }
-	Matrix GetBMatrix() { return mB; }
 
 	void CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX);
 	double CalculateElementalDamage(const Vector& EdgeDamages);
@@ -275,36 +224,23 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 		const Vector& rDeltaStress,
 		const double Perturbation,
 		const int Component);
+
+	void InitializeInternalVariablesAfterMapping();
+	void UpdateDataBase();
   protected:
 
-	 // Each component == Each edge
-	 int mNumberOfEdges;
-	 Vector mF_sigmas;   // Equivalent stress
-	 Vector mThresholds; // Stress mThreshold on edge
-	 Vector mDamages; // Converged mDamage on each edge
-	 
-	 Vector mNonConvergedDamages; // mDamages on edges of "i" iteration
-	 Vector mNonConvergedFsigmas; // Equivalent stress of "i" iteration
+	// Each component == Each edge
+	int mNumberOfEdges;
+	Vector mNonConvergedThresholds;   // Equivalent stress
+	Vector mThresholds; // Stress mThreshold on edge
+	Vector mDamages; // Converged mDamage on each edge
+	Vector mNonConvergedDamages; // mDamages on edges of "i" iteration
+
 
   private:
 
-	int iteration = 0;
-	const unsigned int number_of_nodes = GetGeometry().size();
-	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-	unsigned int voigt_size = dimension * (dimension + 1) * 0.5;
-
 	double mThreshold = 0.0;
-	double mF_sigma = 0.0;
 	double mDamage = 0.0;			 // Converged mDamage
-	double mNonConvergedFsigma = 0.0;
-	double mNonConvergedDamage = 0.0; // mDamage of the element of "i" iteration
-
-	Vector mL_char; // Characteristic length on each edge
-
-	Vector mStressVector = ZeroVector(voigt_size);
-	Vector mStrainVector = ZeroVector(voigt_size);
-	Vector mIntegratedStressVector = ZeroVector(voigt_size);
-	Matrix mB = ZeroMatrix(voigt_size, dimension * number_of_nodes);
 
 	// Vector to storage the neigh elements sharing a certain edge
 	std::vector<std::vector<Element*>> mEdgeNeighboursContainer;
