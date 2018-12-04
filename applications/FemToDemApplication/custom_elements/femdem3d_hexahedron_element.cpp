@@ -41,11 +41,9 @@ namespace Kratos
 
 		// Each component == Each edge
 		mNumberOfEdges = 12;
-		mF_sigmas = ZeroVector(mNumberOfEdges);   // Equivalent stress
 		mThresholds = ZeroVector(mNumberOfEdges); // Stress mThreshold on edge
 		mDamages = ZeroVector(mNumberOfEdges); // Converged mDamage on each edge
 		mNonConvergedDamages = ZeroVector(mNumberOfEdges); // mDamages on edges of "i" iteration
-		mNonConvergedFsigmas = ZeroVector(mNumberOfEdges); // Equivalent stress of "i" iteration
 	}
 
 	//******************************COPY CONSTRUCTOR**************************************
@@ -276,26 +274,7 @@ namespace Kratos
 
 	void FemDem3DHexahedronElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	{
-		//Loop over edges
-		for (unsigned int cont = 0; cont < this->GetNumberOfEdges(); cont++) {
-			this->SetConvergedDamages(this->GetNonConvergedDamages(cont), cont);
-			this->SetConvergedEquivalentStress(this->GetNonConvergedEquivalentStress(cont), cont);
-			const double current_equivalent_stress = this->GetConvergedEquivalentStress(cont);
-			
-			if (current_equivalent_stress > this->GetThreshold(cont)) {
-				this->SetThreshold(current_equivalent_stress, cont);
-			}
-
-		} // End Loop over edges
-
-		const double damage_element = this->GetNonConvergedDamage();
-		this->SetConvergedDamage(damage_element);
-
-		if (damage_element >= 0.98) {
-			this->Set(ACTIVE, false);
-		}
-		this->ResetNonConvergedVars();
-		this->SetValue(DAMAGE_ELEMENT, damage_element);
+		// todo
 	}
 
 

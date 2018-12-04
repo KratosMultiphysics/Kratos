@@ -136,13 +136,7 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	double GetNonConvergedDamages(int cont) { return mNonConvergedDamages[cont]; }
 
 	// Characteristic length Calculations
-	void CalculateCharacteristicLength();
-
-	// Auxiliar functions...
-	void IterationPlus() { iteration++; }
-	int GetIteration() { return iteration; }
-	void SetToZeroIteration() { iteration = 0; }
-	//void AssignSmoothedStress(Element& Elem);
+	Vector CalculateCharacteristicLengths();
 
 	void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
 	Vector &CalculateVolumeForce(Vector &rVolumeForce, const Vector &rN);

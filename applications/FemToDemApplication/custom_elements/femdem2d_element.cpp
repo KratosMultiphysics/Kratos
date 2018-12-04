@@ -99,7 +99,7 @@ void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 
 void FemDem2DElement::UpdateDataBase()
 {
-	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
+	for (unsigned int edge = 0; edge < 3; edge++) {
 		mDamages[edge] = mNonConvergedDamages[edge];
 		mThresholds[edge] = mNonConvergedThresholds[edge];
 	}
