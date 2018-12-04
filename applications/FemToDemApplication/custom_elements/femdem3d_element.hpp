@@ -229,12 +229,12 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	Vector mThresholds; // Stress mThreshold on edge
 	Vector mDamages; // Converged mDamage on each edge
 	Vector mNonConvergedDamages; // mDamages on edges of "i" iteration
-
+	double mThreshold = 0.0;
+	double mDamage = 0.0; // Converged mDamage
 
   private:
 
-	double mThreshold = 0.0;
-	double mDamage = 0.0;			 // Converged mDamage
+
 
 	// Vector to storage the neigh elements sharing a certain edge
 	std::vector<std::vector<Element*>> mEdgeNeighboursContainer;

@@ -228,7 +228,7 @@ void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
 	this->UpdateDataBase();
 
-	if (damage_element >= 0.98) {
+	if (mDamage >= 0.98) {
 		this->Set(ACTIVE, false);
 	}
 }

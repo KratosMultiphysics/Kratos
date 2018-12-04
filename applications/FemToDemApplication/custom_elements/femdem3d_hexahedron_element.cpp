@@ -140,20 +140,21 @@ namespace Kratos
 			this->CalculateAverageStressOnEdge(average_stress_edge, edge);
 			this->CalculateAverageStrainOnEdge(average_strain_edge, edge);
 			this->CalculateCharacteristicLength(characteristic_length, edge);
-			Vector integrated_edge_stress;
-			double uniaxial_stress;
 
-			this->IntegrateStressDamageMechanics(
-				integrated_edge_stress, damages_edges(edge),
-				average_strain_edge, average_stress_edge, edge,
-				characteristic_length, uniaxial_stress);
-
-			this->SetNonConvergedDamages(damages_edges(edge), edge);
+			double damage_edge = mDamages[edge];
+			double threshold = mThresholds[edge];
+			
+			this->IntegrateStressDamageMechanics(threshold, 
+												 damage_edge,
+												 average_strain_edge, 
+												 average_stress_edge, 
+												 edge, 
+												 characteristic_length);
+			mNonConvergedDamages[edge] = damage_edge;
+			mNonConvergedThresholds[edge] = threshold;
 		}
-		double damage_element = this->CalculateElementalDamage(damages_edges);
-		if (damage_element >= 0.999)
-			damage_element = 0.999;
-		this->SetNonConvergedDamages(damage_element);
+		const double damage_element = this->CalculateElementalDamage(damages_edges);
+
 
 		//get the shape functions parent coodinates derivative [dN/d�] (for the order of the default integration method)
 		const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
@@ -181,7 +182,7 @@ namespace Kratos
 			Vector strain_vector, predictive_stress_vector;
 			this->CalculateInfinitesimalStrain(strain_vector, DN_DX);
 			this->CalculateStressVector(predictive_stress_vector, ConstitutiveMatrix, strain_vector);
-			const Vector integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
+			const Vector& integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
 
 			noalias(rLeftHandSideMatrix) += prod(
 				trans(B), IntegrationWeight * (1.0 - damage_element) * Matrix(prod(ConstitutiveMatrix, B)));  // LHS
@@ -274,7 +275,7 @@ namespace Kratos
 
 	void FemDem3DHexahedronElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	{
-		// todo
+		FemDem3DElement::FinalizeSolutionStep(rCurrentProcessInfo);
 	}
 
 
@@ -333,7 +334,7 @@ namespace Kratos
 
 		if (rVariable == DAMAGE_ELEMENT) {
 			for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
-				rOutput[PointNumber] = this->GetDamage();
+				rOutput[PointNumber] = mDamage;
 			}
 		} else if (rVariable == IS_DAMAGED) {
 			for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
@@ -341,7 +342,7 @@ namespace Kratos
 			}
 		} else if (rVariable == STRESS_THRESHOLD) {
 			for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
-				rOutput[PointNumber] = this->GetValue(STRESS_THRESHOLD);
+				rOutput[PointNumber] = mThreshold;
 			}
 		}
 	}
@@ -485,8 +486,6 @@ namespace Kratos
 					rOutput[PointNumber].resize( dimension, dimension, false );
 				rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(IntegratedStressVector[PointNumber]);
 			}
-
 		}
 	}
-
 } // namespace Kratos
