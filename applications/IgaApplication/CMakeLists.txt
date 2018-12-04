@@ -52,6 +52,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_surface_discrete_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/coupling_base_discrete_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/coupling_penalty_discrete_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_curve_discrete_condition.cpp
 	
     ${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp
 )

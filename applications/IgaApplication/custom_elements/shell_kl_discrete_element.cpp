@@ -25,8 +25,6 @@
 
 namespace Kratos
 {
-    //************************************************************************************
-    //************************************************************************************
     void ShellKLDiscreteElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -111,41 +109,7 @@ namespace Kratos
                 constitutive_variables_curvature.S,
                 integration_weight);
         }
-        //KRATOS_WATCH(second_variations_strain.B11)
-        //KRATOS_WATCH(second_variations_strain.B22)
-        //KRATOS_WATCH(second_variations_strain.B12)
 
-        //KRATOS_WATCH(second_variations_curvature.B11)
-        //KRATOS_WATCH(second_variations_curvature.B22)
-        //KRATOS_WATCH(second_variations_curvature.B12)
-
-        //KRATOS_WATCH(mInitialMetric.g1)
-        //KRATOS_WATCH(mInitialMetric.g2)
-        //KRATOS_WATCH(mInitialMetric.g3)
-
-        //KRATOS_WATCH(actual_metric.g1)
-        //KRATOS_WATCH(actual_metric.g2)
-        //KRATOS_WATCH(actual_metric.g3)
-
-        //KRATOS_WATCH(mInitialMetric.dA)
-
-        //KRATOS_WATCH(constitutive_variables_membrane.S)
-        //KRATOS_WATCH(constitutive_variables_curvature.S)
-
-        //KRATOS_WATCH(constitutive_variables_membrane.D)
-        //KRATOS_WATCH(constitutive_variables_curvature.D)
-
-        //KRATOS_WATCH(BMembrane)
-        //KRATOS_WATCH(BCurvature)
-        //    KRATOS_WATCH(mInitialMetric.dA)
-        //    KRATOS_WATCH(integration_weight)
-        //    KRATOS_WATCH(actual_metric.H)
-        //KRATOS_WATCH(mInitialMetric.Q)
-
-        //    KRATOS_WATCH(DN_De)
-        //    KRATOS_WATCH(DDN_DDe)
-
-        //KRATOS_WATCH(rLeftHandSideMatrix / this->GetValue(INTEGRATION_WEIGHT))
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {

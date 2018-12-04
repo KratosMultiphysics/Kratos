@@ -29,6 +29,8 @@ KratosIgaApplication::KratosIgaApplication()
     //    new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadSurfaceDiscreteCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+    , mLoadCurveDiscreteCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -41,10 +43,11 @@ void KratosIgaApplication::Register() {
 
     //KRATOS_REGISTER_CONDITION("CouplingPenaltyDiscreteCondition", mCouplingPenaltyDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
+    KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
 
 
     // Variables
-    KRATOS_REGISTER_VARIABLE(FACE_BREP_ID)
+    KRATOS_REGISTER_VARIABLE(BREP_ID)
 
     KRATOS_REGISTER_VARIABLE(NURBS_CONTROL_POINT_WEIGHT)
 
@@ -68,7 +71,7 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
 
     KRATOS_REGISTER_VARIABLE(POINT_LOAD)
-    KRATOS_REGISTER_VARIABLE(EDGE_LOAD)
+    KRATOS_REGISTER_VARIABLE(LINE_LOAD)
     KRATOS_REGISTER_VARIABLE(SURFACE_LOAD)
 
     KRATOS_REGISTER_VARIABLE(PENALTY_FACTOR)
