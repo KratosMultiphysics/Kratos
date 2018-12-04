@@ -81,25 +81,19 @@ void FemDem2DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 {
 	// After the mapping, the thresholds of the edges ( are equal to 0.0) are imposed equal to the IP threshold
-	Vector thresholds;
-	thresholds.resize(3);
-	thresholds = this->GetThresholds();
 	const double element_threshold = this->GetValue(STRESS_THRESHOLD);
-	if (thresholds[0] + thresholds[1] + thresholds[2] < std::numeric_limits<double>::epsilon()) {
-		this->SetThreshold(element_threshold, 0);
-		this->SetThreshold(element_threshold, 1);
-		this->SetThreshold(element_threshold, 2);
+	if (mThresholds[0] + mThresholds[1] + mThresholds[2] < std::numeric_limits<double>::epsilon()) {
+		mThresholds[0] = element_threshold;
+		mThresholds[1] = element_threshold;
+		mThresholds[2] = element_threshold;
 	}
 
 	// IDEM with the edge damages
-	Vector damage_edges;
-	damage_edges.resize(3);
-	damage_edges = this->GetDamages();
 	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
-	if (damage_edges[0] + damage_edges[1] + damage_edges[2] < std::numeric_limits<double>::epsilon()) {
-		this->SetConvergedDamages(damage_element, 0);
-		this->SetConvergedDamages(damage_element, 1);
-		this->SetConvergedDamages(damage_element, 2);
+	if (mDamages[0] + mDamages[1] + mDamages[2] < std::numeric_limits<double>::epsilon()) {
+		mDamages[0] = damage_element;
+		mDamages[1] = damage_element;
+		mDamages[2] = damage_element;
 	}
 }
 
@@ -355,8 +349,8 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		this->CalculateDeformationMatrix(B, DN_DX);
 		const Matrix& C =  Values.GetConstitutiveMatrix();
 
+		// The Secant Constitutive Tensor
 		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(C, B)));
-
 
 		Vector VolumeForce = ZeroVector(dimension);
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
