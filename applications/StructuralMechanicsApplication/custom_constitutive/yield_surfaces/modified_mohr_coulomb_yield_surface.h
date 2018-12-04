@@ -140,8 +140,8 @@ class ModifiedMohrCoulombYieldSurface
         const double sin_phi = std::sin(friction_angle);
 
         double I1, J2, J3;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
         ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
-        array_1d<double, VoigtSize> deviator(6, 0.0);
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
 

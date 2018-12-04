@@ -162,6 +162,11 @@ void SkinDetectionProcess<TDim>::Execute()
         pre_name = "Surface";
 
     // The number of conditions
+    ConditionsArrayType& condition_array = mrModelPart.GetRootModelPart().Conditions();
+    const auto& it_begin = condition_array.begin();
+    for(IndexType i = 0; i < condition_array.size(); ++i)
+        (it_begin + i)->SetId(i + 1);
+
     IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
 
     // The indexes of the nodes of the skin
