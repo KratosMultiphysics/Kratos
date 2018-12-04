@@ -70,7 +70,8 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
     // Some checks
     VariableUtils().CheckVariableExists(mVariableGradient, nodes_array);
-    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
+    for (auto& i_node : nodes_array)
+        KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
@@ -100,8 +101,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
         double ratio = 1.0;
 
         double element_size = mMinSize;
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
-        const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+        const double nodal_h = it_node->GetValue(NODAL_H);
         if (it_node->SolutionStepsDataHas(reference_var)) {
             const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
             ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
