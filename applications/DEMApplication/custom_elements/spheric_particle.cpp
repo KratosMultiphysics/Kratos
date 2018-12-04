@@ -174,10 +174,19 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
         array_1d<double, 3> angular_momentum;
         CalculateLocalAngularMomentum(angular_momentum);
         noalias(node.GetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+
+        array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY);
+        angular_velocity = ZeroVector(3);
+
+        array_1d<double, 3>& delta_rotation = node.GetSolutionStepValue(DELTA_ROTATION);
+        delta_rotation = ZeroVector(3);
+
+        array_1d<double, 3>& rotation_angle = node.GetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+        rotation_angle = ZeroVector(3);
     }
 
     else {
-        array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY); //TODO: do we need this when there is no rotation??
         angular_velocity = ZeroVector(3);
     }
 
