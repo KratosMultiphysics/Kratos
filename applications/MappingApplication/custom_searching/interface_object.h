@@ -64,7 +64,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum ConstructionType
+    enum class ConstructionType
     {
         Node_Coords,
         Geometry_Center,

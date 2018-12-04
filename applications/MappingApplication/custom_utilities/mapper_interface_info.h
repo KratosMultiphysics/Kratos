@@ -60,7 +60,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum InfoType
+    enum class InfoType
     {
         Dummy
     };

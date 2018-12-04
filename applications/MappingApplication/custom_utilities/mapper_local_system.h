@@ -60,7 +60,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum PairingStatus
+    enum class PairingStatus
     {
         NoInterfaceInfo,
         Approximation,
