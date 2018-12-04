@@ -61,7 +61,7 @@ public:
     ///@{
 
     /// Default constructor.
-    InterfaceVectorContainer(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
+    explicit InterfaceVectorContainer(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
 
     /// Destructor.
     virtual ~InterfaceVectorContainer() = default;

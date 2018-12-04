@@ -72,7 +72,7 @@ public:
     /// Default constructor.
     MapperInterfaceInfo() = default;
 
-    MapperInterfaceInfo(const CoordinatesArrayType& rCoordinates,
+    explicit MapperInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                         const IndexType SourceLocalSystemIndex,
                         const IndexType SourceRank)
         : mSourceLocalSystemIndex(SourceLocalSystemIndex),

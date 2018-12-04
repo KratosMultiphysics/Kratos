@@ -76,11 +76,11 @@ public:
     ///@name Life Cycle
     ///@{
 
-    InterfaceObject(const CoordinatesArrayType& rCoordinates) : Point(rCoordinates)
-    { }
+    explicit InterfaceObject(const CoordinatesArrayType& rCoordinates)
+        : Point(rCoordinates) { }
 
     /// Destructor.
-    virtual ~InterfaceObject(){}
+    virtual ~InterfaceObject() = default;
 
 
     ///@}
@@ -138,7 +138,7 @@ protected:
     ///@{
 
     // This constructor is called by its derived classes
-    InterfaceObject() : Point(0.0f, 0.0f, 0.0f)
+    InterfaceObject() : Point(0.0, 0.0, 0.0)
     {
     }
 
@@ -175,7 +175,8 @@ public:
 
     InterfaceNode() {}
 
-    InterfaceNode(NodePointerType pNode) : mpNode(pNode)
+    explicit InterfaceNode(NodePointerType pNode)
+        : mpNode(pNode)
     {
         UpdateCoordinates();
     }
@@ -212,7 +213,8 @@ public:
 
     InterfaceGeometryObject() {}
 
-    InterfaceGeometryObject(GeometryPointerType pGeometry) : mpGeometry(pGeometry)
+    explicit InterfaceGeometryObject(GeometryPointerType pGeometry)
+        : mpGeometry(pGeometry)
     {
         UpdateCoordinates();
     }

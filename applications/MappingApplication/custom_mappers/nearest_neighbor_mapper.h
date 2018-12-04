@@ -42,7 +42,7 @@ public:
     /// Default constructor.
     NearestNeighborInterfaceInfo() {}
 
-    NearestNeighborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
+    explicit NearestNeighborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                  const IndexType SourceLocalSystemIndex,
                                  const IndexType SourceRank)
         : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
@@ -105,7 +105,7 @@ public:
 
     NearestNeighborLocalSystem() {}
 
-    NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
+    explicit NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
 
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
