@@ -55,7 +55,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-///formulation described in 
+///formulation described in https://docs.google.com/document/d/13a_zGLj6xORDuLgoOG5LwHI6BwShvfO166opZ815zLY/edit?usp=sharing
 template< unsigned int TDim, unsigned int TNumNodes>
 class EulerianDiffusionElement
     : public Element
