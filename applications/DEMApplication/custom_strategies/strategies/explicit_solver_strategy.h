@@ -302,12 +302,14 @@ namespace Kratos {
                 SphericParticle* p_particle_i = this->mListOfSphericParticles[i];
                 const NodeType& r_node_i = p_particle_i->GetGeometry()[0];
 
+
                 p_particle_i->mVelOld         =   r_node_i.FastGetSolutionStepValue(VELOCITY);
                 p_particle_i->mDispOld        =   r_node_i.FastGetSolutionStepValue(DISPLACEMENT);
                 p_particle_i->mDeltaDispOld   =   r_node_i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
                 p_particle_i->mCoordOld       =   r_node_i.Coordinates();
                 p_particle_i->mCoordInitOld   =   r_node_i.GetInitialPosition();
                 p_particle_i->mForceOld       =   r_node_i.FastGetSolutionStepValue(TOTAL_FORCES);
+
 
                 p_particle_i->mPARTICLE_MOMENT             = r_node_i.FastGetSolutionStepValue(PARTICLE_MOMENT)            ;
                 p_particle_i->mCONTACT_FORCES              = r_node_i.FastGetSolutionStepValue(CONTACT_FORCES)             ;
@@ -321,10 +323,16 @@ namespace Kratos {
                 p_particle_i->mEXTERNAL_APPLIED_MOMENT     = r_node_i.FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT)    ;
                 p_particle_i->mDELTA_ROTATION              = r_node_i.FastGetSolutionStepValue(DELTA_ROTATION)             ;
                 p_particle_i->mIMPACT_WEAR                 = r_node_i.FastGetSolutionStepValue(IMPACT_WEAR)                ;
+
+
                 p_particle_i->mNON_DIMENSIONAL_VOLUME_WEAR = r_node_i.FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR);
+
                 p_particle_i->mFORCE_REACTION              = r_node_i.FastGetSolutionStepValue(FORCE_REACTION)             ;
+
                 p_particle_i->mMOMENT_REACTION             = r_node_i.FastGetSolutionStepValue(MOMENT_REACTION)            ;
-                p_particle_i->mDEM_STRESS_TENSOR           = r_node_i.FastGetSolutionStepValue(DEM_STRESS_TENSOR)          ;
+
+
+
                 p_particle_i->mMOMENTUM                    = r_node_i.FastGetSolutionStepValue(MOMENTUM)                   ;
                 p_particle_i->mANGULAR_MOMENTUM            = r_node_i.FastGetSolutionStepValue(ANGULAR_MOMENTUM)           ;
                 p_particle_i->mPARTICLE_MOMENT_OF_INERTIA  = r_node_i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) ;
@@ -363,7 +371,7 @@ namespace Kratos {
                 r_node_i.FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR)  = p_particle_i->mNON_DIMENSIONAL_VOLUME_WEAR;
                 r_node_i.FastGetSolutionStepValue(FORCE_REACTION)               = p_particle_i->mFORCE_REACTION             ;
                 r_node_i.FastGetSolutionStepValue(MOMENT_REACTION)              = p_particle_i->mMOMENT_REACTION            ;
-                r_node_i.FastGetSolutionStepValue(DEM_STRESS_TENSOR)            = p_particle_i->mDEM_STRESS_TENSOR          ;
+
                 r_node_i.FastGetSolutionStepValue(MOMENTUM)                     = p_particle_i->mMOMENTUM                   ;
                 r_node_i.FastGetSolutionStepValue(ANGULAR_MOMENTUM)             = p_particle_i->mANGULAR_MOMENTUM           ;
                 r_node_i.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA)   = p_particle_i->mPARTICLE_MOMENT_OF_INERTIA ;

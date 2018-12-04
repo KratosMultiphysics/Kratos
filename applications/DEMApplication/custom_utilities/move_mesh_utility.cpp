@@ -51,14 +51,15 @@ namespace  Kratos
             for(int i = 0; i < num_nodes; ++i)
             {
                 auto it_node = rNodes.begin() + i;
+                auto old_coordinates = it_node->Coordinates();
 
                 noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
                 noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-                noalias(it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) =
+                /* noalias(it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) =
                     it_node->FastGetSolutionStepValue(DISPLACEMENT,0)
-                    -it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
-
+                    -it_node->FastGetSolutionStepValue(DISPLACEMENT,1); */
+                noalias(it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) = it_node->Coordinates()-old_coordinates;
             }
         }
 
