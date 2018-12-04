@@ -68,19 +68,19 @@ public:
                                              const double NeighborDistance) override;
 
     void GetValue(std::vector<int>& rValue,
-                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+                  const InfoType ValueType) const override
     {
         rValue = mNodeIds;
     }
 
     void GetValue(std::vector<double>& rValue,
-                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+                  const InfoType ValueType) const override
     {
         rValue = mShapeFunctionValues;
     }
 
     void GetValue(double& rValue,
-                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+                  const InfoType ValueType) const override
     {
         rValue = mClosestProjectionDistance;
     }

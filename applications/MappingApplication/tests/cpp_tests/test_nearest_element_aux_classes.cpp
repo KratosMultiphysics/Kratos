@@ -86,19 +86,19 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, Kra
     KRATOS_CHECK_IS_FALSE(nearest_element_info.GetIsApproximation());
 
     double proj_dist;
-    nearest_element_info.GetValue(proj_dist);
+    nearest_element_info.GetValue(proj_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(proj_dist, dist);
 
     // the nodes found are 4,2,1, aka (61,18,35)
     std::vector<int> found_ids;
-    nearest_element_info.GetValue(found_ids);
+    nearest_element_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_ids.size(), 3);
     KRATOS_CHECK_EQUAL(found_ids[0], 61);
     KRATOS_CHECK_EQUAL(found_ids[1], 18);
     KRATOS_CHECK_EQUAL(found_ids[2], 35);
 
     std::vector<double> sf_values;
-    nearest_element_info.GetValue(sf_values);
+    nearest_element_info.GetValue(sf_values, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(sf_values.size(), 3);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[0], 0.3);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[1], 0.3);
@@ -136,16 +136,16 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Approximation, KratosMappi
     KRATOS_CHECK(nearest_element_info.GetIsApproximation());
 
     double approximation_dist;
-    nearest_element_info.GetValue(approximation_dist);
+    nearest_element_info.GetValue(approximation_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(approximation_dist, dist);
 
     std::vector<int> found_ids;
-    nearest_element_info.GetValue(found_ids);
+    nearest_element_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_ids.size(), 1);
     KRATOS_CHECK_EQUAL(found_ids[0], 35);
 
     std::vector<double> sf_values;
-    nearest_element_info.GetValue(sf_values);
+    nearest_element_info.GetValue(sf_values, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(sf_values.size(), 1);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[0], 1.0);
 }
@@ -164,11 +164,11 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_NothingFound, KratosMappin
 
     // Testing the uninitialized Values
     std::vector<int> found_ids;
-    nearest_element_info.GetValue(found_ids);
+    nearest_element_info.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_ids.size(), 0);
 
     std::vector<double> sf_values;
-    nearest_element_info.GetValue(sf_values);
+    nearest_element_info.GetValue(sf_values, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(sf_values.size(), 0);
 }
 
@@ -213,19 +213,19 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
     KRATOS_CHECK_IS_FALSE(nearest_element_info_new.GetIsApproximation());
 
     double proj_dist;
-    nearest_element_info_new.GetValue(proj_dist);
+    nearest_element_info_new.GetValue(proj_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(proj_dist, dist);
 
     // the nodes found are 4,2,1, aka (61,18,35)
     std::vector<int> found_ids;
-    nearest_element_info_new.GetValue(found_ids);
+    nearest_element_info_new.GetValue(found_ids, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_ids.size(), 3);
     KRATOS_CHECK_EQUAL(found_ids[0], 61);
     KRATOS_CHECK_EQUAL(found_ids[1], 18);
     KRATOS_CHECK_EQUAL(found_ids[2], 35);
 
     std::vector<double> sf_values;
-    nearest_element_info_new.GetValue(sf_values);
+    nearest_element_info_new.GetValue(sf_values, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(sf_values.size(), 3);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[0], 0.3);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[1], 0.3);

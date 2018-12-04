@@ -66,20 +66,20 @@ public:
                              const double NeighborDistance) override;
 
     void GetValue(int& rValue,
-                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+                  const InfoType ValueType) const override
     {
         rValue = mNearestNeighborId;
     }
 
     void GetValue(double& rValue,
-                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+                  const InfoType ValueType) const override
     {
         rValue = mNearestNeighborDistance;
     }
 
 private:
 
-    int mNearestNeighborId;
+    int mNearestNeighborId = -1;
     double mNearestNeighborDistance = std::numeric_limits<double>::max();
 
     friend class Serializer;
