@@ -21,7 +21,7 @@ from analysis_stage import AnalysisStage
 # from pycompss.api.parameter import *
 
 # Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # get_value_from_remote is the equivalent of compss_wait_on
@@ -120,7 +120,7 @@ input:
 output:
         QoI         : Quantity of Interest
 '''
-@ExaquteTask(returns=1)
+# @ExaquteTask(returns=1)
 def execution_task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
@@ -150,7 +150,7 @@ output:
         ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
-@ExaquteTask(returns=1)
+# @ExaquteTask(returns=1)
 def exact_execution_task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
@@ -181,7 +181,7 @@ output:
         serialized_model      : model serialized
         serialized_parameters : parameters serialized
 '''
-@ExaquteTask(returns=2)
+# @ExaquteTask(returns=2)
 def execution_task_refinement(pickled_model_coarse, pickled_parameters, min_size, max_size):
     sample = GenerateBetaSample()
 
@@ -232,7 +232,7 @@ output:
         serialized_model      : model serialized
         serialized_parameters : project parameters serialized
 '''
-@ExaquteTask(parameter_file_name=FILE_IN,returns=2)
+# @ExaquteTask(parameter_file_name=FILE_IN,returns=2)
 def serialize_model_projectparameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -266,7 +266,7 @@ input :
 output :
         relative_error        : relative error
 '''
-@ExaquteTask(returns=1)
+# @ExaquteTask(returns=1)
 def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
@@ -287,7 +287,7 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
+        parameter_file_name = "/home/riccardo/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
 
     '''create a serialization of the model and of the project parameters'''
     pickled_model_0,pickled_parameters = serialize_model_projectparameters(parameter_file_name)
