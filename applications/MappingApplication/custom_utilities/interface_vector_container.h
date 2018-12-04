@@ -94,15 +94,18 @@ public:
         return *mpInterfaceVector;
     }
 
-    TSystemVectorUniquePointerType& pGetVector()
+    const TSystemVectorType& GetVector() const
     {
-        return mpInterfaceVector;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpInterfaceVector)
+            << "The Interface-Vector was not initialized" << std::endl;
+        return *mpInterfaceVector;
     }
 
-    ModelPart& GetModelPart()
-    {
-        return mrModelPart;
-    }
+    TSystemVectorUniquePointerType& pGetVector() { return mpInterfaceVector; }
+    const TSystemVectorUniquePointerType& pGetVector() const { return mpInterfaceVector; }
+
+    ModelPart& GetModelPart() { return mrModelPart; }
+    const ModelPart& GetModelPart() const { return mrModelPart; }
 
     ///@}
 
