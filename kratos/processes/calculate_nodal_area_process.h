@@ -62,7 +62,7 @@ struct CalculateNodalAreaSettings
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-// template<bool THistorical = true>
+template<bool THistorical = true>
 // class KRATOS_API(KRATOS_CORE) CalculateNodalAreaProcess
 class CalculateNodalAreaProcess
     : public Process
@@ -311,12 +311,14 @@ private:
 
 
 /// input stream function
+template<bool THistorical = true>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  CalculateNodalAreaProcess& rThis);
+                                  CalculateNodalAreaProcess<THistorical>& rThis);
 
 /// output stream function
+template<bool THistorical = true>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const CalculateNodalAreaProcess& rThis)
+                                  const CalculateNodalAreaProcess<THistorical>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
