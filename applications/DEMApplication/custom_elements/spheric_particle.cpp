@@ -234,8 +234,8 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     data_buffer.mDt = dt;
     data_buffer.mMultiStageRHS = false;
 
-    array_1d<double, 3> additional_forces(3, 0.0);
-    array_1d<double, 3> additionally_applied_moment(3, 0.0);
+    array_1d<double, 3> additional_forces = ZeroVector(3);
+    array_1d<double, 3> additionally_applied_moment = ZeroVector(3);
     array_1d<double, 3>& elastic_force       = this_node.FastGetSolutionStepValue(ELASTIC_FORCES);
     array_1d<double, 3>& contact_force       = this_node.FastGetSolutionStepValue(CONTACT_FORCES);
     array_1d<double, 3>& rigid_element_force = this_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
@@ -833,7 +833,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                                                              mNeighbourElasticContactForces[i]);
 
 
-            array_1d<double, 3> other_ball_to_ball_forces(3, 0.0);
+            array_1d<double, 3> other_ball_to_ball_forces = ZeroVector(3);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces); //These forces can exist even with no indentation.
 
             // Transforming to global forces and adding up
