@@ -121,10 +121,10 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mGlobalDamping = rOther.mGlobalDamping;
 
     if(rOther.mStressTensor != NULL) {
-        mStressTensor  = new Matrix(3,3);
+        mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = *rOther.mStressTensor;
 
-        mSymmStressTensor  = new Matrix(3,3);
+        mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = *rOther.mSymmStressTensor;
     }
     else {
@@ -1687,10 +1687,10 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
 
-        mStressTensor  = new Matrix(3,3);
+        mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);
 
-        mSymmStressTensor  = new Matrix(3,3);
+        mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
     }
     else {

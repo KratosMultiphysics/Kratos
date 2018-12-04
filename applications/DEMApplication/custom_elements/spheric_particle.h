@@ -286,8 +286,8 @@ virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalCo
 
 array_1d<double, 3> mContactMoment; //SLS
 
-Matrix* mStressTensor;
-Matrix* mSymmStressTensor;
+BoundedMatrix<double, 3, 3>* mStressTensor;
+BoundedMatrix<double, 3, 3>* mSymmStressTensor;
 double mPartialRepresentativeVolume;
 
 std::vector<int> mFemOldNeighbourIds;
@@ -479,9 +479,9 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("HasStressTensor", aux_int);
     if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
-        mStressTensor  = new Matrix(3,3);
+        mStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);
-        mSymmStressTensor  = new Matrix(3,3);
+        mSymmStressTensor  = new BoundedMatrix<double, 3, 3>(3,3);
         *mSymmStressTensor = ZeroMatrix(3,3);
         rSerializer.load("mSymmStressTensor", mSymmStressTensor);
     }
