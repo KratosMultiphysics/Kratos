@@ -71,9 +71,9 @@ class LaplacianSolver(PythonSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,1.5)#n_parameter
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,10)#penalty stress
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,100)#penalty kutta
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2.0)#n_parameter
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,0.0)#penalty stress
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,0.0)#penalty kutta
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
         
@@ -87,9 +87,13 @@ class LaplacianSolver(PythonSolver):
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y1)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y2)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -106,7 +110,7 @@ class LaplacianSolver(PythonSolver):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
-        if self.settings["problem_type"].GetString() == "incompressible" or self.settings["problem_type"].GetString() == "incompressible_stresses":
+        if self.settings["problem_type"].GetString() == "incompressible" or self.settings["problem_type"].GetString() == "incompressible_stress":
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
             self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
                 self.main_model_part, 
@@ -191,7 +195,7 @@ class LaplacianSolver(PythonSolver):
                     self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                         {
                         "element_name":"IncompressibleStressesPotentialFlowElement2D3N",
-                        "condition_name": "IncompressiblePotentialWallCondition2D2N"
+                        "condition_name": "IncompressibleStressesPotentialWallCondition2D2N"
                         }
                         """)
                 else:
