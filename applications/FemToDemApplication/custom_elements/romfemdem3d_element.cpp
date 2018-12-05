@@ -483,26 +483,22 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 	this->CalculatePlasticParameters(PredictiveStress, Yield, Kp,
 									 PlasticDenominator, FluxVector, Capap,
 									 PlasticStrainIncr, C);
-
 	double F = Yield - Kp;
 
-	if (F <= std::abs(1.0e-8 * Kp))
-	{ // Elastic
+	if (F <= std::abs(1.0e-4 * Kp)) { // Elastic
 		rIntegratedStress = PredictiveStress;
 		this->SetNonConvergedKp(Kp);
 		this->SetNonConvergedCapap(Capap);
 		this->SetNonConvergedPlasticDeformation(PlasticStrain);
 
 		this->SetValue(EQUIVALENT_STRESS_VM, Yield);
-	}
-	else
-	{ // Plastic case
+	} else { // Plastic case
 		noalias(rIntegratedStress) = PredictiveStress;
 		double DLambda;
 		Vector DS = ZeroVector(6), DESIG = ZeroVector(6);
 
 		int iteration = 0;
-		const int iter_max = 9000;
+		const int iter_max = 100;
 		bool is_converged = false;
 
 		while (is_converged == false && iteration <= iter_max) {
@@ -522,7 +518,7 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 
 			F = Yield - Kp;
 
-			if (F < std::abs(1.0e-8 * Kp)) {// Has converged
+			if (F < std::abs(1.0e-4 * Kp)) {// Has converged
 				is_converged = true;
 				// Update Int Vars
 				this->SetNonConvergedKp(Kp);

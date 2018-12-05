@@ -44,55 +44,38 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	{
 	}
 
-	// *************** Methods Alejandro Cornejo ***************
-	//**********************************************************
-
 	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo);
 	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo);
 	void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
 	void CalculateConstitutiveMatrix(Matrix &rConstitutiveMatrix, const double rYoungModulus,
 									 const double rPoissonCoefficient);
-
 	void CalculateDN_DX(Matrix &rDN_DX, int PointNumber);
-
 	void CalculateInfinitesimalStrain(Vector &rStrainVector, const Matrix &rDN_DX);
-
 	void CalculateStressVector(Vector &rStressVector, const Matrix &rConstitutiveMAtrix, const Vector &rInfinitesimalStrainVector);
-
 	void CalculatePrincipalStresses(Vector &PrincipalStressVector, const Vector &StressVector);
-
 	void FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
-
 	void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable, std::vector<Vector> &rOutput, const ProcessInfo &rCurrentProcessInfo);
 	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput, const ProcessInfo &rCurrentProcessInfo);
 	void CalculateOnIntegrationPoints(const Variable<Matrix> &rVariable, std::vector<Matrix> &rOutput, const ProcessInfo &rCurrentProcessInfo);
-
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
 							  ProcessInfo &rCurrentProcessInfo);
-
 	void AverageVector(Vector &rAverageVector, const Vector &v, const Vector &w);
-
 	void GetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues,
 									 const ProcessInfo &rCurrentProcessInfo);
-
 	void GetValueOnIntegrationPoints(const Variable<Vector> &rVariable,
 									 std::vector<Vector> &rValues,
 									 const ProcessInfo &rCurrentProcessInfo);
-
 	void GetValueOnIntegrationPoints(const Variable<Matrix> &rVariable,
 									 std::vector<Matrix> &rValues,
 									 const ProcessInfo &rCurrentProcessInfo);
-
 	void Get2MaxValues(Vector &MaxValues, double a, double b, double c);
 	void Get2MinValues(Vector &MaxValues, double a, double b, double c);
-
 	void IntegrateStressDamageMechanics(double& rThreshold,
 										double &rDamage,
 										const Vector &rStrainVector,
 										const Vector &rStressVector,
 										int Edge,
 										double Length);
-
 	void ModifiedMohrCoulombCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
 	void RankineCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
 	void DruckerPragerCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
@@ -106,60 +89,43 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void CalculateDeviatorVector(Vector &rDeviator, const Vector StressVector, const double I1);
 	double CalculateJ2Invariant(const Vector Deviator);
 	double CalculateJ3Invariant(const Vector Deviator);
-
 	void CalculateIntegratedStressVector(Vector &rIntegratedStressVector, const Vector rStressVector, const double Damage)
 	{
-		rIntegratedStressVector = (1 - Damage) * rStressVector;
+		rIntegratedStressVector = (1.0 - Damage) * rStressVector;
 	}
-
 	// Lode's angle
 	double CalculateLodeAngle(double J2, double J3);
-
 	// Converged values
 	void SetThreshold(double af, int cont) { mThresholds[cont] = af; }
 	double GetThreshold(int cont) { return mThresholds[cont]; }
-
 	Vector GetThresholds() { return mThresholds; }
 	Vector GetDamages() { return mDamages; }
-
 	void SetThreshold(double af) { mThreshold = af; }
 	double GetThreshold() { return mThreshold; }
-
 	void SetConvergedDamage(double af) { mDamage = af; }
 	double GetDamage() { return mDamage; }
-
 	void SetConvergedDamages(double af, int cont) { mDamages[cont] = af; }
 	double GetConvergedDamages(int cont) { return mDamages[cont]; }
-
 	// Non Converged values
 	void SetNonConvergedDamages(double af, int cont) { mNonConvergedDamages[cont] = af; }
 	double GetNonConvergedDamages(int cont) { return mNonConvergedDamages[cont]; }
-
 	// Characteristic length Calculations
 	Vector CalculateCharacteristicLengths();
-
 	void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
 	Vector &CalculateVolumeForce(Vector &rVolumeForce, const Vector &rN);
-
 	// Functions to calculate the Constitutive tangent tensor by numerical derivation
 	double GetMaxValue(Vector Strain);
 	double GetMaxAbsValue(const Vector& rVector);
 	double GetMinAbsValue(const Vector& rVector);
-
-
 	void CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX);
 	double CalculateElementalDamage(const Vector& EdgeDamages);
-
 	// Fills mEdgeNeighboursContainer
 	void ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo);
-
 	// Storages mEdgeNeighboursContainer
 	void SaveEdgeNeighboursContainer(const std::vector<std::vector<Element *>>& toSave) { mEdgeNeighboursContainer = toSave; }
 	std::vector<Element *> GetEdgeNeighbourElements(int edge) { return mEdgeNeighboursContainer[edge]; }
-
 	void CalculateAverageStressOnEdge(Vector &AverageVector, const std::vector<Element *>& VectorOfElems);
 	void CalculateAverageStrainOnEdge(Vector &AverageVector, const std::vector<Element *>& VectorOfElems);
-
 	void SetNodeIndexes(Matrix &M) // Defines the numbering of the edges with the corresponding nodes
 	{
 		M.resize(6, 2);
@@ -177,14 +143,11 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 		M(5, 0) = 2;
 		M(5, 1) = 3;
 	}
-
 	double GetNumberOfEdges() {return mNumberOfEdges;}
-
 	void SetValueOnIntegrationPoints(
 		const Variable<double> &rVariable,
 		std::vector<double> &rValues,
 		const ProcessInfo &rCurrentProcessInfo) override;
-
 	void SetValueOnIntegrationPoints(
 		const Variable<Vector> &rVariable,
 		std::vector<Vector> &rValues,
@@ -196,34 +159,29 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 		const Vector& rStrainVectorGP,
 		const Vector& rStressVectorGP,
 		const Matrix& rElasticMatrix);
-
 	void CalculatePerturbation(
 		const Vector& rStrainVectorGP,
 		double& rPerturbation,
 		const int Component);
-
 	void PerturbateStrainVector(
 		Vector& rPerturbedStrainVector,
 		const Vector& rStrainVectorGP,
 		const double Perturbation,
 		const int Component);
-
 	void IntegratePerturbedStrain(
 		Vector& rPerturbedStressVector,
 		const Vector& rPerturbedStrainVector,
 		const Matrix& rElasticMatrix);
-
 	void AssignComponentsToTangentTensor(
 		Matrix& rTangentTensor,
 		const Vector& rDeltaStress,
 		const double Perturbation,
 		const int Component);
-
 	void InitializeInternalVariablesAfterMapping();
 	void UpdateDataBase();
+	
   protected:
 
-	// Each component == Each edge
 	int mNumberOfEdges;
 	Vector mNonConvergedThresholds;   // Equivalent stress
 	Vector mThresholds; // Stress mThreshold on edge
@@ -233,9 +191,6 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	double mDamage = 0.0; // Converged mDamage
 
   private:
-
-
-
 	// Vector to storage the neigh elements sharing a certain edge
 	std::vector<std::vector<Element*>> mEdgeNeighboursContainer;
 
