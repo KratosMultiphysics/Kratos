@@ -11,9 +11,8 @@
 //
 
 
-// System includes
-#if !defined(KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED
+#if !defined(KRATOS_MPM_GRID_SURFACE_LOAD_CONDITION_3D_H_INCLUDED )
+#define      KRATOS_MPM_GRID_SURFACE_LOAD_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -22,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/mpm_base_load_condition.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -46,30 +44,39 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-
-class MPMLineLoadCondition2D
+class MPMSurfaceLoadCondition3D
     : public MPMBaseLoadCondition
 {
 public:
+
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MPMLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( MPMLineLoadCondition2D );
+    // Counted pointer of MPMSurfaceLoadCondition3D
+    KRATOS_CLASS_POINTER_DEFINITION( MPMSurfaceLoadCondition3D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
-    MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    // Constructor void
+    MPMSurfaceLoadCondition3D();
 
-    /// Destructor.
-    ~MPMLineLoadCondition2D() override;
+    // Constructor using an array of nodes
+    MPMSurfaceLoadCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
+        );
+
+    // Constructor using an array of nodes with properties
+    MPMSurfaceLoadCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
+        );
+
+    // Destructor
+    ~MPMSurfaceLoadCondition3D() override;
 
     ///@}
     ///@name Operators
@@ -79,17 +86,18 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
+    // Name Operations
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-        
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const override;
 
     ///@}
@@ -106,37 +114,22 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
     ///@}
     ///@name Friends
     ///@{
 
-
-    ///@}
-
 protected:
+
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -150,73 +143,79 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    void CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         ) override;
 
     void CalculateAndSubKp(
         Matrix& K,
+        const array_1d<double, 3>& ge,
+        const array_1d<double, 3>& gn,
         const Matrix& DN_De,
         const Vector& N,
         const double Pressure,
-        const double IntegrationWeight
+        const double Weight );
+
+    void MakeCrossMatrix(
+        BoundedMatrix<double, 3, 3>& M,
+        const array_1d<double, 3>& U
         );
 
     void CalculateAndAddPressureForce(
-        VectorType& rRightHandSideVector,
+        VectorType& rResidualVector,
         const Vector& N,
-        const array_1d<double, 3>& Normal,
+        const array_1d<double, 3 >& Normal,
         const double Pressure,
-        const double IntegrationWeight 
+        const double Weight,
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-    // A protected default constructor necessary for serialization
-    MPMLineLoadCondition2D() {};
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
+    ///@name Private static Member Variables
     ///@{
 
     ///@}
-    ///@name Member Variables
+    ///@name Private member Variables
     ///@{
 
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+
+    ///@}
+    ///@name Unaccessible methods
     ///@{
 
     ///@}
@@ -236,49 +235,15 @@ private:
     }
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+}; // class MPMSurfaceLoadCondition3D.
 
-    /// Assignment operator.
-    //MPMLineLoadCondition2D& operator=(const MPMLineLoadCondition2D& rOther);
-
-    /// Copy constructor.
-    //MPMLineLoadCondition2D(const MPMLineLoadCondition2D& rOther);
-
-
-    ///@}
-
-}; // Class MPMLineLoadCondition2D
-
-///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
+} // namespace Kratos.
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-        MPMLineLoadCondition2D& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-        const MPMLineLoadCondition2D& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined 
-
-
+#endif // KRATOS_MPM_GRID_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined

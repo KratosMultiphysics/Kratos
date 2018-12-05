@@ -11,15 +11,15 @@
 //
 
 
-#if !defined(KRATOS_MPM_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED )
-#define      KRATOS_MPM_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MPM_GRID_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED )
+#define      KRATOS_MPM_GRID_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/mpm_point_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.h"
 
 namespace Kratos
 {
@@ -201,4 +201,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_MPM_GRID_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED  defined

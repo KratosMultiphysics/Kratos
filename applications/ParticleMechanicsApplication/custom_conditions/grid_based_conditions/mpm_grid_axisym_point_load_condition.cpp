@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/mpm_axisym_point_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos

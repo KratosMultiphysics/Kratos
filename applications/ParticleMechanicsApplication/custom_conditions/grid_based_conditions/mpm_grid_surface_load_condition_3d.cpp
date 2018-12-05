@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/mpm_surface_load_condition_3d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
 

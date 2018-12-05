@@ -11,15 +11,15 @@
 //
 
 
-#if !defined(KRATOS_MPM_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define      KRATOS_MPM_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED
+#if !defined(KRATOS_MPM_GRID_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
+#define      KRATOS_MPM_GRID_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_conditions/mpm_line_load_condition_2d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
 
 namespace Kratos
 {
@@ -208,4 +208,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined
+#endif // KRATOS_MPM_GRID_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined
