@@ -19,7 +19,7 @@ namespace Kratos {
 // Public interface of ParallelEnvironment ////////////////////////////////////
 
 void ParallelEnvironment::RegisterDataCommunicator(
-    const std::string Name,
+    const std::string& Name,
     const DataCommunicator& rPrototype,
     const bool Default)
 {
@@ -84,7 +84,7 @@ ParallelEnvironment& ParallelEnvironment::GetInstance()
 }
 
 void ParallelEnvironment::RegisterDataCommunicatorDetail(
-    const std::string Name,
+    const std::string& Name,
     const DataCommunicator& rPrototype,
     const bool Default)
 {
