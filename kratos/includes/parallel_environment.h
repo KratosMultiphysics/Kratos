@@ -102,7 +102,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@{
 
     void RegisterDataCommunicatorDetail(
-        const std::string Name,
+        const std::string& Name,
         const DataCommunicator& rPrototype,
         const bool Default = DoNotMakeDefault);
 
