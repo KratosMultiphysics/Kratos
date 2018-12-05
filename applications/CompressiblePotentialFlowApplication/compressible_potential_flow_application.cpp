@@ -35,6 +35,7 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
     mCompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mCompressiblePotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mIncompressiblePotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+    mIncompressibleStressesPotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mIncompressiblePotentialWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mCompressiblePotentialWallCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mCompressiblePotentialWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
@@ -48,7 +49,10 @@ void KratosCompressiblePotentialFlowApplication::Register()
  	std::cout << "Initializing KratosCompressiblePotentialFlowApplication... " << std::endl;
 
         // Register Variables (defined in compressible_potential_flow_application_variables.h)
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_INFINITY);        
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_INFINITY); 
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POSITIVE_GRADIENT);    
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NEGATIVE_GRADIENT);        
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SIGMA);        
         KRATOS_REGISTER_VARIABLE( POSITIVE_POTENTIAL );
         KRATOS_REGISTER_VARIABLE( NEGATIVE_POTENTIAL );
         KRATOS_REGISTER_VARIABLE( WAKE_DISTANCE );
@@ -65,6 +69,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
 
         //Register conditions
         KRATOS_REGISTER_CONDITION("IncompressiblePotentialWallCondition2D2N",mIncompressiblePotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_CONDITION("IncompressibleStressesPotentialWallCondition2D2N",mIncompressibleStressesPotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_CONDITION("IncompressiblePotentialWallCondition3D3N",mIncompressiblePotentialWallCondition3D3N); //this is the name the element should have according to the naming convention
 
         KRATOS_REGISTER_CONDITION("CompressiblePotentialWallCondition2D2N",mCompressiblePotentialWallCondition2D2N); //this is the name the element should have according to the naming convention

@@ -32,6 +32,8 @@
 #include "custom_elements/incompressible_potential_flow_element_stresses.h"
 #include "custom_conditions/compressible_potential_wall_condition.h"
 #include "custom_conditions/incompressible_potential_wall_condition.h"
+#include "custom_conditions/incompressible_potential_wall_condition_stresses.h"
+
 
 namespace Kratos {
 
@@ -190,6 +192,7 @@ private:
         const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
         const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
 		const IncompressiblePotentialWallCondition<2,2> mIncompressiblePotentialWallCondition2D2N;
+		const IncompressibleStressesPotentialWallCondition<2,2> mIncompressibleStressesPotentialWallCondition2D2N;
         const IncompressiblePotentialWallCondition<3,3> mIncompressiblePotentialWallCondition3D3N;
         const CompressiblePotentialWallCondition<2,2> mCompressiblePotentialWallCondition2D2N;
         const CompressiblePotentialWallCondition<3,3> mCompressiblePotentialWallCondition3D3N;
