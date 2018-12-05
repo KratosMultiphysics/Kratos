@@ -46,7 +46,8 @@ TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::TreeContactSearch(
         "inverted_search"                      : false,
         "dynamic_search"                       : false,
         "predefined_master_slave"              : true,
-        "id_name"                              : ""
+        "id_name"                              : "",
+        "echo_level"                           : 0
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
