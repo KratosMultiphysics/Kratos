@@ -16,9 +16,8 @@ __path__.append(KratosLoader.kratos_scripts)
 
 
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
-    Globals = KratosMultiphysics.KratosGlobals
-    Kernel = Globals.Kernel
-    applications_root = Globals.ApplicationsRoot
+    Kernel = KratosGlobals.Kernel
+    applications_root = KratosGlobals.ApplicationsRoot
 
     Logger.PrintInfo("", "Importing    " + application_name)
 
