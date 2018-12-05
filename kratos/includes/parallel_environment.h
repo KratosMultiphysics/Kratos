@@ -42,9 +42,6 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ParallelEnvironment
-    KRATOS_CLASS_POINTER_DEFINITION(ParallelEnvironment);
-
     constexpr static bool MakeDefault = true;
     constexpr static bool DoNotMakeDefault = false;
 
