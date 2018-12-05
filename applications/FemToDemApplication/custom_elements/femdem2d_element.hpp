@@ -140,11 +140,6 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	// Characteristic length Calculations
 	double CalculateCharacteristicLength(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont);
 
-	// Auxiliar functions...
-	void IterationPlus() { iteration++; }
-	int GetIteration() { return iteration; }
-	void SetToZeroIteration() { iteration = 0; }
-
 	void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
 	Vector &CalculateVolumeForce(Vector &rVolumeForce, const Vector &rN);
 	double CalculateElementalDamage(const Vector& rEdgeDamages);
@@ -165,8 +160,32 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 		const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
 		const ProcessInfo &rCurrentProcessInfo) override;
 
+	void CalculateTangentTensor(
+		Matrix& TangentTensor,
+		const Vector& rStrainVectorGP,
+		const Vector& rStressVectorGP,
+		const Matrix& rElasticMatrix);
+	void CalculatePerturbation(
+		const Vector& rStrainVectorGP,
+		double& rPerturbation,
+		const int Component);
+	void PerturbateStrainVector(
+		Vector& rPerturbedStrainVector,
+		const Vector& rStrainVectorGP,
+		const double Perturbation,
+		const int Component);
+	void IntegratePerturbedStrain(
+		Vector& rPerturbedStressVector,
+		const Vector& rPerturbedStrainVector,
+		const Matrix& rElasticMatrix);
+	void AssignComponentsToTangentTensor(
+		Matrix& rTangentTensor,
+		const Vector& rDeltaStress,
+		const double Perturbation,
+		const int Component);
+
        private:
-	int iteration = 0;
+	int mNumberOfEdges = 3;
 	// Each component == Each edge
 	Vector mThresholds = ZeroVector(3); // Stress mThreshold on edge
 	Vector mNonConvergedThresholds = ZeroVector(3); // Stress mThreshold on edge

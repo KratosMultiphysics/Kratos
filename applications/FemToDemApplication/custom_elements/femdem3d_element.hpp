@@ -179,7 +179,12 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 		const int Component);
 	void InitializeInternalVariablesAfterMapping();
 	void UpdateDataBase();
-	
+	void CalculateExponentialDamage(
+		double& rDamage,
+		const double DamageParameter,
+		const double UniaxialStress,
+		const double InitialThrehsold);
+
   protected:
 
 	int mNumberOfEdges;

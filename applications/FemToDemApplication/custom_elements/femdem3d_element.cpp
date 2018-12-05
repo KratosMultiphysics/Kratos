@@ -1036,6 +1036,7 @@ double FemDem3DElement::GetMaxAbsValue(
 		if (non_zero_values[i] > aux)
 			aux = non_zero_values[i];
 	}
+	return aux;
 }
 
 double FemDem3DElement::GetMinAbsValue(
@@ -1153,9 +1154,8 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 	if (F <= 0.0) { // Elastic region --> Damage is constant
 		rDamage = this->GetConvergedDamages(Edge);
 	} else {
-		rDamage = 1.0 - (c_max / uniaxial_stress) * std::exp(A * (1.0 - uniaxial_stress / c_max)); // Exponential softening law
-		if (rDamage > 0.99)
-			rDamage = 0.99;
+		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
+		rThreshold = uniaxial_stress;
 	}
 }
 
@@ -1196,9 +1196,8 @@ void FemDem3DElement::RankineCriterion(
 	if (F <= 0) { // Elastic region --> Damage is constant
 		rDamage = this->GetConvergedDamages(Edge);
 	} else {
-		rDamage = 1.0 - (c_max / uniaxial_stress) * std::exp(A * (1.0 - uniaxial_stress / c_max)); // Exponential softening law
-		if (rDamage > 0.99)
-			rDamage = 0.99;
+		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
+		rThreshold = uniaxial_stress;
 	}
 }
 
@@ -1255,10 +1254,8 @@ void FemDem3DElement::DruckerPragerCriterion(
 	if (F <= 0) { // Elastic region --> Damage is constant
 		rDamage = this->GetConvergedDamages(Edge);
 	} else {
-		rDamage = 1.0 - (c_max / uniaxial_stress) * std::exp(A * (1.0 - uniaxial_stress / c_max)); // Exponential softening law
-		if (rDamage > 0.99) {
-			rDamage = 0.99;
-		}
+		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
+		rThreshold = uniaxial_stress;
 	}
 }
 
@@ -1293,7 +1290,7 @@ void FemDem3DElement::SimoJuCriterion(
 
 	// Check SimoJu criterion
 	double uniaxial_stress;
-	if (StrainVector[0] == 0.0 + StrainVector[1] < tolerance) {
+	if (StrainVector[0] + StrainVector[1] + StrainVector[2] < tolerance) {
 		uniaxial_stress = 0.0;
 	} else {
 		double auxf = 0.0;
@@ -1317,10 +1314,8 @@ void FemDem3DElement::SimoJuCriterion(
 	if (F <= 0.0) { // Elastic region --> Damage is constant
 		rDamage = this->GetConvergedDamages(Edge);
 	} else {
-		rDamage = 1.0 - (c_max / uniaxial_stress) * std::exp(A * (1.0 - uniaxial_stress / c_max)); // Exponential softening law
-		if (rDamage > 0.99) {
-			rDamage = 0.99;
-		}
+		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
+		rThreshold = uniaxial_stress;
 	}
 }
 
@@ -1359,7 +1354,20 @@ void FemDem3DElement::RankineFragileLaw(
 		rDamage = this->GetConvergedDamages(Edge);
 	} else {
 		rDamage = 0.98; // Fragile  law
+		rThreshold = uniaxial_stress;
 	}
+}
+
+void FemDem3DElement::CalculateExponentialDamage(
+	double& rDamage,
+	const double DamageParameter,
+	const double UniaxialStress,
+	const double InitialThrehsold
+	)
+{
+	rDamage = 1.0 - (InitialThrehsold / UniaxialStress) * std::exp(DamageParameter *
+			 (1.0 - UniaxialStress / InitialThrehsold)); // Exponential softening law
+	if (rDamage > 0.99) rDamage = 0.99;
 }
 
 // Computes the damage of the element considering different fracture modes
@@ -1410,6 +1418,9 @@ void FemDem3DElement::CalculateTangentTensor(
 	const double number_components = rStrainVectorGP.size();
 	TangentTensor.resize(number_components, number_components);
 	Vector perturbed_stress, perturbed_strain;
+	perturbed_strain.resize(number_components);
+	perturbed_stress.resize(number_components);
+	
 	for (unsigned int component = 0; component < number_components; component++) {
 		double perturbation;
 		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
@@ -1456,10 +1467,10 @@ void FemDem3DElement::IntegratePerturbedStrain(
 	)
 {
 	const Vector& perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
-	Vector damages_edges = ZeroVector(this->GetNumberOfEdges());
+	Vector damages_edges = ZeroVector(mNumberOfEdges);
 	const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
 
-	for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
+	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
 		std::vector<Element*> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
 
 		// We compute the average stress/strain on edge to integrate
@@ -1470,7 +1481,6 @@ void FemDem3DElement::IntegratePerturbedStrain(
 			average_stress_vector += EdgeNeighbours[elem]->GetValue(STRESS_VECTOR);
 			average_strain_vector += EdgeNeighbours[elem]->GetValue(STRAIN_VECTOR);
 			counter++;
-
 		}
 		average_stress_vector /= (counter + 1);
 		average_strain_vector /= (counter + 1);
