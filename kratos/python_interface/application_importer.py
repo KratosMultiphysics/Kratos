@@ -42,3 +42,23 @@ def ImportApplication(application, application_name, application_folder, caller,
         for iterName, iterApplication in list(Globals.RequestedApplications.items()):
             # print("Initializing",iterName)
             Kernel.InitializeApplication(iterApplication)
+
+
+def ImportApplicationAsModule(application, application_name, mod_path):
+    Globals = KratosMultiphysics.KratosGlobals
+    Kernel = Globals.Kernel
+    if application_name not in Globals.RequestedApplications:  # This check is possibly redundant, as Python won't import the same module twice
+        Logger.PrintInfo("", "Importing    " + application_name)
+        # Add application to dictionary of registered applications
+        Globals.RequestedApplications[application_name] = application
+
+        # adding the scripts in "APP_NAME/python_scripts" such that they are treated as a regular python-module
+        mod_path.append(python_path)
+
+        # Add application to kernel
+        Kernel.ImportApplication(application)
+        # Dynamic renumbering of variables to ensure consistency
+        Kernel.Initialize()
+        for iterName, iterApplication in list(Globals.RequestedApplications.items()):
+            # print("Initializing",iterName)
+            Kernel.InitializeApplication(iterApplication)
