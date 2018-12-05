@@ -74,8 +74,8 @@ namespace Kratos
         mMPMGridPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
         mMPMGridPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
         mMPMGridAxisymPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
-        mMPMLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-        mMPMAxisymLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+        mMPMGridLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+        mMPMGridAxisymLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
         mMPMSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
         mMPMSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4))))
     {}
@@ -105,8 +105,8 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridPointLoadCondition2D1N", mMPMGridPointLoadCondition2D1N )
         KRATOS_REGISTER_CONDITION( "MPMGridPointLoadCondition3D1N", mMPMGridPointLoadCondition3D1N )
         KRATOS_REGISTER_CONDITION( "MPMGridAxisymPointLoadCondition2D1N", mMPMGridAxisymPointLoadCondition2D1N )
-        KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition2D2N", mMPMLineLoadCondition2D2N)
-        KRATOS_REGISTER_CONDITION( "MPMAxisymLineLoadCondition2D2N", mMPMAxisymLineLoadCondition2D2N)
+        KRATOS_REGISTER_CONDITION( "MPMGridLineLoadCondition2D2N", mMPMGridLineLoadCondition2D2N)
+        KRATOS_REGISTER_CONDITION( "MPMGridAxisymLineLoadCondition2D2N", mMPMGridAxisymLineLoadCondition2D2N)
         KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D3N", mMPMSurfaceLoadCondition3D3N)
         KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D4N", mMPMSurfaceLoadCondition3D4N)
 

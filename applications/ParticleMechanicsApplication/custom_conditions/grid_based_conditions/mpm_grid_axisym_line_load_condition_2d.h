@@ -46,26 +46,26 @@ namespace Kratos
  * Implements a line load condition for structural analysis.
  */
 
-class MPMAxisymLineLoadCondition2D
-    : public MPMLineLoadCondition2D
+class MPMGridAxisymLineLoadCondition2D
+    : public MPMGridLineLoadCondition2D
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MPMAxisymLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION(MPMAxisymLineLoadCondition2D);
+    /// Counted pointer of MPMGridAxisymLineLoadCondition2D
+    KRATOS_CLASS_POINTER_DEFINITION(MPMGridAxisymLineLoadCondition2D);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MPMAxisymLineLoadCondition2D(IndexType NewId, GeometryType::Pointer pGeometry);
-    MPMAxisymLineLoadCondition2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMGridAxisymLineLoadCondition2D(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMGridAxisymLineLoadCondition2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~MPMAxisymLineLoadCondition2D() override;
+    ~MPMGridAxisymLineLoadCondition2D() override;
 
     ///@}
     ///@name Operators
@@ -123,7 +123,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    MPMAxisymLineLoadCondition2D() : MPMLineLoadCondition2D()
+    MPMGridAxisymLineLoadCondition2D() : MPMGridLineLoadCondition2D()
     {
     }
 
@@ -192,12 +192,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //MPMAxisymLineLoadCondition2D& operator=(const MPMAxisymLineLoadCondition2D& rOther);
+    //MPMGridAxisymLineLoadCondition2D& operator=(const MPMGridAxisymLineLoadCondition2D& rOther);
     /// Copy constructor.
-    //MPMAxisymLineLoadCondition2D(const MPMAxisymLineLoadCondition2D& rOther);
+    //MPMGridAxisymLineLoadCondition2D(const MPMGridAxisymLineLoadCondition2D& rOther);
     ///@}
 
-}; // Class MPMAxisymLineLoadCondition2D
+}; // Class MPMGridAxisymLineLoadCondition2D
 
 ///@}
 ///@name Type Definitions

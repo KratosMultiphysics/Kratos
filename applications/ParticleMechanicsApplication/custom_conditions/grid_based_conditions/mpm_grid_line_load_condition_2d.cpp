@@ -26,7 +26,7 @@ namespace Kratos
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
 
-    MPMLineLoadCondition2D::MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
+    MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry )
         : MPMBaseLoadCondition( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
@@ -35,7 +35,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    MPMLineLoadCondition2D::MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+    MPMGridLineLoadCondition2D::MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
     {
     }
@@ -43,38 +43,38 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
 
-    Condition::Pointer MPMLineLoadCondition2D::Create(
+    Condition::Pointer MPMGridLineLoadCondition2D::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<MPMLineLoadCondition2D>(NewId, pGeom, pProperties);
+        return Kratos::make_shared<MPMGridLineLoadCondition2D>(NewId, pGeom, pProperties);
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    Condition::Pointer MPMLineLoadCondition2D::Create(
+    Condition::Pointer MPMGridLineLoadCondition2D::Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<MPMLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Kratos::make_shared<MPMGridLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
 
-    MPMLineLoadCondition2D::~MPMLineLoadCondition2D()
+    MPMGridLineLoadCondition2D::~MPMGridLineLoadCondition2D()
     {
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    void MPMLineLoadCondition2D::CalculateAll(
+    void MPMGridLineLoadCondition2D::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
@@ -233,7 +233,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void MPMLineLoadCondition2D::CalculateAndSubKp(
+    void MPMGridLineLoadCondition2D::CalculateAndSubKp(
         Matrix& K,
         const Matrix& DN_De,
         const Vector& N,
@@ -276,7 +276,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void MPMLineLoadCondition2D::CalculateAndAddPressureForce(
+    void MPMGridLineLoadCondition2D::CalculateAndAddPressureForce(
         Vector& rRightHandSideVector,
         const Vector& N,
         const array_1d<double, 3>& Normal,

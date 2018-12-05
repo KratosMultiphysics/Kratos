@@ -234,8 +234,8 @@ private:
     const MPMGridPointLoadCondition mMPMGridPointLoadCondition2D1N;
     const MPMGridPointLoadCondition mMPMGridPointLoadCondition3D1N;
     const MPMGridAxisymPointLoadCondition mMPMGridAxisymPointLoadCondition2D1N;
-    const MPMLineLoadCondition2D mMPMLineLoadCondition2D2N;
-    const MPMAxisymLineLoadCondition2D mMPMAxisymLineLoadCondition2D2N;
+    const MPMGridLineLoadCondition2D mMPMGridLineLoadCondition2D2N;
+    const MPMGridAxisymLineLoadCondition2D mMPMGridAxisymLineLoadCondition2D2N;
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
 
