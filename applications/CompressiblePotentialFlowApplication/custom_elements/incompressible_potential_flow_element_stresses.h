@@ -563,15 +563,12 @@ public:
                     for(unsigned int j=0; j<NumNodes; ++j)
                     {
                         rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j)+lhs_plus_plus(i,j)+lhs_positive_n(i,j);
-                        rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
-                        K_uu(i,j)                                  =  lhs_positive(i,j);                  
-                        K_uu(i,j+NumNodes)                         =  0.0;  
-                        lhs_uncondensed(i,j)                       =  lhs_positive(i,j)+lhs_positive_n(i,j);              
+                        rLeftHandSideMatrix(i,j+NumNodes)          =  lhs_plus_minus(i,j);                                  
                         
                         rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+lhs_minus_minus(i,j)+lhs_negative_n(i,j);
-                        rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
-                        K_uu(i+NumNodes,j+NumNodes)                =  lhs_negative(i,j);
-                        K_uu(i+NumNodes,j)                         =  0.0;
+                        rLeftHandSideMatrix(i+NumNodes,j)          =  lhs_minus_plus(i,j); 
+
+                        lhs_uncondensed(i,j)                       =  lhs_positive(i,j)+lhs_positive_n(i,j);   
                         lhs_uncondensed(i+NumNodes,j+NumNodes)     =  lhs_negative(i,j)+lhs_negative_n(i,j);
                     }
                     lhs_uncondensed(i,2*NumNodes)                  =  lhs_plus_sigma(i,0)+forcing_sigma_plus(i,0);
@@ -589,15 +586,6 @@ public:
                     // lhs_uncondensed(2*NumNodes+1,2*NumNodes)       =  lhs_sigma_sigma_no_inv(1,0);
                     // lhs_uncondensed(2*NumNodes+1,2*NumNodes+1)     =  lhs_sigma_sigma_no_inv(1,1);
                     
-                }
-
-                for(unsigned int i=0; i<NumNodes; ++i)
-                {              
-                    for(unsigned int j=0; j<NumNodes; ++j)
-                    {
-                        rLeftHandSideMatrix(i,j+NumNodes) = lhs_plus_minus(i,j);
-                        rLeftHandSideMatrix(i+NumNodes,j) = lhs_minus_plus(i,j); 
-                    }                   
                 }
             
                 Vector split_element_values(NumNodes*2);
@@ -632,7 +620,10 @@ public:
                 split_element_values_uncondensed(2*NumNodes+1)=sigma(1);
         
                 residual_sigma = -prod(lhs_sigma_plus+lhs_sigma_plus_alpha,split_plus) - prod(lhs_sigma_minus+lhs_sigma_minus_alpha,split_minus)-prod(lhs_sigma_sigma_no_inv,trans(sigma));
-
+                sigma_aux = prod(lhs_sigma_plus+lhs_sigma_plus_alpha,split_plus) + prod(lhs_sigma_minus+lhs_sigma_minus_alpha,split_minus) + residual_sigma;
+                noalias(sigma) = prod(lhs_sigma_sigma,-residual_sigma);
+                this->GetValue(Y1) = sigma(0);
+                this->GetValue(Y2) = sigma(1);
                 rhs_sigma_plus=prod(lhs_plus_rhs,residual_sigma);
                 rhs_sigma_minus=prod(lhs_minus_rhs,residual_sigma);
 
@@ -719,6 +710,101 @@ public:
             p = ComputePressure(rCurrentProcessInfo);
             rValues[0] = p;
         }
+        if (rVariable == POSITIVE_FACE_PRESSURE) //positive volume
+        {   
+            double volume = 0.0;
+            if(this->Is(MARKER)){
+                ElementalData<NumNodes,Dim> data;
+
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+                //subdivide the element
+                constexpr unsigned int nvolumes = 3*(Dim-1);
+                bounded_matrix<double,NumNodes, Dim > Points;
+                array_1d<double,nvolumes> Volumes;
+                bounded_matrix<double, nvolumes, NumNodes > GPShapeFunctionValues;
+                array_1d<double,nvolumes> PartitionsSign;
+                std::vector<Matrix> GradientsValue(nvolumes);
+                bounded_matrix<double,nvolumes, 2> NEnriched;
+
+                for(unsigned int i=0; i<GradientsValue.size(); ++i)
+                    GradientsValue[i].resize(2,Dim,false);
+            
+                
+                
+                for(unsigned int i = 0; i<NumNodes; ++i)
+                {
+                    const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
+                    for(unsigned int k = 0; k<Dim; ++k)
+                    {
+                        Points(i, k) = coords[k];
+                    }
+                }
+                GetWakeDistances(data.distances);
+                const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(Points,
+                                                                                                data.DN_DX,
+                                                                                                data.distances,
+                                                                                                Volumes, 
+                                                                                                GPShapeFunctionValues, 
+                                                                                                PartitionsSign, 
+                                                                                                GradientsValue, 
+                                                                                                NEnriched);
+                for(unsigned int i=0; i<nsubdivisions; ++i)
+                {
+                    if(PartitionsSign[i] > 0){
+                        volume += Volumes[i];
+                    }
+                }
+            }
+            rValues[0] = volume;
+        }
+        if (rVariable == NEGATIVE_FACE_PRESSURE) //negative volume
+        {   
+            double volume = 0.0;
+            if(this-> Is(MARKER)){
+                
+                ElementalData<NumNodes,Dim> data;
+
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+                //subdivide the element
+                constexpr unsigned int nvolumes = 3*(Dim-1);
+                bounded_matrix<double,NumNodes, Dim > Points;
+                array_1d<double,nvolumes> Volumes;
+                bounded_matrix<double, nvolumes, NumNodes > GPShapeFunctionValues;
+                array_1d<double,nvolumes> PartitionsSign;
+                std::vector<Matrix> GradientsValue(nvolumes);
+                bounded_matrix<double,nvolumes, 2> NEnriched;
+
+                for(unsigned int i=0; i<GradientsValue.size(); ++i)
+                    GradientsValue[i].resize(2,Dim,false);
+            
+                
+                
+                for(unsigned int i = 0; i<NumNodes; ++i)
+                {
+                    const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
+                    for(unsigned int k = 0; k<Dim; ++k)
+                    {
+                        Points(i, k) = coords[k];
+                    }
+                }
+                GetWakeDistances(data.distances);
+                const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(Points,
+                                                                                                data.DN_DX,
+                                                                                                data.distances,
+                                                                                                Volumes, 
+                                                                                                GPShapeFunctionValues, 
+                                                                                                PartitionsSign, 
+                                                                                                GradientsValue, 
+                                                                                                NEnriched);
+                for(unsigned int i=0; i<nsubdivisions; ++i)
+                {
+                    if(PartitionsSign[i] < 0){
+                        volume += Volumes[i];
+                    }
+                }                
+            }
+            rValues[0] = volume;
+        }
     }
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
@@ -734,6 +820,44 @@ public:
             ComputeVelocity(vaux);
             for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             rValues[0] = v;
+        }
+        else if (rVariable == SIGMA)
+        {
+            if (this->Is(MARKER)){
+                array_1d<double,3> sigma(3,0.0);
+                sigma(0) = this->GetValue(Y1);
+                sigma(1) = this->GetValue(Y2);
+                rValues[0] = sigma;
+            }else{
+                array_1d<double,3> v(3,0.0);
+                rValues[0] = v;
+            }  
+        }
+        else if (rVariable == POSITIVE_GRADIENT)
+        {   
+            if (this->Is(MARKER)){
+                array_1d<double,3> v(3,0.0);
+                array_1d<double,Dim> vaux;
+                ComputeVelocityUpperWakeElement(vaux);
+                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];            
+                rValues[0] = v;
+            }else{
+                array_1d<double,3> v(3,0.0);
+                rValues[0] = v;
+            }        
+        }
+        else if (rVariable == NEGATIVE_GRADIENT)
+        {
+            if (this->Is(MARKER)){
+                array_1d<double,3> v(3,0.0);
+                array_1d<double,Dim> vaux;
+                ComputeVelocityLowerWakeElement(vaux);
+                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
+                rValues[0] = v;
+            }else{
+                array_1d<double,3> v(3,0.0);
+                rValues[0] = v;
+            }
         }
     }
 
@@ -914,10 +1038,10 @@ protected:
         ComputeVelocityLowerWakeElement(lower_wake_velocity);
         const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
 
-        if (std::abs(vupnorm - vlownorm) > 0.1 && this-> IsNot(INTERFACE))
-            std::cout << this->Id() <<"   ";
-
-            // std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() <<"    " <<std::abs(vupnorm - vlownorm)<<std::endl;
+        if (std::abs(vupnorm - vlownorm) > 0.1 && this-> IsNot(INTERFACE)){
+            std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() <<"    " <<std::abs(vupnorm - vlownorm)<<std::endl;
+            this->Set(BLOCKED);
+        }
     }
 
     double ComputePressure(const ProcessInfo& rCurrentProcessInfo)
