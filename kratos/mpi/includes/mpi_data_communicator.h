@@ -56,7 +56,7 @@ class MPIDataCommunicator: public DataCommunicator
     ///@{
 
     /// Constructor accepting an MPI_Comm object.
-    MPIDataCommunicator(MPI_Comm MPIComm);
+    explicit MPIDataCommunicator(MPI_Comm MPIComm);
 
     /// Destructor.
     ~MPIDataCommunicator() override;
