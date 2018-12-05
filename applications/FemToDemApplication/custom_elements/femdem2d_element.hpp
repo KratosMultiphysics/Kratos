@@ -86,13 +86,14 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 										const Vector StrainVector, 
 										const Vector StressVector, 
 										const int cont, 
-										const double L_char);
+										const double L_char, 
+										bool& rIsDamaging);
 
-	void ModifiedMohrCoulombCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char);
-	void RankineCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char);
-	void DruckerPragerCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char);
-	void SimoJuCriterion(double& rThreshold, double &rDamage, const Vector &StrainVector, const Vector &StressVector, const int cont, const double L_char);
-	void RankineFragileLaw(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char);
+	void ModifiedMohrCoulombCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void RankineCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void DruckerPragerCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void SimoJuCriterion(double& rThreshold, double &rDamage, const Vector &StrainVector, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void RankineFragileLaw(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
 
 	void CalculateExponentialDamage(
 		double& rDamage,

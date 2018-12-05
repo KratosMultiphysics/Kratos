@@ -317,6 +317,8 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		// Loop over edges of the element...
 		Vector average_stress_edge = ZeroVector(3);
 		Vector average_strain_edge = ZeroVector(3);
+		bool is_damaging = false;
+
         for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
 			this->CalculateAverageStressOnEdge(&elem_neigb[edge], this, average_stress_edge);
 			this->CalculateAverageStrainOnEdge(&elem_neigb[edge], this, average_strain_edge);
@@ -324,6 +326,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 			// We recover converged values
 			double threshold = mThresholds[edge];
 			double damage = mDamages[edge];
+			
 
 			const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
 			this->IntegrateStressDamageMechanics(threshold,
@@ -331,7 +334,8 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 											     average_strain_edge,
 											     average_stress_edge,
 											     edge,
-											     length);
+											     length,
+												 is_damaging);
 			mNonConvergedDamages[edge] = damage;
 			mNonConvergedThresholds[edge] = threshold;
 		} // Loop over edges
@@ -347,7 +351,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		const Matrix& C =  Values.GetConstitutiveMatrix();
 
 		Matrix tangent_tensor;
-		if (damage_element > mDamage) {
+		if (is_damaging == true) {
 			this->CalculateTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
 			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
 		} else {
@@ -861,25 +865,26 @@ void FemDem2DElement::IntegrateStressDamageMechanics(
 	const Vector StrainVector,
 	const Vector StressVector,
 	const int Edge,
-	const double Length)
+	const double Length,
+	bool& rIsDamaging)
 {
 	const std::string& yield_surface = this->GetProperties()[YIELD_SURFACE];
 
 	if (yield_surface == "ModifiedMohrCoulomb") {
 		this->ModifiedMohrCoulombCriterion(
-			rThreshold, rDamage, StressVector, Edge, Length);
+			rThreshold, rDamage, StressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "SimoJu") {
 		this->SimoJuCriterion(
-			rThreshold, rDamage, StrainVector, StressVector, Edge, Length);
+			rThreshold, rDamage, StrainVector, StressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "Rankine") {
 		this->RankineCriterion(
-			rThreshold, rDamage, StressVector, Edge, Length);
+			rThreshold, rDamage, StressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "DruckerPrager") {
 		this->DruckerPragerCriterion(
-			rThreshold, rDamage, StressVector, Edge, Length);
+			rThreshold, rDamage, StressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "RankineFragile") {
 		this->RankineFragileLaw(
-			rThreshold, rDamage, StressVector, Edge, Length);
+			rThreshold, rDamage, StressVector, Edge, Length, rIsDamaging);
 	} else {
 		KRATOS_ERROR << " Yield Surface not defined " << std::endl;
 	}
@@ -890,7 +895,8 @@ void FemDem2DElement::ModifiedMohrCoulombCriterion(
 	double &rDamage, 
 	const Vector &StressVector, 
 	const int Edge, 
-	const double Length
+	const double Length,
+	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(2);
@@ -945,6 +951,7 @@ void FemDem2DElement::ModifiedMohrCoulombCriterion(
 	} else {
 		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
 		rThreshold = uniaxial_stress;
+		rIsDamaging = true;
 	}
 }
 
@@ -953,7 +960,8 @@ void FemDem2DElement::RankineCriterion(
 	double &rDamage, 
 	const Vector &StressVector, 
 	const int Edge, 
-	const double Length
+	const double Length,
+	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
@@ -980,6 +988,7 @@ void FemDem2DElement::RankineCriterion(
 	} else {
 		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
 		rThreshold = uniaxial_stress;
+		rIsDamaging = true;
 	}
 }
 
@@ -988,7 +997,8 @@ void FemDem2DElement::DruckerPragerCriterion(
 	double &rDamage, 
 	const Vector &StressVector, 
 	const int Edge, 
-	const double Length
+	const double Length,
+	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
@@ -1038,6 +1048,7 @@ void FemDem2DElement::DruckerPragerCriterion(
 	} else {
 		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
 		rThreshold = uniaxial_stress;
+		rIsDamaging = true;
 	}
 }
 
@@ -1047,7 +1058,8 @@ void FemDem2DElement::SimoJuCriterion(
 	const Vector &StrainVector,
 	const Vector &StressVector,
 	const int Edge,
-	const double Length
+	const double Length,
+	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
@@ -1095,6 +1107,7 @@ void FemDem2DElement::SimoJuCriterion(
 	} else {
 		this->CalculateExponentialDamage(rDamage, A, uniaxial_stress, c_max);
 		rThreshold = uniaxial_stress;
+		rIsDamaging = true;
 	}
 }
 
@@ -1103,7 +1116,8 @@ void FemDem2DElement::RankineFragileLaw(
 	double &rDamage, 
 	const Vector &StressVector, 
 	const int Edge, 
-	const double Length
+	const double Length,
+	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
@@ -1131,6 +1145,8 @@ void FemDem2DElement::RankineFragileLaw(
 		rDamage = this->GetConvergedDamage();
 	} else {
 		rDamage = 0.98; // Fragile  law
+		rIsDamaging = true;
+		rThreshold = uniaxial_stress;
 	}
 }
 
@@ -1239,12 +1255,14 @@ void FemDem2DElement::IntegratePerturbedStrain(
 		double threshold = mThresholds[edge];
 
 		const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
+		bool dummy = false;
 		this->IntegrateStressDamageMechanics(threshold,
 											 damage_edge,
 											 average_strain_edge, 
 											 average_stress_edge, 
 											 edge, 
-											 length);
+											 length,
+											 dummy);
 		damages_edges[edge] = damage_edge;
 	} // End loop edges
 	const double damage_element = this->CalculateElementalDamage(damages_edges);
