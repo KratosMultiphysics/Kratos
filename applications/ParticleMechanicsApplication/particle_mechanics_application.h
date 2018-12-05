@@ -35,11 +35,11 @@
 
 /* CONDITIONS */
 #include "custom_conditions/mpm_base_load_condition.h"
-#include "custom_conditions/mpm_point_load_condition.h"
-#include "custom_conditions/mpm_axisym_point_load_condition.h"
-#include "custom_conditions/mpm_line_load_condition_2d.h"
-#include "custom_conditions/mpm_axisym_line_load_condition_2d.h"
-#include "custom_conditions/mpm_surface_load_condition_3d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_point_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_axisym_point_load_condition.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
 
 //---element
 #include "custom_elements/updated_lagrangian.hpp"
