@@ -20,8 +20,8 @@
 // External includes
 
 // Project includes
+#include "containers/array_1d.h"
 #include "includes/define.h"
-#include "includes/kratos_components.h"
 
 namespace Kratos
 {
@@ -1291,10 +1291,6 @@ class DataCommunicator
     ///@}
 
 }; // Class DataCommunicator
-
-template class KRATOS_API(KRATOS_CORE) KratosComponents<DataCommunicator >;
-
-//void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, DataCommunicator const& ThisComponent);
 
 ///@}
 
