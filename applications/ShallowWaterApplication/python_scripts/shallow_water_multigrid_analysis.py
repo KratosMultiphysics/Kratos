@@ -20,12 +20,13 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
             self.maximum_subgrids = self.project_parameters["solver_settings"]["multigrid_settings"]["maximum_number_of_subscales"].GetInt()
 
         self.current_subscale = self._GetSolver()._GetComputingModelPart().ProcessInfo[Meshing.SUBSCALE_INDEX]
-        new_parameters = self.project_parameters.Clone() # Create a copy before modifying the parameters
-        self._UpdateModelPartNamesInParameters()
 
         if self.current_subscale < self.maximum_subgrids:
-            self._ModifySubAnalysisParameters(new_parameters)
-            self.sub_analysis = ShallowWaterMultigridAnalysis(model, new_parameters)
+            self.new_parameters = self.project_parameters.Clone() # Create a copy before modifying the parameters
+            self._ModifySubAnalysisParameters(self.new_parameters)
+            self.sub_analysis = ShallowWaterMultigridAnalysis(self.model, self.new_parameters)
+
+        self._UpdateModelPartNamesInParameters()
 
     def Initialize(self):
         super(ShallowWaterMultigridAnalysis, self).Initialize()
@@ -41,7 +42,7 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
             if self.current_subscale < self.maximum_subgrids:
                 self.sub_analysis._GetSolver()._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] = 0
                 self.sub_analysis.end_time = self.time
-                self.sub_analysis.InitializeSolver()
+                self.sub_analysis.InitializeMultigridSolver()
                 self.sub_analysis.RunSolutionLoop()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
@@ -51,18 +52,14 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
         if self.current_subscale < self.maximum_subgrids:
             self.sub_analysis.Finalize()
 
-    def InitializeSolver(self):
+    def InitializeMultigridSolver(self):
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_X, False, self._GetSolver()._GetComputingModelPart().Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, False, self._GetSolver()._GetComputingModelPart().Nodes)
+        self._GetSolver().multigrid.ExecuteInitialize()
+        self._GetSolver().AddDofs()
         self._GetSolver().Initialize()
-
-    # def ExecuteBeforeSolutionLoop(self):
-    #     # This code is included in AnalysisStage.Initialize()
-    #     # Added specifically for the multigrid analysis
-    #     print('EXECUTE BEFORE SOLUTINO LOOP')
-    #     # for process in self._GetListOfProcesses():
-    #     #     print(process)
-    #     #     process.ExecuteBeforeSolutionLoop()
-    #     self._GetSolver().ExecuteBeforeSolutionLoop()
-    #     self._GetSolver().AddDofs()
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeSolutionLoop()
 
     def _UpdateModelPartNamesInParameters(self):
         # Update the model part name in the processes parameters
@@ -84,8 +81,5 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
         if sub_parameters.Has("output_processes"):
             sub_parameters.RemoveValue("output_processes")
 
-    # def _GetOrderOfProcessesInitialization(self):
-    #     return ["multigrid_process_list",
-    #             "bathymetry_process_list",
-    #             "initial_conditions_process_list",
-    #             "boundary_conditions_process_list"]
+    def _GetSimulationName(self):
+        return "Shallow Water Multigrid Analysis"
