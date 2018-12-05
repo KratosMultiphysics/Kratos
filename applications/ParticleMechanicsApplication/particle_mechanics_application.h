@@ -236,8 +236,8 @@ private:
     const MPMGridAxisymPointLoadCondition mMPMGridAxisymPointLoadCondition2D1N;
     const MPMGridLineLoadCondition2D mMPMGridLineLoadCondition2D2N;
     const MPMGridAxisymLineLoadCondition2D mMPMGridAxisymLineLoadCondition2D2N;
-    const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
-    const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
+    const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D3N;
+    const MPMGridSurfaceLoadCondition3D mMPMGridSurfaceLoadCondition3D4N;
 
     // Constitutive laws
     // CL: Linear Elastic laws

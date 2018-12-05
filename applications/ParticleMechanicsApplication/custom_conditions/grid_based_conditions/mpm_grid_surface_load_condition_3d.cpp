@@ -26,14 +26,14 @@ namespace Kratos
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
 
-    MPMSurfaceLoadCondition3D::MPMSurfaceLoadCondition3D()
+    MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D()
     {
     }
 
     //***********************************************************************************
     //***********************************************************************************
 
-    MPMSurfaceLoadCondition3D::MPMSurfaceLoadCondition3D(
+    MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         )
@@ -44,7 +44,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    MPMSurfaceLoadCondition3D::MPMSurfaceLoadCondition3D(
+    MPMGridSurfaceLoadCondition3D::MPMGridSurfaceLoadCondition3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
@@ -56,38 +56,38 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
 
-    Condition::Pointer MPMSurfaceLoadCondition3D::Create(
+    Condition::Pointer MPMGridSurfaceLoadCondition3D::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<MPMSurfaceLoadCondition3D>(NewId, pGeom, pProperties);
+        return Kratos::make_shared<MPMGridSurfaceLoadCondition3D>(NewId, pGeom, pProperties);
     }
 
     //***********************************************************************************
     //***********************************************************************************
 
-    Condition::Pointer MPMSurfaceLoadCondition3D::Create(
+    Condition::Pointer MPMGridSurfaceLoadCondition3D::Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<MPMSurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared<MPMGridSurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
 
-    MPMSurfaceLoadCondition3D::~MPMSurfaceLoadCondition3D()
+    MPMGridSurfaceLoadCondition3D::~MPMGridSurfaceLoadCondition3D()
     {
     }
 
     //***********************************************************************************
     //***********************************************************************************
 
-    void MPMSurfaceLoadCondition3D::CalculateAndSubKp(
+    void MPMGridSurfaceLoadCondition3D::CalculateAndSubKp(
         Matrix& K,
         const array_1d<double, 3 >& ge,
         const array_1d<double, 3 >& gn,
@@ -132,7 +132,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void MPMSurfaceLoadCondition3D::MakeCrossMatrix(
+    void MPMGridSurfaceLoadCondition3D::MakeCrossMatrix(
         BoundedMatrix<double, 3, 3 > & M,
         const array_1d<double, 3 > & U)
     {
@@ -150,7 +150,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void MPMSurfaceLoadCondition3D::CalculateAndAddPressureForce(
+    void MPMGridSurfaceLoadCondition3D::CalculateAndAddPressureForce(
         VectorType& rResidualVector,
         const Vector& N,
         const array_1d<double, 3 >& Normal,
@@ -178,7 +178,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void MPMSurfaceLoadCondition3D::CalculateAll(
+    void MPMGridSurfaceLoadCondition3D::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,

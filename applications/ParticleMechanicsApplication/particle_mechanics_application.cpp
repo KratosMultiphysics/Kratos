@@ -76,8 +76,8 @@ namespace Kratos
         mMPMGridAxisymPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
         mMPMGridLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
         mMPMGridAxisymLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-        mMPMSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
-        mMPMSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4))))
+        mMPMGridSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+        mMPMGridSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4))))
     {}
 
     void KratosParticleMechanicsApplication::Register()
@@ -107,8 +107,8 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMGridAxisymPointLoadCondition2D1N", mMPMGridAxisymPointLoadCondition2D1N )
         KRATOS_REGISTER_CONDITION( "MPMGridLineLoadCondition2D2N", mMPMGridLineLoadCondition2D2N)
         KRATOS_REGISTER_CONDITION( "MPMGridAxisymLineLoadCondition2D2N", mMPMGridAxisymLineLoadCondition2D2N)
-        KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D3N", mMPMSurfaceLoadCondition3D3N)
-        KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D4N", mMPMSurfaceLoadCondition3D4N)
+        KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D3N", mMPMGridSurfaceLoadCondition3D3N)
+        KRATOS_REGISTER_CONDITION( "MPMGridSurfaceLoadCondition3D4N", mMPMGridSurfaceLoadCondition3D4N)
 
         // Registering elements
         KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )

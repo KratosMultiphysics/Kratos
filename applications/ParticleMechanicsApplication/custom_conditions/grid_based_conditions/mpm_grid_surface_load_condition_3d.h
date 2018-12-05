@@ -44,7 +44,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class MPMSurfaceLoadCondition3D
+class MPMGridSurfaceLoadCondition3D
     : public MPMBaseLoadCondition
 {
 public:
@@ -52,31 +52,31 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // Counted pointer of MPMSurfaceLoadCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( MPMSurfaceLoadCondition3D );
+    // Counted pointer of MPMGridSurfaceLoadCondition3D
+    KRATOS_CLASS_POINTER_DEFINITION( MPMGridSurfaceLoadCondition3D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    MPMSurfaceLoadCondition3D();
+    MPMGridSurfaceLoadCondition3D();
 
     // Constructor using an array of nodes
-    MPMSurfaceLoadCondition3D(
+    MPMGridSurfaceLoadCondition3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
     // Constructor using an array of nodes with properties
-    MPMSurfaceLoadCondition3D(
+    MPMGridSurfaceLoadCondition3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
     // Destructor
-    ~MPMSurfaceLoadCondition3D() override;
+    ~MPMGridSurfaceLoadCondition3D() override;
 
     ///@}
     ///@name Operators
@@ -235,7 +235,7 @@ private:
     }
 
 
-}; // class MPMSurfaceLoadCondition3D.
+}; // class MPMGridSurfaceLoadCondition3D.
 
 ///@name Type Definitions
 ///@{
