@@ -100,20 +100,20 @@ public:
         KRATOS_TRY;
         std::cout<<"Compute Gradient Adjoint Process Started"<< std::endl;
         
-        const double epsilon = 1e-6;
+        const double epsilon = 1e-9;
 
         for(auto it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); ++it)
         {
+            auto geom = it->GetGeometry();
+            const unsigned int NumNodes=geom.size();
+            Matrix LHS_ref = ZeroMatrix(NumNodes,NumNodes);
+            Vector RHS_ref = ZeroVector(NumNodes);
+            it -> CalculateLocalSystem(LHS_ref,RHS_ref,mrModelPart.GetProcessInfo());
+            
+            if (LHS_ref.size1()>NumNodes)
+                KRATOS_WATCH(LHS_ref);
+            
             if (it->Is(BOUNDARY)){ 
-                 
-                auto geom = it->GetGeometry();
-                const unsigned int NumNodes=geom.size();
-                
-                Matrix LHS_ref = ZeroMatrix(NumNodes,NumNodes);
-                Vector RHS_ref = ZeroVector(NumNodes);
-                
-                it -> CalculateLocalSystem(LHS_ref,RHS_ref,mrModelPart.GetProcessInfo());
-
                 Matrix dRdx_elemental = ZeroMatrix(NumNodes,NumNodes);
                 Matrix LHS = ZeroMatrix(NumNodes,NumNodes);
                 Vector RHS = ZeroVector(NumNodes);
@@ -127,7 +127,7 @@ public:
                 Vector normal = ZeroVector(NumNodes);
                 normal= it -> GetValue(NORMAL);
                 array_1d<double,3> phis;  
-                it -> CalculateLocalSystem(LHS_ref,RHS_ref,mrModelPart.GetProcessInfo());
+
                 for(unsigned int i = 0; i<NumNodes; i++){
                     phis(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
                     geom[i].GetSolutionStepValue(LEVEL_SET_DISTANCE) += epsilon;
@@ -182,22 +182,27 @@ public:
         //     r_0=r; 
         //     lambda_0=lambda;
         // }
-        for (unsigned int i = 0; i < number_of_nodes;++i){
-            for (unsigned int j = 0; j < number_of_nodes;++j){
-                if (!(mrdRdx(i,j)==0.0))
-                    KRATOS_WATCH(mrdRdx(i,j));
-            }
-        }
-        for (unsigned int i = 0; i < number_of_nodes;++i){
-            for (unsigned int j = 0; j < number_of_nodes;++j){
-                if (!(mrdRdu(i,j)==0.0))
-                    KRATOS_WATCH(mrdRdu(i,j));
-            }
-        }
-        for (unsigned int i = 0; i < number_of_nodes;++i){
-                if (!(mrdFdu(i)==0.0))
-                    KRATOS_WATCH(mrdFdu(i));
-        }
+
+        // for(auto it=mrModelPart.NodesBegin(); it!=mrModelPart.NodesEnd(); ++it)
+        // {
+        //     if(it->Is(INLET))
+        // }
+        // for (unsigned int i = 0; i < number_of_nodes;++i){
+        //     for (unsigned int j = 0; j < number_of_nodes;++j){
+        //         if (!(mrdRdx(i,j)==0.0))
+        //             KRATOS_WATCH(mrdRdx(i,j));
+        //     }
+        // }
+        // for (unsigned int i = 0; i < number_of_nodes;++i){
+        //     for (unsigned int j = 0; j < number_of_nodes;++j){
+        //         if (!(mrdRdu(i,j)==0.0))
+        //             KRATOS_WATCH(mrdRdu(i,j));
+        //     }
+        // }
+        // for (unsigned int i = 0; i < number_of_nodes;++i){
+        //         if (!(mrdFdu(i)==0.0))
+        //             KRATOS_WATCH(mrdFdu(i));
+        // }
        
         KRATOS_CATCH("");
     }

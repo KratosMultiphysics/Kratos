@@ -45,6 +45,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.epsilon = settings["epsilon"].GetDouble()
         
         self.fluid_model_part = Model.GetModelPart(settings["fluid_part_name"].GetString()).GetRootModelPart()
+        for element in self.fluid_model_part.Elements:
+            element.SetValue(KratosMultiphysics.Y1,0)
+            element.SetValue(KratosMultiphysics.Y2,0)
+
         self.model=Model
         self.wake_model_part_name=settings["model_part_name"].GetString()
         self.wake_line_model_part=Model.CreateModelPart("wake")
@@ -84,11 +88,11 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # self.FindWake()
     def DefineWakeFromLevelSet(self):
         KratosMultiphysics.ModelPartIO("wake").ReadModelPart(self.wake_line_model_part)   
-        origin=[-0.75,0]  
+        origin=[0.25,0]  
         angle=math.radians(-self.geometry_parameter) 
         
         for node in self.wake_line_model_part.Nodes:
-            node.X=-1+node.X+1e-4
+            node.X=node.X+1e-4
             node.Y=node.Y+1e-4
         RotateModelPart(origin,angle,self.wake_line_model_part)
         KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(self.fluid_model_part, self.wake_line_model_part).Execute()
