@@ -464,7 +464,6 @@ kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../a
 kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
 kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
 sys.path.append(kratos_libs)
-sys.path.append(kratos_applications)
 sys.path.append(kratos_scripts)
 sys.path.append(kratos_tests)
 ")
@@ -493,7 +492,6 @@ kratos_applications=\"${CMAKE_SOURCE_DIR}/applications\"
 kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
 kratos_tests=\"${CMAKE_INSTALL_PREFIX}/kratos/tests\"
 sys.path.append(kratos_libs)
-sys.path.append(kratos_applications)
 sys.path.append(kratos_scripts)
 sys.path.append(kratos_tests) ")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
