@@ -84,8 +84,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.size();
+        const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int block_size = this->GetBlockSize();
 
         // Resizing as needed the LHS
@@ -112,14 +113,14 @@ namespace Kratos
             noalias( rRightHandSideVector ) = ZeroVector( mat_size ); //resetting RHS
         }
 
-        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
+        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(rGeom);
 
         // Reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
+        const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(integration_method);
 
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients(integration_method);
 
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
+        const Matrix& Ncontainer = rGeom.ShapeFunctionsValues(integration_method);
 
         // Sizing work matrices
         Vector pressure_on_nodes = ZeroVector( number_of_nodes );
@@ -142,13 +143,13 @@ namespace Kratos
         for ( unsigned int i = 0; i < pressure_on_nodes.size(); i++ )
         {
             pressure_on_nodes[i] = pressure_on_condition;
-            if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
+            if( rGeom[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
             {
-                pressure_on_nodes[i] += GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+                pressure_on_nodes[i] += rGeom[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
             }
-            if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
+            if( rGeom[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
             {
-                pressure_on_nodes[i] -= GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+                pressure_on_nodes[i] -= rGeom[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
             }
         }
 
@@ -161,21 +162,21 @@ namespace Kratos
 
         for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ )
         {
-            const double det_j = GetGeometry().DeterminantOfJacobian( integration_points[point_number] );
+            const double det_j = rGeom.DeterminantOfJacobian( integration_points[point_number] );
 
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
 
             array_1d<double, 3> normal;
-            if(GetGeometry().WorkingSpaceDimension() == 2 )
+            if(rGeom.WorkingSpaceDimension() == 2 )
             {
-                noalias(normal) = GetGeometry().UnitNormal( integration_points[point_number] );
+                noalias(normal) = rGeom.UnitNormal( integration_points[point_number] );
             }
             else{
                 if(!Has(LOCAL_AXIS_2))
                     KRATOS_ERROR << "the variable LOCAL_AXES_2 is needed to compute the normal";
                 const auto& v2 = GetValue(LOCAL_AXIS_2);
 
-                array_1d<double,3> v1 = GetGeometry()[1].Coordinates() - GetGeometry()[0].Coordinates();
+                array_1d<double,3> v1 = rGeom[1].Coordinates() - rGeom[0].Coordinates();
 
                 MathUtils<double>::CrossProduct(normal,v1,v2 );
                 normal /= norm_2(normal);
@@ -208,9 +209,9 @@ namespace Kratos
             array_1d<double,3> gauss_load = line_load;
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
-                if( GetGeometry()[ii].SolutionStepsDataHas( LINE_LOAD ) )
+                if( rGeom[ii].SolutionStepsDataHas( LINE_LOAD ) )
                 {
-                    noalias(gauss_load) += ( Ncontainer( point_number, ii )) * GetGeometry()[ii].FastGetSolutionStepValue( LINE_LOAD );
+                    noalias(gauss_load) += ( Ncontainer( point_number, ii )) * rGeom[ii].FastGetSolutionStepValue( LINE_LOAD );
                 }
             }
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)

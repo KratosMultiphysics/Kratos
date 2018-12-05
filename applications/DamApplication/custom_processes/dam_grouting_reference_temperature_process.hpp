@@ -103,7 +103,6 @@ public:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 it->FastGetSolutionStepValue(var) = mInitialValue;
-
             }
         }
 

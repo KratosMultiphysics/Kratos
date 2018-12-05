@@ -459,7 +459,7 @@ class Algorithm(object):
         self.step       = 0
         self.time       = self.pp.Start_time
         self.Dt         = self.pp.Dt
-        self.final_time = self.pp.CFD_DEM["FinalTime"].GetDouble()
+        self.end_time = self.pp.CFD_DEM["FinalTime"].GetDouble()
         self.DEM_step   = 0
         self.time_dem   = 0.0
         self.Dt_DEM     = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -482,7 +482,7 @@ class Algorithm(object):
         self.mat_deriv_averager           = SDP.Averager(1, 3)
         self.laplacian_averager           = SDP.Averager(1, 3)
 
-        self.report.total_steps_expected = int(self.final_time / self.Dt_DEM)
+        self.report.total_steps_expected = int(self.end_time / self.Dt_DEM)
 
         Say(self.report.BeginReport(self.timer))
 
@@ -507,7 +507,7 @@ class Algorithm(object):
             gauge = analytics.Gauge(
                 self.fluid_model_part,
                 self.Dt,
-                self.final_time,
+                self.end_time,
                 variables_to_measure,
                 steps_between_measurements
                 )
@@ -592,7 +592,7 @@ class Algorithm(object):
             self.calculate_distance_process.Execute()
 
     def TheSimulationMustGoOn(self):
-        return self.time <= self.final_time
+        return self.time <= self.end_time
 
     def GetAnalyticFacesModelParts(self):
         analytic_face_submodelpart_number = 1
@@ -942,7 +942,7 @@ class Algorithm(object):
         # Warning: this estimation is based on a constant time step for DEM.
         # This is usually the case, but could not be so.
         # A more robust implementation is needed!
-        N_steps = int(self.final_time / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) + 20
+        N_steps = int(self.end_time / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()) + 20
         not_neglecting_history_force = self.pp.CFD_DEM["basset_force_type"].GetInt() > 0
         using_hinsberg_method = (
             self.pp.CFD_DEM["basset_force_type"].GetInt() >= 3 or

@@ -492,7 +492,7 @@ class ResponseFunction : public AdjointResponseFunction
             rSensitivityGradient(0) = 0.;
         }
 
-        double CalculateValue() override
+        double CalculateValue(ModelPart& rModelPart) override
         {
             const double& x1 =
                 mrModelPart.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT_X);
