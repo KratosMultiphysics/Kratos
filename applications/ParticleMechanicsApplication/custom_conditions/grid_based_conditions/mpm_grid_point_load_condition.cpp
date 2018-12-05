@@ -26,7 +26,7 @@ namespace Kratos
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
 
-    MPMPointLoadCondition::MPMPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+    MPMGridPointLoadCondition::MPMGridPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
         : MPMBaseLoadCondition( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
@@ -35,7 +35,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    MPMPointLoadCondition::MPMPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
+    MPMGridPointLoadCondition::MPMGridPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : MPMBaseLoadCondition( NewId, pGeometry, pProperties )
     {
     }
@@ -43,30 +43,30 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
 
-    Condition::Pointer MPMPointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
+    Condition::Pointer MPMGridPointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
-        return Kratos::make_shared<MPMPointLoadCondition>(NewId, pGeom, pProperties);
+        return Kratos::make_shared<MPMGridPointLoadCondition>(NewId, pGeom, pProperties);
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    Condition::Pointer MPMPointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
+    Condition::Pointer MPMGridPointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
-        return Kratos::make_shared<MPMPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Kratos::make_shared<MPMGridPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
 
-    MPMPointLoadCondition::~MPMPointLoadCondition()
+    MPMGridPointLoadCondition::~MPMGridPointLoadCondition()
     {
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    void MPMPointLoadCondition::CalculateAll(
+    void MPMGridPointLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
@@ -130,7 +130,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    double MPMPointLoadCondition::GetPointLoadIntegrationWeight()
+    double MPMGridPointLoadCondition::GetPointLoadIntegrationWeight()
     {
         return 1.0;
     }

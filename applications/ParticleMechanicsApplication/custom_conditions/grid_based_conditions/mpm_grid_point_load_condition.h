@@ -50,34 +50,34 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MPMPointLoadCondition
+class MPMGridPointLoadCondition
     : public MPMBaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MPMPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( MPMPointLoadCondition );
+    /// Counted pointer of MPMGridPointLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MPMGridPointLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MPMPointLoadCondition(
+    MPMGridPointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
-    MPMPointLoadCondition(
+    MPMGridPointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
-    ~MPMPointLoadCondition() override;
+    ~MPMGridPointLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -185,7 +185,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    MPMPointLoadCondition() {};
+    MPMGridPointLoadCondition() {};
 
     ///@}
 
@@ -232,7 +232,7 @@ private:
     }
 
 
-}; // Class MPMPointLoadCondition
+}; // Class MPMGridPointLoadCondition
 
 ///@}
 ///@name Type Definitions

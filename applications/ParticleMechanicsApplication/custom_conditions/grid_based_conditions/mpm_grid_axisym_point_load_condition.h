@@ -46,26 +46,26 @@ namespace Kratos
  * Implements a point load condition for structural analysis.
  */
 
-class MPMAxisymPointLoadCondition
-    : public MPMPointLoadCondition
+class MPMGridAxisymPointLoadCondition
+    : public MPMGridPointLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MPMAxisymPointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION(MPMAxisymPointLoadCondition);
+    /// Counted pointer of MPMGridAxisymPointLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION(MPMGridAxisymPointLoadCondition);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MPMAxisymPointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    MPMAxisymPointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMGridAxisymPointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMGridAxisymPointLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    ~MPMAxisymPointLoadCondition() override;
+    ~MPMGridAxisymPointLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -123,7 +123,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    MPMAxisymPointLoadCondition() : MPMPointLoadCondition()
+    MPMGridAxisymPointLoadCondition() : MPMGridPointLoadCondition()
     {
     }
 
@@ -185,12 +185,12 @@ private:
     ///@name Un accessible methods
     ///@{
     /// Assignment operator.
-    //MPMAxisymPointLoadCondition& operator=(const MPMAxisymPointLoadCondition& rOther);
+    //MPMGridAxisymPointLoadCondition& operator=(const MPMGridAxisymPointLoadCondition& rOther);
     /// Copy constructor.
-    //MPMAxisymPointLoadCondition(const MPMAxisymPointLoadCondition& rOther);
+    //MPMGridAxisymPointLoadCondition(const MPMGridAxisymPointLoadCondition& rOther);
     ///@}
 
-}; // Class MPMAxisymPointLoadCondition
+}; // Class MPMGridAxisymPointLoadCondition
 
 ///@}
 ///@name Type Definitions

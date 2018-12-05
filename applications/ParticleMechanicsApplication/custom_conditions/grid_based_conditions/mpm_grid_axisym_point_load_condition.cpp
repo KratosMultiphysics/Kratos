@@ -24,11 +24,11 @@ namespace Kratos
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
 
-    MPMAxisymPointLoadCondition::MPMAxisymPointLoadCondition(
+    MPMGridAxisymPointLoadCondition::MPMGridAxisymPointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         )
-            : MPMPointLoadCondition( NewId, pGeometry )
+            : MPMGridPointLoadCondition( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
     }
@@ -36,43 +36,43 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    MPMAxisymPointLoadCondition::MPMAxisymPointLoadCondition(
+    MPMGridAxisymPointLoadCondition::MPMGridAxisymPointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         )
-            : MPMPointLoadCondition( NewId, pGeometry, pProperties )
+            : MPMGridPointLoadCondition( NewId, pGeometry, pProperties )
     {
     }
 
     //********************************* CREATE *******************************************
     //************************************************************************************
 
-    Condition::Pointer MPMAxisymPointLoadCondition::Create(
+    Condition::Pointer MPMGridAxisymPointLoadCondition::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<MPMAxisymPointLoadCondition>( NewId, pGeom, pProperties );
+        return Kratos::make_shared<MPMGridAxisymPointLoadCondition>( NewId, pGeom, pProperties );
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    Condition::Pointer MPMAxisymPointLoadCondition::Create(
+    Condition::Pointer MPMGridAxisymPointLoadCondition::Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const
     {
-        return Kratos::make_shared<MPMAxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Kratos::make_shared<MPMGridAxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
 
-    MPMAxisymPointLoadCondition::~MPMAxisymPointLoadCondition()
+    MPMGridAxisymPointLoadCondition::~MPMGridAxisymPointLoadCondition()
     {
     }
 
@@ -80,7 +80,7 @@ namespace Kratos
     //********************************* PROTECTED ****************************************
     //************************************************************************************
 
-    double MPMAxisymPointLoadCondition::GetPointLoadIntegrationWeight()
+    double MPMGridAxisymPointLoadCondition::GetPointLoadIntegrationWeight()
     {
         // We calculate the axisymmetric coefficient
         const double Radius = ParticleMechanicsMathUtilities<double>::CalculateRadiusPoint(GetGeometry());
@@ -94,18 +94,18 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void MPMAxisymPointLoadCondition::save( Serializer& rSerializer ) const
+    void MPMGridAxisymPointLoadCondition::save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Name", "MPMAxisymPointLoadCondition" );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMPointLoadCondition );
+        rSerializer.save( "Name", "MPMGridAxisymPointLoadCondition" );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMGridPointLoadCondition );
     }
 
     //************************************************************************************
     //************************************************************************************
 
-    void MPMAxisymPointLoadCondition::load( Serializer& rSerializer )
+    void MPMGridAxisymPointLoadCondition::load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMPointLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMGridPointLoadCondition );
     }
 
 } // Namespace Kratos
