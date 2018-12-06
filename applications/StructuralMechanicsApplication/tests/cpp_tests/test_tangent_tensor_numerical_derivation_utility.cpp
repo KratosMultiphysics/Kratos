@@ -433,8 +433,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosStruc
         for (std::size_t j = 0; j < 6; ++j) {
             if (std::abs(C(i, j)) > 0.0) {
                 KRATOS_CHECK_LESS_EQUAL((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
-            } else if (std::abs(tangent_moduli(i, j)) > 0.0) {
-                KRATOS_WARNING("LinearElasticCasePertubationTensorUtility") << "Be careful tangent_moduli(" << i << " ," << j << ") is greater tha 0: " <<  tangent_moduli(i, j) << std::endl;
+            } else if (std::abs(tangent_moduli(i, j)) > 1.0e-6) {
+                KRATOS_WARNING("LinearElasticCasePertubationTensorUtility") << "Be careful tangent_moduli(" << i << " ," << j << ") is greater than 0: " <<  tangent_moduli(i, j) << std::endl;
             }
         }
     }
@@ -468,8 +468,8 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosStruct
         for (std::size_t j = 0; j < 6; ++j) {
             if (std::abs(C(i, j)) > 0.0) {
                 KRATOS_CHECK_LESS_EQUAL((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
-            } else if (std::abs(tangent_moduli(i, j)) > 0.0) {
-                KRATOS_WARNING("HyperElasticCasePertubationTensorUtility") << "Be careful tangent_moduli(" << i << " ," << j << ") is greater tha 0: " <<  tangent_moduli(i, j) << std::endl;
+            } else if (std::abs(tangent_moduli(i, j)) > 1.0e-6) {
+                KRATOS_WARNING("HyperElasticCasePertubationTensorUtility") << "Be careful tangent_moduli(" << i << " ," << j << ") is greater than 0: " <<  tangent_moduli(i, j) << std::endl;
             }
         }
     }

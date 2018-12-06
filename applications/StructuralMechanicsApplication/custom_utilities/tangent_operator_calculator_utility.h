@@ -148,7 +148,7 @@ public:
         Matrix auxiliar_tensor = ZeroMatrix(num_components,num_components);
       
         // Calculate the perturbation
-        double pertubation;
+        double pertubation = PerturbationThreshold;
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
             double component_perturbation;
             CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
@@ -251,7 +251,7 @@ public:
         KRATOS_ERROR_IF_NOT(ApproximationOrder == 1 || ApproximationOrder == 2) << "The approximation order for the perturbation is " << ApproximationOrder << ". Options are 1 and 2" << std::endl;
 
         // Calculate the perturbation
-        double pertubation;
+        double pertubation = PerturbationThreshold;
         for (IndexType i_component = 0; i_component < num_components; ++i_component) {
             double component_perturbation;
             CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
