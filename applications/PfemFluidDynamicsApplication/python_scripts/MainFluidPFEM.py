@@ -322,6 +322,7 @@ class Solution(object):
             from pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = self.ProjectParameters["output_configuration"]
             self.post_process_model_part = self.model.CreateModelPart("output_model_part")
+            KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
 
             return GiDOutputProcess(self.post_process_model_part,
                                     self.problem_name,
