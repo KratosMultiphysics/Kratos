@@ -15,7 +15,7 @@
 #include "containers/global_pointers_unordered_map.h"
 #include "containers/model.h"
 #include "includes/model_part.h" 
-#include "includes/stream_serializer.h" 
+#include "includes/mpi_serializer.h" 
 
 
 namespace Kratos {
@@ -26,6 +26,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersVectorTest, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& mp = current_model.CreateModelPart("test");
+    mp.AddNodalSolutionStepVariable(TEMPERATURE); //not to have an empty var list
 
     mp.CreateNewNode(1,1.0,2.0,3.0);
     mp.CreateNewNode(2,1.0,2.0,3.0);
@@ -34,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersVectorTest, KratosCoreFastSuite)
     GlobalPointersVector<Node<3>> global_pointers_container;
     global_pointers_container.FillFromContainer(mp.Nodes());
 
-    StreamSerializer serializer;
+    MpiSerializer serializer;
     serializer.save("global_pointers_container", global_pointers_container);
 
     GlobalPointersVector<Node<3>> new_global_pointers;
@@ -52,6 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersUnorderedMapTest , KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& mp = current_model.CreateModelPart("test");
+    mp.AddNodalSolutionStepVariable(TEMPERATURE); //not to have an empty var list
 
     auto pn1 = mp.CreateNewNode(1,1.0,2.0,3.0);
     auto pn2 = mp.CreateNewNode(2,1.0,2.0,3.0);
@@ -62,14 +64,16 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersUnorderedMapTest , KratosCoreFastSuite)
     global_pointers_map[ GlobalPointer<Node<3>>(pn2) ] = 20.0;
     global_pointers_map[ GlobalPointer<Node<3>>(pn3) ] = 30.0;
 
-    StreamSerializer serializer;
+    MpiSerializer serializer;
     serializer.save("global_pointers_map", global_pointers_map);
+
+    current_model.Reset(); //wipe everything
+    
 
     GlobalPointersVector<Node<3>> new_global_pointers;
     serializer.load("global_pointers_map",global_pointers_map);
 
-    KRATOS_CHECK_EQUAL(global_pointers_map[pn1], 10.0);
-    
+    KRATOS_CHECK_EQUAL(global_pointers_map[pn1], 10.0);   
 
 };
 

@@ -14,7 +14,7 @@
 #include "containers/global_pointers_vector.h"
 #include "containers/model.h"
 #include "includes/model_part.h" 
-#include "includes/stream_serializer.h" 
+#include "includes/mpi_serializer.h" 
 
 
 namespace Kratos {
@@ -25,6 +25,7 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerTest, KratosCoreFastSuite)
 {
     Model current_model;
     ModelPart& mp = current_model.CreateModelPart("test");
+    mp.AddNodalSolutionStepVariable(TEMPERATURE); //not to have an empty var list
 
     mp.CreateNewNode(1,1.0,2.0,3.0);
     mp.CreateNewNode(2,1.0,2.0,3.0);
@@ -33,7 +34,9 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointersContainerTest, KratosCoreFastSuite)
     GlobalPointersVector<Node<3>> global_pointers_container;
     global_pointers_container.FillFromContainer(mp.Nodes());
 
-    StreamSerializer serializer;
+    MpiSerializer serializer;
+    serializer.Set(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION);
+
     serializer.save("global_pointers_container", global_pointers_container);
 
     GlobalPointersVector<Node<3>> new_global_pointers;

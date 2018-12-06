@@ -2,23 +2,23 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi 
+//  Main authors:    Riccardo Rossi
 //
-	           
+
 #if !defined(KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED )
 #define  KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED
 
 // System includes
 #include <vector>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -28,164 +28,167 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  template< class TDataType >
-  class GlobalPointersVector : public std::vector< GlobalPointer<TDataType> >
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+template< class TDataType >
+class GlobalPointersVector : public std::vector< GlobalPointer<TDataType> >
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of GlobalPointersVector
+    KRATOS_CLASS_POINTER_DEFINITION(GlobalPointersVector);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    GlobalPointersVector() {}
+
+    /// Destructor.
+    virtual ~GlobalPointersVector() {}
+
+    template < class TContainerType >
+    void FillFromContainer( TContainerType& container)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of GlobalPointersVector
-      KRATOS_CLASS_POINTER_DEFINITION(GlobalPointersVector);
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      GlobalPointersVector(){}
+        this->reserve(container.size());
+        for(auto& item : container)
+        {
+            this->push_back(GlobalPointer<TDataType>(&item));
+        }
+    }
 
-      /// Destructor.
-      virtual ~GlobalPointersVector(){}
 
-      template < class TContainerType > 
-      void FillFromContainer( TContainerType& container)
-      {
-          this->reserve(container.size());
-          for(auto& item : container)
-          {
-              this->push_back(GlobalPointer<TDataType>(&item));
-          }
-      }
-      
+    ///@}
+    ///@name Operators
+    ///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	    std::stringstream buffer;
+    ///@}
+    ///@name Operations
+    ///@{
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
         buffer << "GlobalPointersVector" ;
         return buffer.str();
-      }
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "GlobalPointersVector";}
+    }
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        friend class Serializer;
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "GlobalPointersVector";
+    }
 
-        void save(Serializer& rSerializer) const
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+        if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
         {
-          if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
-          { 
             std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
 
             std::string data;
@@ -197,21 +200,21 @@ namespace Kratos
 
             rSerializer.save("Size", this->size());
             rSerializer.save("Data", data);
-          }
-          else //SERIALIZING THE POINTER CONTENT TOO
-          {
+        }
+        else //SERIALIZING THE POINTER CONTENT TOO
+        {
             rSerializer.save("Size", this->size());
             for(const auto& item : *this)
-                rSerializer.save("Gp", item);          
-          }
+                rSerializer.save("Gp", item);
         }
+    }
 
 
 
-        void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer)
+    {
+        if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
         {
-          if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
-          {
             std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
 
             std::size_t size;
@@ -227,9 +230,9 @@ namespace Kratos
                 p.load(&tmp[0]+i*pointer_size);
                 this->push_back(p);
             }
-          }
-          else //SERIALIZING THE POINTER CONTENT TOO
-          {
+        }
+        else //SERIALIZING THE POINTER CONTENT TOO
+        {
             std::size_t size;
             rSerializer.load("Size", size);
             this->reserve(size);
@@ -239,72 +242,75 @@ namespace Kratos
                 rSerializer.load("Gp", p);
                 this->push_back(p);
             }
-          }
-
         }
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      GlobalPointersVector& operator=(GlobalPointersVector const& rOther){}
 
-      /// Copy constructor.
-      GlobalPointersVector(GlobalPointersVector const& rOther){}
-
-        
-      ///@}    
-        
-    }; // Class GlobalPointersVector 
-
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  template< class TDataType >
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    GlobalPointersVector<TDataType>& rThis){}
-
-  /// output stream function
-  template< class TDataType >
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const GlobalPointersVector<TDataType>& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
     }
-  ///@}
 
-  ///@} addtogroup block
-  
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    GlobalPointersVector& operator=(GlobalPointersVector const& rOther) {}
+
+    /// Copy constructor.
+    GlobalPointersVector(GlobalPointersVector const& rOther) {}
+
+
+    ///@}
+
+}; // Class GlobalPointersVector
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+template< class TDataType >
+inline std::istream& operator >> (std::istream& rIStream,
+                                  GlobalPointersVector<TDataType>& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+template< class TDataType >
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const GlobalPointersVector<TDataType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
+
 }  // namespace Kratos.
 
 #endif // KRATOS_GLOBAL_POINTER_VECTOR_H_INCLUDED  defined 
