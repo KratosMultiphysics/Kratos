@@ -67,9 +67,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, Kra
     const Geometry<NodeType>::Pointer tria_2(Kratos::make_shared<Triangle3D3<NodeType>>(node_4, node_2, node_1));
     const Geometry<NodeType>::Pointer tria_3(Kratos::make_shared<Triangle3D3<NodeType>>(node_4, node_5, node_2));
 
-    InterfaceObject::Pointer interface_geom_obj_1(Kratos::make_shared<InterfaceGeometryObject>(tria_1));
-    InterfaceObject::Pointer interface_geom_obj_2(Kratos::make_shared<InterfaceGeometryObject>(tria_2));
-    InterfaceObject::Pointer interface_geom_obj_3(Kratos::make_shared<InterfaceGeometryObject>(tria_3));
+    InterfaceObject::Pointer interface_geom_obj_1(Kratos::make_shared<InterfaceGeometryObject>(tria_1.get()));
+    InterfaceObject::Pointer interface_geom_obj_2(Kratos::make_shared<InterfaceGeometryObject>(tria_2.get()));
+    InterfaceObject::Pointer interface_geom_obj_3(Kratos::make_shared<InterfaceGeometryObject>(tria_3.get()));
 
     node_1->SetValue(INTERFACE_EQUATION_ID, 35);
     node_2->SetValue(INTERFACE_EQUATION_ID, 18);
@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Approximation, KratosMappi
 
     const Geometry<NodeType>::Pointer tria_1(Kratos::make_shared<Triangle3D3<NodeType>>(node_1, node_2, node_3));
 
-    InterfaceObject::Pointer interface_geom_obj_1(Kratos::make_shared<InterfaceGeometryObject>(tria_1));
+    InterfaceObject::Pointer interface_geom_obj_1(Kratos::make_shared<InterfaceGeometryObject>(tria_1.get()));
 
     node_1->SetValue(INTERFACE_EQUATION_ID, 35);
     node_2->SetValue(INTERFACE_EQUATION_ID, 18);
@@ -189,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
 
     const Geometry<NodeType>::Pointer tria_2(Kratos::make_shared<Triangle3D3<NodeType>>(node_4, node_2, node_1));
 
-    InterfaceObject::Pointer interface_geom_obj_2(Kratos::make_shared<InterfaceGeometryObject>(tria_2));
+    InterfaceObject::Pointer interface_geom_obj_2(Kratos::make_shared<InterfaceGeometryObject>(tria_2.get()));
 
     node_1->SetValue(INTERFACE_EQUATION_ID, 35);
     node_2->SetValue(INTERFACE_EQUATION_ID, 18);
@@ -238,7 +238,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
 
     auto node_local_sys(Kratos::make_shared<Node<3>>(8, 1.0, 2.5, -5.0));
 
-    auto local_sys(local_sys_dummy.Create(node_local_sys));
+    auto local_sys(local_sys_dummy.Create(node_local_sys.get()));
 
     // Test if the "Create" function returns the correct object
     KRATOS_CHECK_EQUAL(typeid(local_sys_dummy), typeid(*local_sys));

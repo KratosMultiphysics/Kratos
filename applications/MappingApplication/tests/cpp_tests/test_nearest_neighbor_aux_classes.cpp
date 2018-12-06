@@ -84,9 +84,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMap
     auto node_2(Kratos::make_shared<NodeType>(3, 10.5, 20.0, 96.8));
     auto node_3(Kratos::make_shared<NodeType>(15, 2.3, 1.9, -2.5));
 
-    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1));
-    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2));
-    InterfaceObject::Pointer interface_node_3(Kratos::make_shared<InterfaceNode>(node_3));
+    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
+    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
+    InterfaceObject::Pointer interface_node_3(Kratos::make_shared<InterfaceNode>(node_3.get()));
 
     const int expected_id_found = 108;
 
@@ -130,8 +130,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
     auto node_1(Kratos::make_shared<NodeType>(1, 18.0, 2.7, 30.0));
     auto node_2(Kratos::make_shared<NodeType>(3, 1.0, 2.5, -3.0));
 
-    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1));
-    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2));
+    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
+    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
 
     const int expected_id_found = 67;
 
@@ -171,8 +171,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
     auto node_2(Kratos::make_shared<NodeType>(3, 10.5, 20.0, 96.8));
     auto node_3(Kratos::make_shared<NodeType>(15, 2.3, 1.9, -2.5));
 
-    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2));
-    InterfaceObject::Pointer interface_node_3(Kratos::make_shared<InterfaceNode>(node_3));
+    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
+    InterfaceObject::Pointer interface_node_3(Kratos::make_shared<InterfaceNode>(node_3.get()));
 
     const int expected_id_found = 108;
 
@@ -213,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperLocalSystem_BasicTests, KratosMappingApplication
     Point coords_1(1.0, 2.45, -23.8);
     auto node_local_sys(Kratos::make_shared<NodeType>(5, coords_1));
 
-    NearestNeighborLocalSystem local_sys(node_local_sys);
+    NearestNeighborLocalSystem local_sys(node_local_sys.get());
 
     for (std::size_t i=0; i<3; ++i)
         KRATOS_CHECK_DOUBLE_EQUAL(local_sys.Coordinates()[i], coords_1[i]);
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
 
     auto node_local_sys(Kratos::make_shared<NodeType>(8, 1.0, 2.5, -5.0));
 
-    auto local_sys(local_sys_dummy.Create(node_local_sys));
+    auto local_sys(local_sys_dummy.Create(node_local_sys.get()));
 
     // Test if the "Create" function returns the correct object
     KRATOS_CHECK_EQUAL(typeid(local_sys_dummy), typeid(*local_sys));
@@ -266,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosM
     auto node_local_sys(Kratos::make_shared<NodeType>(5, 1.0, 2.5, -5.0));
     node_local_sys->SetValue(INTERFACE_EQUATION_ID, dest_id);
 
-    auto local_sys(local_sys_dummy.Create(node_local_sys));
+    auto local_sys(local_sys_dummy.Create(node_local_sys.get()));
 
     // Test if the "Create" function returns the correct object
     KRATOS_CHECK_EQUAL(typeid(local_sys_dummy), typeid(*local_sys));
@@ -275,8 +275,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosM
     auto node_1(Kratos::make_shared<NodeType>(1, 18.0, 2.7, 30.0));
     auto node_2(Kratos::make_shared<NodeType>(3, 1.0, 2.5, -3.0)); // this is the nearest neighbor
 
-    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1));
-    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2));
+    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
+    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
 
     const int expected_id_found = 67;
 

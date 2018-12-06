@@ -55,10 +55,10 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
     typedef Node<3> NodeType;
-    typedef Kratos::shared_ptr<NodeType> NodePointerType;
+    typedef NodeType* NodePointerType;
 
     typedef Geometry<NodeType> GeometryType;
-    typedef Kratos::shared_ptr<GeometryType> GeometryPointerType;
+    typedef GeometryType* GeometryPointerType;
 
     ///@}
     ///@name  Enum's

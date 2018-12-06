@@ -164,7 +164,7 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(InterfaceObject::Constr
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(num_nodes); ++i) {
             auto it_node = nodes_begin + i;
-            (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceNode>(*(it_node));
+            (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceNode>((*it_node).get());
         }
     }
 
@@ -196,12 +196,12 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(InterfaceObject::Constr
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(num_elements); ++i) {
             auto it_elem = elements_begin + i;
-            (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>((*it_elem)->pGetGeometry());
+            (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>((*it_elem)->pGetGeometry().get());
         }
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(num_conditions); ++i) {
             auto it_cond = conditions_begin + i;
-            (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>((*it_cond)->pGetGeometry());
+            (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>((*it_cond)->pGetGeometry().get());
         }
     }
     else {

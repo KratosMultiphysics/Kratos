@@ -35,7 +35,7 @@ typedef std::size_t SizeType;
 
 typedef Node<3> NodeType;
 typedef Geometry<NodeType> GeometryType;
-typedef Kratos::shared_ptr<GeometryType> GeometryPointerType;
+typedef GeometryType* GeometryPointerType;
 typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
 

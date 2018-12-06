@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite
 
     const auto node_1(Kratos::make_shared<Node<3>>(1, coords));
 
-    Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceNode>(node_1));
+    Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceNode>(node_1.get()));
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(p_interface_obj->pGetBaseGeometry(),
         "Error: Base class function called!");
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSui
         Kratos::make_shared<Quadrilateral2D4<Node<3>>>(
             p_point1, p_point2, p_point3, p_point4));
 
-    Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceGeometryObject>(p_quad));
+    Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceGeometryObject>(p_quad.get()));
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(p_interface_obj->pGetBaseNode(),
         "Error: Base class function called!");
