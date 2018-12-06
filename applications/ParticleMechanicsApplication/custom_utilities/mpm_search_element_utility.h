@@ -25,10 +25,10 @@
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/binbased_fast_point_locator.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
-      template<std::size_t TDim>
       class MPMSearchElementUtility
       {
 
@@ -53,6 +53,7 @@ namespace Kratos
              * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
              *
              */
+            template<std::size_t TDim>
             static inline void SearchElement(
                   ModelPart& rBackgroundGridModelPart,
                   ModelPart& rMPMModelPart,

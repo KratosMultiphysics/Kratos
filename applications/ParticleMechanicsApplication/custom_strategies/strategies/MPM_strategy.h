@@ -542,7 +542,7 @@ public:
         const double Tolerance = 1.0e-5)
     {
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Search Element" <<std::endl;
-        MPMSearchElementUtility<TDim>::SearchElement(mr_grid_model_part, mr_mpm_model_part, MaxNumberOfResults, Tolerance);
+        MPMSearchElementUtility::SearchElement<TDim>(mr_grid_model_part, mr_mpm_model_part, MaxNumberOfResults, Tolerance);
     }
 
 
