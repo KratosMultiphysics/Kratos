@@ -129,6 +129,32 @@ void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::Point
     KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Add(Name, ThisComponent);
 }
 
+template<class TComponentType> typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 4> > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6> > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9> > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Element>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Condition>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
+
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
 
