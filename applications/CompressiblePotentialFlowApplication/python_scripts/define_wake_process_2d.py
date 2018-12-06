@@ -2,15 +2,17 @@ import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 
+
 def Factory(settings, Model):
-    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if(not isinstance(settings, KratosMultiphysics.Parameters)):
+        raise Exception(
+            "expected input shall be a Parameters object, encapsulating a json string")
 
     return DefineWakeProcess(Model, settings["Parameters"])
 
 
 class DefineWakeProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    def __init__(self, Model, settings):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
@@ -32,7 +34,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.wake_direction[0] = settings["wake_direction"][0].GetDouble()
         self.wake_direction[1] = settings["wake_direction"][1].GetDouble()
         self.wake_direction[2] = settings["wake_direction"][2].GetDouble()
-        dnorm = math.sqrt(self.wake_direction[0]**2 + self.wake_direction[1]**2 + self.wake_direction[2]**2)
+        dnorm = math.sqrt(
+            self.wake_direction[0]**2 + self.wake_direction[1]**2 + self.wake_direction[2]**2)
         self.wake_direction[0] /= dnorm
         self.wake_direction[1] /= dnorm
         self.wake_direction[2] /= dnorm
@@ -44,11 +47,14 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         self.epsilon = settings["epsilon"].GetDouble()
 
-        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
-        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
+        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString(
+        )]
+        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString(
+        )]
 
         self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
-        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart(
+            "trailing_edge_model_part")
 
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,
                                                                        self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -56,7 +62,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # Neigbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10
-        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part, AvgElemNum, AvgNodeNum)
+        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(
+            self.fluid_model_part, AvgElemNum, AvgNodeNum)
         # Find neighbours
         nodal_neighbour_search.Execute()
 
