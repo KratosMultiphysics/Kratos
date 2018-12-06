@@ -4,10 +4,6 @@ import sys
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-KratosMultiphysics.CheckRegisteredApplications("ConvectionDiffusionApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
@@ -22,7 +18,7 @@ def CreateSolver(main_model_part, custom_settings):
     return ConjugateHeatTransferSolver(main_model_part, custom_settings)
 
 class ConjugateHeatTransferSolver(PythonSolver):
-    
+
     def __init__(self, model, custom_settings):
 
         super(ConjugateHeatTransferSolver, self).__init__(model, custom_settings)
@@ -77,7 +73,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
             }
         }
         """)
-        
+
         ## Overwrite the default settings with user-provided parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
 
@@ -92,20 +88,20 @@ class ConjugateHeatTransferSolver(PythonSolver):
         import python_solvers_wrapper_convection_diffusion
         self.fluid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model, self.settings["fluid_domain_solver_settings"]["thermal_solver_settings"], "OpenMP")
         self.solid_thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model, self.settings["solid_domain_solver_settings"]["thermal_solver_settings"], "OpenMP")
-        
+
     def AddVariables(self):
         self.fluid_solver.AddVariables()
-        self.fluid_thermal_solver.AddVariables() 
-        
+        self.fluid_thermal_solver.AddVariables()
+
         #TODO: WHY ARE WE USING NODAL_PAUX?
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         self.fluid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
-        
+
         # Temporary container for un-relaxed temperature
         KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part,
                                                              self.fluid_thermal_solver.main_model_part)
-        
+
         self.solid_thermal_solver.AddVariables()
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
@@ -126,17 +122,17 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
         # Import the fluid domain in the fluid dynamics solver
         self.fluid_solver.ImportModelPart()
-        
+
         # In order to consider the buoyancy effects, the nodes in the fluid model part must
         # be shared with the nodes in the fluid thermal model part. To do that, we use the modeler
         # Save the convection diffusion settings
         convection_diffusion_settings = self.fluid_thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
-        
+
         # Here the fluid model part is cloned to be thermal model part so that the nodes are shared
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         if(self.domain_size == 2):
-            modeler.GenerateModelPart(self.fluid_solver.main_model_part, 
-                                      self.fluid_thermal_solver.main_model_part, 
+            modeler.GenerateModelPart(self.fluid_solver.main_model_part,
+                                      self.fluid_thermal_solver.main_model_part,
                                       "Element2D3N",
                                       "Condition2D2N")
         else:
@@ -148,7 +144,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
         # Set the saved convection diffusion settings to the new thermal model part
         self.fluid_thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
-        # Import the solid domain 
+        # Import the solid domain
         self.solid_thermal_solver.ImportModelPart()
 
     def AddDofs(self):
@@ -156,10 +152,10 @@ class ConjugateHeatTransferSolver(PythonSolver):
         (self.fluid_thermal_solver).AddDofs()
         (self.solid_thermal_solver).AddDofs()
 
-    def GetComputingModelPart(self):        
+    def GetComputingModelPart(self):
         return self.fluid_solver.GetComputingModelPart()
 
-    def ComputeDeltaTime(self):                
+    def ComputeDeltaTime(self):
         return self.fluid_solver._ComputeDeltaTime()
 
     def GetMinimumBufferSize(self):
@@ -195,14 +191,14 @@ class ConjugateHeatTransferSolver(PythonSolver):
     def AdvanceInTime(self, current_time):
         #NOTE: the cloning is done ONLY ONCE since the nodes are shared between the fluid and thermal solvers
         new_time = self.fluid_solver.AdvanceInTime(current_time)
-       
+
         # Do the time advance in the solid thermal solver
         self.solid_thermal_solver.main_model_part.CloneTimeStep(new_time)
         self.solid_thermal_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
 
         return new_time
 
-    def PrepareModelPart(self):  
+    def PrepareModelPart(self):
         self.fluid_solver.PrepareModelPart()
         # TODO: CHECK THIS (if we switch the order in thermal solvers the solver breaks)
         self.solid_thermal_solver.PrepareModelPart()
@@ -243,7 +239,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
                                                                                    KratosConvDiff.AUX_FLUX,
                                                                                    redistribution_tolerance,
                                                                                    redistribution_max_iteration)
-            
+
             self.mapper.StructureToFluid_ScalarMap(KratosConvDiff.AUX_FLUX,
                                                    KratosMultiphysics.FACE_HEAT_FLUX,
                                                    False) # Sign is not kept (inverted) when mapping
@@ -263,7 +259,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
                 # Accumulate the squared nodal residal
                 temperature_difference += (old_temperature - new_temperature)**2
-                
+
                 # Update the Dirichlet side temperature values by performing a relaxation
                 interpolated_temperature = (1.0-relaxation_factor)*old_temperature + relaxation_factor*new_temperature
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, interpolated_temperature )
@@ -301,7 +297,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
             fluid_int_name = self.settings["coupling_settings"]["fluid_interfaces_list"][i_int].GetString()
             for node in self.model.GetModelPart(fluid_int_name).Nodes:
                 node.Set(KratosMultiphysics.INTERFACE, True)
-        
+
         for i_int in range(self.settings["coupling_settings"]["solid_interfaces_list"].size()):
             solid_int_name = self.settings["coupling_settings"]["solid_interfaces_list"][i_int].GetString()
             for node in self.model.GetModelPart(solid_int_name).Nodes:
@@ -311,7 +307,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
         mapper_max_iteration = 50
         mapper_search_radius_factor = 1.0
         self.mapper = ncosm.NonConformant_OneSideMap(self.fluid_solver.GetComputingModelPart(),
-                                                     self.solid_thermal_solver.GetComputingModelPart(), 
-                                                     mapper_search_radius_factor, 
+                                                     self.solid_thermal_solver.GetComputingModelPart(),
+                                                     mapper_search_radius_factor,
                                                      mapper_max_iteration,
                                                      mapper_tolerance)
