@@ -27,7 +27,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/serializer.h"
+//#include "includes/serializer.h"
 
 
 namespace Kratos
@@ -55,6 +55,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
+class Serializer;
 class Flags
 {
 public:
@@ -432,17 +433,10 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        rSerializer.save("IsDefined",  mIsDefined);
-        rSerializer.save("Flags",  mFlags);
-    }
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load(Serializer& rSerializer)
-    {
-        rSerializer.load("IsDefined",  mIsDefined);
-        rSerializer.load("Flags",  mFlags);
-    }
+    virtual void load(Serializer& rSerializer);
+    
     ///@}
     ///@name Private  Access
     ///@{
