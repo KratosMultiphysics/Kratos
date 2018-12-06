@@ -156,7 +156,7 @@ public:
      * @brief This method returns the mapping-matrix
      * @return The mapping-matrix
      */
-    virtual TMappingMatrixType& GetMappingMatrix() = 0;
+    virtual TMappingMatrixType* pGetMappingMatrix() = 0;
 
     ///@}
     ///@name Input and output
