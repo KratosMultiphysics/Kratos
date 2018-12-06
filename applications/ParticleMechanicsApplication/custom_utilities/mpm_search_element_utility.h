@@ -40,7 +40,7 @@ namespace Kratos
 
             typedef unsigned int IndexType;
 
-            typedef unsigned int SizeType;
+            typedef std::size_t SizeType;
 
             /**
              * @brief Search element connectivity for each particle
