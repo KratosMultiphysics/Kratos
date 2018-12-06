@@ -440,24 +440,24 @@ private:
 
 }; // Class KratosComponents
 
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 4> > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6> > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9> > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+extern template class KratosComponents<Variable<bool> >;
+extern template class KratosComponents<Variable<int> >;
+extern template class KratosComponents<Variable<unsigned int> >;
+extern template class KratosComponents<Variable<double> >;
+extern template class KratosComponents<Variable<array_1d<double, 3> > >;
+extern template class KratosComponents<Variable<array_1d<double, 4> > >;
+extern template class KratosComponents<Variable<array_1d<double, 6> > >;
+extern template class KratosComponents<Variable<array_1d<double, 9> > >;
+extern template class KratosComponents<Variable<Quaternion<double> > >;
+extern template class KratosComponents<Variable<Vector> >;
+extern template class KratosComponents<Variable<Matrix> >;
+extern template class KratosComponents<Variable<std::string> >;
+extern template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+extern template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
+extern template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
+extern template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
+extern template class KratosComponents<Variable<Flags> >;
+extern template class KratosComponents<Flags>;
 
 ///@name Input and output
 ///@{
