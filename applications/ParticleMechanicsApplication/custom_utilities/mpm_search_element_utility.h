@@ -11,8 +11,8 @@
 //
 
 
-#ifndef KRATOS_MPM_SEARCH_BACKGROUND_ELEMENT_UTILITY
-#define KRATOS_MPM_SEARCH_BACKGROUND_ELEMENT_UTILITY
+#ifndef KRATOS_MPM_SEARCH_ELEMENT_UTILITY
+#define KRATOS_MPM_SEARCH_ELEMENT_UTILITY
 
 // System includes
 #include <cmath>
@@ -28,8 +28,8 @@
 
 namespace Kratos
 {
-      template<unsigned int TDim>
-      class MPMSearchBackgroundElementUtility
+      template<std::size_t TDim>
+      class MPMSearchElementUtility
       {
 
       public:
@@ -54,15 +54,15 @@ namespace Kratos
              *
              */
             static inline void SearchElement(
-                  ModelPart& grid_model_part,
-                  ModelPart& mpm_model_part,
+                  ModelPart& rBackgroundGridModelPart,
+                  ModelPart& rMPMModelPart,
                   const std::size_t MaxNumberOfResults = 1000,
                   const double Tolerance = 1.0e-5)
             {
                   // Reset elements to inactive
                   #pragma omp parallel for
-                  for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
-                        auto element_itr = grid_model_part.Elements().begin() + i;
+                  for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i){
+                        auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
                         auto& rGeom = element_itr->GetGeometry();
                         element_itr->Reset(ACTIVE);
 
@@ -77,15 +77,15 @@ namespace Kratos
 
                   #pragma omp parallel
                   {
-                        BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+                        BinBasedFastPointLocator<TDim> SearchStructure(rBackgroundGridModelPart);
                         SearchStructure.UpdateSearchDatabase();
 
                         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
                         #pragma omp for
-                        for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
+                        for(int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i){
 
-                              auto element_itr = mpm_model_part.Elements().begin() + i;
+                              auto element_itr = rMPMModelPart.Elements().begin() + i;
 
                               const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
                               typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
@@ -116,8 +116,8 @@ namespace Kratos
                   }
             }
 
-      }; // end Class MPMSearchBackgroundElementUtility
+      }; // end Class MPMSearchElementUtility
 
 } // end namespace Kratos
 
-#endif // KRATOS_MPM_SEARCH_BACKGROUND_ELEMENT_UTILITY
+#endif // KRATOS_MPM_SEARCH_ELEMENT_UTILITY
