@@ -582,7 +582,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
             CompleteNodalSigma[nnode][1] = ShearStressOfElement[1] - rGeom[nnode].FastGetSolutionStepValue(PRESSURE);
             CompleteNodalSigma[nnode][2] = ShearStressOfElement[2]; // no pressure in shear component
 #ifdef KRATOS_DEBUG
-            if ( abs( ShearStressOfElement[0] ) > 0.001 || abs( ShearStressOfElement[1] ) > 0.001 ){
+            if ( std::abs( ShearStressOfElement[0] ) > 0.001 || std::abs( ShearStressOfElement[1] ) > 0.001 ){
                 KRATOS_WARNING("Behr Contribution in SLIP condition") << "The normal components of the viscous stress are still present" << std::endl;
             }
 #endif
@@ -597,7 +597,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
             CompleteNodalSigma[nnode][4] = ShearStressOfElement[4];  // no pressure in shear component
             CompleteNodalSigma[nnode][5] = ShearStressOfElement[5];  // no pressure in shear component
 #ifdef KRATOS_DEBUG
-            if ( abs( ShearStressOfElement[0] ) > 0.001 || abs( ShearStressOfElement[1] ) > 0.001 || abs( ShearStressOfElement[2] ) > 0.001 ){
+            if ( std::abs( ShearStressOfElement[0] ) > 0.001 || std::abs( ShearStressOfElement[1] ) > 0.001 || std::abs( ShearStressOfElement[2] ) > 0.001 ){
                 KRATOS_WARNING("Behr Contribution in SLIP condition") << "The normal components of the viscous stress are still present" << std::endl;
             }
 #endif
