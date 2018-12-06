@@ -392,20 +392,19 @@ class SearchBaseProcess(KM.Process):
         key -- The key to identify the current pair
         """
 
-        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : "", "echo_level" : 0}""")
+        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
         search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
         search_parameters.AddValue("check_gap", self.settings["search_parameters"]["check_gap"])
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
         search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
+        search_parameters.AddValue("debug_mode", self.settings["search_parameters"]["debug_mode"])
         search_parameters["condition_name"].SetString(self._get_condition_name())
         search_parameters["final_string"].SetString(self._get_final_string())
         self.__assume_master_slave(key)
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
         search_parameters["id_name"].SetString(key)
-        if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
-            search_parameters["echo_level"].SetInt(1)
 
         # We compute the number of nodes of the geometry
         number_nodes, number_nodes_master = self._compute_number_nodes()

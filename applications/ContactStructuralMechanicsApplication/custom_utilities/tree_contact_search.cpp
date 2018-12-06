@@ -47,7 +47,7 @@ TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::TreeContactSearch(
         "dynamic_search"                       : false,
         "predefined_master_slave"              : true,
         "id_name"                              : "",
-        "echo_level"                           : 0
+        "debug_mode"                           : false
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -1494,7 +1494,7 @@ inline void TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
     ConditionsArrayType& r_conditions_array = rContactModelPart.Conditions();
 
     // In case of debug mode
-    if (mThisParameters["echo_level"].GetInt() > 0) {
+    if (mThisParameters["debug_mode"].GetBool()) {
         std::filebuf debug_buffer;
         debug_buffer.open("original_conditions_normal_debug.out",std::ios::out);
         std::ostream os(&debug_buffer);
@@ -1524,7 +1524,7 @@ inline void TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
     }
 
     // In case of debug mode
-    if (mThisParameters["echo_level"].GetInt() > 0) {
+    if (mThisParameters["debug_mode"].GetBool()) {
         std::filebuf debug_buffer;
         debug_buffer.open("created_conditions_normal_debug.out",std::ios::out);
         std::ostream os(&debug_buffer);
