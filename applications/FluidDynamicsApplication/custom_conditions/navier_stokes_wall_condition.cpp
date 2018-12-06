@@ -611,7 +611,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
     // Loop all nodal contributions
     for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
 
-        NodalEntriesRHS[nnode] = zero_vector<double>(TNumNodes);
+        NodalEntriesRHS[nnode] = ZeroVector(TNumNodes);
         const array_1d<double, TNumNodes> N = rDataStruct.N;
         const double wGauss = rDataStruct.wGauss;
 
