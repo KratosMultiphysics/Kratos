@@ -231,6 +231,34 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
