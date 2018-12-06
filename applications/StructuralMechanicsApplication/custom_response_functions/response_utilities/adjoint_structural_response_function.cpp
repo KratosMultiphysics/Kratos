@@ -59,82 +59,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStructuralResponseFunction::CalculateGradient(const Element& rAdjointElement,
-                                   const Matrix& rResidualGradient,
-                                   Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY;
-
-        if (rResponseGradient.size() != rResidualGradient.size1())
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-
-        rResponseGradient.clear();
-
-        KRATOS_CATCH("");
-    }
-
     void AdjointStructuralResponseFunction::CalculateGradient(const Condition& rAdjointCondition,
-                                   const Matrix& rResidualGradient,
-                                   Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY;
-
-        if (rResponseGradient.size() != rResidualGradient.size1())
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-
-        rResponseGradient.clear();
-
-        KRATOS_CATCH("");
-    }
-
-    void AdjointStructuralResponseFunction::CalculateFirstDerivativesGradient(const Element& rAdjointElement,
-                                   const Matrix& rResidualGradient,
-                                   Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY;
-
-        if (rResponseGradient.size() != rResidualGradient.size1())
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-
-        rResponseGradient.clear();
-
-        KRATOS_CATCH("");
-    }
-
-    void AdjointStructuralResponseFunction::CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
-                                   const Matrix& rResidualGradient,
-                                   Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY;
-
-        if (rResponseGradient.size() != rResidualGradient.size1())
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-
-        rResponseGradient.clear();
-
-        KRATOS_CATCH("");
-    }
-
-    void AdjointStructuralResponseFunction::CalculateSecondDerivativesGradient(const Element& rAdjointElement,
-                                   const Matrix& rResidualGradient,
-                                   Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo)
-    {
-        KRATOS_TRY;
-
-        if (rResponseGradient.size() != rResidualGradient.size1())
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-
-        rResponseGradient.clear();
-
-        KRATOS_CATCH("");
-    }
-
-    void AdjointStructuralResponseFunction::CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo)
@@ -151,7 +76,7 @@ namespace Kratos
 
     double AdjointStructuralResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
-        return 0.0;
+        KRATOS_ERROR << "CalculateValue needs to be implemented by the derived class.\n";
     }
 };
 

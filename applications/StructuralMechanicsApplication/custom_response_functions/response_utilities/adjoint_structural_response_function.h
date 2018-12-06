@@ -71,43 +71,14 @@ public:
     ///@name Operations
     ///@{
 
-
     void Initialize() override;
-
-
-    void CalculateGradient(const Element& rAdjointElement,
-                                   const Matrix& rResidualGradient,
-                                   Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo) override;
 
     void CalculateGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo) override;
 
-    void CalculateFirstDerivativesGradient(const Element& rAdjointElement,
-                                                   const Matrix& rResidualGradient,
-                                                   Vector& rResponseGradient,
-                                                   const ProcessInfo& rProcessInfo) override;
-
-    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
-                                                   const Matrix& rResidualGradient,
-                                                   Vector& rResponseGradient,
-                                                   const ProcessInfo& rProcessInfo) override;
-
-    void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
-                                                    const Matrix& rResidualGradient,
-                                                    Vector& rResponseGradient,
-                                                    const ProcessInfo& rProcessInfo) override;
-
-    void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
-                                                   const Matrix& rResidualGradient,
-                                                   Vector& rResponseGradient,
-                                                   const ProcessInfo& rProcessInfo) override;
-
-
     double CalculateValue(ModelPart& rModelPart) override;
-
 
     ///@}
 
