@@ -19,6 +19,7 @@
 
 // Project includes
 #include "nearest_neighbor_mapper.h"
+#include "custom_utilities/mapping_matrix_utilities.h"
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_typedefs.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -130,19 +131,16 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos
                                                   p_ref_interface_info,
                                                   interface_object_construction_type_origin);
 
-    KRATOS_ERROR_IF_NOT(mpMappingMatrixBuilder) << "mpMappingMatrixBuilder is a nullptr!" << std::endl;
-
-    mpMappingMatrixBuilder->BuildMappingMatrix(mpInterfaceVectorContainerOrigin,
-                                                  mpInterfaceVectorContainerDestination,
-                                                  *mpMapperLocalSystems);
+    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+        mpMappingMatrix,
+        mpInterfaceVectorContainerOrigin->pGetVector(),
+        mpInterfaceVectorContainerDestination->pGetVector(),
+        mpInterfaceVectorContainerOrigin->GetModelPart(),
+        mpInterfaceVectorContainerDestination->GetModelPart(),
+        *mpMapperLocalSystems,
+        mMapperSettings["echo_level"].GetInt());
 
     // if (mEchoLevel > 0) PrintPairingInfo();
-}
-
-template<class TSparseSpace, class TDenseSpace>
-void NearestNeighborMapper<TSparseSpace, TDenseSpace>::InitializeMappingMatrixBuilder()
-{
-    mpMappingMatrixBuilder = Kratos::make_unique<MappingMatrixBuilder<TSparseSpace, TDenseSpace>>();
 }
 
 template<>
@@ -176,7 +174,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::MapInternal(
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
     TSparseSpace::Mult(
-        mpMappingMatrixBuilder->GetMappingMatrix(),
+        *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
@@ -192,7 +190,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
     TSparseSpace::TransposeMult(
-        mpMappingMatrixBuilder->GetMappingMatrix(),
+        *mpMappingMatrix,
         mpInterfaceVectorContainerDestination->GetVector(),
         mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
@@ -217,7 +215,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::MapInternal(
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_x_origin, MappingOptions);
 
     TSparseSpace::Mult(
-        mpMappingMatrixBuilder->GetMappingMatrix(),
+        *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
@@ -227,7 +225,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::MapInternal(
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_y_origin, MappingOptions);
 
     TSparseSpace::Mult(
-        mpMappingMatrixBuilder->GetMappingMatrix(),
+        *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
@@ -237,7 +235,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::MapInternal(
     mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(var_z_origin, MappingOptions);
 
     TSparseSpace::Mult(
-        mpMappingMatrixBuilder->GetMappingMatrix(),
+        *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
@@ -262,7 +260,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(var_x_destination, MappingOptions);
 
     TSparseSpace::TransposeMult(
-        mpMappingMatrixBuilder->GetMappingMatrix(),
+        *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
 
@@ -272,7 +270,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(var_y_destination, MappingOptions);
 
     TSparseSpace::TransposeMult(
-        mpMappingMatrixBuilder->GetMappingMatrix(),
+        *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
 
@@ -282,7 +280,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(var_z_destination, MappingOptions);
 
     TSparseSpace::TransposeMult(
-        mpMappingMatrixBuilder->GetMappingMatrix(),
+        *mpMappingMatrix,
         mpInterfaceVectorContainerOrigin->GetVector(),
         mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
 

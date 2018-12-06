@@ -22,8 +22,8 @@
 
 // Project includes
 #include "mapper.h"
-#include "custom_utilities/mapping_matrix_builder.h"
 #include "custom_searching/interface_communicator.h"
+#include "custom_utilities/interface_vector_container.h"
 #include "custom_utilities/interface_preprocessor.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -169,18 +169,18 @@ public:
     typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
     typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
-    typedef MappingMatrixBuilder<TSparseSpace, TDenseSpace> MappingMatrixBuilderType;
-    typedef Kratos::unique_ptr<MappingMatrixBuilderType> MappingMatrixBuilderPointerType;
-    typedef typename MappingMatrixBuilderType::MapperLocalSystemPointer MapperLocalSystemPointer;
-    typedef typename MappingMatrixBuilderType::MapperLocalSystemPointerVector MapperLocalSystemPointerVector;
-    typedef typename MappingMatrixBuilderType::MapperLocalSystemPointerVectorPointer MapperLocalSystemPointerVectorPointer;
-    typedef typename MappingMatrixBuilderType::InterfaceVectorContainerType InterfaceVectorContainerType;
-    typedef typename MappingMatrixBuilderType::InterfaceVectorContainerPointerType InterfaceVectorContainerPointerType;
+    typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
+    typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
+    typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
+
+    typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
+    typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
 
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
     typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
+    typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
 
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVariableType;
 
@@ -208,8 +208,6 @@ public:
 
         mpInterfacePreprocessor = Kratos::make_unique<InterfacePreprocessor>(mrModelPartDestination,
                                                                              mpMapperLocalSystems);
-        InitializeMappingMatrixBuilder();
-
         ValidateInput(mMapperSettings);
         InitializeInterfaceCommunicator();
 
@@ -307,9 +305,9 @@ public:
     ///@name Access
     ///@{
 
-    TMappingMatrixType& GetMappingMatrix() override
+    TMappingMatrixType* pGetMappingMatrix() override
     {
-        return mpMappingMatrixBuilder->GetMappingMatrix();
+        return mpMappingMatrix.get();
     }
 
     ///@}
@@ -348,7 +346,7 @@ private:
 
     MapperUniquePointerType mpInverseMapper = nullptr;
 
-    MappingMatrixBuilderPointerType mpMappingMatrixBuilder;
+    TMappingMatrixUniquePointerType mpMappingMatrix;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
     InterfaceCommunicatorPointerType mpIntefaceCommunicator;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
@@ -373,8 +371,6 @@ private:
     }
 
     void InitializeInterfaceCommunicator();
-
-    void InitializeMappingMatrixBuilder();
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 

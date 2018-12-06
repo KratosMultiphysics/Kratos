@@ -19,22 +19,25 @@
 // External includes
 
 // Project includes
-#include "mapping_matrix_builder.h"
+#include "mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
 namespace Kratos
 {
+namespace MappingMatrixUtilities
+{
+
+namespace
+{
 typedef typename MapperDefinitions::MPISparseSpaceType SparseSpaceType;
 typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
-
-typedef MappingMatrixBuilder<SparseSpaceType, DenseSpaceType> BuilderType;
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-void ConstructRowColIdSets(BuilderType::MapperLocalSystemPointerVector& rMapperLocalSystems,
+void ConstructRowColIdSets(std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
                            std::set<int>& rRowEquationIds,
                            std::set<int>& rColEquationIds)
 {
@@ -50,7 +53,7 @@ void ConstructRowColIdSets(BuilderType::MapperLocalSystemPointerVector& rMapperL
 }
 
 void ConstructMatrixStructure(Epetra_FECrsGraph& rGraph,
-                              BuilderType::MapperLocalSystemPointerVector& rMapperLocalSystems)
+                              std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
@@ -71,8 +74,8 @@ void ConstructMatrixStructure(Epetra_FECrsGraph& rGraph,
     }
 }
 
-void BuildMatrix(BuilderType::TMappingMatrixUniquePointerType& rpMdo,
-                       BuilderType::MapperLocalSystemPointerVector& rMapperLocalSystems)
+void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo,
+                 std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
     MatrixType local_mapping_matrix;
     EquationIdVectorType origin_ids;
@@ -106,25 +109,26 @@ void BuildMatrix(BuilderType::TMappingMatrixUniquePointerType& rpMdo,
     }
 }
 
-/***********************************************************************************/
-/* PUBLIC Methods */
-/***********************************************************************************/
-template<>
-BuilderType::MappingMatrixBuilder()
-{
-    KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
-        << "Using a non-distributed Space!" << std::endl;
 }
 
 template<>
-void BuilderType::BuildMappingMatrix(
-        const InterfaceVectorContainerPointerType& rpVectorContainerOrigin,
-        const InterfaceVectorContainerPointerType& rpVectorContainerDestination,
-        MapperLocalSystemPointerVector& rMapperLocalSystems)
+void BuildMappingMatrix<SparseSpaceType, DenseSpaceType>(
+    Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMappingMatrix,
+    Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
+    Kratos::unique_ptr<typename SparseSpaceType::VectorType>& rpInterfaceVectorDestination,
+    const ModelPart& rModelPartOrigin,
+    const ModelPart& rModelPartDestination,
+    std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
+    const int EchoLevel)
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
+        << "Using a non-distributed Space!" << std::endl;
+
     // ***** Creating vectors with information abt which IDs are local *****
-    const auto& r_local_mesh_origin = rpVectorContainerOrigin->GetModelPart().GetCommunicator().LocalMesh();
-    const auto& r_local_mesh_destination = rpVectorContainerDestination->GetModelPart().GetCommunicator().LocalMesh();
+    const auto& r_local_mesh_origin = rModelPartOrigin.GetCommunicator().LocalMesh();
+    const auto& r_local_mesh_destination = rModelPartDestination.GetCommunicator().LocalMesh();
 
     const int num_local_nodes_orig = r_local_mesh_origin.NumberOfNodes();
     const int num_local_nodes_dest = r_local_mesh_destination.NumberOfNodes();
@@ -204,8 +208,8 @@ void BuilderType::BuildMappingMatrix(
     epetra_graph.OptimizeStorage(); // TODO is an extra-call needed?
 
     // ***** Creating the MappingMatrix *****
-    TMappingMatrixUniquePointerType p_Mdo =
-        Kratos::make_unique<TMappingMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
+    Kratos::unique_ptr<typename SparseSpaceType::MatrixType> p_Mdo =
+        Kratos::make_unique<typename SparseSpaceType::MatrixType>(Epetra_DataAccess::Copy, epetra_graph);
 
     BuildMatrix(p_Mdo, rMapperLocalSystems);
 
@@ -215,23 +219,23 @@ void BuilderType::BuildMappingMatrix(
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.GlobalAssemble. "
         << "Error code: " << ierr << std::endl;
 
-    if (mEchoLevel > 2) {
+    if (EchoLevel > 2) {
         SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix.mm", *p_Mdo, false);
     }
 
-    mpMappingMatrix.swap(p_Mdo);
+    rpMappingMatrix.swap(p_Mdo);
 
     // ***** Creating the SystemVectors *****
-    TSystemVectorUniquePointerType p_new_vector_destination =
-        Kratos::make_unique<TSystemVectorType>(epetra_range_map);
-    TSystemVectorUniquePointerType p_new_vector_origin =
-        Kratos::make_unique<TSystemVectorType>(epetra_domain_map);
-    rpVectorContainerDestination->pGetVector().swap(p_new_vector_destination);
-    rpVectorContainerOrigin->pGetVector().swap(p_new_vector_origin);
+    Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector_destination =
+        Kratos::make_unique<typename SparseSpaceType::VectorType>(epetra_range_map);
+    Kratos::unique_ptr<typename SparseSpaceType::VectorType> p_new_vector_origin =
+        Kratos::make_unique<typename SparseSpaceType::VectorType>(epetra_domain_map);
+    rpInterfaceVectorDestination.swap(p_new_vector_destination);
+    rpInterfaceVectorOrigin.swap(p_new_vector_origin);
+
+    KRATOS_CATCH("")
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Class template instantiation
-template class MappingMatrixBuilder< SparseSpaceType, DenseSpaceType >;
+}  // namespace MappinMatrixUtilities.
 
 }  // namespace Kratos.
