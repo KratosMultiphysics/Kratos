@@ -1493,6 +1493,23 @@ inline void TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
     // Iterate in the conditions and create the new ones
     ConditionsArrayType& r_conditions_array = rContactModelPart.Conditions();
 
+    // In case of debug mode
+    if (mThisParameters["echo_level"].GetInt() > 0) {
+        std::filebuf debug_buffer;
+        debug_buffer.open("original_conditions_normal_debug.out",std::ios::out);
+        std::ostream os(&debug_buffer);
+        for (auto& cond : r_conditions_array) {
+            const array_1d<double, 3>& r_normal = cond.GetValue(NORMAL);
+            os << "Condition " << cond.Id() << "\tNodes ID:";
+            for (auto& r_node : cond.GetGeometry()) {
+                os << "\t" << r_node.Id();
+            }
+            os << "\tNORMAL: " << r_normal[0] << "\t" << r_normal[1] << "\t" << r_normal[2] <<"\n";
+        }
+        debug_buffer.close();
+    }
+
+    // Actually creating the new conditions
     for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
         auto it_cond = r_conditions_array.begin() + i;
         if (it_cond->Is(SLAVE) == !mInvertedSearch) {
@@ -1509,7 +1526,7 @@ inline void TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
     // In case of debug mode
     if (mThisParameters["echo_level"].GetInt() > 0) {
         std::filebuf debug_buffer;
-        debug_buffer.open("normal_debug.out",std::ios::out);
+        debug_buffer.open("created_conditions_normal_debug.out",std::ios::out);
         std::ostream os(&debug_buffer);
         for (auto& cond : rComputingModelPart.Conditions()) {
             const array_1d<double, 3>& r_normal = cond.GetValue(NORMAL);
