@@ -1,0 +1,108 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "naca0012",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE","TEMPERATURE","UPPER_SURFACE","LOWER_SURFACE","DISTANCE","UPPER_WAKE","LOWER_WAKE","POTENTIAL_JUMP","AIRFOIL","TRAILING_EDGE","KUTTA","DEACTIVATED_WAKE","ZERO_VELOCITY_CONDITION"],
+            "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","THICKNESS","TRAILING_EDGE","ELEMENTAL_DISTANCES","KUTTA","ALL_TRAILING_EDGE","ZERO_VELOCITY_CONDITION","DISTANCE","DECOUPLED_TRAILING_EDGE_ELEMENT","TRAILING_EDGE_ELEMENT"]
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"            : "Potential_flow",
+        "model_import_settings"  : {
+            "input_type"     : "mdpa",
+            "input_filename" : "naca0012_Case_5"
+        },
+        "element_replace_settings": {
+                    "element_name":"IncompressiblePotentialFlowElement2D3N",
+                    "condition_name": "PotentialWallCondition2D2N"
+        },
+        "maximum_iterations"     : 10,
+        "echo_level"             : 0,
+        "linear_solver_settings"  : {
+                "solver_type"             : "Super_LU",
+                "verbosity"               : 10
+        },
+        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_UpperSurface","Body2D_LowerSurface"],
+        "no_skin_parts"          : []
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "apply_far_field_process",
+        "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+        "process_name"  : "FarFieldProcess",
+        "Parameters"    : {
+            "mesh_id"           : 0,
+            "model_part_name"   : "PotentialWallCondition2D_Far_field_Auto1",
+            "inlet_phi"         : 1.0,
+            "velocity_infinity" : [10.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "define_wake_process_2d",
+        "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+        "process_name"  : "DefineWakeProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Wake2D_Wake_Auto1",
+            "upper_surface_model_part_name" : "Body2D_UpperSurface",
+            "lower_surface_model_part_name" : "Body2D_LowerSurface",
+            "wake_direction"       : [1.0,0.0,0.0],
+            "epsilon"         : 1e-9
+        }
+    },{
+        "python_module" : "compute_lift_process",
+        "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+        "process_name"  : "ComputeLiftProcess3D",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "MainModelPart",
+            "upper_surface_model_part_name" : "Body2D_UpperSurface",
+            "lower_surface_model_part_name" : "Body2D_LowerSurface",
+            "velocity_infinity" : [10.0,0.0,0.0]
+        }
+    },{
+        "python_module" : "placeholder_process",
+        "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+        "process_name"  : "PlaceholderProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Body2D_UpperSurface"
+        }
+    },{
+        "python_module" : "placeholder_process",
+        "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+        "process_name"  : "PlaceholderProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Body2D_LowerSurface"
+        }
+    }]
+}
