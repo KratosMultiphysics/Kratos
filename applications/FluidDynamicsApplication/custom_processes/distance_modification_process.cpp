@@ -178,13 +178,14 @@ void DistanceModificationProcess::ModifyDistance() {
         for (int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
         {
             auto nodes_begin = r_nodes.begin() + partition_vec[i_chunk];
-            auto nodes_end = r_nodes.begin() + partition_vec[i_chunk + 1];
+            const int chunk_end = partition_vec[i_chunk + 1] < r_nodes.size() ? partition_vec[i_chunk + 1] : r_nodes.size();
+            auto nodes_end = r_nodes.begin() + chunk_end;
 
             // Auxiliar chunk arrays
             std::vector<unsigned int> aux_modified_distances_ids;
             std::vector<double> aux_modified_distance_values;
 
-            for (auto it_node = nodes_begin; it_node != nodes_end; ++it_node) {
+            for (auto it_node = nodes_begin; it_node < nodes_end; ++it_node) {
                 const double h = it_node->FastGetSolutionStepValue(NODAL_H);
                 const double tol_d = mDistanceThreshold*h;
                 double &d = it_node->FastGetSolutionStepValue(DISTANCE);
@@ -258,13 +259,14 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
         for (int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
         {
             auto elems_begin = r_elems.begin() + partition_vec[i_chunk];
-            auto elems_end = r_elems.begin() + partition_vec[i_chunk + 1];
+            const int chunk_end = partition_vec[i_chunk + 1] < r_elems.size() ? partition_vec[i_chunk + 1] : r_elems.size();
+            auto elems_end = r_elems.begin() + chunk_end;
 
             // Auxiliar chunk arrays
             std::vector<unsigned int> aux_modified_distances_ids;
             std::vector<Vector> aux_modified_elemental_distances;
 
-            for (auto it_elem = elems_begin; it_elem != elems_end; ++it_elem){
+            for (auto it_elem = elems_begin; it_elem < elems_end; ++it_elem){
                 // Compute the distance tolerance
                 const double tol_d = mDistanceThreshold * (it_elem->GetGeometry()).Length();
 
