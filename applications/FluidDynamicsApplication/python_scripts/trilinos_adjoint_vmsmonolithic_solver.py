@@ -11,9 +11,6 @@ import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 
-## Checks that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 from adjoint_vmsmonolithic_solver import AdjointVMSMonolithicSolver
 import trilinos_import_model_part_utility
 

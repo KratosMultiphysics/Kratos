@@ -3,8 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics as kratoscore
 import KratosMultiphysics.IncompressibleFluidApplication as incompressibleapp
 import KratosMultiphysics.FluidDynamicsApplication as cfd
-# Check that KratosMultiphysics was imported in the main script
-kratoscore.CheckForPreviousImport()
 
 
 def AddVariables(model_part, settings=None):
@@ -35,16 +33,16 @@ def AddDofs(model_part, settings=None):
     print("dofs for the vms monolithic solver added correctly")
 
 def CreateSolver(model_part, settings):
-    fluid_solver = StokesSolver(model_part, settings) 
+    fluid_solver = StokesSolver(model_part, settings)
     return fluid_solver
 
 class StokesSolver:
-    
-    def __init__(self, model_part, settings): 
+
+    def __init__(self, model_part, settings):
 
         self.model_part = model_part
-               
-        #note that all settingsuration parameters MUST be passed. 
+
+        #note that all settingsuration parameters MUST be passed.
         self.domain_size = settings.domain_size
         self.rel_vel_tol = settings.vel_tolerance
         self.abs_vel_tol = settings.abs_vel_tolerance
@@ -55,21 +53,21 @@ class StokesSolver:
         self.echo_level = settings.echo_level
         self.compute_reactions = settings.compute_reactions
         self.reform_dofs_at_each_step = settings.reform_dofs_at_each_step
-        
+
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(settings.linear_solver_settings)
-        
+
         self.bdf_process = kratoscore.ComputeBDFCoefficientsProcess(model_part,2)
-        
+
         self.conv_criteria = incompressibleapp.VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
-        
+
         (self.conv_criteria).SetEchoLevel(self.echo_level)
-            
-        self.time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme() 
-        
+
+        self.time_scheme = kratoscore.ResidualBasedIncrementalUpdateStaticScheme()
+
         builder_and_solver = kratoscore.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        
+
         move_mesh_flag = False #user should NOT configure this
         self.fluid_solver = kratoscore.ResidualBasedNewtonRaphsonStrategy(
             self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
@@ -84,7 +82,7 @@ class StokesSolver:
     #
     def Initialize(self):
         print ("Initialization stokes solver finished")
-    
+
     def Solve(self):
         self.bdf_process.Execute()
         self.fluid_solver.Solve()
@@ -94,7 +92,7 @@ class StokesSolver:
 
     def Clear(self):
         self.fluid_solver.Clear()
-        
+
     def Check(self):
         self.fluid_solver.Check()
 
