@@ -1505,6 +1505,22 @@ inline void TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
             }
         }
     }
+
+    // In case of debug mode
+    if (mThisParameters["echo_level"].GetInt() > 0) {
+        std::filebuf debug_buffer;
+        debug_buffer.open("normal_debug.out",std::ios::out);
+        std::ostream os(&debug_buffer);
+        for (auto& cond : rComputingModelPart.Conditions()) {
+            const array_1d<double, 3>& r_normal = cond.GetValue(NORMAL);
+            os << "Condition " << cond.Id() << "\tNodes ID:";
+            for (auto& r_node : cond.GetGeometry()) {
+                os << "\t" << r_node.Id();
+            }
+            os << "\tNORMAL: " << r_normal[0] << "\t" << r_normal[1] << "\t" << r_normal[2] <<"\n";
+        }
+        debug_buffer.close();
+    }
 }
 
 /***********************************************************************************/
