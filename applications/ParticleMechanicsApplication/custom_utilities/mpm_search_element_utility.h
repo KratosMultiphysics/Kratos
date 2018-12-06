@@ -106,7 +106,7 @@ namespace Kratos
                                           rGeom[i].Set(ACTIVE);
                               }
                               else{
-                                    KRATOS_INFO("MPM_Strategy.SearchElement") << "WARNING: Search Element for Particle " << element_itr->Id()
+                                    KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Particle " << element_itr->Id()
                                           << " is failed. Geometry is cleared." << std::endl;
 
                                     element_itr->GetGeometry().clear();
