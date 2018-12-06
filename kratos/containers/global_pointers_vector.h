@@ -184,6 +184,8 @@ namespace Kratos
 
         void save(Serializer& rSerializer) const
         {
+          if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
+          { 
             std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
 
             std::string data;
@@ -195,15 +197,21 @@ namespace Kratos
 
             rSerializer.save("Size", this->size());
             rSerializer.save("Data", data);
-
-            // the following version works but it should be less optimized than the version above
-            // rSerializer.save("Size", this->size());
-            // for(const auto& item : *this)
-            //     rSerializer.save("Gp", item);
+          }
+          else //SERIALIZING THE POINTER CONTENT TOO
+          {
+            rSerializer.save("Size", this->size());
+            for(const auto& item : *this)
+                rSerializer.save("Gp", item);          
+          }
         }
+
+
 
         void load(Serializer& rSerializer)
         {
+          if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
+          {
             std::size_t pointer_size = sizeof(GlobalPointer<TDataType> );
 
             std::size_t size;
@@ -218,18 +226,21 @@ namespace Kratos
                 GlobalPointer<TDataType> p(nullptr);
                 p.load(&tmp[0]+i*pointer_size);
                 this->push_back(p);
-           }
+            }
+          }
+          else //SERIALIZING THE POINTER CONTENT TOO
+          {
+            std::size_t size;
+            rSerializer.load("Size", size);
+            this->reserve(size);
+            for(std::size_t i = 0; i<size; ++i)
+            {
+                GlobalPointer<TDataType> p(nullptr);
+                rSerializer.load("Gp", p);
+                this->push_back(p);
+            }
+          }
 
-            // the following version works but it should be less optimized than the version above
-            // std::size_t size;
-            // rSerializer.load("Size", size);
-            // this->reserve(size);
-            // for(std::size_t i = 0; i<size; ++i)
-            // {
-            //     GlobalPointer<TDataType> p(nullptr);
-            //     rSerializer.load("Gp", p);
-            //     this->push_back(p);
-            // }
         }
         
         

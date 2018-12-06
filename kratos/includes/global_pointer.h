@@ -166,17 +166,34 @@ public:
 
   void save(Serializer& rSerializer) const
   {
-    KRATOS_WATCH(mDataPointer)
-      rSerializer.save("D", reinterpret_cast<const std::size_t>(mDataPointer));
+      if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
+      {
+        rSerializer.save("D", reinterpret_cast<const std::size_t>(mDataPointer));
+      }
+      else
+      {
+        rSerializer.save("D", mDataPointer);
+      }
+ 
       rSerializer.save("R", mRank);
+ 
   }
 
   void load(Serializer& rSerializer)
   {
-      std::size_t tmp;
-      rSerializer.load("D", tmp);
-      mDataPointer = reinterpret_cast<TDataType*>(tmp);
+      if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
+      {
+        std::size_t tmp;
+        rSerializer.load("D", tmp);
+        mDataPointer = reinterpret_cast<TDataType*>(tmp);
+      }
+      else
+      {
+        rSerializer.load("D", mDataPointer);
+      }
+
       rSerializer.load("R", mRank);
+
   }
 
 };
