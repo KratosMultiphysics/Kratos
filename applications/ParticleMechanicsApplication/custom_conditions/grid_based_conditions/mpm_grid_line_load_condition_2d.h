@@ -60,6 +60,12 @@ public:
     /// Counted pointer of MPMGridLineLoadCondition2D
     KRATOS_CLASS_POINTER_DEFINITION( MPMGridLineLoadCondition2D );
 
+#if KRATOS_USE_AMATRIX
+    typedef MatrixRow<const Matrix> RowMatrix;
+#else
+    typedef Vector RowMatrix;
+#endif
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -161,14 +167,14 @@ protected:
     void CalculateAndSubKp(
         Matrix& K,
         const Matrix& DN_De,
-        const Vector& N,
+        const RowMatrix& N,
         const double Pressure,
         const double IntegrationWeight
         );
 
     void CalculateAndAddPressureForce(
         VectorType& rRightHandSideVector,
-        const Vector& N,
+        const RowMatrix& N,
         const array_1d<double, 3>& Normal,
         const double Pressure,
         const double IntegrationWeight

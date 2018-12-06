@@ -55,6 +55,12 @@ public:
     // Counted pointer of MPMGridSurfaceLoadCondition3D
     KRATOS_CLASS_POINTER_DEFINITION( MPMGridSurfaceLoadCondition3D );
 
+#if KRATOS_USE_AMATRIX
+    typedef MatrixRow<const Matrix> RowMatrix;
+#else
+    typedef Vector RowMatrix;
+#endif
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -156,7 +162,7 @@ protected:
         const array_1d<double, 3>& ge,
         const array_1d<double, 3>& gn,
         const Matrix& DN_De,
-        const Vector& N,
+        const RowMatrix& N,
         const double Pressure,
         const double Weight );
 
@@ -167,7 +173,7 @@ protected:
 
     void CalculateAndAddPressureForce(
         VectorType& rResidualVector,
-        const Vector& N,
+        const RowMatrix& N,
         const array_1d<double, 3 >& Normal,
         const double Pressure,
         const double Weight,

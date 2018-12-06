@@ -99,7 +99,7 @@ namespace Kratos
                 rLeftHandSideMatrix.resize( mat_size, mat_size, false );
             }
 
-            noalias( rLeftHandSideMatrix ) = ZeroMatrix(mat_size); //resetting LHS
+            noalias( rLeftHandSideMatrix ) = ZeroMatrix(mat_size,mat_size); //resetting LHS
         }
 
         //resizing as needed the RHS
@@ -236,7 +236,7 @@ namespace Kratos
     void MPMGridLineLoadCondition2D::CalculateAndSubKp(
         Matrix& K,
         const Matrix& DN_De,
-        const Vector& N,
+        const RowMatrix& N,
         const double Pressure,
         const double IntegrationWeight
         )
@@ -278,7 +278,7 @@ namespace Kratos
 
     void MPMGridLineLoadCondition2D::CalculateAndAddPressureForce(
         Vector& rRightHandSideVector,
-        const Vector& N,
+        const RowMatrix& N,
         const array_1d<double, 3>& Normal,
         double Pressure,
         double IntegrationWeight
@@ -290,8 +290,6 @@ namespace Kratos
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = block_size * i;
-
-
             const double coeff = Pressure * N[i] * IntegrationWeight;
 
             rRightHandSideVector[index   ]  -= coeff * Normal[0];
