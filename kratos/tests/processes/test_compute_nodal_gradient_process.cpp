@@ -112,6 +112,7 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
+                it_node->SetValue(NODAL_AREA, 0.0);
             }
                          
             typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable> GradientType;
@@ -270,6 +271,7 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
+                it_node->SetValue(NODAL_AREA, 0.0);
             }
                       
             // Compute gradient
