@@ -150,6 +150,8 @@ typedef TUblasDenseSpace<double> LocalSparseSpaceType;
 
 typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactoryType>;
+
 #ifdef KRATOS_REGISTER_LINEAR_SOLVER
 #undef KRATOS_REGISTER_LINEAR_SOLVER
 #endif
@@ -161,11 +163,14 @@ typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
 
 typedef LinearSolverFactory<ComplexSparseSpaceType,  ComplexLocalSparseSpaceType> ComplexLinearSolverFactoryType;
 
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<ComplexLinearSolverFactoryType>;
+
 #ifdef KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER
 #undef KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER
 #endif
 #define KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER(name, reference) \
     KratosComponents<ComplexLinearSolverFactoryType>::Add(name, reference);
+
 
 }  // namespace Kratos.
 

@@ -19,6 +19,9 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
+#include "includes/master_slave_constraint.h"
+#include "includes/linear_solver_factory.h"
+#include "includes/preconditioner_factory.h"
 #include "utilities/quaternion.h"
 
 namespace Kratos
@@ -154,6 +157,16 @@ template class KRATOS_API(KRATOS_CORE) KratosComponents<Element>;
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Condition>;
 template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw>;
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<MasterSlaveConstraint>;
+
+using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>;
+using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
+using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
+using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
+
+template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
