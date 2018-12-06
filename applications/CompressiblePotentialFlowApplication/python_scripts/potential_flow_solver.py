@@ -32,6 +32,10 @@ class LaplacianSolver:
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
             },
+            "element_replace_settings": {
+                    "element_name":"CompressiblePotentialFlowElement2D3N",
+                    "condition_name": "PotentialWallCondition2D2N"
+            },
             "linear_solver_settings": {
                     "solver_type": "AMGCL",
                     "max_iteration": 400,
@@ -62,6 +66,26 @@ class LaplacianSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_LOWER)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.PRESSURE_LOWER)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_SURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_SURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POTENTIAL_JUMP)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_ENERGY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_ENERGY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ENERGY_NORM_REFERENCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POTENTIAL_ENERGY_REFERENCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.AIRFOIL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.TRAILING_EDGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.TRAILING_EDGE_ELEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DECOUPLED_TRAILING_EDGE_ELEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.KUTTA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DEACTIVATED_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ALL_TRAILING_EDGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ZERO_VELOCITY_CONDITION)
         
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.POSITIVE_FACE_PRESSURE, self.main_model_part)
@@ -101,14 +125,7 @@ class LaplacianSolver:
                     "condition_name": "PotentialWallCondition3D3N"
                     }
                     """)
-            elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"CompressiblePotentialFlowElement2D3N",
-                    "condition_name": "PotentialWallCondition2D2N"
-                    }
-                    """)
-            else:
+            elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] != 2):
                 raise Exception("Domain size is not 2 or 3!!")
             
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
