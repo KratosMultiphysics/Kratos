@@ -83,7 +83,7 @@ public:
     ///@{
 
     /// Default constructor.
-    GeometricalObject(IndexType NewId = 0) : BaseType(NewId),
+    explicit GeometricalObject(IndexType NewId = 0) : BaseType(NewId),
         mpGeometry()
     {}
     

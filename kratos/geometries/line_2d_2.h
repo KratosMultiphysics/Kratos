@@ -176,7 +176,7 @@ public:
     }
 
 
-    Line2D2( const PointsArrayType& ThisPoints )
+    explicit Line2D2( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 2 )
@@ -208,7 +208,7 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    template<class TOtherPointType> Line2D2( Line2D2<TOtherPointType> const& rOther )
+    template<class TOtherPointType> explicit Line2D2( Line2D2<TOtherPointType> const& rOther )
         : BaseType( rOther )
     {
     }

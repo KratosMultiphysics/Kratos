@@ -127,7 +127,7 @@ public:
     /**
      * Constructor.
      */
-    Condition(IndexType NewId = 0)
+    explicit Condition(IndexType NewId = 0)
         : BaseType(NewId)
         , Flags()
         , mpProperties(nullptr)

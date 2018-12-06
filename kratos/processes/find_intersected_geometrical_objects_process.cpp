@@ -182,7 +182,7 @@ namespace Kratos
 		Point int_pt(0.0,0.0,0.0);
 		for (auto& edge : edges) {
         	const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Node<3>>>(
-				edge, 
+				Line2D2<Node<3>>{edge},
 				rSecondGeometry[0].Coordinates(), 
 				rSecondGeometry[1].Coordinates(), 
 				int_pt.Coordinates());

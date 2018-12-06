@@ -125,7 +125,7 @@ public:
     /**
      * Constructor.
      */
-    Element(IndexType NewId = 0)
+    explicit Element(IndexType NewId = 0)
         : BaseType(NewId)
         , Flags()
         , mpProperties(nullptr)
