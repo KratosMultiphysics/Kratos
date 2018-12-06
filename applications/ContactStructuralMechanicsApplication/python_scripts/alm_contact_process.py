@@ -179,6 +179,36 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We call to the base process
         super(ALMContactProcess, self).ExecuteFinalizeSolutionStep()
 
+        # Debug we compute if the total load corresponds with the total contact force and the reactions
+        if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
+            total_load = KM.Vector(3)
+            total_load[0] = 0.0
+            total_load[1] = 0.0
+            total_load[2] = 0.0
+            total_reaction = KM.Vector(3)
+            total_reaction[0] = 0.0
+            total_reaction[1] = 0.0
+            total_reaction[2] = 0.0
+            total_contact_force = 0
+
+            # Computing total load applied (I will consider only surface loads for now)
+            for cond in self.computing_model_part.Conditions:
+                geom = cond.GetGeometry()
+                if cond.Has(SMA.LINE_LOAD):
+                    total_load += geom.Length() * cond.GetValue(SMA.LINE_LOAD)
+                if cond.Has(SMA.SURFACE_LOAD):
+                    total_load += geom.Area() * cond.GetValue(SMA.SURFACE_LOAD)
+
+            for node in self.computing_model_part.Nodes:
+                if node.Has(KM.NODAL_AREA) and node.Has(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE):
+                    total_contact_force += node.GetValue(KM.NODAL_AREA) * node.GetValue(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE)
+
+                total_reaction += node.GetSolutionStepValue(KM.REACTION)
+
+            KM.Logger.PrintWarning("TOTAL LOAD: ", "X: {:.2e}".format(total_load[0]), "\t Y: {:.2e}".format(total_load[1]), "\tZ: {:.2e}".format(total_load[2]))
+            KM.Logger.PrintWarning("TOTAL REACTION: ", "X: {:.2e}".format(total_reaction[0]), "\t Y: {:.2e}".format(total_reaction[1]), "\tZ: {:.2e}".format(total_reaction[2]))
+            KM.Logger.PrintWarning("TOTAL CONTACT FORCE: ", "{:.2e}".format(total_contact_force))
+
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
 

@@ -224,36 +224,7 @@ class SearchBaseProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        # Debug we compute if the total load corresponds with the total contact force and the reactions
-        if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
-            total_load = KM.Vector(3)
-            total_load[0] = 0.0
-            total_load[1] = 0.0
-            total_load[2] = 0.0
-            total_reaction = KM.Vector(3)
-            total_reaction[0] = 0.0
-            total_reaction[1] = 0.0
-            total_reaction[2] = 0.0
-            total_contact_force = 0
-
-            # Computing total load applied (I will consider only surface loads for now)
-            for cond in self.computing_model_part.Conditions:
-                geom = cond.GetGeometry()
-                if cond.Has(SMA.LINE_LOAD):
-                    total_load += geom.Length() * cond.GetValue(SMA.LINE_LOAD)
-                if cond.Has(SMA.SURFACE_LOAD):
-                    total_load += geom.Area() * cond.GetValue(SMA.SURFACE_LOAD)
-
-            for node in self.computing_model_part.Nodes:
-                if node.Has(KM.NODAL_AREA) and node.Has(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE):
-                    total_contact_force += node.GetValue(KM.NODAL_AREA) * node.GetValue(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE)
-
-                total_reaction += node.GetSolutionStepValue(KM.REACTION)
-
-            KM.Logger.PrintWarning("TOTAL LOAD: ", "X: {:.2e}".format(total_load[0]), "\t Y: {:.2e}".format(total_load[1]), "\tZ: {:.2e}".format(total_load[2]))
-            KM.Logger.PrintWarning("TOTAL REACTION: ", "X: {:.2e}".format(total_reaction[0]), "\t Y: {:.2e}".format(total_reaction[1]), "\tZ: {:.2e}".format(total_reaction[2]))
-            KM.Logger.PrintWarning("TOTAL CONTACT FORCE: ", "{:.2e}".format(total_contact_force))
+        pass
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -421,7 +392,7 @@ class SearchBaseProcess(KM.Process):
         key -- The key to identify the current pair
         """
 
-        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
+        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : "", "echo_level" : 0}""")
         search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
         search_parameters.AddValue("check_gap", self.settings["search_parameters"]["check_gap"])
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
@@ -433,6 +404,8 @@ class SearchBaseProcess(KM.Process):
         self.__assume_master_slave(key)
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
         search_parameters["id_name"].SetString(key)
+        if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
+            search_parameters["echo_level"].SetInt(1)
 
         # We compute the number of nodes of the geometry
         number_nodes, number_nodes_master = self._compute_number_nodes()
