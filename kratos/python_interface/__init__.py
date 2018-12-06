@@ -14,7 +14,6 @@ KratosGlobals = kratos_globals.KratosGlobalsImpl(
 # adding the scripts in "kratos/python_scripts" such that they are treated as a regular python-module
 __path__.append(KratosLoader.kratos_scripts)
 
-
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel
     applications_root = KratosGlobals.ApplicationsRoot
