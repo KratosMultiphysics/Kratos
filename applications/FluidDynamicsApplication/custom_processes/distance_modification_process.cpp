@@ -178,7 +178,8 @@ void DistanceModificationProcess::ModifyDistance() {
         for (int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
         {
             auto nodes_begin = r_nodes.begin() + partition_vec[i_chunk];
-            const int chunk_end = partition_vec[i_chunk + 1] < r_nodes.size() ? partition_vec[i_chunk + 1] : r_nodes.size();
+            const int node_size = r_nodes.size();
+            const int chunk_end = partition_vec[i_chunk + 1] < node_size ? partition_vec[i_chunk + 1] : node_size;
             auto nodes_end = r_nodes.begin() + chunk_end;
 
             // Auxiliar chunk arrays
@@ -259,7 +260,8 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
         for (int i_chunk = 0; i_chunk < num_chunks; ++i_chunk)
         {
             auto elems_begin = r_elems.begin() + partition_vec[i_chunk];
-            const int chunk_end = partition_vec[i_chunk + 1] < r_elems.size() ? partition_vec[i_chunk + 1] : r_elems.size();
+            const int elem_size = r_elems.size();
+            const int chunk_end = partition_vec[i_chunk + 1] < elem_size ? partition_vec[i_chunk + 1] : elem_size;
             auto elems_end = r_elems.begin() + chunk_end;
 
             // Auxiliar chunk arrays
