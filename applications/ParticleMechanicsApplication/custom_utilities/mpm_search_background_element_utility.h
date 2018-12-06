@@ -24,9 +24,11 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
+#include "utilities/binbased_fast_point_locator.h"
 
 namespace Kratos
 {
+      template<unsigned int TDim>
       class MPMSearchBackgroundElementUtility
       {
 
@@ -51,7 +53,7 @@ namespace Kratos
              * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
              *
              */
-            virtual void SearchElement(
+            static inline void SearchElement(
                   ModelPart& grid_model_part,
                   ModelPart& mpm_model_part,
                   const std::size_t MaxNumberOfResults = 1000,
