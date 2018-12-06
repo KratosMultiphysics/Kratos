@@ -51,7 +51,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "linear_solvers/linear_solver.h"
-#include "custom_utilities/mpm_search_background_element_utility.h"
+#include "custom_utilities/mpm_search_element_utility.h"
 
 namespace Kratos
 {
@@ -538,13 +538,11 @@ public:
      *
     */
     virtual void SearchElement(
-        ModelPart& grid_model_part,
-        ModelPart& mpm_model_part,
         const std::size_t MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5)
     {
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Search Element" <<std::endl;
-        MPMSearchBackgroundElementUtility<TDim>::SearchElement(grid_model_part, mpm_model_part, MaxNumberOfResults, Tolerance);
+        MPMSearchElementUtility<TDim>::SearchElement(mr_grid_model_part, mr_mpm_model_part, MaxNumberOfResults, Tolerance);
     }
 
 
