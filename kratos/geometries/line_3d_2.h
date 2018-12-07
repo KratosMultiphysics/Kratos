@@ -642,6 +642,18 @@ public:
     ///@name Shape Function
     ///@{
 
+    Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        if(rResult.size() != 2) {
+            rResult.resize(2, false);
+        }
+
+        rResult[0] =  0.5 * ( 1.0 - rCoordinates[0]);
+        rResult[1] =  0.5 * ( 1.0 + rCoordinates[0]);
+
+        return rResult;
+    }
+
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
