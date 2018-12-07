@@ -151,7 +151,7 @@ typedef TUblasDenseSpace<double> LocalSparseSpaceType;
 
 typedef PreconditionerFactory<SparseSpaceType, LocalSparseSpaceType> PreconditionerFactoryType;
 
-extern template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactoryType>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactoryType>;
 
 #ifdef KRATOS_REGISTER_PRECONDITIONER
 #undef KRATOS_REGISTER_PRECONDITIONER
