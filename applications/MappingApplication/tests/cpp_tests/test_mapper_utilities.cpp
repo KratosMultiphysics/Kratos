@@ -177,8 +177,6 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
         send_sizes),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
-    NearestNeighborLocalSystem local_sys_dummy; // Using the one from NearestNeighbor bcs the baseclass is abstract
-
     // Node-ids do not matter here
     auto node_local_sys_1(Kratos::make_shared<Node<3>>(87, -2.0, 3.5, 3.0)); // in bbox 1&2
     auto node_local_sys_2(Kratos::make_shared<Node<3>>(26, 10.0, -25.0, 3.0)); // in bbox 1

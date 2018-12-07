@@ -67,17 +67,12 @@ public:
         InterfaceInfoFound
     };
 
-
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    MapperLocalSystem() = default;
-
     /// Destructor.
     virtual ~MapperLocalSystem() = default;
-
 
     ///@}
     ///@name Operations
@@ -182,9 +177,10 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
+    ///@name Protected Life Cycle
     ///@{
 
+    MapperLocalSystem() = default; // only accessbíble by derived classes
 
     ///@}
     ///@name Protected member Variables

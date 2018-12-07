@@ -103,8 +103,6 @@ class NearestNeighborLocalSystem : public MapperLocalSystem
 {
 public:
 
-    NearestNeighborLocalSystem() {}
-
     explicit NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,

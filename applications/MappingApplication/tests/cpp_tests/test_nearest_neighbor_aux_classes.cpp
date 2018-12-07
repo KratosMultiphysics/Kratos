@@ -252,8 +252,6 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosMappingApplicationSerialTestSuite)
 {
-    NearestNeighborLocalSystem local_sys_dummy;
-
     const int dest_id = 13;
 
     auto node_local_sys(Kratos::make_shared<NodeType>(5, 1.0, 2.5, -5.0));

@@ -114,8 +114,6 @@ class NearestElementLocalSystem : public MapperLocalSystem
 {
 public:
 
-    NearestElementLocalSystem() {}
-
     explicit NearestElementLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
