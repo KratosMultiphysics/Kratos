@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 
 # Other imports
 import test_PotentialAnalysis
-from test_PotentialAnalysis import PotentialFlowAnalysis
+from potential_flow_analysis import PotentialFlowAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os
 
@@ -40,24 +40,6 @@ class PotentialFlowTestFactory(UnitTest.TestCase):
     def setUp(self):
         # Set to true to get post-process files for the test
         self.print_output = False
-        # Within this location context:
-        #with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-
-        '''
-        # Reading the ProjectParameters
-        with open(self.file_name + "_parameters.json",'r') as parameter_file:
-            print('self.file_name = ', self.file_name)
-            ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        # To avoid many prints
-        #if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
-        #    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
-        # Creating the test
-        model = KratosMultiphysics.Model()
-        self.test = test_PotentialAnalysis.PotentialAnalysis(model, ProjectParameters)
-        self.test.Initialize()
-        '''
 
     def test_execution(self):
 
@@ -65,7 +47,6 @@ class PotentialFlowTestFactory(UnitTest.TestCase):
             self._run_test()
 
             kratos_utilities.DeleteFileIfExisting("naca0012_Case_5.time")
-        
 
     def _run_test(self):
         model = KratosMultiphysics.Model()
@@ -98,12 +79,9 @@ class PotentialFlowTestFactory(UnitTest.TestCase):
         potential_flow_analysis = PotentialFlowAnalysis(model,ProjectParameters)
         potential_flow_analysis.Run()
 
-
-
 class Naca0012Test(PotentialFlowTestFactory):
     file_name = "naca0012_Case_5"
     work_folder = "naca0012_tests"
-
 
 if __name__ == '__main__':
     UnitTest.main()

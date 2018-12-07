@@ -3,7 +3,9 @@ import KratosMultiphysics
 from KratosMultiphysics import *
 from KratosMultiphysics.CompressiblePotentialFlowApplication import *
 import run_cpp_unit_tests
-from naca0012_test import Naca0012Test
+
+##### SMALL TESTS #####
+from potential_flow_test_factory import Naca0012Test
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
