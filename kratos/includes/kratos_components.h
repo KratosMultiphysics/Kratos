@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -248,195 +248,195 @@ class KRATOS_API(KRATOS_CORE) KratosComponents<VariableData>
 {
 public:
 
-	///@name Type Definitions
-	///@{
+    ///@name Type Definitions
+    ///@{
 
-	/// Pointer definition of KratosComponents
-	KRATOS_CLASS_POINTER_DEFINITION(KratosComponents);
+    /// Pointer definition of KratosComponents
+    KRATOS_CLASS_POINTER_DEFINITION(KratosComponents);
 
-	typedef std::map<std::string, VariableData* > ComponentsContainerType;
-	typedef ComponentsContainerType::value_type ValueType;
+    typedef std::map<std::string, VariableData* > ComponentsContainerType;
+    typedef ComponentsContainerType::value_type ValueType;
 
-	///@}
-	///@name Life Cycle
-	///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-	/// Default constructor.
-	KratosComponents() {}
+    /// Default constructor.
+    KratosComponents() {}
 
-	/// Destructor.
-	virtual ~KratosComponents() {}
+    /// Destructor.
+    virtual ~KratosComponents() {}
 
-	///@}
-	///@name Operators
-	///@{
-
-
-	///@}
-	///@name Operations
-	///@{
-
-	static void Add(std::string const& Name, VariableData& ThisComponent)
-	{
-		msComponents.insert(ValueType(Name, &ThisComponent));
-	}
-
-	static std::size_t Size()
-	{
-		return msComponents.size();
-	}
-
-	static VariableData & Get(std::string const& Name)
-	{
-		return *(msComponents.find(Name)->second);
-	}
-
-	static VariableData* pGet(std::string const& Name)
-	{
-		return (msComponents.find(Name)->second);
-	}
-
-	static ComponentsContainerType & GetComponents()
-	{
-		return msComponents;
-	}
-
-	static ComponentsContainerType * pGetComponents()
-	{
-		return &msComponents;
-	}
-
-	static void Register()
-	{
-
-	}
-
-	///@}
-	///@name Access
-	///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-	///@}
-	///@name Inquiry
-	///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-	static bool Has(std::string const& Name)
-	{
-		return (msComponents.find(Name) != msComponents.end());
-	}
+    static void Add(std::string const& Name, VariableData& ThisComponent)
+    {
+        msComponents.insert(ValueType(Name, &ThisComponent));
+    }
 
-	///@}
-	///@name Input and output
-	///@{
+    static std::size_t Size()
+    {
+        return msComponents.size();
+    }
 
-	/// Turn back information as a string.
-	virtual std::string Info() const
-	{
-		return "Kratos components";
-	}
+    static VariableData & Get(std::string const& Name)
+    {
+        return *(msComponents.find(Name)->second);
+    }
 
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const
-	{
-		rOStream << "Kratos components";
-	}
+    static VariableData* pGet(std::string const& Name)
+    {
+        return (msComponents.find(Name)->second);
+    }
 
-	/// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const
-	{
-		for (const auto& r_comp : msComponents) {
-			rOStream << "    " << r_comp.second << std::endl;
-		}
-	}
+    static ComponentsContainerType & GetComponents()
+    {
+        return msComponents;
+    }
 
-	///@}
-	///@name Friends
-	///@{
+    static ComponentsContainerType * pGetComponents()
+    {
+        return &msComponents;
+    }
+
+    static void Register()
+    {
+
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-	///@}
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    static bool Has(std::string const& Name)
+    {
+        return (msComponents.find(Name) != msComponents.end());
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "Kratos components";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Kratos components";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        for (const auto& r_comp : msComponents) {
+            rOStream << "    " << r_comp.second << std::endl;
+        }
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
 
 protected:
 
-	///@name Protected static Member Variables
-	///@{
+    ///@name Protected static Member Variables
+    ///@{
 
 
-	///@}
-	///@name Protected member Variables
-	///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-	///@}
-	///@name Protected Operators
-	///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-	///@}
-	///@name Protected Operations
-	///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-	///@}
-	///@name Protected  Access
-	///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-	///@}
-	///@name Protected Inquiry
-	///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-	///@}
-	///@name Protected LifeCycle
-	///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-	///@}
+    ///@}
 
 private:
 
-	///@name Static Member Variables
-	///@{
+    ///@name Static Member Variables
+    ///@{
 
-	static ComponentsContainerType msComponents;
+    static ComponentsContainerType msComponents;
 
-	///@}
-	///@name Member Variables
-	///@{
-
-
-	///@}
-	///@name Private Operators
-	///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-	///@}
-	///@name Private Operations
-	///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-	///@}
-	///@name Private  Access
-	///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-	///@}
-	///@name Private Inquiry
-	///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-	///@}
-	///@name Un accessible methods
-	///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-	/// Assignment operator.
-	KratosComponents& operator=(KratosComponents const& rOther);
 
-	/// Copy constructor.
-	KratosComponents(KratosComponents const& rOther);
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-	///@}
+    /// Assignment operator.
+    KratosComponents& operator=(KratosComponents const& rOther);
+
+    /// Copy constructor.
+    KratosComponents(KratosComponents const& rOther);
+
+    ///@}
 
 }; // Class KratosComponents
 
