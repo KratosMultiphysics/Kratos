@@ -325,7 +325,7 @@ public:
 
         const double length = lx * lx + ly * ly + lz * lz;
 
-        return sqrt( length );
+        return std::sqrt( length );
     }
 
     /** This method calculate and return area or surface area of
@@ -685,6 +685,46 @@ public:
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
+
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        rResult.clear();
+
+        const TPointType& r_first_point  = BaseType::GetPoint(0);
+        const TPointType& r_second_point = BaseType::GetPoint(1);
+
+        // Project point
+        const double tolerance = 1e-14; // Tolerance
+
+        const double length = Length();
+
+        const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)
+                    + std::pow(rPoint[1] - r_first_point[1], 2) + std::pow(rPoint[2] - r_first_point[2], 2));
+
+        const double length_2 = std::sqrt( std::pow(rPoint[0] - r_second_point[0], 2)
+                    + std::pow(rPoint[1] - r_second_point[1], 2) + std::pow(rPoint[2] - r_second_point[2], 2));
+
+        if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
+            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
+        } else if (length_1 > (length + tolerance)) {
+            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
+        } else if (length_2 > (length + tolerance)) {
+            rResult[0] = 1.0 - 2.0 * length_2/(length + tolerance);
+        } else {
+            rResult[0] = 2.0; // Out of the line!!!
+        }
+
+        return rResult ;
+    }
 
     /** Turn back information as a string.
 
