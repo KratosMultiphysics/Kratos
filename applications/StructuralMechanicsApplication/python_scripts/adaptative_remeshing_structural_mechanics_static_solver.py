@@ -3,15 +3,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 try:
-    # Check that applications were imported in the main script
-    KratosMultiphysics.CheckRegisteredApplications("MeshingApplication")
     import KratosMultiphysics.MeshingApplication as MeshingApplication
     missing_meshing_dependencies = False
     missing_application = ''

@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 from json_utilities import *
 import json
-KratosMultiphysics.CheckForPreviousImport()
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
