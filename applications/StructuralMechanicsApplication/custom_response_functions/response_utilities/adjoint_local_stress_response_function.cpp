@@ -67,12 +67,6 @@ namespace Kratos
 
         if(rAdjointElem.Id() == mpTracedElement->Id())
         {
-            //**************
-            ModelPart my_local_mp;
-            const double response_value = this->CalculateValue(my_local_mp);
-            std::cout << std::setprecision(10) << "response value = " << response_value << std::endl;
-            //**************
-
             Matrix stress_displacement_derivative;
 
             if(mStressTreatment == StressTreatment::Mean)
