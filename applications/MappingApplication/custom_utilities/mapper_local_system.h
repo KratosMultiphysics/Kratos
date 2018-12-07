@@ -83,17 +83,6 @@ public:
     ///@name Operations
     ///@{
 
-    // Only one of the Create functions has to be implemented, thats why they cannot be pure virtual!
-    virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
-
-    virtual MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
-
     void EquationIdVectors(EquationIdVectorType& rOriginIds,
                            EquationIdVectorType& rDestinationIds)
     {
@@ -146,11 +135,6 @@ public:
         rOriginIds.resize(0);
         rDestinationIds.resize(0);
     }
-
-
-    // // This specifies if Nodes should be used for the construction
-    // // => this is the case if the Geometry on the destination is not important
-    virtual bool UseNodesAsBasis() const = 0;
 
     virtual CoordinatesArrayType& Coordinates() const = 0;
 

@@ -107,17 +107,10 @@ public:
 
     explicit NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
 
-    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
-    {
-        return Kratos::make_unique<NearestNeighborLocalSystem>(pNode);
-    }
-
     void CalculateAll(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
                       EquationIdVectorType& rDestinationIds,
                       MapperLocalSystem::PairingStatus& rPairingStatus) const override;
-
-    bool UseNodesAsBasis() const override { return true; }
 
     CoordinatesArrayType& Coordinates() const override
     {

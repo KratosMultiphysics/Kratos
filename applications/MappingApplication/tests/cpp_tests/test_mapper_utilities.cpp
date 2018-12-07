@@ -187,10 +187,10 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
 
     local_systems.reserve(7);
 
-    local_systems.push_back(local_sys_dummy.Create(node_local_sys_1.get()));
-    local_systems.push_back(local_sys_dummy.Create(node_local_sys_2.get()));
-    local_systems.push_back(local_sys_dummy.Create(node_local_sys_3.get()));
-    local_systems.push_back(local_sys_dummy.Create(node_local_sys_4.get()));
+    local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_1.get()));
+    local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_2.get()));
+    local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_3.get()));
+    local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_4.get()));
 
     MapperUtilities::FillBufferBeforeLocalSearch(
         local_systems,
@@ -239,9 +239,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     auto node_local_sys_6(Kratos::make_shared<Node<3>>(416, 13.5, 44.58, 7.5)); // in bbox 3
     auto node_local_sys_7(Kratos::make_shared<Node<3>>(417, 13.5125, 44.68, 8.5)); // in bbox 3
 
-    local_systems.push_back(local_sys_dummy.Create(node_local_sys_5.get()));
-    local_systems.push_back(local_sys_dummy.Create(node_local_sys_6.get()));
-    local_systems.push_back(local_sys_dummy.Create(node_local_sys_7.get()));
+    local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_5.get()));
+    local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_6.get()));
+    local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_7.get()));
 
     MapperUtilities::FillBufferBeforeLocalSearch(
         local_systems,

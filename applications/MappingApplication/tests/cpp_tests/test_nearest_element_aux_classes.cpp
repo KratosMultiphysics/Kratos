@@ -234,16 +234,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
-    NearestElementLocalSystem local_sys_dummy;
-
     auto node_local_sys(Kratos::make_shared<Node<3>>(8, 1.0, 2.5, -5.0));
 
-    auto local_sys(local_sys_dummy.Create(node_local_sys.get()));
-
-    // Test if the "Create" function returns the correct object
-    KRATOS_CHECK_EQUAL(typeid(local_sys_dummy), typeid(*local_sys));
-
-    KRATOS_CHECK(local_sys->UseNodesAsBasis());
+    NearestElementLocalSystem local_sys(node_local_sys.get());
 
     // Computing the local system
     // this should return nothing since no InterfaceInfos are available
@@ -253,18 +246,18 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
     EquationIdVectorType destination_ids;
     EquationIdVectorType destination_ids2;
 
-    local_sys->EquationIdVectors(origin_ids, destination_ids);
+    local_sys.EquationIdVectors(origin_ids, destination_ids);
 
     KRATOS_CHECK_EQUAL(origin_ids.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids.size(), 0);
 
-    local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids2, destination_ids2);
+    local_sys.CalculateLocalSystem(local_mapping_matrix, origin_ids2, destination_ids2);
     KRATOS_CHECK_EQUAL(local_mapping_matrix.size1(), 0);
     KRATOS_CHECK_EQUAL(local_mapping_matrix.size2(), 0);
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
 
-    KRATOS_CHECK_C_STRING_EQUAL((local_sys->PairingInfo(2,23)).c_str(),
+    KRATOS_CHECK_C_STRING_EQUAL((local_sys.PairingInfo(2,23)).c_str(),
         "NearestElementLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5 in rank 23");
 }
 
