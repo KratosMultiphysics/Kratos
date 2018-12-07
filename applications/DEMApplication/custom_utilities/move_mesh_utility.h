@@ -44,6 +44,10 @@ namespace  Kratos
 
             const bool CheckIsNearToWall(NodesContainerType& rNodes,Vector& rMaxDisplacement) const;
 
+            const void SaveCurrentCoordinates(NodesContainerType& rNodes) const;
+
+            const void ResetCoordinates(NodesContainerType& rNodes) const;
+
     }; // MoveMeshUtility
 } //  Kratos
 

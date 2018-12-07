@@ -118,4 +118,37 @@ namespace  Kratos
         KRATOS_CATCH("")
     }
 
+
+
+
+    const void MoveMeshUtility::SaveCurrentCoordinates(NodesContainerType& rNodes) const
+    {
+        KRATOS_TRY;
+
+        const int num_nodes = static_cast<int>(rNodes.size());
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i)
+        {
+            auto it_node = rNodes.begin() + i;
+            it_node->SetIntermediatePosition(it_node->Coordinates());
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    const void MoveMeshUtility::ResetCoordinates(NodesContainerType& rNodes) const
+    {
+        KRATOS_TRY;
+
+        const int num_nodes = static_cast<int>(rNodes.size());
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i)
+        {
+            auto it_node = rNodes.begin() + i;
+            noalias(it_node->Coordinates()) = it_node->GetIntermediatePosition();
+        }
+
+        KRATOS_CATCH("")
+    }
+
 } //  Kratos

@@ -66,7 +66,7 @@ class Element;
 ///@name Kratos Classes
 ///@{
 
-/// This class defines the node 
+/// This class defines the node
 /** The node class from Kratos is defined in this class
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
@@ -287,6 +287,7 @@ public:
         , mData()
         , mSolutionStepsNodalData()
         , mInitialPosition()
+        , mIntermediatePosition()
 #ifdef _OPENMP
         , mNodeLock()
 #endif
@@ -310,6 +311,7 @@ public:
         , mData()
         , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
         , mInitialPosition(NewX, NewY, NewZ)
+        , mIntermediatePosition(NewX, NewY, NewZ)
 #ifdef _OPENMP
         , mNodeLock()
 #endif
@@ -333,6 +335,7 @@ public:
 
         p_new_node->mData = this->mData;
         p_new_node->mInitialPosition = this->mInitialPosition;
+        p_new_node->mIntermediatePosition = this->mIntermediatePosition;
 
         p_new_node->Set(Flags(*this));
         //KRATOS_ERROR << "Must implement correctly the copy of the flags" << std::endl;
@@ -399,6 +402,7 @@ public:
         mData = rOther.mData;
         mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
         mInitialPosition = rOther.mInitialPosition;
+        mIntermediatePosition = rOther.mIntermediatePosition;
 
         return *this;
     }
@@ -418,6 +422,7 @@ public:
         mData = rOther.mData;
         mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
         mInitialPosition = rOther.mInitialPosition;
+        mIntermediatePosition = rOther.mIntermediatePosition;
 
         return *this;
 
@@ -689,6 +694,15 @@ public:
         return mInitialPosition;
     }
 
+    const PointType& GetIntermediatePosition() const
+    {
+        return mIntermediatePosition;
+    }
+    PointType& GetIntermediatePosition()
+    {
+        return mIntermediatePosition;
+    }
+
     double& X0()
     {
         return mInitialPosition.X();
@@ -720,6 +734,13 @@ public:
         mInitialPosition.X() = NewInitialPosition.X();
         mInitialPosition.Y() = NewInitialPosition.Y();
         mInitialPosition.Z() = NewInitialPosition.Z();
+    }
+
+    void SetIntermediatePosition(const PointType& NewInitialPosition)
+    {
+        mIntermediatePosition.X() = NewInitialPosition.X();
+        mIntermediatePosition.Y() = NewInitialPosition.Y();
+        mIntermediatePosition.Z() = NewInitialPosition.Z();
     }
 
     void SetInitialPosition(double X,double Y, double Z)
@@ -822,9 +843,9 @@ public:
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
     {
         KRATOS_TRY
-        
+
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0) 
+        if(rDofVariable.Key() == 0)
         {
             KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
         }
@@ -851,7 +872,7 @@ public:
     inline typename DofType::Pointer pAddDof(DofType const& SourceDof)
     {
         KRATOS_TRY
-        
+
         typename DofsContainerType::iterator it_dof = mDofs.find(SourceDof.GetVariable());
         if(it_dof != mDofs.end())
         {
@@ -883,13 +904,13 @@ public:
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
         KRATOS_TRY
-        
+
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0) 
+        if(rDofVariable.Key() == 0)
         {
             KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
         }
-        if(rDofReaction.Key() == 0) 
+        if(rDofReaction.Key() == 0)
         {
             KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
         }
@@ -919,7 +940,7 @@ public:
     inline DofType& AddDof(TVariableType const& rDofVariable)
     {
         KRATOS_TRY
-        
+
 #ifdef KRATOS_DEBUG
         if(rDofVariable.Key() == 0)
         {
@@ -932,7 +953,7 @@ public:
         {
             return *it_dof;
         }
-            
+
         typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
@@ -950,13 +971,13 @@ public:
     inline DofType& AddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
         KRATOS_TRY
-        
+
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0) 
+        if(rDofVariable.Key() == 0)
         {
             KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
         }
-        if(rDofReaction.Key() == 0) 
+        if(rDofReaction.Key() == 0)
         {
             KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
         }
@@ -1092,6 +1113,7 @@ private:
 
     ///Initial Position of the node
     PointType mInitialPosition;
+    PointType mIntermediatePosition;
 
 #ifdef _OPENMP
     omp_lock_t mNodeLock;
