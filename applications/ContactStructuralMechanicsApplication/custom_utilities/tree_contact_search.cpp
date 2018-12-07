@@ -1498,7 +1498,7 @@ inline void TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
         std::filebuf debug_buffer;
         debug_buffer.open("original_conditions_normal_debug.out",std::ios::out);
         std::ostream os(&debug_buffer);
-        for (auto& cond : r_conditions_array) {
+        for (const auto& cond : r_conditions_array) {
             const array_1d<double, 3>& r_normal = cond.GetValue(NORMAL);
             os << "Condition " << cond.Id() << "\tNodes ID:";
             for (auto& r_node : cond.GetGeometry()) {
@@ -1528,7 +1528,7 @@ inline void TreeContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreateAuxiliarC
         std::filebuf debug_buffer;
         debug_buffer.open("created_conditions_normal_debug.out",std::ios::out);
         std::ostream os(&debug_buffer);
-        for (auto& cond : rComputingModelPart.Conditions()) {
+        for (const auto& cond : rComputingModelPart.Conditions()) {
             const array_1d<double, 3>& r_normal = cond.GetValue(NORMAL);
             os << "Condition " << cond.Id() << "\tNodes ID:";
             for (auto& r_node : cond.GetGeometry()) {
