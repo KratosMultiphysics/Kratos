@@ -411,6 +411,16 @@ private:
     void ComputeGaussPointBehrSlipRHSContribution(  VectorType& rRightHandSideVector,
                                                     const ConditionDataStruct& rDataStruct );
 
+
+
+    // TODO : Add a proper docu here in header
+    void ComputeGaussPointNavierSlipRHSContribution(    VectorType& rRightHandSideVector,
+                                                        const ConditionDataStruct& rDataStruct );
+
+
+    void ComputeGaussPointNavierSlipLHSContribution(    Matrix& rLeftHandSideMatrix,
+                                                        const ConditionDataStruct& rDataStruct );
+
     ///@}
     ///@name Private  Access
     ///@{
