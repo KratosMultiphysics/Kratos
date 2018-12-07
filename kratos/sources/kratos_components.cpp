@@ -24,8 +24,7 @@
 #include "includes/preconditioner_factory.h"
 #include "utilities/quaternion.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 void AddKratosComponent(std::string const& Name, Variable<bool> const& ThisComponent)
 {
@@ -131,8 +130,6 @@ void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::Point
 {
     KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Add(Name, ThisComponent);
 }
-
-template<class TComponentType> typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
 
 template class KratosComponents<Variable<bool> >;
 template class KratosComponents<Variable<int> >;
