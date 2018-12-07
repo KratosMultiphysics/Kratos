@@ -52,7 +52,7 @@ public:
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                         const IndexType SourceLocalSystemIndex,
-                                        const IndexType SourceRank=0) const override
+                                        const IndexType SourceRank) const override
     {
         return Kratos::make_shared<NearestElementInterfaceInfo>(
             rCoordinates,

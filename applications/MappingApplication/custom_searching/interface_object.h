@@ -87,11 +87,6 @@ public:
     ///@name Operations
     ///@{
 
-    void UpdateCoordinates(const CoordinatesArrayType& rCoordinates)
-    {
-        noalias(Coordinates()) = rCoordinates;
-    }
-
     virtual void UpdateCoordinates()
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;

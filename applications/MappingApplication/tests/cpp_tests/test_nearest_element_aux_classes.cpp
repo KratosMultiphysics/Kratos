@@ -37,13 +37,11 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_BasicTests, KratosMappingA
     NearestElementInterfaceInfo nearest_element_info(coords, source_local_sys_idx, 0);
 
     const auto nearest_element_info_1(nearest_element_info.Create());
-    const auto nearest_element_info_2(nearest_element_info.Create(coords, source_local_sys_idx));
-    const auto nearest_element_info_3(nearest_element_info.Create(coords, source_local_sys_idx, dummy_rank));
+    const auto nearest_element_info_2(nearest_element_info.Create(coords, source_local_sys_idx, dummy_rank));
 
     // Test if the "Create" function returns the correct object
     KRATOS_CHECK_EQUAL(typeid(nearest_element_info), typeid(*nearest_element_info_1));
     KRATOS_CHECK_EQUAL(typeid(nearest_element_info), typeid(*nearest_element_info_2));
-    KRATOS_CHECK_EQUAL(typeid(nearest_element_info), typeid(*nearest_element_info_3));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, KratosMappingApplicationSerialTestSuite)

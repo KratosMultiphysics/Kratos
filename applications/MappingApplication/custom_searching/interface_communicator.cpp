@@ -106,7 +106,7 @@ void InterfaceCommunicator::InitializeSearchIteration(const Kratos::Flags& rOpti
     for (const auto& r_local_sys : mrMapperLocalSystems) {
         if (!r_local_sys->HasInterfaceInfo()) { // Only the local_systems that have not received an InterfaceInfo create a new one
             const auto& r_coords = r_local_sys->Coordinates();
-            r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx));
+            r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx, 0)); // dummy-rank of 0
         }
         ++local_sys_idx;
     }
@@ -250,7 +250,7 @@ void InterfaceCommunicator::ConductLocalSearch()
             for (IndexType i=0; i<r_interface_infos_rank.size(); ++i) {
                 auto& r_interface_info = r_interface_infos_rank[i];
 
-                interface_obj->UpdateCoordinates(r_interface_info->Coordinates());
+                interface_obj->Coordinates() = r_interface_info->Coordinates();
                 double search_radius = mSearchRadius; // reset search radius // TODO check this
 
                 // reset the containers

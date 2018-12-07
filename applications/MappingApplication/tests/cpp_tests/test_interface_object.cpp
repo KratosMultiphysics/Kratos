@@ -40,7 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSeria
     new_coords[1] = 18.7993;
     new_coords[2] = -547.1;
 
-    interface_obj.UpdateCoordinates(new_coords);
+    interface_obj.Coordinates() = new_coords;
 
     for (std::size_t i=0; i<3; ++i)
         KRATOS_CHECK_DOUBLE_EQUAL(interface_obj.Coordinates()[i], new_coords[i]);

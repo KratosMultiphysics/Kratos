@@ -121,7 +121,7 @@ public:
 
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,
-                                                const IndexType SourceRank=0) const = 0;
+                                                const IndexType SourceRank) const = 0;
 
     // needed for serialization
     virtual MapperInterfaceInfo::Pointer Create() const = 0;

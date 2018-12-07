@@ -37,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfo_BasicTests, KratosMappingApplicati
     std::size_t source_rank = 23;
 
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords_1, source_local_sys_idx, source_rank);
-    const auto nearest_neighbor_info_2(nearest_neighbor_info.Create(coords_1, source_local_sys_idx));
+    const auto nearest_neighbor_info_2(nearest_neighbor_info.Create(coords_1, source_local_sys_idx, 0));
 
     KRATOS_CHECK_EQUAL(nearest_neighbor_info.GetLocalSystemIndex(), source_local_sys_idx);
 
@@ -61,13 +61,11 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_BasicTests, KratosMapping
     NearestNeighborInterfaceInfo nearest_neighbor_info(coords, source_local_sys_idx, 0);
 
     const auto nearest_neighbor_info_1(nearest_neighbor_info.Create());
-    const auto nearest_neighbor_info_2(nearest_neighbor_info.Create(coords, source_local_sys_idx));
-    const auto nearest_neighbor_info_3(nearest_neighbor_info.Create(coords, source_local_sys_idx, dummy_rank));
+    const auto nearest_neighbor_info_2(nearest_neighbor_info.Create(coords, source_local_sys_idx, dummy_rank));
 
     // Test if the "Create" function returns the correct object
     KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(*nearest_neighbor_info_1));
     KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(*nearest_neighbor_info_2));
-    KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(*nearest_neighbor_info_3));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMappingApplicationSerialTestSuite)
