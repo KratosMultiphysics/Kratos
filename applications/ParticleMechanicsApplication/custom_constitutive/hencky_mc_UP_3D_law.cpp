@@ -10,11 +10,12 @@
 //  Main authors:    Ilaria Iaconeta
 //
 
+
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"
@@ -30,8 +31,8 @@ namespace Kratos
 HenckyMCPlasticUP3DLaw::HenckyMCPlasticUP3DLaw()
     : HenckyElasticPlasticUP3DLaw()
 {
-    mpHardeningLaw   = HardeningLaw::Pointer( new HardeningLaw() );
-    mpYieldCriterion = YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpHardeningLaw   = MPMHardeningLaw::Pointer( new MPMHardeningLaw() );
+    mpYieldCriterion = MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule    = MPMFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
 }
 
@@ -42,7 +43,7 @@ HenckyMCPlasticUP3DLaw::HenckyMCPlasticUP3DLaw()
 HenckyMCPlasticUP3DLaw::HenckyMCPlasticUP3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 

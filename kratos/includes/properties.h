@@ -236,7 +236,7 @@ public:
         mData.SetValue(rV, rValue);
     }
 
-    bool HasVariables()
+    bool HasVariables() const
     {
         return !mData.IsEmpty();
     }
@@ -259,12 +259,12 @@ public:
         mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
     }
 
-    bool HasTables()
+    bool HasTables() const
     {
         return !mTables.empty();
     }
 
-    bool IsEmpty()
+    bool IsEmpty() const
     {
         return !( HasVariables() || HasTables() );
     }
@@ -291,6 +291,15 @@ public:
         return mData;
     }
 
+    TablesContainerType& Tables()
+    {
+        return mTables;
+    }
+
+    TablesContainerType const& Tables() const
+    {
+        return mTables;
+    }
 
 
     ///@}

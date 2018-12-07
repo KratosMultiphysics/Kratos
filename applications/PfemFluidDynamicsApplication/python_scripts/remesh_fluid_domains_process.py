@@ -156,7 +156,16 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
         # define building utility
         model_part_name = self.settings["model_part_name"].GetString()
-        skin_build = KratosDelaunay.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)
+
+        ############ choose just one of the following two options: ############
+        ## use this if you want conditions
+        ## ATTENTION: this is slow, and must be used together with ModelMeshingWithConditionsForFluids and GenerateNewConditionsForFluids
+        #skin_build = KratosDelaunay.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)
+
+        ## if you use the following, you will not use/build/compute conditions
+        ## ATTENTION: it must be used together with ModelMeshingForFluids and BuildMeshBoundaryForFluids
+        skin_build = KratosPfemFluid.BuildModelPartBoundaryForFluids(self.main_model_part, model_part_name, self.echo_level)
+        #######################################################################
 
         # execute building:
         skin_build.Execute()
@@ -215,9 +224,15 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                     #fileTotalVolume.close
 
         volume_acceleration=self.main_model_part.ProcessInfo[KratosMultiphysics.GRAVITY]
+        variable_utils = KratosMultiphysics.VariableUtils()
         if(currentStep == 1):
-            for node in self.main_model_part.Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION,volume_acceleration)
+            variable_utils.SetVectorVar(KratosMultiphysics.VOLUME_ACCELERATION, volume_acceleration, self.main_model_part.Nodes)
+            variable_utils.SetScalarVar(KratosMultiphysics.FLUID_FRACTION, 1.0, self.main_model_part.Nodes)
+            variable_utils.SetScalarVar(KratosMultiphysics.FLUID_FRACTION_OLD, 1.0, self.main_model_part.Nodes)
+            variable_utils.SetScalarVar(KratosMultiphysics.FLUID_FRACTION_RATE, 0.0, self.main_model_part.Nodes)
+
+        if(currentStep == 2):
+            variable_utils.SetScalarVar(KratosMultiphysics.FLUID_FRACTION_RATE, 0.0, self.main_model_part.Nodes)
 
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
@@ -368,8 +383,15 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
             meshing_options.Set(self.mesher_utils.KEEP_ISOLATED_NODES, True)
 
-            #self.model_meshing =  KratosDelaunay.ModelMeshing(self.main_model_part, meshing_options, self.echo_level)
+            ############ choose just one of the following two options: ############
+            ## use this if you want conditions
+            ## ATTENTION: this is slow, and must be used together with GenerateNewConditionsForFluids and BuildModelPartBoundary
+            #self.model_meshing =  KratosPfemFluid.ModelMeshingWithConditionsForFluids(self.main_model_part, meshing_options, self.echo_level)
+
+            ## if you use the following, you will not use/build/compute conditions
+            ## ATTENTION: it must be used together with BuildMeshBoundaryForFluids and BuildModelPartBoundaryForFluids
             self.model_meshing =  KratosPfemFluid.ModelMeshingForFluids(self.main_model_part, meshing_options, self.echo_level)
+            #######################################################################
 
             self.model_meshing.ExecuteInitialize()
 

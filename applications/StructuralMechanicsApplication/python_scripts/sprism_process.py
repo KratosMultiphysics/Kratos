@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-# Check that applications were imported in the main script
-KM.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
 def Factory(settings, Model):
@@ -33,6 +30,7 @@ class SPRISMProcess(KM.Process):
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
+        KM.Process.__init__(self)
 
         # Settings string in json format
         default_parameters = KM.Parameters("""

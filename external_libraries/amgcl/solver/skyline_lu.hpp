@@ -308,17 +308,6 @@ class skyline_lu {
 };
 
 } // namespace solver
-
-namespace backend {
-
-template <typename V, class O>
-struct bytes_impl< solver::skyline_lu<V, O> > {
-    static size_t get(const solver::skyline_lu<V, O> &S) {
-        return S.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 

@@ -20,7 +20,7 @@ def CreateResponseFunction(response_id, response_settings, model):
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 
     elif response_type == "adjoint_linear_strain_energy":
-        return structural_response.AdjointLinearStrainEnergyResponse(response_id, response_settings, model)
+        return structural_response.AdjointResponseFunction(response_id, response_settings, model)
 
     elif response_type == "adjoint_local_stress":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)

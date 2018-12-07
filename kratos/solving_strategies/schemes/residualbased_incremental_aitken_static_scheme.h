@@ -10,24 +10,18 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 #if !defined( KRATOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H_INCLUDED )
 #define  KRATOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
 
 namespace Kratos
 {
@@ -76,17 +70,32 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    //typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    //typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    /** @param DefaultOmega Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
-      */
-    ResidualBasedIncrementalAitkenStaticScheme(double DefaultOmega):
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
+    */
+    explicit ResidualBasedIncrementalAitkenStaticScheme(Parameters ThisParameters)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "default_omega" : 0.0
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mDefaultOmega = ThisParameters["default_omega"].GetDouble();
+        mOldOmega = ThisParameters["default_omega"].GetDouble();
+    }
+
+    /**
+     * @brief Default constructor.
+     * @param DefaultOmega Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
+    */
+    explicit ResidualBasedIncrementalAitkenStaticScheme(double DefaultOmega):
         mDefaultOmega(DefaultOmega),
         mOldOmega(DefaultOmega)
     {}
@@ -117,7 +126,10 @@ public:
                                         TSystemVectorType &b) override
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
-        mPreviousDx = ZeroVector(Dx.size());
+        if (TSparseSpace::Size(mPreviousDx) != TSparseSpace::Size(Dx)) {
+            TSparseSpace::Resize(mPreviousDx, TSparseSpace::Size(Dx));
+        }
+        TSparseSpace::SetToZero(mPreviousDx);
         mIterationCounter = 0;
     }
 
@@ -190,7 +202,7 @@ public:
         }
 
         // Store results for next iteration
-        noalias(mPreviousDx) = Dx;
+        boost::numeric::ublas::noalias(mPreviousDx) = Dx;
         mOldOmega = Omega;
     }
 
@@ -203,11 +215,27 @@ public:
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedIncrementalAitkenStaticScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

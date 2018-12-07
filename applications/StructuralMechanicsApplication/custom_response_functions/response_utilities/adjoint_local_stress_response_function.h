@@ -169,6 +169,8 @@ private:
     unsigned int mIdOfLocation;
     Element::Pointer mpTracedElement;
     StressTreatment mStressTreatment;
+    TracedStressType mTracedStressType;
+
 
     ///@}
     ///@name Private Operators

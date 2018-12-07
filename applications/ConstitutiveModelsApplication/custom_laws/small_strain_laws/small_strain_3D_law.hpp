@@ -76,7 +76,7 @@ namespace Kratos
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties& rProperties,
 			    const GeometryType& rElementGeometry,
 			    const Vector& rShapeFunctionsValues ) override;
 
@@ -238,7 +238,7 @@ namespace Kratos
 
 
     virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-					     const Properties& rMaterialProperties);
+					     const Properties& rProperties);
 
 
     ///@}

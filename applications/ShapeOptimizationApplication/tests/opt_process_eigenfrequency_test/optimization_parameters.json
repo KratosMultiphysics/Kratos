@@ -10,6 +10,21 @@
         "echo_level"      : 1
     },
     "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "structure",
+            "model_import_settings" : {
+                "input_type"        : "mdpa",
+                "input_filename"    : "structure"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : false
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
         "objectives" : [{
             "identifier" : "eigenfrequency",
             "type"       : "maximization",
@@ -26,21 +41,12 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "structure",
-            "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
+            "type"  : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.3,
-                "max_nodes_in_filter_radius" : 10000,
+                "max_nodes_in_filter_radius" : 1000,
                 "matrix_free_filtering"      : true
-            },
-            "mesh_motion" : {
-                "apply_mesh_solver" : false
-            },
-            "damping" : {
-                "perform_damping" : false
             }
         },
         "optimization_algorithm" : {
@@ -60,15 +66,7 @@
             "design_output_mode"      : "WriteOptimizationModelPart",
             "nodal_results" : [ "SHAPE_CHANGE" ],
             "output_format" : {
-                "name"              : "gid",
-                "gid_configuration" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary"
-                        },
-                        "output_frequency"    : 1.0
-                    }
-                }
+                "name": "gid"
             }
         }
     }

@@ -7,9 +7,11 @@ import math
 
 
 class TestLoadingConditionsSurface(KratosUnittest.TestCase):
+        
     def test_SurfaceLoadCondition3D4N(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)

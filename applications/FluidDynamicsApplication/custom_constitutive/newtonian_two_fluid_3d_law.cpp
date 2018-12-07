@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
 
@@ -59,7 +58,7 @@ std::string NewtonianTwoFluid3DLaw::Info() const {
 double NewtonianTwoFluid3DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
 
     double viscosity;
-    EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters); 
+    EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);
     const Properties& prop = rParameters.GetMaterialProperties();
 
     if (prop.Has(C_SMAGORINSKY)) {
@@ -82,7 +81,7 @@ double NewtonianTwoFluid3DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parame
 void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,
     const Variable<double>& rVariable,
     ConstitutiveLaw::Parameters& rParameters) const {
-    
+
     const SizeType nnodes = 4;
     const GeometryType& geom = rParameters.GetElementGeometry();
     const array_1d<double,nnodes>& N = rParameters.GetShapeFunctionsValues();
@@ -91,7 +90,7 @@ void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,
     double dist = 0.0;
     for (unsigned int i = 0; i < nnodes; i++)
         dist += N[i] * geom[i].FastGetSolutionStepValue(DISTANCE);
-    
+
     SizeType navg = 0; //number of nodes on the same side as the gauss point
     double value = 0.0;
     for (unsigned int i = 0; i < nnodes; i++) {
@@ -105,22 +104,8 @@ void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,
 
 
 double NewtonianTwoFluid3DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters& rParameters) const {
-    // Calculate Symetric gradient (Voigt notation)
-    const SizeType nnodes = 4;
-    const GeometryType& geom = rParameters.GetElementGeometry();
-    const Matrix& DN_DX = rParameters.GetShapeFunctionsDerivatives();
-
-    array_1d<double,6> S(6,0.0);
-    for (unsigned int n = 0; n < nnodes; ++n)
-    {
-        const array_1d<double,3>& rVel = geom[n].FastGetSolutionStepValue(VELOCITY);
-        S[0] += DN_DX(n,0)*rVel[0];
-        S[1] += DN_DX(n,1)*rVel[1];
-        S[2] += DN_DX(n,2)*rVel[2];
-        S[3] += DN_DX(n,2)*rVel[1] + DN_DX(n,1)*rVel[2];
-        S[4] += DN_DX(n,2)*rVel[0] + DN_DX(n,0)*rVel[2];
-        S[5] += DN_DX(n,1)*rVel[0] + DN_DX(n,0)*rVel[1];
-    }
+    
+    const Vector& S = rParameters.GetStrainVector();
 
     // Norm of symetric gradient (cross terms don't get the 2)
     return std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2] + S[3]*S[3] + S[4]*S[4] + S[5]*S[5]);

@@ -10,6 +10,7 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 // System includes
 #include <string>
 #include <iostream>
@@ -22,8 +23,6 @@
 #include "particle_mechanics_application.h"
 #include "utilities/math_utils.h"
 
-// ROUNDED MohrCoulomb YIELD CRITERION (Sloan & Booker, 1986 ) (in the octahedral)
-// Hyperbolic in the other plane... (Abbo & Lyamin, Sloan, Hambleton )
 namespace Kratos
 {
 
@@ -31,7 +30,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 MCYieldCriterion::MCYieldCriterion()
-    :YieldCriterion()
+    :MPMYieldCriterion()
 {
 
 }
@@ -40,7 +39,7 @@ MCYieldCriterion::MCYieldCriterion()
 //************************************************************************************
 
 MCYieldCriterion::MCYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :YieldCriterion(pHardeningLaw)
+    :MPMYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -50,7 +49,7 @@ MCYieldCriterion::MCYieldCriterion(HardeningLawPointer pHardeningLaw)
 
 MCYieldCriterion& MCYieldCriterion::operator=(MCYieldCriterion const& rOther)
 {
-    YieldCriterion::operator=(rOther);
+    MPMYieldCriterion::operator=(rOther);
     return *this;
 }
 
@@ -58,7 +57,7 @@ MCYieldCriterion& MCYieldCriterion::operator=(MCYieldCriterion const& rOther)
 //************************************************************************************
 
 MCYieldCriterion::MCYieldCriterion(MCYieldCriterion const& rOther)
-    :YieldCriterion(rOther)
+    :MPMYieldCriterion(rOther)
 {
 
 }
@@ -78,42 +77,29 @@ MCYieldCriterion::~MCYieldCriterion()
 
 double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle)
 {
-    double Cohesion      = rCohesion;
-    double FrictionAngle = rFrictionAngle;
-
-    const double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
-    const double CohesionCoefficient = 2 * Cohesion * sqrt(FrictionCoefficient);
+    const double friction_coefficient = (1 + std::sin(rFrictionAngle))/(1 - std::sin(rFrictionAngle));
+    const double cohesion_coefficient = 2 * rCohesion * std::sqrt(friction_coefficient);
 
     // f = k*s1 -s3 - comp
-    rStateFunction = FrictionCoefficient * rStressVector(0) - rStressVector(2) - CohesionCoefficient;
+    rStateFunction = friction_coefficient * rStressVector[0] - rStressVector[2] - cohesion_coefficient;
 
     return rStateFunction;
 }
 
-
-double MCYieldCriterion::GetSmoothingLodeAngle()
-{
-    return 29.0*GetPI()/180.0;
-}
 
 double MCYieldCriterion::GetPI()
 {
     return std::atan(1.0)*4.0;
 }
 
-double MCYieldCriterion::GetSmoothingHiperbolic()
-{
-    return 2.0;
-}
-
 void MCYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 void MCYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, YieldCriterion )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 

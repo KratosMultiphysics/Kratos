@@ -107,7 +107,7 @@ namespace Kratos
     /**
      * Initialize member data
      */
-    virtual void InitializeMaterial(const Properties& rMaterialProperties);
+    virtual void InitializeMaterial(const Properties& rProperties);
 
 
     /**
@@ -160,7 +160,7 @@ namespace Kratos
     /**
      * Check
      */
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo);
+    virtual int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -348,5 +348,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_CONSTITUTIVE_MODEL_H_INCLUDED  defined
-
-

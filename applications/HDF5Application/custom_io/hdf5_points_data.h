@@ -31,7 +31,7 @@ namespace HDF5
 {
 
 class File;
-class WriteInfo;
+struct WriteInfo;
 
 namespace Internals
 {

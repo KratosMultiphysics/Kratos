@@ -8,288 +8,318 @@
 //
 
 #if !defined(KRATOS_FRICTION_LAW_H_INCLUDED)
-#define      KRATOS_FRICTION_LAW_H_INCLUDED
+#define KRATOS_FRICTION_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/kratos_flags.h"
-#include "includes/model_part.h"
-
+#include "includes/properties.h"
+#include "containers/flags.h"
+#include "custom_utilities/contact_properties_extensions.hpp"
 
 namespace Kratos
 {
-   ///@addtogroup ContactMechanicsApplication
-   ///@{
+///@addtogroup ContactMechanicsApplication
+///@{
 
-   ///@name Kratos Globals
-   ///@{
+///@name Kratos Globals
+///@{
 
-   ///@}
-   ///@name Type Definitions
-   ///@{
+///@}
+///@name Type Definitions
+///@{
 
-   ///@}
-   ///@name  Enum's
-   ///@{
+///@}
+///@name  Enum's
+///@{
 
-   ///@}
-   ///@name  Functions
-   ///@{
+///@}
+///@name  Functions
+///@{
 
-   ///@}
-   ///@name Kratos Classes
-   ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-   /// Short class definition.
-   /**
-    * Base class of friction laws.
-    */
+/// Short class definition.
+/**
+ * Base class of friction laws.
+ */
 
-   class KRATOS_API(CONTACT_MECHANICS_APPLICATION) FrictionLaw
-   {
-      public:
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) FrictionLaw
+{
+public:
 
-         struct FrictionLawVariables {
-            double FrictionCoefficient;
-            double Alpha;
-            double Area;
+  ///@name Type Definitions
+  ///@{
 
-            double TangentPenalty;
+  struct FrictionLawVariables {
 
-            double PlasticSlipOld;
-            double PlasticSlip;
-            double Adhesion;
+    double FrictionCoefficient;
+    double Alpha;
+    double Area;
 
-            bool Implex;
+    double TangentPenalty;
 
-            FrictionLawVariables() {Implex = false; Area = 1.0;}
+    double PlasticSlipOld;
+    double PlasticSlip;
+    double Adhesion;
 
-            void Initialize(const double & rTangentPenalty, double PS, double & rArea, bool rImplex = false )
-            {
-               PlasticSlipOld = PS;
-               PlasticSlip = PS;
-               Area = rArea;
-               TangentPenalty = rTangentPenalty / Area;
-               Implex = rImplex;
-            };
+    bool Implex;
 
-         };
+    FrictionLawVariables() {Implex = false; Area = 1.0;}
 
-         ///@name Type Definitions
-         ///@{
+    void Initialize(const double & rTangentPenalty, double PS, double & rArea, bool rImplex = false )
+    {
+      PlasticSlipOld = PS;
+      PlasticSlip = PS;
+      Area = rArea;
+      TangentPenalty = rTangentPenalty / Area;
+      Implex = rImplex;
+    };
 
-         /// Pointer definition of FrictionLaw
-         KRATOS_CLASS_POINTER_DEFINITION( FrictionLaw );
+  };
 
-         ///@}
-         ///@name Life Cycle
-         ///@{
+  /// Pointer definition of FrictionLaw
+  KRATOS_CLASS_POINTER_DEFINITION(FrictionLaw);
 
-         /// Default constructor.
-         FrictionLaw();
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
-         /// Destructor.
-         virtual ~FrictionLaw() {};
+  /// Default constructor.
+  FrictionLaw()
+  {
+    mPlasticSlip = 0.0;
+    mPlasticSlipNew = 0.0;
+    mDeltaPlasticSlip = 0.0;
+  };
 
+  /// Copy constructor.
+  FrictionLaw(FrictionLaw const& rOther)
+      :mPlasticSlip(rOther.mPlasticSlip)
+      ,mPlasticSlipNew(rOther.mPlasticSlipNew)
+      ,mDeltaPlasticSlip(rOther.mDeltaPlasticSlip)
+  {};
 
-         /**
-          * Clone function (has to be implemented by any derived class)
-          * @return a pointer to a new instance of this friction law
-          */
-         virtual FrictionLaw::Pointer Clone() const;
+  /// Destructor.
+  virtual ~FrictionLaw(){};
 
-         ///@}
-         ///@name Operators
-         ///@{
+  /**
+   * Clone function (has to be implemented by any derived class)
+   * @return a pointer to a new instance of this friction law
+   */
+  virtual FrictionLaw::Pointer Clone() const
+  {
+    return Kratos::make_shared<FrictionLaw>(*this);
+  };
 
 
-         ///@}
-         ///@name Operations
-         ///@{
+  ///@}
+  ///@name Operators
+  ///@{
 
 
-         void FinalizeSolutionStep();
+  ///@}
+  ///@name Operations
+  ///@{
 
-         // perform similar to a return mapping
-         bool EvaluateFrictionLaw( double& rTangentForce, const double& rNormalForce, FrictionLawVariables& rTangentVariables);
 
-         void EvaluateConstitutiveComponents( double& rNormalModulus, double & rTangentModulus, const double& rTangentForce, const double& rEffectiveNormalForce, FrictionLawVariables& rTangentVariables);
+  void InitializeSolutionStep();
 
-         double GetPlasticSlip() { return mPlasticSlip;};
-         ///@}
-         ///@name Access
-         ///@{
+  void FinalizeSolutionStep();
 
+  // perform similar to a return mapping
+  bool EvaluateFrictionLaw( double& rTangentForce, const double& rNormalForce, FrictionLawVariables& rTangentVariables);
 
-         ///@}
-         ///@name Inquiry
-         ///@{
+  void EvaluateConstitutiveComponents( double& rNormalModulus, double & rTangentModulus, const double& rTangentForce, const double& rEffectiveNormalForce, FrictionLawVariables& rTangentVariables);
 
+  double GetPlasticSlip() { return mPlasticSlip; };
 
-         ///@}
-         ///@name Input and output
-         ///@{
+  ///@}
+  ///@name Access
+  ///@{
 
-         /// Turn back information as a string.
-         //virtual std::string Info() const;
 
-         /// Print information about this object.
-         //virtual void PrintInfo(std::ostream& rOStream) const;
+  ///@}
+  ///@name Inquiry
+  ///@{
 
-         /// Print object's data.
-         //virtual void PrintData(std::ostream& rOStream) const;
 
+  ///@}
+  ///@name Input and output
+  ///@{
 
-         ///@}
-         ///@name Friends
-         ///@{
+  /// Turn back information as a string.
+  virtual std::string Info() const
+  {
+    std::stringstream buffer;
+    buffer << "FrictionLaw";
+    return buffer.str();
+  }
 
+  /// Print information about this object.
+  virtual void PrintInfo(std::ostream& rOStream) const
+  {
+    rOStream << "FrictionLaw";
+  }
 
-         ///@}
+  /// Print object's data.
+  virtual void PrintData(std::ostream& rOStream) const
+  {
+    rOStream << "FrictionLaw Data";
+  }
 
-      protected:
-         ///@name Protected static Member Variables
-         ///@{
+  ///@}
+  ///@name Friends
+  ///@{
 
 
-         ///@}
-         ///@name Protected member Variables
-         ///@{
+  ///@}
 
+protected:
+  ///@name Protected static Member Variables
+  ///@{
 
-         ///@}
-         ///@name Protected Operators
-         ///@{
 
+  ///@}
+  ///@name Protected member Variables
+  ///@{
 
-         ///@}
-         ///@name Protected Operations
-         ///@{
 
-         virtual double EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) {return 0; };
+  ///@}
+  ///@name Protected Operators
+  ///@{
 
-         virtual double EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables ) {return 0; };
 
-         virtual void EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, FrictionLawVariables&  rTangentVariables ) {};
+  ///@}
+  ///@name Protected Operations
+  ///@{
 
-         ///@}
-         ///@name Protected  Access
-         ///@{
+  // Evaluate Hardening
+  virtual double EvaluateHardening( const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables) { return 0; };
 
+  // Evaluate Contact Yield Surface
+  virtual double EvaluateContactYield( const double& rTangentStress, const double& rNormalStress, const double& rPlasticSlip, FrictionLawVariables& rTangentVariables ) { return 0; };
 
-         ///@}
-         ///@name Protected Inquiry
-         ///@{
+  // Evaluate Contact Yield Surface Stress Derivative
+  virtual void EvaluateYieldDerivativeRespectStress( double& rdF_dt, double & rdF_dp, const double& rTangentStress, const double& rNormalStress, const double& Gamma, FrictionLawVariables&  rTangentVariables ) {};
 
+  ///@}
+  ///@name Protected  Access
+  ///@{
 
-         ///@}
-         ///@name Protected LifeCycle
-         ///@{
 
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
 
-         ///@}
 
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
 
-      private:
-         ///@name Static Member Variables
-         ///@{
 
+  ///@}
 
-         ///@}
-         ///@name Member Variables
-         ///@{
-         double mPlasticSlip;
-         double mPlasticSlipNew;
-         double mDeltaPlasticSlip;
 
-         ///@}
-         ///@name Private Operators
-         ///@{
+private:
+  ///@name Static Member Variables
+  ///@{
 
 
-         ///@}
-         ///@name Private Operations
-         ///@{
+  ///@}
+  ///@name Member Variables
+  ///@{
 
+  double mPlasticSlip;
+  double mPlasticSlipNew;
+  double mDeltaPlasticSlip;
 
-         ///@}
-         ///@name Private  Access
-         ///@{
+  ///@}
+  ///@name Private Operators
+  ///@{
 
 
-         ///@}
-         ///@name Private Inquiry
-         ///@{
+  ///@}
+  ///@name Private Operations
+  ///@{
 
+  ///@}
+  ///@name Serialization
+  ///@{
 
-         ///@}
-         ///@name Un accessible methods
-         ///@{
+  friend class Serializer;
 
-         /// Assignment operator.
-         //FrictionLaw& operator=(FrictionLaw const& rOther);
+  virtual void save( Serializer& rSerializer ) const
+  {
+    rSerializer.save("mPlasticSlip",mPlasticSlip);
+    rSerializer.save("mPlasticSlipNew",mPlasticSlipNew);
+    rSerializer.save("mDeltaPlasticSlip",mDeltaPlasticSlip);
+  }
 
-         /// Copy constructor.
-         //FrictionLaw(FrictionLaw const& rOther);
+  virtual void load( Serializer& rSerializer )
+  {
+    rSerializer.load("mPlasticSlip",mPlasticSlip);
+    rSerializer.load("mPlasticSlipNew",mPlasticSlipNew);
+    rSerializer.load("mDeltaPlasticSlip",mDeltaPlasticSlip);
+  }
 
-         ///@}
-         ///@name Serialization
-         ///@{
+  ///@}
+  ///@name Private  Access
+  ///@{
 
-         friend class Serializer;
 
-         virtual void save( Serializer& rSerializer ) const
-         {
-            rSerializer.save("mPlasticSlip",mPlasticSlip);
-            rSerializer.save("mPlasticSlipNew",mPlasticSlipNew);
-            rSerializer.save("mDeltaPlasticSlip",mDeltaPlasticSlip);
-         }
+  ///@}
+  ///@name Private Inquiry
+  ///@{
 
-         virtual void load( Serializer& rSerializer )
-         {
-            rSerializer.load("mPlasticSlip",mPlasticSlip);
-            rSerializer.load("mPlasticSlipNew",mPlasticSlipNew);
-            rSerializer.load("mDeltaPlasticSlip",mDeltaPlasticSlip);
-         }
 
-   }; // Class FrictionLaw
+  ///@}
+  ///@name Un accessible methods
+  ///@{
 
-   ///@}
+  /// Assignment operator.
+  //FrictionLaw& operator=(FrictionLaw const& rOther);
 
-   ///@name Type Definitions
-   ///@{
+  ///@}
 
-   /**
-    * Definition of FrictionLaw variable
-    */
-   KRATOS_DEFINE_VARIABLE_IMPLEMENTATION( CONTACT_MECHANICS_APPLICATION, FrictionLaw::Pointer, FRICTION_LAW )
+public:
 
-      ///@}
-      ///@name Input and output
-      ///@{
+  DECLARE_HAS_THIS_TYPE_PROPERTIES
+  DECLARE_ADD_THIS_TYPE_TO_PROPERTIES
+  DECLARE_GET_THIS_TYPE_FROM_PROPERTIES
 
+}; // Class FrictionLaw
 
-      /// input stream function
-      // inline std::istream& operator >> (std::istream& rIStream,
-      // 				    FrictionLaw& rThis);
+///@}
 
-      /// output stream function
-      // inline std::ostream& operator << (std::ostream& rOStream,
-      // 				    const FrictionLaw& rThis)
-      //   {
-      //     rThis.PrintInfo(rOStream);
-      //     rOStream << std::endl;
-      //     rThis.PrintData(rOStream);
+///@name Type Definitions
+///@{
 
-      //     return rOStream;
-      //   }
-      ///@}
+///@}
+///@name Input and output
+///@{
 
-      ///@} addtogroup block
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  FrictionLaw& rThis)
+{
+  return rIStream;
+}
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const FrictionLaw& rThis)
+{
+  return rOStream << rThis.Info();
+}
+///@}
+
+///@} addtogroup block
 
 } // namespace Kratos
 

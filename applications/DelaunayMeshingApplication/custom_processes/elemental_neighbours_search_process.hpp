@@ -375,10 +375,9 @@ namespace Kratos
       //*************  Erase old node neighbours  *************//
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
+          (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mAverageElements);
 	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-	  rE.erase(rE.begin(),rE.end() );
-
-	  (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mAverageElements);
+	  rE.erase(rE.begin(),rE.end());
 
 	  ResetFlagOptions(*in);
         }
@@ -511,7 +510,7 @@ namespace Kratos
 			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 
-			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
+			for(unsigned int i = 1; i < rGeometry.FacesNumber(); ++i)
 			  {
                             rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
@@ -548,7 +547,7 @@ namespace Kratos
 			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 
-			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
+			for(unsigned int i = 1; i < rGeometry.FacesNumber(); ++i)
 			  {
                             rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
@@ -601,7 +600,7 @@ namespace Kratos
                       DenseMatrix<unsigned int> lpofa; //points that define the faces
                       rGeometry.NodesInFaces(lpofa);
 
-                      for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
+                      for(unsigned int i = 1; i < rGeometry.FacesNumber(); ++i)
                       {
                         rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
                         //std::cout<<" SetBoundary ("<<rGeometry[lpofa(i,0)].Id()<<")"<<std::endl;
@@ -642,7 +641,7 @@ namespace Kratos
 			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 
-			for(unsigned int i = 0; i < rGeometry.FacesNumber(); ++i)
+			for(unsigned int i = 1; i < rGeometry.FacesNumber(); ++i)
 			  {
                             rGeometry[lpofa(i,iface)].Set(BOUNDARY);  //set boundary particles
 			  }
@@ -746,7 +745,7 @@ namespace Kratos
 	      //constant vector, depends on the element
 	      for (unsigned int t=0; t<nnofa; ++t)
                 {
-		  lhelp(t)=rElems[el].GetGeometry()[lpofa(t,nf)].Id();      //connections of the face
+		  lhelp(t)=rElems[el].GetGeometry()[lpofa(t,nf)].Id();  //connections of the face
 		  lpoin(lhelp(t))=1;                                    //mark in lpoin
                 }
 

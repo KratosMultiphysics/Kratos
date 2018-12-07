@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -200,6 +201,33 @@ class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
 class IsotropicDamageSimoJuPSTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
 
+class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
+
+class SimpleSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_VM_test"
+
+class SimpleSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test"
+
+class SimpleSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test"
+
+class BigCubeSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test"
+
+class BigCubeSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test"
+
+class BigCubeSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_DP_test"
+
+class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_T_test"
+
+class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
+
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
 
@@ -226,6 +254,9 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests(StructuralMechanic
 
 class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_lumped"
+
+class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/rigid_test"
 
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
@@ -308,3 +339,9 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
+
+class TensileTestStructuralTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/TensileTestStructural/TensileTestStructural"
+
+if __name__ == '__main__':
+    KratosUnittest.main()

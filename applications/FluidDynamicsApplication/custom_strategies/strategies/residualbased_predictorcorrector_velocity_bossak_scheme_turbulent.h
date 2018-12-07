@@ -578,9 +578,9 @@ namespace Kratos {
 
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
-                if (rModelPart.GetCommunicator().MyPID() == 0)
-                    std::cout << "Computing OSS projections" << std::endl;
 
+                KRATOS_INFO_IF("ResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
+                    << "Computing OSS projections" << std::endl;
 
                 const int nnodes = static_cast<int>(rModelPart.Nodes().size());
                 auto nbegin = rModelPart.NodesBegin();
@@ -598,8 +598,7 @@ namespace Kratos {
                 }//end of loop over nodes
 
                 //loop on nodes to compute ADVPROJ   CONVPROJ NODALAREA
-                array_1d<double, 3 > output(3,0.0);
-
+                array_1d<double, 3 > output = ZeroVector(3);
 
                 const int nel = static_cast<int>(rModelPart.Elements().size());
                 auto elbegin = rModelPart.ElementsBegin();
@@ -825,7 +824,7 @@ namespace Kratos {
             unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
             double nodal_area = 0.0;
-            array_1d<double,3> momentum_projection(3,0.0);
+            array_1d<double,3> momentum_projection = ZeroVector(3);
             double mass_projection = 0.0;
             for ( unsigned int i = 0; i < nodes_in_cond; i++ )
             {

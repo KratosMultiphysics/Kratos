@@ -67,6 +67,12 @@ public:
     /// The size type definition
     typedef std::size_t             SizeType;
     
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
+    
     /// Counted pointer of LinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrain );
 
@@ -114,7 +120,7 @@ public:
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 2;
+        return Dimension;
     };
 
     /**
@@ -123,7 +129,7 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 3;
+        return VoigtSize;
     }
 
     ///@}

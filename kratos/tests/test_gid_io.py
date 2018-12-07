@@ -13,6 +13,7 @@ def GetFilePath(fileName):
 
 class TestGidIO(KratosUnittest.TestCase):
 
+
     def __WriteOutput(self, model_part, output_file):
 
         gid_output = GiDOutputProcess(model_part,
@@ -50,8 +51,8 @@ class TestGidIO(KratosUnittest.TestCase):
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
 
-    def __InitialRead(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+    def __InitialRead(self, current_model):
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")).ReadModelPart(model_part)
@@ -72,7 +73,7 @@ class TestGidIO(KratosUnittest.TestCase):
         params["reference_file_name"].SetString(GetFilePath(reference_file))
         params["output_file_name"].SetString(output_file)
 
-        cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(KratosMultiphysics.ModelPart(), params)
+        cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(params)
 
         cmp_process.ExecuteInitialize()
         cmp_process.ExecuteBeforeSolutionLoop()
@@ -83,14 +84,18 @@ class TestGidIO(KratosUnittest.TestCase):
         cmp_process.ExecuteFinalize()
 
     def test_gid_io_all(self):
-        model_part = self.__InitialRead()
+        current_model = KratosMultiphysics.Model()
+
+        model_part = self.__InitialRead(current_model)
 
         self.__WriteOutput(model_part,"all_active_out")
 
         self.__Check("all_active_out_0.post.msh","all_active_ref.ref")
 
     def test_gid_io_deactivation(self):
-        model_part = self.__InitialRead()
+        current_model = KratosMultiphysics.Model()
+
+        model_part = self.__InitialRead(current_model)
 
         model_part.Elements[3].Set(KratosMultiphysics.ACTIVE,False)
         model_part.Elements[1796].Set(KratosMultiphysics.ACTIVE,False)
@@ -103,7 +108,9 @@ class TestGidIO(KratosUnittest.TestCase):
         self.__Check("deactivated_out_0.post.msh","deactivated_ref.ref")
 
     def test_gid_io_results(self):
-        model_part = self.__InitialRead()
+        current_model = KratosMultiphysics.Model()
+
+        model_part = self.__InitialRead(current_model)
 
         # Initialize flag
         for node in model_part.Nodes:
@@ -159,6 +166,7 @@ class TestGidIO(KratosUnittest.TestCase):
         self.__Check("results_out_0.post.res","results_out_ref.ref")
 
     def test_DoubleFreeError(self):
+        current_model = KratosMultiphysics.Model()
 
         output_file_1 = "outFile"
         output_file_2 = "otherFile"

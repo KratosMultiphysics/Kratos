@@ -1,8 +1,19 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
+//
+//  Main authors:    Bodhinanda Chandra
+//
+
+
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -81,7 +92,7 @@ namespace Kratos
         const array_1d<double, 3 >& ge,
         const array_1d<double, 3 >& gn,
         const Matrix& DN_De,
-        const Vector& N,
+        const RowMatrix& N,
         const double Pressure,
         const double Weight)
     {
@@ -141,7 +152,7 @@ namespace Kratos
 
     void MPMSurfaceLoadCondition3D::CalculateAndAddPressureForce(
         VectorType& rResidualVector,
-        const Vector& N,
+        const RowMatrix& N,
         const array_1d<double, 3 >& Normal,
         const double Pressure,
         const double Weight,
@@ -177,7 +188,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const unsigned int number_of_nodes = GetGeometry().size();
+        GeometryType& rGeom = GetGeometry();
+        const unsigned int number_of_nodes = rGeom.size();
         const unsigned int mat_size = number_of_nodes * 3;
 
         //Resizing as needed the LHS
@@ -203,14 +215,14 @@ namespace Kratos
         }
 
         // Reading integration points and local gradients
-        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
-        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
+        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(rGeom);
+        const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints(integration_method);
+        const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = rGeom.ShapeFunctionsLocalGradients(integration_method);
+        const Matrix& Ncontainer = rGeom.ShapeFunctionsValues(integration_method);
 
         // Calculating actual jacobian
         GeometryType::JacobiansType J;
-        J = GetGeometry().Jacobian(J,integration_method);
+        J = rGeom.Jacobian(J,integration_method);
 
         // Vector with a loading applied to the elemnt
         array_1d<double, 3 > surface_load = ZeroVector(3);
@@ -239,13 +251,13 @@ namespace Kratos
 
         for (unsigned int i = 0; i < pressure_on_nodes.size(); i++)
         {
-            if( GetGeometry()[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
+            if( rGeom[i].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) )
             {
-                pressure_on_nodes[i] += GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+                pressure_on_nodes[i] += rGeom[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
             }
-            if( GetGeometry()[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
+            if( rGeom[i].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) )
             {
-                pressure_on_nodes[i] -= GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+                pressure_on_nodes[i] -= rGeom[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
             }
         }
 
@@ -255,7 +267,7 @@ namespace Kratos
         {
             const double det_j = MathUtils<double>::GeneralizedDet(J[point_number]);
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
-            auto& N = row(Ncontainer, point_number);
+            const auto& N = row(Ncontainer, point_number);
 
             ge[0] = J[point_number](0, 0);
             gn[0] = J[point_number](0, 1);
@@ -296,9 +308,9 @@ namespace Kratos
             array_1d<double, 3> gauss_load = surface_load;
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
-                if( GetGeometry()[ii].SolutionStepsDataHas( SURFACE_LOAD ) )
+                if( rGeom[ii].SolutionStepsDataHas( SURFACE_LOAD ) )
                 {
-                    noalias(gauss_load) += N[ii]*GetGeometry()[ii].FastGetSolutionStepValue( SURFACE_LOAD );
+                    noalias(gauss_load) += N[ii]*rGeom[ii].FastGetSolutionStepValue( SURFACE_LOAD );
                 }
             }
 

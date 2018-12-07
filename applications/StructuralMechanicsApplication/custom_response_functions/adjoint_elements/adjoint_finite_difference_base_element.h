@@ -344,15 +344,11 @@ public:
         KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
-    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
-    // They will be removed from the derived elements; i.e. the implementation
-    // should be in CalculateOnIntegrationPoints!
-    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo) override
     {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;

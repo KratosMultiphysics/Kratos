@@ -134,10 +134,9 @@ void ConnectivityPreserveModeler::DuplicateElements(
     for (auto i_elem = rOriginModelPart.ElementsBegin(); i_elem != rOriginModelPart.ElementsEnd(); ++i_elem)
     {
         Properties::Pointer properties = i_elem->pGetProperties();
-        Element::Pointer p_element = rReferenceElement.Create(i_elem->Id(), i_elem->GetGeometry(), properties);
 
         // Reuse the geometry of the old element (to save memory)
-        p_element->pGetGeometry() = i_elem->pGetGeometry();
+        Element::Pointer p_element = rReferenceElement.Create(i_elem->Id(), i_elem->pGetGeometry(), properties);
 
         temp_elements.push_back(p_element);
     }
@@ -157,10 +156,9 @@ void ConnectivityPreserveModeler::DuplicateConditions(
     for (auto i_cond = rOriginModelPart.ConditionsBegin(); i_cond != rOriginModelPart.ConditionsEnd(); ++i_cond)
     {
         Properties::Pointer properties = i_cond->pGetProperties();
-        Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(i_cond->Id(), i_cond->GetGeometry(), properties);
 
         // Reuse the geometry of the old element (to save memory)
-        p_condition->pGetGeometry() = i_cond->pGetGeometry();
+        Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(i_cond->Id(), i_cond->pGetGeometry(), properties);
 
         temp_conditions.push_back(p_condition);
     }
@@ -231,14 +229,14 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
     {
         if( ! rDestinationModelPart.HasSubModelPart(i_part->Name()))
             rDestinationModelPart.CreateSubModelPart(i_part->Name());
-            
+
         ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
 
         destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
 
         std::vector<ModelPart::IndexType> ids;
         ids.reserve(i_part->Elements().size());
-        
+
         //adding by index
         for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
             ids.push_back(it->Id());

@@ -12,6 +12,7 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "utilities/brute_force_point_locator.h"
 
@@ -20,7 +21,8 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorTriangleElement, KratosCoreFastSuite)
 {
-    ModelPart model_part("Triangle");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Triangle");
     model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
 
     model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -48,7 +50,8 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorTriangleElement, KratosCoreFastS
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorQuadrilateralElement, KratosCoreFastSuite)
 {
-    ModelPart model_part("Quadrilateral");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Quadrilateral");
     model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
 
     model_part.CreateNewNode(1, 0.0, 0.0,  0.0);
@@ -79,7 +82,8 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorQuadrilateralElement, KratosCore
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorTetrahedraElement, KratosCoreFastSuite)
 {
-    ModelPart model_part("Tetrahedral");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Tetrahedral");
     model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
     model_part.CreateNewNode(1, 0.0, 0.04, 0.0);
@@ -110,7 +114,8 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorTetrahedraElement, KratosCoreFas
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorHexahedraElement, KratosCoreFastSuite)
 {
-    ModelPart model_part("Hexahedral");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Hexahedral");
     model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
     model_part.CreateNewNode(1, 0.0, 0.04, 0.0);
@@ -149,7 +154,8 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorHexahedraElement, KratosCoreFast
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNode, KratosCoreFastSuite)
 {
-    ModelPart model_part("ForTest");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("ForTest");
 
     // Fill the model part geometry data
     const int node_id_to_be_found = 517;
@@ -172,7 +178,8 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNode, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorQuadrilateralCondition, KratosCoreFastSuite)
 {
-    ModelPart model_part("Quadrilateral");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Quadrilateral");
     model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
 
     model_part.CreateNewNode(1, 0.0, 0.0,  0.0);

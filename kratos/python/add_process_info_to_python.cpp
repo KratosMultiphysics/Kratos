@@ -37,13 +37,13 @@ ProcessInfo::Pointer ProcessInfoGetPreviousSolutionStepInfo(ProcessInfo & rProce
 //
 void  AddProcessInfoToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<ProcessInfo, ProcessInfo::Pointer, DataValueContainer, Flags >(m,"ProcessInfo")
-    .def(init<>())
+    py::class_<ProcessInfo, ProcessInfo::Pointer, DataValueContainer, Flags >(m,"ProcessInfo")
+    .def(py::init<>())
     .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
 	.def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
-    .def("__repr__", &ProcessInfo::Info)
+    .def("__str__", PrintObject<ProcessInfo>)
     ;
 }
 }  // namespace Python.

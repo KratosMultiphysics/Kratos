@@ -17,8 +17,8 @@ class TestMortarMapping(KratosUnittest.TestCase):
     def __base_test_mapping(self, input_filename, num_nodes, pure_implicit):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-        self.main_model_part = KratosMultiphysics.ModelPart("Structure")
-        self.main_model_part.SetBufferSize(2)
+        self.model = KratosMultiphysics.Model()
+        self.main_model_part = self.model.CreateModelPart("Structure", 2)
 
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
         self.StructureModel = {"Structure": self.main_model_part}

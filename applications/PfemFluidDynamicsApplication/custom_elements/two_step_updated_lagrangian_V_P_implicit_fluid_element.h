@@ -93,8 +93,6 @@ namespace Kratos
 
       typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-      typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
       /// Type for shape function values container
       typedef Kratos::Vector ShapeFunctionsType;
 
@@ -370,6 +368,13 @@ namespace Kratos
 				 const double TimeStep,
 				 const double BoundRHSCoeffAcc,
 				 const double BoundRHSCoeffDev) override;
+      
+      void ComputeBoundRHSVectorComplete(VectorType& BoundRHSVector, 
+					 const double TimeStep, 
+					 const double BoundRHSCoeffAcc, 
+					 const double BoundRHSCoeffDev, 
+					 const VectorType SpatialDefRate); 
+      
 
       void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 				      const ShapeFunctionDerivativesType& rShapeDeriv,

@@ -2,45 +2,48 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## Source auxiliar procedures
     source [file join $problemtypedir ProjectParametersAuxProcs.tcl]
-        
+
     ## Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
     set FileVar [open $filename w]
-    
+
     puts $FileVar "\{"
-        
     ## problem_data
     puts $FileVar "    \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
-    puts $FileVar "        \"model_part_name\":      \"FluidTransportDomain\","
-    puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
-    puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
+    puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
     puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads]"
     puts $FileVar "    \},"
-    
+
     ## solver_settings
     puts $FileVar "    \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
-        puts $FileVar "        \"solver_type\":                        \"fluid_transport_steady_solver\","
+        puts $FileVar "        \"solver_type\":                        \"fluid_transport_solver\","
     } else {
-        puts $FileVar "        \"solver_type\":                        \"fluid_transport_steady_solver\","
+        puts $FileVar "        \"solver_type\":                        \"fluid_transport_solver\","
     }
+
+    puts $FileVar "        \"model_part_name\":                    \"FluidTransportDomain\","
+    puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
+    puts $FileVar "        \"start_time\":                         [GiD_AccessValue get gendata Start_Time],"
+    puts $FileVar "        \"time_step\":                          [GiD_AccessValue get gendata Delta_Time],"
     puts $FileVar "        \"model_import_settings\":              \{"
     puts $FileVar "            \"input_type\":       \"mdpa\","
-    puts $FileVar "            \"input_filename\":   \"$basename\","
-    puts $FileVar "            \"input_file_label\": 0"
+    puts $FileVar "            \"input_filename\":   \"$basename\""
     puts $FileVar "        \},"
-    puts $FileVar "        \"buffer_size\":                        2,"
+    puts $FileVar "        \"buffer_size\":                        3,"
     puts $FileVar "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"clear_storage\":                      false,"
     puts $FileVar "        \"compute_reactions\":                  [GiD_AccessValue get gendata Write_Reactions],"
     puts $FileVar "        \"move_mesh_flag\":                     [GiD_AccessValue get gendata Move_Mesh],"
-    puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
+
     puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
+    puts $FileVar "        \"scheme_type\":                        \"[GiD_AccessValue get gendata Scheme]\","
+    puts $FileVar "        \"newmark_theta\":                      [GiD_AccessValue get gendata Newmark_Theta],"
     puts $FileVar "        \"strategy_type\":                      \"[GiD_AccessValue get gendata Strategy_Type]\","
     puts $FileVar "        \"convergence_criterion\":              \"[GiD_AccessValue get gendata Convergence_Criterion]\","
     puts $FileVar "        \"displacement_relative_tolerance\":    [GiD_AccessValue get gendata Displacement_Relative_Tolerance],"
@@ -48,6 +51,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"residual_relative_tolerance\":        [GiD_AccessValue get gendata Residual_Relative_Tolerance],"
     puts $FileVar "        \"residual_absolute_tolerance\":        [GiD_AccessValue get gendata Residual_Absolute_Tolerance],"
     puts $FileVar "        \"max_iteration\":                      [GiD_AccessValue get gendata Max_Iterations],"
+
     ## linear_solver_settings
     puts $FileVar "        \"linear_solver_settings\":             \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
@@ -108,12 +112,14 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Phi_Value
     # Face_Heat_Flux
     AppendGroupNames PutStrings Face_Heat_Flux
+    # Q_Source
+    AppendGroupNames PutStrings Q_Source
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $FileVar "        \"processes_sub_model_part_list\":      $PutStrings"
 
     puts $FileVar "    \},"
-    
+
     ## output_configuration
     puts $FileVar "    \"output_configuration\": \{"
     puts $FileVar "        \"result_file_configuration\": \{"
@@ -134,12 +140,35 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings \[
     set iGroup 0
     AppendOutputVariables PutStrings iGroup Write_Velocity VELOCITY
+
+    set SolutionType [GiD_AccessValue get gendata Solution_Type]
+    set SchemeType [GiD_AccessValue get gendata Scheme]
+
+    if {$SolutionType eq "Steady"} {
+
     AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
+
+    } else {
+        if {$SchemeType eq "Implicit"} {
+
+            AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
+            AppendOutputVariables PutStrings iGroup Write_Phi_Value PHI_THETA
+
+        } else {
+
+            AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
+
+        }
+
+    }
+
+    AppendOutputVariables PutStrings iGroup Write_Normals_Value NORMAL
     if {[GiD_AccessValue get gendata Write_Reactions] eq true} {
         incr iGroup
         append PutStrings \" REACTION_FLUX \" ,
     }
     AppendOutputVariables PutStrings iGroup Write_Face_Heat_Flux FACE_HEAT_FLUX
+    AppendOutputVariables PutStrings iGroup Write_Q_Source HEAT_FLUX
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         incr iGroup
         append PutStrings \" PARTITION_INDEX \" ,
@@ -148,22 +177,24 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         set PutStrings [string trimright $PutStrings ,]
     }
     append PutStrings \]
-    puts $FileVar "            \"nodal_results\":       $PutStrings"
-    # # gauss_point_results
-    # set PutStrings \[
-    # set iGroup 0
-    # AppendOutputVariables PutStrings iGroup Write_Face_Heat_Flux FACE_HEAT_FLUX_VECTOR
-    # if {$iGroup > 0} {
-    #     set PutStrings [string trimright $PutStrings ,]
-    # }
-    # append PutStrings \]
-    # puts $FileVar "            \"gauss_point_results\": $PutStrings"
-    # puts $FileVar "        \},"
-    # puts $FileVar "        \"point_data_configuration\":  \[\]"
-    puts $FileVar "        \}"
+    puts $FileVar "            \"nodal_results\":       $PutStrings,"
+    # gauss_point_results
+    set PutStrings \[
+    set iGroup 0
+    AppendOutputVariables PutStrings iGroup Write_Peclet PECLET
+    AppendOutputVariables PutStrings iGroup Write_FIC_Beta FIC_BETA
+    AppendOutputVariables PutStrings iGroup Write_Phi_Gradient PHI_GRADIENT
+
+    if {$iGroup > 0} {
+        set PutStrings [string trimright $PutStrings ,]
+    }
+    append PutStrings \]
+    puts $FileVar "            \"gauss_point_results\": $PutStrings"
+    puts $FileVar "        \},"
+    puts $FileVar "        \"point_data_configuration\":  \[\]"
 
     puts $FileVar "    \},"
-    
+
     ## constraints_process_list
     set Groups [GiD_Info conditions Velocity groups]
     set NumGroups [llength $Groups]
@@ -180,13 +211,42 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     # Note: it is important to write processes in the following order to account for intersections between conditions
     # Phi_Value
     set Groups [GiD_Info conditions Phi_Value groups]
+
+    if {$SolutionType eq "Steady"} {
+
     WritePressureConstraintProcess FileVar iGroup $Groups volumes TEMPERATURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups surfaces TEMPERATURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups lines TEMPERATURE $TableDict $NumGroups
     WritePressureConstraintProcess FileVar iGroup $Groups points TEMPERATURE $TableDict $NumGroups
 
+    } else {
+
+        if {$SchemeType eq "Implicit"} {
+
+            incr NumGroups [llength $Groups]
+
+            WritePressureConstraintProcess FileVar iGroup $Groups volumes PHI_THETA $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups surfaces PHI_THETA $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups lines PHI_THETA $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups points PHI_THETA $TableDict $NumGroups
+
+            WriteTempConstraintProcess FileVar iGroup $Groups TEMPERATURE $TableDict $NumGroups
+
+        } else {
+
+            WritePressureConstraintProcess FileVar iGroup $Groups volumes TEMPERATURE $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups surfaces TEMPERATURE $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups lines TEMPERATURE $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups points TEMPERATURE $TableDict $NumGroups
+
+        }
+
+    }
+
     ## loads_process_list
     set Groups [GiD_Info conditions Face_Heat_Flux groups]
+    incr NumGroups [llength $Groups]
+    set Groups [GiD_Info conditions Q_Source groups]
     set NumGroups [llength $Groups]
 
     if {$NumGroups > 0} {
@@ -195,11 +255,14 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         # Face_Heat_Flux
         set Groups [GiD_Info conditions Face_Heat_Flux groups]
         WriteLoadScalarProcess FileVar iGroup $Groups FACE_HEAT_FLUX $TableDict $NumGroups
+        # Q_Source
+        set Groups [GiD_Info conditions Q_Source groups]
+        WriteLoadScalarProcess FileVar iGroup $Groups HEAT_FLUX $TableDict $NumGroups
     } else {
         puts $FileVar "    \"loads_process_list\":       \[\]"
     }
 
     puts $FileVar "\}"
-    
+
     close $FileVar
 }

@@ -17,8 +17,9 @@ import KratosMultiphysics.SolidMechanicsApplication
 
 class Solution(object):
 
-    def __init__(self, file_parameters = "ProjectParameters.json"):
+    def __init__(self, model, file_parameters = "ProjectParameters.json"):
 
+        self.model=model
         #### TIME MONITORING START ####
 
         # Time control starts
@@ -62,7 +63,7 @@ class Solution(object):
         #### Model_part settings start ####
 
         # Defining the model_part
-        self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+        self.main_model_part = self.model.CreateModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.ProjectParameters["problem_data"]["dimension"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["dimension"].GetInt())
@@ -283,7 +284,7 @@ class Solution(object):
 
         # Calculate Nodal_Area
         self.CalculateNodalArea()
-        
+
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
     def Finalize(self):
@@ -318,9 +319,12 @@ class Solution(object):
 
     def SetGraphicalOutput(self):
         if( self.ProjectParameters.Has("output_configuration") ):
-            from gid_output_process import GiDOutputProcess
+            from pfem_fluid_gid_output_process import GiDOutputProcess
             self.output_settings = self.ProjectParameters["output_configuration"]
-            return GiDOutputProcess(self.computing_model_part,
+            self.post_process_model_part = self.model.CreateModelPart("output_model_part")
+            KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
+
+            return GiDOutputProcess(self.post_process_model_part,
                                     self.problem_name,
                                     self.output_settings)
         else:
@@ -343,14 +347,18 @@ class Solution(object):
 
     def GraphicalOutputPrintOutput(self):
         if( self.ProjectParameters.Has("output_configuration") ):
+            self.post_process_model_part.ProcessInfo[KratosMultiphysics.TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if(self.graphical_output.IsOutputStep()):
+                KratosMultiphysics.PfemFluidDynamicsApplication.PostProcessUtilities().RebuildPostProcessModelPart(self.post_process_model_part, self.main_model_part)
+                print("")
+                print("**********************************************************")
                 print("---> Print Output at [STEP:",self.step," TIME:",self.time," DT:",self.delta_time,"]")
+                print("**********************************************************")
+                print("")
                 self.graphical_output.PrintOutput()
 
     def GraphicalOutputExecuteFinalize(self):
         self.graphical_output.ExecuteFinalize()
-
-
 
     def SetParallelSize(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()
@@ -384,4 +392,5 @@ class Solution(object):
 
 
 if __name__ == "__main__":
-    Solution().Run()
+    model = KratosMultiphysics.Model()
+    Solution(model).Run()

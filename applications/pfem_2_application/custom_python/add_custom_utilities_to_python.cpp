@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosTestApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
@@ -48,9 +48,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <pybind11/pybind11.h>
 
 
@@ -59,9 +59,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/move_particle_utility_pfem2.h" 
+#include "custom_utilities/move_particle_utility_pfem2.h"
 
-#include "custom_utilities/visualization.h" 
+#include "custom_utilities/visualization.h"
 #include "custom_utilities/calculate_water_fraction.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -85,14 +85,14 @@ namespace Python
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-using namespace pybind11;
- 
+namespace py = pybind11;
+
  typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
  typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
  typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
- 
- class_< MoveParticleUtilityPFEM2<2> > (m,"MoveParticleUtilityPFEM22D").def(init<ModelPart& , int >())
+
+ py::class_< MoveParticleUtilityPFEM2<2> > (m,"MoveParticleUtilityPFEM22D").def(py::init<ModelPart& , int >())
    .def("MountBin", &MoveParticleUtilityPFEM2<2>::MountBin)
    .def("MoveParticles", &MoveParticleUtilityPFEM2<2>::MoveParticles)
    .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityPFEM2<2>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
@@ -109,9 +109,9 @@ using namespace pybind11;
    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingTool)
    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingToolForDroppletsOnly)
    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2<2>::RotateParticlesAndDomainVelocities)
-   ;    
- 
- class_< MoveParticleUtilityPFEM2<3> > (m,"MoveParticleUtilityPFEM23D").def( init<ModelPart& , int >())
+   ;
+
+ py::class_< MoveParticleUtilityPFEM2<3> > (m,"MoveParticleUtilityPFEM23D").def(py::init<ModelPart& , int >())
    .def("MountBin", &MoveParticleUtilityPFEM2<3>::MountBin)
    .def("MoveParticles", &MoveParticleUtilityPFEM2<3>::MoveParticles)
    .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityPFEM2<3>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
@@ -129,33 +129,33 @@ using namespace pybind11;
    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingToolForDroppletsOnly)
    .def("AssignNodalVelocityUsingInletConditions", &MoveParticleUtilityPFEM2<3>::AssignNodalVelocityUsingInletConditions)
    .def("RotateParticlesAndDomainVelocities", &MoveParticleUtilityPFEM2<3>::RotateParticlesAndDomainVelocities)
-   ;    
- 
- class_<AddFixedVelocityCondition2D > (m,"AddFixedVelocityCondition2D").def(init<ModelPart& >())
+   ;
+
+ py::class_<AddFixedVelocityCondition2D > (m,"AddFixedVelocityCondition2D").def(py::init<ModelPart& >())
    .def("AddThem", &AddFixedVelocityCondition2D::AddThem)
    ;
- 
- class_<AddWaterFixedVelocityCondition2D > (m,"AddWaterFixedVelocityCondition2D").def(init<ModelPart& >())
+
+ py::class_<AddWaterFixedVelocityCondition2D > (m,"AddWaterFixedVelocityCondition2D").def(py::init<ModelPart& >())
    .def("AddThem", &AddWaterFixedVelocityCondition2D::AddThem)
    ;
- 
- class_<AddFixedVelocityCondition3D > (m,"AddFixedVelocityCondition3D").def(init<ModelPart& >())
+
+ py::class_<AddFixedVelocityCondition3D > (m,"AddFixedVelocityCondition3D").def(py::init<ModelPart& >())
    .def("AddThem", &AddFixedVelocityCondition3D::AddThem)
    ;
- 
- class_<AddFixedPressureCondition2D > (m,"AddFixedPressureCondition2D").def(init<ModelPart& >())
+
+ py::class_<AddFixedPressureCondition2D > (m,"AddFixedPressureCondition2D").def(py::init<ModelPart& >())
    .def("AddThem", &AddFixedPressureCondition2D::AddThem)
    ;
- 
- class_<AddFixedPressureCondition3D > (m,"AddFixedPressureCondition3D").def(init<ModelPart& >())
+
+ py::class_<AddFixedPressureCondition3D > (m,"AddFixedPressureCondition3D").def(py::init<ModelPart& >())
    .def("AddThem", &AddFixedPressureCondition3D::AddThem)
-   ;            
- 
- class_<VisualizationUtilities > (m,"VisualizationUtilities").def( init<>())
+   ;
+
+ py::class_<VisualizationUtilities > (m,"VisualizationUtilities").def(py::init<>())
    .def("VisualizationModelPart",&VisualizationUtilities::VisualizationModelPart)
    ;
- 
- class_<CalculateWaterFraction<2> > (m,"CalculateWaterFraction2D").def(init<ModelPart& >())
+
+ py::class_<CalculateWaterFraction<2> > (m,"CalculateWaterFraction2D").def(py::init<ModelPart& >())
    .def("Calculate",&CalculateWaterFraction<2>::Calculate)
    .def("CalculateWaterHeight",&CalculateWaterFraction<2>::CalculateWaterHeight)
    .def("CalculateMeanCourant",&CalculateWaterFraction<2>::CalculateMeanCourant)
@@ -163,8 +163,8 @@ using namespace pybind11;
    .def("CalculateMaxCourantInNegativeElements",&CalculateWaterFraction<2>::CalculateMaxCourantInNegativeElements)
    .def("CalculateForce",&CalculateWaterFraction<2>::CalculateForce)
    ;
- 
- class_<CalculateWaterFraction<3> > (m,"CalculateWaterFraction3D").def(init<ModelPart& >())
+
+ py::class_<CalculateWaterFraction<3> > (m,"CalculateWaterFraction3D").def(py::init<ModelPart& >())
    .def("Calculate",&CalculateWaterFraction<3>::Calculate)
    .def("CalculateWaterHeight",&CalculateWaterFraction<3>::CalculateWaterHeight)
    .def("CalculateMeanCourant",&CalculateWaterFraction<3>::CalculateMeanCourant)
@@ -173,37 +173,37 @@ using namespace pybind11;
    .def("CalculateForce",&CalculateWaterFraction<3>::CalculateForce)
    ;
  /*
-   class_<ParticleUtils < 2 > >("ParticleUtils2D", init<>())
+   py::class_<ParticleUtils < 2 > >("ParticleUtils2D", init<>())
    .def("VisualizationModelPart", &ParticleUtils < 2 > ::VisualizationModelPart)
    .def("TransferToEulerianMesh", &ParticleUtils < 2 > ::TransferToEulerianMesh)
    .def("MoveMesh_Streamlines_freesurfaceflows", &ParticleUtils < 2 > ::MoveMesh_Streamlines_freesurfaceflows)
-   .def("MoveLonelyNodes", &ParticleUtils < 2 > ::MoveLonelyNodes)	
+   .def("MoveLonelyNodes", &ParticleUtils < 2 > ::MoveLonelyNodes)
    .def("TransferToEulerianMeshShapeBased_aux", &ParticleUtils < 2 > ::TransferToEulerianMeshShapeBased_aux)
    .def("TransferToEulerianMesh_Face_Heat_Flux", &ParticleUtils < 2 > ::TransferToEulerianMesh_Face_Heat_Flux)
    ;
  */
- 
- class_<ParticleUtils < 3 > >(m,"ParticleUtils3D").def(init<>())
+
+ py::class_<ParticleUtils < 3 > >(m,"ParticleUtils3D").def(py::init<>())
    .def("MoveMesh_Streamlines_freesurfaceflows", &ParticleUtils < 3 > ::MoveMesh_Streamlines_freesurfaceflows)
    .def("TransferToEulerianMeshShapeBased_aux_3D", &ParticleUtils < 3 > ::TransferToEulerianMeshShapeBased_aux_3D)
-   .def("TransferToEulerianMesh_Face_Heat_Flux", &ParticleUtils < 3 > ::TransferToEulerianMesh_Face_Heat_Flux)	
-   .def("TransferToEulerianMesh", &ParticleUtils < 3 > ::TransferToEulerianMesh)	
-   .def("TransferToEulerianMesh_Face_Heat_Flux", &ParticleUtils < 3 > ::TransferToEulerianMesh_Face_Heat_Flux)	
-   .def("CalculateNormal", &ParticleUtils < 3 > ::CalculateNormal)	
-   .def("MarkExcessivelyCloseNodes", &ParticleUtils < 3 > ::MarkExcessivelyCloseNodes)	
-   .def("MoveLonelyNodes", &ParticleUtils < 3 > ::MoveLonelyNodes)	
-   .def("Calculate_Vol", &ParticleUtils < 3 > ::Calculate_Vol)	
-   .def("TransferToParticlesAirVelocity", &ParticleUtils < 3 > ::TransferToParticlesAirVelocity)	
-   .def("ComputedDragCoefficient", &ParticleUtils < 3 > ::ComputedDragCoefficient)	
-   .def("CalculateNewtonianDragCoefficient", &ParticleUtils < 3 > ::CalculateNewtonianDragCoefficient)	
-   .def("DetectAllOilClusters", &ParticleUtils < 3 > ::DetectAllOilClusters)	
-   .def("ColorOilClusters", &ParticleUtils < 3 > ::ColorOilClusters)	
-   .def("TransferToEulerianMesh_2", &ParticleUtils < 3 > ::TransferToEulerianMesh_2)	
+   .def("TransferToEulerianMesh_Face_Heat_Flux", &ParticleUtils < 3 > ::TransferToEulerianMesh_Face_Heat_Flux)
+   .def("TransferToEulerianMesh", &ParticleUtils < 3 > ::TransferToEulerianMesh)
+   .def("TransferToEulerianMesh_Face_Heat_Flux", &ParticleUtils < 3 > ::TransferToEulerianMesh_Face_Heat_Flux)
+   .def("CalculateNormal", &ParticleUtils < 3 > ::CalculateNormal)
+   .def("MarkExcessivelyCloseNodes", &ParticleUtils < 3 > ::MarkExcessivelyCloseNodes)
+   .def("MoveLonelyNodes", &ParticleUtils < 3 > ::MoveLonelyNodes)
+   .def("Calculate_Vol", &ParticleUtils < 3 > ::Calculate_Vol)
+   .def("TransferToParticlesAirVelocity", &ParticleUtils < 3 > ::TransferToParticlesAirVelocity)
+   .def("ComputedDragCoefficient", &ParticleUtils < 3 > ::ComputedDragCoefficient)
+   .def("CalculateNewtonianDragCoefficient", &ParticleUtils < 3 > ::CalculateNewtonianDragCoefficient)
+   .def("DetectAllOilClusters", &ParticleUtils < 3 > ::DetectAllOilClusters)
+   .def("ColorOilClusters", &ParticleUtils < 3 > ::ColorOilClusters)
+   .def("TransferToEulerianMesh_2", &ParticleUtils < 3 > ::TransferToEulerianMesh_2)
    ;
- 
- class_<Pfem2ApplyBCProcess, Pfem2ApplyBCProcess::Pointer, Process>(m,"Pfem2ApplyBCProcess").def(init<ModelPart&>());
- 
- class_<Pfem2Utils>(m,"Pfem2Utils").def(init<>())
+
+ py::class_<Pfem2ApplyBCProcess, Pfem2ApplyBCProcess::Pointer, Process>(m,"Pfem2ApplyBCProcess").def(py::init<ModelPart&>());
+
+ py::class_<Pfem2Utils>(m,"Pfem2Utils").def(py::init<>())
    .def("ApplyBoundaryConditions",&Pfem2Utils::ApplyBoundaryConditions)
    .def("MarkOuterNodes",&Pfem2Utils::MarkOuterNodes)
    .def("MoveLonelyNodes",&Pfem2Utils::MoveLonelyNodes)
@@ -215,31 +215,31 @@ using namespace pybind11;
    .def ("MarkLonelyNodesForErasing", &Pfem2Utils::MarkLonelyNodesForErasing)
    .def ("SaveReducedPart", &Pfem2Utils::SaveReducedPart)
    ;
- class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process>(m,"MarkOuterNodesProcess").def(init<ModelPart&>())
+ py::class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process>(m,"MarkOuterNodesProcess").def(py::init<ModelPart&>())
    .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
    ;
- 
- class_<MarkFluidProcess, MarkFluidProcess::Pointer, Process>(m,"MarkFluidProcess").def(init<ModelPart&>());
- 
- 
- class_<SaveLagrangianSurfaceProcess_p, SaveLagrangianSurfaceProcess_p::Pointer, Process>(m,"SaveLagrangianSurfaceProcess_p").def(init<> ())
+
+ py::class_<MarkFluidProcess, MarkFluidProcess::Pointer, Process>(m,"MarkFluidProcess").def(py::init<ModelPart&>());
+
+
+ py::class_<SaveLagrangianSurfaceProcess_p, SaveLagrangianSurfaceProcess_p::Pointer, Process>(m,"SaveLagrangianSurfaceProcess_p").def(py::init<> ())
    .def("SaveSurfaceConditions_p", &SaveLagrangianSurfaceProcess_p::SaveSurfaceConditions_p)
    ;
- 
- 
- class_<EnrichmentUtilitiesforPFEM2>(m,"EnrichmentUtilitiesforPFEM2").def(init<> ())
+
+
+ py::class_<EnrichmentUtilitiesforPFEM2>(m,"EnrichmentUtilitiesforPFEM2").def(py::init<> ())
    .def("CalculateEnrichedShapeFuncions", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncions)
    .def("CalculateEnrichedShapeFuncionsExtendedmodified", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncionsExtendedmodified)
    .def("CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints)
    .def("CalculateEnrichedShapeFuncions", &EnrichmentUtilitiesforPFEM2::CalculateEnrichedShapeFuncions)
    ;
- 
- 
- 
- 
+
+
+
+
 }
-  
+
 }  // namespace Python.
-  
+
 } // Namespace Kratos
 

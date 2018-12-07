@@ -37,7 +37,7 @@ namespace Kratos
 /// Updated Lagrangian Large Displacement Lagrangian U-W Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-class UpdatedLagrangianUJWwPDMEElement
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUJWwPDMEElement
     : public UpdatedLagrangianUJWwPElement
 {
 public:

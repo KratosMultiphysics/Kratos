@@ -10,6 +10,7 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 // System includes
 #include <string>
 #include <iostream>
@@ -19,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 #include "includes/mat_variables.h"
 
 
@@ -30,9 +31,9 @@ namespace Kratos
 //************************************************************************************
 
 CamClayHardeningLaw::CamClayHardeningLaw()
-	:HardeningLaw()
+	:MPMHardeningLaw()
 {
-   
+
 }
 
 
@@ -41,7 +42,7 @@ CamClayHardeningLaw::CamClayHardeningLaw()
 
 CamClayHardeningLaw& CamClayHardeningLaw::operator=(CamClayHardeningLaw const& rOther)
 {
-   HardeningLaw::operator=(rOther);
+   MPMHardeningLaw::operator=(rOther);
    return *this;
 }
 
@@ -49,7 +50,7 @@ CamClayHardeningLaw& CamClayHardeningLaw::operator=(CamClayHardeningLaw const& r
 //************************************************************************************
 
 CamClayHardeningLaw::CamClayHardeningLaw(CamClayHardeningLaw const& rOther)
-	:HardeningLaw(rOther)
+	:MPMHardeningLaw(rOther)
 {
 
 }
@@ -67,29 +68,25 @@ CamClayHardeningLaw::~CamClayHardeningLaw()
 //*******************************CALCULATE TOTAL HARDENING****************************
 //************************************************************************************
 
-/* This function return the updated Preconsolidation Pressure P_c with the following inputs:
-    @ rAlpha: Hardening Parameter (Plastic Volumetric Strain)
-    @ rOldPreconsolidationPressure: Old Value of Preconsolidation Pressure P_c at the previous time step t_n
-*/
-double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure)
+double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double &rOldPreconsolidationPressure)
 {
-    const double SwellingSlope = GetProperties()[SWELLING_SLOPE];
-    const double OtherSlope    = GetProperties()[NORMAL_COMPRESSION_SLOPE];
+    const double swelling_slope = GetProperties()[SWELLING_SLOPE];
+    const double other_slope    = GetProperties()[NORMAL_COMPRESSION_SLOPE];
 
-    rHardening = rOldPreconsolidationPressure * (std::exp (- rAlpha / (OtherSlope-SwellingSlope) ) ) ;
+    rHardening = rOldPreconsolidationPressure * (std::exp (- rAlpha / (other_slope-swelling_slope) ) ) ;
     return rHardening;
 }
-  
+
 
 void CamClayHardeningLaw::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMHardeningLaw )
 
 }
 
 void CamClayHardeningLaw::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMHardeningLaw )
 
 }
 

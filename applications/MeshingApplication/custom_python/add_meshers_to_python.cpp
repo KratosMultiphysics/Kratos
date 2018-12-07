@@ -21,39 +21,28 @@
 #include "custom_python/add_meshers_to_python.h"
 
 #ifdef USE_TETGEN_NONFREE_TPL
-#include "external_includes/tetgen_pfem_refine.h"
-#include "external_includes/tetgen_pfem_refine_vms.h"
-#include "external_includes/tetgen_pfem_refine_face.h"
-#include "external_includes/tetgen_pfem_contact.h"
-#include "external_includes/tetgen_cdt.h"
+    #include "external_includes/tetgen_pfem_refine.h"
+    #include "external_includes/tetgen_pfem_refine_vms.h"
+    #include "external_includes/tetgen_pfem_refine_face.h"
+    #include "external_includes/tetgen_pfem_contact.h"
+    #include "external_includes/tetgen_cdt.h"
 #else
-#define REAL double
+    #define REAL double
 #endif 
 
-// #include "triangle.h"
 #include "external_includes/trigen_pfem_refine.h"
 #include "external_includes/trigen_pfem_refine_vms.h"
 #include "external_includes/trigen_pfem_refine_segment.h"
-
 #include "external_includes/trigen_glass_forming.h"
-
 #include "external_includes/trigen_droplet_refine.h"
-
-
-//#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
-//#include "external_includes/trigen_refine.h"
-
-// #include "external_includes/msuite_pfem_refine.h"
-
 
 namespace Kratos
 {
 
 namespace Python
 {
-    
-using namespace pybind11;
+namespace py = pybind11;
 
 #ifdef USE_TETGEN_NONFREE_TPL
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -120,8 +109,6 @@ void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char*
 
 }
 #endif
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                       //
@@ -207,75 +194,68 @@ void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char*
                           KratosComponents<Condition>::Get(ConditionName),NodeErase, RemNodes, AddNodes, AlphaShape, HFactor     );
 }
 
-
-
 void  AddMeshersToPython(pybind11::module& m)
 {
     
 #ifdef USE_TETGEN_NONFREE_TPL
-    //class that allows 3D adaptive remeshing (inserting and erasing nodes)
-    class_<TetGenPfemModeler, TetGenPfemModeler::Pointer >(m, "TetGenPfemModeler")
-    .def(init< >())
+    // Class that allows 3D adaptive remeshing (inserting and erasing nodes)
+    py::class_<TetGenPfemModeler, TetGenPfemModeler::Pointer >(m, "TetGenPfemModeler")
+    .def(py::init< >())
     .def("ReGenerateMesh",TetRegenerateMesh)
     .def("ReGenerateMesh",&TetGenPfemModeler::ReGenerateMesh)
     ;
 
-    class_<TetGenPfemRefineFace, TetGenPfemRefineFace::Pointer >(m, "TetGenPfemRefineFace")
-    .def(init< >())
+    py::class_<TetGenPfemRefineFace, TetGenPfemRefineFace::Pointer >(m, "TetGenPfemRefineFace")
+    .def(py::init< >())
     .def("ReGenerateMesh",TetRegenerateMeshWithFace)
     ;
 
-    class_<TetGenPfemContact, TetGenPfemContact::Pointer >(m, "TetGenPfemContact")
-    .def(init< >())
+    py::class_<TetGenPfemContact, TetGenPfemContact::Pointer >(m, "TetGenPfemContact")
+    .def(py::init< >())
     .def("ReGenerateMesh",TetRegenerateMeshContact)
     ;
     
-    class_<TetGenCDT, TetGenCDT::Pointer >(m, "TetGenCDT")
-    .def(init< >())
+    py::class_<TetGenCDT, TetGenCDT::Pointer >(m, "TetGenCDT")
+    .def(py::init< >())
     .def("GenerateCDT",GenerateCDT)
     ;
 
-    class_<TetGenPfemModelerVms, TetGenPfemModelerVms::Pointer >(m, "TetGenPfemModelerVms")
-    .def(init< >())
+    py::class_<TetGenPfemModelerVms, TetGenPfemModelerVms::Pointer >(m, "TetGenPfemModelerVms")
+    .def(py::init< >())
     .def("ReGenerateMesh",&TetGenPfemModelerVms::ReGenerateMesh)
     ;
 #endif
     
-    //class that allows 2D adaptive remeshing (inserting and erasing nodes)
-    class_<TriGenPFEMModeler, TriGenPFEMModeler::Pointer >(m, "TriGenPFEMModeler")
-    .def(init< >())
+    // Class that allows 2D adaptive remeshing (inserting and erasing nodes)
+    py::class_<TriGenPFEMModeler, TriGenPFEMModeler::Pointer >(m, "TriGenPFEMModeler")
+    .def(py::init< >())
     .def("ReGenerateMesh",TriRegenerateMesh)
     .def("ReGenerateMesh",&TriGenPFEMModeler::ReGenerateMesh)
     ;
 
-    //class that allows 2D adaptive remeshing (inserting and erasing nodes) as well as preserving the topology (avoiding "holes" at the boundaries). made for glass simulation
-    class_<TriGenGLASSModeler, TriGenGLASSModeler::Pointer >(m, "TriGenGLASSModeler")
-    .def(init< >())
+    // Class that allows 2D adaptive remeshing (inserting and erasing nodes) as well as preserving the topology (avoiding "holes" at the boundaries). made for glass simulation
+    py::class_<TriGenGLASSModeler, TriGenGLASSModeler::Pointer >(m, "TriGenGLASSModeler")
+    .def(py::init< >())
     .def("ReGenerateMeshGlass",TriRegenerateMeshGLASS)
     .def("ReGenerateMeshGlass",&TriGenGLASSModeler::ReGenerateMesh)
     ;
 
-    
-    //class that allows 2D adaptive remeshing (inserting and erasing nodes) as well as preserving the topology (avoiding "holes" at the boundaries). made for droplet simulation
-    class_<TriGenDropletModeler, TriGenDropletModeler::Pointer >(m,"TriGenDropletModeler")
-    .def(init< >())
+    // Class that allows 2D adaptive remeshing (inserting and erasing nodes) as well as preserving the topology (avoiding "holes" at the boundaries). made for droplet simulation
+    py::class_<TriGenDropletModeler, TriGenDropletModeler::Pointer >(m,"TriGenDropletModeler")
+    .def(py::init< >())
     .def("ReGenerateMeshDroplet",TriRegenerateMeshDroplet)
     .def("ReGenerateMeshDroplet",&TriGenDropletModeler::ReGenerateMeshDroplet)
     ;
 
-
-    class_<TriGenPFEMModelerVMS, TriGenPFEMModelerVMS::Pointer>(m, "TriGenPFEMModelerVMS")
-    .def(init< >())
+    py::class_<TriGenPFEMModelerVMS, TriGenPFEMModelerVMS::Pointer>(m, "TriGenPFEMModelerVMS")
+    .def(py::init< >())
     .def("ReGenerateMesh",&TriGenPFEMModelerVMS::ReGenerateMesh);
 
     //segment mesher adaptive
-    class_<TriGenPFEMRefineSegment, TriGenPFEMRefineSegment::Pointer >(m, "TriGenPFEMSegment")
-    .def(init< >())
+    py::class_<TriGenPFEMRefineSegment, TriGenPFEMRefineSegment::Pointer >(m, "TriGenPFEMSegment")
+    .def(py::init< >())
     .def("ReGenerateMesh",TriRegenerateMeshWithSegment)
     ;
-
-
-
 }
 
 }  // namespace Python.

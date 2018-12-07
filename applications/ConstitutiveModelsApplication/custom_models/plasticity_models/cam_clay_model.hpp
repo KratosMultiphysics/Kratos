@@ -119,7 +119,7 @@ namespace Kratos
          /**
           * Check
           */
-         int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
+         int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo) override
          {
             KRATOS_TRY
 

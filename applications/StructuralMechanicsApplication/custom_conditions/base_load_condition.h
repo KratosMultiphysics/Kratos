@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED )
@@ -42,14 +43,40 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class BaseLoadCondition
+ * @ingroup StructuralMechanicsApplication
+ * @brief This is the base class of all the load conditions on StructuralMechanicsApplication
+ * @author Riccardo Rossi
+ */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseLoadCondition
     : public Condition
 {
 public:
 
     ///@name Type Definitions
-    typedef std::size_t SizeType;
     ///@{
+
+    /// We define the base class Condition
+    typedef Condition BaseType;
+
+    /// Dfinition of the index type
+    typedef BaseType::IndexType IndexType;
+
+    /// Definition of the size type
+    typedef BaseType::SizeType SizeType;
+
+    /// Definition of the node type
+    typedef BaseType::NodeType NodeType;
+
+    /// Definition of the properties type
+    typedef BaseType::PropertiesType PropertiesType;
+
+    /// Definition of the geometry type with given NodeType
+    typedef BaseType::GeometryType GeometryType;
+
+    /// Definition of nodes container type, redefined from GeometryType
+    typedef BaseType::NodesArrayType NodesArrayType;
 
     // Counted pointer of BaseLoadCondition
     KRATOS_CLASS_POINTER_DEFINITION( BaseLoadCondition );
@@ -70,6 +97,9 @@ public:
     BaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
     {};
 
+    ///Copy constructor
+    BaseLoadCondition(BaseLoadCondition const& rOther);
+
     // Destructor
     ~BaseLoadCondition() override
     {};
@@ -78,10 +108,50 @@ public:
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    BaseLoadCondition& operator=(BaseLoadCondition const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+        ) const override;
 
     /**
      * Called to initialize the element.
@@ -93,7 +163,7 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
@@ -111,7 +181,7 @@ public:
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -255,15 +325,34 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
 
-
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Base load Condition #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Base load Condition #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
@@ -310,7 +399,7 @@ protected:
      */
     virtual double GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
+        const SizeType PointNumber,
         const double detJ
         );
 
@@ -361,15 +450,9 @@ private:
 
     friend class Serializer;
 
-    void save( Serializer& rSerializer ) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-    }
+    void save( Serializer& rSerializer ) const override;
 
-    void load( Serializer& rSerializer ) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-    }
+    void load( Serializer& rSerializer ) override;
 
 }; // class BaseLoadCondition.
 

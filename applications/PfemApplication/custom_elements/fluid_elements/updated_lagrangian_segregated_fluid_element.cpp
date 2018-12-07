@@ -25,6 +25,7 @@ namespace Kratos
 UpdatedLagrangianSegregatedFluidElement::UpdatedLagrangianSegregatedFluidElement()
     : FluidElement()
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 
@@ -34,6 +35,7 @@ UpdatedLagrangianSegregatedFluidElement::UpdatedLagrangianSegregatedFluidElement
 UpdatedLagrangianSegregatedFluidElement::UpdatedLagrangianSegregatedFluidElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : FluidElement( NewId, pGeometry )
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 
@@ -103,6 +105,7 @@ Element::Pointer UpdatedLagrangianSegregatedFluidElement::Clone( IndexType NewId
     NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
   }
 
+  //commented: it raises a segmentation fault in make_shared bad alloc
   NewElement.mStepVariable = mStepVariable;
 
   NewElement.SetData(this->GetData());
@@ -610,25 +613,51 @@ void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rV
                                                              ConstitutiveLaw::Parameters& rValues,
                                                              const int & rPointNumber)
 {
-
+  //to be accurate calculus must stop
   if(rVariables.detF<0){
 
-    std::cout<<" Element: "<<this->Id()<<std::endl;
+    if(this->IsNot(SELECTED)){
 
-    SizeType number_of_nodes = GetGeometry().PointsNumber();
+      KRATOS_WARNING(" [Element Ignored]") << "ULSFluidElement["<<this->Id()<<"] (|F|=" << rVariables.detF <<")  (Iter:"<<rVariables.GetProcessInfo()[NL_ITERATION_NUMBER]<<")"<<std::endl;
+      this->Set(SELECTED,true);
 
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-    {
-      array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-      array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-      array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-      array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-      std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<" (Cur: "<<CurrentPosition<<") "<<std::endl;
-      std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
+      // SizeType number_of_nodes  = GetGeometry().PointsNumber();
+
+      // for ( SizeType i = 0; i < number_of_nodes; i++ )
+      // {
+      //   array_1d<double, 3> & CurrentPosition      = GetGeometry()[i].Coordinates();
+      //   array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+      //   array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+      //   array_1d<double, 3> PreviousPosition       = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+      //   KRATOS_WARNING("")<<" Node["<<GetGeometry()[i].Id()<<"]: (Position: (pre)"<<PreviousPosition<<",(cur)"<<CurrentPosition<<")"<<std::endl;
+      //   //KRATOS_WARNING("")<<" (Displacement: (pre)"<<CurrentDisplacement<<",(cur)"<<PreviousDisplacement<<")"<<std::endl;
+      // }
+      // for ( SizeType i = 0; i < number_of_nodes; i++ )
+      // {
+      //   if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
+      //     array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+      //     array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+      //     KRATOS_WARNING("")<<" (Contact: (pre)"<<PreContactForce<<",(cur)"<<ContactForce<<")["<<GetGeometry()[i].Id()<<"]"<<std::endl;
+      //   }
+
+      // }
+
+      // KRATOS_ERROR<<" [Element Failed] ["<<this->Id()<<"]"<<std::endl;
+
     }
 
-    KRATOS_ERROR << " UPDATED LAGRANGIAN SEGREGATED FLUID ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
+    rVariables.detJ = 0;
+
   }
+  else{
+
+    if(this->Is(SELECTED) && this->Is(ACTIVE)){
+      this->Set(SELECTED,false);
+      KRATOS_WARNING("")<<" Undo SELECTED ULSFluidElement "<<this->Id()<<std::endl;
+    }
+  }
+
+
 
   Flags& ConstitutiveLawOptions = rValues.GetOptions();
   ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -863,40 +892,24 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
   // 1.- Calculate Stiffness Matrix to get the bulk correction
   const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
 
-  double StiffnessFactor = 0.0;
-
-  // Add volumetric part to the constitutive tensor to compute:
-  // Kvvm = Kdev + Kvol(quasi incompressible)
-  // add fluid bulk modulus for quasi-incompressibility
-  // (can be implemented in a ConstituiveModel for Quasi-Incompressible Newtonian Fluid.
-
   double BulkFactor = GetProperties()[BULK_MODULUS] * TimeStep;
 
-  // add fluid bulk modulus
-  this->AddVolumetricPart(rVariables.ConstitutiveMatrix,BulkFactor);
+  double StiffnessFactor = 0.0;
 
-  FluidElement::CalculateAndAddKvvm( rLeftHandSideMatrix, rVariables );
+  this->CalculateStiffnessFactor(rLeftHandSideMatrix, rVariables, BulkFactor, StiffnessFactor);
 
-  rLeftHandSideMatrix *= rVariables.Alpha;
-
-  //remove fluid bulk modulus
-  this->RemoveVolumetricPart(rVariables.ConstitutiveMatrix,BulkFactor);
-
-  //a. Proposed calculation:
-  //this->CalculateDenseMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
-
-  //b. Alternative calculation:
-  this->CalculateLumpedMatrixMeanValue(rLeftHandSideMatrix,StiffnessFactor);
-  StiffnessFactor *= 0.75;
 
   // 2.- Estimate the bulk correction coefficient and the new tangent
-
   double MassFactor = GetGeometry().DomainSize() * GetProperties()[DENSITY] / double(number_of_nodes);
 
   BulkFactor = 0.0;
   if(StiffnessFactor!=0 && MassFactor!=0)
     BulkFactor = GetProperties()[BULK_MODULUS] * TimeStep * ( MassFactor * 2.0 / (TimeStep * StiffnessFactor) );
 
+  // Add volumetric part to the constitutive tensor to compute:
+  // Kvvm = Kdev + Kvol(quasi incompressible)
+  // add fluid bulk modulus for quasi-incompressibility
+  // (can be implemented in a ConstituiveModel for Quasi-Incompressible Newtonian Fluid).
   this->AddVolumetricPart(rVariables.ConstitutiveMatrix, BulkFactor);
 
   rLeftHandSideMatrix.clear();
@@ -909,6 +922,66 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
   KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateStiffnessFactor(MatrixType& rLeftHandSideMatrix,
+                                                                       ElementDataType& rVariables,
+                                                                       const double& rBulkFactor,
+                                                                       double& rStiffnessFactor)
+
+{
+  KRATOS_TRY
+
+  // First approach:
+  // {
+  // // add fluid bulk modulus
+  // this->AddVolumetricPart(rVariables.ConstitutiveMatrix,rBulkFactor);
+
+  // FluidElement::CalculateAndAddKvvm( rLeftHandSideMatrix, rVariables );
+
+  // rLeftHandSideMatrix *= rVariables.Alpha;
+
+  // //remove fluid bulk modulus
+  // this->RemoveVolumetricPart(rVariables.ConstitutiveMatrix,rBulkFactor);
+
+  // //a. Proposed calculation:
+  // // this->CalculateDenseMatrixMeanValue(rLeftHandSideMatrix,rStiffnessFactor);
+
+  // //b. Alternative calculation:
+  // this->CalculateLumpedMatrixMeanValue(rLeftHandSideMatrix,rStiffnessFactor);
+  // //rStiffnessFactor *= 0.75;
+  // }
+
+  //std::cout<<" StiffnessFactor A "<<rStiffnessFactor<<std::endl;
+  // Seccond approach:
+  // {
+  rStiffnessFactor = 0;
+
+  double diagonal = 0;
+  for(SizeType i=0; i<rVariables.B.size2(); ++i)
+  {
+    diagonal = 0;
+    for(SizeType j=0; j<rVariables.B.size1(); ++j)
+    {
+      for(SizeType k=0; k<rVariables.B.size1(); ++k)
+      {
+        diagonal += rVariables.B(j,i) * (rVariables.ConstitutiveMatrix(j,k) + rBulkFactor) * rVariables.B(k,i);
+      }
+    }
+
+    rStiffnessFactor += fabs(diagonal);
+  }
+
+  double factor = 1.0/ double(GetGeometry().WorkingSpaceDimension() * rLeftHandSideMatrix.size1());
+
+  rStiffnessFactor *= factor * rVariables.IntegrationWeight * rVariables.Alpha;
+  // }
+
+  //std::cout<<" StiffnessFactor B "<<rStiffnessFactor<<std::endl;
+
+  KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -931,7 +1004,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvg(MatrixType& rL
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor)
+void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Matrix& rConstitutiveMatrix, const double& rBulkFactor)
 {
   KRATOS_TRY
 
@@ -951,12 +1024,12 @@ void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Matrix& rConstit
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor)
+void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Matrix& rConstitutiveMatrix, const double& rBulkFactor)
 {
   KRATOS_TRY
 
-  rBulkFactor *= (-1);
-  this->AddVolumetricPart(rConstitutiveMatrix,rBulkFactor);
+  double BulkFactor = -rBulkFactor;
+  this->AddVolumetricPart(rConstitutiveMatrix, BulkFactor);
 
   KRATOS_CATCH( "" )
 }
@@ -964,7 +1037,7 @@ void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Matrix& rCons
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Vector& rStressVector, double& rMeanPressure)
+void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Vector& rStressVector, const double& rMeanPressure)
 {
   KRATOS_TRY
 
@@ -981,12 +1054,12 @@ void UpdatedLagrangianSegregatedFluidElement::AddVolumetricPart(Vector& rStressV
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Vector& rStressVector, double& rMeanPressure)
+void UpdatedLagrangianSegregatedFluidElement::RemoveVolumetricPart(Vector& rStressVector, const double& rMeanPressure)
 {
   KRATOS_TRY
 
-  rMeanPressure *= (-1);
-  this->AddVolumetricPart(rStressVector,rMeanPressure);
+  double MeanPressure = -rMeanPressure;
+  this->AddVolumetricPart(rStressVector,MeanPressure);
 
   KRATOS_CATCH( "" )
 }
@@ -1351,7 +1424,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
 
   //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
   WeakPointerVector<Element>& neighb_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
-  unsigned int counter=0;
+  unsigned int face=0;
   for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
   {
     if (ne->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
@@ -1359,29 +1432,32 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
       std::vector<SizeType> Nodes;
       unsigned int WallNodes  = 0;
       unsigned int InletNodes = 0;
+      unsigned int SliverNodes = 0;
       unsigned int FreeSurfaceNodes = 0;
 
       for(unsigned int i = 1; i < NodesInFaces.size1(); ++i)
       {
-        Nodes.push_back(NodesInFaces(i,counter));  //set boundary nodes
-        if(rGeometry[NodesInFaces(i,counter)].Is(RIGID) || rGeometry[NodesInFaces(i,counter)].Is(SOLID)){
+        Nodes.push_back(NodesInFaces(i,face));  //set boundary nodes
+        if(rGeometry[NodesInFaces(i,face)].Is(RIGID) || rGeometry[NodesInFaces(i,face)].Is(SOLID)){
           ++WallNodes;
         }
-        if(rGeometry[NodesInFaces(i,counter)].Is(FREE_SURFACE)){
+        if(rGeometry[NodesInFaces(i,face)].Is(FREE_SURFACE)){
           ++FreeSurfaceNodes;
         }
-        if(rGeometry[NodesInFaces(i,counter)].Is(INLET)){
+        if(rGeometry[NodesInFaces(i,face)].Is(INLET)){
           ++InletNodes;
         }
-
+        if(rGeometry[NodesInFaces(i,face)].Is(SELECTED)){
+          ++SliverNodes;
+        }
       }
-      if( WallNodes < Nodes.size() )
-        if( InletNodes < Nodes.size() )
+      if( SliverNodes != Nodes.size() )
+        if( WallNodes < Nodes.size() &&  InletNodes < Nodes.size() )
           if( FreeSurfaceNodes == Nodes.size() )
             Faces.push_back(Nodes);
     }
 
-    counter++;
+    face++;
   }
 
   KRATOS_CATCH( "" )

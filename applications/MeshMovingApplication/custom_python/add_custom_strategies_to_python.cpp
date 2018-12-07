@@ -26,37 +26,33 @@
 #include "linear_solvers/linear_solver.h"
 
 namespace Kratos {
-
 namespace Python {
-using namespace pybind11;
 
 void AddCustomStrategiesToPython(pybind11::module& m) {
-  typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-  typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    namespace py = pybind11;
 
-  typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-  typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
-      BaseSolvingStrategyType;
-  using LaplacianMeshMovingStrategyType = LaplacianMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
-  using StructuralMeshMovingStrategyType = StructuralMeshMovingStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+    typedef LaplacianMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LaplacianMeshMovingStrategyType;
+    typedef StructuralMeshMovingStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType > StructuralMeshMovingStrategyType;
 
-  class_<LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
-    LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
-    BaseSolvingStrategyType>(
-      m,"LaplacianMeshMovingStrategy")
-        .def(init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
-      .def("UpdateReferenceMesh",&LaplacianMeshMovingStrategyType::UpdateReferenceMesh)
-      ;
+    py::class_<LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
+        LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
+        BaseSolvingStrategyType>(m,"LaplacianMeshMovingStrategy")
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
+        .def("UpdateReferenceMesh",&LaplacianMeshMovingStrategyType::UpdateReferenceMesh)
+        ;
 
-  class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>, 
-  StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
-  BaseSolvingStrategyType>(m,"StructuralMeshMovingStrategy")
-      .def(init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
-      .def("UpdateReferenceMesh",&StructuralMeshMovingStrategyType::UpdateReferenceMesh)
-      ;
+    py::class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
+        StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
+        BaseSolvingStrategyType>(m,"StructuralMeshMovingStrategy")
+        .def(py::init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
+        .def("UpdateReferenceMesh",&StructuralMeshMovingStrategyType::UpdateReferenceMesh)
+        ;
 }
 
 } // namespace Python.
-
 } // Namespace Kratos

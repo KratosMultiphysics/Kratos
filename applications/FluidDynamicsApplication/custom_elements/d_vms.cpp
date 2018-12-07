@@ -109,7 +109,7 @@ void DVMS<TElementData>::Initialize()
     // It is not stored in a restart and can be safely initialized.
     mPredictedSubscaleVelocity.resize(number_of_gauss_points);
     for (unsigned int g = 0; g < number_of_gauss_points; g++)
-        mPredictedSubscaleVelocity[g] = array_1d<double,Dim>(Dim,0.0);
+        mPredictedSubscaleVelocity[g] = ZeroVector(Dim);
 
     // The old velocity may be already defined (if restarting)
     // and we want to keep the loaded values in that case.
@@ -117,7 +117,7 @@ void DVMS<TElementData>::Initialize()
     {
         mOldSubscaleVelocity.resize(number_of_gauss_points);
         for (unsigned int g = 0; g < number_of_gauss_points; g++)
-            mOldSubscaleVelocity[g] = array_1d<double,Dim>(Dim,0.0);
+            mOldSubscaleVelocity[g] = ZeroVector(Dim);
     }
 
     #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
@@ -145,7 +145,7 @@ void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
         this->CalculateMaterialResponse(data);
 
         // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
-        array_1d<double,3> UpdatedValue(3,0.0);
+        array_1d<double,3> UpdatedValue = ZeroVector(3);
         this->SubscaleVelocity(data,UpdatedValue);
         array_1d<double,Dim>& r_value = mOldSubscaleVelocity[g];
         for (unsigned int d = 0; d < Dim; d++) {
@@ -595,7 +595,7 @@ void DVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcess
         data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
         this->CalculateMaterialResponse(data);
 
-        array_1d<double, 3> MomentumRes(3, 0.0);
+        array_1d<double, 3> MomentumRes = ZeroVector(3);
         double MassRes = 0.0;
 
         array_1d<double, 3> convection_velocity = this->FullConvectiveVelocity(data);
@@ -676,7 +676,7 @@ void DVMS<TElementData>::SubscaleVelocity(
 
     const double dt = rData.DeltaTime;
 
-    array_1d<double,3> residual(3,0.0);
+    array_1d<double,3> residual = ZeroVector(3);
 
     if (rData.UseOSS != 1.0) {
         this->AlgebraicMomentumResidual(rData,convective_velocity,residual);
@@ -766,7 +766,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     const array_1d<double,Dim>& old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
 
     // Part of the residual that does not depend on the subscale
-    array_1d<double,3> static_residual(3,0.0);
+    array_1d<double,3> static_residual = ZeroVector(3);
 
     // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
     if (rData.UseOSS != 1.0)
@@ -784,9 +784,9 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     double subscale_velocity_error = 2.0 * mSubscalePredictionVelocityTolerance;
 
     BoundedMatrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
-    array_1d<double,Dim> rhs(Dim,0.0);
+    array_1d<double,Dim> rhs = ZeroVector(Dim);
     array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
-    array_1d<double,Dim> du(Dim,0.0);
+    array_1d<double,Dim> du = ZeroVector(Dim);
 
     while ( (!converged) && (iter++ < mSubscalePredictionMaxIterations) ) {
 
@@ -843,7 +843,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
 
     // Store new subscale values or discard the calculation
     // If not converged, we will not use the subscale in the convective term.
-    noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = converged ? u : array_1d<double,Dim>(Dim,0.0);
+    noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = converged ? u : ZeroVector(Dim);
 }
 
 // serializer

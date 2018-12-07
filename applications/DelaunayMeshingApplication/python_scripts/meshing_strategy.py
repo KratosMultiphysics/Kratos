@@ -92,7 +92,7 @@ class MeshingStrategy(object):
         self.number_of_elements   = 0
         self.number_of_conditions = 0
 
-        #print("::[--Meshing Strategy-]:: Ready")
+        print(self._class_prefix()+" Ready")
 
     #
     def GetMeshers(self):
@@ -120,7 +120,7 @@ class MeshingStrategy(object):
         meshers_list = self.GetMeshers()
 
         if( self.echo_level > 0 ):
-            print("  [", self.MeshingParameters.GetSubModelPartName(),"model part ] (REMESH:",self.settings["remesh"].GetBool(),"/ REFINE:",self.settings["refine"].GetBool(),"/ TRANSFER:",self.settings["transfer"].GetBool(),")")
+            print(self._class_prefix()+"  ["+self.MeshingParameters.GetSubModelPartName()+" model part ] (REMESH:",self.settings["remesh"].GetBool(),"/ REFINE:",self.settings["refine"].GetBool(),"/ TRANSFER:",self.settings["transfer"].GetBool(),")")
 
         for mesher in meshers_list:
             meshing_module =__import__(mesher)
@@ -167,7 +167,8 @@ class MeshingStrategy(object):
         self.SetMeshInfo()
 
         if( self.global_transfer == True ):
-            print(" global transfer ")
+            if( self.echo_level > 0 ):
+                print(self._class_prefix()+" Elements To Nodes transfer ")
             self.MeshDataTransfer.TransferElementalValuesToNodes(self.TransferParameters,self.model_part)
 
     #
@@ -209,3 +210,9 @@ class MeshingStrategy(object):
     #
     def SetEchoLevel(self, echo_level):
         self.echo_level = echo_level
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[--Meshing Strategy-]::"
+        return header

@@ -27,19 +27,19 @@ namespace Python
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
-  using namespace pybind11;
+  namespace py = pybind11;
 
   typedef std::vector<SpatialBoundingBox::Pointer>   BoundingBoxContainer;
 
   // Mesher process
-  class_<RefineConditionsInContactMesherProcess, RefineConditionsInContactMesherProcess::Pointer, RefineConditionsMesherProcess>(m,"RefineConditionsInContact")
-      .def(init<ModelPart&, BoundingBoxContainer&, MesherUtilities::MeshingParameters&, int>())
+  py::class_<RefineConditionsInContactMesherProcess, RefineConditionsInContactMesherProcess::Pointer, RefineConditionsMesherProcess>(m,"RefineConditionsInContact")
+      .def(py::init<ModelPart&, BoundingBoxContainer&, MesherUtilities::MeshingParameters&, int>())
       ;
 
   // Set initial mechanical state
-  class_<SetMechanicalInitialStateProcess, SetMechanicalInitialStateProcess::Pointer, Process>(m,"SetMechanicalInitialStateProcess")
-      .def(init<ModelPart&, Parameters>())
-      .def(init<ModelPart&, Parameters>())
+  py::class_<SetMechanicalInitialStateProcess, SetMechanicalInitialStateProcess::Pointer, Process>(m,"SetMechanicalInitialStateProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init<ModelPart&, Parameters>())
       .def("Execute", &SetMechanicalInitialStateProcess::Execute)
       ;
 }

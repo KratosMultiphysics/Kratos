@@ -338,6 +338,7 @@ void LinearSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
                 row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
                 rCurrentProcessInfo );
 
+
     KRATOS_CATCH( "" )
 }
 
@@ -436,7 +437,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     //deffault values for the infinitessimal theory
     double detF = 1;
     Matrix F(dimension,dimension);
-    noalias(F) = identity_matrix<double>(dimension);
+    noalias(F) = IdentityMatrix(dimension);
 
     //3.-Calculate elemental system:
 
@@ -951,7 +952,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
       //deffault values for the infinitessimal theory
       double detF = 1;
       Matrix F(dimension,dimension);
-      noalias(F) = identity_matrix<double>(dimension);
+      noalias(F) = IdentityMatrix(dimension);
 
       //get the shape functions [N] (for the order of the default integration method)
       const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );

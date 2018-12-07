@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
@@ -28,9 +28,9 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
             KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
             KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),B)
 
-            A_python = io.mmread(file_name)
+            A_python = io.mmread(GetFilePath(file_name))
             A_python.toarray()
-            B_python = io.mmread(file_name)
+            B_python = io.mmread(GetFilePath(file_name))
             B_python.toarray()
 
             A_python = A_python + B_python
@@ -68,7 +68,7 @@ class TestSparseMatrixTranspose(KratosUnittest.TestCase):
             KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
             B = KratosMultiphysics.CompressedMatrix()
 
-            A_python = io.mmread(file_name)
+            A_python = io.mmread(GetFilePath(file_name))
             B_python = np.matrix.transpose(A_python.toarray())
 
             # Solve
@@ -105,7 +105,7 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
             A2 = KratosMultiphysics.CompressedMatrix()
             KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(file_name),A)
 
-            A_python = io.mmread(file_name)
+            A_python = io.mmread(GetFilePath(file_name))
             A_python.toarray()
 
             A2_python = np.dot(A_python, A_python)

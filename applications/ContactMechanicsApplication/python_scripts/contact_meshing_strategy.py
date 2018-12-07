@@ -54,7 +54,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
     def Initialize(self,meshing_parameters,dimension):
 
         #parameters
-        self.echo_level = 1
+        self.echo_level = 0
 
         #meshing parameters
         self.MeshingParameters = meshing_parameters

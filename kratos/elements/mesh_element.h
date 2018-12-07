@@ -1,0 +1,228 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//			 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
+//
+
+#if !defined(KRATOS_GEOMETRICAL_ELEMENT_H_INCLUDED )
+#define  KRATOS_GEOMETRICAL_ELEMENT_H_INCLUDED
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/element.h"
+
+namespace Kratos
+{
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+///@}
+///@name  Functions
+///@{
+///@}
+///@name Kratos Classes
+///@{
+/**
+ * @class MeshElement
+ * @ingroup KratosCore
+ * @brief This is pure geometric element. The only purpose for this definition is to create dummy elements
+ * @details Inherits all method from base element, and overrides the Clone() and Create() methods
+ * @author Vicente Mataix Ferrandiz
+ */
+class MeshElement
+    : public Element
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+
+    /// We define the base class Element
+    typedef Element BaseType;
+    
+    /// Dfinition of the index type
+    typedef BaseType::IndexType IndexType;
+
+    /// Definition of the size type
+    typedef BaseType::SizeType SizeType;
+    
+    /// Definition of the node type
+    typedef BaseType::NodeType NodeType;
+
+    /// Definition of the properties type
+    typedef BaseType::PropertiesType PropertiesType;
+
+    /// Definition of the geometry type with given NodeType
+    typedef BaseType::GeometryType GeometryType;
+
+    /// Definition of nodes container type, redefined from GeometryType
+    typedef BaseType::NodesArrayType NodesArrayType;
+    
+    /// Counted pointer of MeshElement
+    KRATOS_CLASS_POINTER_DEFINITION( MeshElement);
+    
+    ///@}
+
+public:
+
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief Constructor.
+     * @param NewId The Id of the new created element
+     */
+    MeshElement(IndexType NewId = 0);
+
+    /**
+     * @brief Constructor using an array of nodes
+     * @param NewId The Id of the new created element
+     * @param rThisNodes The array of nodes that will define the geometry that will define the element
+     */
+    MeshElement(
+        IndexType NewId, 
+        const NodesArrayType& rThisNodes
+        );
+
+    /**
+     * @brief Constructor using Geometry
+     * @param NewId The Id of the new created element
+     * @param pGeometry The pointer to the geometry that will define the element
+     */
+    MeshElement(
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry
+        );
+
+    /**
+     * @brief Constructor using Properties
+     * @param NewId The Id of the new created element
+     * @param pGeometry The pointer to the geometry that will define the element
+     * @param pProperties The pointer to the properties that will define the behaviour of the element
+     */
+    MeshElement(
+        IndexType NewId, 
+        GeometryType::Pointer pGeometry, 
+        PropertiesType::Pointer pProperties
+        );
+
+    ///Copy constructor
+    MeshElement(MeshElement const& rOther);
+
+    /// Destructor.
+    ~MeshElement() override;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    MeshElement& operator=(MeshElement const& rOther);
+
+    ///@}
+    ///@name Operations
+    ///@{
+   
+    /**
+     * @brief Creates a new element pointer
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element pointer
+     * @param NewId the ID of the new element
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes
+        ) const override;
+
+    ///@}
+    ///@name Input and output
+    ///@{
+    
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Geometrical Element #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Geometrical  Element #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+        
+    ///@}
+
+private:
+
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
+        
+    ///@}
+
+}; // Class MeshElement
+
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+///@}
+
+} // namespace Kratos.
+#endif // KRATOS_GEOMETRICAL_ELEMENT_H_INCLUDED  defined

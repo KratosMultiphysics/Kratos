@@ -103,15 +103,33 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef Vector VectorType;
     typedef Internals::ConstraintImposer<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief Default constructor
      */
     explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
+        : BaseType(pNewLinearSystemSolver)
     {
     }
 
@@ -153,7 +171,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemMatrixType &A,
         TSystemVectorType &b) override
     {
-        if(rModelPart.NumberOfMasterSlaveConstraints() > 0)
+        if(mGlobalMasterSlaveConstraints.size() > 0)
             BuildWithConstraints(pScheme, rModelPart, A, b);
         else
             BaseType::Build(pScheme, rModelPart, A, b);
@@ -177,10 +195,204 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
     {
-        if(rModelPart.NumberOfMasterSlaveConstraints() > 0)
+        if(mGlobalMasterSlaveConstraints.size() > 0)
             BuildAndSolveWithConstraints(pScheme, rModelPart, A, Dx, b);
         else
             BaseType::BuildAndSolve(pScheme, rModelPart, A, Dx, b);
+    }
+
+    /**
+     * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
+     * and condition its Dofs.
+     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * way the matrix and RHS are built
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     */
+    void SetUpDofSet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        ) override
+    {
+        KRATOS_TRY;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
+
+        //Gets the array of elements from the modeler
+        ElementsArrayType& pElements = rModelPart.Elements();
+        const int nelements = static_cast<int>(pElements.size());
+
+        Element::DofsVectorType ElementalDofList, AuxiliarDofList;
+
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        unsigned int nthreads = OpenMPUtils::GetNumThreads();
+
+#ifdef USE_GOOGLE_HASH
+        typedef google::dense_hash_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
+#else
+        typedef std::unordered_set < typename NodeType::DofType::Pointer, DofPointerHasher>  set_type;
+#endif
+
+        std::vector<set_type> dofs_aux_list(nthreads);
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of threads" << nthreads << "\n" << std::endl;
+
+        for (int i = 0; i < static_cast<int>(nthreads); i++)
+        {
+#ifdef USE_GOOGLE_HASH
+            dofs_aux_list[i].set_empty_key(NodeType::DofType::Pointer());
+#else
+//             dofs_aux_list[i] = set_type( allocators[i]);
+            dofs_aux_list[i].reserve(nelements);
+#endif
+        }
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+
+        #pragma omp parallel firstprivate(nelements, ElementalDofList, AuxiliarDofList)
+        {
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i < nelements; i++)
+            {
+                auto it = pElements.begin() + i;
+                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+
+                // gets list of Dof involved on every element
+                pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+
+                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+            }
+
+            KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing condition loop" << std::endl;
+
+            ConditionsArrayType& pConditions = rModelPart.Conditions();
+            const int nconditions = static_cast<int>(pConditions.size());
+            #pragma omp for  schedule(guided, 512)
+            for (int i = 0; i < nconditions; i++)
+            {
+                auto it = pConditions.begin() + i;
+                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+
+                // gets list of Dof involved on every element
+                pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
+                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+
+            }
+
+            auto& pConstraints = rModelPart.MasterSlaveConstraints();
+            const int nconstraints = static_cast<int>(pConstraints.size());
+            #pragma omp for  schedule(guided, 512)
+            for (int i = 0; i < nconstraints; i++)
+            {
+                auto it = pConstraints.begin() + i;
+                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
+
+                // gets list of Dof involved on every element
+                it->GetDofList(ElementalDofList, AuxiliarDofList, CurrentProcessInfo);
+                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+                dofs_aux_list[this_thread_id].insert(AuxiliarDofList.begin(), AuxiliarDofList.end());
+
+            }
+        }
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing tree reduction\n" << std::endl;
+
+        // Here we do a reduction in a tree so to have everything on thread 0
+        unsigned int old_max = nthreads;
+        unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
+        while (new_max>=1 && new_max != old_max)
+        {
+            if( this->GetEchoLevel() > 2)
+            {
+                //just for debugging
+                std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
+                for (int i = 0; i < static_cast<int>(new_max); i++)
+                {
+                    if (i + new_max < old_max)
+                    {
+                        std::cout << i << " - " << i+new_max << std::endl;
+                    }
+                }
+                std::cout << "********************" << std::endl;
+            }
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(new_max); i++)
+            {
+                if (i + new_max < old_max)
+                {
+                    dofs_aux_list[i].insert(dofs_aux_list[i+new_max].begin(), dofs_aux_list[i+new_max].end());
+                    dofs_aux_list[i+new_max].clear();
+                }
+            }
+
+            old_max = new_max;
+            new_max = ceil(0.5*static_cast<double>(old_max));
+
+        }
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+
+        DofsArrayType Doftemp;
+        BaseType::mDofSet = DofsArrayType();
+
+        Doftemp.reserve(dofs_aux_list[0].size());
+        for (auto it= dofs_aux_list[0].begin(); it!= dofs_aux_list[0].end(); it++)
+        {
+            Doftemp.push_back( it->get() );
+        }
+        Doftemp.Sort();
+
+        BaseType::mDofSet = Doftemp;
+
+        //Throws an exception if there are no Degrees Of Freedom involved in the analysis
+        KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
+
+        BaseType::mDofSetIsInitialized = true;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
+
+#ifdef _OPENMP
+        if (BaseType::mlock_array.size() != 0)
+        {
+            for (int i = 0; i < static_cast<int>(BaseType::mlock_array.size()); i++)
+            {
+                omp_destroy_lock(&BaseType::mlock_array[i]);
+            }
+        }
+        BaseType::mlock_array.resize(BaseType::mDofSet.size());
+
+        for (int i = 0; i < static_cast<int>(BaseType::mlock_array.size()); i++)
+        {
+            omp_init_lock(&BaseType::mlock_array[i]);
+        }
+#endif
+
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "End of setup dof set\n" << std::endl;
+
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        {
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
+
+
+        KRATOS_CATCH("");
     }
 
     void InitializeSolutionStep(
@@ -192,13 +404,18 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_TRY
 
         BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+
+	    // Getting process info
+	    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+	    // Computing constraints
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; k++)
         {
             auto it = constraints_begin + k;
-            it->InitializeSolutionStep(); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
+            it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
         }
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to initialize solution step.")
@@ -213,13 +430,18 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
         BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
+
+	    // Getting process info
+	    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+	    // Computing constraints
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; k++)
         {
             auto it = constraints_begin + k;
-            it->FinalizeSolutionStep();
+            it->FinalizeSolutionStep(r_process_info);
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to finalize solution step.")
     }
@@ -231,6 +453,28 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedBlockBuilderAndSolverWithConstraints";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -253,12 +497,13 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     ///@}
     ///@name Protected Operations
     ///@{
-    virtual void ConstructMatrixStructure(
+
+    void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType &A,
         ModelPart &rModelPart) override
     {
-        if(rModelPart.NumberOfMasterSlaveConstraints() > 0)
+        if(mGlobalMasterSlaveConstraints.size() > 0)
             ConstructMatrixStructureWithConstraints(pScheme, A, rModelPart);
         else
             BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);
@@ -381,6 +626,38 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 row_indices.insert(ids.begin(), ids.end());
 #ifdef _OPENMP
                 omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+#endif
+            }
+        }
+
+        Element::EquationIdVectorType aux_ids(3, 0);
+
+        const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+#pragma omp parallel for firstprivate(nconstraints, ids, aux_ids, constraint_imposer)
+        for (int iii = 0; iii < nconstraints; iii++)
+        {
+            auto i_constraint = rModelPart.MasterSlaveConstraints().begin() + iii;
+            i_constraint->EquationIdVector(ids, aux_ids, rModelPart.GetProcessInfo());
+            for (std::size_t i = 0; i < ids.size(); i++)
+            {
+#ifdef _OPENMP
+                omp_set_lock(&BaseType::mlock_array[ids[i]]);
+#endif
+                auto &row_indices = indices[ids[i]];
+                row_indices.insert(ids.begin(), ids.end());
+#ifdef _OPENMP
+                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+#endif
+            }
+            for (std::size_t i = 0; i < aux_ids.size(); i++)
+            {
+#ifdef _OPENMP
+                omp_set_lock(&BaseType::mlock_array[aux_ids[i]]);
+#endif
+                auto &row_indices = indices[aux_ids[i]];
+                row_indices.insert(aux_ids.begin(), aux_ids.end());
+#ifdef _OPENMP
+                omp_unset_lock(&BaseType::mlock_array[aux_ids[i]]);
 #endif
             }
         }
@@ -583,13 +860,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         const ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
-        //contributions to the system
-        LocalSystemMatrixType relation_matrix;
-        LocalSystemVectorType constant_vector;
-        EquationIdVectorType slave_equation_ids;
-        EquationIdVectorType master_equation_ids;
 
-#pragma omp parallel for schedule(guided, 512) private (relation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
+#pragma omp parallel for schedule(guided, 512)
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin;
@@ -602,11 +874,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             if (constraint_is_active)
             {
-                it->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-                //calculate constraint's T and b matrices
-                it->CalculateLocalSystem(relation_matrix, constant_vector, r_current_process_info);
                 //assemble the Constraint contribution
-                AssembleSlaves(slave_equation_ids, master_equation_ids, relation_matrix);
+                #pragma omp critical
+                AssembleConstraint(*it, r_current_process_info);
             }
         }
         const double stop_formulate = OpenMPUtils::GetCurrentTime();
@@ -617,41 +887,44 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
 
     /**
-     * @brief   this method assembles the given list of slave equation ids and corresponding master equation ids
-     * @param   rSlaveEquationIdVector list of slave equation ids to be assembled.
-     * @param   rMasterEquationIdVector list of corresponding master equation ids.
-     * @param   rRelationMatrix the matrix relating the rSlaveEquationIdVector with rMasterEquationIdVector
+     * @brief   this method assembles the given master slave constraint to the auxiliary global master slave constraints
+     * @param   rMasterSlaveConstraint object of the master slave constraint to be assembled.
+     * @param   rCurrentProcessInfo current process info.
      */
-    void AssembleSlaves(EquationIdVectorType& rSlaveEquationIdVector, EquationIdVectorType& rMasterEquationIdVector, LocalSystemMatrixType& rRelationMatrix)
+    void AssembleConstraint(ModelPart::MasterSlaveConstraintType& rMasterSlaveConstraint, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         int slave_count = 0;
-        for (auto slave_equation_id : rSlaveEquationIdVector)
+        LocalSystemMatrixType relation_matrix(0,0);
+        LocalSystemVectorType constant_vector(0);
+        EquationIdVectorType slave_equation_ids(0);
+        EquationIdVectorType master_equation_ids(0);
+
+        //get the equation Ids of the constraint
+        rMasterSlaveConstraint.EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
+        //calculate constraint's T and b matrices
+        rMasterSlaveConstraint.CalculateLocalSystem(relation_matrix, constant_vector, rCurrentProcessInfo);
+
+        for (auto slave_equation_id : slave_equation_ids)
         {
-            /*int master_count = 0;
-            auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
-            if (global_constraint == mGlobalMasterSlaveConstraints.end())
-            {
-                mGlobalMasterSlaveConstraints.insert(mGlobalMasterSlaveConstraints.begin(), Kratos::make_shared<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id));
-                global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
-            }*/
             int master_count = 0;
             auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             if (global_constraint == mGlobalMasterSlaveConstraints.end())
             {
                 mGlobalMasterSlaveConstraints[slave_equation_id] = Kratos::make_unique<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id);
-                global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             }
 
-            for (auto master_equation_id : rMasterEquationIdVector)
+            global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
+            for (auto master_equation_id : master_equation_ids)
             {
-                global_constraint->second->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
-                master_count++;
+                    global_constraint->second->AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
+                    master_count++;
             }
             slave_count++;
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::AssembleSlaves failed ...");
     }
+
 
 
     /**

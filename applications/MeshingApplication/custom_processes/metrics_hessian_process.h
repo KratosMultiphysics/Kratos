@@ -54,7 +54,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim, class TVarType>
-class ComputeHessianSolMetricProcess
+class KRATOS_API(MESHING_APPLICATION) ComputeHessianSolMetricProcess
     : public Process
 {
 public:
@@ -209,7 +209,7 @@ private:
     ///@{
 
     ModelPart& mThisModelPart;                           /// The model part to compute
-    TVarType mVariable;                                  /// The variable to calculate the hessian
+    TVarType& mVariable;                                 /// The variable to calculate the hessian
     std::string mRatioReferenceVariable = "DISTANCE";    /// Variable used to compute the anisotropic ratio
     double mMinSize;                                     /// The minimal size of the elements
     double mMaxSize;                                     /// The maximal size of the elements

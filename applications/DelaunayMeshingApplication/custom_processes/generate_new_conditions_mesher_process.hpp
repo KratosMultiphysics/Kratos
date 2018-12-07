@@ -110,6 +110,7 @@ namespace Kratos
       if( mEchoLevel > 0 )
 	std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
 
+      this->ResetFreeSurfaceFlag(mrModelPart);
 
       success=this->UniqueSkinSearch(mrModelPart);
 
@@ -200,20 +201,23 @@ namespace Kratos
 
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-      ModelPart::ElementsContainerType::iterator elements_begin  = mrModelPart.ElementsBegin();
-      ModelPart::ElementsContainerType::iterator elements_end    = mrModelPart.ElementsEnd();
+      ModelPart::ElementsContainerType::iterator elements_begin  = rModelPart.ElementsBegin();
+      ModelPart::ElementsContainerType::iterator elements_end    = rModelPart.ElementsEnd();
 
 
       //clear nodal boundary flag
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ++ie)
-	{
-	  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
+      {
+        Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
 
-          for(unsigned int j=0; j<rElementGeometry.size(); ++j)
-          {
-            rElementGeometry[j].Reset(BOUNDARY);
+        for(unsigned int j=0; j<rElementGeometry.size(); ++j)
+        {
+          rElementGeometry[j].Set(BOUNDARY,false);
+          if(rModelPart.Is(FLUID)){
+            rElementGeometry[j].Set(FREE_SURFACE,false);
           }
         }
+      }
 
       rConditionId=0;
       for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ++ie)
@@ -265,10 +269,30 @@ namespace Kratos
 		  {
 
 		    //if no neighbour is present => the face is free surface
-		    for(unsigned int j=1; j<=NumberNodesInFace; ++j)
-		      {
-			rElementGeometry[lpofa(j,iface)].Set(BOUNDARY);
-		      }
+                    unsigned int rigid_nodes = 0;
+                    unsigned int free_surface_nodes = 0;
+                    for(unsigned int j=1; j<=NumberNodesInFace; ++j)
+                    {
+                      rElementGeometry[lpofa(j,iface)].Set(BOUNDARY,true);
+                      if(rModelPart.Is(FLUID)){
+                        if(rElementGeometry[lpofa(j,iface)].Is(RIGID) || rElementGeometry[lpofa(j,iface)].Is(SOLID)){
+                          ++rigid_nodes;
+                        }
+                        else{
+                          ++free_surface_nodes;
+                        }
+                      }
+                      //std::cout<<" node ["<<j<<"]"<<rElementGeometry[lpofa(j,iface)].Id()<<std::endl;
+                    }
+
+                    if(rModelPart.Is(FLUID)){
+                      if( (free_surface_nodes>0 && rigid_nodes>0) || rigid_nodes==0 ){
+                        for(unsigned int j=1; j<=NumberNodesInFace; ++j)
+                        {
+                          rElementGeometry[lpofa(j,iface)].Set(FREE_SURFACE,true);
+                        }
+                      }
+                    }
 
 
 		    //Get the correct ReferenceCondition

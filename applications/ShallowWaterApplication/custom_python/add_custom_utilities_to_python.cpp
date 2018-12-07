@@ -10,10 +10,10 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -31,14 +31,14 @@ namespace Python
 
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     //~ typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     //~ typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     //~ typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
-        .def(init<ModelPart& , Parameters >())
+    py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
+        .def(py::init<ModelPart& , Parameters >())
         .def("MountBin", &MoveShallowWaterParticleUtility<2>::MountBin)
         .def("MoveParticles", &MoveShallowWaterParticleUtility<2>::MoveParticles)
         .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveShallowWaterParticleUtility<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
@@ -53,9 +53,9 @@ namespace Python
         .def("ExecuteParticlesPrintingTool", &MoveShallowWaterParticleUtility<2>::ExecuteParticlesPrintingTool)
         ;
 
-    class_< ShallowWaterVariablesUtility > (m, "ShallowWaterVariablesUtility")
-        .def(init<ModelPart&>())
-        .def(init<ModelPart&, double&>())
+    py::class_< ShallowWaterVariablesUtility > (m, "ShallowWaterVariablesUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, double&>())
         .def("ComputeFreeSurfaceElevation", &ShallowWaterVariablesUtility::ComputeFreeSurfaceElevation)
         .def("ComputeHeightFromFreeSurface", &ShallowWaterVariablesUtility::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterVariablesUtility::ComputeVelocity)

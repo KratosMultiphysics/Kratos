@@ -89,8 +89,8 @@ class BuoyancyTest(UnitTest.TestCase):
                 self.printOutput()
 
     def setUpModel(self):
-
-        self.fluid_model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
         thermal_settings = ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(TEMPERATURE)
@@ -169,7 +169,8 @@ class BuoyancyTest(UnitTest.TestCase):
 
         if self.convection_diffusion_solver == 'eulerian':
             # Duplicate model part
-            thermal_model_part = ModelPart("Thermal")
+            
+            thermal_model_part = self.model.CreateModelPart("Thermal")
             conv_diff_element = "EulerianConvDiff2D"
             conv_diff_condition = "Condition2D2N"
 

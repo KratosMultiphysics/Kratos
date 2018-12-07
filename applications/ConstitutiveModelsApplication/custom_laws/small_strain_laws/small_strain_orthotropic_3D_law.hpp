@@ -132,7 +132,7 @@ namespace Kratos
 
         const Flags& rOptions = rValues.GetOptions();
 
-	const Properties& rMaterialProperties  = rValues.GetMaterialProperties();
+	const Properties& rProperties  = rValues.GetMaterialProperties();
 
 	Vector& rStrainVector                  = rValues.GetStrainVector();
 	Vector& rStressVector                  = rValues.GetStressVector();
@@ -144,7 +144,7 @@ namespace Kratos
 
 	  Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
-	  this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rMaterialProperties);
+	  this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rProperties);
 
 	  this->CalculateStress( rStrainVector, rConstitutiveMatrix, rStressVector );
 
@@ -152,7 +152,7 @@ namespace Kratos
 	else if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
 	  Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-	  this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
+	  this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rProperties);
 
 	}
 
@@ -178,35 +178,35 @@ namespace Kratos
        * This function is designed to be called once to perform all the checks needed
        * on the input provided. Checks can be "expensive" as the function is designed
        * to catch user's errors.
-       * @param rMaterialProperties
+       * @param rProperties
        * @param rElementGeometry
        * @param rCurrentProcessInfo
        * @return
        */
-      int Check(const Properties& rMaterialProperties,
+      int Check(const Properties& rProperties,
 		const GeometryType& rElementGeometry,
 		const ProcessInfo& rCurrentProcessInfo) override
       {
 
-	if(YOUNG_MODULUS_X.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_X))
+	if(YOUNG_MODULUS_X.Key() == 0 || !rProperties.Has(YOUNG_MODULUS_X))
 	  KRATOS_ERROR << "YOUNG_MODULUS_X has Key zero or invalid value" << std::endl;
 
-	if(YOUNG_MODULUS_Y.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Y))
+	if(YOUNG_MODULUS_Y.Key() == 0 || !rProperties.Has(YOUNG_MODULUS_Y))
 	  KRATOS_ERROR << "YOUNG_MODULUS_Y has Key zero or invalid value" << std::endl;
 
-	if(YOUNG_MODULUS_Z.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Z))
+	if(YOUNG_MODULUS_Z.Key() == 0 || !rProperties.Has(YOUNG_MODULUS_Z))
 	  KRATOS_ERROR << "YOUNG_MODULUS_Z has Key zero or invalid value" << std::endl;
 
-	if(POISSON_RATIO_XY.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_XY))
+	if(POISSON_RATIO_XY.Key() == 0 || !rProperties.Has(POISSON_RATIO_XY))
 	  KRATOS_ERROR << "POISSON_RATIO_XY has Key zero invalid value" << std::endl;
 
-	if(POISSON_RATIO_YZ.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_YZ))
+	if(POISSON_RATIO_YZ.Key() == 0 || !rProperties.Has(POISSON_RATIO_YZ))
 	  KRATOS_ERROR << "POISSON_RATIO_YZ has Key zero invalid value" << std::endl;
 
-	if(POISSON_RATIO_XZ.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_XZ))
+	if(POISSON_RATIO_XZ.Key() == 0 || !rProperties.Has(POISSON_RATIO_XZ))
 	  KRATOS_ERROR << "POISSON_RATIO_XZ has Key zero invalid value" << std::endl;
 
-        if(DENSITY.Key() == 0 || !rMaterialProperties.Has(DENSITY))
+        if(DENSITY.Key() == 0 || !rProperties.Has(DENSITY))
 	  KRATOS_ERROR << "DENSITY has Key zero or invalid value" << std::endl;
 
         return 0;
@@ -264,18 +264,18 @@ namespace Kratos
        * @return the linear elastic constitutive matrix
        */
       void CalculateConstitutiveMatrix( Matrix& rConstitutiveMatrix,
-					 const Properties& rMaterialProperties) override
+					 const Properties& rProperties) override
       {
 	KRATOS_TRY
 
 	// Orthotropic constitutive matrix
-	double E1 = rMaterialProperties[YOUNG_MODULUS_X];
-	double E2 = rMaterialProperties[YOUNG_MODULUS_Y];
-	double E3 = rMaterialProperties[YOUNG_MODULUS_Z];
+	double E1 = rProperties[YOUNG_MODULUS_X];
+	double E2 = rProperties[YOUNG_MODULUS_Y];
+	double E3 = rProperties[YOUNG_MODULUS_Z];
 
-	double v12 = rMaterialProperties[POISSON_RATIO_XY];
-	double v23 = rMaterialProperties[POISSON_RATIO_YZ];
-	double v13 = rMaterialProperties[POISSON_RATIO_XZ];
+	double v12 = rProperties[POISSON_RATIO_XY];
+	double v23 = rProperties[POISSON_RATIO_YZ];
+	double v13 = rProperties[POISSON_RATIO_XZ];
 
 	double P1 = 1.0/(E2*E2*v12*v12 + 2.0*E3*E2*v12*v13*v23 + E3*E2*v13*v13 - E1*E2 + E1*E3*v23*v23);
 	double P2 = E1*E1;

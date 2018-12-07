@@ -476,68 +476,49 @@ class AdaptiveTimeIntervalProcess
  protected:
   ///@name Protected static Member Variables
   ///@{
-
-
   ///@}
   ///@name Protected member Variables
   ///@{
-
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-
+  ///@}
+  ///@name Protected Operators
+  ///@{
+  ///@}
+  ///@name Protected Operations
+  ///@{
   ///@}
   ///@name Protected  Access
   ///@{
-
-
   ///@}
   ///@name Protected Inquiry
   ///@{
-
-
   ///@}
   ///@name Protected LifeCycle
   ///@{
-
-
   ///@}
 
  private:
-  ///@name Static Member Variables
+  ///@name Private Static Member Variables
   ///@{
+
   ModelPart& mrModelPart;
 
   int mEchoLevel;
 
-
   ///@}
-  ///@name Member Variables
+  ///@name Private Member Variables
   ///@{
-
-
   ///@}
   ///@name Private Operators
   ///@{
-
-
   ///@}
   ///@name Private Operations
   ///@{
-
-
   ///@}
   ///@name Private  Access
   ///@{
-
-
   ///@}
   ///@name Private Inquiry
   ///@{
-
-
   ///@}
   ///@name Un accessible methods
   ///@{

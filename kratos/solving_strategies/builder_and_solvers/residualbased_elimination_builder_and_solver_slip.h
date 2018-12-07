@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SLIP )
@@ -25,13 +25,11 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-
 
 namespace Kratos
 {
@@ -107,6 +105,8 @@ public:
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver > ResidualBasedEliminationBuilderAndSolverType;
+
     typedef typename BaseType::TSchemeType TSchemeType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -131,16 +131,41 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverSlip(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "domain_size" : 3,
+            "variable_x" : "VELOCITY_X",
+            "variable_y" : "VELOCITY_Y",
+            "variable_z" : "VELOCITY_Z"
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mdim = ThisParameters["domain_size"].GetInt();
+        mrVar_x = KratosComponents<TVariableType>::Get(ThisParameters["variable_x"].GetString());
+        mrVar_y = KratosComponents<TVariableType>::Get(ThisParameters["variable_y"].GetString());
+        mrVar_z = KratosComponents<TVariableType>::Get(ThisParameters["variable_z"].GetString());
+    }
+
+    /**
+     * @brief Default constructor.
      */
     ResidualBasedEliminationBuilderAndSolverSlip(
         typename TLinearSolver::Pointer pNewLinearSystemSolver, unsigned int dim, TVariableType const& Var_x, TVariableType const& Var_y, TVariableType const& Var_z)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
+        : ResidualBasedEliminationBuilderAndSolverType(pNewLinearSystemSolver)
         , mdim(dim), mrVar_x(Var_x), mrVar_y(Var_y), mrVar_z(Var_z)
     {
 
@@ -381,12 +406,12 @@ public:
     // If reactions are to be calculated, we check if all the dofs have reactions defined
     // This is tobe done only in debug mode
 
-    #ifdef KRATOS_DEBUG        
+    #ifdef KRATOS_DEBUG
 
     if(BaseType::GetCalculateReactionsFlag())
     {
         for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-        { 
+        {
                 KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
                     << "Node : "<<dof_iterator->Id()<< std::endl
                     << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
@@ -506,6 +531,27 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedEliminationBuilderAndSolverSlip";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     /*@} */
     /**@name Friends */

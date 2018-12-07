@@ -1,46 +1,38 @@
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2008-10-13 08:56:42 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//                                       Kratos default license: kratos/license.txt
 //
+//  Main authors:    Antonia Larese De Tetto
 //
-//README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
 #if !defined(KRATOS_BINBASED_PROJECTION )
 #define  KRATOS_BINBASED_PROJECTION
 
-// /* External includes */
-// #include "boost/smart_ptr.hpp"
+//External includes
 
 // System includes
 #include <string>
 #include <iostream>
 #include <stdlib.h>
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "geometries/triangle_2d_3.h"
 #include "utilities/timer.h"
-
-// #include "geometries/tetrahedra_3d_4.h"
-
 #include "meshing_application.h"
-
-// #include "containers/kratos_spacial_search.h"
-
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 
-
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -86,6 +78,10 @@ public:
     /// Pointer definition of BinBasedMeshTransfer
     KRATOS_CLASS_POINTER_DEFINITION(BinBasedMeshTransfer<TDim >);
 
+    /// Node type definition
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -121,7 +117,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_THROW_ERROR(std::logic_error,"not implemented yet","")
+        KRATOS_ERROR << "Not implemented yet" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -146,41 +142,34 @@ public:
         Variable<TDataType>& rFixedDomainVariable ,
         Variable<TDataType>& rMovingDomainVariable,
         BinBasedFastPointLocator<TDim>& node_locator
-    )
+        )
     {
-
         KRATOS_TRY
-        KRATOS_WATCH("Interpolate From Fixed Mesh*************************************")
+
+        KRATOS_INFO("BinBasedMeshTransfer") << "Interpolate From Fixed Mesh*************************************" << std::endl;
+
         //creating an auxiliary list for the new nodes
-        for(ModelPart::NodesContainerType::iterator node_it = rMoving_ModelPart.NodesBegin();
-                node_it != rMoving_ModelPart.NodesEnd(); ++node_it)
-        {
-
+        for(auto node_it = rMoving_ModelPart.NodesBegin(); node_it != rMoving_ModelPart.NodesEnd(); ++node_it) {
             ClearVariables(node_it, rMovingDomainVariable);
-
         }
 
-
-        array_1d<double, TDim + 1 > N;
+        Vector N(TDim + 1);
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
         const int nparticles = rMoving_ModelPart.Nodes().size();
 
         #pragma omp parallel for firstprivate(results,N)
-        for (int i = 0; i < nparticles; i++)
-        {
+        for (int i = 0; i < nparticles; i++) {
             ModelPart::NodesContainerType::iterator iparticle = rMoving_ModelPart.NodesBegin() + i;
-            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            NodeType::Pointer pparticle = *(iparticle.base());
             auto result_begin = results.begin();
             Element::Pointer pelement;
 
             bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
 
-            if (is_found == true)
-            {
-                //Interpolate(  el_it,  N, *it_found , rFixedDomainVariable , rMovingDomainVariable  );
+            if (is_found == true) {
+                //Interpolate(  ElemIt,  N, *it_found , rFixedDomainVariable , rMovingDomainVariable  );
                 Interpolate(  pelement,  N, pparticle, rFixedDomainVariable , rMovingDomainVariable  );
-// 				KRATOS_WATCH(" IS_FOUND == true")
             }
         }
 
@@ -204,11 +193,12 @@ public:
         Variable<TDataType>& rMovingDomainVariable ,
         Variable<TDataType>& rFixedDomainVariable,
         BinBasedFastPointLocator<TDim>& node_locator //this is a bin of objects which contains the FIXED model part
-    )
+        )
     {
         KRATOS_TRY
 
-        KRATOS_WATCH("Transfer From Moving Mesh*************************************")
+        KRATOS_INFO("BinBasedMeshTransfer") << "Transfer From Moving Mesh*************************************" << std::endl;
+
         if (rMoving_ModelPart.NodesBegin()->SolutionStepsDataHas(rMovingDomainVariable) == false)
             KRATOS_THROW_ERROR(std::logic_error, "Add  MovingDomain VARIABLE!!!!!! ERROR", "");
         if (rFixed_ModelPart.NodesBegin()->SolutionStepsDataHas(rFixedDomainVariable) == false)
@@ -235,10 +225,10 @@ public:
 // 			}
         }
         //defintions for spatial search
-//         typedef Node < 3 > PointType;
-//         typedef Node < 3 > ::Pointer PointTypePointer;
+//         typedef NodeType PointType;
+//         typedef NodeType::Pointer PointTypePointer;
 
-        array_1d<double, TDim + 1 > N;
+        Vector N(TDim + 1);
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
         const int nparticles = rMoving_ModelPart.Nodes().size();
@@ -248,7 +238,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator iparticle = rMoving_ModelPart.NodesBegin() + i;
 
-            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            NodeType::Pointer pparticle = *(iparticle.base());
             auto result_begin = results.begin();
 
             Element::Pointer pelement;
@@ -257,12 +247,12 @@ public:
 
             if (is_found == true)
             {
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                GeometryType& geom = pelement->GetGeometry();
                 //                  const array_1d<double, 3 > & vel_particle = (iparticle)->FastGetSolutionStepValue(VELOCITY);
                 //                  const double& temperature_particle = (iparticle)->FastGetSolutionStepValue(TEMPERATURE);
                 const TDataType& value = (iparticle)->FastGetSolutionStepValue(rMovingDomainVariable);
 
-                for (unsigned int k = 0; k < geom.size(); k++)
+                for (std::size_t k = 0; k < geom.size(); k++)
                 {
                     geom[k].SetLock();
                     geom[k].FastGetSolutionStepValue(rFixedDomainVariable) += N[k] * value;
@@ -326,7 +316,7 @@ public:
         //defintions for spatial search
         typedef typename BinBasedNodesInElementLocator<TDim>::PointVector PointVector;
         typedef typename BinBasedNodesInElementLocator<TDim>::DistanceVector DistanceVector;
-        const unsigned int max_results = 5000;
+        const std::size_t max_results = 5000;
         Matrix Nmat(max_results,TDim+1);
         boost::numeric::ublas::vector<int> positions(max_results);
         PointVector work_results(max_results);
@@ -334,8 +324,8 @@ public:
         Node<3> work_point(0,0.0,0.0,0.0);
         for(ModelPart::ElementsContainerType::iterator elem_it = rMoving_ModelPart.ElementsBegin(); elem_it != rMoving_ModelPart.ElementsEnd(); ++elem_it)
         {
-            unsigned int nfound = node_locator.FindNodesInElement(*(elem_it.base()), positions, Nmat, max_results, work_results.begin(), work_distances.begin(), work_point);
-            for(unsigned int k=0; k<nfound; k++)
+            std::size_t nfound = node_locator.FindNodesInElement(*(elem_it.base()), positions, Nmat, max_results, work_results.begin(), work_distances.begin(), work_point);
+            for(std::size_t k=0; k<nfound; k++)
             {
                 auto it = work_results.begin() + positions[k];
 
@@ -431,7 +421,7 @@ private:
 
 
 
-    inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
+    inline void CalculateCenterAndSearchRadius(GeometryType&geom,
             double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N
                                               )
     {
@@ -459,7 +449,7 @@ private:
     }
     //***************************************
     //***************************************
-    inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
+    inline void CalculateCenterAndSearchRadius(GeometryType&geom,
             double& xc, double& yc, double& zc, double& R, array_1d<double,4>& N
 
                                               )
@@ -530,7 +520,7 @@ private:
     }
     //***************************************
     //***************************************
-    inline bool CalculatePosition(	Geometry<Node<3> >&geom,
+    inline bool CalculatePosition(	GeometryType&geom,
                                     const double xc, const double yc, const double zc,
                                     array_1d<double,3>& N
                                  )
@@ -572,7 +562,7 @@ private:
     //***************************************
     //***************************************
 
-    inline bool CalculatePosition(	Geometry<Node<3> >&geom,
+    inline bool CalculatePosition(	GeometryType&geom,
                                     const double xc, const double yc, const double zc,
                                     array_1d<double,4>& N
                                  )
@@ -620,214 +610,116 @@ private:
 
         return false;
     }
-//el_it		     	Element iterator
-//N			Shape functions
-//step_data_size
-//pnode			pointer to the node
 
+    //ElemI          	Element iterator
+    //N			Shape functions
+    //step_data_size
+    //pnode			pointer to the node
     //projecting total model part 2Dversion
     void Interpolate(
-        Element::Pointer el_it,
-        const array_1d<double,3>& N,
+        Element::Pointer ElemIt,
+        const Vector& N,
         int step_data_size,
-        Node<3>::Pointer pnode)
+        NodeType::Pointer pnode)
     {
-// 		  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE WHOLE MODEL 2D","")
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        GeometryType& geom = ElemIt->GetGeometry();
 
-        unsigned int buffer_size = pnode->GetBufferSize();
+        const std::size_t buffer_size = pnode->GetBufferSize();
 
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
+        const std::size_t vector_size = N.size();
+
+        for(std::size_t step = 0; step<buffer_size; step++) {
             //getting the data of the solution step
             double* step_data = (pnode)->SolutionStepData().Data(step);
 
             double* node0_data = geom[0].SolutionStepData().Data(step);
-            double* node1_data = geom[1].SolutionStepData().Data(step);
-            double* node2_data = geom[2].SolutionStepData().Data(step);
 
             //copying this data in the position of the vector we are interested in
-            for(int j= 0; j< step_data_size; j++)
-            {
-                step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+            for(int j= 0; j< step_data_size; j++) {
+                step_data[j] = N[0]*node0_data[j];
+            }
+            for(std::size_t k= 1; k< vector_size; k++) {
+                double* node1_data = geom[k].SolutionStepData().Data(step);
+                for(int j= 0; j< step_data_size; j++) {
+                    step_data[j] += N[k]*node1_data[j];
+                }
             }
         }
-// 			pnode->GetValue(IS_VISITED) = 1.0;
+//         pnode->GetValue(IS_VISITED) = 1.0;
 
     }
-    //projecting total model part 3Dversion
-    void Interpolate(
-        Element::Pointer el_it,
-        const array_1d<double,4>& N,
-        int step_data_size,
-        Node<3>::Pointer pnode)//dimension or number of nodes???
-    {
-// 		  		  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE WHOLE MODEL 3D","")
-
-        //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
-
-        unsigned int buffer_size = pnode->GetBufferSize();
-
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
-            //getting the data of the solution step
-            double* step_data = (pnode)->SolutionStepData().Data(step);
-
-            double* node0_data = geom[0].SolutionStepData().Data(step);
-            double* node1_data = geom[1].SolutionStepData().Data(step);
-            double* node2_data = geom[2].SolutionStepData().Data(step);
-            double* node3_data = geom[3].SolutionStepData().Data(step);
-
-            //copying this data in the position of the vector we are interested in
-            for(int j= 0; j< step_data_size; j++)
-            {
-                step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j] + N[3]*node3_data[j];
-            }
-        }
-// 			pnode->GetValue(IS_VISITED) = 1.0;
-
-    }
-
 
     //projecting an array1D 2Dversion
     void Interpolate(
-        Element::Pointer el_it,
-        const array_1d<double,3>& N,
-        Node<3>::Pointer pnode,
+        Element::Pointer ElemIt,
+        const Vector& N,
+        NodeType::Pointer pnode,
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable)
     {
-// 		  		  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE ARRAY 2D","")
-
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        GeometryType& geom = ElemIt->GetGeometry();
 
-        unsigned int buffer_size = pnode->GetBufferSize();
+        const std::size_t buffer_size = pnode->GetBufferSize();
 
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
+        const std::size_t vector_size = N.size();
+
+        for(std::size_t step = 0; step<buffer_size; step++) {
             //getting the data of the solution step
             array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
             //Reference or no reference???//CANCELLA
-            const array_1d<double,3>& node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
-            const array_1d<double,3>& node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
-            const array_1d<double,3>& node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
+            step_data = N[0] * geom[0].FastGetSolutionStepValue(rOriginVariable , step);
 
-            //copying this data in the position of the vector we are interested in
-            for(unsigned int j= 0; j< TDim; j++)
-            {
-                step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+            // Copying this data in the position of the vector we are interested in
+            for(std::size_t j= 1; j< vector_size; j++) {
+                const array_1d<double,3>& node_data = geom[j].FastGetSolutionStepValue(rOriginVariable , step);
+                step_data += N[j] * node_data;
             }
         }
-// 			pnode->GetValue(IS_VISITED) = 1.0;
-
+//         pnode->GetValue(IS_VISITED) = 1.0;
     }
 
-    //projecting an array1D 3Dversion
-    void Interpolate(
-        Element::Pointer el_it,
-        const array_1d<double,4>& N,
-        Node<3>::Pointer pnode,
-        Variable<array_1d<double,3> >& rOriginVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable)
-
-    {
-// 		  	KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE ARRAY 3D","")
-
-        //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
-
-        unsigned int buffer_size = pnode->GetBufferSize();
-
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
-            //getting the data of the solution step
-            array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
-            //Reference or no reference???//CANCELLA
-            const array_1d<double,3>& node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
-            const array_1d<double,3>& node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
-            const array_1d<double,3>& node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
-            const array_1d<double,3>& node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable , step);
-
-            //copying this data in the position of the vector we are interested in
-            for(unsigned int j= 0; j< TDim; j++)
-            {
-                step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j] + N[3]*node3_data[j];
-            }
-        }
-// 			pnode->GetValue(IS_VISITED) = 1.0;
-
-    }
     //projecting a scalar 2Dversion
     void Interpolate(
-        Element::Pointer el_it,
-        const array_1d<double,3>& N,
-        Node<3>::Pointer pnode,
-        Variable<double>& rOriginVariable,
-        Variable<double>& rDestinationVariable)
-    {
-// 		  	  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE SCALAR 2D","")
-
-        //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
-
-        unsigned int buffer_size = pnode->GetBufferSize();
-        //facendo un loop sugli step temporali step_data come salva i dati al passo anteriore? Cioś dove passiamo l'informazione ai nodi???
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
-            //getting the data of the solution step
-            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
-            //Reference or no reference???//CANCELLA
-            const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
-            const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
-            const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
-
-            //copying this data in the position of the vector we are interested in
-
-            step_data = N[0]*node0_data + N[1]*node1_data + N[2]*node2_data;
-
-        }
-// // 			pnode->GetValue(IS_VISITED) = 1.0;
-
-    }
-    //projecting a scalar 3Dversion
-    void Interpolate(
-        Element::Pointer el_it,
-        const array_1d<double,4>& N,
-        Node<3>::Pointer pnode,
+        Element::Pointer ElemIt,
+        const Vector& N,
+        NodeType::Pointer pnode,
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable)
     {
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        GeometryType& geom = ElemIt->GetGeometry();
 
-        unsigned int buffer_size = pnode->GetBufferSize();
+        const std::size_t buffer_size = pnode->GetBufferSize();
+
+        const std::size_t vector_size = N.size();
+
         //facendo un loop sugli step temporali step_data come salva i dati al passo anteriore? Cioś dove passiamo l'informazione ai nodi???
-        for(unsigned int step = 0; step<buffer_size; step++)
-        {
+        for(std::size_t step = 0; step<buffer_size; step++) {
             //getting the data of the solution step
             double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
             //Reference or no reference???//CANCELLA
-            const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
-            const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
-            const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
-            const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable , step);
 
             //copying this data in the position of the vector we are interested in
+            step_data = N[0] * geom[0].FastGetSolutionStepValue(rOriginVariable , step);
 
-            step_data = N[0]*node0_data + N[1]*node1_data + N[2]*node2_data + N[3]*node3_data;
-// 				KRATOS_WATCH(step_data)
+            // Copying this data in the position of the vector we are interested in
+            for(std::size_t j= 1; j< vector_size; j++) {
+                const double node_data = geom[j].FastGetSolutionStepValue(rOriginVariable , step);
+                step_data += N[j] * node_data;
+            }
+
         }
-// 			pnode->GetValue(IS_VISITED) = 1.0;
+//         pnode->GetValue(IS_VISITED) = 1.0;
 
     }
+
     inline void Clear(ModelPart::NodesContainerType::iterator node_it,  int step_data_size )
     {
-        unsigned int buffer_size = node_it->GetBufferSize();
+        std::size_t buffer_size = node_it->GetBufferSize();
 
-        for(unsigned int step = 0; step<buffer_size; step++)
+        for(std::size_t step = 0; step<buffer_size; step++)
         {
             //getting the data of the solution step
             double* step_data = (node_it)->SolutionStepData().Data(step);
@@ -849,7 +741,6 @@ private:
 
     }
 
-
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it,  Variable<double>& rVariable)
     {
         double& Aux_var = node_it->FastGetSolutionStepValue(rVariable, 0);
@@ -857,9 +748,6 @@ private:
         Aux_var = 0.0;
 
     }
-
-
-
 
     ///@}
     ///@name Private Operators
@@ -921,6 +809,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BINBASED_PROJECTION  defined 
-
-
+#endif // KRATOS_BINBASED_PROJECTION  defined

@@ -10,6 +10,7 @@
 //  Main authors:    Ilaria Iaconeta
 //
 
+
 #if !defined (KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED)
 #define       KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED
 
@@ -18,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
+#include "custom_constitutive/hencky_plastic_UP_3D_law.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 
@@ -48,8 +49,8 @@ public:
     typedef std::size_t             SizeType;
 
     typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
-    typedef YieldCriterion::Pointer    YieldCriterionPointer;
-    typedef HardeningLaw::Pointer        HardeningLawPointer;
+    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**

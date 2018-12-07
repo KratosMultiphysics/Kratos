@@ -34,11 +34,12 @@ namespace Kratos
         const double SearchRadius) : 
         mSearchRadius(SearchRadius),
         mrVirtualModelPart(rModelPart),
-        mrStructureModelPart(rStructureModelPart){
-
-        KRATOS_WARNING_IF("ExplicitMeshMovingUtilities",mrStructureModelPart.GetBufferSize() == 1) << 
-            "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
-        mrStructureModelPart.SetBufferSize(2);
+        mrStructureModelPart(rStructureModelPart)
+    {
+        if (mrStructureModelPart.GetBufferSize() < 2) {
+            (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
+            KRATOS_WARNING("ExplicitMeshMovingUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
+        }
     }
 
     void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart){
@@ -66,7 +67,7 @@ namespace Kratos
 
         // Copy the origin model part elements
         auto &r_elems = rOriginModelPart.Elements();
-        for(auto elem : r_elems){
+        for(auto &elem : r_elems){
             // Set the array of virtual nodes to create the element from the original ids.
             PointsArrayType nodes_array;
             auto &r_orig_geom = elem.GetGeometry();

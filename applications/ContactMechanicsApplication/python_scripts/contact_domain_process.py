@@ -15,61 +15,15 @@ def Factory(settings, Model):
 
 class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
     #
-    def __init__(self, Model, custom_settings ):
+    def __init__(self, Model, custom_settings):
 
-        KratosMultiphysics.Process.__init__(self)
-
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "echo_level"            : 1,
-            "model_part_name"       : "Solid Domain",
-            "meshing_control_type"  : "step",
-            "meshing_frequency"     : 1.0,
-            "meshing_before_output" : true,
-            "meshing_domains"       : []
-        }
-        """)
-
-        ##overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        self.echo_level        = self.settings["echo_level"].GetInt()
-        self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
-
-        self.meshing_control_is_time = False
-        meshing_control_type   = self.settings["meshing_control_type"].GetString()
-        if(meshing_control_type == "time"):
-            self.meshing_control_is_time = True
-        elif(meshing_control_type == "step"):
-            self.meshing_control_is_time = False
-
-        # mesh mesher initial values
-        self.remesh_domains_active = False
-        self.neighbours_search_performed = False
-
-        self.step_count   = 1
-        self.counter      = 1
-        self.next_meshing = 0.0
-        self.meshing_before_output = self.settings["meshing_before_output"].GetBool()
-
+        super(ContactDomainProcess, self).__init__(Model, custom_settings)
     #
     def ExecuteInitialize(self):
 
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
-        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
-
-        #construct meshing domains
-        self.meshing_domains = []
-        domains_list = self.settings["meshing_domains"]
-        self.number_of_domains = domains_list.size()
-        for i in range(0,self.number_of_domains):
-            item = domains_list[i]
-            domain_module = __import__(item["python_module"].GetString())
-            domain = domain_module.CreateMeshingDomain(self.main_model_part,item)
-            self.meshing_domains.append(domain)
+        self.main_model_part = self.model[self.settings["model_part_name"].GetString()]
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
 
         # check restart
@@ -86,74 +40,74 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
         # execute initialize base class
         if( self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):
-            import domain_utilities
-            domain_utils = domain_utilities.DomainUtilities()
-            domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
+            # self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False
+            self.InitializeDomains()
+            print(" initialize domains ")
 
+        # initialize contact domains
         for domain in self.meshing_domains:
+            domain.SetEchoLevel(self.echo_level)
             domain.Initialize()
 
-     ###
-
-    #
-    def ExecuteInitializeSolutionStep(self):
-        self.step_count += 1
-        meshing_step_performed = self.main_model_part.ProcessInfo[KratosDelaunay.MESHING_STEP_PERFORMED]
-        restart_performed = self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-        #if( not restart_performed ):
-        if(self.IsMeshingStep() or meshing_step_performed):
+        if self.restart:
             self.RemeshDomains()
 
-    #
-    def ExecuteBeforeOutputStep(self):
-        pass
+        print(self._class_prefix()+" Ready")
 
+    #
+
+    def ExecuteBeforeOutputStep(self):
+
+        if(self._domain_parts_updated() or self.IsMeshingStep()):
+            if self.meshing_before_output:
+                self.RemeshDomains()
     #
     def ExecuteAfterOutputStep(self):
-        pass
+
+        if(self._domain_parts_updated() or self.IsMeshingStep()):
+            if not self.meshing_before_output:
+                self.RemeshDomains()
 
     ###
+    def _domain_parts_updated(self):
+
+        process_info = self.main_model_part.ProcessInfo
+        if process_info.Has(KratosDelaunay.MESHING_STEP_TIME):
+            current_time = process_info[KratosMultiphysics.TIME]
+            delta_time = process_info[KratosMultiphysics.DELTA_TIME]
+            previous_time = current_time - delta_time
+
+            #arithmetic floating point tolerance
+            tolerance = delta_time * 0.001
+
+            meshing_step_time = process_info[KratosDelaunay.MESHING_STEP_TIME]
+
+            if meshing_step_time > previous_time-tolerance and meshing_step_time < previous_time+tolerance:
+                return True
+
+        return False
 
     #
-    def RemeshDomains(self):
-
-        if( self.echo_level > 0 ):
-            print("::[Meshing_Process]:: CONTACT SEARCH...( call:", self.counter,")")
-
+    def GetModelManager(self):
         meshing_options = KratosMultiphysics.Flags()
-        self.model_structure = KratosContact.ContactModelStructure(self.main_model_part, meshing_options, self.echo_level)
-
-        self.model_structure.ExecuteInitialize()
-
-        for domain in self.meshing_domains:
-            domain.ExecuteMeshing();
-
-        self.model_structure.ExecuteFinalize()
-
-        if(self.echo_level>1):
-            print("")
-            print(self.main_model_part)
-
-        self.counter += 1
-
-
-        # schedule next meshing
-        if(self.meshing_frequency > 0.0): # note: if == 0 always active
-            if(self.meshing_control_is_time):
-                time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-                while(self.next_meshing <= time):
-                    self.next_meshing += self.meshing_frequency
-            else:
-                while(self.next_meshing <= self.step_count):
-                    self.next_meshing += self.meshing_frequency
-
-
-
+        return KratosContact.ContactModelStructure(self.main_model_part, meshing_options, self.echo_level)
+    #
+    def SetMeshingStepTime(self):
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.main_model_part.ProcessInfo.SetValue(KratosContact.CONTACT_STEP_TIME, current_time)
     #
     def GetVariables(self):
 
-        nodal_variables = remesh_domains_process.RemeshDomainsProcess.GetVariables(self)
+        nodal_variables = super(ContactDomainProcess, self).GetVariables()
+
         nodal_variables = nodal_variables + ['OFFSET']
         nodal_variables = nodal_variables + ['CONTACT_NORMAL', 'CONTACT_FORCE']
         nodal_variables = nodal_variables + ['CONTACT_STRESS', 'EFFECTIVE_CONTACT_STRESS', 'EFFECTIVE_CONTACT_FORCE']
+
         return nodal_variables
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[--Meshing Contact--]::"
+        return header

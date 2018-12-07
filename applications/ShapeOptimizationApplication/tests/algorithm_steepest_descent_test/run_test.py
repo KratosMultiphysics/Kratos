@@ -14,13 +14,11 @@ import csv, os
 with open("parameters.json",'r') as parameter_file:
     parameters = Parameters(parameter_file.read())
 
-# Defining the model_part
-optimization_model_part = ModelPart(parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
-optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
+model = Model()
 
 # Create optimizer and perform optimization
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part)
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model)
 optimizer.Optimize()
 
 # =======================================================================================================
@@ -28,7 +26,7 @@ optimizer.Optimize()
 # =======================================================================================================
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
 response_log_filename = parameters["optimization_settings"]["output"]["response_log_filename"].GetString() + ".csv"
-optimization_model_part_name = parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString()
+optimization_model_part_name = parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString()
 
 # Testing
 original_directory = os.getcwd()

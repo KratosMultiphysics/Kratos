@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-//******************************CONSTRUCTOR*******************************************
+/******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
 ElasticIsotropic3D::ElasticIsotropic3D()
@@ -29,7 +29,7 @@ ElasticIsotropic3D::ElasticIsotropic3D()
 {
 }
 
-//******************************COPY CONSTRUCTOR**************************************
+/******************************COPY CONSTRUCTOR*************************************/
 /***********************************************************************************/
 
 ElasticIsotropic3D::ElasticIsotropic3D(const ElasticIsotropic3D& rOther)
@@ -37,7 +37,7 @@ ElasticIsotropic3D::ElasticIsotropic3D(const ElasticIsotropic3D& rOther)
 {
 }
 
-//********************************CLONE***********************************************
+/********************************CLONE**********************************************/
 /***********************************************************************************/
 
 ConstitutiveLaw::Pointer ElasticIsotropic3D::Clone() const
@@ -45,7 +45,7 @@ ConstitutiveLaw::Pointer ElasticIsotropic3D::Clone() const
     return Kratos::make_shared<ElasticIsotropic3D>(*this);
 }
 
-//*******************************DESTRUCTOR*******************************************
+/*******************************DESTRUCTOR******************************************/
 /***********************************************************************************/
 
 ElasticIsotropic3D::~ElasticIsotropic3D()
@@ -61,7 +61,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     // b.- Get Values to compute the constitutive law:
     Flags & r_options=rValues.GetOptions();
 
-    Vector& r_strain_vector                  = rValues.GetStrainVector();
+    Vector& r_strain_vector = rValues.GetStrainVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if( r_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
@@ -114,7 +114,25 @@ void ElasticIsotropic3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Param
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ElasticIsotropic3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void ElasticIsotropic3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -122,9 +140,28 @@ void ElasticIsotropic3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ElasticIsotropic3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ElasticIsotropic3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    // TODO: Add if necessary
+    // Small deformation so we can call the Cauchy method
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -140,7 +177,8 @@ void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Paramet
 
 void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    // TODO: Add if necessary
+    // Small deformation so we can call the Cauchy method
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -148,8 +186,8 @@ void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Para
 
 double& ElasticIsotropic3D::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
-    Vector& r_strain_vector                  = rParameterValues.GetStrainVector();
-    Vector& r_stress_vector                  = rParameterValues.GetStressVector();
+    Vector& r_strain_vector = rParameterValues.GetStrainVector();
+    Vector& r_stress_vector = rParameterValues.GetStressVector();
 
     if (rThisVariable == STRAIN_ENERGY) {
         this->CalculateCauchyGreenStrain(rParameterValues, r_strain_vector);
@@ -165,13 +203,36 @@ double& ElasticIsotropic3D::CalculateValue(ConstitutiveLaw::Parameters& rParamet
 /***********************************************************************************/
 
 Vector& ElasticIsotropic3D::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues, 
-    const Variable<Vector>& rThisVariable, 
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
     Vector& rValue
     )
 {
-    if (rThisVariable == STRAIN) {
+    if (rThisVariable == STRAIN ||
+        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+        rThisVariable == ALMANSI_STRAIN_VECTOR) {
         this->CalculateCauchyGreenStrain( rParameterValues, rValue);
+    } else if (rThisVariable == STRESSES ||
+        rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
+        rThisVariable == PK2_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // We compute the stress
+        ElasticIsotropic3D::CalculateMaterialResponseCauchy(rParameterValues);
+        rValue = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     }
 
     return( rValue );
@@ -181,12 +242,14 @@ Vector& ElasticIsotropic3D::CalculateValue(
 /***********************************************************************************/
 
 Matrix& ElasticIsotropic3D::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues, 
-    const Variable<Matrix>& rThisVariable, 
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Matrix>& rThisVariable,
     Matrix& rValue
     )
 {
-    if (rThisVariable == CONSTITUTIVE_MATRIX) {
+    if (rThisVariable == CONSTITUTIVE_MATRIX ||
+        rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
+        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
         this->CalculateElasticMatrix(rValue, rParameterValues);
     }
 
@@ -252,7 +315,7 @@ void ElasticIsotropic3D::CheckClearElasticMatrix(Matrix& rConstitutiveMatrix)
 /***********************************************************************************/
 
 void ElasticIsotropic3D::CalculateElasticMatrix(
-    Matrix& rConstitutiveMatrix, 
+    Matrix& rConstitutiveMatrix,
     ConstitutiveLaw::Parameters& rValues
     )
 {

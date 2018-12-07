@@ -1,5 +1,18 @@
-#if !defined(KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
+//
+//  Main authors:    Bodhinanda Chandra
+//
+
+
+#if !defined(KRATOS_MPM_SURFACE_LOAD_CONDITION_3D_H_INCLUDED )
+#define  KRATOS_MPM_SURFACE_LOAD_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -41,6 +54,12 @@ public:
 
     // Counted pointer of MPMSurfaceLoadCondition3D
     KRATOS_CLASS_POINTER_DEFINITION( MPMSurfaceLoadCondition3D );
+
+#if KRATOS_USE_AMATRIX
+    typedef MatrixRow<const Matrix> RowMatrix;
+#else
+    typedef Vector RowMatrix;
+#endif
 
     ///@}
     ///@name Life Cycle
@@ -143,7 +162,7 @@ protected:
         const array_1d<double, 3>& ge,
         const array_1d<double, 3>& gn,
         const Matrix& DN_De,
-        const Vector& N,
+        const RowMatrix& N,
         const double Pressure,
         const double Weight );
 
@@ -154,7 +173,7 @@ protected:
 
     void CalculateAndAddPressureForce(
         VectorType& rResidualVector,
-        const Vector& N,
+        const RowMatrix& N,
         const array_1d<double, 3 >& Normal,
         const double Pressure,
         const double Weight,
@@ -233,4 +252,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined
+#endif // KRATOS_MPM_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined

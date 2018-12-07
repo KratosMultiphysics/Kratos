@@ -22,16 +22,12 @@
 // Project includes
 #include "includes/define.h"
 
-namespace Kratos
-{
-
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 void  AddCustomIOToPython(pybind11::module& m);
 
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED  defined

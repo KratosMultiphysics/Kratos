@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
+//
+//  Main authors:    Bodhinanda Chandra
+//
+
 
 // System includes
 #if !defined(KRATOS_MPM_POINT_LOAD_CONDITION_H_INCLUDED )

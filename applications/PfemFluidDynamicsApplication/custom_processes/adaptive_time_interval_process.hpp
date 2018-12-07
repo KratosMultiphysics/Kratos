@@ -164,9 +164,9 @@ namespace Kratos
 
 	  const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	  if(dimension==2){
-	    CheckNodalConditionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
+	    CheckNodalCriterionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
 	    if(timeIntervalReduced==false){
-	      CheckElementalConditionForTimeStepReduction(increaseTimeInterval);
+	      CheckElementalCriterionForTimeStepReduction(increaseTimeInterval);
 	    }
 	}
 	}
@@ -213,7 +213,7 @@ namespace Kratos
     };
 
 
-    void CheckNodalConditionForTimeStepReduction(double updatedTimeInterval,
+    void CheckNodalCriterionForTimeStepReduction(double updatedTimeInterval,
 						 bool &increaseTimeInterval,
 						 bool &timeIntervalReduced)
     {
@@ -271,7 +271,7 @@ namespace Kratos
     }
 
 
-    void CheckElementalConditionForTimeStepReduction(bool &increaseTimeInterval)
+    void CheckElementalCriterionForTimeStepReduction(bool &increaseTimeInterval)
     {
 
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();

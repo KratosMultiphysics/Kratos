@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "3D_Hook",
-        "model_part_name" : "3D_Hook",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -13,9 +10,13 @@
         "solver_type"                        : "static",
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
+        "model_part_name" : "3D_Hook",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.0
+        },
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : "3D_Hook"
+            "input_type"     : "use_input_model_part"
         },
             "material_import_settings" :{
             "materials_filename": "materials_3D.json"
@@ -29,13 +30,13 @@
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type"         : "AMGCL",
-            "max_iteration"       : 500,  
-            "tolerance"           : 1e-7,	
-            "provide_coordinates" : false,	
-            "smoother_type"       : "ilu0",	
-            "krylov_type"         : "bicgstab",	
-            "coarsening_type"     : "aggregation",	
-            "scaling"             : false,	
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-7,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "bicgstab",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
             "verbosity"           : 1
         },
         "problem_domain_sub_model_part_list" : ["Parts_solid"],

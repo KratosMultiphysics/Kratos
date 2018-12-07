@@ -22,7 +22,7 @@ except ImportError as e:
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-## SMALL TESTS 
+## SMALL TESTS
 from test_refine import TestRedistance                      as TTestRedistance
 from test_remesh_sphere import TestRemeshMMG                as TTestRemeshMMG
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
@@ -31,7 +31,7 @@ from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBea
 
 ## NIGHTLY TESTS
 
-## VALIDATION TESTS 
+## VALIDATION TESTS
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -56,8 +56,7 @@ def AssembleTestSuites():
     else:
         print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        if (missing_external_fluid_dependencies is False):
-            smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
+        smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
         if (missing_external_solid_dependencies is False):
             smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
             smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
@@ -73,8 +72,8 @@ def AssembleTestSuites():
             #nightSuite.addTest()
     #else:
         #print("MMG process is not compiled and the corresponding tests will not be executed")
-    
-    # For very long tests that should not be in nighly and you can use to validate 
+
+    # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     #if( hasattr(MeshingApplication,  "MmgProcess2D") ):
         #if (missing_external_fluid_dependencies is False):
@@ -92,14 +91,13 @@ def AssembleTestSuites():
         )
     else:
         print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
-        
+
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        if (missing_external_fluid_dependencies is False):
-            allSuite.addTests(
-                KratosUnittest.TestLoader().loadTestsFromTestCases([
-                    TTestRemeshMMG,
-                ])
-            )
+        allSuite.addTests(
+            KratosUnittest.TestLoader().loadTestsFromTestCases([
+                TTestRemeshMMG,
+            ])
+        )
         if (missing_external_solid_dependencies is False):
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([

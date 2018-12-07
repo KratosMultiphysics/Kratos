@@ -6,7 +6,6 @@ import TestFactory as TF
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-
 class newtonian_sloshing_2D(TF.TestFactory):
      file_name = "fluid_tests/newtonian/sloshing_2D"
      file_parameters = None

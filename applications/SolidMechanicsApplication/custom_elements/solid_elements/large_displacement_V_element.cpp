@@ -144,7 +144,7 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int   dofs_size        = GetDofsSize();
+    const SizeType dofs_size        = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
@@ -191,14 +191,14 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
 //************************************************************************************
 //************************************************************************************
 
-unsigned int LargeDisplacementVElement::GetDofsSize()
+LargeDisplacementVElement::SizeType LargeDisplacementVElement::GetDofsSize()
 {
   KRATOS_TRY
 
   const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
   const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-  unsigned int size = number_of_nodes * dimension; //usual size for velocity based elements
+  SizeType size = number_of_nodes * dimension; //usual size for velocity based elements
 
   return size;
 
@@ -222,23 +222,43 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 
     if(rVariables.detF<0){
 
-	std::cout<<" Element: "<<this->Id()<<std::endl;
+      KRATOS_WARNING(" [Element Ignored]") << "LargeDispVElement["<<this->Id()<<"] (|F|=" << rVariables.detF <<")  (Iter:"<<rVariables.GetProcessInfo()[NL_ITERATION_NUMBER]<<")"<<std::endl;
+      rVariables.detJ = 0;
 
-	SizeType number_of_nodes  = GetGeometry().PointsNumber();
+     SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-	for ( SizeType i = 0; i < number_of_nodes; i++ )
-	  {
-	    array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-	    array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-	    array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-	    array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-	    std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<" (Cur: "<<CurrentPosition<<") "<<std::endl;
-	    std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
-	  }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        array_1d<double, 3> & CurrentPosition      = GetGeometry()[i].Coordinates();
+        array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        array_1d<double, 3> PreviousPosition       = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+        KRATOS_WARNING("")<<" Node["<<GetGeometry()[i].Id()<<"]: (Position: (pre)"<<PreviousPosition<<",(cur)"<<CurrentPosition<<")"<<std::endl;
+        //KRATOS_WARNING("")<<" (Displacement: (pre)"<<CurrentDisplacement<<",(cur)"<<PreviousDisplacement<<")"<<std::endl;
+      }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
+          array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+          array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+          KRATOS_WARNING("")<<" (Contact: (pre)"<<PreContactForce<<",(cur)"<<ContactForce<<")["<<GetGeometry()[i].Id()<<"]"<<std::endl;
+        }
 
-        KRATOS_ERROR << " LARGE DISPLACEMENT VP ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
+      }
+
+      this->Set(SELECTED,true);
+
+      KRATOS_ERROR<<" [Element Failed] ["<<this->Id()<<"]"<<std::endl;
+
     }
+    else{
 
+      if(this->Is(SELECTED) && this->Is(ACTIVE)){
+        this->Set(SELECTED,false);
+        KRATOS_WARNING("")<<" Undo SELECTED LargeDispVElement "<<this->Id()<<std::endl;
+      }
+
+    }
 
 
     //Compute strain rate measures if they are required by the constitutive law
@@ -246,7 +266,7 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
     mConstitutiveLawVector[rPointNumber]->GetLawFeatures(LawFeatures);
 
     bool strain_rate_measure = false;
-    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+    for(SizeType i=0; i<LawFeatures.mStrainMeasures.size(); i++)
     {
       if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient)
 	strain_rate_measure = true;

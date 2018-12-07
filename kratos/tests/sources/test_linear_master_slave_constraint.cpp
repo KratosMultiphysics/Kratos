@@ -19,6 +19,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/linear_master_slave_constraint.h"
 
@@ -27,7 +28,8 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintTests, KratosCoreFastSuite)
 {
-        ModelPart model_part("main");
+        Model current_model;
+        ModelPart& model_part = current_model.CreateModelPart("test_model_part",2);
         model_part.AddNodalSolutionStepVariable(PRESSURE);
         auto n1 = model_part.CreateNewNode(1, 0.00,0.00,0.00);
         auto n2 = model_part.CreateNewNode(2, 1.00,0.00,0.00);

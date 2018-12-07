@@ -65,7 +65,13 @@ public:
     
     /// The size type definition
     typedef std::size_t             SizeType;
-
+    
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 3;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 6;
+    
     /// Counted pointer of ElasticIsotropic3D
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3D );
 
@@ -112,7 +118,7 @@ public:
     */
     SizeType WorkingSpaceDimension() override
     {
-        return 3;
+        return Dimension;
     };
 
     /**
@@ -120,9 +126,27 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 6;
+        return VoigtSize;
     };
 
+    /**
+     * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
+     * @return the expected strain measure
+     */
+    StrainMeasure GetStrainMeasure() override
+    {
+        return StrainMeasure_Infinitesimal;
+    }
+
+    /**
+     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
+     * @return the expected stress measure
+     */
+    StressMeasure GetStressMeasure() override
+    {
+        return StressMeasure_Cauchy;
+    }
+    
     /**
      * @brief Computes the material response:
      * @details PK1 stresses and algorithmic ConstitutiveMatrix
@@ -154,6 +178,30 @@ public:
      * @see   Parameters
      */
     void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2 (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
       * @brief Updates the material response:

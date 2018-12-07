@@ -198,17 +198,6 @@ class chebyshev {
 };
 
 } // namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct bytes_impl< relaxation::chebyshev<Backend> > {
-    static size_t get(const relaxation::chebyshev<Backend> &R) {
-        return R.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

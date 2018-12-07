@@ -11,12 +11,11 @@ def _GetModelPart(model, solver_settings):
     #TODO can be removed once model is fully available
     model_part_name = solver_settings["model_part_name"].GetString()
     if not model.HasModelPart(model_part_name):
-        model_part = ModelPart(model_part_name)
+        model_part = model.CreateModelPart(model_part_name, 2)
         domain_size = solver_settings["domain_size"].GetInt()
         if domain_size < 0:
             raise Exception('Please specify a "domain_size" >= 0!')
         model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
-        model.AddModelPart(model_part)
     else:
         model_part = model.GetModelPart(model_part_name)
 
@@ -191,15 +190,19 @@ class MassResponseFunction(ResponseFunctionBase):
 
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
+
         self.response_settings = response_settings
         self.model = model
         self.model_part_needs_to_be_imported = False
 
+        model_part_name = response_settings["model_part_name"].GetString()
         input_type = response_settings["model_import_settings"]["input_type"].GetString()
-        model_part_name = response_settings["model_import_settings"]["input_filename"].GetString()
         if input_type == "mdpa":
-            self.model_part = ModelPart(model_part_name)
-            self.model.AddModelPart(self.model_part)
+            self.model_part = self.model.CreateModelPart(model_part_name, 2)
+            domain_size = response_settings["domain_size"].GetInt()
+            if domain_size not in [2, 3]:
+                raise Exception("MassResponseFunction: Invalid 'domain_size': {}".format(domain_size))
+            self.model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
             self.model_part_needs_to_be_imported = True
         elif input_type == "use_input_model_part":
             self.model_part = self.model.GetModelPart(model_part_name)
@@ -215,8 +218,7 @@ class MassResponseFunction(ResponseFunctionBase):
 
         if self.model_part_needs_to_be_imported:
             # import model part
-            model_part_io = ModelPartIO(self.model_part.Name)
-            self.model_part.ProcessInfo.SetValue(DOMAIN_SIZE, 3)
+            model_part_io = ModelPartIO(self.response_settings["model_import_settings"]["input_filename"].GetString())
             model_part_io.ReadModelPart(self.model_part)
 
         # Add constitutive laws and material properties from json file to model parts.
@@ -310,7 +312,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
     def CalculateValue(self):
         startTime = timer.time()
-        value = self._GetResponseFunctionUtility().CalculateValue(self.adjoint_model_part)
+        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
@@ -361,15 +363,4 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
-# ==============================================================================
-class AdjointLinearStrainEnergyResponse(AdjointResponseFunction):
-    def __init__(self, identifier, project_parameters, model):
-        super(AdjointLinearStrainEnergyResponse, self).__init__(identifier, project_parameters, model)
 
-    def CalculateValue(self):
-        startTime = timer.time()
-        #The linear strain energy response needs the primal model part to calculate the response value!
-        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
-
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value

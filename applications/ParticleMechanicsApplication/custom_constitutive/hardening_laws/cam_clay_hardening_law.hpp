@@ -10,17 +10,16 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_BORJA_CAM_CLAY_HARDENING_LAW_H_INCLUDED )
 #define  KRATOS_BORJA_CAM_CLAY_HARDENING_LAW_H_INCLUDED
-
-
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -49,8 +48,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class CamClayHardeningLaw 
-        : public HardeningLaw 
+class CamClayHardeningLaw
+        : public MPMHardeningLaw
 {
 public:
     ///@name Type Definitions
@@ -85,8 +84,15 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure) override;
-	
+    /*
+    * @brief This function return the updated Preconsolidation Pressure P_c with the following inputs:
+    * @param[in/out] rHardening Hardening Parameter
+    * @param[in] rAlpha Plastic Volumetric Strain
+    * @param[in] rOldPreconsolidationPressure Old value of Preconsolidation Pressure P_c at the previous time step t_n
+    * @return Hardening parameter
+    */
+    double& CalculateHardening(double &rHardening, const double &rAlpha, const double &rOldPreconsolidationPressure) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -127,7 +133,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-     
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -164,7 +170,7 @@ private:
     ///@name Member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Private Operators
     ///@{

@@ -18,6 +18,7 @@
 #include "testing/testing.h"
 #include "spaces/ublas_space.h"
 #include "includes/properties.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 
@@ -52,13 +53,14 @@ namespace Kratos
     
         KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationTriangle, KratosContactStructuralMechanicsFastSuite)
         {
-            ModelPart ModelPart("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             
             // First we create the nodes 
-            NodeType::Pointer p_node_1 = ModelPart.CreateNewNode(0,-0.2,0.1,0.0);
-            NodeType::Pointer p_node_2 = ModelPart.CreateNewNode(1,1.0,0.1,0.0);
-            NodeType::Pointer p_node_3 = ModelPart.CreateNewNode(2,0.2,1.2,0.0);
-            NodeType::Pointer p_node_4 = ModelPart.CreateNewNode(3,0.6,0.4,0.0);
+            NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(0,-0.2,0.1,0.0);
+            NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(1,1.0,0.1,0.0);
+            NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(2,0.2,1.2,0.0);
+            NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(3,0.6,0.4,0.0);
             
             // Now we create the "conditions"
             std::vector<NodeType::Pointer> condition_nodes_0 (3);
@@ -167,13 +169,14 @@ namespace Kratos
     
         KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateral, KratosContactStructuralMechanicsFastSuite)
         {
-            ModelPart ModelPart("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             
             // First we create the nodes 
-            NodeType::Pointer p_node_1 = ModelPart.CreateNewNode(0,   0.0,  0.0, 0.0);
-            NodeType::Pointer p_node_2 = ModelPart.CreateNewNode(1,   1.0,- 0.1, 0.0);
-            NodeType::Pointer p_node_3 = ModelPart.CreateNewNode(2,   1.2,  1.1, 0.0);
-            NodeType::Pointer p_node_4 = ModelPart.CreateNewNode(3, - 0.1,  1.3, 0.0);
+            NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(0,   0.0,  0.0, 0.0);
+            NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(1,   1.0,- 0.1, 0.0);
+            NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(2,   1.2,  1.1, 0.0);
+            NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(3, - 0.1,  1.3, 0.0);
             
             // Now we create the "conditions"
             std::vector<NodeType::Pointer> condition_nodes_0 (4);
@@ -274,14 +277,15 @@ namespace Kratos
     
         KRATOS_TEST_CASE_IN_SUITE(MassMatrixIntegrationQuadrilateralDeformed, KratosContactStructuralMechanicsFastSuite)
         {
-            ModelPart ModelPart("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             
             // First we create the nodes 
-            NodeType::Pointer p_node_0 = ModelPart.CreateNewNode(0,   0.5,  0.4, 0.0);
-            NodeType::Pointer p_node_1 = ModelPart.CreateNewNode(1,   0.0,  0.0, 0.0);
-            NodeType::Pointer p_node_2 = ModelPart.CreateNewNode(2,   1.0,- 0.1, 0.0);
-            NodeType::Pointer p_node_3 = ModelPart.CreateNewNode(3,   1.2,  1.1, 0.0);
-            NodeType::Pointer p_node_4 = ModelPart.CreateNewNode(4, - 0.1,  1.3, 0.0);
+            NodeType::Pointer p_node_0 = r_model_part.CreateNewNode(0,   0.5,  0.4, 0.0);
+            NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(1,   0.0,  0.0, 0.0);
+            NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(2,   1.0,- 0.1, 0.0);
+            NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(3,   1.2,  1.1, 0.0);
+            NodeType::Pointer p_node_4 = r_model_part.CreateNewNode(4, - 0.1,  1.3, 0.0);
             
             // Now we create the "conditions"
             std::vector<NodeType::Pointer> condition_nodes_0 (4);
@@ -495,12 +499,13 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(TestCheckRotation, KratosContactStructuralMechanicsFastSuite)
         {
-            ModelPart ModelPart("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
             
             // First we create the nodes 
-            NodeType::Pointer p_node_1 = ModelPart.CreateNewNode(0,   0.0,  0.0, 0.1);
-            NodeType::Pointer p_node_2 = ModelPart.CreateNewNode(1,   1.0,- 0.1, 0.0);
-            NodeType::Pointer p_node_3 = ModelPart.CreateNewNode(2,   1.2,  1.1, 0.2);
+            NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(0,   0.0,  0.0, 0.1);
+            NodeType::Pointer p_node_2 = r_model_part.CreateNewNode(1,   1.0,- 0.1, 0.0);
+            NodeType::Pointer p_node_3 = r_model_part.CreateNewNode(2,   1.2,  1.1, 0.2);
             
             // Now we create the "conditions"
             std::vector<NodeType::Pointer> condition_nodes_0 (3);

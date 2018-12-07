@@ -24,7 +24,6 @@
 #include <algorithm>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -590,6 +589,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
 
 

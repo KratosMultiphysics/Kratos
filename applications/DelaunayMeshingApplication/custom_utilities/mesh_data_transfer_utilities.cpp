@@ -290,7 +290,7 @@ namespace Kratos
 	    if(rTransferVariables.Options.Is(MeshDataTransferUtilities::INITIALIZE_MASTER_CONDITION))
 	      {
 
-		std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
+		//std::cout<<"  TRANSFER INITIALIZE MASTER CONDITION "<<std::endl;
 
 		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 		const unsigned int dimension  = rCurrentProcessInfo[SPACE_DIMENSION];
@@ -305,7 +305,7 @@ namespace Kratos
 		    this->TransferInitialBoundaryData(*(ic.base()), rTransferVariables, Variables);
 		  }
 
-		std::cout<<"  TRANSFER DONE "<<std::endl;
+		//std::cout<<"  TRANSFER DONE "<<std::endl;
 	      }
 
 
@@ -480,10 +480,10 @@ namespace Kratos
 
 		    for(unsigned int j=0; j<integration_points_number; ++j)
 		      {
-			// if( ElementVectorVariableArray[j].size() != 0 )
-			//   NodesVectorVariableArray[j] = ZeroVector(ElementVectorVariableArray[j].size());
-			// else
-			  NodesVectorVariableArray[j] = ZeroVector(); //¿value?
+                        if( ElementVectorVariableArray[j].size() != 0 )
+                          NodesVectorVariableArray[j] = ZeroVector(ElementVectorVariableArray[j].size());
+                        else
+			  NodesVectorVariableArray[j] = ZeroVector(0); //¿value?
 		      }
 
 		    for(unsigned int j=0; j<integration_points_number; ++j)
@@ -518,10 +518,10 @@ namespace Kratos
 
 		    for(unsigned int j=0; j<integration_points_number; ++j)
 		      {
-			// if( ElementMatrixVariableArray[j].size1() != 0 && ElementMatrixVariableArray[j].size2() != 0 )
-			//   NodesMatrixVariableArray[j] = ZeroMatrix(ElementMatrixVariableArray[j].size1(),ElementMatrixVariableArray[j].size2());
-			// else
-			  NodesMatrixVariableArray[j] = ZeroMatrix(); //¿value?
+                        if( ElementMatrixVariableArray[j].size1() != 0 && ElementMatrixVariableArray[j].size2() != 0 )
+                          NodesMatrixVariableArray[j] = ZeroMatrix(ElementMatrixVariableArray[j].size1(),ElementMatrixVariableArray[j].size2());
+                        else
+			  NodesMatrixVariableArray[j] = ZeroMatrix(0,0); //¿value?
 		      }
 
 
@@ -712,10 +712,10 @@ namespace Kratos
 
 		      for(unsigned int j=0; j<integration_points_number; ++j)
 			{
-			  // if(ElementVectorVariableArray[j].size() != 0)
-			  //   NodesVectorVariableArray[j] = ZeroVector(ElementVectorVariableArray[j].size());
-			  // else
-			    NodesVectorVariableArray[j] = ZeroVector(); //¿value?
+                          if(ElementVectorVariableArray[j].size() != 0)
+                            NodesVectorVariableArray[j] = ZeroVector(ElementVectorVariableArray[j].size());
+			  else
+			    NodesVectorVariableArray[j] = ZeroVector(0); //¿value?
 			}
 
 		      for(unsigned int j=0; j<integration_points_number; ++j)
@@ -749,10 +749,10 @@ namespace Kratos
 
 		      for(unsigned int j=0; j<integration_points_number; ++j)
 			{
-			  // if(ElementMatrixVariableArray[j].size1() !=0 && ElementMatrixVariableArray[j].size2() != 0)
-			  //   NodesMatrixVariableArray[j]= ZeroMatrix(ElementMatrixVariableArray[j].size1(),ElementMatrixVariableArray[j].size2());
-			  // else
-			    NodesMatrixVariableArray[j] = ZeroMatrix(); //¿value?
+                          if(ElementMatrixVariableArray[j].size1() !=0 && ElementMatrixVariableArray[j].size2() != 0)
+                            NodesMatrixVariableArray[j]= ZeroMatrix(ElementMatrixVariableArray[j].size1(),ElementMatrixVariableArray[j].size2());
+                          else
+			    NodesMatrixVariableArray[j] = ZeroMatrix(0,0); //¿value?
 			}
 
 		      for(unsigned int j=0; j<integration_points_number; ++j)
@@ -853,21 +853,21 @@ namespace Kratos
 		  //Vector
 		  for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); ++i)
 		    {
-		      // (rModelPart.Elements().begin())->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
-		      // if( ElementVectorVariableArray[i].size() != 0)
-		      // 	NodesVectorVariableArray[i] = ZeroVector(ElementVectorVariableArray[i].size());
-		      // else
-			NodesVectorVariableArray[i] = ZeroVector(); //¿value?
+                      (rModelPart.Elements().begin())->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+                      if( ElementVectorVariableArray[i].size() != 0)
+		       	NodesVectorVariableArray[i] = ZeroVector(ElementVectorVariableArray[i].size());
+                      else
+			NodesVectorVariableArray[i] = ZeroVector(0); //¿value?
 		    }
 
 		  //Matrix
 		  for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); ++i)
 		    {
-		      // (rModelPart.Elements().begin())->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
-		      // if( ElementMatrixVariableArray[i].size1() != 0  && ElementMatrixVariableArray[i].size2() != 0 )
-		      // 	NodesMatrixVariableArray[i] = ZeroMatrix(ElementMatrixVariableArray[i].size1(),ElementMatrixVariableArray[i].size2());
-		      // else
-			NodesMatrixVariableArray[i] = ZeroMatrix(); //¿value?
+                      (rModelPart.Elements().begin())->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+                      if( ElementMatrixVariableArray[i].size1() != 0  && ElementMatrixVariableArray[i].size2() != 0 )
+		       	NodesMatrixVariableArray[i] = ZeroMatrix(ElementMatrixVariableArray[i].size1(),ElementMatrixVariableArray[i].size2());
+                      else
+			NodesMatrixVariableArray[i] = ZeroMatrix(0,0); //¿value?
 		    }
 
 
@@ -1301,8 +1301,11 @@ namespace Kratos
 		  pe = temporal_elements.find( result_point->Id() );
 		}
 
-		Element::Pointer PreviousElement   = Element::Pointer( *pe.base() );
-		PointsArrayType& vertices          = PreviousElement->GetGeometry().Points();
+		Element::Pointer PreviousElement   = ( *pe.base() );
+		PointsArrayType& vertices          = (*pe.base())->GetGeometry().Points();
+
+                if( vertices.size() < 3 )
+                  std::cout<<" Vertices have not the size "<<std::endl;
 
 		if( fabs(ResultDistance) > 1e-30 ){
 
@@ -1313,7 +1316,7 @@ namespace Kratos
 		  // }
 		  // std::cout<<"] "<<std::endl;
 
-		  // std::cout<<" Pre Id: "<<PreviousElement->Id()<<" Connectivities : ["<<vertices[0].Id();
+		  // std::cout<<" Pre Id: "<<(*pe.base())->Id()<<" Connectivities : ["<<vertices[0].Id();
 		  // for(unsigned int pn=1; pn<vertices.size(); ++pn){
 		  //   std::cout<<", "<<vertices[pn].Id();
 		  // }
@@ -1326,7 +1329,7 @@ namespace Kratos
 		  // // }
 		  // // std::cout<<"] "<<std::endl;
 
-		  // // std::cout<<" Pre Id: "<<PreviousElement->Id()<<" Connectivities : ["<<vertices[0].Coordinates();
+		  // // std::cout<<" Pre Id: "<<(*pe.base())->Id()<<" Connectivities : ["<<vertices[0].Coordinates();
 		  // // for(unsigned int pn=1; pn<vertices.size(); ++pn){
 		  // //   std::cout<<", "<<vertices[pn].Coordinates();
 		  // // }
@@ -1348,11 +1351,11 @@ namespace Kratos
                   KRATOS_ERROR << "list of new vertices out of bounds " << (*i_center)->Id()-1 << " > " <<list_of_new_vertices.size()<<std::endl;
 
 		// inside of the loop create the element, set the variables, and push_back the new element to the model part
-		Element::Pointer new_element = PreviousElement->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);
+		Element::Pointer new_element = (*pe.base())->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);
 
 		//set transfer variables
 		new_element->SetValue(MODEL_PART_NAME,vertices[0].GetValue(MODEL_PART_NAME)); //MODEL_PART_NAME set as a variable
-		new_element->AssignFlags(*PreviousElement);
+		new_element->AssignFlags(*(*pe.base()));
 
 		//check
 		//new_element->PrintInfo(std::cout);

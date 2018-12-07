@@ -13,6 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
@@ -24,8 +25,10 @@ namespace Kratos
 
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Horizontal, KratosCoreFastSuite)
 		{
+			Model current_model;
+
 			// Generate a model part with the previous
-			ModelPart base_model_part("Tetrahedra");
+			ModelPart& base_model_part = current_model.CreateModelPart("Tetrahedra");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -295,8 +298,10 @@ namespace Kratos
 		
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Oblique, KratosCoreFastSuite)
 		{
+			Model current_model;
+
 			// Generate a model part with the previous
-			ModelPart base_model_part("Tetrahedra");
+			ModelPart& base_model_part = current_model.CreateModelPart("Tetrahedra");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -634,8 +639,10 @@ namespace Kratos
 		
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4NoDivision, KratosCoreFastSuite)
 		{
+			Model current_model;
+			
 			// Generate a model part with the previous
-			ModelPart base_model_part("Tetrahedra");
+			ModelPart& base_model_part = current_model.CreateModelPart("Tetrahedra");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data

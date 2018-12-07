@@ -65,6 +65,8 @@ public:
 
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
+    typedef Quaternion<double> QuaternionType;
+
     using SizeType = std::size_t;
 
     ///@}
@@ -311,6 +313,79 @@ protected:
     void CheckDofs();
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
     void CheckSpecificProperties();
+
+    /**
+    * computes the local axis of the element (for visualization)
+    * @param rVariable: the variable to select the output
+    * @param rOutput: the computed local axis
+    * @param rpCoordinateTransformation: the coordinate-transformation to be used for computing the local axis
+    */
+    template <typename T>
+    void ComputeLocalAxis(const Variable<array_1d<double, 3> >& rVariable,
+        std::vector<array_1d<double, 3> >& rOutput,
+        const T& rpCoordinateTransformation)
+    {
+        const SizeType num_gps = GetNumberOfGPs();
+        if (rOutput.size() != num_gps) rOutput.resize(num_gps);
+
+        for (IndexType i=1; i<num_gps; ++i) {
+            noalias(rOutput[i]) = ZeroVector(3);
+        }
+
+        const auto localCoordinateSystem(rpCoordinateTransformation->CreateLocalCoordinateSystem());
+        if (rVariable == LOCAL_AXIS_1) {
+            noalias(rOutput[0]) = localCoordinateSystem.Vx();
+        }
+        else if (rVariable == LOCAL_AXIS_2) {
+            noalias(rOutput[0]) = localCoordinateSystem.Vy();
+        }
+        else if (rVariable == LOCAL_AXIS_3) {
+            noalias(rOutput[0]) = localCoordinateSystem.Vz();
+        }
+        else {
+            KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
+        }
+    }
+
+    /**
+    * computes the local material axis of the element (for visualization)
+    * @param rVariable: the variable to select the output
+    * @param rOutput: the computed local material axis
+    * @param rpCoordinateTransformation: the coordinate-transformation to be used for computing the local material axis
+    */
+    template <typename T>
+    void ComputeLocalMaterialAxis(const Variable<array_1d<double, 3> >& rVariable,
+        std::vector<array_1d<double, 3> >& rOutput,
+        const T& rpCoordinateTransformation)
+    {
+        const double mat_angle = Has(MATERIAL_ORIENTATION_ANGLE) ? GetValue(MATERIAL_ORIENTATION_ANGLE) : 0.0;
+
+        const SizeType num_gps = GetNumberOfGPs();
+        if (rOutput.size() != num_gps) rOutput.resize(num_gps);
+
+        for (IndexType i=1; i<num_gps; ++i) {
+            noalias(rOutput[i]) = ZeroVector(3);
+        }
+
+        const auto localCoordinateSystem(rpCoordinateTransformation->CreateLocalCoordinateSystem());
+
+        const auto eZ = localCoordinateSystem.Vz();
+
+        if (rVariable == LOCAL_MATERIAL_AXIS_1) {
+            const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
+            q.RotateVector3(localCoordinateSystem.Vx(), rOutput[0]);
+        }
+        else if (rVariable == LOCAL_MATERIAL_AXIS_2) {
+            const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
+            q.RotateVector3(localCoordinateSystem.Vy(), rOutput[0]);
+        }
+        else if (rVariable == LOCAL_MATERIAL_AXIS_3) {
+            noalias(rOutput[0]) = eZ;
+        }
+        else {
+            KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
+        }
+    }
 
 
     /**
