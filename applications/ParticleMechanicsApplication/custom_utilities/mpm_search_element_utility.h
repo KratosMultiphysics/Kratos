@@ -29,95 +29,91 @@
 
 namespace Kratos
 {
-      class MPMSearchElementUtility
+class MPMSearchElementUtility
+{
+
+public:
+
+      typedef std::size_t IndexType;
+
+      typedef std::size_t SizeType;
+
+      /**
+       * @brief Search element connectivity for each particle
+       * @details A search is performed to know in which grid element the material point falls.
+       * If one or more material points fall in the grid element, the grid element is
+       * set to be active and its connectivity is associated to the material point
+       * element.
+       * STEPS:
+       * 1) All the elements are set to be INACTIVE
+       * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
+       *
+       */
+      template<std::size_t TDim>
+      static inline void SearchElement(
+            ModelPart& rBackgroundGridModelPart,
+            ModelPart& rMPMModelPart,
+            const std::size_t MaxNumberOfResults = 1000,
+            const double Tolerance = 1.0e-5)
       {
+            // Reset elements to inactive
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i){
+                  auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
+                  auto& rGeom = element_itr->GetGeometry();
+                  element_itr->Reset(ACTIVE);
 
-      public:
+                  for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
+                        rGeom[j].Reset(ACTIVE);
 
-            typedef Matrix MatrixType;
+            }
 
-            typedef Vector VectorType;
+            // Search background grid and make element active
+            Vector N;
+            const int max_result = 1000;
 
-            typedef unsigned int IndexType;
-
-            typedef std::size_t SizeType;
-
-            /**
-             * @brief Search element connectivity for each particle
-             * @details A search is performed to know in which grid element the material point falls.
-             * If one or more material points fall in the grid element, the grid element is
-             * set to be active and its connectivity is associated to the material point
-             * element.
-             * STEPS:
-             * 1) All the elements are set to be INACTIVE
-             * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
-             *
-             */
-            template<std::size_t TDim>
-            static inline void SearchElement(
-                  ModelPart& rBackgroundGridModelPart,
-                  ModelPart& rMPMModelPart,
-                  const std::size_t MaxNumberOfResults = 1000,
-                  const double Tolerance = 1.0e-5)
+            #pragma omp parallel
             {
-                  // Reset elements to inactive
-                  #pragma omp parallel for
-                  for(int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i){
-                        auto element_itr = rBackgroundGridModelPart.Elements().begin() + i;
-                        auto& rGeom = element_itr->GetGeometry();
-                        element_itr->Reset(ACTIVE);
+                  BinBasedFastPointLocator<TDim> SearchStructure(rBackgroundGridModelPart);
+                  SearchStructure.UpdateSearchDatabase();
 
-                        for (SizeType i=0; i < rGeom.PointsNumber(); ++i)
-                              rGeom[i].Reset(ACTIVE);
+                  typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
-                  }
+                  #pragma omp for
+                  for(int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i){
 
-                  // Search background grid and make element active
-                  Vector N;
-                  const int max_result = 1000;
+                        auto element_itr = rMPMModelPart.Elements().begin() + i;
 
-                  #pragma omp parallel
-                  {
-                        BinBasedFastPointLocator<TDim> SearchStructure(rBackgroundGridModelPart);
-                        SearchStructure.UpdateSearchDatabase();
+                        const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
+                        typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-                        typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
+                        Element::Pointer pelem;
 
-                        #pragma omp for
-                        for(int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i){
+                        // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                        bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
-                              auto element_itr = rMPMModelPart.Elements().begin() + i;
+                        if (is_found == true)
+                        {
+                              pelem->Set(ACTIVE);
+                              element_itr->GetGeometry() = pelem->GetGeometry();
+                              auto& rGeom = element_itr->GetGeometry();
 
-                              const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
-                              typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                              for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
+                                    rGeom[j].Set(ACTIVE);
+                        }
+                        else{
+                              KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Particle " << element_itr->Id()
+                                    << " is failed. Geometry is cleared." << std::endl;
 
-                              Element::Pointer pelem;
-
-                              // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                              bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
-
-                              if (is_found == true)
-                              {
-                                    pelem->Set(ACTIVE);
-                                    element_itr->GetGeometry() = pelem->GetGeometry();
-                                    auto& rGeom = element_itr->GetGeometry();
-
-                                    for (SizeType i=0; i < rGeom.PointsNumber(); ++i)
-                                          rGeom[i].Set(ACTIVE);
-                              }
-                              else{
-                                    KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Particle " << element_itr->Id()
-                                          << " is failed. Geometry is cleared." << std::endl;
-
-                                    element_itr->GetGeometry().clear();
-                                    element_itr->Reset(ACTIVE);
-                                    element_itr->Set(TO_ERASE);
-                              }
+                              element_itr->GetGeometry().clear();
+                              element_itr->Reset(ACTIVE);
+                              element_itr->Set(TO_ERASE);
                         }
                   }
             }
+      }
 
-      }; // end Class MPMSearchElementUtility
+}; // end Class MPMSearchElementUtility
 
 } // end namespace Kratos
 
