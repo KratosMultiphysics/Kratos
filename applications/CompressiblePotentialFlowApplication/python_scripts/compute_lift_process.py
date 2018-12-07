@@ -20,7 +20,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
                 "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
                 "mesh_id": 0,
                 "velocity_infinity": [1.0,0.0,0],
-                "reference_area": 1
+                "reference_area": 1,
+                "create_output_file": false
             }  """)
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -32,6 +33,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
+        self.create_output_file = settings["create_output_file"].GetBool()
 
     def ExecuteFinalize(self):
          print('COMPUTE LIFT')
@@ -55,8 +57,11 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          Cl = RY
          Cd = RX
 
-         print('RZ = ', RZ)
-
          print('Cl = ', Cl)
          print('Cd = ', Cd)
+         print('RZ = ', RZ)
          print('Mach = ', self.velocity_infinity[0]/340)
+
+         if self.create_output_file:
+             with open("cl.dat", 'w') as cl_file:
+                 cl_file.write('{0:15.12f}'.format(Cl))

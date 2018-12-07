@@ -66,7 +66,8 @@
             "model_part_name" : "MainModelPart",
             "upper_surface_model_part_name" : "Body2D_UpperSurface",
             "lower_surface_model_part_name" : "Body2D_LowerSurface",
-            "velocity_infinity" : [10.0,0.0,0.0]
+            "velocity_infinity" : [10.0,0.0,0.0],
+            "create_output_file": true
         }
     },{
         "python_module" : "placeholder_process",
@@ -107,9 +108,22 @@
             "output_file_name"    : "naca0012_test_probe1.dat",
             "reference_file_name" : "naca0012_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : false,
+            "remove_output_file"    : true,
             "tolerance"             : 1e-9,
             "relative_tolerance"    : 1e-12
+        }
+    },{
+        "python_module"   : "compare_two_files_check_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "help"            : "",
+        "process_name"    : "CompareTwoFilesCheckProcess",
+        "Parameters" :{
+            "output_file_name"    : "cl.dat",
+            "reference_file_name" : "cl_ref.dat",
+            "comparison_type"     : "dat_file",
+            "remove_output_file"    : true,
+            "tolerance"             : 1e-9,
+            "relative_tolerance"    : 1e-9
         }
     }]
 }
