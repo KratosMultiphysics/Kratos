@@ -703,8 +703,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipRHSCo
         }
         // application of the nodal projection matrix
         NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], (wGauss * N[nnode] * InterpolatedTraction) );
-        // test
-        NodalEntriesRHS[nnode] = (wGauss * N[nnode] * InterpolatedTraction);
     }
 
     // putting the RHS together
