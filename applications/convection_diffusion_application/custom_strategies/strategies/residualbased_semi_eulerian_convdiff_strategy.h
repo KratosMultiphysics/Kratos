@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -118,9 +118,9 @@ public:
         bool ReformDofAtEachIteration = false,
         int dimension = 3
     )
-        : 
-        mrReferenceModelPart(model_part),
-        SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
+        :
+        SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false),
+        mrReferenceModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -171,7 +171,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedSemiEulerianConvectionDiffusionStrategy() 
+    virtual ~ResidualBasedSemiEulerianConvectionDiffusionStrategy()
     {
         mrReferenceModelPart.GetModel().DeleteModelPart("ConvectionDiffusionPart");
     }

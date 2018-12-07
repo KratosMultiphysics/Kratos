@@ -9,8 +9,6 @@ except:
     pass
 from KratosMultiphysics.MappingApplication import *
 
-CheckForPreviousImport()
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 

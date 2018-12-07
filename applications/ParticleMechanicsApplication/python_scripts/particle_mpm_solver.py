@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("ParticleMechanicsApplication")
-
 # Import applications and dependencies
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 

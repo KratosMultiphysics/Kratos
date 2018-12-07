@@ -332,7 +332,7 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension);
+    Matrix J0 = ZeroMatrix(dimension, dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
@@ -400,7 +400,7 @@ void UpdatedLagrangianAxisymmetry::CalculateAlmansiStrain(const Matrix& rF,
     Matrix LeftCauchyGreen = prod( rF, trans( rF ) );
 
     // Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( dimension, dimension );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( dimension, dimension );
     double det_b=0;
     MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
@@ -509,7 +509,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobian( Matrix& rResult, const array_
     if (dimension ==2)
     {
         rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2);
+        rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
@@ -557,7 +557,7 @@ Matrix& UpdatedLagrangianAxisymmetry::MPMJacobianDelta( Matrix& rResult, const a
     if (dimension ==2)
     {
         rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2);
+        rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
@@ -604,18 +604,18 @@ Vector& UpdatedLagrangianAxisymmetry::MPMShapeFunctionPointValues( Vector& rResu
     if (dimension == 2 && rGeom.PointsNumber() == 3)
     {
         rResult.resize(3, false);
-        rResult( 0 ) = 1 - rPointLocal[0] - rPointLocal[1] ;
-        rResult( 1 ) = rPointLocal[0] ;
-        rResult( 2 ) = rPointLocal[1];
+        rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
+        rResult[1] = rPointLocal[0] ;
+        rResult[2] = rPointLocal[1];
     }
     // For Quadrilateral 2D
     else if (dimension == 2 && rGeom.PointsNumber() == 4)
     {
         rResult.resize(4, false);
-        rResult( 0 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult( 1 ) = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
-        rResult( 2 ) = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
-        rResult( 3 ) = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
+        rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
+        rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
     }
 
     return rResult;

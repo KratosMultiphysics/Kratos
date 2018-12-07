@@ -59,7 +59,6 @@ namespace Kratos
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             
@@ -109,6 +108,7 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
+                it_node->SetValue(NODAL_AREA, 0.0);
             }
                          
             typedef ComputeNodalGradientProcess<2, Variable<double>, Historical> GradientType;
@@ -139,7 +139,6 @@ namespace Kratos
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-            this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             
@@ -264,6 +263,7 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
+                it_node->SetValue(NODAL_AREA, 0.0);
             }
                       
             // Compute gradient

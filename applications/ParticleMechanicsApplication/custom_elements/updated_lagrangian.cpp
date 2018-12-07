@@ -149,12 +149,12 @@ void UpdatedLagrangian::Initialize()
     mDeformationGradientF0 = IdentityMatrix(dimension);
 
     // Compute initial jacobian matrix and inverses
-    Matrix J0 = ZeroMatrix(dimension);
+    Matrix J0 = ZeroMatrix(dimension, dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
     // Compute current jacobian matrix and inverses
-    Matrix j = ZeroMatrix(dimension);
+    Matrix j = ZeroMatrix(dimension, dimension);
     j = this->MPMJacobian(j,xg);
     double detj;
     MathUtils<double>::InvertMatrix( j, mInverseJ, detj );
@@ -295,7 +295,7 @@ void UpdatedLagrangian::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix
         if ( rLeftHandSideMatrix.size1() != matrix_size )
             rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size); //resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size, matrix_size); //resetting LHS
     }
 
     // Resizing the RHS vector if needed
@@ -407,7 +407,7 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     Matrix I = IdentityMatrix(dimension);
-    Matrix gradient_displacement = ZeroMatrix(dimension);
+    Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     gradient_displacement = prod(trans(rVariables.CurrentDisp),rVariables.DN_DX);
 
@@ -832,7 +832,7 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension);
+        Matrix J0 = ZeroMatrix(dimension, dimension);
 
         J0 = this->MPMJacobian(J0, xg);
 
@@ -867,7 +867,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension);
+        Matrix J0 = ZeroMatrix(dimension, dimension);
 
         J0 = this->MPMJacobian(J0, xg);
 
@@ -899,7 +899,7 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension);
+        Matrix J0 = ZeroMatrix(dimension, dimension);
 
         J0 = this->MPMJacobian(J0, xg);
 
@@ -941,7 +941,7 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     GeneralVariables Variables;
 
     // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension);
+    Matrix J0 = ZeroMatrix(dimension, dimension);
     J0 = this->MPMJacobian(J0, xg);
     MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
@@ -1397,7 +1397,7 @@ void UpdatedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, Proc
     if ( rDampingMatrix.size1() != matrix_size )
         rDampingMatrix.resize( matrix_size, matrix_size, false );
 
-    noalias( rDampingMatrix ) = ZeroMatrix(matrix_size);
+    noalias( rDampingMatrix ) = ZeroMatrix(matrix_size, matrix_size);
 
     //1.-Calculate StiffnessMatrix:
     MatrixType StiffnessMatrix  = Matrix();
@@ -1454,7 +1454,7 @@ void UpdatedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInf
     if ( rMassMatrix.size1() != matrix_size )
         rMassMatrix.resize( matrix_size, matrix_size, false );
 
-    rMassMatrix = ZeroMatrix(matrix_size);
+    rMassMatrix = ZeroMatrix(matrix_size, matrix_size);
 
     // TOTAL MASS OF ONE MP ELEMENT
     const double & TotalMass = this->GetValue(MP_MASS);
@@ -1494,7 +1494,7 @@ Matrix& UpdatedLagrangian::MPMJacobian( Matrix& rResult, const array_1d<double,3
     if (dimension ==2)
     {
         rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2);
+        rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
@@ -1507,7 +1507,7 @@ Matrix& UpdatedLagrangian::MPMJacobian( Matrix& rResult, const array_1d<double,3
     else if(dimension ==3)
     {
         rResult.resize( 3, 3, false );
-        rResult = ZeroMatrix(3);
+        rResult = ZeroMatrix(3,3);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
         {
@@ -1555,7 +1555,7 @@ Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, const array_1d<dou
     if (dimension ==2)
     {
         rResult.resize( 2, 2, false );
-        rResult = ZeroMatrix(2);
+        rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
@@ -1568,7 +1568,7 @@ Matrix& UpdatedLagrangian::MPMJacobianDelta( Matrix& rResult, const array_1d<dou
     else if(dimension ==3)
     {
         rResult.resize( 3, 3, false );
-        rResult = ZeroMatrix(3);
+        rResult = ZeroMatrix(3,3);
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
             rResult( 0, 0 ) += ( rGeom.GetPoint( i ).X() + rDeltaPosition(i,0)) * ( shape_functions_gradients( i, 0 ) );
@@ -1617,9 +1617,9 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
 
         // 2. Get Shape functions: N
-        rResult( 0 ) = 1 - rPointLocal[0] - rPointLocal[1] ;
-        rResult( 1 ) = rPointLocal[0] ;
-        rResult( 2 ) = rPointLocal[1];
+        rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
+        rResult[1] = rPointLocal[0] ;
+        rResult[2] = rPointLocal[1];
     }
     else if (dimension == 3)
     {
@@ -1630,10 +1630,10 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
 
         // 2. Get Shape functions: N
-        rResult( 0 ) =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
-        rResult( 1 ) = rPointLocal[0] ;
-        rResult( 2 ) = rPointLocal[1];
-        rResult( 3 ) = rPointLocal[2];
+        rResult[0] =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
+        rResult[1] = rPointLocal[0] ;
+        rResult[2] = rPointLocal[1];
+        rResult[3] = rPointLocal[2];
     }
 
     return rResult;
