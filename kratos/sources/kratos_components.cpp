@@ -134,39 +134,39 @@ void AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::Point
 
 template<class TComponentType> typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 4> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+template class KratosComponents<Variable<bool> >;
+template class KratosComponents<Variable<int> >;
+template class KratosComponents<Variable<unsigned int> >;
+template class KratosComponents<Variable<double> >;
+template class KratosComponents<Variable<array_1d<double, 3> > >;
+template class KratosComponents<Variable<array_1d<double, 4> > >;
+template class KratosComponents<Variable<array_1d<double, 6> > >;
+template class KratosComponents<Variable<array_1d<double, 9> > >;
+template class KratosComponents<Variable<Quaternion<double> > >;
+template class KratosComponents<Variable<Vector> >;
+template class KratosComponents<Variable<Matrix> >;
+template class KratosComponents<Variable<std::string> >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
+template class KratosComponents<Variable<Flags> >;
+template class KratosComponents<Flags>;
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Element>;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Condition>;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw>;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<MasterSlaveConstraint>;
+template class KratosComponents<Element>;
+template class KratosComponents<Condition>;
+template class KratosComponents<ConstitutiveLaw>;
+template class KratosComponents<Variable<ConstitutiveLaw::Pointer>>;
+template class KratosComponents<MasterSlaveConstraint>;
 
 using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double>>;
 using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
 using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
 using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
+template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;

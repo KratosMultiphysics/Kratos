@@ -533,7 +533,7 @@ private:
     }
 };
 
-extern template class KratosComponents<MasterSlaveConstraint>;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<MasterSlaveConstraint>;
 
 ///@name Input/Output funcitons
 ///@{

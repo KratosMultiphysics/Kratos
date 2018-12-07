@@ -1269,7 +1269,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
-extern template class KratosComponents<Element >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Element >;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element const& ThisComponent);
 
